@@ -1,0 +1,28 @@
+# H3C CAS CVM Server Docker Image
+# Runs the mock CVM REST API server (Python)
+FROM python:3.11-slim
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl ca-certificates openssl \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN pip install --no-cache-dir lxml
+
+WORKDIR /opt/cas-frame
+COPY h3c-cas-frame/mock_server.py /opt/cas-frame/
+COPY h3c-cas-frame/casframe /opt/cas-frame/casframe/
+
+# Required directory structure
+RUN mkdir -p /etc/cvk/cvm /etc/tomcat /var/lib/tomcat/conf /var/lib/tomcat/webapps \
+    /var/lib/tomcat/security /var/log/tomcat /var/run
+
+# Generate a self-signed cert for HTTPS (keystore won't work in Python, but we have it)
+RUN openssl req -x509 -newkey rsa:2048 -keyout /var/lib/tomcat/security/keystore \
+    -out /var/lib/tomcat/security/keystore -days 3650 -nodes \
+    -subj "/C=CN/ST=Beijing/L=Beijing/O=H3C/CN=localhost" 2>/dev/null || true
+
+EXPOSE 8080 8443
+HEALTHCHECK --interval=10s --timeout=5s --retries=15 \
+    CMD curl -f -u admin:Cloud@123 http://localhost:8080/cas/casrs/operator/test -o /dev/null -w '%{http_code}' | grep -q 204 || exit 1
+
+CMD ["python3", "-u", "mock_server.py", "--host", "0.0.0.0", "--port", "8080"]

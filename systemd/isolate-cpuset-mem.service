@@ -1,0 +1,17 @@
+[Unit]
+Description=Process CPU and Memory Resource Isolate by Cgroup
+DefaultDependencies=no
+After=openvswitch.service
+Wants=openvswitch.service
+ConditionPathExists=/sys/fs/cgroup/memory
+
+[Service]
+Type=forking
+Restart=on-failure
+RemainAfterExit=yes
+ExecStartPre=/usr/bin/systemctl start systemd-machined.service
+ExecStart=/usr/bin/python3 /opt/bin/isolate_cpuset_mem.pyc config --hierarchy all --lastcpus
+ExecStop=/bin/true
+
+[Install]
+WantedBy=multi-user.target

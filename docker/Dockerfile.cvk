@@ -1,0 +1,115 @@
+# H3C CAS CVK Agent Mock Docker Image
+# Simulates a CVK hypervisor host connecting to the CVM
+FROM python:3.11-slim
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /opt/cvk
+
+# Create minimal CVK agent mock — reports host status to CVM
+COPY <<-PYEOF /opt/cvk/cvk_agent_mock.py
+#!/usr/bin/env python3
+"""H3C CAS CVK Agent Mock — registers with CVM and simulates a hypervisor host."""
+import http.server
+import os
+import socket
+import time
+import json
+import urllib.request
+import urllib.error
+import threading
+import sys
+
+CVM_HOST = os.environ.get("CVM_HOST", "localhost")
+CVM_PORT = int(os.environ.get("CVM_PORT", "8080"))
+HOST_ID = os.environ.get("CVK_HOST_ID", "host-001")
+HOST_NAME = os.environ.get("CVK_HOST_NAME", "cvk-node-1")
+
+# ── CVK Agent TCP/UDP Listeners ────────────────────────────────────
+
+class CVKTCPHandler(http.server.BaseHTTPRequestHandler):
+    """Minimal TCP handler for cvk-agent port (26165)."""
+    def do_GET(self):
+        self.send_response(200)
+        self.send_header("Content-Type", "text/plain")
+        self.end_headers()
+        self.wfile.write(f"host_id={HOST_ID}\nhost_name={HOST_NAME}\nstatus=online\n".encode())
+
+    def log_message(self, format, *args):
+        if os.environ.get("CVK_DEBUG"):
+            sys.stderr.write(f"[CVK-TCP] {args[0]}\\n")
+
+
+def run_tcp_server():
+    port = int(os.environ.get("CVK_AGENT_PORT", "26165"))
+    server = http.server.HTTPServer(("0.0.0.0", port), CVKTCPHandler)
+    print(f"[CVK] TCP agent listening on port {port}")
+    server.serve_forever()
+
+
+def run_udp_listener():
+    """Listen on UDP port 26167 for heartbeats."""
+    port = int(os.environ.get("CVK_AGENT_PORT", "26165")) + 2
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    sock.bind(("0.0.0.0", port))
+    print(f"[CVK] UDP listener on port {port}")
+    while True:
+        data, addr = sock.recvfrom(1024)
+        if data:
+            sock.sendto(b"ACK", addr)
+
+
+def register_with_cvm():
+    """Attempt to register this CVK with the CVM."""
+    url = f"http://{CVM_HOST}:{CVM_PORT}/cas/casrs/"
+    print(f"[CVK] Attempting to connect to CVM at {CVM_HOST}:{CVM_PORT}...")
+
+    for attempt in range(30):
+        try:
+            req = urllib.request.Request(f"http://{CVM_HOST}:{CVM_PORT}/cas/casrs/operator/test")
+            req.add_header("Accept", "application/xml")
+            # Try Digest auth
+            from urllib.request import HTTPDigestAuthHandler, HTTPPasswordMgrWithDefaultRealm, build_opener
+            mgr = HTTPPasswordMgrWithDefaultRealm()
+            mgr.add_password(None, f"http://{CVM_HOST}:{CVM_PORT}", "admin", "Cloud@123")
+            auth_handler = HTTPDigestAuthHandler(mgr)
+            opener = build_opener(auth_handler)
+            resp = opener.open(req, timeout=5)
+            if resp.status == 204:
+                print(f"[CVK] Successfully connected to CVM. Registered as {HOST_NAME} ({HOST_ID})")
+                return True
+        except Exception as e:
+            print(f"[CVK] Connection attempt {attempt + 1}/30 failed: {e}")
+            time.sleep(5)
+    print("[CVK] Failed to connect to CVM after 30 attempts")
+    return False
+
+
+if __name__ == "__main__":
+    print(f"[CVK] Starting CVK Agent for host {HOST_NAME} ({HOST_ID})")
+    
+    # Start listeners
+    tcp_thread = threading.Thread(target=run_tcp_server, daemon=True)
+    udp_thread = threading.Thread(target=run_udp_listener, daemon=True)
+    tcp_thread.start()
+    udp_thread.start()
+    
+    # Register with CVM
+    registered = register_with_cvm()
+    
+    # Keep alive
+    try:
+        while True:
+            time.sleep(60)
+    except KeyboardInterrupt:
+        print("[CVK] Shutting down...")
+PYEOF
+
+RUN chmod +x /opt/cvk/cvk_agent_mock.py
+RUN mkdir -p /etc/cvk
+
+EXPOSE 26165 26167/udp 26888 5900-5910 20050 20101/udp 9023/udp 162/udp
+
+CMD ["python3", "-u", "/opt/cvk/cvk_agent_mock.py"]

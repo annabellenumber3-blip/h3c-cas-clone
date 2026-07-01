@@ -1,0 +1,43 @@
+[Unit]
+Description=H3C CVK Agent — KVM Hypervisor Management Agent
+Documentation=https://hermes-agent.nousresearch.com/docs
+After=network.target libvirtd.service openvswitch.service rabbitmq-server.service
+Wants=network.target libvirtd.service openvswitch.service
+
+[Service]
+Type=simple
+User=root
+Group=root
+WorkingDirectory=/opt/cvk-agent
+
+# Environment
+Environment=PYTHONUNBUFFERED=1
+Environment=LC_ALL=C.UTF-8
+
+# Main process
+ExecStart=/usr/bin/python3 -m cvk_agent --config /etc/cvk/cvk_agent.conf
+
+# Restart policy
+Restart=always
+RestartSec=10
+TimeoutStartSec=60
+TimeoutStopSec=30
+
+# Resource limits
+LimitNOFILE=65536
+LimitNPROC=32768
+LimitMEMLOCK=infinity
+
+# Sandboxing (loose — this is a hypervisor agent)
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/etc/cvk /var/log/cvk /var/run/libvirt /var/lib/libvirt /vms /mnt/nfs
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=cvkagentd
+
+[Install]
+WantedBy=multi-user.target

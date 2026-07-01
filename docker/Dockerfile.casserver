@@ -1,0 +1,98 @@
+# H3C CAS Server Mock Docker Image
+# Simulates the caSserver monitoring/HA process (Java, ported to Python)
+FROM python:3.11-slim
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /opt/casserver
+
+COPY <<-PYEOF /opt/casserver/casserver_mock.py
+#!/usr/bin/env python3
+"""H3C CAS Monitoring/HA Server Mock — TCP/UDP listeners for CAS HA subsystem."""
+import socket
+import threading
+import time
+import os
+
+CVM_HOST = os.environ.get("CVM_HOST", "localhost")
+
+# Port definitions from system_ports
+MON_FRONTEND = 20041     # mon_frontend_server_port (TCP)
+HA_BACKEND = 20042       # ha_backend_server_port (TCP)
+HA_FRONTEND = 20043      # ha_frontend_server_port (TCP)
+MON_BACKEND = 20044      # mon_backend_server_port (TCP)
+HA_CVM = 20045           # ha_cvm_server_port (TCP)
+HA_CVK = 20046           # ha_cvk_server_port (TCP)
+CASSERVER_UDP = 20048    # casserver_udp_port
+MON_FDT = 20100          # mon_fdt_server_port (TCP)
+CASSERVER_NOTIFY = 9023  # casserver_notify_port (UDP/SNMP)
+
+
+def tcp_listener(name, port):
+    """Generic TCP echo listener for CAS HA ports."""
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    sock.bind(("0.0.0.0", port))
+    sock.listen(5)
+    print(f"[CAServer] {name} TCP listening on :{port}")
+    while True:
+        try:
+            conn, addr = sock.accept()
+            data = conn.recv(4096)
+            if data:
+                conn.send(b"OK\n")
+            conn.close()
+        except Exception:
+            pass
+
+
+def udp_listener(name, port):
+    """Generic UDP listener."""
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    sock.bind(("0.0.0.0", port))
+    print(f"[CAServer] {name} UDP listening on :{port}")
+    while True:
+        try:
+            data, addr = sock.recvfrom(1024)
+            if data:
+                sock.sendto(b"ACK", addr)
+        except Exception:
+            pass
+
+
+if __name__ == "__main__":
+    print(f"[CAServer] Starting CAS Monitoring/HA Server")
+    print(f"[CAServer] CVM target: {CVM_HOST}")
+
+    # TCP listeners
+    for name, port in [
+        ("mon_frontend", MON_FRONTEND),
+        ("ha_backend", HA_BACKEND),
+        ("ha_frontend", HA_FRONTEND),
+        ("mon_backend", MON_BACKEND),
+        ("ha_cvm", HA_CVM),
+        ("ha_cvk", HA_CVK),
+        ("mon_fdt", MON_FDT),
+    ]:
+        threading.Thread(target=tcp_listener, args=(name, port), daemon=True).start()
+
+    # UDP listeners
+    for name, port in [
+        ("casserver_udp", CASSERVER_UDP),
+        ("casserver_notify", CASSERVER_NOTIFY),
+    ]:
+        threading.Thread(target=udp_listener, args=(name, port), daemon=True).start()
+
+    # Keep alive
+    try:
+        while True:
+            time.sleep(60)
+    except KeyboardInterrupt:
+        print("[CAServer] Shutting down...")
+PYEOF
+
+RUN chmod +x /opt/casserver/casserver_mock.py
+
+CMD ["python3", "-u", "/opt/casserver/casserver_mock.py"]

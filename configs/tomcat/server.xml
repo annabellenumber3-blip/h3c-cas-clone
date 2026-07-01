@@ -1,0 +1,58 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!-- H3C CAS Tomcat Server Configuration -->
+<!-- Original: /etc/tomcat/server.xml (from /var/lib/tomcat/conf/server.xml) -->
+<!-- Recovered from R0785P03 front.package/tomcat/tomcat_server.xml -->
+<Server port="8005" shutdown="SHUTDOWN">
+  <Listener className="org.apache.catalina.startup.VersionLoggerListener" />
+  <Listener className="org.apache.catalina.core.JreMemoryLeakPreventionListener" />
+  <Listener className="org.apache.catalina.mbeans.GlobalResourcesLifecycleListener" />
+  <Listener className="org.apache.catalina.core.ThreadLocalLeakPreventionListener" />
+
+  <GlobalNamingResources>
+    <Resource name="UserDatabase" auth="Container"
+              type="org.apache.catalina.UserDatabase"
+              description="User database that can be updated and saved"
+              factory="org.apache.catalina.users.MemoryUserDatabaseFactory"
+              pathname="conf/tomcat-users.xml" />
+  </GlobalNamingResources>
+
+  <Service name="Catalina">
+
+    <!-- HTTP Connector on port 8080 -->
+    <Connector port="8080" protocol="HTTP/1.1" server="CVM"
+               connectionTimeout="20000"
+               URIEncoding="UTF-8"
+               redirectPort="8443"
+               maxConnections="600"
+               acceptCount="600"
+               maxThreads="300"
+               keepAliveTimeout="15000"/>
+
+    <!-- HTTPS Connector on port 8443, TLS 1.2 only -->
+    <Connector ciphers="TLS_RSA_WITH_AES_128_CBC_SHA,TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,TLS_RSA_WITH_AES_128_CBC_SHA256,TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256,SSL_RSA_WITH_3DES_EDE_CBC_SHA,TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA"
+               port="8443" protocol="HTTP/1.1" SSLEnabled="true" server="CVM"
+               maxThreads="150" scheme="https" secure="true"
+               URIEncoding="UTF-8"
+               clientAuth="false" sslProtocol="TLS" sslEnabledProtocols="TLSv1.2"
+               keystoreFile="/var/lib/tomcat/security/keystore" keystorePass="h3cbj2013" />
+
+    <Engine name="Catalina" defaultHost="localhost">
+      <Realm className="org.apache.catalina.realm.LockOutRealm">
+        <Realm className="org.apache.catalina.realm.UserDatabaseRealm"
+               resourceName="UserDatabase"/>
+      </Realm>
+
+      <Host name="localhost" appBase="webapps"
+            unpackWARs="true" autoDeploy="false"
+            xmlValidation="false" xmlNamespaceAware="false">
+        <Valve className="org.apache.catalina.valves.AccessLogValve" directory="logs"
+               prefix="localhost_access_log" suffix=".log"
+               pattern="%h %l %u %t &quot;%r&quot; %s %b %D"/>
+        <Valve className="org.apache.catalina.valves.RemoteIpValve"
+               remoteIpHeader="x-forwarded-for"
+               remoteIpProxiesHeader="x-forwarded-by" />
+        <Context docBase="cas" path="/cas" reloadable="false"/>
+      </Host>
+    </Engine>
+  </Service>
+</Server>

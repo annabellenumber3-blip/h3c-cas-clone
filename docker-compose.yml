@@ -1,0 +1,360 @@
+# H3C CAS Clone — Docker Compose Deployment
+# All services required to run a complete CAS virtualization management stack
+# Recovered from H3C CAS R0785P03 distribution
+version: "3.8"
+
+services:
+  # ──────────────────────────────────────────────────────────────────────────
+  # PostgreSQL 1523 — vservice database (primary CAS database)
+  # ──────────────────────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:14-alpine
+    container_name: cas-postgres
+    hostname: cas-postgres
+    environment:
+      POSTGRES_USER: ssadmin
+      POSTGRES_PASSWORD: Pzss@_w0rd
+    ports:
+      - "1523:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./configs/postgresql/pg.conf:/etc/postgresql/pg.conf:ro
+      - ./configs/postgresql/pg_hba.conf:/etc/postgresql/pg_hba.conf:ro
+      - ./scripts/init-postgres.sh:/docker-entrypoint-initdb.d/01-init.sh:ro
+    command: >
+      postgres
+      -c config_file=/etc/postgresql/pg.conf
+      -c hba_file=/etc/postgresql/pg_hba.conf
+      -c max_connections=500
+      -c password_encryption=md5
+      -c shared_buffers=128MB
+      -c dynamic_shared_memory_type=posix
+      -c log_destination=stderr
+      -c logging_collector=on
+      -c log_directory=/var/log/postgresql
+      -c log_filename=seasql-%a.log
+      -c log_rotation_age=1d
+      -c log_truncate_on_rotation=on
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ssadmin -d vservice"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+    networks:
+      cas-net:
+        aliases:
+          - localhost
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # MySQL 3306 — cas_cic database
+  # ──────────────────────────────────────────────────────────────────────────
+  mysql:
+    image: mysql:8.0
+    container_name: cas-mysql
+    hostname: cas-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: Pzss@_w0rd
+      MYSQL_DATABASE: cas_cic
+      MYSQL_USER: ssadmin
+      MYSQL_PASSWORD: Pzss@_w0rd
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./scripts/init-mysql.sh:/docker-entrypoint-initdb.d/01-init.sh:ro
+    command: >
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_general_ci
+      --max_connections=500
+      --default-authentication-plugin=mysql_native_password
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-pPzss@_w0rd"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+    networks:
+      cas-net:
+        aliases:
+          - localhost
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # Redis 6379 — cache & session store
+  # ──────────────────────────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: cas-redis
+    hostname: cas-redis
+    command: >
+      redis-server
+      --port 6379
+      --requirepass "Sy@Redi$79"
+      --maxmemory 512mb
+      --maxmemory-policy allkeys-lru
+      --save 900 1
+      --save 300 10
+      --save 60 10000
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+      - ./configs/redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "Sy@Redi$79", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+    networks:
+      cas-net:
+        aliases:
+          - localhost
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # RabbitMQ 5672 — message broker (cloudMsgHost vhost, cloud/Cl@oud13)
+  # ──────────────────────────────────────────────────────────────────────────
+  rabbitmq:
+    image: rabbitmq:3.12-management-alpine
+    container_name: cas-rabbitmq
+    hostname: cas-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: cloud
+      RABBITMQ_DEFAULT_PASS: Cl@oud13
+      RABBITMQ_DEFAULT_VHOST: cloudMsgHost
+    ports:
+      - "5672:5672"    # AMQP
+      - "15672:15672"  # Management UI
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+      - ./scripts/init-rabbitmq.sh:/etc/rabbitmq/init.sh:ro
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+    restart: unless-stopped
+    networks:
+      cas-net:
+        aliases:
+          - localhost
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # ClickHouse 8123 — metrics database
+  # ──────────────────────────────────────────────────────────────────────────
+  clickhouse:
+    image: clickhouse/clickhouse-server:23.8-alpine
+    container_name: cas-clickhouse
+    hostname: cas-clickhouse
+    environment:
+      CLICKHOUSE_USER: default
+      CLICKHOUSE_PASSWORD: Pzss@_w0rd
+      CLICKHOUSE_DB: metrics
+    ports:
+      - "8123:8123"   # HTTP
+      - "9000:9000"   # Native
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+      - ./configs/clickhouse/config.xml:/etc/clickhouse-server/config.d/config.xml:ro
+      - ./configs/clickhouse/users.xml:/etc/clickhouse-server/users.d/users.xml:ro
+      - ./scripts/init-clickhouse.sh:/docker-entrypoint-initdb.d/01-init.sh:ro
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144
+    healthcheck:
+      test: ["CMD-SHELL", "clickhouse-client --user default --password Pzss@_w0rd -q 'SELECT 1'"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+    networks:
+      cas-net:
+        aliases:
+          - localhost
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # Kafka 9092 — async producer
+  # ──────────────────────────────────────────────────────────────────────────
+  kafka:
+    image: bitnami/kafka:3.6
+    container_name: cas-kafka
+    hostname: cas-kafka
+    environment:
+      KAFKA_CFG_NODE_ID: 1
+      KAFKA_CFG_PROCESS_ROLES: "broker,controller"
+      KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: "1@cas-kafka:9093"
+      KAFKA_CFG_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CFG_LISTENERS: "PLAINTEXT://:9092,CONTROLLER://:9093"
+      KAFKA_CFG_ADVERTISED_LISTENERS: "PLAINTEXT://localhost:9092"
+      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: "CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT"
+      KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_CFG_NUM_PARTITIONS: 3
+    ports:
+      - "9092:9092"
+    volumes:
+      - kafka_data:/bitnami/kafka
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-topics.sh --bootstrap-server localhost:9092 --list"]
+      interval: 10s
+      timeout: 10s
+      retries: 15
+    restart: unless-stopped
+    networks:
+      cas-net:
+        aliases:
+          - localhost
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # CVM Server (Mock) — the CAS REST API (port 8080/8443)
+  # Uses the mock_server.py from h3c-cas-frame to simulate CVM
+  # ──────────────────────────────────────────────────────────────────────────
+  cvm-server:
+    build:
+      context: ..
+      dockerfile: h3c-cas-clone/docker/Dockerfile.cvm
+    container_name: cas-cvm-server
+    hostname: cas-cvm-server
+    ports:
+      - "8080:8080"
+      - "8443:8443"
+    volumes:
+      - ../h3c-cas-frame:/opt/cas-frame:ro
+      - ./configs/cvm/db.properties:/etc/cvk/cvm/db.properties:ro
+      - ./configs/cvm/redis.properties:/etc/cvk/cvm/redis.properties:ro
+      - ./configs/cvm/kafka.properties:/etc/cvk/cvm/kafka.properties:ro
+      - ./configs/cvm/clickhouse.properties:/etc/cvk/cvm/clickhouse.properties:ro
+      - ./configs/tomcat/server.xml:/etc/tomcat/server.xml:ro
+    environment:
+      CAS_DB_HOST: cas-postgres
+      CAS_DB_PORT: "5432"
+      CAS_MYSQL_HOST: cas-mysql
+      CAS_REDIS_HOST: cas-redis
+      CAS_RMQ_HOST: cas-rabbitmq
+      CAS_CLICKHOUSE_HOST: cas-clickhouse
+      CAS_KAFKA_HOST: cas-kafka
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      clickhouse:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f -u admin:Cloud@123 http://localhost:8080/cas/casrs/operator/test -o /dev/null -w '%{http_code}' | grep -q 204"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+    restart: unless-stopped
+    networks:
+      cas-net:
+        aliases:
+          - localhost
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # CVK Agent (Mock) — simulates a hypervisor host connecting to CVM
+  # ──────────────────────────────────────────────────────────────────────────
+  cvk-agent:
+    build:
+      context: ..
+      dockerfile: h3c-cas-clone/docker/Dockerfile.cvk
+    container_name: cas-cvk-agent
+    hostname: cvk-node-1
+    ports:
+      - "26165:26165"    # cvk_agent_port
+      - "26167:26167/udp" # cvk_agent_udp_port
+      - "26888:26888"     # cvk_res_report_port
+      - "5900-5910:5900-5910"  # VNC port range
+      - "20050:20050"    # TCP monitor
+      - "20101:20101/udp" # UDP monitor
+      - "9023:9023/udp"  # casserver_notify_port (SNMP trap)
+      - "162:162/udp"    # SNMP
+    volumes:
+      - ./configs/cvk/cvk_agent.conf:/etc/cvk/cvk_agent.conf:ro
+      - ./configs/cvk/system_ports:/etc/cvk/system_ports:ro
+      - ./configs/cvk/casmon.conf:/etc/cvk/casmon.conf:ro
+      - ./configs/cvk/casaudit.conf:/etc/cvk/casaudit.conf:ro
+      - ./configs/cvk/rbd_vendor.conf:/etc/cvk/rbd_vendor.conf:ro
+      - ./configs/cvk/cpu_mem_threshold.conf:/etc/cvk/cpu_mem_threshold.conf:ro
+    environment:
+      CVM_HOST: cas-cvm-server
+      CVM_PORT: "8080"
+      CVK_HOST_ID: "host-001"
+      CVK_HOST_NAME: "cvk-node-1"
+      CVK_AGENT_PORT: "26165"
+    depends_on:
+      cvm-server:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      cas-net:
+        aliases:
+          - cvk-node-1
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # noVNC Proxy — VNC console access on port 8081 (TLS 1.2)
+  # ──────────────────────────────────────────────────────────────────────────
+  novnc:
+    image: theasp/novnc:latest
+    container_name: cas-novnc
+    hostname: cas-novnc
+    ports:
+      - "8081:8080"
+    environment:
+      RUN_XVFB: "0"
+      RUN_FLUXBOX: "0"
+      NOVNC_PORT: "8080"
+    depends_on:
+      cvm-server:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      cas-net: {}
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # caSserver — Monitoring/HA process (separate Java process on CVM)
+  # Ports: 20041, 20042, 20043, 20044, 20045, 20046, 20048/udp, 20049, 20100, 9023/udp
+  # ──────────────────────────────────────────────────────────────────────────
+  casserver:
+    build:
+      context: ..
+      dockerfile: h3c-cas-clone/docker/Dockerfile.casserver
+    container_name: cas-casserver
+    hostname: cas-casserver
+    ports:
+      - "20041:20041"    # mon_frontend_server_port
+      - "20042:20042"    # ha_backend_server_port
+      - "20043:20043"    # ha_frontend_server_port
+      - "20044:20044"    # mon_backend_server_port
+      - "20045:20045"    # ha_cvm_server_port
+      - "20046:20046"    # ha_cvk_server_port
+      - "20048:20048/udp"  # casserver_udp_port
+      - "20100:20100"    # mon_fdt_server_port
+      - "9023:9023/udp"  # casserver_notify_port
+    environment:
+      CVM_HOST: cas-cvm-server
+    depends_on:
+      cvm-server:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      cas-net: {}
+
+networks:
+  cas-net:
+    driver: bridge
+    name: cas-net
+
+volumes:
+  postgres_data:
+  mysql_data:
+  redis_data:
+  rabbitmq_data:
+  clickhouse_data:
+  kafka_data:
