@@ -1,0 +1,99 @@
+syntax = "proto3";
+package com.h3c.cas;
+
+option java_multiple_files = true;
+option java_package = "com.h3c.h3cloud.domain.server.common.agent.cvkres.common";
+option java_outer_classname = "CvkResMessageProto";
+
+message CvkResMessage {
+    enum MsgType {
+        DEFAULT = 0;
+        RESPONSE_DATA = 1;
+    }
+    optional MsgType msgType = 1;
+    message Response {
+        optional int32 code = 1;
+        optional string desc = 2;
+    }
+    optional Response response = 2;
+    optional ResponseData responseData = 3;
+}
+message MemoryInfo {
+    optional int64 total = 1;
+    optional int64 free = 2;
+    optional int64 cached = 3;
+    optional int64 available = 4;
+}
+message PoolInfo {
+    optional string name = 1;
+    optional string path = 2;
+    enum StoragePoolType {
+        POOL_TYPE_LOGICAL = 0;
+        POOL_TYPE_CIFS = 1;
+        POOL_TYPE_ISCSI = 2;
+        POOL_TYPE_SCSI = 3;
+        POOL_TYPE_NETFS = 4;
+        POOL_TYPE_GLUSTERFS = 5;
+        POOL_TYPE_FS = 6;
+        POOL_TYPE_FC = 7;
+        POOL_TYPE_RBD = 8;
+        POOL_TYPE_DIR = 9;
+        POOL_TYPE_AEP = 10;
+    }
+    optional StoragePoolType type = 3;
+    optional bool active = 4;
+    optional int64 capacity = 5;
+    optional int64 allocation = 6;
+    optional int64 available = 7;
+}
+message SysInfo {
+    optional int32 cpuRate = 1;
+    optional int32 freeCpuRate = 2;
+    optional MemoryInfo memoryInfo = 3;
+    enum AntivirusType {
+        TYPE_NONE = 0;
+        ANTIVIRUS_TYPE_TREND = 1;
+        ANTIVIRUS_TYPE_360 = 2;
+    }
+    optional AntivirusType antivirusType = 4;
+}
+message DomainInfo {
+    optional string name = 1;
+    enum State {
+        RUNNING = 0;
+        BLOCKED = 1;
+        PAUSED = 2;
+        SHUTDOWN = 3;
+        SHUTOFF = 4;
+        CRASHED = 5;
+        UNKNOWN = 6;
+        NOT_DEPLOYED = 7;
+    }
+    optional State state = 2;
+    optional bool frozen = 3;
+}
+message ConstantInfo {
+    message HyperVisorInfo {
+        optional string cpuModel = 1;
+        optional string cpuVendor = 2;
+        optional string cpuModelName = 3;
+        optional int32 cpuNumber = 4;
+        optional int32 cpuFrequency = 5;
+        optional int32 cpuSockets = 6;
+        optional int32 coresPerSocket = 7;
+        optional int32 threadPerCore = 8;
+        optional int64 memory = 9;
+    }
+    optional HyperVisorInfo hyperVisorInfo = 1;
+}
+message NetworkInfo {
+    optional string name = 1;
+}
+message ResponseData {
+    optional string hostName = 1;
+    optional SysInfo sysInfo = 2;
+    repeated PoolInfo poolInfo = 3;
+    repeated DomainInfo domainInfo = 4;
+    repeated NetworkInfo networkInfo = 5;
+    optional ConstantInfo constantInfo = 6;
+}

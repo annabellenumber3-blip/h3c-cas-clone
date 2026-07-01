@@ -1,0 +1,1136 @@
+Compiled from "DigestAuthenticationFilterExt.java"
+public class com.virtual.plat.server.rs.ext.event.DigestAuthenticationFilterExt extends org.springframework.web.filter.GenericFilterBean implements org.springframework.context.MessageSourceAware {
+  private static final org.apache.commons.logging.Log logger;
+
+  private static com.virtual.plat.server.rs.ext.event.DigestAuthenticationFilterExt instance;
+
+  private org.springframework.security.authentication.AuthenticationDetailsSource authenticationDetailsSource;
+
+  private org.springframework.security.web.authentication.www.DigestAuthenticationEntryPoint authenticationEntryPoint;
+
+  protected org.springframework.context.support.MessageSourceAccessor messages;
+
+  private org.springframework.security.core.userdetails.UserCache userCache;
+
+  private org.springframework.security.core.userdetails.UserDetailsService userDetailsService;
+
+  private boolean passwordAlreadyEncoded;
+
+  private boolean createAuthenticatedToken;
+
+  private static final java.lang.String[] EMPTY_STRING_ARRAY;
+
+  public com.virtual.plat.server.rs.ext.event.DigestAuthenticationFilterExt();
+    Code:
+       0: aload_0
+       1: invokespecial #1                  // Method org/springframework/web/filter/GenericFilterBean."<init>":()V
+       4: aload_0
+       5: new           #2                  // class org/springframework/security/web/authentication/WebAuthenticationDetailsSource
+       8: dup
+       9: invokespecial #3                  // Method org/springframework/security/web/authentication/WebAuthenticationDetailsSource."<init>":()V
+      12: putfield      #4                  // Field authenticationDetailsSource:Lorg/springframework/security/authentication/AuthenticationDetailsSource;
+      15: aload_0
+      16: invokestatic  #5                  // Method org/springframework/security/core/SpringSecurityMessageSource.getAccessor:()Lorg/springframework/context/support/MessageSourceAccessor;
+      19: putfield      #6                  // Field messages:Lorg/springframework/context/support/MessageSourceAccessor;
+      22: aload_0
+      23: new           #7                  // class org/springframework/security/core/userdetails/cache/NullUserCache
+      26: dup
+      27: invokespecial #8                  // Method org/springframework/security/core/userdetails/cache/NullUserCache."<init>":()V
+      30: putfield      #9                  // Field userCache:Lorg/springframework/security/core/userdetails/UserCache;
+      33: aload_0
+      34: iconst_0
+      35: putfield      #10                 // Field passwordAlreadyEncoded:Z
+      38: aload_0
+      39: iconst_0
+      40: putfield      #11                 // Field createAuthenticatedToken:Z
+      43: return
+
+  public void afterPropertiesSet();
+    Code:
+       0: aload_0
+       1: getfield      #12                 // Field userDetailsService:Lorg/springframework/security/core/userdetails/UserDetailsService;
+       4: ldc           #13                 // String A UserDetailsService is required
+       6: invokestatic  #14                 // Method org/springframework/util/Assert.notNull:(Ljava/lang/Object;Ljava/lang/String;)V
+       9: aload_0
+      10: getfield      #15                 // Field authenticationEntryPoint:Lorg/springframework/security/web/authentication/www/DigestAuthenticationEntryPoint;
+      13: ldc           #16                 // String A DigestAuthenticationEntryPoint is required
+      15: invokestatic  #14                 // Method org/springframework/util/Assert.notNull:(Ljava/lang/Object;Ljava/lang/String;)V
+      18: getstatic     #17                 // Field instance:Lcom/virtual/plat/server/rs/ext/event/DigestAuthenticationFilterExt;
+      21: ifnonnull     28
+      24: aload_0
+      25: putstatic     #17                 // Field instance:Lcom/virtual/plat/server/rs/ext/event/DigestAuthenticationFilterExt;
+      28: return
+
+  public void doFilter(javax.servlet.ServletRequest, javax.servlet.ServletResponse, javax.servlet.FilterChain) throws java.io.IOException, javax.servlet.ServletException;
+    Code:
+       0: aload_1
+       1: checkcast     #18                 // class javax/servlet/http/HttpServletRequest
+       4: astore        4
+       6: aload_2
+       7: checkcast     #19                 // class javax/servlet/http/HttpServletResponse
+      10: astore        5
+      12: aload         4
+      14: ldc           #20                 // String Authorization
+      16: invokeinterface #21,  2           // InterfaceMethod javax/servlet/http/HttpServletRequest.getHeader:(Ljava/lang/String;)Ljava/lang/String;
+      21: astore        6
+      23: aload         6
+      25: ifnull        80
+      28: aload         6
+      30: ldc           #22                 // String Digest
+      32: invokevirtual #23                 // Method java/lang/String.startsWith:(Ljava/lang/String;)Z
+      35: ifeq          80
+      38: getstatic     #24                 // Field logger:Lorg/apache/commons/logging/Log;
+      41: new           #25                 // class java/lang/StringBuilder
+      44: dup
+      45: invokespecial #26                 // Method java/lang/StringBuilder."<init>":()V
+      48: ldc           #27                 // String Authorization header received from user agent:
+      50: invokevirtual #28                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      53: aload         6
+      55: invokevirtual #28                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      58: invokevirtual #29                 // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+      61: invokeinterface #30,  2           // InterfaceMethod org/apache/commons/logging/Log.info:(Ljava/lang/Object;)V
+      66: aload_0
+      67: aload         4
+      69: aload         5
+      71: aload         6
+      73: invokespecial #31                 // Method handleAuth:(Ljavax/servlet/http/HttpServletRequest;Ljavax/servlet/http/HttpServletResponse;Ljava/lang/String;)Z
+      76: ifne          80
+      79: return
+      80: aload_3
+      81: aload         4
+      83: aload         5
+      85: invokeinterface #32,  3           // InterfaceMethod javax/servlet/FilterChain.doFilter:(Ljavax/servlet/ServletRequest;Ljavax/servlet/ServletResponse;)V
+      90: return
+
+  private boolean handleAuth(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.String) throws java.io.IOException, javax.servlet.ServletException;
+    Code:
+       0: aload_3
+       1: bipush        7
+       3: invokevirtual #33                 // Method java/lang/String.substring:(I)Ljava/lang/String;
+       6: astore        4
+       8: aload         4
+      10: bipush        44
+      12: invokestatic  #34                 // Method splitIgnoringQuotes:(Ljava/lang/String;C)[Ljava/lang/String;
+      15: astore        5
+      17: aload         5
+      19: ldc           #35                 // String =
+      21: ldc           #36                 // String \"
+      23: invokestatic  #37                 // Method splitEachArrayElementAndCreateMap:([Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/util/Map;
+      26: astore        6
+      28: aload         6
+      30: ldc           #38                 // String username
+      32: invokeinterface #39,  2           // InterfaceMethod java/util/Map.get:(Ljava/lang/Object;)Ljava/lang/Object;
+      37: checkcast     #40                 // class java/lang/String
+      40: astore        7
+      42: aload         6
+      44: ldc           #41                 // String realm
+      46: invokeinterface #39,  2           // InterfaceMethod java/util/Map.get:(Ljava/lang/Object;)Ljava/lang/Object;
+      51: checkcast     #40                 // class java/lang/String
+      54: astore        8
+      56: aload         6
+      58: ldc           #42                 // String nonce
+      60: invokeinterface #39,  2           // InterfaceMethod java/util/Map.get:(Ljava/lang/Object;)Ljava/lang/Object;
+      65: checkcast     #40                 // class java/lang/String
+      68: astore        9
+      70: aload         6
+      72: ldc           #43                 // String uri
+      74: invokeinterface #39,  2           // InterfaceMethod java/util/Map.get:(Ljava/lang/Object;)Ljava/lang/Object;
+      79: checkcast     #40                 // class java/lang/String
+      82: astore        10
+      84: aload         6
+      86: ldc           #44                 // String response
+      88: invokeinterface #39,  2           // InterfaceMethod java/util/Map.get:(Ljava/lang/Object;)Ljava/lang/Object;
+      93: checkcast     #40                 // class java/lang/String
+      96: astore        11
+      98: aload         6
+     100: ldc           #45                 // String qop
+     102: invokeinterface #39,  2           // InterfaceMethod java/util/Map.get:(Ljava/lang/Object;)Ljava/lang/Object;
+     107: checkcast     #40                 // class java/lang/String
+     110: astore        12
+     112: aload         6
+     114: ldc           #46                 // String nc
+     116: invokeinterface #39,  2           // InterfaceMethod java/util/Map.get:(Ljava/lang/Object;)Ljava/lang/Object;
+     121: checkcast     #40                 // class java/lang/String
+     124: astore        13
+     126: aload         6
+     128: ldc           #47                 // String cnonce
+     130: invokeinterface #39,  2           // InterfaceMethod java/util/Map.get:(Ljava/lang/Object;)Ljava/lang/Object;
+     135: checkcast     #40                 // class java/lang/String
+     138: astore        14
+     140: getstatic     #24                 // Field logger:Lorg/apache/commons/logging/Log;
+     143: new           #25                 // class java/lang/StringBuilder
+     146: dup
+     147: invokespecial #26                 // Method java/lang/StringBuilder."<init>":()V
+     150: ldc           #48                 // String extracted username: \'
+     152: invokevirtual #28                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+     155: aload         7
+     157: invokevirtual #28                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+     160: ldc           #49                 // String \'; realm: \'
+     162: invokevirtual #28                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+     165: aload         8
+     167: invokevirtual #28                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+     170: ldc           #50                 // String \'; nonce: \'
+     172: invokevirtual #28                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+     175: aload         9
+     177: invokevirtual #28                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+     180: ldc           #51                 // String \'; uri: \'
+     182: invokevirtual #28                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+     185: aload         10
+     187: invokevirtual #28                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+     190: ldc           #52                 // String \'; response: \'
+     192: invokevirtual #28                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+     195: aload         11
+     197: invokevirtual #28                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+     200: ldc           #53                 // String \'
+     202: invokevirtual #28                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+     205: invokevirtual #29                 // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+     208: invokeinterface #30,  2           // InterfaceMethod org/apache/commons/logging/Log.info:(Ljava/lang/Object;)V
+     213: aload         7
+     215: ifnull        237
+     218: aload         8
+     220: ifnull        237
+     223: aload         9
+     225: ifnull        237
+     228: aload         10
+     230: ifnull        237
+     233: aload_2
+     234: ifnonnull     356
+     237: getstatic     #24                 // Field logger:Lorg/apache/commons/logging/Log;
+     240: invokeinterface #54,  1           // InterfaceMethod org/apache/commons/logging/Log.isDebugEnabled:()Z
+     245: ifeq          321
+     248: getstatic     #24                 // Field logger:Lorg/apache/commons/logging/Log;
+     251: new           #25                 // class java/lang/StringBuilder
+     254: dup
+     255: invokespecial #26                 // Method java/lang/StringBuilder."<init>":()V
+     258: ldc           #48                 // String extracted username: \'
+     260: invokevirtual #28                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+     263: aload         7
+     265: invokevirtual #28                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+     268: ldc           #49                 // String \'; realm: \'
+     270: invokevirtual #28                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+     273: aload         7
+     275: invokevirtual #28                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+     278: ldc           #50                 // String \'; nonce: \'
+     280: invokevirtual #28                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+     283: aload         7
+     285: invokevirtual #28                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+     288: ldc           #51                 // String \'; uri: \'
+     290: invokevirtual #28                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+     293: aload         7
+     295: invokevirtual #28                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+     298: ldc           #52                 // String \'; response: \'
+     300: invokevirtual #28                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+     303: aload         7
+     305: invokevirtual #28                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+     308: ldc           #53                 // String \'
+     310: invokevirtual #28                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+     313: invokevirtual #29                 // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+     316: invokeinterface #55,  2           // InterfaceMethod org/apache/commons/logging/Log.debug:(Ljava/lang/Object;)V
+     321: aload_0
+     322: aload_1
+     323: aload_2
+     324: new           #56                 // class org/springframework/security/authentication/BadCredentialsException
+     327: dup
+     328: aload_0
+     329: getfield      #6                  // Field messages:Lorg/springframework/context/support/MessageSourceAccessor;
+     332: ldc           #57                 // String DigestAuthenticationFilter.missingMandatory
+     334: iconst_1
+     335: anewarray     #58                 // class java/lang/Object
+     338: dup
+     339: iconst_0
+     340: aload         4
+     342: aastore
+     343: ldc           #59                 // String Missing mandatory digest value; received header {0}
+     345: invokevirtual #60                 // Method org/springframework/context/support/MessageSourceAccessor.getMessage:(Ljava/lang/String;[Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/String;
+     348: invokespecial #61                 // Method org/springframework/security/authentication/BadCredentialsException."<init>":(Ljava/lang/String;)V
+     351: invokespecial #62                 // Method fail:(Ljavax/servlet/http/HttpServletRequest;Ljavax/servlet/http/HttpServletResponse;Lorg/springframework/security/core/AuthenticationException;)V
+     354: iconst_0
+     355: ireturn
+     356: ldc           #63                 // String auth
+     358: aload         12
+     360: invokevirtual #64                 // Method java/lang/String.equals:(Ljava/lang/Object;)Z
+     363: ifeq          465
+     366: aload         13
+     368: ifnull        376
+     371: aload         14
+     373: ifnonnull     465
+     376: getstatic     #24                 // Field logger:Lorg/apache/commons/logging/Log;
+     379: invokeinterface #54,  1           // InterfaceMethod org/apache/commons/logging/Log.isDebugEnabled:()Z
+     384: ifeq          430
+     387: getstatic     #24                 // Field logger:Lorg/apache/commons/logging/Log;
+     390: new           #25                 // class java/lang/StringBuilder
+     393: dup
+     394: invokespecial #26                 // Method java/lang/StringBuilder."<init>":()V
+     397: ldc           #65                 // String extracted nc: \'
+     399: invokevirtual #28                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+     402: aload         13
+     404: invokevirtual #28                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+     407: ldc           #66                 // String \'; cnonce: \'
+     409: invokevirtual #28                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+     412: aload         14
+     414: invokevirtual #28                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+     417: ldc           #53                 // String \'
+     419: invokevirtual #28                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+     422: invokevirtual #29                 // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+     425: invokeinterface #55,  2           // InterfaceMethod org/apache/commons/logging/Log.debug:(Ljava/lang/Object;)V
+     430: aload_0
+     431: aload_1
+     432: aload_2
+     433: new           #56                 // class org/springframework/security/authentication/BadCredentialsException
+     436: dup
+     437: aload_0
+     438: getfield      #6                  // Field messages:Lorg/springframework/context/support/MessageSourceAccessor;
+     441: ldc           #67                 // String DigestAuthenticationFilter.missingAuth
+     443: iconst_1
+     444: anewarray     #58                 // class java/lang/Object
+     447: dup
+     448: iconst_0
+     449: aload         4
+     451: aastore
+     452: ldc           #59                 // String Missing mandatory digest value; received header {0}
+     454: invokevirtual #60                 // Method org/springframework/context/support/MessageSourceAccessor.getMessage:(Ljava/lang/String;[Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/String;
+     457: invokespecial #61                 // Method org/springframework/security/authentication/BadCredentialsException."<init>":(Ljava/lang/String;)V
+     460: invokespecial #62                 // Method fail:(Ljavax/servlet/http/HttpServletRequest;Ljavax/servlet/http/HttpServletResponse;Lorg/springframework/security/core/AuthenticationException;)V
+     463: iconst_0
+     464: ireturn
+     465: aload         8
+     467: aload_0
+     468: invokevirtual #68                 // Method getAuthenticationEntryPoint:()Lorg/springframework/security/web/authentication/www/DigestAuthenticationEntryPoint;
+     471: invokevirtual #69                 // Method org/springframework/security/web/authentication/www/DigestAuthenticationEntryPoint.getRealmName:()Ljava/lang/String;
+     474: invokevirtual #64                 // Method java/lang/String.equals:(Ljava/lang/Object;)Z
+     477: ifne          525
+     480: aload_0
+     481: aload_1
+     482: aload_2
+     483: new           #56                 // class org/springframework/security/authentication/BadCredentialsException
+     486: dup
+     487: aload_0
+     488: getfield      #6                  // Field messages:Lorg/springframework/context/support/MessageSourceAccessor;
+     491: ldc           #70                 // String DigestAuthenticationFilter.incorrectRealm
+     493: iconst_2
+     494: anewarray     #58                 // class java/lang/Object
+     497: dup
+     498: iconst_0
+     499: aload         8
+     501: aastore
+     502: dup
+     503: iconst_1
+     504: aload_0
+     505: invokevirtual #68                 // Method getAuthenticationEntryPoint:()Lorg/springframework/security/web/authentication/www/DigestAuthenticationEntryPoint;
+     508: invokevirtual #69                 // Method org/springframework/security/web/authentication/www/DigestAuthenticationEntryPoint.getRealmName:()Ljava/lang/String;
+     511: aastore
+     512: ldc           #71                 // String Response realm name \'{0}\' does not match system realm name of \'{1}\'
+     514: invokevirtual #60                 // Method org/springframework/context/support/MessageSourceAccessor.getMessage:(Ljava/lang/String;[Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/String;
+     517: invokespecial #61                 // Method org/springframework/security/authentication/BadCredentialsException."<init>":(Ljava/lang/String;)V
+     520: invokespecial #62                 // Method fail:(Ljavax/servlet/http/HttpServletRequest;Ljavax/servlet/http/HttpServletResponse;Lorg/springframework/security/core/AuthenticationException;)V
+     523: iconst_0
+     524: ireturn
+     525: aload         9
+     527: invokevirtual #72                 // Method java/lang/String.getBytes:()[B
+     530: invokestatic  #73                 // Method org/springframework/security/crypto/codec/Base64.isBase64:([B)Z
+     533: ifne          571
+     536: aload_0
+     537: aload_1
+     538: aload_2
+     539: new           #56                 // class org/springframework/security/authentication/BadCredentialsException
+     542: dup
+     543: aload_0
+     544: getfield      #6                  // Field messages:Lorg/springframework/context/support/MessageSourceAccessor;
+     547: ldc           #74                 // String DigestAuthenticationFilter.nonceEncoding
+     549: iconst_1
+     550: anewarray     #58                 // class java/lang/Object
+     553: dup
+     554: iconst_0
+     555: aload         9
+     557: aastore
+     558: ldc           #75                 // String Nonce is not encoded in Base64; received nonce {0}
+     560: invokevirtual #60                 // Method org/springframework/context/support/MessageSourceAccessor.getMessage:(Ljava/lang/String;[Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/String;
+     563: invokespecial #61                 // Method org/springframework/security/authentication/BadCredentialsException."<init>":(Ljava/lang/String;)V
+     566: invokespecial #62                 // Method fail:(Ljavax/servlet/http/HttpServletRequest;Ljavax/servlet/http/HttpServletResponse;Lorg/springframework/security/core/AuthenticationException;)V
+     569: iconst_0
+     570: ireturn
+     571: new           #40                 // class java/lang/String
+     574: dup
+     575: aload         9
+     577: invokevirtual #72                 // Method java/lang/String.getBytes:()[B
+     580: invokestatic  #76                 // Method org/springframework/security/crypto/codec/Base64.decode:([B)[B
+     583: invokespecial #77                 // Method java/lang/String."<init>":([B)V
+     586: astore        15
+     588: aload         15
+     590: ldc           #78                 // String :
+     592: invokestatic  #79                 // Method org/springframework/util/StringUtils.delimitedListToStringArray:(Ljava/lang/String;Ljava/lang/String;)[Ljava/lang/String;
+     595: astore        16
+     597: aload         16
+     599: arraylength
+     600: iconst_2
+     601: if_icmpeq     639
+     604: aload_0
+     605: aload_1
+     606: aload_2
+     607: new           #56                 // class org/springframework/security/authentication/BadCredentialsException
+     610: dup
+     611: aload_0
+     612: getfield      #6                  // Field messages:Lorg/springframework/context/support/MessageSourceAccessor;
+     615: ldc           #80                 // String DigestAuthenticationFilter.nonceNotTwoTokens
+     617: iconst_1
+     618: anewarray     #58                 // class java/lang/Object
+     621: dup
+     622: iconst_0
+     623: aload         15
+     625: aastore
+     626: ldc           #81                 // String Nonce should have yielded two tokens but was {0}
+     628: invokevirtual #60                 // Method org/springframework/context/support/MessageSourceAccessor.getMessage:(Ljava/lang/String;[Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/String;
+     631: invokespecial #61                 // Method org/springframework/security/authentication/BadCredentialsException."<init>":(Ljava/lang/String;)V
+     634: invokespecial #62                 // Method fail:(Ljavax/servlet/http/HttpServletRequest;Ljavax/servlet/http/HttpServletResponse;Lorg/springframework/security/core/AuthenticationException;)V
+     637: iconst_0
+     638: ireturn
+     639: new           #82                 // class java/lang/Long
+     642: dup
+     643: aload         16
+     645: iconst_0
+     646: aaload
+     647: invokespecial #83                 // Method java/lang/Long."<init>":(Ljava/lang/String;)V
+     650: invokevirtual #84                 // Method java/lang/Long.longValue:()J
+     653: lstore        17
+     655: goto          695
+     658: astore        19
+     660: aload_0
+     661: aload_1
+     662: aload_2
+     663: new           #56                 // class org/springframework/security/authentication/BadCredentialsException
+     666: dup
+     667: aload_0
+     668: getfield      #6                  // Field messages:Lorg/springframework/context/support/MessageSourceAccessor;
+     671: ldc           #86                 // String DigestAuthenticationFilter.nonceNotNumeric
+     673: iconst_1
+     674: anewarray     #58                 // class java/lang/Object
+     677: dup
+     678: iconst_0
+     679: aload         15
+     681: aastore
+     682: ldc           #87                 // String Nonce token should have yielded a numeric first token, but was {0}
+     684: invokevirtual #60                 // Method org/springframework/context/support/MessageSourceAccessor.getMessage:(Ljava/lang/String;[Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/String;
+     687: invokespecial #61                 // Method org/springframework/security/authentication/BadCredentialsException."<init>":(Ljava/lang/String;)V
+     690: invokespecial #62                 // Method fail:(Ljavax/servlet/http/HttpServletRequest;Ljavax/servlet/http/HttpServletResponse;Lorg/springframework/security/core/AuthenticationException;)V
+     693: iconst_0
+     694: ireturn
+     695: new           #25                 // class java/lang/StringBuilder
+     698: dup
+     699: invokespecial #26                 // Method java/lang/StringBuilder."<init>":()V
+     702: lload         17
+     704: invokevirtual #88                 // Method java/lang/StringBuilder.append:(J)Ljava/lang/StringBuilder;
+     707: ldc           #78                 // String :
+     709: invokevirtual #28                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+     712: aload_0
+     713: invokevirtual #68                 // Method getAuthenticationEntryPoint:()Lorg/springframework/security/web/authentication/www/DigestAuthenticationEntryPoint;
+     716: invokevirtual #89                 // Method org/springframework/security/web/authentication/www/DigestAuthenticationEntryPoint.getKey:()Ljava/lang/String;
+     719: invokevirtual #28                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+     722: invokevirtual #29                 // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+     725: invokestatic  #90                 // Method md5Hex:(Ljava/lang/String;)Ljava/lang/String;
+     728: astore        19
+     730: aload         19
+     732: aload         16
+     734: iconst_1
+     735: aaload
+     736: invokevirtual #64                 // Method java/lang/String.equals:(Ljava/lang/Object;)Z
+     739: ifne          777
+     742: aload_0
+     743: aload_1
+     744: aload_2
+     745: new           #56                 // class org/springframework/security/authentication/BadCredentialsException
+     748: dup
+     749: aload_0
+     750: getfield      #6                  // Field messages:Lorg/springframework/context/support/MessageSourceAccessor;
+     753: ldc           #91                 // String DigestAuthenticationFilter.nonceCompromised
+     755: iconst_1
+     756: anewarray     #58                 // class java/lang/Object
+     759: dup
+     760: iconst_0
+     761: aload         15
+     763: aastore
+     764: ldc           #92                 // String Nonce token compromised {0}
+     766: invokevirtual #60                 // Method org/springframework/context/support/MessageSourceAccessor.getMessage:(Ljava/lang/String;[Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/String;
+     769: invokespecial #61                 // Method org/springframework/security/authentication/BadCredentialsException."<init>":(Ljava/lang/String;)V
+     772: invokespecial #62                 // Method fail:(Ljavax/servlet/http/HttpServletRequest;Ljavax/servlet/http/HttpServletResponse;Lorg/springframework/security/core/AuthenticationException;)V
+     775: iconst_0
+     776: ireturn
+     777: iconst_0
+     778: istore        20
+     780: aload_0
+     781: getfield      #9                  // Field userCache:Lorg/springframework/security/core/userdetails/UserCache;
+     784: aload         7
+     786: invokeinterface #93,  2           // InterfaceMethod org/springframework/security/core/userdetails/UserCache.getUserFromCache:(Ljava/lang/String;)Lorg/springframework/security/core/userdetails/UserDetails;
+     791: astore        21
+     793: aload         21
+     795: ifnonnull     880
+     798: iconst_1
+     799: istore        20
+     801: aload_0
+     802: getfield      #12                 // Field userDetailsService:Lorg/springframework/security/core/userdetails/UserDetailsService;
+     805: aload         7
+     807: invokeinterface #94,  2           // InterfaceMethod org/springframework/security/core/userdetails/UserDetailsService.loadUserByUsername:(Ljava/lang/String;)Lorg/springframework/security/core/userdetails/UserDetails;
+     812: astore        21
+     814: goto          854
+     817: astore        22
+     819: aload_0
+     820: aload_1
+     821: aload_2
+     822: new           #56                 // class org/springframework/security/authentication/BadCredentialsException
+     825: dup
+     826: aload_0
+     827: getfield      #6                  // Field messages:Lorg/springframework/context/support/MessageSourceAccessor;
+     830: ldc           #96                 // String DigestAuthenticationFilter.usernameNotFound
+     832: iconst_1
+     833: anewarray     #58                 // class java/lang/Object
+     836: dup
+     837: iconst_0
+     838: aload         7
+     840: aastore
+     841: ldc           #97                 // String Username {0} not found
+     843: invokevirtual #60                 // Method org/springframework/context/support/MessageSourceAccessor.getMessage:(Ljava/lang/String;[Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/String;
+     846: invokespecial #61                 // Method org/springframework/security/authentication/BadCredentialsException."<init>":(Ljava/lang/String;)V
+     849: invokespecial #62                 // Method fail:(Ljavax/servlet/http/HttpServletRequest;Ljavax/servlet/http/HttpServletResponse;Lorg/springframework/security/core/AuthenticationException;)V
+     852: iconst_0
+     853: ireturn
+     854: aload         21
+     856: ifnonnull     869
+     859: new           #98                 // class org/springframework/security/authentication/AuthenticationServiceException
+     862: dup
+     863: ldc           #99                 // String AuthenticationDao returned null, which is an interface contract violation
+     865: invokespecial #100                // Method org/springframework/security/authentication/AuthenticationServiceException."<init>":(Ljava/lang/String;)V
+     868: athrow
+     869: aload_0
+     870: getfield      #9                  // Field userCache:Lorg/springframework/security/core/userdetails/UserCache;
+     873: aload         21
+     875: invokeinterface #101,  2          // InterfaceMethod org/springframework/security/core/userdetails/UserCache.putUserInCache:(Lorg/springframework/security/core/userdetails/UserDetails;)V
+     880: aload_0
+     881: getfield      #10                 // Field passwordAlreadyEncoded:Z
+     884: aload         7
+     886: aload         8
+     888: aload         21
+     890: invokeinterface #102,  1          // InterfaceMethod org/springframework/security/core/userdetails/UserDetails.getPassword:()Ljava/lang/String;
+     895: aload_1
+     896: invokeinterface #103,  1          // InterfaceMethod javax/servlet/http/HttpServletRequest.getMethod:()Ljava/lang/String;
+     901: aload         10
+     903: aload         12
+     905: aload         9
+     907: aload         13
+     909: aload         14
+     911: invokestatic  #104                // Method generateDigest:(ZLjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+     914: astore        22
+     916: aload         22
+     918: aload         11
+     920: invokevirtual #64                 // Method java/lang/String.equals:(Ljava/lang/Object;)Z
+     923: ifne          1050
+     926: iload         20
+     928: ifne          1050
+     931: getstatic     #24                 // Field logger:Lorg/apache/commons/logging/Log;
+     934: invokeinterface #54,  1           // InterfaceMethod org/apache/commons/logging/Log.isDebugEnabled:()Z
+     939: ifeq          952
+     942: getstatic     #24                 // Field logger:Lorg/apache/commons/logging/Log;
+     945: ldc           #105                // String Digest comparison failure; trying to refresh user from DAO in case password had changed
+     947: invokeinterface #55,  2           // InterfaceMethod org/apache/commons/logging/Log.debug:(Ljava/lang/Object;)V
+     952: aload_0
+     953: getfield      #12                 // Field userDetailsService:Lorg/springframework/security/core/userdetails/UserDetailsService;
+     956: aload         7
+     958: invokeinterface #94,  2           // InterfaceMethod org/springframework/security/core/userdetails/UserDetailsService.loadUserByUsername:(Ljava/lang/String;)Lorg/springframework/security/core/userdetails/UserDetails;
+     963: astore        21
+     965: goto          1003
+     968: astore        23
+     970: aload_0
+     971: aload_1
+     972: aload_2
+     973: new           #56                 // class org/springframework/security/authentication/BadCredentialsException
+     976: dup
+     977: aload_0
+     978: getfield      #6                  // Field messages:Lorg/springframework/context/support/MessageSourceAccessor;
+     981: ldc           #96                 // String DigestAuthenticationFilter.usernameNotFound
+     983: iconst_1
+     984: anewarray     #58                 // class java/lang/Object
+     987: dup
+     988: iconst_0
+     989: aload         7
+     991: aastore
+     992: ldc           #97                 // String Username {0} not found
+     994: invokevirtual #60                 // Method org/springframework/context/support/MessageSourceAccessor.getMessage:(Ljava/lang/String;[Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/String;
+     997: invokespecial #61                 // Method org/springframework/security/authentication/BadCredentialsException."<init>":(Ljava/lang/String;)V
+    1000: invokespecial #62                 // Method fail:(Ljavax/servlet/http/HttpServletRequest;Ljavax/servlet/http/HttpServletResponse;Lorg/springframework/security/core/AuthenticationException;)V
+    1003: aload_0
+    1004: getfield      #9                  // Field userCache:Lorg/springframework/security/core/userdetails/UserCache;
+    1007: aload         21
+    1009: invokeinterface #101,  2          // InterfaceMethod org/springframework/security/core/userdetails/UserCache.putUserInCache:(Lorg/springframework/security/core/userdetails/UserDetails;)V
+    1014: aload_0
+    1015: getfield      #10                 // Field passwordAlreadyEncoded:Z
+    1018: aload         7
+    1020: aload         8
+    1022: aload         21
+    1024: invokeinterface #102,  1          // InterfaceMethod org/springframework/security/core/userdetails/UserDetails.getPassword:()Ljava/lang/String;
+    1029: aload_1
+    1030: invokeinterface #103,  1          // InterfaceMethod javax/servlet/http/HttpServletRequest.getMethod:()Ljava/lang/String;
+    1035: aload         10
+    1037: aload         12
+    1039: aload         9
+    1041: aload         13
+    1043: aload         14
+    1045: invokestatic  #104                // Method generateDigest:(ZLjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+    1048: astore        22
+    1050: aload         22
+    1052: aload         11
+    1054: invokevirtual #64                 // Method java/lang/String.equals:(Ljava/lang/Object;)Z
+    1057: ifne          1140
+    1060: getstatic     #24                 // Field logger:Lorg/apache/commons/logging/Log;
+    1063: invokeinterface #54,  1           // InterfaceMethod org/apache/commons/logging/Log.isDebugEnabled:()Z
+    1068: ifeq          1114
+    1071: getstatic     #24                 // Field logger:Lorg/apache/commons/logging/Log;
+    1074: new           #25                 // class java/lang/StringBuilder
+    1077: dup
+    1078: invokespecial #26                 // Method java/lang/StringBuilder."<init>":()V
+    1081: ldc           #106                // String Expected response: \'
+    1083: invokevirtual #28                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+    1086: aload         22
+    1088: invokevirtual #28                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+    1091: ldc           #107                // String \' but received: \'
+    1093: invokevirtual #28                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+    1096: aload         11
+    1098: invokevirtual #28                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+    1101: ldc           #108                // String \'; is AuthenticationDao returning clear text passwords?
+    1103: invokevirtual #28                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+    1106: invokevirtual #29                 // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+    1109: invokeinterface #55,  2           // InterfaceMethod org/apache/commons/logging/Log.debug:(Ljava/lang/Object;)V
+    1114: aload_0
+    1115: aload_1
+    1116: aload_2
+    1117: new           #56                 // class org/springframework/security/authentication/BadCredentialsException
+    1120: dup
+    1121: aload_0
+    1122: getfield      #6                  // Field messages:Lorg/springframework/context/support/MessageSourceAccessor;
+    1125: ldc           #109                // String DigestAuthenticationFilter.incorrectResponse
+    1127: ldc           #110                // String Incorrect response
+    1129: invokevirtual #111                // Method org/springframework/context/support/MessageSourceAccessor.getMessage:(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+    1132: invokespecial #61                 // Method org/springframework/security/authentication/BadCredentialsException."<init>":(Ljava/lang/String;)V
+    1135: invokespecial #62                 // Method fail:(Ljavax/servlet/http/HttpServletRequest;Ljavax/servlet/http/HttpServletResponse;Lorg/springframework/security/core/AuthenticationException;)V
+    1138: iconst_0
+    1139: ireturn
+    1140: lload         17
+    1142: invokestatic  #112                // Method java/lang/System.currentTimeMillis:()J
+    1145: lcmp
+    1146: ifge          1175
+    1149: aload_0
+    1150: aload_1
+    1151: aload_2
+    1152: new           #113                // class org/springframework/security/web/authentication/www/NonceExpiredException
+    1155: dup
+    1156: aload_0
+    1157: getfield      #6                  // Field messages:Lorg/springframework/context/support/MessageSourceAccessor;
+    1160: ldc           #114                // String DigestAuthenticationFilter.nonceExpired
+    1162: ldc           #115                // String Nonce has expired/timed out
+    1164: invokevirtual #111                // Method org/springframework/context/support/MessageSourceAccessor.getMessage:(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+    1167: invokespecial #116                // Method org/springframework/security/web/authentication/www/NonceExpiredException."<init>":(Ljava/lang/String;)V
+    1170: invokespecial #62                 // Method fail:(Ljavax/servlet/http/HttpServletRequest;Ljavax/servlet/http/HttpServletResponse;Lorg/springframework/security/core/AuthenticationException;)V
+    1173: iconst_0
+    1174: ireturn
+    1175: getstatic     #24                 // Field logger:Lorg/apache/commons/logging/Log;
+    1178: invokeinterface #54,  1           // InterfaceMethod org/apache/commons/logging/Log.isDebugEnabled:()Z
+    1183: ifeq          1229
+    1186: getstatic     #24                 // Field logger:Lorg/apache/commons/logging/Log;
+    1189: new           #25                 // class java/lang/StringBuilder
+    1192: dup
+    1193: invokespecial #26                 // Method java/lang/StringBuilder."<init>":()V
+    1196: ldc           #117                // String Authentication success for user: \'
+    1198: invokevirtual #28                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+    1201: aload         7
+    1203: invokevirtual #28                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+    1206: ldc           #118                // String \' with response: \'
+    1208: invokevirtual #28                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+    1211: aload         11
+    1213: invokevirtual #28                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+    1216: ldc           #53                 // String \'
+    1218: invokevirtual #28                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+    1221: invokevirtual #29                 // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+    1224: invokeinterface #55,  2           // InterfaceMethod org/apache/commons/logging/Log.debug:(Ljava/lang/Object;)V
+    1229: aload_0
+    1230: getfield      #11                 // Field createAuthenticatedToken:Z
+    1233: ifeq          1264
+    1236: new           #119                // class org/springframework/security/authentication/UsernamePasswordAuthenticationToken
+    1239: dup
+    1240: aload         21
+    1242: aload         21
+    1244: invokeinterface #102,  1          // InterfaceMethod org/springframework/security/core/userdetails/UserDetails.getPassword:()Ljava/lang/String;
+    1249: aload         21
+    1251: invokeinterface #120,  1          // InterfaceMethod org/springframework/security/core/userdetails/UserDetails.getAuthorities:()Ljava/util/Collection;
+    1256: invokespecial #121                // Method org/springframework/security/authentication/UsernamePasswordAuthenticationToken."<init>":(Ljava/lang/Object;Ljava/lang/Object;Ljava/util/Collection;)V
+    1259: astore        23
+    1261: goto          1282
+    1264: new           #119                // class org/springframework/security/authentication/UsernamePasswordAuthenticationToken
+    1267: dup
+    1268: aload         21
+    1270: aload         21
+    1272: invokeinterface #102,  1          // InterfaceMethod org/springframework/security/core/userdetails/UserDetails.getPassword:()Ljava/lang/String;
+    1277: invokespecial #122                // Method org/springframework/security/authentication/UsernamePasswordAuthenticationToken."<init>":(Ljava/lang/Object;Ljava/lang/Object;)V
+    1280: astore        23
+    1282: aload         23
+    1284: aload_0
+    1285: getfield      #4                  // Field authenticationDetailsSource:Lorg/springframework/security/authentication/AuthenticationDetailsSource;
+    1288: aload_1
+    1289: invokeinterface #123,  2          // InterfaceMethod org/springframework/security/authentication/AuthenticationDetailsSource.buildDetails:(Ljava/lang/Object;)Ljava/lang/Object;
+    1294: invokevirtual #124                // Method org/springframework/security/authentication/UsernamePasswordAuthenticationToken.setDetails:(Ljava/lang/Object;)V
+    1297: invokestatic  #125                // Method org/springframework/security/core/context/SecurityContextHolder.getContext:()Lorg/springframework/security/core/context/SecurityContext;
+    1300: aload         23
+    1302: invokeinterface #126,  2          // InterfaceMethod org/springframework/security/core/context/SecurityContext.setAuthentication:(Lorg/springframework/security/core/Authentication;)V
+    1307: iconst_1
+    1308: ireturn
+    Exception table:
+       from    to  target type
+         639   655   658   Class java/lang/NumberFormatException
+         801   814   817   Class org/springframework/security/core/userdetails/UsernameNotFoundException
+         952   965   968   Class org/springframework/security/core/userdetails/UsernameNotFoundException
+
+  private void fail(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, org.springframework.security.core.AuthenticationException) throws java.io.IOException, javax.servlet.ServletException;
+    Code:
+       0: invokestatic  #125                // Method org/springframework/security/core/context/SecurityContextHolder.getContext:()Lorg/springframework/security/core/context/SecurityContext;
+       3: aconst_null
+       4: invokeinterface #126,  2          // InterfaceMethod org/springframework/security/core/context/SecurityContext.setAuthentication:(Lorg/springframework/security/core/Authentication;)V
+       9: getstatic     #24                 // Field logger:Lorg/apache/commons/logging/Log;
+      12: invokeinterface #54,  1           // InterfaceMethod org/apache/commons/logging/Log.isDebugEnabled:()Z
+      17: ifeq          29
+      20: getstatic     #24                 // Field logger:Lorg/apache/commons/logging/Log;
+      23: aload_3
+      24: invokeinterface #55,  2           // InterfaceMethod org/apache/commons/logging/Log.debug:(Ljava/lang/Object;)V
+      29: aload_1
+      30: ldc           #127                // String AuthenticationExceptionCause
+      32: aload_3
+      33: invokeinterface #128,  3          // InterfaceMethod javax/servlet/http/HttpServletRequest.setAttribute:(Ljava/lang/String;Ljava/lang/Object;)V
+      38: aload_0
+      39: getfield      #15                 // Field authenticationEntryPoint:Lorg/springframework/security/web/authentication/www/DigestAuthenticationEntryPoint;
+      42: aload_1
+      43: aload_2
+      44: aload_3
+      45: invokevirtual #129                // Method org/springframework/security/web/authentication/www/DigestAuthenticationEntryPoint.commence:(Ljavax/servlet/http/HttpServletRequest;Ljavax/servlet/http/HttpServletResponse;Lorg/springframework/security/core/AuthenticationException;)V
+      48: return
+
+  public org.springframework.security.web.authentication.www.DigestAuthenticationEntryPoint getAuthenticationEntryPoint();
+    Code:
+       0: aload_0
+       1: getfield      #15                 // Field authenticationEntryPoint:Lorg/springframework/security/web/authentication/www/DigestAuthenticationEntryPoint;
+       4: areturn
+
+  public org.springframework.security.core.userdetails.UserCache getUserCache();
+    Code:
+       0: aload_0
+       1: getfield      #9                  // Field userCache:Lorg/springframework/security/core/userdetails/UserCache;
+       4: areturn
+
+  public org.springframework.security.core.userdetails.UserDetailsService getUserDetailsService();
+    Code:
+       0: aload_0
+       1: getfield      #12                 // Field userDetailsService:Lorg/springframework/security/core/userdetails/UserDetailsService;
+       4: areturn
+
+  public void setAuthenticationDetailsSource(org.springframework.security.authentication.AuthenticationDetailsSource);
+    Code:
+       0: aload_1
+       1: ldc           #130                // String AuthenticationDetailsSource required
+       3: invokestatic  #14                 // Method org/springframework/util/Assert.notNull:(Ljava/lang/Object;Ljava/lang/String;)V
+       6: aload_0
+       7: aload_1
+       8: putfield      #4                  // Field authenticationDetailsSource:Lorg/springframework/security/authentication/AuthenticationDetailsSource;
+      11: return
+
+  public void setAuthenticationEntryPoint(org.springframework.security.web.authentication.www.DigestAuthenticationEntryPoint);
+    Code:
+       0: aload_0
+       1: aload_1
+       2: putfield      #15                 // Field authenticationEntryPoint:Lorg/springframework/security/web/authentication/www/DigestAuthenticationEntryPoint;
+       5: return
+
+  public void setMessageSource(org.springframework.context.MessageSource);
+    Code:
+       0: aload_0
+       1: new           #131                // class org/springframework/context/support/MessageSourceAccessor
+       4: dup
+       5: aload_1
+       6: invokespecial #132                // Method org/springframework/context/support/MessageSourceAccessor."<init>":(Lorg/springframework/context/MessageSource;)V
+       9: putfield      #6                  // Field messages:Lorg/springframework/context/support/MessageSourceAccessor;
+      12: return
+
+  public void setPasswordAlreadyEncoded(boolean);
+    Code:
+       0: aload_0
+       1: iload_1
+       2: putfield      #10                 // Field passwordAlreadyEncoded:Z
+       5: return
+
+  public void setUserCache(org.springframework.security.core.userdetails.UserCache);
+    Code:
+       0: aload_0
+       1: aload_1
+       2: putfield      #9                  // Field userCache:Lorg/springframework/security/core/userdetails/UserCache;
+       5: return
+
+  public void setUserDetailsService(org.springframework.security.core.userdetails.UserDetailsService);
+    Code:
+       0: aload_0
+       1: aload_1
+       2: putfield      #12                 // Field userDetailsService:Lorg/springframework/security/core/userdetails/UserDetailsService;
+       5: return
+
+  public void setCreateAuthenticatedToken(boolean);
+    Code:
+       0: aload_0
+       1: iload_1
+       2: putfield      #11                 // Field createAuthenticatedToken:Z
+       5: return
+
+  static java.lang.String encodePasswordInA1Format(java.lang.String, java.lang.String, java.lang.String);
+    Code:
+       0: new           #25                 // class java/lang/StringBuilder
+       3: dup
+       4: invokespecial #26                 // Method java/lang/StringBuilder."<init>":()V
+       7: aload_0
+       8: invokevirtual #28                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      11: ldc           #78                 // String :
+      13: invokevirtual #28                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      16: aload_1
+      17: invokevirtual #28                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      20: ldc           #78                 // String :
+      22: invokevirtual #28                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      25: aload_2
+      26: invokevirtual #28                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      29: invokevirtual #29                 // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+      32: astore_3
+      33: aload_3
+      34: invokestatic  #90                 // Method md5Hex:(Ljava/lang/String;)Ljava/lang/String;
+      37: astore        4
+      39: aload         4
+      41: areturn
+
+  static java.lang.String[] splitIgnoringQuotes(java.lang.String, char);
+    Code:
+       0: aload_0
+       1: ifnonnull     6
+       4: aconst_null
+       5: areturn
+       6: aload_0
+       7: invokevirtual #133                // Method java/lang/String.length:()I
+      10: istore_2
+      11: iload_2
+      12: ifne          19
+      15: getstatic     #134                // Field EMPTY_STRING_ARRAY:[Ljava/lang/String;
+      18: areturn
+      19: new           #135                // class java/util/ArrayList
+      22: dup
+      23: invokespecial #136                // Method java/util/ArrayList."<init>":()V
+      26: astore_3
+      27: iconst_0
+      28: istore        4
+      30: iconst_0
+      31: istore        5
+      33: iconst_0
+      34: istore        6
+      36: iload         4
+      38: iload_2
+      39: if_icmpge     143
+      42: aload_0
+      43: iload         4
+      45: invokevirtual #137                // Method java/lang/String.charAt:(I)C
+      48: bipush        34
+      50: if_icmpne     91
+      53: iinc          4, 1
+      56: iload         4
+      58: iload_2
+      59: if_icmpge     85
+      62: aload_0
+      63: iload         4
+      65: invokevirtual #137                // Method java/lang/String.charAt:(I)C
+      68: bipush        34
+      70: if_icmpne     79
+      73: iinc          4, 1
+      76: goto          85
+      79: iinc          4, 1
+      82: goto          56
+      85: iconst_1
+      86: istore        6
+      88: goto          36
+      91: aload_0
+      92: iload         4
+      94: invokevirtual #137                // Method java/lang/String.charAt:(I)C
+      97: iload_1
+      98: if_icmpne     134
+     101: iload         6
+     103: ifeq          124
+     106: aload_3
+     107: aload_0
+     108: iload         5
+     110: iload         4
+     112: invokevirtual #138                // Method java/lang/String.substring:(II)Ljava/lang/String;
+     115: invokeinterface #139,  2          // InterfaceMethod java/util/List.add:(Ljava/lang/Object;)Z
+     120: pop
+     121: iconst_0
+     122: istore        6
+     124: iinc          4, 1
+     127: iload         4
+     129: istore        5
+     131: goto          36
+     134: iconst_1
+     135: istore        6
+     137: iinc          4, 1
+     140: goto          36
+     143: iload         6
+     145: ifeq          163
+     148: aload_3
+     149: aload_0
+     150: iload         5
+     152: iload         4
+     154: invokevirtual #138                // Method java/lang/String.substring:(II)Ljava/lang/String;
+     157: invokeinterface #139,  2          // InterfaceMethod java/util/List.add:(Ljava/lang/Object;)Z
+     162: pop
+     163: aload_3
+     164: aload_3
+     165: invokeinterface #140,  1          // InterfaceMethod java/util/List.size:()I
+     170: anewarray     #40                 // class java/lang/String
+     173: invokeinterface #141,  2          // InterfaceMethod java/util/List.toArray:([Ljava/lang/Object;)[Ljava/lang/Object;
+     178: checkcast     #142                // class "[Ljava/lang/String;"
+     181: areturn
+
+  static java.lang.String generateDigest(boolean, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String) throws java.lang.IllegalArgumentException;
+    Code:
+       0: aconst_null
+       1: astore        10
+       3: new           #25                 // class java/lang/StringBuilder
+       6: dup
+       7: invokespecial #26                 // Method java/lang/StringBuilder."<init>":()V
+      10: aload         4
+      12: invokevirtual #28                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      15: ldc           #78                 // String :
+      17: invokevirtual #28                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      20: aload         5
+      22: invokevirtual #28                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      25: invokevirtual #29                 // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+      28: astore        11
+      30: aload         11
+      32: invokestatic  #90                 // Method md5Hex:(Ljava/lang/String;)Ljava/lang/String;
+      35: astore        12
+      37: iload_0
+      38: ifeq          47
+      41: aload_3
+      42: astore        10
+      44: goto          55
+      47: aload_1
+      48: aload_2
+      49: aload_3
+      50: invokestatic  #143                // Method encodePasswordInA1Format:(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+      53: astore        10
+      55: aload         6
+      57: ifnonnull     100
+      60: new           #25                 // class java/lang/StringBuilder
+      63: dup
+      64: invokespecial #26                 // Method java/lang/StringBuilder."<init>":()V
+      67: aload         10
+      69: invokevirtual #28                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      72: ldc           #78                 // String :
+      74: invokevirtual #28                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      77: aload         7
+      79: invokevirtual #28                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      82: ldc           #78                 // String :
+      84: invokevirtual #28                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      87: aload         12
+      89: invokevirtual #28                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      92: invokevirtual #29                 // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+      95: astore        13
+      97: goto          213
+     100: ldc           #63                 // String auth
+     102: aload         6
+     104: invokevirtual #64                 // Method java/lang/String.equals:(Ljava/lang/Object;)Z
+     107: ifeq          180
+     110: new           #25                 // class java/lang/StringBuilder
+     113: dup
+     114: invokespecial #26                 // Method java/lang/StringBuilder."<init>":()V
+     117: aload         10
+     119: invokevirtual #28                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+     122: ldc           #78                 // String :
+     124: invokevirtual #28                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+     127: aload         7
+     129: invokevirtual #28                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+     132: ldc           #78                 // String :
+     134: invokevirtual #28                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+     137: aload         8
+     139: invokevirtual #28                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+     142: ldc           #78                 // String :
+     144: invokevirtual #28                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+     147: aload         9
+     149: invokevirtual #28                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+     152: ldc           #78                 // String :
+     154: invokevirtual #28                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+     157: aload         6
+     159: invokevirtual #28                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+     162: ldc           #78                 // String :
+     164: invokevirtual #28                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+     167: aload         12
+     169: invokevirtual #28                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+     172: invokevirtual #29                 // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+     175: astore        13
+     177: goto          213
+     180: new           #144                // class java/lang/IllegalArgumentException
+     183: dup
+     184: new           #25                 // class java/lang/StringBuilder
+     187: dup
+     188: invokespecial #26                 // Method java/lang/StringBuilder."<init>":()V
+     191: ldc           #145                // String This method does not support a qop: \'
+     193: invokevirtual #28                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+     196: aload         6
+     198: invokevirtual #28                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+     201: ldc           #53                 // String \'
+     203: invokevirtual #28                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+     206: invokevirtual #29                 // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+     209: invokespecial #146                // Method java/lang/IllegalArgumentException."<init>":(Ljava/lang/String;)V
+     212: athrow
+     213: new           #40                 // class java/lang/String
+     216: dup
+     217: aload         13
+     219: invokestatic  #90                 // Method md5Hex:(Ljava/lang/String;)Ljava/lang/String;
+     222: invokespecial #147                // Method java/lang/String."<init>":(Ljava/lang/String;)V
+     225: astore        14
+     227: aload         14
+     229: areturn
+
+  static java.util.Map<java.lang.String, java.lang.String> splitEachArrayElementAndCreateMap(java.lang.String[], java.lang.String, java.lang.String);
+    Code:
+       0: aload_0
+       1: ifnull        9
+       4: aload_0
+       5: arraylength
+       6: ifne          11
+       9: aconst_null
+      10: areturn
+      11: new           #148                // class java/util/HashMap
+      14: dup
+      15: invokespecial #149                // Method java/util/HashMap."<init>":()V
+      18: astore_3
+      19: iconst_0
+      20: istore        4
+      22: iload         4
+      24: aload_0
+      25: arraylength
+      26: if_icmpge     97
+      29: aload_2
+      30: ifnonnull     42
+      33: aload_0
+      34: iload         4
+      36: aaload
+      37: astore        5
+      39: goto          54
+      42: aload_0
+      43: iload         4
+      45: aaload
+      46: aload_2
+      47: ldc           #150                // String
+      49: invokestatic  #151                // Method org/springframework/util/StringUtils.replace:(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+      52: astore        5
+      54: aload         5
+      56: aload_1
+      57: invokestatic  #152                // Method split:(Ljava/lang/String;Ljava/lang/String;)[Ljava/lang/String;
+      60: astore        6
+      62: aload         6
+      64: ifnonnull     70
+      67: goto          91
+      70: aload_3
+      71: aload         6
+      73: iconst_0
+      74: aaload
+      75: invokevirtual #153                // Method java/lang/String.trim:()Ljava/lang/String;
+      78: aload         6
+      80: iconst_1
+      81: aaload
+      82: invokevirtual #153                // Method java/lang/String.trim:()Ljava/lang/String;
+      85: invokeinterface #154,  3          // InterfaceMethod java/util/Map.put:(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+      90: pop
+      91: iinc          4, 1
+      94: goto          22
+      97: aload_3
+      98: areturn
+
+  static java.lang.String[] split(java.lang.String, java.lang.String);
+    Code:
+       0: aload_0
+       1: ldc           #155                // String Cannot split a null or empty string
+       3: invokestatic  #156                // Method org/springframework/util/Assert.hasLength:(Ljava/lang/String;Ljava/lang/String;)V
+       6: aload_1
+       7: ldc           #157                // String Cannot use a null or empty delimiter to split a string
+       9: invokestatic  #156                // Method org/springframework/util/Assert.hasLength:(Ljava/lang/String;Ljava/lang/String;)V
+      12: aload_1
+      13: invokevirtual #133                // Method java/lang/String.length:()I
+      16: iconst_1
+      17: if_icmpeq     30
+      20: new           #144                // class java/lang/IllegalArgumentException
+      23: dup
+      24: ldc           #158                // String Delimiter can only be one character in length
+      26: invokespecial #146                // Method java/lang/IllegalArgumentException."<init>":(Ljava/lang/String;)V
+      29: athrow
+      30: aload_0
+      31: aload_1
+      32: invokevirtual #159                // Method java/lang/String.indexOf:(Ljava/lang/String;)I
+      35: istore_2
+      36: iload_2
+      37: ifge          42
+      40: aconst_null
+      41: areturn
+      42: aload_0
+      43: iconst_0
+      44: iload_2
+      45: invokevirtual #138                // Method java/lang/String.substring:(II)Ljava/lang/String;
+      48: astore_3
+      49: aload_0
+      50: iload_2
+      51: iconst_1
+      52: iadd
+      53: invokevirtual #33                 // Method java/lang/String.substring:(I)Ljava/lang/String;
+      56: astore        4
+      58: iconst_2
+      59: anewarray     #40                 // class java/lang/String
+      62: dup
+      63: iconst_0
+      64: aload_3
+      65: aastore
+      66: dup
+      67: iconst_1
+      68: aload         4
+      70: aastore
+      71: areturn
+
+  static java.lang.String md5Hex(java.lang.String);
+    Code:
+       0: ldc           #160                // String MD5
+       2: invokestatic  #161                // Method java/security/MessageDigest.getInstance:(Ljava/lang/String;)Ljava/security/MessageDigest;
+       5: astore_1
+       6: goto          20
+       9: astore_2
+      10: new           #163                // class java/lang/IllegalStateException
+      13: dup
+      14: ldc           #164                // String No MD5 algorithm available!
+      16: invokespecial #165                // Method java/lang/IllegalStateException."<init>":(Ljava/lang/String;)V
+      19: athrow
+      20: new           #40                 // class java/lang/String
+      23: dup
+      24: aload_1
+      25: aload_0
+      26: invokevirtual #72                 // Method java/lang/String.getBytes:()[B
+      29: invokevirtual #166                // Method java/security/MessageDigest.digest:([B)[B
+      32: invokestatic  #167                // Method org/springframework/security/crypto/codec/Hex.encode:([B)[C
+      35: invokespecial #168                // Method java/lang/String."<init>":([C)V
+      38: areturn
+    Exception table:
+       from    to  target type
+           0     6     9   Class java/security/NoSuchAlgorithmException
+
+  static {};
+    Code:
+       0: ldc           #169                // class com/virtual/plat/server/rs/ext/event/DigestAuthenticationFilterExt
+       2: invokestatic  #170                // Method org/apache/commons/logging/LogFactory.getLog:(Ljava/lang/Class;)Lorg/apache/commons/logging/Log;
+       5: putstatic     #24                 // Field logger:Lorg/apache/commons/logging/Log;
+       8: aconst_null
+       9: putstatic     #17                 // Field instance:Lcom/virtual/plat/server/rs/ext/event/DigestAuthenticationFilterExt;
+      12: iconst_0
+      13: anewarray     #40                 // class java/lang/String
+      16: putstatic     #134                // Field EMPTY_STRING_ARRAY:[Ljava/lang/String;
+      19: return
+}

@@ -1,0 +1,718 @@
+m	Z	
+l m!Z!m"Z"m#Z#m$Z$m%Z%m&Z&
+l'm(Z(m)Z)m*Z*m+Z+m,Z,m-Z-m.Z.m/Z/m0Z0
+l1m2Z2
+j:e8d
+Z;e;Z<d
+zLThe :class:`Schema` class, including its metaclass and options (class Meta).
+annotations)
+defaultdict
+OrderedDict)
+Mapping)
+	lru_cacheN)
+base
+fields
+class_registry
+types)
+ErrorStore)
+ValidationError
+StringNotCollectionError)
+OrderedSet)
+	POST_DUMP
+	POST_LOAD
+PRE_DUMP
+PRE_LOAD
+	VALIDATES
+VALIDATES_SCHEMA)	
+RAISE
+EXCLUDE
+INCLUDE
+missing
+	set_value
+	get_value
+is_collection
+is_instance_or_subclass
+ validate_unknown_parameter_value)
+RemovedInMarshmallow4Warning
+_TFc
+Get fields from a class. If ordered=True, fields will sorted by creation index.
+    :param attrs: Mapping of class attributes
+    :param bool ordered: Sort fields by creation index
+    c
+FieldABC)
+field_nameZ
+field_valuer 
+6/usr/lib/python3.9/site-packages/marshmallow/schema.py
+<listcomp>2
+_get_fields.<locals>.<listcomp>c
+_creation_index)
+pairr 
+<lambda>8
+_get_fields.<locals>.<lambda>)
+key)
+items
+sort)
+attrs
+orderedr
+_get_fields,
+Collect fields from a class, following its method resolution order. The
+    class itself is excluded from the search; only its parents are checked. Get
+    fields from ``_declared_fields`` if available, else use ``__dict__``.
+    :param type klass: Class whose fields to retrieve
+    c
+_declared_fields
+getattr
+__dict__)
+	<genexpr>H
+z%_get_fields_by_mro.<locals>.<genexpr>Nr
+inspect
+getmro
+sum)
+klassr-
+mror 
+_get_fields_by_mro>
+SchemaMetaa
+Metaclass for the Schema class. Binds the declared fields to
+    a ``_declared_fields`` attribute, which is a dictionary mapping attribute
+    names to field objects. Also sets the ``opts`` class attribute, which is
+    the Schema class's ``class Meta`` options.
+    c
+Metar-
+cls_fields
+inherited_fields
+dict_cls)
+getr1
+hasattrr<
+super
+__new__r:
+OPTIONS_CLASS
+opts
+list
+includer*
+dict
+get_declared_fieldsr/
+name
+basesr,
+metar-
+base_r>
+	__class__r 
+SchemaMeta.__new__
+typerG
+Returns a dictionary of field_name => `Field` pairs declared on the class.
+        This is exposed mainly so that plugins can add additional fields, e.g. fields
+        computed from class Meta options.
+        :param klass: The class object.
+        :param cls_fields: The fields declared on the class, including those added
+            by the ``include`` class Meta option.
+        :param inherited_fields: Inherited fields.
+        :param dict_cls: Either `dict` or `OrderedDict`, depending on whether
+            the user specified `ordered=True`.
+        r 
+SchemaMeta.get_declared_fieldsc
+__init__rF
+registerr	
+resolve_hooks
+_hooks)
+clsrL
+SchemaMeta.__init__z
+dict[types.Tag, list[str]]
+returnc
+qTq"q
+Add in the decorated processors
+        By doing this after constructing the class, we let standard inheritance
+        do all the hard work.
+        )
+dirr2
+KeyError
+__marshmallow_hook__
+AttributeError
+keys
+append)
+hooks
+	attr_name
+parent
+attrZ
+hook_configr)
+SchemaMeta.resolve_hooks)
+__name__
+__module__
+__qualname__
+__doc__rD
+classmethodrJ
+__classcell__r 
+SchemaOptsz=class Meta options for the :class:`Schema`. Defines defaults.F
+boolr0
+z(`fields` option must be a list or tuple.
+additionalz,`additional` option must be a list or tuple.zFCannot set both `fields` and `additional` options for the same Schema.
+excludez"`exclude` must be a list or tuple.
+dateformat
+datetimeformat
+timeformatZ
+json_modulezKThe json_module class Meta option is deprecated. Use render_module instead.
+render_moduler-
+index_errorsTrH
+	load_only
+	dump_only
+unknownrU
+isinstancerG
+tuple
+ValueErrorrl
+warnings
+warnr
+jsonrq
+selfrN
+SchemaOpts.__init__N)
+Z!e"Z#d
+Z)e*d
+Z+e*d
+Z,e-d
+d d!
+Z.d"d#d
+d%d&
+Z/d#d
+d#d'
+d(d)
+Z0e1d
+d+d,
+Z2d	d-
+d0d1
+d#d2d/
+d3d4
+d#d2d/
+d5d6
+Z5d	d	e6d
+d8d9d
+d:d;
+d<d=
+d8d2d?d
+dAdB
+d2d?d
+dDdE
+dFdG
+d8d2d?dIdJ
+dKdL
+dMdN
+d8d2d?d
+dPdQ
+Z<dRd
+dSdT
+Z=dRd
+dUdV
+Z>dRd
+dWdX
+dYdRdZ
+d[d\
+dYdRdZ
+d]d^
+ZAeBd_d`
+dadb
+dedf
+dhdi
+ZEd9d
+dkdl
+ZFd	dm
+dodp
+drds
+SchemaaD	
+Base schema class with which to define custom schemas.
+    Example usage:
+    .. code-block:: python
+        import datetime as dt
+        from dataclasses import dataclass
+        from marshmallow import Schema, fields
+        @dataclass
+        class Album:
+            title: str
+            release_date: dt.date
+        class AlbumSchema(Schema):
+            title = fields.Str()
+            release_date = fields.Date()
+        album = Album("Beggars Banquet", dt.date(1968, 12, 6))
+        schema = AlbumSchema()
+        data = schema.dump(album)
+        data  # {'release_date': '1968-12-06', 'title': 'Beggars Banquet'}
+    :param only: Whitelist of the declared fields to select when
+        instantiating the Schema. If None, all fields are used. Nested fields
+        can be represented with dot delimiters.
+    :param exclude: Blacklist of the declared fields to exclude
+        when instantiating the Schema. If a field appears in both `only` and
+        `exclude`, it is not used. Nested fields can be represented with dot
+        delimiters.
+    :param many: Should be set to `True` if ``obj`` is a collection
+        so that the object will be serialized to a list.
+    :param context: Optional context passed to :class:`fields.Method` and
+        :class:`fields.Function` fields.
+    :param load_only: Fields to skip during serialization (write-only fields)
+    :param dump_only: Fields to skip during deserialization (read-only fields)
+    :param partial: Whether to ignore missing fields and not require
+        any fields declared. Propagates down to ``Nested`` fields as well. If
+        its value is an iterable, only missing fields listed in that iterable
+        will be ignored. Use dot delimiters to specify nested fields.
+    :param unknown: Whether to exclude, include, or raise an error for unknown
+        fields in the data. Use `EXCLUDE`, `INCLUDE` or `RAISE`.
+    .. versionchanged:: 3.0.0
+        `prefix` parameter removed.
+    .. versionchanged:: 2.0.0
+        `__validators__`, `__preprocessors__`, and `__data_handlers__` are removed in favor of
+        `marshmallow.decorators.validates_schema`,
+        `marshmallow.decorators.pre_load` and `marshmallow.decorators.post_dump`.
+        `__accessor__` and `__error_handler__` are deprecated. Implement the
+        `handle_error` and `get_attribute` methods instead.
+    z
+Invalid input type.z
+Unknown field.)
+Schema.Metaa
+Options object for a Schema.
+        Example usage: ::
+            class Meta:
+                fields = ("id", "email", "date_created")
+                exclude = ("password", "secret_attribute")
+        Available options:
+        - ``fields``: Tuple or list of fields to include in the serialized result.
+        - ``additional``: Tuple or list of fields to include *in addition* to the
+            explicitly declared fields. ``additional`` and ``fields`` are
+            mutually-exclusive options.
+        - ``include``: Dictionary of additional fields to include in the schema. It is
+            usually better to define fields as class variables, but you may need to
+            use this option, e.g., if your fields are Python keywords. May be an
+            `OrderedDict`.
+        - ``exclude``: Tuple or list of fields to exclude in the serialized result.
+            Nested fields can be represented with dot delimiters.
+        - ``dateformat``: Default format for `Date <fields.Date>` fields.
+        - ``datetimeformat``: Default format for `DateTime <fields.DateTime>` fields.
+        - ``timeformat``: Default format for `Time <fields.Time>` fields.
+        - ``render_module``: Module to use for `loads <Schema.loads>` and `dumps <Schema.dumps>`.
+            Defaults to `json` from the standard library.
+        - ``ordered``: If `True`, order serialization output according to the
+            order in which fields were declared. Output of `Schema.dump` will be a
+            `collections.OrderedDict`.
+        - ``index_errors``: If `True`, errors dictionaries will include the index
+            of invalid items in a collection.
+        - ``load_only``: Tuple or list of fields to exclude from serialized results.
+        - ``dump_only``: Tuple or list of fields to exclude from deserialization
+        - ``unknown``: Whether to exclude, include, or raise an error for unknown
+            fields in the data. Use `EXCLUDE`, `INCLUDE` or `RAISE`.
+        - ``register``: Whether to register the `Schema` with marshmallow's internal
+            class registry. Must be `True` if you intend to refer to this `Schema`
+            by class name in `Nested` fields. Only set this to `False` when memory
+            usage is critical. Defaults to `True`.
+        N)
+onlyrm
+many
+contextrs
+partialru
+types.StrSequenceOrSet | Nonez
+types.StrSequenceOrSetrk
+dict | Nonez
+bool | types.StrSequenceOrSetz
+str | Nonec
+}	|	
+Nz""only" should be a list of stringsz%"exclude" should be a list of strings
+error_messages)
+copyZ
+deepcopyr/
+declared_fieldsr
+setrF
+_normalize_nested_optionsr
+load_fields
+dump_fields
+_init_fields
+update
+_default_error_messages
+reversedrQ
+__mro__r1
+messagesrX
+Schema.__init__
+strrY
+<{ClassName}(many={self.many})>)
+Z	ClassNamer|
+formatrQ
+__repr__
+Schema.__repr__rR
+dict_class
+Schema.dict_classc
+	set_class
+Schema.set_classZ
+GeneratedSchema)
+z!dict[str, ma_fields.Field | type])
+Generate a `Schema` class given a dictionary of fields.
+        .. code-block:: python
+            from marshmallow import Schema, fields
+            PersonSchema = Schema.from_dict({"name": fields.Str()})
+            print(PersonSchema().load({"name": "David"}))  # => {'name': 'David'}
+        Generated schemas are not added to the class registry and therefore cannot
+        be referred to by name in `Nested` fields.
+        :param dict fields: Dictionary mapping field names to field instances.
+        :param str name: Optional name for the class, which will appear in
+            the ``repr`` for the class.
+        .. versionadded:: 3.0.0
+        Z
+GeneratedMetar<
+object)
+schema_clsr 
+	from_dict
+Schema.from_dictr
+typing.Any)
+error
+datar
+Custom error handler function for the schema.
+        :param error: The `ValidationError` raised during (de)serialization.
+        :param data: The original input data.
+        :param many: Value of ``many`` on dump or load.
+        :param partial: Value of ``partial`` on load.
+        .. versionadded:: 2.0.0
+        .. versionchanged:: 3.0.0rc9
+            Receives `many` and `partial` (on deserialization) as keyword arguments.
+        Nr 
+kwargsr 
+handle_error
+Schema.handle_error)
+objrc
+defaultc
+Defines how to pull values from an object to serialize.
+        .. versionadded:: 2.0.0
+        .. versionchanged:: 3.0.0a1
+            Changed position of ``obj`` and ``attr``.
+        )
+get_attribute
+Schema.get_attribute
+indexc
+Call ``getter_func`` with ``data`` as its argument, and store any `ValidationErrors`.
+        :param callable getter_func: Function for getting the serialized/deserialized
+            value from ``data``.
+        :param data: The data passed to ``getter_func``.
+        :param str field_name: Field name.
+        :param int index: Index of the item being validated, if validating a collection,
+            otherwise `None`.
+        r
+store_errorr
+valid_datar
+getter_funcr
+error_storer
+valuer
+_call_and_store
+Schema._call_and_store
+_T | typing.Iterable[_T])
+rbq>|
+Serialize ``obj``.
+        :param obj: The object(s) to serialize.
+        :param bool many: `True` if ``data`` should be serialized as a collection.
+        :return: A dictionary of the serialized data
+        .. versionchanged:: 1.0.0
+            Renamed from ``marshal``.
+        Nc
+_serialize)
+z%Schema._serialize.<locals>.<listcomp>)
+accessor)
+typing
+cast
+Iterabler
+Z	serializer
+data_key)
+retra
+	field_objr
+Schema._serializez
+bool | Nonec
+Serialize an object to native Python data types according to this
+        Schema's fields.
+        :param obj: The object to serialize.
+        :param many: Whether to serialize `obj` as a collection. If `None`, the value
+            for `self.many` is used.
+        :return: Serialized data
+        .. versionadded:: 1.0.0
+        .. versionchanged:: 3.0.0b7
+            This method returns the serialized data rather than a ``(data, errors)`` duple.
+            A :exc:`ValidationError <marshmallow.exceptions.ValidationError>` is raised
+            if ``obj`` is invalid.
+        .. versionchanged:: 3.0.0rc9
+            Validation no longer occurs upon serialization.
+        N)
+original_datar
+_has_processorsr
+_invoke_dump_processorsr
+processed_obj
+resultr 
+dump
+Schema.dumpc
+Same as :meth:`dump`, except return a JSON-encoded string.
+        :param obj: The object to serialize.
+        :param many: Whether to serialize `obj` as a collection. If `None`, the value
+            for `self.many` is used.
+        :return: A ``json`` string
+        .. versionadded:: 1.0.0
+        .. versionchanged:: 3.0.0b7
+            This method returns the serialized data rather than a ``(data, errors)`` duple.
+            A :exc:`ValidationError <marshmallow.exceptions.ValidationError>` is raised
+            if ``obj`` is invalid.
+        r
+dumps)
+argsr
+serializedr 
+Schema.dumps)
+zRtyping.Mapping[str, typing.Any] | typing.Iterable[typing.Mapping[str, typing.Any]]r
+_T | list[_T])
+Deserialize ``data``.
+        :param dict data: The data to deserialize.
+        :param ErrorStore error_store: Structure to store errors.
+        :param bool many: `True` if ``data`` should be deserialized as a collection.
+        :param bool|tuple partial: Whether to ignore missing fields and not require
+            any fields declared. Propagates down to ``Nested`` fields as well. If
+            its value is an iterable, only missing fields listed in that iterable
+            will be ignored. Use dot delimiters to specify nested fields.
+        :param unknown: Whether to exclude, include, or raise an error for unknown
+            fields in the data. Use `EXCLUDE`, `INCLUDE` or `RAISE`.
+        :param int index: Index of the item being serialized (for storing errors) if
+            serializing a collection, otherwise `None`.
+        :return: A dictionary of the deserialized data.
+        NrR
+_deserializer
+Any)
+idxr
+z'Schema._deserialize.<locals>.<listcomp>T
+startswith)
+len_prefix
+prefixr 
+deserialize)
+val)
+d_kwargsr
+z%Schema._deserialize.<locals>.<lambda>
+	<setcomp>
+z&Schema._deserialize.<locals>.<setcomp>ru
+	enumerater
+lenr
+	attributer
+ret_lZ
+ret_dZ
+partial_is_collectionra
+Z	raw_valueZ
+sub_partial
+getterr
+Schema._deserialize
+z$bool | types.StrSequenceOrSet | None)
+Deserialize a data structure to an object defined by this Schema's fields.
+        :param data: The data to deserialize.
+        :param many: Whether to deserialize `data` as a collection. If `None`, the
+            value for `self.many` is used.
+        :param partial: Whether to ignore missing fields and not require
+            any fields declared. Propagates down to ``Nested`` fields as well. If
+            its value is an iterable, only missing fields listed in that iterable
+            will be ignored. Use dot delimiters to specify nested fields.
+        :param unknown: Whether to exclude, include, or raise an error for unknown
+            fields in the data. Use `EXCLUDE`, `INCLUDE` or `RAISE`.
+            If `None`, the value for `self.unknown` is used.
+        :return: Deserialized data
+        .. versionadded:: 1.0.0
+        .. versionchanged:: 3.0.0b7
+            This method returns the deserialized data rather than a ``(data, errors)`` duple.
+            A :exc:`ValidationError <marshmallow.exceptions.ValidationError>` is raised
+            if invalid data are passed.
+        T
+postprocess)
+_do_load)
+load
+Schema.load)
+	json_datar
+Same as :meth:`load`, except it takes a JSON string as input.
+        :param json_data: A JSON string of the data to deserialize.
+        :param many: Whether to deserialize `obj` as a collection. If `None`, the
+            value for `self.many` is used.
+        :param partial: Whether to ignore missing fields and not require
+            any fields declared. Propagates down to ``Nested`` fields as well. If
+            its value is an iterable, only missing fields listed in that iterable
+            will be ignored. Use dot delimiters to specify nested fields.
+        :param unknown: Whether to exclude, include, or raise an error for unknown
+            fields in the data. Use `EXCLUDE`, `INCLUDE` or `RAISE`.
+            If `None`, the value for `self.unknown` is used.
+        :return: Deserialized data
+        .. versionadded:: 1.0.0
+        .. versionchanged:: 3.0.0b7
+            This method returns the deserialized data rather than a ``(data, errors)`` duple.
+            A :exc:`ValidationError <marshmallow.exceptions.ValidationError>` is raised
+            if invalid data are passed.
+        r
+loadsr
+Schema.loadsc
+}	~	n
+}	~	0
+validator_func
+outputr
+pass_originalr
+errr 
+_run_validator
+Schema._run_validator
+dict[str, list[str]])
+Validate `data` against the schema, returning a dictionary of
+        validation errors.
+        :param data: The data to validate.
+        :param many: Whether to validate `data` as a collection. If `None`, the
+            value for `self.many` is used.
+        :param partial: Whether to ignore missing fields and not require
+            any fields declared. Propagates down to ``Nested`` fields as well. If
+            its value is an iterable, only missing fields listed in that iterable
+            will be ignored. Use dot delimiters to specify nested fields.
+        :return: A dictionary of validation errors.
+        .. versionadded:: 1.1.0
+        F)
+Dictr
+Listr
+excr 
+validate
+Schema.validateTr
+}	~	q
+}	~	0
+}	~	n
+}	~	0
+Deserialize `data`, returning the deserialized result.
+        This method is private API.
+        :param data: The data to deserialize.
+        :param many: Whether to deserialize `data` as a collection. If `None`, the
+            value for `self.many` is used.
+        :param partial: Whether to validate required fields. If its
+            value is an iterable, only fields listed in that iterable will be
+            ignored will be allowed missing. If `True`, all fields will be allowed missing.
+            If `None`, the value for `self.partial` is used.
+        :param unknown: Whether to exclude, include, or raise an error for unknown
+            fields in the data. Use `EXCLUDE`, `INCLUDE` or `RAISE`.
+            If `None`, the value for `self.unknown` is used.
+        :param postprocess: Whether to run post_load methods..
+        :return: Deserialized data
+        N)
+	pass_manyr
+field_errorsF)
+_invoke_load_processorsr
+normalized_messagesr
+_invoke_field_validatorsr
+errors
+_invoke_schema_validatorsr
+processed_datar
+Schema._do_load
+Nonec
+)	zVApply then flatten nested schema options.
+        This method is private API.
+        Nr~
+intersectionc
+split
+fieldr 
+z4Schema._normalize_nested_options.<locals>.<listcomp>rm
+unionc
+_Schema__apply_nested_optionr
+z Schema._normalize_nested_optionsc
+z%Apply nested options to nested fieldsc
+z0Schema.__apply_nested_option.<locals>.<listcomp>r 
+N)	r
+iterr*
+setattr)
+option_name
+field_namesZ
+set_operationZ
+nested_fieldsZ
+nested_optionsrb
+nested_namesr)
+optionsZ
+new_optionsZ
+original_optionsr 
+__apply_nested_option
+Schema.__apply_nested_optionc
+Update self.fields, self.load_fields, and self.dump_fields based on schema options.
+        This method is private API.
+        Nz
+Invalid fields for z
+z'Schema._init_fields.<locals>.<listcomp>c
+count
+dump_data_keysr 
+z&Schema._init_fields.<locals>.<setcomp>z
+The data_key argument for one or more fields collides with another field's name or data_key argument. Check the following field names and data_key arguments: {}c
+load_attributesr 
+The attribute argument for one or more fields collides with another field's name or attribute argument. Check the following field names and attribute arguments: {})
+	ma_fieldsZ
+Inferred
+_bind_fieldr*
+available_field_namesZ
+invalid_fieldsr
+messageZ
+fields_dictr#
+data_keys_duplicatesZ
+attributes_duplicatesr 
+Schema._init_fieldsz
+ma_fields.Field)
+z\Hook to modify a field when it is bound to the `Schema`.
+        No-op by default.
+        Nr 
+on_bind_field
+Schema.on_bind_fieldc
+Bind field to the schema, setting any necessary attributes on the
+        field (e.g. parent and name).
+        Also set field load_only and dump_only values if field_name was
+        specified in ``class Meta``.
+        Tz]Field for "{}" must be declared as a Field instance, not a class. Did you mean "fields.{}()"?N)
+_bind_to_schema
+	TypeErrorrv
+issubclassr
+msgr 
+Schema._bind_field
+maxsizec
+NTF)
+tagr 
+Schema._has_processors)
+_invoke_processors)
+Schema._invoke_dump_processors)
+Schema._invoke_load_processors)
+}	~	q
+}	~	n
+}	~	0
+" field does not exist.r
+pop)
+	validator
+validator_kwargsr#
+itemr
+validated_valuer 
+Schema._invoke_field_validators)
+}	|	j
+skip_on_field_errorsr
+zipr
+origr 
+z Schema._invoke_schema_validators)
+}	|	
+original
+Z	processorr 
+z-Schema._invoke_processors.<locals>.<listcomp>c
+processor_kwargsr
+Schema._invoke_processors)Ird
+String
+bytes
+datetimeZ
+DateTime
+floatZ
+Floatrk
+Booleanrw
+RawrG
+intZ
+Integer
+uuidZ
+UUID
+timeZ
+Time
+dateZ
+DateZ	timedeltaZ	TimeDelta
+decimalZ
+DecimalZ
+TYPE_MAPPINGr
+propertyr
+staticmethodr
+	metaclass)
+F)=rg
+__future__r
+collectionsr
+collections.abcr
+	functoolsr
+marshmallowr
+marshmallow.error_storer
+marshmallow.exceptionsr
+marshmallow.orderedsetr
+marshmallow.decoratorsr
+marshmallow.utilsr
+marshmallow.warningsr
+TypeVarr
+Z	SchemaABCr}
+BaseSchemar 
+<module>

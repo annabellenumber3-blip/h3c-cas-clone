@@ -1,0 +1,333 @@
+m	Z	m
+(e'e$
+(e'e$
+absolute_importN
+RecentlyUsedContainer)
+HTTPConnectionPool
+HTTPSConnectionPool
+port_by_scheme)
+LocationValueError
+MaxRetryError
+ProxySchemeUnknown
+ProxySchemeUnsupported
+URLSchemeUnknown)
+six)
+urljoin)
+RequestMethods)
+connection_requires_http_tunnel)
+Retry)
+	parse_url)
+PoolManager
+ProxyManager
+proxy_from_url)
+key_fileZ	cert_fileZ	cert_reqsZ
+ca_certsZ
+ssl_versionZ
+ca_cert_dir
+ssl_contextZ
+key_password)
+key_schemeZ
+key_hostZ
+key_portZ
+key_timeoutZ
+key_retriesZ
+key_strictZ	key_blockZ
+key_source_addressZ
+key_key_fileZ
+key_key_passwordZ
+key_cert_fileZ
+key_cert_reqsZ
+key_ca_certsZ
+key_ssl_versionZ
+key_ca_cert_dirZ
+key_ssl_contextZ
+key_maxsizeZ
+key_headersZ
+key__proxyZ
+key__proxy_headersZ
+key__proxy_configZ
+key_socket_optionsZ
+key__socks_optionsZ
+key_assert_hostnameZ
+key_assert_fingerprintZ
+key_server_hostname
+PoolKey)
+use_forwarding_for_https
+ProxyConfigc
+    Create a pool key out of a request context dictionary.
+    According to RFC 3986, both the scheme and host are case-insensitive.
+    Therefore, this function normalizes both before constructing the pool
+    key for an HTTPS request. If you wish to change this behaviour, provide
+    alternate callables to ``key_fn_by_scheme``.
+    :param key_class:
+        The class to use when constructing the key. This should be a namedtuple
+        with the ``scheme`` and ``host`` keys at a minimum.
+    :type  key_class: namedtuple
+    :param request_context:
+        A dictionary-like object that contain the context for a request.
+    :type  request_context: dict
+    :return: A namedtuple that can be used as a connection pool key.
+    :rtype:  PoolKey
+    
+scheme
+host)
+headers
+_proxy_headersZ
+_socks_optionsNZ
+socket_optionsZ
+key_)
+copy
+lower
+	frozenset
+items
+tuple
+list
+keys
+_fields)
+Z	key_class
+request_context
+context
+keyZ
+socket_optsZ
+field
+C/usr/lib/python3.9/site-packages/pip/_vendor/urllib3/poolmanager.py
+_default_key_normalizerN
+http
+httpsc
+    Allows for arbitrary requests while transparently keeping track of
+    necessary connection pools for you.
+    :param num_pools:
+        Number of connection pools to cache before discarding the least
+        recently used pool.
+    :param headers:
+        Headers to include with all requests, unless other headers are given
+        explicitly.
+    :param \**connection_pool_kw:
+        Additional parameters are used to create fresh
+        :class:`urllib3.connectionpool.ConnectionPool` instances.
+    Example::
+        >>> manager = PoolManager(num_pools=2)
+        >>> r = manager.request('GET', 'http://google.com/')
+        >>> r = manager.request('GET', 'http://google.com/mail')
+        >>> r = manager.request('GET', 'http://yahoo.com/')
+        >>> len(manager.pools)
+        2
+    N
+close)
+<lambda>
+z&PoolManager.__init__.<locals>.<lambda>)
+dispose_func)
+__init__
+connection_pool_kwr
+pools
+pool_classes_by_scheme
+key_fn_by_schemer
+self
+	num_poolsr
+PoolManager.__init__c
+	__enter__
+PoolManager.__enter__c
+clear)
+exc_typeZ
+exc_valZ
+exc_tbr+
+__exit__
+PoolManager.__exit__c
+        Create a new :class:`urllib3.connectionpool.ConnectionPool` based on host, port, scheme, and
+        any additional pool keyword arguments.
+        If ``request_context`` is provided, it is provided as keyword arguments
+        to the pool class used. This method is used to actually create the
+        connection pools handed out by :meth:`connection_from_url` and
+        companion methods. It is intended to be overridden for customization.
+        N)
+portr/
+SSL_KEYWORDS)
+pool_clsr*
+kwr+
+	_new_pool
+PoolManager._new_poolc
+        Empty our store of pools and direct them all to close.
+        This will not affect in-flight connections, but they will not be
+        re-used after completion.
+        N)
+PoolManager.clearr/
+        Get a :class:`urllib3.connectionpool.ConnectionPool` based on the host, port, and scheme.
+        If ``port`` isn't given, it will be derived from the ``scheme`` using
+        ``urllib3.connectionpool.port_by_scheme``. If ``pool_kwargs`` is
+        provided, it is merged with the instance's ``connection_pool_kw``
+        variable and used to create the new connection pool, if one is
+        needed.
+        z
+No host specified.r/
+_merge_pool_kwargsr
+connection_from_context)
+pool_kwargsr(
+connection_from_host
+z PoolManager.connection_from_hostc
+        Get a :class:`urllib3.connectionpool.ConnectionPool` based on the request context.
+        ``request_context`` must at least contain the ``scheme`` key and its
+        value must be a key in ``key_fn_by_scheme`` instance variable.
+        r
+connection_from_pool_key)
+pool_key_constructor
+pool_keyr+
+z#PoolManager.connection_from_contextc
+        Get a :class:`urllib3.connectionpool.ConnectionPool` based on the provided pool key.
+        ``pool_key`` should be a namedtuple that only contains immutable
+        objects. At a minimum it must have the ``scheme``, ``host``, and
+        ``port`` fields.
+        Nr
+lockr"
+poolr
+z$PoolManager.connection_from_pool_keyc
+        Similar to :func:`urllib3.connectionpool.connection_from_url`.
+        If ``pool_kwargs`` is not provided and a new pool needs to be
+        constructed, ``self.connection_pool_kw`` is used to initialize
+        the :class:`urllib3.connectionpool.ConnectionPool`. If ``pool_kwargs``
+        is provided, it is used instead. Note that if a new pool does not
+        need to be created for the request, the provided ``pool_kwargs`` are
+        not used.
+        )
+urlrJ
+connection_from_url
+PoolManager.connection_from_urlc
+        Merge a dictionary of override values for self.connection_pool_kw.
+        This does not modify self.connection_pool_kw and returns a new dict.
+        Any keys in the override dictionary with a value of ``None`` are
+        removed from the merged dictionary.
+        N)
+KeyError)
+overrideZ
+base_pool_kwargsr*
+valuer+
+PoolManager._merge_pool_kwargsc
+        Indicates if the proxy requires the complete destination URL in the
+        request.  Normally this is only needed when not using an HTTP CONNECT
+        tunnel.
+        NF)
+proxyr
+proxy_configr
+parsed_urlr+
+!_proxy_requires_url_absolute_formB
+z-PoolManager._proxy_requires_url_absolute_formc
+        Validates that were not attempting to do TLS in TLS connections on
+        Python2 or with unsupported SSL implementations.
+        Nr0
+zfContacting HTTPS destinations through HTTPS proxies 'via CONNECT tunnels' is not supported in Python 2)
+PY2rW
+url_schemer+
+$_validate_proxy_scheme_url_selectionO
+z0PoolManager._validate_proxy_scheme_url_selectionTc
+}	|	j
+        Same as :meth:`urllib3.HTTPConnectionPool.urlopen`
+        with custom cross-host redirect logic and only sends the request-uri
+        portion of the ``url``.
+        The given ``url`` parameter must be absolute, such that an appropriate
+        :class:`urllib3.connectionpool.ConnectionPool` can be chosen for it.
+        )
+assert_same_host
+redirectr
+retries)
+responseZ
+_poolz
+Redirecting %s -> %s)
+urlopenZ
+request_uriZ
+get_redirect_locationr
+statusr"
+isinstancer
+from_intZ
+remove_headers_on_redirectZ
+is_same_hostr$
+iterkeysr
+Z	incrementr	
+raise_on_redirectZ
+drain_conn
+info)
+methodrP
+connr\
+redirect_locationr[
+headerr+
+PoolManager.urlopen)
+__name__
+__module__
+__qualname__
+__doc__rV
+    Behaves just like :class:`PoolManager`, but sends all requests through
+    the defined proxy, using the CONNECT method for HTTPS URLs.
+    :param proxy_url:
+        The URL of the proxy to be used.
+    :param proxy_headers:
+        A dictionary containing headers that will be sent to the proxy. In case
+        of HTTP they are being sent with each request, while in the
+        HTTPS/CONNECT case they are sent only once. Could be used for proxy
+        authentication.
+    :param proxy_ssl_context:
+        The proxy SSL context is used to establish the TLS connection to the
+        proxy when using HTTPS proxies.
+    :param use_forwarding_for_https:
+        (Defaults to False) If set to True will forward requests to the HTTPS
+        proxy to be made on behalf of the client instead of creating a TLS
+        tunnel via the CONNECT method. **Enabling this flag means that request
+        and response headers and content will be visible from the HTTPS proxy**
+        whereas tunneling keeps request and response headers and content
+        private.  IP address, target hostname, SNI, and port are always visible
+        to an HTTPS proxy even when this flag is disabled.
+    Example:
+        >>> proxy = urllib3.ProxyManager('http://localhost:3128/')
+        >>> r1 = proxy.request('GET', 'http://google.com/')
+        >>> r2 = proxy.request('GET', 'http://httpbin.org/')
+        >>> len(proxy.pools)
+        1
+        >>> r3 = proxy.request('GET', 'https://httpbin.org/')
+        >>> r4 = proxy.request('GET', 'https://twitter.com/')
+        >>> len(proxy.pools)
+        3
+    r1
+j	|	d
+%s://%s:%ir.
+_proxyr
+_proxy_config)
+_replacerV
+proxy_headers
+proxy_ssl_contextr
+superr
+	proxy_urlr=
+	__class__r+
+ProxyManager.__init__r/
+z!ProxyManager.connection_from_hostc
+        Sets headers needed by proxies: specifically, the Accept and Host
+        headers. Only sets headers not provided by the user.
+        Z
+Acceptz
+*/*Z
+Host)
+netloc
+update)
+headers_ro
+_set_proxy_headers
+ProxyManager._set_proxy_headersTc
+z@Same as HTTP(S)ConnectionPool.urlopen, ``url`` must be absolute.r
+ProxyManager.urlopen)
+NNNF)
+T)	rc
+__classcell__r+
+__future__r
+collections
+	functoolsZ
+logging
+_collectionsr
+connectionpoolr
+exceptionsr
+packagesr
+packages.six.moves.urllib.parser
+requestr
+util.proxyr
+util.retryr
+util.urlr
+__all__Z	getLoggerrc
+_key_fields
+namedtupler
+_proxy_config_fieldsr
+partialr;
+<module>

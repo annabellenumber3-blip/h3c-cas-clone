@@ -1,0 +1,787 @@
+l	Z	d
+Command line interface yum class and related.
+print_function)
+absolute_import)
+unicode_literals)
+SequenceN
+output)
+CliError)
+zl Get the length of each pkg's column. Add that to data.
+        This "knows" about simpleList and printVer. r
+ridr
+name
+archZ
+evrZ
+_from_repo
+setdefault)
+data
+indentr
+//usr/lib/python3.9/site-packages/dnf/cli/cli.py
+_add_pkg_simple_list_lens]
+q0q(t
+zA Work out the dynamic size of the columns to pass to fmtColumns. )
+    )
+remainder_column
+	installed
+	available
+extras
+autoremove
+updates
+recentr
+	obsoletes
+obsoletesTuplesZ
+calcColumns)
+yplr
+lstr
+npkgZ
+opkg
+columnsr
+_list_cmd_calc_columnsh
+time
+strftime
+gmtime)
+sm_ui_timez
+z"print_versions.<locals>.sm_ui_timeF)
+%s-%s.%sz
+%s:%s-%s.%sz
+  Installed: %s-%s at %sz
+  Built    : %s at %s)
+sack
+rpmdb_sack
+queryr
+filterm
+printZ
+epoch
+version
+releaser
+term
+boldr
+installtimeZ
+packagerZ	buildtime)	
+pkgs
+baser
+doner
+print_versionsy
+NzTThe operation would result in switching of module '{0}' stream '{1}' to stream '{2}'r
+items
+logger
+warning
+format)
+switchedModulesZ
+msg1Z
+moduleNameZ
+streamsr
+report_module_switch
+Z	d#d
+BaseCliz#This is the base class for yum cli.Nc
+conf)
+Conf
+superr@
+__init__r
+Output)
+selfrA
+	__class__r
+BaseCli.__init__r
+]>}	|	j
+q~|	j
+t&t	d
+t	d	
+,t-|
+t4t5|
+]&}	|	j>t?j
+Take care of package downloading, checking, user
+        confirmation and actually running the transaction.
+        :param display: `rpm.callback.TransactionProgress` object(s)
+        :return: history database transaction ID or None
+        aQ
+It is not possible to switch enabled streams of a module unless explicitly enabled via configuration option module_stream_switch.
+It is recommended to rather remove all installed content from the module, and reset the module using '{prog} module reset <module_name>' command. After you reset the module, you can install the other stream.
+progTFz7{prog} will only download packages for the transaction.
+testzP{prog} will only download packages, install gpg keys, and check the transaction.z
+Operation aborted.z
+Nothing to do.Nz
+Downloading Packages:z
+Error downloading packages:z
+Transaction failed)Ar
+WITH_MODULESrA
+module_stream_switch
+dictZ
+_moduleContainerZ
+getSwitchedStreamsr?
+util
+	MAIN_PROG
+exceptions
+ErrorZ
+transactionr
+list_transactionr;
+info
+actionZ
+FORWARD_ACTIONS
+appendr
+BACKWARD_ACTIONSZ
+_tsZ
+reportRemoveSizeZ
+reportDownloadSizeZ	isChangedZ
+_history
+group
+downloadonly
+MAIN_PROG_UPPERZ
+tsflags
+_promptWanted
+assumeno
+userconfirmr
+download_callback_total_cbZ
+download_packages
+progressZ
+DownloadError
+cliZ
+indent_blockr	
+gpgsigcheck
+isinstancer
+CliTransactionDisplay
+listrB
+do_transaction
+history
+oldZ
+RPMTransactionZ
+_trans
+joinZ
+post_transaction_output
+state
+libdnfZ
+TransactionItemState_ERROR)
+displayr>
+msgZ
+transZ
+pkg_strZ
+install_pkgsZ
+rmpkgsZ
+install_onlyZ
+tsiZ
+total_cb
+specificZ
+errstr
+tidrE
+BaseCli.do_transactionc
+Perform GPG signature verification on the given packages,
+        installing keys if possible.
+        :param pkgs: a list of package objects to verify the GPG
+           signatures of
+        :raises: Will raise :class:`Error` if there's a problem
+        r
+zTRefusing to automatically import keys when running unattended.
+Use "-y" to override.c
+<lambda>$
+z%BaseCli.gpgsigcheck.<locals>.<lambda>Nz
+GPG check FAILED)
+_sig_check_pkgrA
+	assumeyesrX
+stdin
+isattyr
+_get_key_for_package
+ValueErrorrR
+strr;
+critical)
+error_messages
+result
+errmsgZ
+fnrf
+BaseCli.gpgsigcheckc
+zBReturn list of changelogs for package newer then installed versionNr
+	timestampr
+chlog
+newestr
+<listcomp>=
+z-BaseCli.latest_changelogs.<locals>.<listcomp>)
+_rpmconnZ
+readonly_tsZ
+dbMatchr
+rpmZ
+RPMTAG_CHANGELOGTIME
+datetime
+dateZ
+fromtimestamp
+changelogs)
+package
+changelogtimesZ
+chlogsr
+latest_changelogs3
+BaseCli.latest_changelogsc
+z*Return changelog formatted as in spec filez
+* %s %s
+%a %b %d %X %YZ
+author
+text)
+i18nr	
+Z	changelogZ	chlog_strr
+format_changelogA
+BaseCli.format_changelogc
+qrq6d
+Changelogs for {}
+z,BaseCli.print_changelogs.<locals>.<listcomp>r
+source_namer
+sorted
+keysr2
+packagesZ
+bysrpm
+bin_packagesZ
+chlr
+print_changelogsI
+BaseCli.print_changelogsTFc
+}	|	r
+z?Check updates matching given *patterns* in selected repository.Z
+upgrades)
+reponamer#
+not in)
+outputType
+highlight_nar&
+highlight_modes
+Obsoleting Packages
+returnPkgListsrA
+verboser$
+MODEr
+localPkg
+path
+existsZ
+verifyLocalPkgr
+color_update_local
+color_update_remote
+listPkgsr
+operator
+itemgetter
+updatesObsoletesList)
+patternsr
+print_r
+typlr&
+local_pkgs
+	highlightru
+local
+obtupr
+check_updatesU
+BaseCli.check_updatesc
+ Upgrade or downgrade packages to match the latest versions available
+            in the enabled repositories.
+            :return: (exit_code, [ errors ])
+            exit_code is::
+                0 = we're done, exit
+                1 = we've errored, exit with error string
+                2 = we've got work yet to do, onto the next stage
+        r
+z4No packages marked for distribution synchronization.N)	Z
+_goalZ
+req_lengthr
+distro_syncZ
+req_has_distupgrade_allr
+userlistZ
+oldcount
+pkg_specZ
+cntre
+distro_sync_userlist{
+BaseCli.distro_sync_userlistc
+)	aa
+Attempt to take the user specified list of packages or
+        wildcards and downgrade them. If a complete version number is
+        specified, attempt to downgrade them to the specified version
+        :param specs: a list of names or wildcards specifying packages to downgrade
+        :param file_pkgs: a list of pkg objects from local files
+        F)
+strictTz
+No match for argument: %sNz
+No package %s available.z6Packages for argument %s available, but not installed.z!No packages marked for downgrade.)
+package_downgrader
+MarkingErrorr;
+locationZ
+downgrade_toZ
+PackageNotFoundErrorZ
+PackagesNotInstalledErrorr
+specsZ	file_pkgsr
+errre
+downgradePkgs
+BaseCli.downgradePkgs
+allc
+j(t)
+} t%|
+r8| d
+zJOutput selection *pkgnarrow* of packages matching *patterns* and *repoid*.r6
+installed_availabler
+Installed Packages)
+Available Packages)
+Autoremove Packagesr
+Extra Packagesz
+Available Upgradesr
+Recently Added Packagesz
+No matching Packages to list)-r
+hidden_available
+reinstall_availableZ
+old_availabler
+hidden_installedr!
+hawkeyZ
+SYSTEM_REPO_NAMErA
+color_list_installed_olderZ
+color_list_installed_newerZ
+color_list_installed_reinstallZ
+color_list_installed_extrar
+color_list_available_upgradeZ
+color_list_available_downgradeZ
+color_list_available_reinstallZ
+color_list_available_installr 
+)!rD
+basecmd
+	pkgnarrowr
+update_pkgsZ	inst_pkgsr
+clioZ
+clinZ
+clirZ
+clieZ
+ripZ
+clauZ
+cladZ
+clarZ
+claiZ
+rapZ
+raepZ
+repr
+rupZ
+ropr
+rrapr
+output_packages
+BaseCli.output_packagesc
+Return a :class:`dnf.yum.misc.GenericHolder` object containing
+        lists of package objects that match the given names or wildcards.
+        :param pkgnarrow: a string specifying which types of packages
+           lists to produce, such as updates, installed, available, etc.
+        :param patterns: a list of names or wildcards specifying
+           packages to list
+        :param installed_available: whether the available package list
+           is present as .hidden_available when doing all, available,
+           or installed
+        :param reponame: limit packages list to the given repository
+        :return: a :class:`dnf.yum.misc.GenericHolder` instance with the
+           following lists defined::
+             available = list of packageObjects
+             installed = list of packageObjects
+             upgrades = tuples of packageObjects (updating, installed)
+             extras = list of packageObjects
+             obsoletes = tuples of packageObjects (obsoleting, installed)
+             recent = list of packageObjects
+        Fr
+ignore_caser
+_do_package_listsrA
+showdupesfromreposr
+)	rD
+done_hidden_availableZ
+done_hidden_installedr%
+BaseCli.returnPkgListsc
+Print out a list of packages that provide the given file or
+        feature.  This a cli wrapper to the provides methods in the
+        rpmdb and pkgsack.
+        :param args: the name of a file or feature to search for
+        :return: (exit_code, [ errors ])
+        exit_code is::
+            0 = we're done, exit
+            1 = we've errored, exit with error string
+            2 = we've got work yet to do, onto the next stage
+        Tz{No matches found. If searching for a file, try specifying the full path or using a wildcard prefix ("*/") at the beginning.N)
+provides
+extendr
+matchcallback_verboser
+)	rD
+argsZ
+old_sdupZ
+matchesZ
+used_search_strings
+specr0
+used_search_stringr
+BaseCli.providesc
+NFT)
+BaseCli._promptWanted)
+NTF)
+NFN)
+__name__
+__module__
+__qualname__
+__doc__rC
+__classcell__r
+Z	d!d
+Clic
+j	j j!
+j	j"j#
+j	j$j%
+j	j&j'
+j	j(j)
+j	j*j+
+j	j,j-
+j	j.j/
+j	j0j1
+j	j2j3
+j	j4j5
+j	j6j7
+j	j8
+j	j9
+j	j:
+j	j;
+j	j<
+j	j=
+)>r8
+cli_commands
+commandr
+demandZ
+DemandSheet
+demands
+register_commandZ
+commands
+aliasZ
+AliasCommandr 
+AutoremoveCommandZ
+checkZ
+CheckCommandZ
+cleanZ
+CleanCommandZ
+distrosyncZ
+DistroSyncCommandZ
+deplistZ
+DeplistCommandZ	downgradeZ
+DowngradeCommandrS
+GroupCommandr`
+HistoryCommandZ
+installZ
+InstallCommandZ	makecacheZ
+MakeCacheCommandZ
+markZ
+MarkCommand
+moduleZ
+ModuleCommandZ	reinstallZ
+ReinstallCommand
+removeZ
+RemoveCommand
+repolistZ
+RepoListCommandZ	repoqueryZ
+RepoQueryCommand
+searchZ
+SearchCommand
+shellZ
+ShellCommandZ
+swapZ
+SwapCommandZ
+updateinfoZ
+UpdateInfoCommandZ
+upgradeZ
+UpgradeCommandZ
+upgrademinimalZ
+UpgradeMinimalCommandZ
+InfoCommandZ
+ListCommandZ
+ProvidesCommandZ
+CheckUpdateCommandZ
+RepoPkgsCommandZ
+HelpCommand)
+Cli.__init__c
+baseurl
+enabler
+disablec
+z(Cli._configure_repos.<locals>.<listcomp>z
+Unknown repo: '%s'r
+No repository match: %s),r8
+read_all_reposZ
+repofrompathr:
+reposZ
+add_new_reporA
+_configure_from_optionsZ
+repos_edrR
+repo
+insertr
+setZ
+get_matchingr
+Z	RepoError
+addr
+ConfigErrorr;
+	optparser
+print_helpro
+exitr<
+_repo_persistorZ
+get_expired_reposr
+_repo
+expirer
+setup_progress_callbacksZ
+_ds_callbackr
+set_progress_barZ
+CliKeyImportZ
+_set_key_import)
+optsZ
+labelr
+Z	this_repoZ
+notmatchr
+Z	operationr
+expired_reposr
+barZ
+key_importr
+_configure_repos
+Cli._configure_reposc
+{prog} version: %srG
+Command: %sz
+Installroot: %sz
+Releasever: %sz
+cachedir: %s)
+debugr=
+const
+VERSION
+logging
+DDEBUG
+	cmdstringr8
+installroot
+releasever
+cachedirrk
+_log_essentials
+Cli._log_essentialsc
+qjnD|
+Nz[This command has to be run with superuser privileges (under the root user on most systems).T
+autoF)
+load_system_repoZ
+load_available_repos)
+Z	root_userr
+Z	am_i_rootrN
+iter_enabledZ
+load_metadata_other
+	cacheonlyrA
+valuesr
+setSyncStrategyr
+SYNC_ONLY_CACHE
+freshest_metadatar
+fresh_metadataZ	SYNC_LAZYZ
+sack_activationZ	fill_sackr
+available_repos)
+_process_demands
+Cli._process_demandsc
+z,Check that the requested CLI command exists.Nz)No such command: %s. Please use %s --helpr
+zLIt could be a {PROG} plugin command, try: "{prog} install 'dnf-command(%s)'")
+PROGzRIt could be a {prog} plugin command, but loading of plugins is currently disabled.rG
+Base command: %sz
+Extra commands: %s)
+argvr8
+pluginsr=
+command_clsr
+_parse_commands
+Cli._parse_commandsNc
+j	rpt
+j#j$t%f
+z&t&
+'t(d
+z@d	t*t+|
+'t(d
+'t(d
+'t(d
+r@t4
+jYjZ|
+`t(d
+Parse command line arguments, and set up :attr:`self.base.conf` and
+        :attr:`self.cmds`, as well as logger objects in base instance.
+        :param args: a list of command line arguments
+        :param option_parser: a class for parsing cli options
+        Nr
+Config error: %sr
+%s: %s)
+downloadz
+system-upgradeZ
+reposyncZ
+modulesynczb--destdir or --downloaddir must be used with --downloadonly or download or system-upgrade command.z
+config-managerz_--enable, --set-enabled and --disable, --set-disabled must be used with config-manager command.
+mainZ
+plugin
+%s r
+colorz
+%_pkgverify_level)
+Z	signaturer
+Warning: Enforcing GPG signature check globally as per active RPM security policy (see 'gpgcheck' in dnf.conf(5) for how to squelch this message))ar
+aliasesZ
+Aliases
+resolve
+option_parserZ
+OptionParserr
+parse_main_argsr3
+history_record_packagesr
+quietZ
+debuglevelZ
+errorlevelr
+VERBOSE_LEVELr
+_set_valueZ
+system_cachedirZ
+PRIO_DEFAULTr
+_read_conf_filer
+_adjust_conf_optionsrN
+IOErrorr	
+repr
+filenameZ
+destdirrU
+set_enabledZ
+set_disabledZ	sleeptimer(
+sleep
+randomZ	randrangeZ
+add_commandsr
+init_pluginsZ
+disablepluginZ
+enablepluginr
+helpZ
+parse_command_argsZ
+allowerasingZ
+allow_erasingZ
+_allow_erasingr
+debugsolverZ
+debug_solverr#
+pre_configureZ
+pre_configure_pluginsZ
+_activate_persistorr
+configure_plugins
+	configurerL
+ensure_dirr
+pkgdirr
+reinitr}
+expandMacror
+gpgcheckZ
+localpkg_gpgcheckr<
+)	rD
+forcingr
+Cli.configurec
+configZ
+config_file_pathz
+Config file "{}" does not exist)
+priorityZ
+reposdir
+varsdir
+zPUnable to detect release version (use '--releasever' to specify release version))
+logdirZ
+persistdir)
+Timerr8
+_check_remote_fileZ
+_search_inside_installrootZ
+_get_valueZ
+_get_priorityZ
+PRIO_COMMANDLINEr
+isfilerN
+readZ
+PRIO_MAINCONFIGZ
+substitutionsZ
+update_from_etcr
+detect_releaseverr
+prepend_installroot
+_loggingZ
+_setup_from_dnf_conf)
+timerrA
+Z	from_root
+subst
+optr
+Cli._read_conf_file
+        :param opts:
+        :param cmp_type: string supported "eq", "gte"
+        :param all:
+        :return:
+        N
+bugfix
+enhancement
+newpackage
+security)
+types
+advisory
+bugzilla
+cves
+severity)
+add_security_filtersr
+cmp_typer
+ _populate_update_security_filter
+z$Cli._populate_update_security_filterc
+        Change minimal logger level for terminal output to stdout and stderr according to specific
+        command requirements
+        @param stdout: logging.INFO, logging.WARNING, ...
+        @param stderr:logging.INFO, logging.WARNING, ...
+        N)
+stdout_handlerZ
+setLevelZ
+stderr_handler)
+stdout
+stderrr
+redirect_logger
+Cli.redirect_loggerc
+MultiFileProgressMeterr8
+forZ
+redirect_repo_progress
+Cli.redirect_repo_progressc
+advisory_typez,Security: %s is an installed security updatez-Security: %s is the currently running version)
+get_running_kernelr0
+kernel
+ikpkgr
+_check_running_kernel
+Cli._check_running_kernelc
+Nz)argument {}: not allowed with argument {})
+print_usager
+option_string_1Z
+option_string_2r
+_option_conflict
+Cli._option_conflictc
+Register a Command. :apiz
+Command "%s" already definedN)
+Cli.register_commandc
+Call the base command, and pass it the extended commands or
+           arguments.
+        :return: (exit_code, [ errors ])
+        exit_code is::
+            0 = we're done, exit
+            1 = we've errored, exit with error string
+            2 = we've got work yet to do, onto the next stage
+        z
+Excludes in dnf.conf: r
+Includes in dnf.conf: z
+Excludes in repo z
+Includes in repo )
+excludepkgsr;
+includepkgsr
+run)
+Cli.run)
+__future__r
+collections.abcr
+ImportError
+collectionsr~
+libdnf.transactionrd
+dnf.clir
+dnf.i18nr	
+dnf.cli.aliasesZ
+dnf.cli.commandsZ
+dnf.cli.commands.aliasZ
+dnf.cli.commands.autoremoveZ
+dnf.cli.commands.checkZ
+dnf.cli.commands.cleanZ
+dnf.cli.commands.deplistZ
+dnf.cli.commands.distrosyncZ
+dnf.cli.commands.downgradeZ
+dnf.cli.commands.groupZ
+dnf.cli.commands.historyZ
+dnf.cli.commands.installZ
+dnf.cli.commands.makecacheZ
+dnf.cli.commands.markZ
+dnf.cli.commands.moduleZ
+dnf.cli.commands.reinstallZ
+dnf.cli.commands.removeZ
+dnf.cli.commands.repolistZ
+dnf.cli.commands.repoqueryZ
+dnf.cli.commands.searchZ
+dnf.cli.commands.shellZ
+dnf.cli.commands.swapZ
+dnf.cli.commands.updateinfoZ
+dnf.cli.commands.upgradeZ
+dnf.cli.commands.upgrademinimalZ
+dnf.cli.demandZ
+dnf.cli.formatZ
+dnf.cli.option_parserZ
+dnf.confZ
+dnf.conf.substitutionsZ	dnf.constZ
+dnf.db.historyZ
+dnf.exceptionsZ
+dnf.loggingZ
+dnf.persistorZ
+dnf.pluginZ
+dnf.rpmZ
+dnf.sackZ
+dnf.transactionZ
+dnf.utilZ
+dnf.yum.miscZ	getLoggerr;
+Baser@
+objectr
+<module>

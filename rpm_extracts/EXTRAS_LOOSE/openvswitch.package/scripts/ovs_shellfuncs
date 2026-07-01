@@ -1,0 +1,362 @@
+#!/bin/sh
+###############################################################################
+# common functions for the OVS shells.
+#
+# Copyright (c) 2011 xxx
+#                    All Rights Reserved.
+#
+###############################################################################
+
+MANAGE_NET_FLAG=1
+BUSINESS_NET_FLAG=2
+STORAGE_NET_FLAG=4
+BACKUP_NET_FLAG=8
+MIGRATE_NET_FLAG=16
+OTHER_NET_FLAG=32
+DRAIN_NET_FLAG=64
+SEG_NET_FLAG=128
+MIRROR_NET_FLAG=256
+
+##############################################################################
+#    Func Name: printlog
+# Date Created: 2011-06-16
+#       Author: caizhifeng
+#  Description: print log to a log file; if debug and we're connected to a tty,
+#               then output to stderr,otherwise, to logfile.
+#        usage: $0 $1 $2 $3
+#               $1 : the caller's name, usually, it is the shell name; must
+#               $2 : the log level, it must be one of {crit|err|warn|info|debug}; must
+#               $3 : the message string; must
+#       Output: None
+#       Return: 0
+#      Caution:
+#-----------------------------------------------------------------------------
+#  Modification History
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+ovs_printlog() {
+    # check the invalidity of the params.
+    if [ $# -lt 3 ]; then
+        ovs_printlog testshell err "Not enough arguments [$#] to ovs_printlog."
+        return 0
+    fi
+
+    #save the parameters
+    __LOG_FROM="$1"
+    shift
+    __LOG_PRIO="$1"
+    shift
+    __LOG_MSG="$*"
+
+    #format the log/debug level.
+    case "${__LOG_PRIO}" in
+          crit)     __LOG_PRIO="CRIT";;
+          err)      __LOG_PRIO="ERROR";;
+          warn)     __LOG_PRIO="WARNING";;
+          info)     __LOG_PRIO="INFO";;
+          debug)    __LOG_PRIO="DEBUG";;
+          *)        __LOG_PRIO=`echo ${__LOG_PRIO}| tr '[a-z]' '[A-Z]'`;;
+    esac
+
+    #make up the full message
+    __HOSTNAME=`hostname`
+    __LOG_TIME=`date "+%Y-%m-%d %H:%M:%S"`
+    __LOG_PID=$$
+    __LOG_MSG="${__LOG_TIME} [${__HOSTNAME}](${__LOG_FROM}): PID=${__LOG_PID}: ${__LOG_PRIO}:${__LOG_MSG}"
+
+    #buildup the log file name
+    __LOGFILE="/var/log/caslog/cas_ovs_shell.log"
+    #echo ${__LOGFILE}
+
+    #
+    #if [ "${__HA_LOG_PRIO}" = "DEBUG" -a tty >/dev/null ]; then
+    #    echo ${__LOG_MSG}
+    #else
+        echo -e ${__LOG_MSG} >> ${__LOGFILE}
+    #fi
+}
+
+action()
+{
+    local str=$1
+    shift
+    "$@"
+    local rc=$?
+    if test $rc = 0; then
+        ovs_printlog ${shellname} info "$str"
+    else
+        ovs_printlog ${shellname} err "$str faild,err_code:$rc, cmd:"$@""
+    fi
+    return $rc
+}
+
+touch_lock_file() {
+    local file=$1
+    if [ -f "$file" ]; then
+        ovs_printlog ${shellname} info "$file already exists!"
+        return
+    fi
+
+    touch "$file"
+}
+
+remove_lock_file() (
+    local file=$1
+    rm -f "$file"
+)
+
+get_lock_file_info() {
+    local file_info=""
+    local file=$1
+    if [ -f "$file" ]; then
+        if ! ovs_lock $file; then
+            file_info=$(cat $file)
+            ovs_printlog ${shellname} info "Get locked file info: $file_info"
+        fi
+    fi
+
+    echo $file_info
+}
+
+ovs_lock() {
+    local file=$1
+    exec {OVS_LOCK_FD}>>"$file"
+    flock -n "$OVS_LOCK_FD"
+    local ret_code=$?
+
+    if [ $ret_code -eq 0 ]; then
+        ovs_printlog ${shellname} info "Success to lock $file, fd: $OVS_LOCK_FD"
+    else
+        ovs_printlog ${shellname} info "Failed to lock $file, fd: $OVS_LOCK_FD"
+    fi
+
+    return $ret_code
+}
+
+ovs_unlock() {
+    ovs_printlog ${shellname} info "Release lock fd: $OVS_LOCK_FD"
+    flock -u "$OVS_LOCK_FD"
+    return $?
+}
+
+check_iface_is_used() {
+    local br_name=$1
+    local iface=$2
+    local br_mode_init=$3
+    local datapath_type=$4
+
+    ##vxlan-sdn(dpdk) has two bridges($br_name and ${br_name}-phy), uplink_iface has been joined into ${br_name}-phy.
+    if [ "X$br_mode_init" = "X3" ] && [ "X$datapath_type" = "Xnetdev" ];then
+        br_name=${br_name}-phy
+    fi
+
+    local br=$(ovs-vsctl -t 2 --verbose=db_ctl_base:syslog:off iface-to-br $iface 2>/dev/null)
+    if [ -n "$br" ] && [ "X$br" != "X$br_name" ];then
+        echo "$OVS_BRIDGE_ERR_PORT_USED_ERROR Interface $iface is used by other bridge: $br."
+    fi
+}
+
+check_iface_is_linux_used()
+{
+    local br_name=$1
+    local iface=$2
+    local master_name=""
+
+    local linux_br=$(get_linux_br_name $br_name)
+
+    [ -e /sys/class/net/$iface/master ] && master_name=$(basename $(realpath /sys/class/net/$iface/master) 2>/dev/null)
+    if [ -n "$master_name" ]; then
+        if [ -e /sys/class/net/$master_name/bridge ]; then
+            if [ "X$master_name" != "X$linux_br" ]; then
+                echo "$OVS_BRIDGE_ERR_PORT_USED_ERROR Interface $iface is used by other bridge: $master_name"
+                return
+            fi
+        fi
+
+        if [ -e /sys/class/net/$master_name/bonding ];then
+            #smart vswitch and have bond
+            local ovs_br=$(ovs-vsctl -t 2 --verbose=db_ctl_base:syslog:off port-to-br $master_name)
+            if [ -n "$ovs_br" ] && [ "X$ovs_br" != "X$br_name" ]; then
+                echo "$OVS_BRIDGE_ERR_PORT_USED_ERROR Interface $iface is used by bond:$master_name other bridge: $ovs_br"
+                return
+            fi
+
+            #linux bridge and have bond
+            local curr_br=$(basename $(realpath /sys/class/net/$master_name/master 2>/dev/null) 2>/dev/null)
+            if [ -z "$ovs_br" ] && [ "X$curr_br" != "X$linux_br" ]; then
+                echo "$OVS_BRIDGE_ERR_PORT_USED_ERROR Interface $iface is used by bond:$master_name other bridge: $curr_br"
+                return
+            fi
+        fi
+    fi
+}
+
+check_ifaces_used()
+{
+    local br_name=$1
+    local ifaces=$2
+    local br_mode_init=$3
+    local datapath_type=$4
+
+    for iface in $ifaces
+    do
+        iface_port=""
+        iface_in_ovs=$(ovs-vsctl -t 2 --if-exists get Interface $iface name)
+        if [ -z "$iface_in_ovs" ]; then
+            if [ -e /sys/class/net/$iface/master ]; then
+                master_name=$(basename $(realpath /sys/class/net/$iface/master) 2>/dev/null)
+                [ -z "$master_name" ] || iface_port=$master_name
+            fi
+        else
+            iface_port=$iface
+        fi
+        if [ -n "$iface_port" ]; then
+            result=$(check_iface_is_used $br_name $iface_port $br_mode_init $datapath_type)
+            if [ -n "$result" ]; then
+                echo $result
+                return
+            fi
+        fi
+
+        result=$(check_iface_is_linux_used $br_name $iface)
+        if [ -n "$result" ]; then
+            echo $result
+            return
+        fi
+    done
+}
+
+# 0 used, 1 not used
+check_used_by_vm()
+{
+    local br_name=$1
+
+    if ! ovs-vsctl br-exists $br_name;then
+        return 1
+    fi
+
+    local ifaces=$(ovs-vsctl -t 2 $OVS_SYSLOG_OFF list-ifaces $br_name 2>/dev/null)
+
+    [ -z "$ifaces" ] && return 1
+
+    if ovs-vsctl --format=table --columns=external_ids --no-heading --data=bare list Interface $ifaces | grep -q vm-id;then
+        return 0
+    fi
+
+    #vm open trunkport will have spi patch port
+    if echo $ifaces | grep -q spi-;then
+        return 0
+    fi
+
+    #vm open drain will be at segbr
+    segbr=$(ovs-vsctl $OVS_SYSLOG_OFF --if-exists get Bridge $br_name other_config:segbr | tr -d "\"")
+    if [ -n "$segbr" ]; then
+        if ovs-vsctl br-exists $segbr;then
+            ifaces=$(ovs-vsctl -t 2 $OVS_SYSLOG_OFF list-ifaces $segbr 2>/dev/null)
+            if [ -n "$ifaces" ]; then
+                if ovs-vsctl --format=table --columns=external_ids --no-heading --data=bare list Interface $ifaces | grep -q vm-id;then
+                    return 0
+                fi
+            fi
+        fi
+    fi
+
+    # vm at pvlan bridge
+    peer_bridge_ifaces=$(ovs-vsctl -t 2 --bare --columns=name find interface other_config:origin_br=$br_name)
+    [ -n "$peer_bridge_ifaces" ] && return 0
+
+    return 1
+}
+
+is_host_network_type()
+{
+    local network_type=$1
+    [ -z "$network_type" ] && return 1
+
+    [ $((${network_type} & ${MANAGE_NET_FLAG})) = $MANAGE_NET_FLAG ] && return 0
+    [ $((${network_type} & ${STORAGE_NET_FLAG})) = $STORAGE_NET_FLAG ] && return 0
+    [ $((${network_type} & ${BACKUP_NET_FLAG})) = $BACKUP_NET_FLAG ] && return 0
+    [ $((${network_type} & ${MIGRATE_NET_FLAG})) = $MIGRATE_NET_FLAG ] && return 0
+
+    return 1
+}
+
+is_vm_network_type()
+{
+    local network_type=$1
+
+    [ -z "$network_type" ] && return 1
+
+    [ $((${network_type} & ${BUSINESS_NET_FLAG})) = $BUSINESS_NET_FLAG ] && return 0
+
+    return 1
+}
+
+get_vlan_port_name()
+{
+    local master=$1
+    local vlan=$2
+
+    if [ ${#master} -le 10 ];then
+        echo "${master}.$vlan"
+        return
+    fi
+
+    local md5_value=$(printf ${master} | md5sum | awk '{print $1}')
+    echo "${master:0:5}${md5_value:0:5}.$vlan"
+}
+
+get_bond_port_name()
+{
+    local br_name=$1
+
+    if [ ${#br_name} -le 10 ];then
+        echo "${br_name}_bond"
+        return
+    fi
+
+    local md5_value=$(printf ${br_name} | md5sum | awk '{print $1}')
+    echo "${br_name:0:5}${md5_value:0:5}_bond"
+}
+
+get_linux_br_name()
+{
+    local ovs_br=$1
+    local md5_value=$(printf ${ovs_br} | md5sum | awk '{print $1}')
+    echo "${ovs_br:0:5}${md5_value:0:5}"
+}
+
+get_veth_port_name()
+{
+    local br_name=$1
+    local br_type=$2
+
+    local md5_value=$(printf ${br_name} | md5sum | awk '{print $1}')
+    echo "veth${md5_value:0:5}${br_type}"
+}
+
+get_vswitch_pvlan_config()
+{
+    local private_vlan=""
+    local br_name=$1
+    local br_pvlan=${br_name}_pvlan_p
+    for br_pvlan_name in $(grep "$br_pvlan" /etc/net-agent/netprofile/pvlan_all/*.xml 2>/dev/null | cut -d '"' -f 4)
+    do
+        primary_vlan=$(cat /etc/net-agent/netprofile/pvlan_all/${br_pvlan_name}.xml | grep primary_vlan | cut -d '"' -f 2)
+        isolated_vlan=$(cat /etc/net-agent/netprofile/pvlan_all/${br_pvlan_name}.xml | grep isolated_vlan | cut -d '"' -f 2)
+        group_vlan=$(cat /etc/net-agent/netprofile/pvlan_all/${br_pvlan_name}.xml | grep isolated_vlan | cut -d '"' -f 4)
+        private_vlan="${private_vlan}(${primary_vlan}:${isolated_vlan}:${group_vlan}),"
+    done
+    private_vlan=${private_vlan%,}
+    echo $private_vlan
+}
+
+flush_dev_ip()
+{
+    local ifaces=$@
+    [ -z "$ifaces" ] && return
+    for iface in $ifaces; do
+        [ -e /sys/class/net/$iface ] || continue
+        action "flush dev $iface ip" ip addr flush dev $iface 2>/dev/null
+    done
+}

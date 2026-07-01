@@ -1,0 +1,353 @@
+m	Z	
+NodeManager)
+EachScheduling
+LoadScheduling
+LoadScopeScheduling
+LoadFileScheduling
+LoadGroupScheduling)
+Empty
+Queuec
+Interruptedz"signals an immediate interruption.N)
+__name__
+__module__
+__qualname__
+__doc__
+2/usr/lib/python3.9/site-packages/xdist/dsession.pyr
+d d!
+d"d#
+d$d%
+d&d'
+d(d)
+d*d+
+d,d-
+d.d/
+d0d1
+d2d3
+d4d5
+d6d7
+Z d8d9
+Z!d:S
+DSessiona
+A pytest plugin which runs a distributed test session
+    At the beginning of the test session this creates a NodeManager
+    instance which creates and starts all nodes.  Nodes then emit
+    events processed in the pytest_runtestloop hook using the worker_*
+    methods.
+    Once a node is started it will automatically start running the
+    pytest mainloop with some custom hooks.  This means a node
+    automatically starts collecting tests.  Once tests are collected
+    it will wait for instructions.
+    c
+dsessionFr
+maxfail
+terminalreporterZ
+terminaldistreporter)
+config
+logZ
+Producer
+option
+debugZ
+setconsumerZ	_keywords
+nodemanager
+sched
+shuttingdown
+countfailures
+getvaluer
+queue
+_session
+_failed_collection_errors
+_active_nodes
+_failed_nodes_count
+get_default_max_worker_restart
+_max_worker_restart
+_summary_report
+pluginmanager
+	getplugin
+terminal
+TerminalDistReporter
+trdist
+register
+selfr
+__init__#
+DSession.__init__c
+Return True if the distributed session has finished
+        This means all nodes have executed all test items.  This is
+        used by pytest_runtestloop to break out of its loop.
+        )
+boolr
+session_finished:
+DSession.session_finishedc
+verbose
+write_line)
+liner
+report_lineC
+DSession.report_lineT)
+trylastc
+Creates and starts the nodes.
+        The nodes are setup to put their events onto self.queue.  As
+        soon as nodes start they will emit the worker_workerready event.
+        )
+puteventN)	r
+setup_nodesr
+putr"
+updater
+session
+nodesr
+pytest_sessionstartG
+DSession.pytest_sessionstartc
+Shutdown all nodes.r
+getattrZ
+teardown_nodesr
+pytest_sessionfinishS
+DSession.pytest_sessionfinishc
+pytest_collection[
+DSession.pytest_collectionc
+dist)
+each
+loadZ	loadscopeZ
+loadfileZ	loadgroup)
+schedulersr
+pytest_xdist_make_scheduler`
+z$DSession.pytest_xdist_make_schedulerc
+hookrA
+shouldstopr2
+	loop_once
+triggershutdownr
+strr1
+pytest_runtestloopl
+DSession.pytest_runtestloopc
+z-Process one callback from one of the workers.z(Unexpectedly no active workers availableg
+timeoutZ
+worker_z
+calling methodN)
+RuntimeErrorr
+getr
+tests_finished)
+Z	eventcallZ
+callname
+kwargs
+methodZ
+callr
+DSession.loop_oncec
+Emitted when a node first starts up.
+        This adds the node to the scheduler, nodes continue with
+        collection without any further input.
+        
+spec)
+nodeN)
+workerinfo
+gatewayrL
+pytest_testnodereadyr
+shutdownr
+add_node)
+worker_workerready
+DSession.worker_workerreadyc
+Emitted when node executes its pytest_sessionfinish hook.
+        Removes the node from the scheduler.
+        The node might not be in the scheduler if it had not emitted
+        workerready before shutdown was triggered.
+        N
+errorZ
+exitstatus
+{} received keyboard-interruptz
+keyboard-interrupt)
+pytest_testnodedownZ
+workeroutput
+formatrC
+worker_errordownr
+remove_noder"
+remove)
+	crashitemr
+worker_workerfinished
+DSession.worker_workerfinishedc
+        pytest_internalerror() was called on the worker.
+        pytest_internalerror() arguments are an excinfo and an excrepr, which can't
+        be serialized, so we go with a poor man's solution of raising an exception
+        here ourselves using the formatted message.
+        Fr
+ExceptionInfo)
+excrepr
+excinfoN)
+AssertionErrorZ
+_pytest._coder^
+from_currentZ
+getreprr
+pytest_internalerror)
+formatted_errorr^
+worker_internal_error
+DSession.worker_internal_errorc
+)	z1Emitted by the WorkerController when a node dies.rT
+z0worker {} crashed and worker restarting disabledz#maximum crashed workers reached: %d
+replacing crashed worker %s)
+KeyError
+handle_crashitemr#
+_clone_noder"
+maximum_reached
+msgr
+DSession.worker_errordownc
+=z	xdist: {})
+Z	write_seprX
+pytest_terminal_summary
+z DSession.pytest_terminal_summaryc
+j	rV|
+worker has finished test collection.
+        This adds the collection for this node to the scheduler.  If
+        the scheduler indicates collection is finished (i.e. all
+        initial nodes have submitted their collections), then tells the
+        scheduler to schedule the collected items.  When initiating
+        scheduling the first time it logs which scheduler is in use.
+        N)
+idsz
+[%d]
+scheduling tests via %s)
+Z%pytest_xdist_node_collection_finished
+lenr
+testscollectedr
+add_node_collectionr)
+	setstatusrP
+collection_is_completedZ
+has_pending
+ensure_show_statusr4
+	__class__r
+schedule)
+worker_collectionfinish
+z DSession.worker_collectionfinishc
+z;Emitted when a node calls the pytest_runtest_logstart hook.
+nodeid
+locationN)
+pytest_runtest_logstart
+worker_logstart
+DSession.worker_logstartc
+z<Emitted when a node calls the pytest_runtest_logfinish hook.rr
+pytest_runtest_logfinishru
+worker_logfinish
+DSession.worker_logfinishc
+z<Emitted when a node calls the pytest_runtest_logreport hook.
+reportN)
+pytest_runtest_logreport
+_handlefailures
+repr
+worker_testreport
+DSession.worker_testreportc
+        Emitted when a node fires the 'runtest_protocol_complete' event,
+        signalling that a test has completed the runtestprotocol and should be
+        removed from the pending list in the scheduler.
+        N)
+mark_test_complete)
+item_indexZ
+durationr
+ worker_runtest_protocol_complete
+z)DSession.worker_runtest_protocol_completec
+Emitted when a node calls the pytest_collectreport hook.
+        Because we only need the report when there's a failure/skip, as optimization
+        we only expect to receive failed/skipped reports from workers (#330).
+        N)
+passed
+_failed_worker_collectreportr|
+worker_collectreport
+DSession.worker_collectreportc
+zOEmitted when a node calls the pytest_warning_captured hook (deprecated in 6.0).)
+warning_message
+when
+item
+dictr
+pytest_warning_captured
+call_historic)
+worker_warning_captured'
+z DSession.worker_warning_capturedc
+z;Emitted when a node calls the pytest_warning_recorded hook.)
+pytest_warning_recordedr
+worker_warning_recorded.
+z DSession.worker_warning_recordedc
+Return new node based on an existing one.
+        This is normally for when a node dies, this will copy the spec
+        of the existing node and create a new one with a new id.  The
+        new node will have been setup so it will start calling the
+        "worker_*" hooks and do work soon.
+        N)
+groupZ
+allocate_idZ
+setup_noder
+add)
+DSession._clone_nodec
+NTrx
+longreprr 
+pytest_collectreportr{
+z%DSession._failed_worker_collectreportc
+stopping after %d failures)
+failedr
+DSession._handlefailuresc
+triggering shutdownT)
+DSession.triggershutdownc
+runnerz
+z&worker {!r} crashed while running {!r}r
+???)
+splitrX
+TestReportrN
+pytest_handlecrashitemr
+workerr
+fspathrh
+DSession.handle_crashitemN)"r
+propertyr2
+pytest
+hookimplr;
+isatty)	r
+_status
+_lastlenr<
+Z	hasmarkup
+_isattyr-
+TerminalDistReporter.__init__c
+TerminalDistReporter.write_linec
+	getstatusr1
+z'TerminalDistReporter.ensure_show_statusTc
+rewriter
+status
+showr
+TerminalDistReporter.setstatusc
+{} {})
+.0rM
+<listcomp>
+z2TerminalDistReporter.getstatus.<locals>.<listcomp>z
+ / z
+bringing up nodes...)
+_specs
+join)
+partsr
+TerminalDistReporter.getstatusFc
+bold)
+maxr
+newlineZ
+pliner
+TerminalDistReporter.rewritec
+specsrM
+pytest_xdist_setupnodes
+z,TerminalDistReporter.pytest_xdist_setupnodesc
+%s.%s.%s
+[%s] %s Python %s cwd: %sT
+_rinfo
+version_infor
+platform
+cwdrn
+rinfo
+versionr
+pytest_xdist_newgateway
+z,TerminalDistReporter.pytest_xdist_newgatewayc
+j	d	
+[{}] Python {}rL
+ -- Tr
+replacer
+infoliner
+z)TerminalDistReporter.pytest_testnodereadyc
+[{}] node down: {})
+z(TerminalDistReporter.pytest_testnodedownN)
+gets the default value of --max-worker-restart option if it is not provided.
+    Use a reasonable default to avoid workers from restarting endlessly due to crashing collections (#226).
+    N
+maxworkerrestart
+intZ
+numprocesses)
+resultr
+xdist.workermanager
+xdist.schedulerr
+KeyboardInterruptr
+<module>

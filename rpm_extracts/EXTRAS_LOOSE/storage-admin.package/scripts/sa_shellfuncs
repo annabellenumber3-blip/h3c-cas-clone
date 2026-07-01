@@ -1,0 +1,153 @@
+##############################################################################
+# funcion   : get current datetime
+##############################################################################
+sadate() {
+    date "+${__SA_DATEFMT}"
+}
+
+##############################################################################
+# funcion   : get current month, eg. 201106
+##############################################################################
+saCurrentMonth() {
+    date "+%Y%m"
+}
+
+##############################################################################
+#    Func Name: sa_printlog
+# Date Created: 2013-6-3 
+#       Author:  
+#  Description: print log to a log file; if debug and we're connected to a tty,
+#               then output to stderr,otherwise, to logfile.
+#        usage: $0 $1 $2 $3  
+#               $1 : the caller's name, usually, it is the shell name; must 
+#               $2 : the log level, it must be one of {crit|err|warn|info|debug}; must
+#               $3 : the message string; must
+#       Output: None
+#       Return: 0
+#      Caution: 
+#-----------------------------------------------------------------------------
+#  Modification History 
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+sa_printlog() {
+    # check the validity of the params.
+    if [ $# -lt 3 ]; then
+        sa_printlog testshell err "Not enough arguments [$#] to sa_printlog."
+        return 0
+    fi
+    
+    #save the parameters
+    __SA_LOG_FROM="$1"
+    shift    
+    __SA_LOG_PRIO="$1"
+    shift
+    __SA_LOG_MSG="$*"
+
+    #format the log/debug level.
+    case "${__SA_LOG_PRIO}" in
+          crit)     __SA_LOG_PRIO="CRIT";;
+          err)      __SA_LOG_PRIO="ERROR";;
+          warn)     __SA_LOG_PRIO="WARNING";;
+          info)     __SA_LOG_PRIO="INFO";;
+          debug)    __SA_LOG_PRIO="DEBUG";;
+          *)        __SA_LOG_PRIO=`echo ${__SA_LOG_PRIO}| tr '[a-z]' '[A-Z]'`;;
+    esac
+    
+    #make up the full message
+    __SA_HOSTNAME=`hostname`
+    __SA_LOG_MSG=`sadate`" ["${__SA_HOSTNAME}"] ["$$"] ("${__SA_LOG_FROM}"): "${__SA_LOG_PRIO}":"${__SA_LOG_MSG}
+
+    #buildup the log file name
+    LOG_DIR="/var/log/caslog/storage-admin/"
+    if [ ! -d ${LOG_DIR} ];then
+        mkdir -p ${LOG_DIR}
+    fi
+    __SA_LOGFILE="${LOG_DIR}cas_sa.log"    
+
+    echo -e ${__SA_LOG_MSG} >> ${__SA_LOGFILE}
+}
+
+##############################################################################
+#    Func Name: sa_config_replace
+# Date Created: 2013-06-03 13:23:23
+#       Author: guozhonghua/02084
+#  Description: Replace config info with special files
+#        usage: $0 $1 $2 $3  
+#               $1 : the source string to be replaced
+#               $2 : the destination string to replaced
+#               $3 : the config file, like /etc/default/o2cb
+#       Output: None
+#       Return: 0
+#      Caution: 
+#-----------------------------------------------------------------------------
+#  Modification History 
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+function sa_config_replace() 
+{
+    # The host name
+    local HOSTNAME=$( 'hostname' )
+
+    local MODULE_NAME=sa_config_replace
+
+    # check the validity of the params.
+    if [ $# -lt 3 ]; then
+        sa_printlog $MODULE_NAME err "Not enough arguments [$#] to sa_printlog."
+        return $SA_ERR_WRONG_PARAM
+    fi
+
+    # source string
+    local source_str=$1
+    local destination_str=$2
+    local config_file=$3
+    local config_file_org=$3".org"
+    local config_file_bak=$3".bak"
+    local rtn_code=0
+
+    # build up one source file
+    local has_source=`grep $source_str $config_file`
+    if [ -s $config_file ] && [ "X$has_source" != "X" ]; then
+        sa_printlog $MODULE_NAME debug "Copy one source file $config_file $config_file_org."
+        cp $config_file $config_file_org
+        if [ $? -ne 0 ];then
+            sa_printlog $MODULE_NAME err "Copy source file failed."	
+            return $SA_CONFIGURE_FILE_NO_EXIST
+        fi
+    else 
+        sa_printlog $MODULE_NAME err "Source config file is empty, $config_file"
+        return $SA_CONFIGURE_FILE_NO_EXIST
+    fi
+
+    if [ ! -s $config_file_org ]; then
+        sa_printlog $MODULE_NAME err "Source file error"
+        return $SA_CONFIGURE_FILE_NO_EXIST
+    fi
+
+    # replace 
+    sed "s/.*$source_str.*/$destination_str/g" $config_file_org > $config_file_bak
+    rtn_code=$?
+    if [ $rtn_code != 0 ]; then
+        sa_printlog $MODULE_NAME err "Replace $config_file_org failed"
+        return $SA_CONFIGURE_FILE_NO_EXIST
+    fi
+
+    local has_replaces=`grep $destination_str $config_file_bak`
+    rtn_code=$?
+    if [ "X$has_replaces" = "X" -o $rtn_code -ne 0 ];then
+        sa_printlog $MODULE_NAME err "Check $config_file_bak failed"
+        return $SA_CONFIGURE_FILE_NO_EXIST
+    fi
+    
+    sa_printlog $MODULE_NAME debug "File replaced: $has_replaces."	
+
+    mv $config_file_bak $config_file
+    rtn_code=$?
+    if [ $rtn_code -ne 0 ];then
+        sa_printlog $MODULE_NAME err "mv $config_file_bak failed"
+        return $SA_CONFIGURE_FILE_NO_EXIST
+    fi  
+}
+
+###############################################################################
+## end of file
+###############################################################################

@@ -1,0 +1,1235 @@
+l	Z	d
+m Z m!Z!m"Z"m#Z#m$Z$m%Z%m&Z&m'Z'm(Z(
+l)m*Z*m+Z+
+l,Z,W
+Z/d	e
+d e@
+d!d"
+d"e@
+d#d$
+d$e@
+ZCd%d&
+d'd(
+d(e@
+d)d*
+d+d,
+d,eF
+d-d.
+d.eG
+d/d0
+d1d2
+d2eIe@
+d3d4
+d4eIe@
+jLZMG
+d5d6
+d7d8
+d8e@eN
+d9d:
+d:e@eN
+d;d<
+d<e@
+d=d>
+d>eQ
+ZReSe
+jTd?
+d@dA
+dAeQ
+ZUe/
+dBdC
+dCe@
+dDdE
+dEe@
+ZXdFdG
+ZYdHdI
+dJdK
+dKe@
+Z[dLdM
+dNdO
+dOe@
+dPdQ
+dQe]
+dRdS
+dSe@
+Z_dTZ`e
+jadUk
+dVlbmcZcmdZd
+dWdX
+ZcdYdZ
+d[d\
+d]d^
+d^ef
+ahd_d`
+ajdadb
+aldcdd
+andedf
+dgdh
+Zpdidj
+dkdl
+Zrdmdn
+jtdok
+dplumvZvmwZw
+dqdr
+Zxdsdt
+Zydudv
+Zzdwdx
+Z{n6e
+jadUk
+rzdydz
+Z|d{dx
+Z{d|d}
+Z}d~dv
+eqZ{erZzd
+An extensible library for opening URLs using a variety of protocols
+The simplest way to use this module is to call the urlopen function,
+which accepts a string containing a URL or a Request object (described
+below).  It opens the URL and returns the results as file-like
+object; the returned object has some extra methods described below.
+The OpenerDirector manages a collection of Handler objects that do
+all the actual work.  Each Handler implements a particular protocol or
+option.  The OpenerDirector is a composite object that invokes the
+Handlers needed to open the requested URL.  For example, the
+HTTPHandler performs HTTP GET and POST requests and deals with
+non-error returns.  The HTTPRedirectHandler automatically deals with
+HTTP 301, 302, 303 and 307 redirect errors, and the HTTPDigestAuthHandler
+deals with digest authentication.
+urlopen(url, data=None) -- Basic usage is the same as original
+urllib.  pass the url and optionally data to post to an HTTP URL, and
+get a file-like object back.  One difference is that you can also pass
+a Request instance instead of URL.  Raises a URLError (subclass of
+OSError); for HTTP errors, raises an HTTPError, which can also be
+treated as a valid response.
+build_opener -- Function that creates a new OpenerDirector instance.
+Will install the default handlers.  Accepts one or more Handlers as
+arguments, either instances or Handler classes that it will
+instantiate.  If one of the argument is a subclass of the default
+handler, the argument will be installed instead of the default.
+install_opener -- Installs a new opener as the default opener.
+objects of interest:
+OpenerDirector -- Sets up the User Agent as the Python-urllib client and manages
+the Handler classes, while dealing with requests and responses.
+Request -- An object that encapsulates the state of a request.  The
+state can be as simple as the URL.  It can also include extra HTTP
+headers, e.g. a User-Agent.
+BaseHandler --
+internals:
+BaseHandler and parent
+_call_chain conventions
+Example usage:
+import urllib.request
+# set up authentication info
+authinfo = urllib.request.HTTPBasicAuthHandler()
+authinfo.add_password(realm='PDQ Application',
+                      uri='https://mahler:8092/site-updates.py',
+                      user='klem',
+                      passwd='geheim$parole')
+proxy_support = urllib.request.ProxyHandler({"http" : "http://ahad-haam:3128"})
+# build a new opener that adds authentication and caching FTP handlers
+opener = urllib.request.build_opener(proxy_support, authinfo,
+                                     urllib.request.CacheFTPHandler)
+# install it
+urllib.request.install_opener(opener)
+f = urllib.request.urlopen('https://www.python.org/')
+URLError
+	HTTPError
+ContentTooShortError)
+urlparse
+urlsplit
+urljoin
+unwrap
+quote
+unquote
+_splittype
+_splithost
+_splitport
+_splituser
+_splitpasswd
+_splitattr
+_splitquery
+_splitvalue
+	_splittag
+	_to_bytes
+unquote_to_bytes
+urlunparse)
+addinfourl
+addclosehookFT)!
+Request
+OpenerDirector
+BaseHandler
+HTTPDefaultErrorHandler
+HTTPRedirectHandler
+HTTPCookieProcessor
+ProxyHandler
+HTTPPasswordMgr
+HTTPPasswordMgrWithDefaultRealm
+HTTPPasswordMgrWithPriorAuth
+AbstractBasicAuthHandler
+HTTPBasicAuthHandler
+ProxyBasicAuthHandler
+AbstractDigestAuthHandler
+HTTPDigestAuthHandler
+ProxyDigestAuthHandler
+HTTPHandler
+FileHandler
+FTPHandler
+CacheFTPHandler
+DataHandler
+UnknownHandler
+HTTPErrorProcessor
+urlopen
+install_opener
+build_opener
+pathname2url
+url2pathname
+getproxies
+urlretrieve
+urlcleanup
+	URLopener
+FancyURLopenerz
+%d.%d
+cafile
+capath
+	cadefault
+contextc
+}	n0|
+r~t	|
+}	|	
+Open the URL url, which can be either a string or a Request object.
+    *data* must be an object specifying additional data to be sent to
+    the server, or None if no such data is needed.  See Request for
+    details.
+    urllib.request module uses HTTP/1.1 and includes a "Connection:close"
+    header in its HTTP requests.
+    The optional *timeout* parameter specifies a timeout in seconds for
+    blocking operations like the connection attempt (if not specified, the
+    global default timeout setting will be used). This only works for HTTP,
+    HTTPS and FTP connections.
+    If *context* is specified, it must be a ssl.SSLContext instance describing
+    the various SSL options. See HTTPSConnection for more details.
+    The optional *cafile* and *capath* parameters specify a set of trusted CA
+    certificates for HTTPS requests. cafile should point to a single file
+    containing a bundle of CA certificates, whereas capath should point to a
+    directory of hashed certificate files. More information can be found in
+    ssl.SSLContext.load_verify_locations().
+    The *cadefault* parameter is ignored.
+    This function always returns an object which can work as a
+    context manager and has the properties url, headers, and status.
+    See urllib.response.addinfourl for more detail on these properties.
+    For HTTP and HTTPS URLs, this function returns a http.client.HTTPResponse
+    object slightly modified. In addition to the three new methods above, the
+    msg attribute contains the same information as the reason attribute ---
+    the reason phrase returned by the server --- instead of the response
+    headers as it is specified in the documentation for HTTPResponse.
+    For FTP, file, and data URLs and requests explicitly handled by legacy
+    URLopener and FancyURLopener classes, this function returns a
+    urllib.response.addinfourl object.
+    Note that None may be returned if no handler handles the request (though
+    the default installed global OpenerDirector uses UnknownHandler to ensure
+    this never happens).
+    In addition, if proxy settings are detected (for example, when a *_proxy
+    environment variable like http_proxy is set), ProxyHandler is default
+    installed and makes sure the requests are handled through the proxy.
+    r
+NzJcafile, capath and cadefault are deprecated, use a custom context instead.r:
+zDYou can't pass both context and any of cafile, capath, and cadefaultz
+SSL support not available)
+warnings
+warn
+DeprecationWarning
+ValueError
+	_have_ssl
+sslZ
+create_default_contextZ
+PurposeZ
+SERVER_AUTH
+HTTPSHandlerr2
+_opener
+open)
+data
+timeoutr;
+https_handler
+opener
+&/usr/lib64/python3.9/urllib/request.pyr0
+    Retrieve a URL into a temporary location on disk.
+    Requires a URL argument. If a filename is passed, it is used as
+    the temporary file location. The reporthook argument should be
+    a callable that accepts a block number, a read size, and the
+    total file size of the URL target. The data argument should be
+    valid URL encoded data.
+    If a filename is passed and the URL points to a local resource,
+    the result is a copy from local file to new file.
+    Returns a tuple containing the path to the newly created
+    data file as well as the resulting HTTPMessage object.
+    
+fileN
+wbF)
+delete
+content-length
+Content-Length
+1retrieval incomplete: got only %i out of %i bytes)
+contextlib
+closingr0
+info
+path
+normpathrG
+tempfileZ
+NamedTemporaryFile
+name
+_url_tempfiles
+append
+read
+writer
+filename
+reporthookrI
+url_typer\
+headers
+result
+sizerc
+blocknum
+blockrL
+z0Clean up temporary files from urlretrieve calls.N)
+unlink
+OSErrorrF
+Z	temp_filerL
+:\d+$c
+Return request-host, as defined by RFC 2965.
+    Variation from RFC: returned value is lowercased, for convenient
+    comparison.
+    rV
+Host)
+full_urlr
+get_header
+_cut_port_re
+lower)
+requestrH
+hostrL
+request_host+
+d!d"
+unredirected_hdrs
+_datarI
+_tunnel_host
+items
+add_headerr{
+origin_req_host
+unverifiable
+method)	
+selfrH
+valuerL
+__init__=
+Request.__init__c
+{}#{})
+fragment
+format
+	_full_url
+Request.full_urlc
+_parse
+selectorr
+Request.datac
+Content-length)
+has_header
+remove_header)
+unknown url type: %r)	r
+typerB
+restrL
+Request._parsec
+z3Return a string indicating the HTTP request method.N
+POST
+GETr
+getattr)
+default_methodrL
+get_method|
+Request.get_methodc
+get_full_url
+Request.get_full_urlc
+https)
+	set_proxy
+Request.set_proxyc
+	has_proxy
+Request.has_proxyc
+capitalize
+valrL
+Request.add_headerc
+add_unredirected_header
+Request.add_unredirected_headerc
+header_namerL
+Request.has_headerc
+getr|
+defaultrL
+Request.get_headerc
+popr|
+Request.remove_headerc
+listr
+hdrsrL
+header_items
+Request.header_items)
+__name__
+__module__
+__qualname__r
+propertyrt
+setter
+deleterrI
+Python-urllib/%sz
+User-agent)
+__version__
+addheaders
+handlers
+handle_open
+handle_error
+process_response
+process_request)
+client_versionrL
+OpenerDirector.__init__c
+r6q&|
+}	|	|
+}	n*|
+q&|	
+add_parentz%expected BaseHandler instance, got %rF)
+redirect_request
+do_open
+proxy_open
+errorrG
+responsery
+hasattr
+	TypeErrorr
+find
+startswithrb
+setdefault
+bisectZ
+insortra
+handlerZ
+added
+meth
+protocolZ	condition
+kind
+lookupr
+add_handler
+OpenerDirector.add_handlerc
+close
+OpenerDirector.closec
+chainr
+	meth_name
+argsr
+funcrk
+_call_chain
+OpenerDirector._call_chainNc
+qJt	
+_requestz
+urllib.RequestZ	_response)
+isinstance
+strr
+auditrt
+_openr
+fullurlrI
+reqr
+Z	processorr
+OpenerDirector.openc
+default_openr
+unknown
+unknown_open)
+OpenerDirector._openc
+httpr
+http_error_%srV
+_errorr
+http_error_default)
+protor
+dictr
+http_errZ	orig_argsrk
+OpenerDirector.error)
+socket
+_GLOBAL_DEFAULT_TIMEOUTrG
+t	g	}
+qDq<|
+Create an opener object from a list of handlers.
+    The opener will use several default handlers, including support
+    for HTTP, FTP and when applicable HTTPS.
+    If any of the handlers passed as arguments are subclasses of the
+    default handlers, the default handlers will not be used.
+    
+HTTPSConnection)
+clientra
+setr
+issubclass
+remover
+default_classes
+skip
+klassZ
+check
+parent)
+BaseHandler.add_parentc
+BaseHandler.closec
+handler_orderT)
+otherrL
+__lt__e
+BaseHandler.__lt__N)
+Process HTTP error responses.i
+code
+msgrZ
+http_responser
+z HTTPErrorProcessor.http_responseN)
+__doc__r
+https_responserL
+z*HTTPDefaultErrorHandler.http_error_defaultN)
+Return a Request or None in response to a redirect.
+        This is called by the http_error_30x methods when a
+        redirection response is received.  If a redirection should
+        take place, return a new Request to allow http_error_30x to
+        perform the redirect.  Otherwise, raise HTTPError if no-one
+        else should try to handle this url.  Return None if you can't
+        but another Handler might.
+        )
+HEAD)
+%20)
+content-typec
+CONTENT_HEADERSrL
+<dictcomp>
+z8HTTPRedirectHandler.redirect_request.<locals>.<dictcomp>T)
+replaceri
+newurl
+newheadersrL
+z$HTTPRedirectHandler.redirect_requestc
+location
+ftprr
+z+%s - Redirection to url '%s' is not allowed
+iso-8859-1)
+encoding
+safe
+redirect_dictr
+schemer
+netlocr
+stringZ
+punctuationr
+max_repeatsrd
+max_redirections
+inf_msgrc
+urlparts
+newZ
+visitedrL
+http_error_302
+z"HTTPRedirectHandler.http_error_302zoThe HTTP server returned a redirect error that would lead to an infinite loop.
+The last 30x error message was:
+http_error_301
+http_error_303
+http_error_307r
+Return (scheme, user, password, host/port) given a URL or an authority.
+    If a URL is supplied, it must have an authority (host:port) component.
+    According to RFC 3986, having an authority component means the URL must
+    have two slashes after the scheme.
+    r
+proxy URL with no authority: %r
+proxyr
+r_scheme
+	authorityZ
+host_separator
+endZ
+userinfo
+hostport
+user
+passwordrL
+_parse_proxy
+keys
+proxies must be a mappingz
+%s_openc
+<lambda>!
+z'ProxyHandler.__init__.<locals>.<lambda>)
+proxiesr
+setattrr
+ProxyHandler.__init__c
+%s:%s
+ascii
+Proxy-authorization
+Basic r
+proxy_bypassr
+base64
+	b64encode
+encode
+decoder
+Z	orig_typeZ
+proxy_typer 
+Z	user_passZ
+credsrL
+ProxyHandler.proxy_open)
+passwdr
+HTTPPasswordMgr.__init__c
+reduce_uri)
+default_portr
+	<genexpr>L
+z/HTTPPasswordMgr.add_password.<locals>.<genexpr>)
+tuple)
+realmr
+reduced_urirL
+add_passwordE
+HTTPPasswordMgr.add_passwordc
+q6q*q
+	is_suburi)	r
+authuriZ
+domainsr8
+reduced_authuriZ
+urisZ
+authinfor
+find_user_passwordP
+z"HTTPPasswordMgr.find_user_passwordTc
+}	|	d
+r~d	|
+z@Accept authority or URI and extract only the authority and path.rV
+%s:%d)
+partsr
+portZ
+dportrL
+HTTPPasswordMgr.reduce_uric
+zcCheck if test is below base in a URI tree
+        Both args must be URIs in reduced form.
+        Tr
+	posixpath
+commonprefixrd
+base
+test
+commonrL
+HTTPPasswordMgr.is_suburiN)
+z2HTTPPasswordMgrWithDefaultRealm.find_user_passwordN)
+authenticated
+superr
+kwargs
+	__class__rL
+z%HTTPPasswordMgrWithPriorAuth.__init__Fc
+update_authenticatedrL
+is_authenticatedrO
+z)HTTPPasswordMgrWithPriorAuth.add_passwordc
+z1HTTPPasswordMgrWithPriorAuth.update_authenticatedc
+z-HTTPPasswordMgrWithPriorAuth.is_authenticated)
+__classcell__rL
+Z	d	d
+z1(?:^|,)[ 	]*([^ 	,]+)[ 	]+realm=(["']?)([^"']*)\2Nc
+password_mgrrL
+z!AbstractBasicAuthHandler.__init__c
+Basic Auth Realm was unquoted
+finditer
+groupsr?
+UserWarning
+split)
+headerZ
+found_challengeZ
+_parse_realm
+z%AbstractBasicAuthHandler._parse_realmc
+basiczBAbstractBasicAuthHandler does not support the following scheme: %r)
+get_allr^
+retry_http_basic_authrB
+authreqrz
+unsupportedr]
+http_error_auth_reqed
+z.AbstractBasicAuthHandler.http_error_auth_reqedc
+auth_headerr
+authrL
+z.AbstractBasicAuthHandler.retry_http_basic_authc
+Authorizationz
+{0}:{1}z
+Basic {})
+standard_b64encoder2
+strip)
+credentialsZ
+auth_strrL
+http_request
+z%AbstractBasicAuthHandler.http_requestc
+z&AbstractBasicAuthHandler.http_response)
+compile
+https_requestr
+www-authenticate)
+http_error_401
+z#HTTPBasicAuthHandler.http_error_401N)
+proxy-authenticate)
+http_error_407'
+z$ProxyBasicAuthHandler.http_error_407N)
+retried
+nonce_count
+last_nonce)
+z"AbstractDigestAuthHandler.__init__c
+reset_retry_countJ
+z+AbstractDigestAuthHandler.reset_retry_countc
+digest auth failedrV
+digestr_
+zEAbstractDigestAuthHandler does not support the following scheme: '%s')
+retry_http_digest_authrB
+z/AbstractDigestAuthHandler.http_error_auth_reqedc
+z	Digest %sr
+parse_keqv_list
+filter
+parse_http_list
+get_authorizationri
+tokenZ	challenge
+chalZ
+auth_valZ
+resprL
+z0AbstractDigestAuthHandler.retry_http_digest_authc
+Nz	%s:%s:%s:r+
+time
+ctimer1
+_randombytes
+hashlib
+sha1
+	hexdigest)
+nonce
+digrL
+get_cnoncem
+z$AbstractDigestAuthHandler.get_cnoncec
+n~d	|
+	algorithm
+opaquez
+%s:%s:%sr*
+%08xz
+%s:%s:%s:%s:%sz
+qop '%s' is not supported.z>username="%s", realm="%s", nonce="%s", uri="%s", response="%s"z
+, opaque="%s"z
+, digest="%s"z
+, algorithm="%s"z
+, qop=auth, nc=%s, cnonce="%s")
+KeyError
+get_algorithm_implsr3
+get_entity_digestr
+KDr 
+entdigZ
+respdigZ
+ncvalueZ
+cnonceZ
+noncebitrH
+z+AbstractDigestAuthHandler.get_authorizationc
+md5r1
+z?AbstractDigestAuthHandler.get_algorithm_impls.<locals>.<lambda>Z
+SHAc
+z.Unsupported digest authentication algorithm %rc
+z-AbstractDigestAuthHandler.get_algorithm_implsc
+z+AbstractDigestAuthHandler.get_entity_digest)
+An authentication protocol defined by RFC 2069
+    Digest authentication improves on basic authentication because it
+    does not transmit passwords in the clear.
+    rg
+retryrL
+z$HTTPDigestAuthHandler.http_error_401N)
+Proxy-Authorizationr
+z%ProxyDigestAuthHandler.http_error_407N)
+AbstractHTTPHandlerr
+_debuglevel)
+debuglevelrL
+AbstractHTTPHandler.__init__c
+levelrL
+set_http_debuglevel
+z'AbstractHTTPHandler.set_http_debuglevelc
+HTTPConnection
+_get_content_lengthrI
+z'AbstractHTTPHandler._get_content_lengthc
+no host givenz\POST data should be bytes, an iterable of bytes, or a file object. It cannot be of type str.z
+Content-type
+!application/x-www-form-urlencodedr
+Transfer-encodingZ
+chunkedrs
+content_lengthZ
+sel_hostr
+selZ
+sel_pathr_
+do_request_
+AbstractHTTPHandler.do_request_c
+zbz&|
+Return an HTTPResponse object for the request, using http_class.
+        http_class must implement the HTTPConnection API from http.client.
+        r
+z/AbstractHTTPHandler.do_open.<locals>.<dictcomp>r
+Connectionc
+title)
+encode_chunkedN)
+set_debuglevelr
+updateri
+set_tunnelry
+getresponser
+sockr
+reasonr
+http_classr
+http_conn_argsrz
+tunnel_headersZ
+proxy_auth_hdr
+errr&
+AbstractHTTPHandler.do_openN)
+	http_open^
+HTTPHandler.http_openN)
+_context
+_check_hostname)
+check_hostnamerL
+HTTPSHandler.__init__c
+https_openl
+HTTPSHandler.https_open)
+http.cookiejar
+	cookiejarZ	CookieJar)
+HTTPCookieProcessor.__init__c
+add_cookie_headerr
+z HTTPCookieProcessor.http_requestc
+extract_cookies)
+z!HTTPCookieProcessor.http_response)
+unknown url type: %s)
+UnknownHandler.unknown_openN)
+z>Parse list of key=value strings where keys are not duplicated.
+parsed
+eltr
+)	ap
+Parse lists as described by RFC 2068 Section 2.
+    In particular, parse comma-separated lists where the elements of
+    the list may include quoted-strings.  A quoted-string could
+    contain a comma.  A non-quoted string could have quotes in the
+    middle.  Neither commas nor quotes count if they are escaped.
+    Only double-quotes count, not single-quotes.
+    rr
+\TrU
+partrL
+<listcomp>
+z#parse_http_list.<locals>.<listcomp>)
+resr
+escaper	
+currL
+	localhost
+-file:// scheme is supported only on localhost)
+	get_namesr
+open_local_file)
+	file_open
+FileHandler.file_openNc
+rXz*t
+namesr:
+gethostbyname_ex
+gethostname
+gaierror
+gethostbynamer
+FileHandler.get_namesc
+)	Nr
+usegmtz6Content-type: %s
+Content-length: %d
+Last-modified: %s
+text/plain
+file://
+file not on local host)
+email.utils
+	mimetypesrz
+stat
+st_size
+utils
+formatdate
+st_mtime
+guess_type
+message_from_stringr
+_safe_gethostbynamer
+emailr
+Z	localfile
+statsrm
+modified
+mtyperi
+origurl
+exprL
+FileHandler.open_local_file)
+ftp error: no host givenrr
+Content-type: %s
+Content-length: %d
+ftp error: %rr:
+ftplibr
+FTP_PORTrb
+connect_ftprJ
+upper
+retrfiler
+all_errors
+with_tracebackr
+exc_info)
+attrs
+dirsrO
+attrr
+retrlenri
+excrL
+ftp_open
+FTPHandler.ftp_openc
+persistent)
+ftpwrapper)
+FTPHandler.connect_ftpN)
+cacherJ
+soonest
+delay
+	max_connsr
+CacheFTPHandler.__init__c
+setTimeout=
+CacheFTPHandler.setTimeoutc
+setMaxConns@
+CacheFTPHandler.setMaxConnsc
+joinr
+check_cache)
+CacheFTPHandler.connect_ftpc
+valuesrd
+CacheFTPHandler.check_cachec
+clearrJ
+connrL
+clear_cacheb
+CacheFTPHandler.clear_cacheN)	r
+;base64i
+text/plain;charset=US-ASCIIz$Content-type: %s
+Content-length: %d
+endswithr/
+decodebytesr
+BytesIO)
+Z	mediatyperi
+	data_openi
+DataHandler.data_openN)
+OS-specific conversion from a relative URL of the 'file' scheme
+        to a file system path; not recommended for general use.)
+pathnamerL
+OS-specific conversion from a file system path to a relative URL
+        of the 'file' scheme; not recommended for general use.)
+d1d d!
+d"d#
+d$d%
+d&d'
+d2d(d)
+)3r8
+Class to open URLs.
+    This is a class rather than just a subroutine because we may need
+    more than one set of global protocol-specific options.
+    Note -- this is a base class for those who don't want the
+    automatic handling of errors type 302 (relocated) and 401
+    (authorization needed).Nr
+NzW%(class)s style of invoking requests is deprecated. Use newer urlopen functions/methods
+classrW
+stacklevelr$
+key_file
+	cert_filez
+User-Agent)
+Acceptz
+*/*)
+versionr
+_URLopener__tempfilesr[
+_URLopener__unlink
+	tempcache
+ftpcache)
+x509r
+URLopener.__init__c
+__del__
+URLopener.__del__c
+cleanupr
+URLopener.closec
+URLopener.cleanupc
+zdAdd a header to be used by the HTTP interface only
+        e.g. u.addheader('Accept', 'sound/basic')N)
+	addheader
+URLopener.addheaderc
+z6Use URLopener().open(file) instead of open(file, 'r').z
+%/:=&?~#+!$,;'@()*[]|
+open_
+socket errorr:
+open_unknown_proxy
+open_unknownr
+urltyperH
+	proxyhostrz
+URLopener.openc
+/Overridable interface to open unknown URL type.
+	url errorz
+unknown url typeN
+URLopener.open_unknownc
+invalid proxy for %sNr&
+URLopener.open_unknown_proxyc
+d	|	v
+ztretrieve(url) returns (filename, headers) for a local object
+        or (tempfilename, headers) for a remote object.NrO
+splitextr^
+mkstempr
+fdopenrb
+url1rh
+garbager\
+suffix
+fdrk
+retrieve
+URLopener.retrievec
+Make an HTTP connection using connection_class.
+        This is an internal method that should be called from
+        open_http() or open_https().
+        Arguments:
+        - connection_factory should take a host name and return an
+          HTTPConnection instance.
+        - url is the url to retrieval or a host, relative-path pair.
+        - data is payload for a POST request or None.
+        Nr
+z	%s://%s%sz
+http errorr
+Basic %sr
+Content-Typer
+z$http protocol error: bad status liner
+http:)
+BadStatusLiner
+statusr
+http_errorrh
+connection_factoryrH
+user_passwdZ
+proxy_passwdrz
+realhostr"
+proxy_authrf
+Z	http_connri
+_open_generic_httpN
+URLopener._open_generic_httpc
+Use HTTP protocol.)
+	open_http
+URLopener.open_httpc
+}	|	rP|	S
+Handle http errors.
+        Derived class can override this, or provide specific handlers
+        named http_error_DDD where DDD is the 3-digit error code.z
+http_error_%dN)
+errcode
+errmsgri
+URLopener.http_errorc
+z>Default error handler: close the connection and raise OSError.N)
+URLopener.http_error_defaultc
+_https_connection
+URLopener._https_connectionc
+Use HTTPS protocol.)
+open_https
+URLopener.open_httpsc
+z/Use local file or FTP depending on form of URL.zEfile error: proxy support for file protocol currently not implementedNr:
+localhost/r
+	open_file
+URLopener.open_filec
+r"d	|
+Use local file.r
+z6Content-Type: %s
+Content-Length: %d
+Last-modified: %s
+./zAlocal file url may start with / or file:. Unknown url of type: %sz#local file error: not on local host)
+strerrorrf
+thishostrB
+Z	localnamer
+urlfilerE
+URLopener.open_local_filec
+Use FTP protocol.zCftp error: proxy support for ftp protocol currently not implementedr
+ftp:z
+Content-Type: %s
+Content-Length: %d
+ftp error %rr:
+MAXFTPCACHEr
+	ftperrorsr
+open_ftp
+URLopener.open_ftpc
+Use "data" URL.zEdata error: proxy support for data protocol currently not implementedr
+data errorz
+bad data URLr	
+Date: %sz
+%a, %d %b %Y %H:%M:%S GMTz
+Content-type: %sr/
+latin-1z
+Content-Length: %d
+rfindra
+strftime
+gmtimer/
+StringIOr
+semir
+	open_data0
+URLopener.open_data)
+NNN)
+Z	d&d
+d!d"
+).r9
+z?Derived class with handlers for errors we can handle (perhaps).c
+auth_cache
+tries
+maxtriesrM
+FancyURLopener.__init__c
+z3Default error handling -- don't raise an exception.r,
+z!FancyURLopener.http_error_defaultNc
+z%Error 302 -- relocated (temporarily).rV
+http_error_500r
+z)Internal Server Error: Redirect Recursionr
+redirect_internal)	r
+FancyURLopener.http_error_302c
+z( Redirection to url '%s' is not allowed.)
+z FancyURLopener.redirect_internalc
+z*Error 301 -- also relocated (permanently).
+FancyURLopener.http_error_301c
+z;Error 303 -- also relocated (essentially identical to 302).rK
+FancyURLopener.http_error_303c
+z1Error 307 -- relocated, but turn POST into error.N)
+FancyURLopener.http_error_307Fc
+}	|	sHt
+z_Error 401 -- authentication required.
+        This function supports Basic authentication only.rn
+![ 	]*([^ 	]+)[ 	]+realm="([^"]*)"r_
+retry_
+_basic_authN
+matchrZ
+stuffrP
+FancyURLopener.http_error_401c
+}	|	sHt
+zeError 407 -- proxy authentication required.
+        This function supports Basic authentication only.rq
+retry_proxy_rN
+FancyURLopener.http_error_407c
+http://r
+%s:%s@%srr
+get_user_passwdr	
+proxyselectorr
+retry_proxy_http_basic_auth
+z*FancyURLopener.retry_proxy_http_basic_authc
+https://r
+retry_proxy_https_basic_auth
+z+FancyURLopener.retry_proxy_https_basic_authc
+z$FancyURLopener.retry_http_basic_authc
+retry_https_basic_auth
+z%FancyURLopener.retry_https_basic_authr
+prompt_user_passwd)
+FancyURLopener.get_user_passwdc
+z#Override this in a GUI environment!r
+Enter username for %s at %s: z#Enter password for %s in %s at %s: r>
+getpass
+input
+KeyboardInterrupt
+print)
+z!FancyURLopener.prompt_user_passwd)
+z8Return the IP address of the magic hostname 'localhost'.Nr
+_localhostr
+z,Return the IP addresses of the current host.Nr:
+	_thishostr:
+z1Return the set of errors raised by the FTP class.Nr
+_ftperrorsr
+z%Return an empty email Message object.Nrr
+_noheadersr
+	noheadersM	
+z;Class used by open_ftp() for cache of open FTP connections.NTc
+refcount
+	keepalive
+initr
+ftpwrapper.__init__c
+busyZ
+FTPr	
+connectrz
+loginr 
+cwd)
+_targetrL
+ftpwrapper.initc
+t	d	|
+}	zXz
+t	d	|
+TYPE ArV
+TYPE z
+RETR rW
+550r
+LIST Z
+LISTr
+endtransferr	
+voidcmdr
+ntransfercmdZ
+error_permr
+pwdrk
+makefile
+file_closerg
+isdirr
+ftpobjrL
+ftpwrapper.retrfilec
+ftpwrapper.endtransferc
+real_closer
+ftpwrapper.closec
+ftpwrapper.file_closec
+ftpwrapper.real_close)
+Return a dictionary of scheme -> proxy server URL mappings.
+    Scan the environment for variables named <scheme>_proxy;
+    this seems to be the standard convention.  If you need a
+    different way, you can pass a proxies dictionary to the
+    [Fancy]URLopener constructor.
+    i
+_proxyZ
+REQUEST_METHODr
+environr
+getproxies_environment
+Test if proxies should not be used for a particular host.
+    Checks the proxy dict for the value of no_proxy, which should
+    be a list of comma separated DNS suffixes, or '*' for all hosts.
+    NZ
+lstripr
+no_proxy
+hostonlyrE
+proxy_bypass_environment
+sNqDt
+    Return True iff this host shouldn't be accessed using a proxy
+    This function uses the MacOSX framework SystemConfiguration
+    to fetch the proxy information.
+    proxy_settings come from _scproxy._get_proxy_settings or get mocked ie:
+    { 'exclude_simple': bool,
+      'exceptions': ['foo.bar', '*.bar.com', '127.0.0.1', '10.1', '10.0/16']
+    }
+    r
+fnmatchc
+ipAddrrD
+ip2num
+z,_proxy_bypass_macosx_sysconf.<locals>.ip2numrv
+exclude_simpleTN
+exceptionsrL
+(\d+(?:\.\d+)*)(/\d+)?rV
+group
+countrb
+proxy_settingsrz
+hostIPr
+maskrL
+_proxy_bypass_macosx_sysconf
+darwin)
+_get_proxy_settings
+_get_proxiesc
+proxy_bypass_macosx_sysconf>
+Return a dictionary of scheme -> proxy server URL mappings.
+        This function uses the MacOSX framework SystemConfiguration
+        to fetch the proxy information.
+        )
+getproxies_macosx_sysconfB
+Return True, if host should be bypassed.
+        Checks proxy settings gathered from the environment, if specified,
+        or from the MacOSX framework SystemConfiguration.
+        N)
+qrn>|
+zxReturn a dictionary of scheme -> proxy server URL mappings.
+        Win32 uses the registry to store proxies.
+        r
+;Software\Microsoft\Windows\CurrentVersion\Internet Settings
+ProxyEnableZ
+ProxyServerr
+(?:[^/:]+)://z
+%s://%srx
+z	http://%sz
+https://%sr
+ftp://%sr	
+winreg
+ImportError
+OpenKey
+HKEY_CURRENT_USER
+QueryValueExr
+Closerq
+internetSettings
+proxyEnableZ
+proxyServer
+addressrL
+getproxies_registry^
+Return a dictionary of scheme -> proxy server URL mappings.
+        Returns settings gathered from the environment, if specified,
+        or the registry.
+        )
+]j}	|	d
+}	|	
+}	|	
+ProxyOverrider>
+<local>rv
+\.ru
+getfqdnr\
+proxyOverrideZ
+rawHostrE
+addrZ
+fqdnrI
+proxy_bypass_registry
+Return True, if host should be bypassed.
+        Checks proxy settings gathered from the environment, if specified,
+        or the registry.
+        N)
+NNN)
+N)~r
+http.clientr
+urllib.errorr
+urllib.parser
+urllib.responser
+__all__
+version_infor
+ASCIIrv
+urandomr
+nturl2pathr4
+platformZ
+_scproxyr
+<module>

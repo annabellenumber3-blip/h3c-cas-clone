@@ -1,0 +1,714 @@
+idlelib.config -- Manage IDLE configuration information.
+The comments at the beginning of config-main.def describe the
+configuration files and the design implemented to update user
+configuration information.  In particular, user configuration choices
+which duplicate the defaults will be removed from the user's
+configuration files, and if a user file becomes empty, it will be
+deleted.
+The configuration database maps options to values.  Conceptually, the
+database keys are tuples (config-type, section, item).  As implemented,
+there are  separate dicts for default and user values.  Each has
+config-type keys 'main', 'extensions', 'highlight', and 'keys'.  The
+value for each key is a ConfigParser instance that maps section and item
+to values.  For 'main' and 'extensions', user values override
+default values.  For 'highlight' and 'keys', user sections augment the
+default sections (and must, therefore, have distinct names).
+Throughout this module there is an emphasis on returning useable defaults
+when a problem occurs in returning a requested configuration value back to
+idle. This is to allow IDLE to continue to function in spite of errors in
+the retrieval of config information. When a default is returned instead of
+a requested config value, a message is printed to stderr to aid in
+configuration problem notification and resolution.
+ConfigParserN)
+Fontc
+InvalidConfigTypeN
+__name__
+__module__
+__qualname__
+&/usr/lib64/python3.9/idlelib/config.pyr
+InvalidConfigSetNr
+InvalidThemeNr
+IdleConfParserzI
+    A ConfigParser specialised for idle configuration file handling
+    Nc
+        cfgFile - string, fully specified configuration file name
+        F)
+defaults
+strictN)
+filer
+__init__)
+self
+cfgFileZ
+cfgDefaultsr	
+IdleConfParser.__init__Fc
+        Get an option value for given section/option or return default.
+        If type is specified, return as type.
+        
+bool
+rawN)
+has_optionZ
+getbooleanZ
+getint
+get)
+section
+option
+type
+defaultr
+Get2
+IdleConfParser.Getc
+z4Return a list of options for given section, else [].N)
+has_section
+options
+GetOptionListC
+IdleConfParser.GetOptionListc
+z&Load the configuration file from disk.N)
+read
+LoadJ
+IdleConfParser.Load)
+NNF)
+__doc__r
+IdleUserConfParserzG
+    IdleConfigParser specialised for user configuration handling.
+    c
+Return True if option is added or changed to value, else False.
+        Add section if required.  False means option already had value.
+        FTN)
+setr 
+add_section)
+valuer	
+	SetOptionT
+IdleUserConfParser.SetOptionc
+Return True if option is removed from section, else False.
+        False if either section does not exist or did not have option.
+        F)
+remove_option)
+RemoveOptione
+IdleUserConfParser.RemoveOptionc
+z!If section doesn't exist, add it.N)
+AddSectionn
+IdleUserConfParser.AddSectionc
+z)Remove any sections that have no options.N)
+sectionsr#
+remove_sectionr"
+RemoveEmptySectionss
+z&IdleUserConfParser.RemoveEmptySectionsc
+z9Return True if no sections after removing empty sections.)
+IsEmptyy
+IdleUserConfParser.IsEmptyc
+Update user configuration file.
+        If self not empty after removing empty sections, write the file
+        to disk. Otherwise, remove the file from disk if it exists.
+        r
+open
+OSError
+unlink
+write
+path
+exists
+remove)
+fnamer
+Save~
+IdleUserConfParser.SaveN)
+d!d"
+d#d$
+d%d&
+d'd(
+d)d*
+d+d,
+d-d.
+d/d0
+dAd2d3
+d4d5
+d6d7
+d8d9
+d:d;
+Z d<d=
+Z!d	S
+IdleConfal
+Hold config parsers for all idle config files in singleton instance.
+    Default config files, self.defaultCfg --
+        for config_type in self.config_types:
+            (idle install dir)/config-{config-type}.def
+    User config files, self.userCfg --
+        for config_type in self.config_types:
+        (user home dir)/.idlerc/config-{config-type}.cfg
+    Fc
+main
+	highlight
+keys
+extensions)
+config_types
+defaultCfg
+userCfg
+CreateConfigHandlers
+LoadCfgFiles)
+_utestr	
+IdleConf.__init__c
+z5Populate default and user config parser dictionaries.
+config-z
+.defr3
+.cfgN)
+dirname
+__file__
+idlelib
+testing
+GetUserCfgDir
+userdirrC
+joinrD
+idledirrO
+cfg_typer	
+IdleConf.CreateConfigHandlersc
+t	yZ
+zfReturn a filesystem directory for storing user config files.
+        Creates it if required.
+        z
+.idlerc
+ Warning: os.path.expanduser("~") points to
+ but the path does not exist.
+ Warning: unable to create user config directory
+ Check path and permissions.
+ Exiting!
+expanduserr;
+print
+stderrr6
+getcwdrP
+mkdir
+SystemExit)
+cfgDirZ
+userDir
+warnr	
+IdleConf.GetUserCfgDirNTc
+Return a value for configType section option, or default.
+        If type is not None, return a value of that type.  Also pass raw
+        to the config parser.  First try to return a valid value
+        (including type) from a user configuration. If that fails, try
+        the default configuration. If that fails, return default, with a
+        default of None.
+        Warn if either user or default configurations have an invalid value.
+        Warn if default is returned and warn_on_default is True.
+        )
+ Warning: config.py - IdleConf.GetOption -
+ invalid %r value for configuration option %r
+ from section %r: %rr
+ Warning: config.py - IdleConf.GetOption -
+ problem retrieving configuration option %r
+ from section %r.
+ returning default value: %r)
+ValueError
+_warnrD
+configTyper
+warn_on_defaultr
+warningr	
+	GetOption
+IdleConf.GetOptionc
+z0Set section option to value in user config file.N)
+IdleConf.SetOptionc
+Return sections for configSet configType configuration.
+        configSet must be either 'user' or 'default'
+        configType must be in self.config_types.
+        z
+Invalid configType specified
+userr
+Invalid configSet specified)
+	configSetr]
+	cfgParserr	
+GetSectionList
+IdleConf.GetSectionListc
+Return dict of theme element highlight colors.
+        The keys are 'foreground' and 'background'.  The values are
+        tkinter color strings for configuring backgrounds and tags.
+        r@
+-foregroundZ
+cursor
+normalz
+-background)
+foregroundZ
+background)
+GetThemeDict)
+theme
+elementrF
+theme_dictZ
+foreZ
+backr	
+GetHighlight
+IdleConf.GetHighlightc
+Return {option:value} dict for elements in themeName.
+        type - string, 'default' or 'user' theme type
+        themeName - string, theme name
+        Values are loaded over ultimate fallback defaults to guarantee
+        that all theme elements are present in a newly created theme.
+        ra
+Invalid theme type specifiedz
+#000000z
+#ffffffZ
+gray)
+normal-foregroundz
+normal-backgroundz
+keyword-foregroundz
+keyword-backgroundz
+builtin-foregroundz
+builtin-backgroundz
+comment-foregroundz
+comment-backgroundz
+string-foregroundz
+string-backgroundz
+definition-foregroundz
+definition-backgroundz
+hilite-foregroundz
+hilite-backgroundz
+break-foregroundz
+break-backgroundz
+hit-foregroundz
+hit-backgroundz
+error-foregroundz
+error-backgroundz
+context-foregroundz
+context-backgroundz
+linenumber-foregroundz
+linenumber-backgroundz
+cursor-foregroundz
+stdout-foregroundz
+stdout-backgroundz
+stderr-foregroundz
+stderr-backgroundz
+console-foregroundz
+console-background)
+context-z
+linenumber-z{
+ Warning: config.IdleConf.GetThemeDict -
+ problem retrieving theme element %r
+ from theme %r.
+ returning default color: %r
+startswithr\
+Z	themeNamerd
+IdleConf.GetThemeDictc
+z9Return the name of the currently active text color theme.
+Theme
+current_colors_and_keysr%
+CurrentThemee
+IdleConf.CurrentThemec
+z0Return the name of the currently active key set.Z
+Keysrn
+CurrentKeysi
+IdleConf.CurrentKeysc
+Return the currently active name for Theme or Keys section.
+        idlelib.config-main.def ('default') includes these sections
+        [Theme]
+        default= 1
+        name= IDLE Classic
+        name2=
+        [Keys]
+        default= 1
+        name=
+        name2=
+        Item 'name2', is used for built-in ('default') themes and keys
+        added after 2015 Oct 1 and 2016 July 1.  This kludge is needed
+        because setting 'name' to a builtin not defined in older IDLEs
+        to display multiple error messages or quit.
+        See https://bugs.python.org/issue25313.
+        When default = True, 'name2' takes precedence over 'name',
+        while older IDLEs will just use name.  When default = False,
+        'name2' may still be set, but it is ignored.
+        rm
+name2rk
+namez
+IDLE Classic)
+default_keys)
+cfgnamer
+sourcer	
+z IdleConf.current_colors_and_keysc
+winz
+IDLE Classic Windows
+darwinz
+IDLE Classic OSXz
+IDLE Modern Unix)
+platformr	
+IdleConf.default_keysc
+Return extensions in default and user config-extensions files.
+        If active_only True, only return active (enabled) extensions
+        and optionally only editor or shell extensions.
+        If active_only False, return all extensions.
+        r
+AutoCompleteZ
+CodeContextZ
+FormatParagraphZ
+ParenMatchZ
+enableTr
+enable_editorZ
+enable_shellF)
+RemoveKeyBindNamesre
+appendr<
+active_onlyZ
+editor_onlyZ
+shell_onlyZ
+extnsZ	userExtns
+extn
+activeExtnsr
+GetExtensions
+IdleConf.GetExtensionsc
+z:Return extnNameList with keybinding section names removed.c
+	_bindings
+_cfgBindings)
+endswith)
+<listcomp>
+z/IdleConf.RemoveKeyBindNames.<locals>.<listcomp>r	
+extnNameListr	
+IdleConf.RemoveKeyBindNamesc
+Return the name of the extension binding virtualEvent, or None.
+        virtualEvent - string, name of the virtual event to test for,
+                       without the enclosing '<< >>'
+        N
+GetExtensionKeys)
+virtualEventZ
+extNameZ
+vEventr~
+eventr	
+GetExtnNameForEvent
+IdleConf.GetExtnNameForEventc
+Return dict: {configurable extensionName event : active keybinding}.
+        Events come from default config extension_cfgBindings section.
+        Keybindings come from GetCurrentKeySet() active key dict,
+        where previously used bindings are disabled.
+        r
+GetCurrentKeySetrD
+extensionName
+keysNameZ
+activeKeys
+extKeys
+eventNames
+	eventNamer
+bindingr	
+IdleConf.GetExtensionKeysc
+Return dict {configurable extensionName event : keybinding list}.
+        Events come from default config extension_cfgBindings section.
+        Keybindings list come from the splitting of GetOption, which
+        tries user config before default config.
+        r
+split)
+__GetRawExtensionKeys
+IdleConf.__GetRawExtensionKeysc
+Return dict {extensionName event : active or defined keybinding}.
+        Augment self.GetExtensionKeys(extensionName) with mapping of non-
+        configurable events (from default config) to GetOption splits,
+        as in self.__GetRawExtensionKeys.
+        r
+Z	bindsNameZ
+extBindsr
+GetExtensionBindings
+IdleConf.GetExtensionBindingsc
+Return the keybinding list for keySetName eventStr.
+        keySetName - name of key binding set (config-keys section).
+        eventStr - virtual event, including brackets, as in '<<event>>'.
+        
+keySetNameZ
+eventStrr
+GetKeyBinding
+IdleConf.GetKeyBindingc
+z/Return CurrentKeys with 'darwin' modifications.rx
+<Alt-z
+<Option-)
+replace)
+z-IdleConf.GetCurrentKeySet.<locals>.<listcomp>)
+	GetKeySetrq
+items)
+result
+v2r	
+IdleConf.GetCurrentKeySetc
+Return event-key dict for keySetName core plus active extensions.
+        If a binding defined in an extension is already in use, the
+        extension binding is disabled by being set to ''
+        
+GetCoreKeysr
+_IdleConf__GetRawExtensionKeys
+values)
+keySetr
+IdleConf.GetKeySetc
+Return True if the virtual event is one of the core idle key events.
+        virtualEvent - string, name of the virtual event to test for,
+                       without the enclosing '<< >>'
+        r
+IsCoreBinding=
+IdleConf.IsCoreBinding>	
+<<flash-paren>>
+<<run-module>>
+<<zoom-height>>
+<<run-custom>>
+<<check-module>>
+<<format-paragraph>>
+<<expand-word>>
+<<force-open-completions>>
+<<force-open-calltip>>c
+d!d"g
+d)d*g
+s<dA|
+r@dB|
+Return dict of core virtual-key keybindings for keySetName.
+        The default keySetName None corresponds to the keyBindings base
+        dict. If keySetName is not None, bindings from the config
+        file(s) are loaded _over_ these defaults, so if there is a
+        problem getting any core binding there will be an 'ultimate last
+        resort fallback' to the CUA-ish bindings defined here.
+        z
+<Control-c>z
+<Control-C>z
+<Control-x>z
+<Control-X>z
+<Control-v>z
+<Control-V>z
+<Control-a>z
+<Home>z
+<Control-l>z
+<Control-q>z
+<Alt-F4>z
+<Control-d>z
+<F1>z
+<Shift-F1>z
+<Alt-n>z
+<Alt-p>z
+<F6>z
+<Control-F6>z
+<Alt-c>z
+<Alt-m>z
+<Control-n>z
+<Control-o>z
+<Control-j>z
+<Control-p>z
+<Control-y>z
+<Escape>z
+<Alt-Shift-S>z
+<Alt-s>z
+<Control-s>z
+<Alt-a>z
+<Control-slash>z
+<Control-z>z
+<Control-g>z
+<F3>z
+<Alt-F3>z
+<Control-F3>z
+<Control-f>z
+<Control-h>z
+<Alt-g>z
+<Key-BackSpace>z
+<Key-Return>z
+<Key-KP_Enter>z	<Key-Tab>z
+<Control-Key-bracketright>z
+<Control-Key-bracketleft>z
+<Alt-Key-3>z
+<Alt-Key-4>z
+<Alt-Key-5>z
+<Alt-Key-6>z
+<Alt-Key-t>z
+<Alt-Key-u>z
+<Control-Key-BackSpace>z
+<Control-Key-Delete>z
+<Control-Key-space>z
+<Alt-Key-slash>z
+<Control-Key-backslash>z
+<Control-Key-0>z
+<Alt-Key-q>z
+<Key-F5>z
+<Shift-Key-F5>z
+<Alt-Key-x>z
+<Alt-Key-2>):z
+<<copy>>z
+<<cut>>z	<<paste>>z
+<<beginning-of-line>>z
+<<center-insert>>z
+<<close-all-windows>>z
+<<close-window>>z
+<<do-nothing>>z
+<<end-of-file>>z
+<<python-docs>>z
+<<python-context-help>>z
+<<history-next>>z
+<<history-previous>>z
+<<interrupt-execution>>z
+<<view-restart>>z
+<<restart-shell>>z
+<<open-class-browser>>z
+<<open-module>>z
+<<open-new-window>>z
+<<open-window-from-file>>z
+<<plain-newline-and-indent>>z
+<<print-window>>z
+<<redo>>z
+<<remove-selection>>z
+<<save-copy-of-window-as-file>>z
+<<save-window-as-file>>z
+<<save-window>>z
+<<select-all>>z
+<<toggle-auto-coloring>>z
+<<undo>>z
+<<find-again>>z
+<<find-in-files>>z
+<<find-selection>>z
+<<find>>z
+<<replace>>z
+<<goto-line>>z
+<<smart-backspace>>z
+<<newline-and-indent>>z
+<<smart-indent>>z
+<<indent-region>>z
+<<dedent-region>>z
+<<comment-region>>z
+<<uncomment-region>>z
+<<tabify-region>>z
+<<untabify-region>>z
+<<toggle-tabs>>z
+<<change-indentwidth>>z
+<<del-word-left>>z
+<<del-word-right>>r
+ Warning: config.py - IdleConf.GetCoreKeys -
+ key set %r is not defined, using default bindings.z
+ Warning: config.py - IdleConf.GetCoreKeys -
+ problem retrieving key binding for event %r
+ from key set %r.
+ returning default value: %r)
+former_extension_events)
+keyBindingsr_
+IdleConf.GetCoreKeysc
+rnd	}
+Return list of extra help sources from a given configSet.
+        Valid configSets are 'user' or 'default'.  Return a list of tuples of
+        the form (menu_item , path_to_help_file , option), or return the empty
+        list.  'option' is the sequence number of the help resource.  'option'
+        values determine the position of the menu items on the Help menu,
+        therefore the returned list must be sorted by 'option'.
+        ra
+	HelpFiles
+<lambda>
+z1IdleConf.GetExtraHelpSourceList.<locals>.<lambda>)
+key)
+findr
+stripr|
+sort)	r
+helpSourcesrd
+menuItemZ
+helpPathr	
+GetExtraHelpSourceList
+IdleConf.GetExtraHelpSourceListc
+Return a list of the details of all additional help sources.
+        Tuples in the list are those of GetExtraHelpSourceList.
+        r
+allHelpSourcesr	
+GetAllExtraHelpSourcesList
+z#IdleConf.GetAllExtraHelpSourcesListc
+Retrieve a font from configuration (font, font-size, font-bold)
+        Intercept the special value 'TkFixedFont' and substitute
+        the actual font, factoring in some tweaks if needed for
+        appearance sakes.
+        The 'root' parameter can normally be any valid Tkinter widget.
+        Return a tuple (family, size, weight) suitable for passing
+        to tkinter.Font
+        Z
+fontZ
+courierrk
+z	font-sizer
+10rr
+z	font-boldr
+TkFixedFontT)
+root
+family
+size
+weight
+boldrf
+actual)	r
+actualFontr	
+GetFont
+IdleConf.GetFontc
+Load all configuration files.N)
+IdleConf.LoadCfgFilesc
+z2Write all loaded user configuration files to disk.N)
+SaveUserCfgFiles
+IdleConf.SaveUserCfgFiles)
+NNTF)
+TFF)
+N)"r
+staticmethodrt
+_warnedrT
+add)
+msgr
+ConfigChangesa
+Manage a user's proposed configuration option changes.
+    Names used across multiple methods:
+        page -- one of the 4 top-level dicts representing a
+                .idlerc/config-x.cfg file.
+        config_type -- name of a page.
+        section -- a section within a page/file.
+        option -- name of an option within a section.
+        value -- value for the option.
+    Methods
+        add_option: Add option and value to changes.
+        save_option: Save option and value to config parser.
+        save_all: Save all the changes to the config parser and file.
+        delete_section: If section exists,
+                        delete from changes, userCfg, and file.
+        clear: Clear all changes by clearing each page.
+    c
+z)Create a page for each configuration fileN)
+pages
+idleConfrC
+config_typer	
+ConfigChanges.__init__c
+z0Add item/value pair for config_type and section.N)
+str)
+itemr+
+pager	
+add_option%
+ConfigChanges.add_optionc
+zcReturn True if the configuration value was added or changed.
+        Helper for save_all.
+        )
+save_option-
+ConfigChanges.save_optionc
+qVq*|
+Save configuration changes to the user config file.
+        Clear self in preparation for additional changes.
+        Return changed for testing.
+        r?
+clear)
+changedr
+cfg_type_changedr
+save_all:
+ConfigChanges.save_allc
+zjDelete a section from self, userCfg, and file.
+        Used to delete custom themes and keysets.
+        N)
+configpager	
+delete_sectionX
+ConfigChanges.delete_sectionc
+Clear all 4 pages.
+        Called in save_all after saving to idleConf.
+        XXX Mark window *title* when there are changes; unmark here.
+        N)
+ConfigChanges.clearN)
+crc32)
+utf-8)
+encoding)
+line
+encode
+crcrT
+objZ
+txtr
+sprintr
+_dump.<locals>.sprintc
+qbq<q
+ = )
+sortedrA
+dumpCfgz
+_dump.<locals>.dumpCfgz	
+lines = z
+, crc = rI
+sep)
+zlibr
+_dumpn
+__main__)
+idlelib.idle_test.test_configr
+	verbosity
+exit)
+configparserr
+tkinter.fontr
+	Exceptionr
+dictr
+unittestr?
+<module>

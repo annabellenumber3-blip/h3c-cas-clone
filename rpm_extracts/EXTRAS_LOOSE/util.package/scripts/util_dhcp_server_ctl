@@ -1,0 +1,166 @@
+#!/bin/bash
+
+DNSMASQ_CONF_DIR='/etc/libvirt/dnsmasq'
+DHCPNS='dhcp-interface-namespace'
+
+CAS_DNSMASQ="/usr/sbin/dnsmasq"
+ONESTORE_DNSMASQ="/opt/h3c/usr/sbin/dnsmasq"
+
+has_namespace() {
+    ip netns list | grep -q "^$DHCPNS\b"
+}
+
+make_sure_namespace() {
+    if ! has_namespace;then
+        ip netns add $DHCPNS
+    fi
+}
+
+_netmask_to_cidr() {
+python <<EOF
+netmask='$1'
+if not netmask.isdigit():
+    netmask = sum([bin(int(x)).count('1') for x in netmask.split('.') ])
+print(netmask)
+EOF
+}
+
+dhcp_interface_prepare() {
+    local conf_file=$1
+    local desc_file=`echo $conf_file | sed "s:.conf$:.desc:g"`
+    # fix spell in old version
+    sed -i "s/dchpServerInterface/dhcpServerInterface/g" $desc_file
+
+    local vifname=
+    local vifip=
+    local vifmask=
+    read vifname vifip vifmask < <(grep "^dhcpServerInterface=" $desc_file | awk -F "=" '{print $2}')
+    vifmask=$(_netmask_to_cidr $vifmask)
+
+    if ! ip netns exec $DHCPNS test -d /sys/class/net/$vifname;then
+        ip link set $vifname netns $DHCPNS
+    fi
+    ip netns exec $DHCPNS ip addr flush dev $vifname
+    ip netns exec $DHCPNS ip addr add $vifip/$vifmask dev $vifname
+    ip netns exec $DHCPNS ip link set $vifname up
+}
+
+dhcp_service_start() {
+    local conf_file=$1
+    unshare -m -- bash -c "mount | grep -vE \"dhcp-interface-namespace|on /var/log \" | cut -d ' ' -f 3 | \
+                           xargs -I {} umount -n {} 2>/dev/null; ip netns exec $DHCPNS $DNSMASQ \
+                           --conf-file=$conf_file"
+    if ! ip netns exec $DHCPNS iptables -nvL -t mangle | grep -q "udp dpt:68 CHECKSUM fill";then
+        ip netns exec $DHCPNS iptables -A POSTROUTING -t mangle -p udp --dport 68 -j CHECKSUM --checksum-fill
+    fi
+}
+
+dhcp_service_stop() {
+    local conf_file=$1
+    local pidfile=$(grep "^pid-file=" $conf_file | awk -F "=" '{print $2}')
+    local vifname=$(grep "^interface=" $conf_file | awk -F "=" '{print $2}')
+
+    local pid=
+    test -r "$pidfile" && read pid <"$pidfile"
+    if test -n "$pid";then
+        for s in 15 9
+        do
+            if test -d "/proc/$pid/";then
+                kill -$s $pid
+            fi
+            if test -d "/proc/$pid/";then
+                sleep 2
+            fi
+        done
+        rm -f "$pidfile"
+    fi
+    if has_namespace;then
+        ip netns exec $DHCPNS ip link set $vifname down
+    fi
+    return 0
+}
+
+dhcp_service_start_all() {
+    if [ -d $DNSMASQ_CONF_DIR ];then
+        for conf_file in $DNSMASQ_CONF_DIR/*.dnsmasq*.conf
+        do
+            if ! test -e "$conf_file";then
+                break
+            fi
+
+            file_name=`basename $conf_file`
+            process=`ps -ef | sed -n "/$file_name/p" | sed "/sed/d"`
+            if [ "$process" = "" ]
+            then
+                dhcp_interface_prepare $conf_file
+                dhcp_service_start $conf_file
+            fi
+        done
+        echo "start DHCP server... done."
+    else
+        echo "No DHCP server need to start."
+        return 0
+    fi
+
+    return 0
+}
+
+dhcp_service_stop_all() {
+    if [ -d $DNSMASQ_CONF_DIR ];then
+        for conf_file in $DNSMASQ_CONF_DIR/*.dnsmasq*.conf
+        do
+            if ! test -e "$conf_file";then
+                break
+            fi
+
+            dhcp_service_stop $conf_file
+        done
+        echo "stop DHCP server... done."
+    else
+        echo "No DHCP server need to stop"
+        return 0
+    fi
+
+    return 0
+}
+
+if [ -f $ONESTORE_DNSMASQ ]; then
+    DNSMASQ="$ONESTORE_DNSMASQ"
+else
+    if [ -f $CAS_DNSMASQ ]; then
+        DNSMASQ="$CAS_DNSMASQ"
+    else
+        echo "Not exist $ONESTORE_DNSMASQ and $CAS_DNSMASQ in host environment."
+        exit 1
+    fi
+fi
+
+case "$1" in
+    pre-start)
+        make_sure_namespace
+        dhcp_interface_prepare $2
+        exit 0
+    ;;
+    start)
+        dhcp_service_start $2
+        exit 0
+    ;;
+    stop)
+        dhcp_service_stop $2
+        exit 0
+    ;;
+    start-all)
+        make_sure_namespace
+        dhcp_service_start_all
+        exit 0
+    ;;
+    stop-all)
+        make_sure_namespace
+        dhcp_service_stop_all
+        exit 0
+    ;;
+    **)
+        echo "Usage: $0 {pre-start CONF_FILE|start CONF_FILE|stop CONF_FILE|start-all|stop-all}" 1>&2
+        exit 1
+    ;;
+esac

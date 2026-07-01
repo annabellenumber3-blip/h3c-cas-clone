@@ -1,0 +1,860 @@
+d d!
+d"d#
+d$d%
+d&d'
+d(d)
+d*d+
+)-z(
+Interpolation inside triangular grids.
+_api)
+Triangulation)
+	TriFinder)
+TriAnalyzer)
+TriInterpolator
+LinearTriInterpolator
+CubicTriInterpolatorc
+    Abstract base class for classes used to interpolate on a triangular grid.
+    Derived classes implement the following methods:
+    - ``__call__(x, y)``,
+      where x, y are array-like point coordinates of the same shape, and
+      that returns a masked array of the same shape containing the
+      interpolated z-values.
+    - ``gradient(x, y)``,
+      where x, y are array-like point coordinates of the same
+      shape, and that returns a list of 2 masked arrays of the same shape
+      containing the 2 derivatives of the interpolator (derivatives of
+      interpolated z values with respect to x and y).
+    Nc
+r:t	d
+triangulationz=z array must have same length as triangulation x and y arrays)
+	trifinder
+check_isinstancer
+_triangulation
+asarray
+shape
+ValueErrorr
+get_trifinder
+_trifinder
+_unit_x
+_unit_y
+_tri_renum
+selfr	
+C/usr/lib64/python3.9/site-packages/matplotlib/tri/triinterpolate.py
+__init__!
+TriInterpolator.__init__a
+        Returns a masked array containing interpolated values at the specified
+        (x, y) points.
+        Parameters
+        ----------
+        x, y : array-like
+            x and y coordinates of the same shape and any number of
+            dimensions.
+        Returns
+        -------
+        np.ma.array
+            Masked array of the same shape as *x* and *y*; values corresponding
+            to (*x*, *y*) points outside of the triangulation are masked out.
+        a
+        Returns a list of 2 masked arrays containing interpolated derivatives
+        at the specified (x, y) points.
+        Parameters
+        ----------
+        x, y : array-like
+            x and y coordinates of the same shape and any number of
+            dimensions.
+        Returns
+        -------
+        dzdx, dzdy : np.ma.array
+            2 masked arrays of the same shape as *x* and *y*; values
+            corresponding to (x, y) points outside of the triangulation
+            are masked out.
+            The first returned array contains the values of
+            :math:`\frac{\partial z}{\partial x}` and the second those of
+            :math:`\frac{\partial z}{\partial y}`.
+        
+        Versatile (private) method defined for all TriInterpolators.
+        :meth:`_interpolate_multikeys` is a wrapper around method
+        :meth:`_interpolate_single_key` (to be defined in the child
+        subclasses).
+        :meth:`_interpolate_single_key actually performs the interpolation,
+        but only for 1-dimensional inputs and at valid locations (inside
+        unmasked triangles of the triangulation).
+        The purpose of :meth:`_interpolate_multikeys` is to implement the
+        following common tasks needed in all subclasses implementations:
+        - calculation of containing triangles
+        - dealing with more than one interpolation request at the same
+          location (e.g., if the 2 derivatives are requested, it is
+          unnecessary to compute the containing triangles twice)
+        - scaling according to self._unit_x, self._unit_y
+        - dealing with points outside of the grid (with fill value np.nan)
+        - dealing with multi-dimensional *x*, *y* arrays: flattening for
+          :meth:`_interpolate_params` call and final reshaping.
+        (Note that np.vectorize could do most of those things very well for
+        you, but it does it by function evaluations over successive tuples of
+        the input arrays. Therefore, this tends to be more time consuming than
+        using optimized numpy functions - e.g., np.dot - which can be used
+        easily on the flattened inputs, in the child-subclass methods
+        :meth:`_interpolate_single_key`.)
+        It is guaranteed that the calls to :meth:`_interpolate_single_key`
+        will be done with flattened (1-d) array-like input parameters *x*, *y*
+        and with flattened, valid `tri_index` arrays (no -1 index allowed).
+        Parameters
+        ----------
+        x, y : array-like
+            x and y coordinates where interpolated values are requested.
+        tri_index : array-like of int, optional
+            Array of the containing triangle indices, same shape as
+            *x* and *y*. Defaults to None. If None, these indices
+            will be computed by a TriFinder instance.
+            (Note: For point outside the grid, tri_index[ipt] shall be -1).
+        return_keys : tuple of keys from {'z', 'dzdx', 'dzdy'}
+            Defines the interpolation arrays to return, and in which order.
+        Returns
+        -------
+        list of arrays
+            Each array-like contains the expected interpolated values in the
+            order defined by *return_keys* parameter.
+        
+dtypez2x and y shall have same shapes. Given: {0} and {1}NzTtri_index array is provided and shall have same shape as x and y. Given: {0} and {1}
+dzdx
+dzdyz<return_keys items shall take values in {'z', 'dzdx', 'dzdy'}r
+copy)
+float64r
+format
+ravelr
+sizer
+KeyError
+empty
+_interpolate_single_keyZ
+masked_invalid
+reshape)
+	tri_index
+return_keysZ
+sh_retZ
+x_scaledZ
+y_scaledZ
+size_retZ
+mask_inZ
+valid_tri_indexZ
+valid_xZ
+valid_y
+return_key
+return_index
+errZ
+scaleZ
+ret_locr
+_interpolate_multikeysf
+z&TriInterpolator._interpolate_multikeysc
+        Interpolate at points belonging to the triangulation
+        (inside an unmasked triangles).
+        Parameters
+        ----------
+        return_key : {'z', 'dzdx', 'dzdy'}
+            The requested values (z or its derivatives).
+        tri_index : 1D int array
+            Valid triangle index (cannot be -1).
+        x, y : 1D arrays, same shape as `tri_index`
+            Valid locations where interpolation is requested.
+        Returns
+        -------
+        1-d array
+            Returned array of the same size as *tri_index*
+        zCTriInterpolator subclassesshould implement _interpolate_single_key!N
+NotImplementedError
+z'TriInterpolator._interpolate_single_key)
+__name__
+__module__
+__qualname__
+__doc__r
+_docstring__call__
+_docstringgradientr8
+    Linear interpolator on a triangular grid.
+    Each triangle is represented by a plane so that an interpolated value at
+    point (x, y) lies on the plane of the triangle containing (x, y).
+    Interpolated values are therefore continuous across the triangulation, but
+    their first derivatives are discontinuous at edges between triangles.
+    Parameters
+    ----------
+    triangulation : `~matplotlib.tri.Triangulation`
+        The triangulation to interpolate over.
+    z : (npoints,) array-like
+        Array of values, defined at grid points, to interpolate between.
+    trifinder : `~matplotlib.tri.TriFinder`, optional
+        If this is not specified, the Triangulation's default TriFinder will
+        be used by calling `.Triangulation.get_trifinder`.
+    Methods
+    -------
+    `__call__` (x, y) : Returns interpolated values at (x, y) points.
+    `gradient` (x, y) : Returns interpolated derivatives at (x, y) points.
+    Nc
+superr
+calculate_plane_coefficientsr
+_plane_coefficientsr
+	__class__r
+LinearTriInterpolator.__init__c
+__call__
+LinearTriInterpolator.__call__c
+gradient
+LinearTriInterpolator.gradientc
+check_in_listrD
+z-LinearTriInterpolator._interpolate_single_key)
+__classcell__r
+    Cubic interpolator on a triangular grid.
+    In one-dimension - on a segment - a cubic interpolating function is
+    defined by the values of the function and its derivative at both ends.
+    This is almost the same in 2D inside a triangle, except that the values
+    of the function and its 2 derivatives have to be defined at each triangle
+    node.
+    The CubicTriInterpolator takes the value of the function at each node -
+    provided by the user - and internally computes the value of the
+    derivatives, resulting in a smooth interpolation.
+    (As a special feature, the user can also impose the value of the
+    derivatives at each node, but this is not supposed to be the common
+    usage.)
+    Parameters
+    ----------
+    triangulation : `~matplotlib.tri.Triangulation`
+        The triangulation to interpolate over.
+    z : (npoints,) array-like
+        Array of values, defined at grid points, to interpolate between.
+    kind : {'min_E', 'geom', 'user'}, optional
+        Choice of the smoothing algorithm, in order to compute
+        the interpolant derivatives (defaults to 'min_E'):
+        - if 'min_E': (default) The derivatives at each node is computed
+          to minimize a bending energy.
+        - if 'geom': The derivatives at each node is computed as a
+          weighted average of relevant triangle normals. To be used for
+          speed optimization (large grids).
+        - if 'user': The user provides the argument *dz*, no computation
+          is hence needed.
+    trifinder : `~matplotlib.tri.TriFinder`, optional
+        If not specified, the Triangulation's default TriFinder will
+        be used by calling `.Triangulation.get_trifinder`.
+    dz : tuple of array-likes (dzdx, dzdy), optional
+        Used only if  *kind* ='user'. In this case *dz* must be provided as
+        (dzdx, dzdy) where dzdx, dzdy are arrays of the same shape as *z* and
+        are the interpolant first derivatives at the *triangulation* points.
+    Methods
+    -------
+    `__call__` (x, y) : Returns interpolated values at (x, y) points.
+    `gradient` (x, y) : Returns interpolated derivatives at (x, y) points.
+    Notes
+    -----
+    This note is a bit technical and details how the cubic interpolation is
+    computed.
+    The interpolation is based on a Clough-Tocher subdivision scheme of
+    the *triangulation* mesh (to make it clearer, each triangle of the
+    grid will be divided in 3 child-triangles, and on each child triangle
+    the interpolated function is a cubic polynomial of the 2 coordinates).
+    This technique originates from FEM (Finite Element Method) analysis;
+    the element used is a reduced Hsieh-Clough-Tocher (HCT)
+    element. Its shape functions are described in [1]_.
+    The assembled function is guaranteed to be C1-smooth, i.e. it is
+    continuous and its first derivatives are also continuous (this
+    is easy to show inside the triangles but is also true when crossing the
+    edges).
+    In the default case (*kind* ='min_E'), the interpolant minimizes a
+    curvature energy on the functional space generated by the HCT element
+    shape functions - with imposed values but arbitrary derivatives at each
+    node. The minimized functional is the integral of the so-called total
+    curvature (implementation based on an algorithm from [2]_ - PCG sparse
+    solver):
+        .. math::
+            E(z) = \frac{1}{2} \int_{\Omega} \left(
+                \left( \frac{\partial^2{z}}{\partial{x}^2} \right)^2 +
+                \left( \frac{\partial^2{z}}{\partial{y}^2} \right)^2 +
+                2\left( \frac{\partial^2{z}}{\partial{y}\partial{x}} \right)^2
+            \right) dx\,dy
+    If the case *kind* ='geom' is chosen by the user, a simple geometric
+    approximation is used (weighted average of the triangle normal
+    vectors), which could improve speed on very large grids.
+    References
+    ----------
+    .. [1] Michel Bernadou, Kamal Hassan, "Basis functions for general
+        Hsieh-Clough-Tocher triangles, complete or reduced.",
+        International Journal for Numerical Methods in Engineering,
+        17(5):784 - 789. 2.01.
+    .. [2] C.T. Kelley, "Iterative Methods for Optimization".
+    
+min_ENc
+user
+geomrQ
+kind
+get_cpp_triangulationr
+_get_compressed_triangulation
+_trianglesr
+ptpr
+column_stack
+_pts
+	_tris_pts
+_compute_tri_eccentricities
+_eccsr
+_compute_dof
+_dof
+_ReducedHCT_Element
+_ReferenceElement)
+tri_analyzerZ
+compressed_trianglesZ
+compressed_xZ
+compressed_yZ	tri_renumZ
+node_renumZ
+valid_noderE
+CubicTriInterpolator.__init__c
+CubicTriInterpolator.__call__c
+CubicTriInterpolator.gradientc
+axisr
+_get_alpha_vecr[
+expand_dimsr]
+get_function_values
+_get_jacobian
+get_function_derivatives)
+tris_pts
+alpha
+z,CubicTriInterpolator._interpolate_single_keyc
+        Compute and return nodal dofs according to kind.
+        Parameters
+        ----------
+        kind : {'min_E', 'geom', 'user'}
+            Choice of the _DOF_estimator subclass to estimate the gradient.
+        dz : tuple of array-likes (dzdx, dzdy), optional
+            Used only if *kind*=user; in this case passed to the
+            :class:`_DOF_estimator_user`.
+        Returns
+        -------
+        array-like, shape (npts, 2)
+            Estimation of the gradient at triangulation nodes (stored as
+            degree of freedoms of reduced-HCT triangle elements).
+        rR
+NzQFor a CubicTriInterpolator with *kind*='user', a valid *dz* argument is expected.rU
+_DOF_estimator_user
+_DOF_estimator_geom
+_DOF_estimator_min_E
+compute_dof_from_df)
+z!CubicTriInterpolator._compute_dofc
+        Fast (vectorized) function to compute barycentric coordinates alpha.
+        Parameters
+        ----------
+        x, y : array-like of dim 1 (shape (nx,))
+            Coordinates of the points whose points barycentric coordinates are
+            requested.
+        tris_pts : array like of dim 3 (shape: (nx, 3, 2))
+            Coordinates of the containing triangles apexes.
+        Returns
+        -------
+        array of dim 2 (shape (nx, 3))
+            Barycentric coordinates of the points inside the containing
+            triangles.
+        r#
+ndimr
+stack
+_transpose_vectorized
+_pseudo_inv22sym_vectorizedrc
+_to_matrix_vectorized)
+abTZ
+metricZ
+metric_invZ
+Covar
+ksirh
+z#CubicTriInterpolator._get_alpha_vecc
+        Fast (vectorized) function to compute triangle jacobian matrix.
+        Parameters
+        ----------
+        tris_pts : array like of dim 3 (shape: (nx, 3, 2))
+            Coordinates of the containing triangles apexes.
+        Returns
+        -------
+        array of dim 3 (shape (nx, 2, 2))
+            Barycentric coordinates of the points inside the containing
+            triangles.
+            J[itri, :, :] is the jacobian matrix at apex 0 of the triangle
+            itri, so that the following (matrix) relationship holds:
+               [dz/dksi] = [J] x [dz/dx]
+            with x: global coordinates
+                 ksi: element parametric coordinates in triangle first apex
+                 local basis.
+        Nr"
+arrayrt
+z"CubicTriInterpolator._get_jacobianc
+        Compute triangle eccentricities.
+        Parameters
+        ----------
+        tris_pts : array like of dim 3 (shape: (nx, 3, 2))
+            Coordinates of the triangles apexes.
+        Returns
+        -------
+        array like of dim 2 (shape: (nx, 3))
+            The so-called eccentricity parameters [1] needed for HCT triangular
+            element.
+        Nr#
+dot_aZ
+dot_bZ
+dot_cr
+z0CubicTriInterpolator._compute_tri_eccentricities)
+staticmethodrb
+d.d/
+d0d1
+d2d3
+d4d5
+d6d7
+d>d9d:
+d;d<
+)?r^
+    Implementation of reduced HCT triangular element with explicit shape
+    functions.
+    Computes z, dz, d2z and the element stiffness matrix for bending energy:
+    E(f) = integral( (d2z/dx2 + d2z/dy2)**2 dA)
+    *** Reference for the shape functions: ***
+    [1] Basis functions for general Hsieh-Clough-Tocher _triangles, complete or
+        reduced.
+        Michel Bernadou, Kamal Hassan
+        International Journal for Numerical Methods in Engineering.
+        17(5):784 - 789.  2.01
+    *** Element description: ***
+    9 dofs: z and dz given at 3 apex
+    C1 (conform)
+    )
+|	|	
+        Parameters
+        ----------
+        alpha : is a (N x 3 x 1) array (array of column-matrices) of
+        barycentric coordinates,
+        ecc : is a (N x 3 x 1) array (array of column-matrices) of triangle
+        eccentricities,
+        dofs : is a (N x 1 x 9) arrays (arrays of row-matrices) of computed
+        degrees of freedom.
+        Returns
+        -------
+        Returns the N-array of interpolated function values.
+        r"
+argmin
+_roll_vectorizedrt
+_scalar_vectorized
+dofs
+subtrirw
+x_sq
+y_sq
+z_sq
+prod
+z'_ReducedHCT_Element.get_function_valuesc
+|	|	
+        Parameters
+        ----------
+        *alpha* is a (N x 3 x 1) array (array of column-matrices of
+        barycentric coordinates)
+        *J* is a (N x 2 x 2) array of jacobian matrices (jacobian matrix at
+        triangle first apex)
+        *ecc* is a (N x 3 x 1) array (array of column-matrices of triangle
+        eccentricities)
+        *dofs* is a (N x 1 x 9) arrays (arrays of row-matrices) of computed
+        degrees of freedom.
+        Returns
+        -------
+        Returns the values of interpolated function derivatives [dz/dx, dz/dy]
+        in global coordinates at locations alpha, as a column-matrices of
+        shape (N x 2 x 1).
+        r"
+block_sizera
+_extract_submatrices
+	rotate_dVr
+_safe_inv22_vectorizedrr
+dsdksi
+dfdksi
+J_invZ
+dfdxr
+z,_ReducedHCT_Element.get_function_derivativesc
+        Parameters
+        ----------
+        *alpha* is a (N x 3 x 1) array (array of column-matrices) of
+        barycentric coordinates
+        *J* is a (N x 2 x 2) array of jacobian matrices (jacobian matrix at
+        triangle first apex)
+        *ecc* is a (N x 3 x 1) array (array of column-matrices) of triangle
+        eccentricities
+        *dofs* is a (N x 1 x 9) arrays (arrays of row-matrices) of computed
+        degrees of freedom.
+        Returns
+        -------
+        Returns the values of interpolated function 2nd-derivatives
+        [d2z/dx2, d2z/dy2, d2z/dxdy] in global coordinates at locations alpha,
+        as a column-matrices of shape (N x 3 x 1).
+        )
+get_d2Sidksij2
+get_Hrot_from_Jrr
+d2sdksi2Z
+d2fdksi2
+H_rotZ
+d2fdx2r
+get_function_hessians
+z)_ReducedHCT_Element.get_function_hessiansc
+}	|	t
+j	|	
+        Parameters
+        ----------
+        *alpha* is a (N x 3 x 1) array (array of column-matrices) of
+        barycentric coordinates
+        *ecc* is a (N x 3 x 1) array (array of column-matrices) of triangle
+        eccentricities
+        Returns
+        -------
+        Returns the arrays d2sdksi2 (N x 3 x 1) Hessian of shape functions
+        expressed in covariant coordinates in first apex basis.
+        r"
+rotate_d2Vr
+d2Vr
+z"_ReducedHCT_Element.get_d2Sidksij2c
+        Parameters
+        ----------
+        *J* is a (N x 2 x 2) array of jacobian matrices (jacobian matrix at
+        triangle first apex)
+        *ecc* is a (N x 3 x 1) array (array of column-matrices) of triangle
+        eccentricities
+        Returns
+        -------
+        Returns the element K matrices for bending energy expressed in
+        GLOBAL nodal coordinates.
+        K_ij = integral [ (d2zi/dx2 + d2zi/dy2) * (d2zj/dx2 + d2zj/dy2) dA]
+        tri_J is needed to rotate dofs from local basis to global basis
+        r
+return_arear#
+J0_to_J1
+J0_to_J2
+zerosr(
+gauss_w
+	gauss_pts
+range
+n_gaussZ
+tiler0
+DOF_rotr
+area
+weightsZ
+ptsZ
+igaussrh
+weightZ	d2Skdksi2Z
+d2Skdx2r
+get_bending_matrices>
+z(_ReducedHCT_Element.get_bending_matricesFc
+        Parameters
+        ----------
+        *J* is a (N x 2 x 2) array of jacobian matrices (jacobian matrix at
+        triangle first apex)
+        Returns
+        -------
+        Returns H_rot used to rotate Hessian from local basis of first apex,
+        to global coordinates.
+        if *return_area* is True, returns also the triangle area (0.5*det(J))
+        Nr
+Ji00Z
+Ji11Z
+Ji10Z
+Ji01r
+z#_ReducedHCT_Element.get_Hrot_from_Jc
+        Build K and F for the following elliptic formulation:
+        minimization of curvature energy with value of function at node
+        imposed and derivatives 'free'.
+        Build the global Kff matrix in cco format.
+        Build the full Ff vec Ff = - Kfc x Uc.
+        Parameters
+        ----------
+        *J* is a (N x 2 x 2) array of jacobian matrices (jacobian matrix at
+        triangle first apex)
+        *ecc* is a (N x 3 x 1) array (array of column-matrices) of triangle
+        eccentricities
+        *triangles* is a (N x 3) array of nodes indexes.
+        *Uc* is (N x 3) array of imposed displacements at nodes
+        Returns
+        -------
+        (Kff_rows, Kff_cols, Kff_vals) Kff matrix in coo format - Duplicate
+        (row, col) entries must be summed.
+        Ff: force vector - dim npts * 3
+        r
+arange
+int32Z
+fullrt
+onesrr
+ix_rc
+bincount)
+	triangles
+ntriZ	vec_rangeZ	c_indicesZ
+f_dofZ
+c_dofZ
+f_dof_indicesZ
+expand_indicesZ
+f_row_indicesZ
+f_col_indicesZ
+K_elem
+Kff_vals
+Kff_rows
+Kff_colsZ
+Kfc_elemZ
+Uc_elemZ
+Ff_elemZ
+Ff_indices
+get_Kff_and_Ff
+z"_ReducedHCT_Element.get_Kff_and_FfN)
+_DOF_estimatoral
+    Abstract base class for classes used to estimate a function's first
+    derivatives, and deduce the dofs for a CubicTriInterpolator using a
+    reduced HCT element formulation.
+    Derived classes implement ``compute_df(self, **kwargs)``, returning
+    ``np.vstack([dfx, dfy]).T`` where ``dfx, dfy`` are the estimation of the 2
+    gradient coordinates.
+    c
+interpolator)
+compute_dzrV
+kwargsr
+_DOF_estimator.__init__c
+_DOF_estimator.compute_dzc
+        Compute reduced-HCT elements degrees of freedom, from the gradient.
+        )
+get_dof_vec)
+tri_z
+tri_dzZ
+tri_dofr
+z"_DOF_estimator.compute_dof_from_dfc
+        Compute the dof vector of a triangle, from the value of f, df and
+        of the local Jacobian at each node.
+        Parameters
+        ----------
+        tri_z : shape (3,) array
+            f nodal values.
+        tri_dz : shape (3, 2) array
+            df/dx, df/dy nodal values.
+        J
+            Jacobian matrix in local basis of apex 0.
+        Returns
+        -------
+        dof : shape (9,) array
+            For each apex ``iapex``::
+                dof[iapex*3+0] = f(Ai)
+                dof[iapex*3+1] = df(Ai).(AiAi+)
+                dof[iapex*3+2] = df(Ai).(AiAi-)
+        r
+nptrj
+col0Z
+col1Z
+col2r
+_DOF_estimator.get_dof_vecN)	r<
+z3dz is imposed by user; accounts for scaling if any.c
+vstack
+_DOF_estimator_user.compute_dzN)
+)	rm
+z=Fast 'geometric' approximation, recommended for large arrays.c
+        self.df is computed as weighted average of _triangles sharing a common
+        node. On each triangle itri f is first assumed linear (= ~f), which
+        allows to compute d~f[itri]
+        Then the following approximation of df nodal values is then proposed:
+            f[ipt] = SUM ( w[itri] x d~f[itri] , for itri sharing apex ipt)
+        The weighted coeff. w[itri] are proportional to the angle of the
+        triangle itri at apex ipt
+        r
+compute_geom_weights
+compute_geom_gradsr
+empty_liker
+Z	el_geom_wZ
+el_geom_gradZ
+w_node_sumZ
+dfx_el_wZ
+dfy_el_wZ
+iapexZ
+dfx_node_sumZ
+dfy_node_sumZ	dfx_estimZ	dfy_estimr
+_DOF_estimator_geom.compute_dzc
+        Build the (nelems, 3) weights coeffs of _triangles angles,
+        renormalized so that np.sum(weights, axis=1) == np.ones(nelems)
+        r
+arctan2
+absZ
+iptZ
+alpha1Z
+alpha2Z
+angler
+z(_DOF_estimator_geom.compute_geom_weightsc
+        Compute the (global) gradient component of f assumed linear (~f).
+        returns array df of shape (nelems, 2)
+        df[ielem].dM[ielem] = dz[ielem] i.e. df = dz x dM = dM.T^-1 x dz
+        Nr"
+)	rY
+dstackr
+tris_fZ
+dM1Z
+dM2Z
+dM_invZ
+dZ1Z
+dZ2Z
+z&_DOF_estimator_geom.compute_geom_gradsN)
+    The 'smoothest' approximation, df is computed through global minimization
+    of the bending energy:
+      E(f) = integral[(d2z/dx2 + d2z/dy2 + 2 d2z/dxdy)**2 dA]
+    c
+InterpolatorrE
+_DOF_estimator_min_E.__init__c
+        Elliptic solver for bending energy minimization.
+        Uses a dedicated 'toy' sparse Jacobi PCG solver.
+        
+tolz
+In TriCubicInterpolator initialization, PCG sparse solver did not converge after 1000 iterations. `geom` approximation is used instead of `min_E`r#
+_Sparse_Matrix_coo
+compress_csc
+linalg
+norm
+dotr
+warn_externalr-
+dz_initZ
+Uf0Z
+reference_elementrk
+eccsr
+n_dofZ
+Kff_cooZ
+Ufr7
+err0rV
+_DOF_estimator_min_E.compute_dz)
+        Create a sparse matrix in coo format.
+        *vals*: arrays of values of non-null entries of the matrix
+        *rows*: int arrays of rows of non-null entries of the matrix
+        *cols*: int arrays of cols of non-null entries of the matrix
+        *shape*: 2-tuple (n, m) of matrix shape
+        r
+N)	r
+valsr
+rows
+cols)
+_Sparse_Matrix_coo.__init__c
+        Dot product of self by a vector *V* in sparse-dense to dense format
+        *V* dense vector of shape (self.m,).
+        )
+Z	minlength)
+_Sparse_Matrix_coo.dotc
+        Compress rows, cols, vals / summing duplicates. Sort for csc format.
+        T
+return_inverser
+uniquer
+indicesr
+_Sparse_Matrix_coo.compress_cscc
+        Compress rows, cols, vals / summing duplicates. Sort for csr format.
+        Tr
+compress_csr
+_Sparse_Matrix_coo.compress_csrc
+        Return a dense matrix representing self, mainly for debugging purposes.
+        r
+nvals
+to_dense
+_Sparse_Matrix_coo.to_densec
+__str__)
+_Sparse_Matrix_coo.__str__c
+z3Return the (dense) vector of the diagonal elements.r
+minr
+in_diag
+diagr
+_Sparse_Matrix_coo.diagN)
+propertyr
+}	|	|
+	|	|
+}	|	|
+	|	|
+    Use Preconditioned Conjugate Gradient iteration to solve A x = b
+    A simple Jacobi (diagonal) preconditioner is used.
+    Parameters
+    ----------
+    A : _Sparse_Matrix_coo
+        *A* must have been compressed before by compress_csc or
+        compress_csr method.
+    b : array
+        Right hand side of the linear system.
+    x0 : array, optional
+        Starting guess for the solution. Defaults to the zero vector.
+    tol : float, optional
+        Tolerance to achieve. The algorithm terminates when the relative
+        residual is below tol. Default is 1e-10.
+    maxiter : int, optional
+        Maximum number of iterations.  Iteration will stop after *maxiter*
+        steps even if the specified tolerance has not been achieved. Defaults
+        to 1000.
+    Returns
+    -------
+    x : array
+        The converged solution.
+    err : float
+        The absolute error np.linalg.norm(A.dot(x) - b)
+    g
+>Nr{
+maximumr
+sqrtr
+maxiterr
+b_normZ
+kvecr
+betaZ
+rhooldr7
+    Inversion of arrays of (2, 2) matrices, returns 0 for rank-deficient
+    matrices.
+    *M* : array of (2, 2) matrices to inverse, shape (n, 2, 2)
+    
+yE>r
+check_shaper
+allr
+M_inv
+prod1
+delta
+rank2Z	delta_invr
+    Inversion of arrays of (2, 2) SYMMETRIC matrices; returns the
+    (Moore-Penrose) pseudo-inverse for rank-deficient matrices.
+    In case M is of rank 1, we have M = trace(M) x P where P is the orthogonal
+    projection on Im(M), and we return trace(M)^-1 x P == M / trace(M)**2
+    In case M is of rank 0, we return the null matrix.
+    *M* : array of (2, 2) matrices to inverse, shape (n, 2, 2)
+    r
+rank01Z
+tr_zerosZ	sq_tr_invr
+    Scalar product between scalars and matrices.
+    N)
+newaxis)
+scalarr
+    Transposition of an array of matrices *M*.
+    )
+Z	transposer
+    Roll an array of matrices along *axis* (0: rows, 1: columns) according to
+    an array of indices *roll_indices*.
+    
+roll_indicesra
+Z	ndim_roll
+vec_indicesZ
+M_roll
+]$}	t
+    Build an array of matrices from individuals np.arrays of identical shapes.
+    Parameters
+    ----------
+    M
+        ncols-list of nrows-lists of shape sh.
+    Returns
+    -------
+    M_res : np.array of shape (sh, nrow, ncols)
+        *M_res* satisfies ``M_res[..., i, j] = M[i][j]``.
+    c
+isinstance
+tuple
+list
+itemr
+	<genexpr>
+z(_to_matrix_vectorized.<locals>.<genexpr>c
+lenr
+<listcomp>
+z)_to_matrix_vectorized.<locals>.<listcomp>r
+c_vecr
+M_retZ
+irowZ
+icolr
+].}	|
+qrn8t
+    Extract selected blocks of a matrices *M* depending on parameters
+    *block_indices* and *block_size*.
+    Returns the array of extracted matrices *Mres* so that ::
+        M_res[..., ir, :] = M[(block_indices*block_size+ir), :]
+    r"
+block_indicesr
+M_resr
+numpyr
+matplotlibr
+matplotlib.trir
+matplotlib.tri.trifinderr
+matplotlib.tri.tritoolsr
+__all__r
+<module>

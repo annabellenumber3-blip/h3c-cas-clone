@@ -1,0 +1,751 @@
+l	Z	d
+m Z 
+Z/e.Z0e/Z1G
+d e)
+Z2d*d"d#
+Z3d$d%
+Z4d&d'
+Z5d(d)
+PEP 376 implementation.
+unicode_literalsN
+DistlibException
+	resources)
+StringIO)
+get_scheme
+UnsupportedVersionError)
+Metadata
+METADATA_FILENAME
+WHEEL_METADATA_FILENAME
+LEGACY_METADATA_FILENAME)
+parse_requirement
+cached_property
+parse_name_and_version
+read_exports
+write_exports
+	CSVReader
+	CSVWriter)
+Distribution
+BaseInstalledDistribution
+InstalledDistribution
+EggInfoDistribution
+DistributionPathz
+pydist-exports.jsonz
+pydist-commands.jsonZ	INSTALLER
+RECORD
+	REQUESTED
+	RESOURCES
+SHAREDz
+.dist-infoc
+_CachezL
+    A simple cache mapping names and .dist-info paths to distributions
+    c
+        Initialise an instance. There is normally one for each DistributionPath.
+        FN)
+name
+path
+	generated
+self
+@/usr/lib/python3.9/site-packages/pip/_vendor/distlib/database.py
+__init__1
+_Cache.__init__c
+        Clear the cache, setting it to its initial state.
+        FN)
+clearr
+_Cache.clearc
+        Add a distribution to the cache.
+        :param dist: The distribution to add.
+        N)
+setdefault
+append
+distr#
+addA
+_Cache.addN)
+__name__
+__module__
+__qualname__
+__doc__r%
+    Represents a set of distributions installed on a path (typically sys.path).
+    NFc
+        Create an instance from a path, optionally including legacy (distutils/
+        setuptools/distribute) distributions.
+        :param path: The path to use, as a list of directories. If not specified,
+                     sys.path is used.
+        :param include_egg: If True, this instance will look for and return legacy
+                            distributions as well as those based on PEP 376.
+        NT
+default)
+sysr
+_include_dist
+_include_eggr
+_cache
+_cache_egg
+_cache_enabledr
+_scheme)
+include_eggr#
+DistributionPath.__init__c
+_get_cache_enabledc
+z#DistributionPath._get_cache_enabledc
+valuer#
+_set_cache_enabledf
+z#DistributionPath._set_cache_enabledc
+        Clears the internal cache.
+        N)
+clear_cachek
+DistributionPath.clear_cachec
+rjqJ|
+        Yield .dist-info and/or .egg(-info) distributions.
+        N
+legacy
+fileobj
+schemez
+Found %s)
+metadata
+env)
+	.egg-info
+.egg)
+setr
+finder_for_path
+findZ
+is_container
+sortedr3
+endswith
+DISTINFO_EXTr
+	posixpath
+join
+contextlib
+closing
+	as_streamr	
+logger
+debugr,
+new_dist_classr4
+old_dist_class)
+seenr
+finder
+rset
+entryZ
+possible_filenamesZ
+metadata_filenameZ
+metadata_pathZ
+pydist
+streamrD
+_yield_distributionss
+z%DistributionPath._yield_distributionsc
+        Scan the path for distributions and populate the cache with
+        those that are found.
+        TN)
+isinstancer
+gen_distZ
+gen_eggr+
+_generate_cache
+z DistributionPath._generate_cachec
+        The *name* and *version* parameters are converted into their
+        filename-escaped form, i.e. any ``'-'`` characters are replaced
+        with ``'_'`` other than the one in ``'dist-info'`` and the one
+        separating the name from the version number.
+        :parameter name: is converted to a standard distribution name by replacing
+                         any runs of non- alphanumeric characters with a single
+                         ``'-'``.
+        :type name: string
+        :parameter version: is converted to a standard version string. Spaces
+                            become dots, and all other non-alphanumeric characters
+                            (except dots) become dashes, with runs of multiple
+                            dashes condensed to a single dash.
+        :type version: string
+        :returns: directory name
+        :rtype: string
+replacerO
+clsr
+versionr#
+distinfo_dirname
+z!DistributionPath.distinfo_dirnamec
+        Provides an iterator that looks for distributions and returns
+        :class:`InstalledDistribution` or
+        :class:`EggInfoDistribution` instances for each one of them.
+        :rtype: iterator of :class:`InstalledDistribution` and
+                :class:`EggInfoDistribution` instances
+        N)
+valuesr4
+get_distributions
+z"DistributionPath.get_distributionsc
+        Looks for a named distribution on the path.
+        This function only returns the first result found, as no more than one
+        value is expected. If nothing is found, ``None`` is returned.
+        :rtype: :class:`InstalledDistribution`, :class:`EggInfoDistribution`
+                or ``None``
+        Nr
+lowerr7
+resultr+
+get_distribution
+z!DistributionPath.get_distributionc
+qPqv|
+qPqvqPd
+        Iterates over all distributions to find which distributions provide *name*.
+        If a *version* is provided, it will be used to filter the results.
+        This function only returns the first result found, since no more than
+        one values are expected. If the directory is not found, returns ``None``.
+        :parameter version: a version specifier that indicates the version
+                            required, conforming to the format in ``PEP-345``
+        :type name: string
+        :type version: string
+        N
+%s (%s)z
+invalid name or version: %r, %r
+providesz
+No "provides": %s)
+matcher
+ValueErrorr
+hasattrrS
+match)	r"
+provided
+p_name
+p_verr#
+provides_distribution
+z&DistributionPath.provides_distributionc
+        Return the path to a resource file.
+        Nz
+no distribution named %r found)
+LookupError
+get_resource_path)
+relative_pathr+
+get_file_path!
+DistributionPath.get_file_pathc
+        Return all of the exported entries in a particular category.
+        :param category: The category to search for entries.
+        :param name: If specified, only entries with that name are returned.
+        N)
+exportsre
+categoryr
+get_exported_entries*
+z%DistributionPath.get_exported_entries)
+propertyZ
+cache_enabledr>
+classmethodrd
+    A base class for distributions, whether installed or from indexes.
+    Either way, it must have some metadata, so that's all that's needed
+    for construction.
+    Fc
+        Initialise an instance.
+        :param metadata: The instance of :class:`Metadata` describing this
+        distribution.
+        N)
+locator
+digest
+extras
+contextrH
+download_urlsZ
+digests)
+Distribution.__init__c
+        The source archive download URL for this distribution.
+        )
+source_urlr!
+Distribution.source_urlc
+        A utility property which displays the name and version in parentheses.
+        rj
+name_and_versioni
+Distribution.name_and_versionc
+        A set of distribution names and versions provided by this distribution.
+        :return: A set of "name (version)" strings.
+        rj
+plist
+Distribution.providesc
+Nz%Getting requirements from metadata %r)
+)	rD
+todict
+getattrrH
+get_requirementsr
+req_attr
+reqtsr#
+_get_requirements|
+Distribution._get_requirementsc
+run_requires
+Distribution.run_requiresc
+meta_requiresr
+Distribution.meta_requiresc
+build_requiresr
+Distribution.build_requiresc
+test_requiresr
+Distribution.test_requiresc
+dev_requiresr
+Distribution.dev_requiresc
+        Say if this instance matches (fulfills) a requirement.
+        :param req: The requirement to match.
+        :rtype req: str
+        :return: True if it matches, else False.
+        
++could not read version %r - using name onlyr
+requirementr
+warning
+splitr(
+reqrY
+matches_requirement
+z Distribution.matches_requirementc
+        Return a textual representation of this instance,
+        z
+ [%s]r?
+<Distribution %s (%s)%s>)
+suffixr#
+__repr__
+Distribution.__repr__c
+        See if this distribution is the same as another.
+        :param other: The distribution to compare with. To be equal to one
+                      another. distributions must have the same type, name,
+                      version and source_url.
+        :return: True if it is the same, else False.
+        F)
+typer
+otherrh
+__eq__
+Distribution.__eq__c
+        Compute hash in a way which matches the equality test.
+        )
+hashr
+__hash__
+Distribution.__hash__N)
+build_time_dependency
+	requestedr%
+download_urlr
+    This is the base class for installed distributions (whether PEP 376 or
+    legacy).
+    Nc
+        Initialise an instance.
+        :param metadata: An instance of :class:`Metadata` which describes the
+                         distribution. This will normally have been initialised
+                         from a metadata file in the ``path``.
+        :param path:     The path of the ``.dist-info`` or ``.egg-info``
+                         directory for the distribution.
+        :param env:      This is normally the :class:`DistributionPath`
+                         instance where this distribution was found.
+        N)
+superr
+	dist_path)
+	__class__r#
+z"BaseInstalledDistribution.__init__c
+        Get the hash of some data, using a particular hash algorithm, if
+        specified.
+        :param data: The data to be hashed.
+        :type data: bytes
+        :param hasher: The name of a hash implementation, supported by hashlib,
+                       or ``None``. Examples of valid values are ``'sha1'``,
+                       ``'sha224'``, ``'sha384'``, '``sha256'``, ``'md5'`` and
+                       ``'sha512'``. If no hasher is specified, the ``hasher``
+                       attribute of the :class:`InstalledDistribution` instance
+                       is used. If the hasher is determined to be ``None``, MD5
+                       is used as the hashing algorithm.
+        :returns: The hash of the data. If a hasher was explicitly specified,
+                  the returned hash will be prefixed with the specified hasher
+                  followed by '='.
+        :rtype: str
+        Nr?
+ascii
+%s%s)	
+hasher
+hashlib
+md5r
+base64Z
+urlsafe_b64encode
+rstrip
+decode)
+datar
+prefixr
+get_hash
+z"BaseInstalledDistribution.get_hash)
+__classcell__r#
+d!d"
+d#d$
+d%d&
+    Created with the *path* of the ``.dist-info`` directory provided to the
+    constructor. It reads the metadata contained in ``pydist.json`` when it is
+    instantiated., or uses a passed in Metadata instance (useful for when
+    dry-run mode is being used).
+    Z
+sha256Nc
+)	Nz
+finder unavailable for %sz
+no %s found in %sr@
+top_level.txt
+utf-8)
+modulesr
+osrO
+exists
+open
+readr
+splitlines)
+InstalledDistribution.__init__c
+Nz#<InstalledDistribution %r %s at %r>
+InstalledDistribution.__repr__c
+%s %sr
+__str__A
+InstalledDistribution.__str__c
+        Get the list of installed files for the distribution
+        :return: A list of tuples of path, hash and size. Note that hash and
+                 size might be ``None`` for some entries. The path is exactly
+                 as stored in the file (which is as in PEP 376).
+        r
+<listcomp>S
+z6InstalledDistribution._get_records.<locals>.<listcomp>
+get_distinfo_resourcerP
+range
+lenr)
+resultsrY
+record_reader
+missingr
+checksum
+sizer#
+_get_recordsD
+z"InstalledDistribution._get_recordsc
+        Return the information exported by this distribution.
+        :return: A dictionary of exports, mapping an export category to a dict
+                 of :class:`ExportEntry` instances describing the individual
+                 export entries, and keyed by name.
+        )
+EXPORTS_FILENAMEr
+InstalledDistribution.exportsc
+        Read exports data from a file in .ini format.
+        :return: A dictionary of exports, mapping an export category to a list
+                 of :class:`ExportEntry` instances describing the individual
+                 export entries.
+        N)
+z"InstalledDistribution.read_exportsc
+        Write a dictionary of exports to a file in .ini format.
+        :param exports: A dictionary of exports, mapping an export category to
+                        a list of :class:`ExportEntry` instances describing the
+                        individual export entries.
+        
+get_distinfo_filer
+z#InstalledDistribution.write_exportsc
+        NOTE: This API may change in the future.
+        Return the absolute path to a resource file with the given relative
+        path.
+        :param relative_path: The path, relative to .dist-info, of the resource
+                              of interest.
+        :return: The absolute path where the resource is to be found.
+        r
+Nz3no resource file with relative path %r is installed)
+KeyError)
+resources_reader
+relativeZ
+destinationr#
+z'InstalledDistribution.get_resource_pathc
+        Iterates over the ``RECORD`` entries and returns a tuple
+        ``(path, hash, size)`` for each line.
+        :returns: iterator of (path, hash, size)
+        N)
+list_installed_files
+z*InstalledDistribution.list_installed_filesFc
+        Writes the ``RECORD`` file, using the ``paths`` iterable passed in. Any
+        existing ``RECORD`` file is silently overwritten.
+        prefix is used to determine when to write absolute paths.
+        r?
+creating %sN
+.pycz
+.pyoz
+dirname
+startswithr
+infor
+isdirrL
+getsizer
+relpathZ
+writerow)
+pathsr
+dry_run
+baseZ
+base_under_prefix
+record_path
+writerr
+hash_valuer
+fpr#
+write_installed_files
+z+InstalledDistribution.write_installed_filesc
+rTq$t
+<}	|
+        Checks that the hashes and sizes of the files in ``RECORD`` are
+        matched by the files themselves. Returns a (possibly empty) list of
+        mismatches. Each entry in the mismatch list will be a tuple consisting
+        of the path, 'exists', 'size' or 'hash' according to what didn't match
+        (existence is checked first, then size, then hash), the expected
+        value and the actual value.
+        r
+isabsrO
+isfile
+strr
+mismatchesr
+actual_sizer
+actual_hashr#
+check_installed_files
+z+InstalledDistribution.check_installed_filesc
+        A dictionary of shared locations whose keys are in the set 'prefix',
+        'purelib', 'platlib', 'scripts', 'headers', 'data' and 'namespace'.
+        The corresponding value is the absolute path of that category for
+        this distribution, and takes into account any paths selected by the
+        user at installation time (e.g. via command-line arguments). In the
+        case of the 'namespace' key, this would be a list of absolute paths
+        for the roots of namespace packages in this distribution.
+        The first time this property is accessed, the relevant information is
+        read from the SHARED file in the .dist-info directory.
+        r
+encodingNr
+	namespace)
+codecsr
+shared_pathr
+lines
+liner(
+shared_locations
+z&InstalledDistribution.shared_locationsc
+        Write shared location information to the SHARED file in .dist-info.
+        :param paths: A dictionary as described in the documentation for
+        :meth:`shared_locations`.
+        :param dry_run: If True, the action is logged but no file is actually
+                        written.
+        :return: The path of the file written to.
+        r
+libZ
+headersZ
+scriptsr
+%s=%sr
+namespace=%sr
+getr
+write)	r"
+write_shared_locations
+z,InstalledDistribution.write_shared_locationsc
++invalid path for a dist-info file: %r at %rz
+Unable to get a finder for %s)
+DIST_FILESr
+z+InstalledDistribution.get_distinfo_resourcec
+        Returns a path located under the ``.dist-info`` directory. Returns a
+        string representing the path.
+        :parameter path: a ``'/'``-separated path relative to the
+                         ``.dist-info`` directory or an absolute path;
+                         If *path* is an absolute path and doesn't start
+                         with the ``.dist-info`` directory path,
+                         a :class:`DistlibException` is raised
+        :type path: str
+        :rtype: str
+        r
+z;dist-info file %r does not belong to the %r %s distributionr
+sepr
+z'InstalledDistribution.get_distinfo_filec
+        Iterates over the ``RECORD`` entries and returns paths for each line if
+        the path is pointing to a file located in the ``.dist-info`` directory
+        or one of its subdirectories.
+        :returns: iterator of paths
+        N)
+list_distinfo_filesA
+z)InstalledDistribution.list_distinfo_filesc
+InstalledDistribution.__eq__)
+objectr
+Created with the *path* of the ``.egg-info`` directory or file provided
+    to the constructor. It reads the metadata contained in the file itself, or
+    if the given path happens to be a directory, the metadata is read from the
+    file ``PKG-INFO`` under that directory.TNc
+set_name_and_versionc
+z:EggInfoDistribution.__init__.<locals>.set_name_and_version)
+_get_metadatar,
+EggInfoDistribution.__init__c
+Create a list of dependencies from a requires.txt file.
+            *data*: the contents of a setuptools-produced requires.txt file.
+            
+[z.Unexpected line: quitting requirement scan: %rz#Not recognised as a requirement: %rz4extra requirements in requires.txt are not supportedz
+	<genexpr>
+zQEggInfoDistribution._get_metadata.<locals>.parse_requires_data.<locals>.<genexpr>rj
+stripr
+constraintsr)
+reqsr
+consr#
+parse_requires_dataz
+z>EggInfoDistribution._get_metadata.<locals>.parse_requires_datac
+Create a list of dependencies from a requires.txt file.
+            *req_path*: the path to a setuptools-produced requires.txt file.
+            rY
+IOError)
+req_pathr
+parse_requires_path
+z>EggInfoDistribution._get_metadata.<locals>.parse_requires_pathrG
+EGG-INFOz
+PKG-INFOr@
+requires.txtr
+EGG-INFO/PKG-INFO
+utf8rA
+EGG-INFO/requires.txtz
+EGG-INFO/top_level.txtr
+z,path must end with .egg-info or .egg, got %rr
+	zipimport
+zipimporterr
+get_datar
+add_requirementsr
+requiresr
+tl_pathZ
+tl_datarq
+	meta_pathrD
+zipfrB
+z!EggInfoDistribution._get_metadatac
+Nz!<EggInfoDistribution %r %s at %r>r
+EggInfoDistribution.__repr__c
+EggInfoDistribution.__str__c
+r<q(t
+installed-files.txtr
+z)EggInfoDistribution.check_installed_filesc
+	d	|
+        Iterates over the ``installed-files.txt`` entries and returns a tuple
+        ``(path, hash, size)`` for each line.
+        :returns: a list of (path, hash, size)
+        c
+closer
+Z	hexdigest)
+contentr#
+_md5
+z6EggInfoDistribution.list_installed_files.<locals>._md5c
+stat
+st_size)
+_size
+z7EggInfoDistribution.list_installed_files.<locals>._sizer
+Non-existent file: %sr
+normpathrS
+z(EggInfoDistribution.list_installed_filesFc
+        Iterates over the ``installed-files.txt`` entries and returns paths for
+        each line if the path is pointing to a file located in the
+        ``.egg-info`` directory or one of its subdirectories.
+        :parameter absolute: If *absolute* is ``True``, each returned path is
+                          transformed into a local absolute path. Otherwise the
+                          raw value from ``installed-files.txt`` is returned.
+        :type absolute: boolean
+        :returns: iterator of paths
+        r
+./FN)	r
+absoluter
+skipr
+z'EggInfoDistribution.list_distinfo_filesc
+EggInfoDistribution.__eq__)
+DependencyGrapha
+    Represents a dependency graph between distributions.
+    The dependency relationships are stored in an ``adjacency_list`` that maps
+    distributions to a list of ``(other, label)`` tuples where  ``other``
+    is a distribution and the edge is labeled with ``label`` (i.e. the version
+    specifier, if such was provided). Also, for more efficient traversal, for
+    every distribution ``x``, a list of predecessors is kept in
+    ``reverse_list[x]``. An edge from distribution ``a`` to
+    distribution ``b`` means that ``a`` depends on ``b``. If any missing
+    dependencies are found, they are stored in ``missing``, which is a
+    dictionary that maps distributions to a list of requirements that were not
+    provided by any other distributions.
+    c
+adjacency_list
+reverse_listr
+DependencyGraph.__init__c
+Add the *distribution* to the graph.
+        :type distribution: :class:`distutils2.database.InstalledDistribution`
+                            or :class:`distutils2.database.EggInfoDistribution`
+        N)
+distributionr#
+add_distributionN
+z DependencyGraph.add_distributionNc
+Add an edge from distribution *x* to distribution *y* with the given
+        *label*.
+        :type x: :class:`distutils2.database.InstalledDistribution` or
+                 :class:`distutils2.database.EggInfoDistribution`
+        :type y: :class:`distutils2.database.InstalledDistribution` or
+                 :class:`distutils2.database.EggInfoDistribution`
+        :type label: ``str`` or ``None``
+        N)
+labelr#
+add_edgeX
+DependencyGraph.add_edgec
+        Add a missing *requirement* for the given *distribution*.
+        :type distribution: :class:`distutils2.database.InstalledDistribution`
+                            or :class:`distutils2.database.EggInfoDistribution`
+        :type requirement: ``str``
+        z
+%s missing %rN)
+add_missingg
+DependencyGraph.add_missingc
+_repr_distr
+DependencyGraph._repr_distr
+Prints only a subgraphNz
+%s [%s]z
+    r
+	repr_noder
+extendrO
+level
+outputr
+Z	suboutputZ
+subsr#
+DependencyGraph.repr_nodeTc
+Writes a DOT output for the graph to the provided file *f*.
+        If *skip_disconnected* is set to ``True``, then all distributions
+        that are not dependent on any other distribution are skipped.
+        :type f: has to support ``file``-like operations
+        :type skip_disconnected: ``bool``
+        z
+digraph dependencies {
+"%s" -> "%s" [label="%s"]
+"%s" -> "%s"
+subgraph disconnected {
+label = "Disconnected"
+bgcolor = red
+"%s"r
+itemsr
+skip_disconnectedZ
+disconnectedr+
+adjsr
+to_dot
+DependencyGraph.to_dotc
+        Perform a topological sort of the graph.
+        :return: A tuple, the first element of which is a topologically sorted
+                 list of distributions, and the second element of which is a
+                 list of distributions that cannot be sorted because they have
+                 circular dependencies and so form a cycle.
+        Nc
+Z	to_remover#
+z4DependencyGraph.topological_sort.<locals>.<listcomp>z
+Moving to result: %sc
+listr)
+keys)
+alist
+topological_sort
+z DependencyGraph.topological_sortc
+Representation of the graphr
+DependencyGraph.__repr__)
+Makes a dependency graph from the given distributions.
+    :parameter dists: a list of distributions
+    :type dists: list of :class:`distutils2.database.InstalledDistribution` and
+                 :class:`distutils2.database.EggInfoDistribution` instances
+    :rtype: a :class:`DependencyGraph` instance
+    z
+Add to provided: %s, %s, %sr
+distsrC
+graphrp
+matchedZ
+providerro
+make_graph
+qNq.|
+Recursively generate a list of distributions from *dists* that are
+    dependent on *dist*.
+    :param dists: a list of distributions
+    :param dist: a distribution, member of *dists* for which we are interested
+    
+1given distribution %r is not a member of the listr
+popr)
+todor{
+succr#
+get_dependent_dists
+qPq,|
+Recursively generate a list of distributions from *dists* that are
+    required by *dist*.
+    :param dists: a list of distributions
+    :param dist: a distribution, member of *dists* for which we are interested
+    r5
+predr#
+get_required_dists
+    A convenience method for making a dist given just a name and version.
+    
+summaryz
+Placeholder for summary)
+kwargsr:
+	make_dist2
+)7r0
+__future__r
+loggingr
+compatr
+utilr
+__all__Z	getLoggerr-
+COMMANDS_FILENAMEr
+<module>

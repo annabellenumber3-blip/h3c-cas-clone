@@ -1,0 +1,365 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.h3c.h3cloud.performance.monitor.service.mapper.clickhouse.DomainIoStatMapper">
+    <delete id ="deleteBeforeTime">
+        ALTER TABLE TBL_DOMAIN_IO_STAT DELETE WHERE TIME &lt; #{time}
+    </delete>
+    <select id="readByCondition" resultType="com.h3c.h3cloud.common.model.performance.DomainIoStatData">
+        SELECT TIME as time, DEV_NAME as devName,UTILIZATION as utilization,SIZE as size,IO_STAT as ioStat,RD_STAT as rdStat,WR_STAT as wrStat,
+        RD_REQ as rdReq,WR_REQ as wrReq,RD_REQ_PS as rdReqps,WR_REQ_PS as wrReqps, RD_LATENCY as rdLatency,WR_LATENCY  as wrLatency,
+        DOMAIN_ID as domainId, HOST_ID as hostId, HOST_POOL_ID as hostpoolId, CLUSTER_ID as clusterId,
+        OP_GROUP_CODE as operatorGroupCode, OP_GROUP_ID as operatorGroupId
+        FROM TBL_DOMAIN_IO_STAT
+        WHERE TIME BETWEEN ${startTime} AND ${endTime} AND DOMAIN_ID=${domainId}
+        <if test='sort!=null and sort=="0"'>
+            ORDER BY ${sortField} ASC
+        </if>
+        <if test='sort!=null and sort=="1"'>
+            ORDER BY ${sortField} DESC
+        </if>
+    </select>
+    <select id="readInfoByCondition" resultType="com.h3c.h3cloud.common.model.performance.DomainIoStatData">
+        SELECT TIME as time, DEV_NAME as devName,UTILIZATION as utilization,SIZE as size,IO_STAT as ioStat,RD_STAT as rdStat,WR_STAT as wrStat,
+        RD_REQ as rdReq,WR_REQ as wrReq,RD_REQ_PS as rdReqps,WR_REQ_PS as wrReqps, RD_LATENCY as rdLatency,WR_LATENCY  as wrLatency
+        FROM TBL_DOMAIN_IO_STAT t
+        WHERE TIME BETWEEN ${startTime} AND ${endTime} AND DOMAIN_ID=${domainId}
+        <if test="currentDisk!=null and currentDisk!=''">
+            AND DEV_NAME = #{currentDisk}
+        </if>
+        AND DEV_NAME IN (select DEV_NAME from TBL_DOMAIN_IO_STAT t1 WHERE t1.TIME =
+        (select MAX(TIME)-${duration} from TBL_DOMAIN_IO_STAT WHERE DOMAIN_ID=${domainId})
+        and t1.DOMAIN_ID=${domainId})  ORDER BY TIME ASC
+    </select>
+    <select id="readDiskInfoByCondition" resultType="com.h3c.h3cloud.common.model.performance.DomainIoStatData">
+        SELECT TIME as time, DEV_NAME as devName,UTILIZATION as utilization,SIZE as size,IO_STAT as ioStat,RD_REQ_PS as rdReqps,
+        WR_REQ_PS as wrReqps, RD_LATENCY as rdLatency,WR_LATENCY  as wrLatency
+        FROM TBL_DOMAIN_IO_STAT
+        WHERE TIME BETWEEN ${startTime} AND ${endTime} AND DOMAIN_ID=${domainId}
+        <if test="currentDisk!=null and currentDisk!=''">
+            AND DEV_NAME = #{currentDisk}
+        </if>
+        ORDER BY TIME ASC
+    </select>
+    <select id="readCurrentIOStat" resultType="com.h3c.h3cloud.common.model.performance.DomainIoStatData">
+        SELECT T1.DOMAIN_ID as domain_id, ROUND(T1.IO_STAT,2) as ioStat, T1.TIME as time
+        FROM TBL_DOMAIN_IO_STAT T1, (SELECT DOMAIN_ID, MAX(TIME) TIME FROM TBL_DOMAIN_IO_STAT WHERE HOST_ID=${hostId} GROUP BY DOMAIN_ID) T2
+        WHERE T1.DOMAIN_ID = T2.DOMAIN_ID AND T1.TIME = T2.TIME AND T1.HOST_ID=${hostId}
+    </select>
+    <select id="queryMrigateDomain" resultType="com.h3c.h3cloud.common.model.performance.DomainIoStatStatisticsData">
+        SELECT
+        <if test="type!=null and type=='DISKIO'">
+            ROUND(avg(IO_STAT),2) as avgIoStat
+        </if>
+        <if test="type!=null and type=='IOPS'">
+            ROUND(avg(RD_REQ_PS + WR_REQ_PS),2) as avgReqps
+        </if>
+        FROM TBL_DOMAIN_IO_STAT io WHERE TIME BETWEEN ${startTime} AND ${endTime} AND DOMAIN_ID=${domainId}
+        AND io.DEV_NAME in (${devNames})
+    </select>
+    <select id="readRecentVmDisk" resultType="com.h3c.h3cloud.common.model.performance.DomainIoStatData">
+        SELECT io.TIME, io.DOMAIN_ID as domainId, io.DEV_NAME as devName, io.UTILIZATION as utilization, io.SIZE as size, io.RD_REQ_PS as rdReqps, io.WR_REQ_PS as wrReqps,
+        io.IO_STAT as ioStat, io.RD_STAT as rdStat, io.WR_STAT as wrStat, io.RD_REQ as rdReq, io.WR_REQ as wrReq, io.RD_LATENCY as rdLatency, io.WR_LATENCY  as wrLatency
+        FROM TBL_DOMAIN_IO_STAT io
+        WHERE io.TIME = (SELECT MAX(TIME)-${duration} FROM TBL_DOMAIN_IO_STAT)
+        <if test="hostPoolId!=null and hostPoolId!=''">
+            AND HOST_POOL_ID =${hostPoolId}
+        </if>
+        <if test="clusterId!=null and clusterId!=''">
+            AND CLUSTER_ID =${clusterId}
+        </if>
+        <if test="hostId!=null and hostId!=''">
+            AND HOST_ID =${hostId}
+        </if>
+        <if test="domainId!=null and domainId!=''">
+            AND DOMAIN_ID = ${domainId}
+        </if>
+        <if test="domainIdList!=null and domainIdList!=''">
+            AND DOMAIN_ID in (${domainIdList})
+        </if>
+    </select>
+    <select id="readRecentDurationDiskRate" resultType="com.h3c.h3cloud.common.model.performance.DomainIoStatData">
+        SELECT DOMAIN_ID as domainId, ROUND(AVG(IO_STAT),2) as ioStat,ROUND(AVG(RD_STAT),2) as rdStat,
+        ROUND(AVG(WR_STAT),2) as wrStat,ROUND(AVG(RD_REQ_PS),2) as rdReqps,ROUND(AVG(WR_REQ_PS),2) as wrReqps,DEV_NAME as devName FROM TBL_DOMAIN_IO_STAT
+        WHERE TIME >= (SELECT MAX(TIME) FROM TBL_DOMAIN_IO_STAT WHERE DOMAIN_ID =  ${domainId}) - ${duration}
+        <if test="domainId!=null and domainId!=''">
+            AND DOMAIN_ID = ${domainId}
+        </if>
+        GROUP BY DOMAIN_ID,DEV_NAME
+    </select>
+    <select id="readVmStorageTopInfo" resultType="com.h3c.h3cloud.common.model.performance.DomainIoStatData">
+        select
+        <choose>
+            <when test='column!=null and column=="RD_LATENCY"'>
+                MAX(RD_LATENCY) as rdLatency,
+            </when>
+            <when test='column!=null and column=="WR_LATENCY"'>
+                MAX(WR_LATENCY) as wrLatency,
+            </when>
+            <when test='column!=null and column=="WR_REQ_PS"'>
+                MAX(WR_REQ_PS) as wrReqps,
+            </when>
+            <when test='column!=null and column=="RD_REQ_PS"'>
+                MAX(RD_REQ_PS) as rdReqps,
+            </when>
+            <otherwise>
+                MAX(IO_STAT) as ioStat,
+            </otherwise>
+        </choose>
+        DOMAIN_ID as domainId FROM TBL_DOMAIN_IO_STAT
+        WHERE TIME=(SELECT MAX(TIME)- ${duration} FROM TBL_DOMAIN_IO_STAT)
+        <if test="hostPoolId!=null and hostPoolId!=''">
+            AND HOST_POOL_ID =${hostPoolId}
+        </if>
+        <if test="clusterId!=null and clusterId!=''">
+            AND CLUSTER_ID =${clusterId}
+        </if>
+        <if test="hostId!=null and hostId!=''">
+            AND HOST_ID =${hostId}
+        </if>
+        GROUP BY DOMAIN_ID
+        <choose>
+            <when test="column!=null and column=='RD_LATENCY'">
+                ORDER BY rdLatency DESC
+            </when>
+            <when test="column!=null and column=='WR_LATENCY'">
+                ORDER BY wrLatency DESC
+            </when>
+            <when test="column!=null and column=='WR_REQ_PS'">
+                ORDER BY wrReqps DESC
+            </when>
+            <when test="column!=null and column=='RD_REQ_PS'">
+                ORDER BY rdReqps DESC
+            </when>
+            <otherwise>
+                ORDER BY ioStat DESC
+            </otherwise>
+        </choose>
+        <if test="limit!=null and limit!=''">
+            LIMIT 0,${limit}
+        </if>
+    </select>
+    <select id="queryTop5DiskRate" resultType="com.h3c.h3cloud.common.model.performance.DomainIoStatData">
+        SELECT io.DOMAIN_ID as domainId, ROUND(avg(io.UTILIZATION),2) as utilization FROM TBL_DOMAIN_IO_STAT io
+        WHERE io.TIME = (SELECT MAX(TIME)- ${duration} FROM TBL_DOMAIN_IO_STAT)
+        <if test="clusterIds!=null and clusterIds!=''">
+            AND io.CLUSTER_ID IN (${clusterIds})
+        </if>
+        <if test="vmIds!=null and vmIds!=''">
+            AND io.DOMAIN_ID IN (${vmIds})
+        </if>
+        <if test="hostIds!=null and hostIds!=''">
+            AND io.HOST_ID IN (${hostIds})
+        </if>
+        <if test="operatorGroupCode!=null and operatorGroupCode!=''">
+            AND io.OP_GROUP_CODE LIKE #{operatorGroupCode}
+        </if>
+        GROUP BY io.DOMAIN_ID
+        LIMIT 5
+    </select>
+    <select id="readIOTopNDomain" resultType="com.h3c.h3cloud.common.model.performance.DomainIoStatData">
+        SELECT stat.DOMAIN_ID as domainId,domain.uuid uuid, domain.title title, domain.host_id hostId,
+        <choose>
+            <when test="type!=null and type=='ioWR'">
+                ROUND(AVG(stat.WR_STAT),2) as wrStat
+            </when>
+            <otherwise>
+                ROUND(AVG(stat.RD_STAT),2) as rdStat
+            </otherwise>
+        </choose>
+        FROM TBL_DOMAIN_IO_STAT stat , ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_DOMAIN} domain
+        WHERE stat.DOMAIN_ID = domain.id
+        <if test="hostPoolId!=null and hostPoolId!=''">
+            AND stat.HOST_POOL_ID =${hostPoolId}
+        </if>
+        <if test="hostId!=null and hostId!=''">
+            AND  stat.HOST_ID =${hostId}
+        </if>
+        <if test="manageExistVm!=null and manageExistVm!=''">
+            AND LOCATE(#{manageExistVm}, domain.metadata)
+        </if>
+        <if test="clusterId!=null and clusterId!=''">
+            AND stat.CLUSTER_ID =${clusterId}
+        </if>
+        <if test="vmIds!=null and vmIds!=''">
+            AND stat.DOMAIN_ID in (${vmIds})
+        </if>
+        <if test="operatorGroupCode!=null and operatorGroupCode!=''">
+            AND stat.OP_GROUP_CODE LIKE #{operatorGroupCode}
+        </if>
+        AND stat.TIME BETWEEN ${startTime} AND ${endTime} GROUP BY stat.DOMAIN_ID,domain.uuid, domain.title, domain.host_id HAVING MAX(stat.TIME)> ${endTime} - 241
+        <choose>
+            <when test="type!=null and type=='ioWR'">
+                ORDER BY  wrStat DESC
+            </when>
+            <otherwise>
+                ORDER BY  rdStat DESC
+            </otherwise>
+        </choose>
+    </select>
+    <select id="readDomainIoTopNByCondition" resultType="com.h3c.h3cloud.common.model.performance.DomainIoStatStatisticsData">
+        SELECT stat.DOMAIN_ID domainId, SUM(stat.rd_avg)+SUM(stat.wr_avg) sumIoStat,
+        domain.uuid uuid, domain.title title, domain.host_id hostId,domain.cluster_id clusterId,domain.host_pool_id hostPoolId
+        FROM (SELECT DOMAIN_ID, CEILING(AVG(RD_REQ_PS)) rd_avg, CEILING(AVG(WR_REQ_PS)) wr_avg from TBL_DOMAIN_IO_STAT where
+        TIME BETWEEN ${startTime} AND ${endTime}
+        <if test="hostPoolId!=null and hostPoolId!=''">
+            AND HOST_POOL_ID =${hostPoolId}
+        </if>
+        <if test="vmIds!=null and vmIds!=''">
+            AND DOMAIN_ID IN (${vmIds})
+        </if>
+        <if test="hostId!=null and hostId!=''">
+            AND  HOST_ID =${hostId}
+        </if>
+        <if test="clusterId!=null and clusterId!=''">
+            AND CLUSTER_ID =${clusterId}
+        </if>
+        <if test="operatorGroupCode!=null and operatorGroupCode!=''">
+            AND OP_GROUP_CODE LIKE #{operatorGroupCode}
+        </if>
+        <if test="clusterIds!=null and clusterIds!=''">
+            AND CLUSTER_ID IN (${clusterIds})
+        </if>
+        <if test="hostIds!=null and hostIds!=''">
+            AND HOST_ID IN (${hostIds})
+        </if>
+        GROUP BY DOMAIN_ID
+        HAVING MAX(TIME)> ${endTime} - 241) as stat,
+        ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_DOMAIN} domain WHERE stat.DOMAIN_ID = domain.id AND domain.enable = 1
+        <if test="manageExistVm!=null and manageExistVm!=''">
+            AND LOCATE(#{manageExistVm}, domain.metadata)
+        </if>
+        GROUP BY stat.DOMAIN_ID,domain.uuid, domain.title, domain.host_id,domain.cluster_id,domain.host_pool_id
+        ORDER BY  sumIoStat DESC
+        <if test="limit!=null and limit!=''">
+            LIMIT ${limit}
+        </if>
+    </select>
+    <select id="readVMIOTrend" resultType="com.h3c.h3cloud.common.model.performance.DomainIoStatData">
+        SELECT  tdio.DOMAIN_ID as domainId, SUM(tdio.IO_STAT) as ioStat, tdio.TIME as time, domain.title as title
+         FROM TBL_DOMAIN_IO_STAT tdio INNER JOIN ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_DOMAIN} domain ON tdio.DOMAIN_ID=domain.id
+         WHERE tdio.TIME BETWEEN ${startTime} AND ${endTime}
+        <if test="vmIds!=null and vmIds!=''">
+            AND tdio.DOMAIN_ID in (${vmIds})
+        </if>
+        <if test="operatorGroupCode!=null and operatorGroupCode!=''">
+            AND tdio.OP_GROUP_CODE LIKE #{operatorGroupCode}
+        </if>
+        GROUP BY tdio.DOMAIN_ID, tdio.TIME,  domain.title
+        ORDER BY tdio.TIME ASC
+    </select>
+    <select id="readVmIOPSTrend" resultType="com.h3c.h3cloud.common.model.performance.DomainIoStatData">
+        SELECT  io.DOMAIN_ID as domainId, io.RD_REQ_PS as rdReqps, io.WR_REQ_PS as wrReqps,
+        io.RD_LATENCY as rdLatency, io.WR_LATENCY  as wrLatency, io.TIME as time, domain.title as title
+        FROM TBL_DOMAIN_IO_STAT io INNER JOIN ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_DOMAIN} domain ON io.DOMAIN_ID=domain.id
+        WHERE io.TIME BETWEEN ${startTime} AND ${endTime}
+        <if test="domainId!=null and domainId!=''">
+            AND io.DOMAIN_ID = ${domainId}
+        </if>
+        <if test="currentDisk!=null and currentDisk!=''">
+            AND io.DEV_NAME = #{currentDisk}
+        </if>
+        <if test="operatorGroupCode!=null and operatorGroupCode!=''">
+            AND io.OP_GROUP_CODE LIKE #{operatorGroupCode}
+        </if>
+        ORDER BY io.TIME ASC
+    </select>
+    <select id="readAvgDiskIo" resultType="com.h3c.h3cloud.common.model.performance.DomainIoStatStatisticsData">
+        SELECT ROUND(AVG(UTILIZATION),2) as avgUtilization, DEV_NAME as devName FROM TBL_DOMAIN_IO_STAT
+        WHERE TIME BETWEEN ${startTime} AND ${endTime}
+        <if test="domainId!=null and domainId!=''">
+            AND DOMAIN_ID = ${domainId}
+        </if>
+        <if test="operatorGroupCode!=null and operatorGroupCode!=''">
+            AND OP_GROUP_CODE LIKE #{operatorGroupCode}
+        </if>
+        GROUP BY DEV_NAME
+    </select>
+    <select id="readDomainTop5" resultType="com.h3c.h3cloud.common.model.performance.DomainIoStatStatisticsData">
+        select DOMAIN_ID as domainId, title, DEV_NAME as devName,
+        <choose>
+            <when test='type!=null and type=="0"'>
+                max(avgReqps) avgReqps
+            </when>
+            <otherwise>
+                max(avgLatency) avgLatency
+            </otherwise>
+        </choose>
+        from (select tb1.DOMAIN_ID, tb2.title, tb1.DEV_NAME,
+        <choose>
+            <when test='type!=null and type=="0"'>
+                ROUND(avg(tb1.RD_REQ_PS + tb1.WR_REQ_PS),2) avgReqps
+            </when>
+            <otherwise>
+                ROUND(avg(tb1.RD_LATENCY + tb1.WR_LATENCY),2) avgLatency
+            </otherwise>
+        </choose>
+        from TBL_DOMAIN_IO_STAT tb1 join ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_DOMAIN} tb2 on tb1.DOMAIN_ID=tb2.id
+        WHERE tb1.TIME BETWEEN ${startTime} AND ${endTime}
+        and tb2.enable=1
+        <if test="operatorGroupCode!=null and operatorGroupCode!=''">
+            and tb2.op_group_code LIKE  #{operatorGroupCode}
+        </if>
+        group by tb1.DOMAIN_ID, tb2.title, tb1.DEV_NAME) tb3
+        group by DOMAIN_ID,title,DEV_NAME
+        <choose>
+            <when test='type!=null and type=="0"'>
+                order by avgReqps desc
+            </when>
+            <otherwise>
+                order by avgLatency desc
+            </otherwise>
+        </choose>
+        limit 5
+    </select>
+    <select id="vmTop5WithTrend" resultType="com.h3c.h3cloud.common.model.performance.DomainIoStatData">
+        select tb1.DOMAIN_ID as domainId, tb2.title as title, tb1.DEV_NAME as devName, tb1.TIME as time,
+        <choose>
+            <when test='type!=null and type=="0"'>
+                tb1.RD_REQ_PS + tb1.WR_REQ_PS as reqps
+            </when>
+            <otherwise>
+                tb1.RD_LATENCY + tb1.WR_LATENCY  as latency
+            </otherwise>
+        </choose>
+        from TBL_DOMAIN_IO_STAT tb1 join ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_DOMAIN} tb2 on tb1.DOMAIN_ID=tb2.id
+        WHERE tb1.TIME BETWEEN ${startTime} AND ${endTime}
+        order by tb1.DOMAIN_ID, tb1.TIME asc
+    </select>
+    <select id="readDrxVmDiskIo" resultType="com.h3c.h3cloud.common.model.performance.DomainIoStatData">
+        SELECT ROUND(AVG(diskIo.IO_STAT),2) as ioStat, diskIo.TIME as time
+        FROM TBL_DOMAIN_IO_STAT diskIo, ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_DRX_VM} drxVm
+        WHERE diskIo.DOMAIN_ID=drxVm.domain_id AND drxVm.drx_business_id=${drxId}
+        AND diskIo.TIME BETWEEN ${startTime} AND ${endTime}
+        GROUP BY diskIo.TIME ORDER BY diskIo.TIME ASC
+    </select>
+    <select id="readDrxVmDiskIops" resultType="com.h3c.h3cloud.common.model.performance.DomainIoStatData">
+        SELECT ROUND(AVG(tts.rate),2) as reqps, tts.TIME as time from(SELECT SUM(iostat.RD_REQ_PS)+SUM(iostat.WR_REQ_PS) rate,iostat.TIME
+        FROM TBL_DOMAIN_IO_STAT iostat,${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_DRX_VM}  drxVm
+        WHERE iostat.DOMAIN_ID=drxVm.domain_id AND drxVm.drx_business_id=${drxId}
+        AND iostat.TIME BETWEEN ${startTime} AND ${endTime}
+        GROUP BY iostat.TIME,iostat.DOMAIN_ID )tts GROUP BY tts.TIME ORDER BY tts.TIME ASC
+    </select>
+    <select id="readDiskDataByCluster" resultType="com.h3c.h3cloud.common.model.performance.DomainIoStatData">
+        select b.uuid as uuid, a.DEV_NAME as devName, a.TIME as time, a.SIZE as size, a.UTILIZATION as utilization
+        from (select TIME, DOMAIN_ID, DEV_NAME, UTILIZATION, SIZE from TBL_DOMAIN_IO_STAT
+        where TIME between ${startTime} and ${endTime} and CLUSTER_ID = ${clusterId}) as a
+        join  ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_DOMAIN} as b on a.DOMAIN_ID=b.id
+        order by uuid, devName, time
+    </select>
+    <select id="readUtilizationAvgMaxMinInfo" resultType="com.h3c.h3cloud.common.model.performance.DomainIoStatStatisticsData">
+        SELECT DOMAIN_ID as domainId, DEV_NAME as devName,
+        ROUND(AVG(UTILIZATION),2) as avgUtilization, MAX(UTILIZATION) as maxUtilization, MIN(UTILIZATION) as minUtilization
+        FROM TBL_DOMAIN_IO_STAT detail WHERE TIME BETWEEN ${startTime} AND ${endTime}
+        <if test="domainId!=null and domainId!=''">
+            AND DOMAIN_ID = ${domainId}
+        </if>
+        <if test="vmIds!=null and vmIds!=''">
+            AND DOMAIN_ID in (${vmIds})
+        </if>
+        GROUP BY DOMAIN_ID, DEV_NAME
+    </select>
+    <select id="readRecentIoInfoByVmId" resultType="com.h3c.h3cloud.common.model.performance.DomainIoStatData">
+        SELECT DEV_NAME as devName, UTILIZATION as utilization, SIZE as size FROM TBL_DOMAIN_IO_STAT t WHERE DOMAIN_ID=${domainId} AND t.TIME= (
+        SELECT MAX(TIME) FROM TBL_DOMAIN_IO_STAT WHERE DOMAIN_ID=${domainId})
+    </select>
+</mapper>

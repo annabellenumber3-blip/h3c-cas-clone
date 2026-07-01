@@ -1,0 +1,392 @@
+m	Z	m
+	OdeSolver
+DenseOutput)
+validate_max_step
+validate_tol
+select_initial_step
+norm
+warn_extraneous
+validate_first_step)
+dop853_coefficientsg
+Perform a single Runge-Kutta step.
+    This function computes a prediction of an explicit Runge-Kutta method and
+    also estimates the error of a less accurate method.
+    Notation for Butcher tableau is as in [1]_.
+    Parameters
+    ----------
+    fun : callable
+        Right-hand side of the system.
+    t : float
+        Current time.
+    y : ndarray, shape (n,)
+        Current state.
+    f : ndarray, shape (n,)
+        Current value of the derivative, i.e., ``fun(x, y)``.
+    h : float
+        Step to use.
+    A : ndarray, shape (n_stages, n_stages)
+        Coefficients for combining previous RK stages to compute the next
+        stage. For explicit methods the coefficients at and above the main
+        diagonal are zeros.
+    B : ndarray, shape (n_stages,)
+        Coefficients for combining RK stages for computing the final
+        prediction.
+    C : ndarray, shape (n_stages,)
+        Coefficients for incrementing time for consecutive RK stages.
+        The value for the first stage is always zero.
+    K : ndarray, shape (n_stages + 1, n)
+        Storage array for putting RK stages here. Stages are stored in rows.
+        The last row is a linear combination of the previous rows with
+        coefficients
+    Returns
+    -------
+    y_new : ndarray, shape (n,)
+        Solution at t + h computed with a higher accuracy.
+    f_new : ndarray, shape (n,)
+        Derivative ``fun(t + h, y_new)``.
+    References
+    ----------
+    .. [1] E. Hairer, S. P. Norsett G. Wanner, "Solving Ordinary Differential
+           Equations I: Nonstiff Problems", Sec. II.4.
+    r
+start
+	enumerate
+y_new
+f_new
+=/usr/lib64/python3.9/site-packages/scipy/integrate/_ivp/rk.py
+rk_step
+RungeKuttaz,Base class for explicit Runge-Kutta methods.
+MbP?
+>FNc
+support_complexr
+dtyper
+superr(
+__init__
+y_oldr
+max_stepr
+rtol
+atolr
+	direction
+error_estimator_order
+h_absr
+empty
+n_stagesr,
+error_exponent
+h_previous
+selfr
+t_boundr0
+vectorizedZ
+first_stepZ
+extraneous
+	__class__r%
+RungeKutta.__init__c
+_estimate_errori
+RungeKutta._estimate_errorc
+scaler%
+_estimate_error_norml
+RungeKutta._estimate_error_normc
+}	qn|
+absZ	nextafterr4
+infr6
+TOO_SMALL_STEPr=
+maximumrD
+MAX_FACTOR
+SAFETYr9
+MIN_FACTORr:
+min_stepr6
+step_acceptedZ
+step_rejectedr
+t_newr#
+error_normZ
+factorr%
+_step_implo
+RungeKutta._step_implc
+RkDenseOutput
+t_oldr
+_dense_output_impl
+RungeKutta._dense_output_impl)
+__name__
+__module__
+__qualname__
+__doc__
+NotImplementedr
+orderr5
+__classcell__r%
+RK23a
+Explicit Runge-Kutta method of order 3(2).
+    This uses the Bogacki-Shampine pair of formulas [1]_. The error is controlled
+    assuming accuracy of the second-order method, but steps are taken using the
+    third-order accurate formula (local extrapolation is done). A cubic Hermite
+    polynomial is used for the dense output.
+    Can be applied in the complex domain.
+    Parameters
+    ----------
+    fun : callable
+        Right-hand side of the system. The calling signature is ``fun(t, y)``.
+        Here ``t`` is a scalar and there are two options for ndarray ``y``.
+        It can either have shape (n,), then ``fun`` must return array_like with
+        shape (n,). Or alternatively it can have shape (n, k), then ``fun``
+        must return array_like with shape (n, k), i.e. each column
+        corresponds to a single column in ``y``. The choice between the two
+        options is determined by `vectorized` argument (see below).
+    t0 : float
+        Initial time.
+    y0 : array_like, shape (n,)
+        Initial state.
+    t_bound : float
+        Boundary time - the integration won't continue beyond it. It also
+        determines the direction of the integration.
+    first_step : float or None, optional
+        Initial step size. Default is ``None`` which means that the algorithm
+        should choose.
+    max_step : float, optional
+        Maximum allowed step size. Default is np.inf, i.e., the step size is not
+        bounded and determined solely by the solver.
+    rtol, atol : float and array_like, optional
+        Relative and absolute tolerances. The solver keeps the local error
+        estimates less than ``atol + rtol * abs(y)``. Here, `rtol` controls a
+        relative accuracy (number of correct digits). But if a component of `y`
+        is approximately below `atol`, the error only needs to fall within
+        the same `atol` threshold, and the number of correct digits is not
+        guaranteed. If components of y have different scales, it might be
+        beneficial to set different `atol` values for different components by
+        passing array_like with shape (n,) for `atol`. Default values are
+        1e-3 for `rtol` and 1e-6 for `atol`.
+    vectorized : bool, optional
+        Whether `fun` is implemented in a vectorized fashion. Default is False.
+    Attributes
+    ----------
+    n : int
+        Number of equations.
+    status : string
+        Current status of the solver: 'running', 'finished' or 'failed'.
+    t_bound : float
+        Boundary time.
+    direction : float
+        Integration direction: +1 or -1.
+    t : float
+        Current time.
+    y : ndarray
+        Current state.
+    t_old : float
+        Previous time. None if no steps were made yet.
+    step_size : float
+        Size of the last successful step. None if no steps were made yet.
+    nfev : int
+        Number evaluations of the system's right-hand side.
+    njev : int
+        Number of evaluations of the Jacobian. Is always 0 for this solver as it does not use the Jacobian.
+    nlu : int
+        Number of LU decompositions. Is always 0 for this solver.
+    References
+    ----------
+    .. [1] P. Bogacki, L.F. Shampine, "A 3(2) Pair of Runge-Kutta Formulas",
+           Appl. Math. Lett. Vol. 2, No. 4. pp. 321-325, 1989.
+    
+?gUUUUUU
+?gUUUUUU
+gUUUUUU
+gUUUUUU
+gUUUUUU
+arrayr
+RK45a
+Explicit Runge-Kutta method of order 5(4).
+    This uses the Dormand-Prince pair of formulas [1]_. The error is controlled
+    assuming accuracy of the fourth-order method accuracy, but steps are taken
+    using the fifth-order accurate formula (local extrapolation is done).
+    A quartic interpolation polynomial is used for the dense output [2]_.
+    Can be applied in the complex domain.
+    Parameters
+    ----------
+    fun : callable
+        Right-hand side of the system. The calling signature is ``fun(t, y)``.
+        Here ``t`` is a scalar, and there are two options for the ndarray ``y``:
+        It can either have shape (n,); then ``fun`` must return array_like with
+        shape (n,). Alternatively it can have shape (n, k); then ``fun``
+        must return an array_like with shape (n, k), i.e., each column
+        corresponds to a single column in ``y``. The choice between the two
+        options is determined by `vectorized` argument (see below).
+    t0 : float
+        Initial time.
+    y0 : array_like, shape (n,)
+        Initial state.
+    t_bound : float
+        Boundary time - the integration won't continue beyond it. It also
+        determines the direction of the integration.
+    first_step : float or None, optional
+        Initial step size. Default is ``None`` which means that the algorithm
+        should choose.
+    max_step : float, optional
+        Maximum allowed step size. Default is np.inf, i.e., the step size is not
+        bounded and determined solely by the solver.
+    rtol, atol : float and array_like, optional
+        Relative and absolute tolerances. The solver keeps the local error
+        estimates less than ``atol + rtol * abs(y)``. Here `rtol` controls a
+        relative accuracy (number of correct digits). But if a component of `y`
+        is approximately below `atol`, the error only needs to fall within
+        the same `atol` threshold, and the number of correct digits is not
+        guaranteed. If components of y have different scales, it might be
+        beneficial to set different `atol` values for different components by
+        passing array_like with shape (n,) for `atol`. Default values are
+        1e-3 for `rtol` and 1e-6 for `atol`.
+    vectorized : bool, optional
+        Whether `fun` is implemented in a vectorized fashion. Default is False.
+    Attributes
+    ----------
+    n : int
+        Number of equations.
+    status : string
+        Current status of the solver: 'running', 'finished' or 'failed'.
+    t_bound : float
+        Boundary time.
+    direction : float
+        Integration direction: +1 or -1.
+    t : float
+        Current time.
+    y : ndarray
+        Current state.
+    t_old : float
+        Previous time. None if no steps were made yet.
+    step_size : float
+        Size of the last successful step. None if no steps were made yet.
+    nfev : int
+        Number evaluations of the system's right-hand side.
+    njev : int
+        Number of evaluations of the Jacobian. Is always 0 for this solver as it does not use the Jacobian.
+    nlu : int
+        Number of LU decompositions. Is always 0 for this solver.
+    References
+    ----------
+    .. [1] J. R. Dormand, P. J. Prince, "A family of embedded Runge-Kutta
+           formulae", Journal of Computational and Applied Mathematics, Vol. 6,
+           No. 1, pp. 19-26, 1980.
+    .. [2] L. W. Shampine, "Some Practical Runge-Kutta Formulas", Mathematics
+           of Computation,, Vol. 46, No. 173, pp. 135-150, 1986.
+    
+g333333
+g333333
+R<6R
+#@gE3
+gUUUUUU
+?gUUUUU
+UZkq?g
+@gFj
+P#$@g
+@Nr^
+DOP853a
+Explicit Runge-Kutta method of order 8.
+    This is a Python implementation of "DOP853" algorithm originally written
+    in Fortran [1]_, [2]_. Note that this is not a literate translation, but
+    the algorithmic core and coefficients are the same.
+    Can be applied in the complex domain.
+    Parameters
+    ----------
+    fun : callable
+        Right-hand side of the system. The calling signature is ``fun(t, y)``.
+        Here, ``t`` is a scalar, and there are two options for the ndarray ``y``:
+        It can either have shape (n,); then ``fun`` must return array_like with
+        shape (n,). Alternatively it can have shape (n, k); then ``fun``
+        must return an array_like with shape (n, k), i.e. each column
+        corresponds to a single column in ``y``. The choice between the two
+        options is determined by `vectorized` argument (see below).
+    t0 : float
+        Initial time.
+    y0 : array_like, shape (n,)
+        Initial state.
+    t_bound : float
+        Boundary time - the integration won't continue beyond it. It also
+        determines the direction of the integration.
+    first_step : float or None, optional
+        Initial step size. Default is ``None`` which means that the algorithm
+        should choose.
+    max_step : float, optional
+        Maximum allowed step size. Default is np.inf, i.e. the step size is not
+        bounded and determined solely by the solver.
+    rtol, atol : float and array_like, optional
+        Relative and absolute tolerances. The solver keeps the local error
+        estimates less than ``atol + rtol * abs(y)``. Here `rtol` controls a
+        relative accuracy (number of correct digits). But if a component of `y`
+        is approximately below `atol`, the error only needs to fall within
+        the same `atol` threshold, and the number of correct digits is not
+        guaranteed. If components of y have different scales, it might be
+        beneficial to set different `atol` values for different components by
+        passing array_like with shape (n,) for `atol`. Default values are
+        1e-3 for `rtol` and 1e-6 for `atol`.
+    vectorized : bool, optional
+        Whether `fun` is implemented in a vectorized fashion. Default is False.
+    Attributes
+    ----------
+    n : int
+        Number of equations.
+    status : string
+        Current status of the solver: 'running', 'finished' or 'failed'.
+    t_bound : float
+        Boundary time.
+    direction : float
+        Integration direction: +1 or -1.
+    t : float
+        Current time.
+    y : ndarray
+        Current state.
+    t_old : float
+        Previous time. None if no steps were made yet.
+    step_size : float
+        Size of the last successful step. None if no steps were made yet.
+    nfev : int
+        Number evaluations of the system's right-hand side.
+    njev : int
+        Number of evaluations of the Jacobian. Is always 0 for this solver
+        as it does not use the Jacobian.
+    nlu : int
+        Number of LU decompositions. Is always 0 for this solver.
+    References
+    ----------
+    .. [1] E. Hairer, S. P. Norsett G. Wanner, "Solving Ordinary Differential
+           Equations I: Nonstiff Problems", Sec. II.
+    .. [2] `Page with original Fortran code of DOP853
+            <http://www.unige.ch/~hairer/software.html>`_.
+    
+|	f	i
+N_STAGES_EXTENDEDr1
+K_extendedr8
+DOP853.__init__c
+hypotrE
+Z	ones_like)
+err5
+err3
+denomZ
+correction_factor
+maskr%
+DOP853._estimate_errorc
+linalgr
+sqrt
+len)	r<
+err5_norm_2Z
+err3_norm_2rk
+DOP853._estimate_error_normc
+}	|	|
+A_EXTRA
+C_EXTRAr8
+INTERPOLATOR_POWERr1
+Dop853DenseOutputr
+f_oldZ
+delta_yr%
+DOP853._dense_output_impl)
+N_STAGESr8
+shaperW
+RkDenseOutput.__init__c
+axisr[
+ndimr
+tilerW
+cumprodr
+_call_impl
+RkDenseOutput._call_impl
+Dop853DenseOutput.__init__c
+zeros_liker/
+zerosrm
+reversedrr
+Dop853DenseOutput._call_implrx
+numpyr
+baser
+commonr
+<module>

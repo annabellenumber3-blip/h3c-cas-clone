@@ -1,0 +1,203 @@
+z)DNS nodes.  A node is a set of rdatasets.
+	rdatatypeZ
+RRSIG)
+rdtypes
+rdtype
+covers
+,/usr/lib/python3.9/site-packages/dns/node.py
+_matches_type_or_its_signature(
+Z	d	S
+NodeKindz
+Rdatasets in nodes
+    r
+_cname_typesr
+CNAME
+_neutral_types
+NEUTRAL
+REGULAR)
+clsr
+classify5
+NodeKind.classifyc
+rdatasetr
+classify_rdataset>
+NodeKind.classify_rdatasetN)
+__name__
+__module__
+__qualname__
+__doc__r
+classmethodr
+Nodea
+A Node is a set of rdatasets.
+    A node is either a CNAME node or an "other data" node.  A CNAME
+    node contains only CNAME, KEY, NSEC, and NSEC3 rdatasets along with their
+    covering RRSIG rdatasets.  An "other data" node contains any
+    rdataset other than a CNAME or RRSIG(CNAME) rdataset.  When
+    changes are made to a node, the CNAME or "other data" state is
+    always consistent with the update, i.e. the most recent change
+    wins.  For example, if you have a node which contains a CNAME
+    rdataset, and then add an MX rdataset to it, then the CNAME
+    rdataset will be deleted.  Likewise if you have a node containing
+    an MX rdataset and add a CNAME rdataset, the MX rdataset will be
+    deleted.
+    
+	rdatasetsc
+selfr
+__init__V
+Node.__init__c
+Convert a node to text format.
+        Each rdataset at the node is printed.  Any keyword arguments
+        to this method are passed on to the rdataset's to_text() method.
+        *name*, a ``dns.name.Name`` or ``str``, the owner name of the
+        rdatasets.
+        Returns a ``str``.
+        r
+StringIOr
+write
+to_text
+getvalue)
+name
+rdsr
+Node.to_textc
+<DNS node 
+__repr__n
+Node.__repr__c
+NFTr
+otherZ
+__eq__q
+Node.__eq__c
+__ne__}
+Node.__ne__c
+__len__
+Node.__len__c
+iterr
+__iter__
+Node.__iter__c
+Append rdataset to the node with special handling for CNAME and
+        other data conditions.
+        Specifically, if the rdataset being appended has ``NodeKind.CNAME``,
+        then all rdatasets other than KEY, NSEC, NSEC3, and their covering
+        RRSIGs are deleted.  If the rdataset being appended has
+        ``NodeKind.REGULAR`` then CNAME and RRSIG(CNAME) are deleted.
+        r
+.0r,
+<listcomp>
+z)Node._append_rdataset.<locals>.<listcomp>c
+append
+kindr
+_append_rdataset
+Node._append_rdatasetFc
+Find an rdataset matching the specified properties in the
+        current node.
+        *rdclass*, an ``int``, the class of the rdataset.
+        *rdtype*, an ``int``, the type of the rdataset.
+        *covers*, an ``int`` or ``None``, the covered type.
+        Usually this value is ``dns.rdatatype.NONE``, but if the
+        rdtype is ``dns.rdatatype.SIG`` or ``dns.rdatatype.RRSIG``,
+        then the covers value will be the rdata type the SIG/RRSIG
+        covers.  The library treats the SIG and RRSIG types as if they
+        were a family of types, e.g. RRSIG(A), RRSIG(NS), RRSIG(SOA).
+        This makes RRSIGs much easier to work with than if RRSIGs
+        covering different rdata types were aggregated into a single
+        RRSIG rdataset.
+        *create*, a ``bool``.  If True, create the rdataset if it is not found.
+        Raises ``KeyError`` if an rdataset of the desired type and class does
+        not exist and *create* is not ``True``.
+        Returns a ``dns.rdataset.Rdataset``.
+        )
+match
+KeyErrorr
+Rdatasetr=
+rdclassr
+creater,
+find_rdataset
+Node.find_rdatasetc
+Get an rdataset matching the specified properties in the
+        current node.
+        None is returned if an rdataset of the specified type and
+        class does not exist and *create* is not ``True``.
+        *rdclass*, an ``int``, the class of the rdataset.
+        *rdtype*, an ``int``, the type of the rdataset.
+        *covers*, an ``int``, the covered type.  Usually this value is
+        dns.rdatatype.NONE, but if the rdtype is dns.rdatatype.SIG or
+        dns.rdatatype.RRSIG, then the covers value will be the rdata
+        type the SIG/RRSIG covers.  The library treats the SIG and RRSIG
+        types as if they were a family of
+        types, e.g. RRSIG(A), RRSIG(NS), RRSIG(SOA).  This makes RRSIGs much
+        easier to work with than if RRSIGs covering different rdata
+        types were aggregated into a single RRSIG rdataset.
+        *create*, a ``bool``.  If True, create the rdataset if it is not found.
+        Returns a ``dns.rdataset.Rdataset`` or ``None``.
+        N)
+get_rdataset
+Node.get_rdatasetc
+Delete the rdataset matching the specified properties in the
+        current node.
+        If a matching rdataset does not exist, it is not an error.
+        *rdclass*, an ``int``, the class of the rdataset.
+        *rdtype*, an ``int``, the type of the rdataset.
+        *covers*, an ``int``, the covered type.
+        N)
+remove)
+delete_rdataset
+Node.delete_rdatasetc
+Replace an rdataset.
+        It is not an error if there is no rdataset matching *replacement*.
+        Ownership of the *replacement* object is transferred to the node;
+        in other words, this method does not store a copy of *replacement*
+        at the node, it stores *replacement* itself.
+        *replacement*, a ``dns.rdataset.Rdataset``.
+        Raises ``ValueError`` if *replacement* is not a
+        ``dns.rdataset.Rdataset``.
+        z
+replacement is not an rdatasetN)
+isinstancer
+ValueErrorZ
+rrsetZ
+RRsetZ
+to_rdatasetrG
+replacementr
+replace_rdataset
+Node.replace_rdatasetc
+Classify a node.
+        A node which contains a CNAME or RRSIG(CNAME) is a
+        ``NodeKind.CNAME`` node.
+        A node which contains only "neutral" types, i.e. types allowed to
+        co-exist with a CNAME, is a ``NodeKind.NEUTRAL`` node.  The neutral
+        types are NSEC, NSEC3, KEY, and their associated RRSIGS.  An empty node
+        is also considered neutral.
+        A node which contains some rdataset which is not a CNAME, RRSIG(CNAME),
+        or a neutral type is a a ``NodeKind.REGULAR`` node.  Regular nodes are
+        also commonly referred to as "other data".
+        )
+Node.classifyc
+is_immutable!
+Node.is_immutableN)
+	__slots__r 
+NONErD
+ImmutableNodec
+ImmutableRdatasetr7
+z*ImmutableNode.__init__.<locals>.<listcomp>)
+superr 
+tupler
+node
+	__class__r
+ImmutableNode.__init__Fc
+	immutableF)
+	TypeErrorrQ
+ImmutableNode.find_rdatasetc
+ImmutableNode.get_rdatasetc
+ImmutableNode.delete_rdatasetc
+ImmutableNode.replace_rdatasetc
+ImmutableNode.is_immutable)
+__classcell__r
+enumr#
+dns.immutabler
+dns.rdatasetZ
+dns.rdatatypeZ
+dns.rendererr
+NSECZ
+NSEC3Z
+KEYr
+unique
+Enumr
+<module>

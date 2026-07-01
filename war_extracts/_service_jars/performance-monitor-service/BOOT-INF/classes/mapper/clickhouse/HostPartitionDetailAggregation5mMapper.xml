@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.h3c.h3cloud.performance.monitor.service.mapper.clickhouse.HostPartitionDetailAggregation5mMapper">
+    <delete id ="deleteBeforeTime">
+        ALTER TABLE AGG_HOST_PARTITION_DETAIL_5M DELETE WHERE TIME &lt; #{time}
+    </delete>
+    <select id="readHostPartitionByCondition" resultType="com.h3c.h3cloud.common.model.performance.HostPartitionDetailData">
+        SELECT TIME as time, PARTITION_NAME as partitionName,
+        ROUND(avgMerge(UTILIZATION_AVG),2) as utilization, ROUND(avgMerge(USED_AVG),2) as used
+        FROM AGG_HOST_PARTITION_DETAIL_5M dpd WHERE dpd.HOST_ID = ${hostId} AND TIME BETWEEN ${startTime} AND ${endTime}
+        GROUP BY HOST_POOL_ID, CLUSTER_ID, HOST_ID, PARTITION_NAME, TIME
+        ORDER BY TIME ASC
+    </select>
+    <select id="readPartitionRateByCondition" resultType="com.h3c.h3cloud.common.model.performance.HostPartitionDetailStatisticsData">
+        SELECT PARTITION_NAME as partitionName,HOST_ID as hostId,
+        <choose>
+            <when test="cycle!=null and cycle=='hour'">
+                formatDateTime(toDateTime(TIME), '%Y-%m-%d %H') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='week'">
+                formatDateTime(toDateTime(TIME), '%Y %V') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='month'">
+                formatDateTime(toDateTime(TIME), '%Y-%m') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='year'">
+                formatDateTime(toDateTime(TIME), '%Y') as timeStr,
+            </when>
+            <otherwise>
+                formatDateTime(toDateTime(TIME), '%Y-%m-%d') as timeStr,
+            </otherwise>
+        </choose>
+        <choose>
+            <when test='type!=null and type=="0"'>
+                ROUND(avgMerge(UTILIZATION_AVG),2) as utilizationAvg , maxMerge(UTILIZATION_MAX) as utilizationMax, minMerge(UTILIZATION_MIN) as utilizationMin
+            </when>
+            <otherwise>
+                ROUND(avgMerge(USED_AVG),2) as usedAvg , maxMerge(USED_MAX) as usedMax, minMerge(USED_MIN) as usedMin
+            </otherwise>
+        </choose>
+        FROM AGG_HOST_PARTITION_DETAIL_5M
+        WHERE TIME BETWEEN ${startTime} AND ${endTime}
+        <if test="hostId!=null and hostId!=''">
+            AND HOST_ID = ${hostId}
+        </if>
+        <if test="hostIds!=null and hostIds!=''">
+            AND HOST_ID in (${hostIds})
+        </if>
+        GROUP BY HOST_ID, PARTITION_NAME, timeStr ORDER BY timeStr
+    </select>
+    <select id="readHostsPartitionRateByCondition" resultType="com.h3c.h3cloud.common.model.performance.HostPartitionDetailStatisticsData">
+        SELECT HOST_ID as hostId,
+        <choose>
+            <when test="cycle!=null and cycle=='hour'">
+                formatDateTime(toDateTime(TIME), '%Y-%m-%d %H') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='week'">
+                formatDateTime(toDateTime(TIME), '%Y %V') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='month'">
+                formatDateTime(toDateTime(TIME), '%Y-%m') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='year'">
+                formatDateTime(toDateTime(TIME), '%Y') as timeStr,
+            </when>
+            <otherwise>
+                formatDateTime(toDateTime(TIME), '%Y-%m-%d') as timeStr,
+            </otherwise>
+        </choose>
+        <choose>
+            <when test='type!=null and type=="0"'>
+                ROUND(avgMerge(UTILIZATION_AVG),2) as utilizationAvg
+            </when>
+            <otherwise>
+                ROUND(avgMerge(USED_AVG),2) as usedAvg
+            </otherwise>
+        </choose>
+        FROM AGG_HOST_PARTITION_DETAIL_5M
+        WHERE TIME BETWEEN ${startTime} AND ${endTime}
+        <if test="hostIds!=null and hostIds!=''">
+            AND HOST_ID in (${hostIds})
+        </if>
+        GROUP BY HOST_ID, timeStr ORDER BY timeStr
+    </select>
+</mapper>

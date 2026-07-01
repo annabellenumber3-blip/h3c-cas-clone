@@ -1,0 +1,450 @@
+m	Z	
+d!d	
+Python implementation of the fast ICA algorithms.
+Reference: Tables 8.3 and 8.4 page 196 in the book:
+Independent Component Analysis, by  Hyvarinen et al.
+linalg
+BaseEstimator
+TransformerMixin
+ _ClassNamePrefixFeaturesOutMixin)
+ConvergenceWarning)
+check_array
+as_float_array
+check_random_state)
+check_is_fitted
+fastica
+FastICAc
+    Orthonormalize w wrt the first j rows of W.
+    Parameters
+    ----------
+    w : ndarray of shape (n,)
+        Array to be orthogonalized
+    W : ndarray of shape (p, n)
+        Null space definition
+    j : int < p
+        The no of (from the first) rows of Null space W wrt which w is
+        orthogonalized.
+    Notes
+    -----
+    Assumes that W is orthogonal
+    w changed in place
+    N)
+	multi_dot
+D/usr/lib64/python3.9/site-packages/sklearn/decomposition/_fastica.py
+_gs_decorrelation
+z@Symmetric decorrelation
+    i.e. W <- (W * W.T) ^{-1/2} * W
+    N)
+a_minZ
+a_max
+eighr
+dotr
+clipZ
+finfo
+dtypeZ
+tinyr
+sqrt)
+_sym_decorrelation3
+zcDeflationary FastICA using fun approx to neg-entropy function
+    Used internally by FastICA.
+    r
+axis)
+shaper
+zerosr
+range
+copyr
+sumr
+meanr
+append
+max)
+fun_args
+max_iter
+w_init
+n_componentsr
+n_iterr
+gwtx
+g_wtxZ
+limr
+_ica_defB
+t	t	t
+zCParallel FastICA.
+    Used internally by FastICA --main loop
+    r
+Nz\FastICA did not converge. Consider increasing tolerance or the maximum number of iterations.)
+floatr"
+newaxisr)
+diag
+warnings
+warnr
+iir3
+W1r5
+_ica_pare
+alphar
+getr
+tanh
+emptyr"
+	enumerater&
+g_xr2
+gx_ir
+_logcosh
+expr&
+_exp
+_cube
+parallelr:
+logcosh
+?FT)
+	algorithm
+whiten
+funr-
+random_state
+return_X_mean
+compute_sources
+return_n_iterc
+Perform Fast Independent Component Analysis.
+    The implementation is based on [1]_.
+    Read more in the :ref:`User Guide <ICA>`.
+    Parameters
+    ----------
+    X : array-like of shape (n_samples, n_features)
+        Training vector, where `n_samples` is the number of samples and
+        `n_features` is the number of features.
+    n_components : int, default=None
+        Number of components to extract. If None no dimension reduction
+        is performed.
+    algorithm : {'parallel', 'deflation'}, default='parallel'
+        Apply a parallel or deflational FASTICA algorithm.
+    whiten : str or bool, default="warn"
+        Specify the whitening strategy to use.
+        If 'arbitrary-variance'  (default), a whitening with variance arbitrary is used.
+        If 'unit-variance', the whitening matrix is rescaled to ensure that each
+        recovered source has unit variance.
+        If False, the data is already considered to be whitened, and no
+        whitening is performed.
+        .. deprecated:: 1.1
+            From version 1.3, `whiten='unit-variance'` will be used by default.
+            `whiten=True` is deprecated from 1.1 and will raise ValueError in 1.3.
+            Use `whiten=arbitrary-variance` instead.
+    fun : {'logcosh', 'exp', 'cube'} or callable, default='logcosh'
+        The functional form of the G function used in the
+        approximation to neg-entropy. Could be either 'logcosh', 'exp',
+        or 'cube'.
+        You can also provide your own function. It should return a tuple
+        containing the value of the function, and of its derivative, in the
+        point. The derivative should be averaged along its last dimension.
+        Example:
+        def my_g(x):
+            return x ** 3, np.mean(3 * x ** 2, axis=-1)
+    fun_args : dict, default=None
+        Arguments to send to the functional form.
+        If empty or None and if fun='logcosh', fun_args will take value
+        {'alpha' : 1.0}.
+    max_iter : int, default=200
+        Maximum number of iterations to perform.
+    tol : float, default=1e-04
+        A positive scalar giving the tolerance at which the
+        un-mixing matrix is considered to have converged.
+    w_init : ndarray of shape (n_components, n_components), default=None
+        Initial un-mixing array of dimension (n.comp,n.comp).
+        If None (default) then an array of normal r.v.'s is used.
+    random_state : int, RandomState instance or None, default=None
+        Used to initialize ``w_init`` when not specified, with a
+        normal distribution. Pass an int, for reproducible results
+        across multiple function calls.
+        See :term:`Glossary <random_state>`.
+    return_X_mean : bool, default=False
+        If True, X_mean is returned too.
+    compute_sources : bool, default=True
+        If False, sources are not computed, but only the rotation matrix.
+        This can save memory when working with big data. Defaults to True.
+    return_n_iter : bool, default=False
+        Whether or not to return the number of iterations.
+    Returns
+    -------
+    K : ndarray of shape (n_components, n_features) or None
+        If whiten is 'True', K is the pre-whitening matrix that projects data
+        onto the first n_components principal components. If whiten is 'False',
+        K is 'None'.
+    W : ndarray of shape (n_components, n_components)
+        The square matrix that unmixes the data after whitening.
+        The mixing matrix is the pseudo-inverse of matrix ``W K``
+        if K is not None, else it is the inverse of W.
+    S : ndarray of shape (n_samples, n_components) or None
+        Estimated source matrix.
+    X_mean : ndarray of shape (n_features,)
+        The mean over features. Returned only if return_X_mean is True.
+    n_iter : int
+        If the algorithm is "deflation", n_iter is the
+        maximum number of iterations run across all components. Else
+        they are just the number of iterations taken to converge. This is
+        returned only when return_n_iter is set to `True`.
+    Notes
+    -----
+    The data matrix X is considered to be a linear combination of
+    non-Gaussian (independent) components i.e. X = AS where columns of S
+    contain the independent components and A is a linear mixing
+    matrix. In short ICA attempts to `un-mix' the data by estimating an
+    un-mixing matrix W where ``S = W K X.``
+    While FastICA was proposed to estimate as many sources
+    as features, it is possible to estimate less by setting
+    n_components < n_features. It this case K is not a square matrix
+    and the estimated A is the pseudo-inverse of ``W K``.
+    This implementation was originally made for data of shape
+    [n_features, n_samples]. Now the input is transposed
+    before the algorithm is applied. This makes it slightly
+    faster for Fortran-ordered input.
+    References
+    ----------
+    .. [1] A. Hyvarinen and E. Oja, "Fast Independent Component Analysis",
+           Algorithms and Applications, Neural Networks, 13(4-5), 2000,
+           pp. 411-430.
+    )	r0
+unit-variance
+arbitrary-varianceN)
+_fit
+_whiten
+whitening_
+mean_
+	_unmixingr(
+n_iter_)
+X_meanZ
+returned_valuesr
+FastICA: a fast algorithm for Independent Component Analysis.
+    The implementation is based on [1]_.
+    Read more in the :ref:`User Guide <ICA>`.
+    Parameters
+    ----------
+    n_components : int, default=None
+        Number of components to use. If None is passed, all are used.
+    algorithm : {'parallel', 'deflation'}, default='parallel'
+        Apply parallel or deflational algorithm for FastICA.
+    whiten : str or bool, default="warn"
+        Specify the whitening strategy to use.
+        If 'arbitrary-variance' (default), a whitening with variance arbitrary is used.
+        If 'unit-variance', the whitening matrix is rescaled to ensure that each
+        recovered source has unit variance.
+        If False, the data is already considered to be whitened, and no
+        whitening is performed.
+        .. deprecated:: 1.1
+            From version 1.3 whiten='unit-variance' will be used by default.
+            `whiten=True` is deprecated from 1.1 and will raise ValueError in 1.3.
+            Use `whiten=arbitrary-variance` instead.
+    fun : {'logcosh', 'exp', 'cube'} or callable, default='logcosh'
+        The functional form of the G function used in the
+        approximation to neg-entropy. Could be either 'logcosh', 'exp',
+        or 'cube'.
+        You can also provide your own function. It should return a tuple
+        containing the value of the function, and of its derivative, in the
+        point. Example::
+            def my_g(x):
+                return x ** 3, (3 * x ** 2).mean(axis=-1)
+    fun_args : dict, default=None
+        Arguments to send to the functional form.
+        If empty and if fun='logcosh', fun_args will take value
+        {'alpha' : 1.0}.
+    max_iter : int, default=200
+        Maximum number of iterations during fit.
+    tol : float, default=1e-4
+        Tolerance on update at each iteration.
+    w_init : ndarray of shape (n_components, n_components), default=None
+        The mixing matrix to be used to initialize the algorithm.
+    random_state : int, RandomState instance or None, default=None
+        Used to initialize ``w_init`` when not specified, with a
+        normal distribution. Pass an int, for reproducible results
+        across multiple function calls.
+        See :term:`Glossary <random_state>`.
+    Attributes
+    ----------
+    components_ : ndarray of shape (n_components, n_features)
+        The linear operator to apply to the data to get the independent
+        sources. This is equal to the unmixing matrix when ``whiten`` is
+        False, and equal to ``np.dot(unmixing_matrix, self.whitening_)`` when
+        ``whiten`` is True.
+    mixing_ : ndarray of shape (n_features, n_components)
+        The pseudo-inverse of ``components_``. It is the linear operator
+        that maps independent sources to the data.
+    mean_ : ndarray of shape(n_features,)
+        The mean over features. Only set if `self.whiten` is True.
+    n_features_in_ : int
+        Number of features seen during :term:`fit`.
+        .. versionadded:: 0.24
+    feature_names_in_ : ndarray of shape (`n_features_in_`,)
+        Names of features seen during :term:`fit`. Defined only when `X`
+        has feature names that are all strings.
+        .. versionadded:: 1.0
+    n_iter_ : int
+        If the algorithm is "deflation", n_iter is the
+        maximum number of iterations run across all components. Else
+        they are just the number of iterations taken to converge.
+    whitening_ : ndarray of shape (n_components, n_features)
+        Only set if whiten is 'True'. This is the pre-whitening matrix
+        that projects data onto the first `n_components` principal components.
+    See Also
+    --------
+    PCA : Principal component analysis (PCA).
+    IncrementalPCA : Incremental principal components analysis (IPCA).
+    KernelPCA : Kernel Principal component analysis (KPCA).
+    MiniBatchSparsePCA : Mini-batch Sparse Principal Components Analysis.
+    SparsePCA : Sparse Principal Components Analysis (SparsePCA).
+    References
+    ----------
+    .. [1] A. Hyvarinen and E. Oja, Independent Component Analysis:
+           Algorithms and Applications, Neural Networks, 13(4-5), 2000,
+           pp. 411-430.
+    Examples
+    --------
+    >>> from sklearn.datasets import load_digits
+    >>> from sklearn.decomposition import FastICA
+    >>> X, _ = load_digits(return_X_y=True)
+    >>> transformer = FastICA(n_components=7,
+    ...         random_state=0,
+    ...         whiten='unit-variance')
+    >>> X_transformed = transformer.fit_transform(X)
+    >>> X_transformed.shape
+    (1797, 7)
+    NrJ
+_	|	|
+super
+__init__r0
+selfr0
+	__class__r
+FastICA.__init__Fc
+rFd	}
+d	d	
+j	d	|
+j(d!k
+j(d"k
+)(ad
+Fit the model.
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            Training data, where `n_samples` is the number of samples
+            and `n_features` is the number of features.
+        compute_sources : bool, default=False
+            If False, sources are not computes but only the rotation matrix.
+            This can save memory when working with big data. Defaults to False.
+        Returns
+        -------
+        S : ndarray of shape (n_samples, n_components) or None
+            Sources matrix. `None` if `compute_sources` is `False`.
+        r:
+z@From version 1.3 whiten='unit-variance' will be used by default.rW
+From version 1.3 whiten=True should be specified as whiten='arbitrary-variance' (its current behaviour). This behavior is deprecated in 1.1 and will raise ValueError in 1.3.r
+stacklevel)
+ensure_min_samplesNr<
+alpha must be in [1,2]rK
+cubec
+FastICA._fit.<locals>.gzJUnknown function %r; should be one of 'logcosh', 'exp', 'cube' or callablez(Ignoring n_components with whiten=False.z/n_components is too large: it will be set to %srD
+full_matrices
+check_finite)
+sizer
+z/w_init has invalid shape -- should be %(shape)sr"
+z4max_iter should be greater than 1, got (max_iter={}))
+Z	deflationz<Invalid algorithm: must be either `parallel` or `deflation`.rV
+keepdims)
+)4rO
+FutureWarning
+_validate_datar
+float64
+float32r
+ValueErrorrP
+callable
+isinstance
+	TypeErrorr"
+minr&
+svdr
+asarrayZ
+normalr
+formatr+
+components_r[
+pinv
+mixing_r\
+XTr-
+excZ
+n_featuresZ	n_samplesr0
+X1r/
+kwargsr
+S_stdr
+FastICA._fitc
+Fit the model and recover the sources from X.
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            Training data, where `n_samples` is the number of samples
+            and `n_features` is the number of features.
+        y : Ignored
+            Not used, present for API consistency by convention.
+        Returns
+        -------
+        X_new : ndarray of shape (n_samples, n_components)
+            Estimated sources obtained by transforming the data with the
+            estimated unmixing matrix.
+        TrU
+fit_transform|
+FastICA.fit_transformc
+Fit the model to X.
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            Training data, where `n_samples` is the number of samples
+            and `n_features` is the number of features.
+        y : Ignored
+            Not used, present for API consistency by convention.
+        Returns
+        -------
+        self : object
+            Returns the instance itself.
+        FrU
+FastICA.fitTc
+Recover the sources from X (apply the unmixing matrix).
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            Data to transform, where `n_samples` is the number of samples
+            and `n_features` is the number of features.
+        copy : bool, default=True
+            If False, data passed to fit can be overwritten. Defaults to True.
+        Returns
+        -------
+        X_new : ndarray of shape (n_samples, n_components)
+            Estimated sources obtained by transforming the data with the
+            estimated unmixing matrix.
+        F)
+reset)
+	transform
+FastICA.transformc
+Transform the sources back to the mixed data (apply mixing matrix).
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_components)
+            Sources, where `n_samples` is the number of samples
+            and `n_components` is the number of components.
+        copy : bool, default=True
+            If False, data passed to fit are overwritten. Defaults to True.
+        Returns
+        -------
+        X_new : ndarray of shape (n_samples, n_features)
+            Reconstructed data obtained with the mixing matrix.
+        )
+inverse_transform
+FastICA.inverse_transformc
+z&Number of transformed output features.r
+_n_features_out
+FastICA._n_features_outc
+preserves_dtype)
+_more_tags
+FastICA._more_tags)
+__name__
+__module__
+__qualname__
+__doc__rc
+propertyr
+__classcell__r
+numpyr
+scipyr
+baser
+exceptionsr
+utilsr
+utils.validationr
+__all__r
+<module>

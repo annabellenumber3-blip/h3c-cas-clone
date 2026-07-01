@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.h3c.h3cloud.vmware.api.mapper.BackupStrategyMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.h3c.h3cloud.vmware.api.entity.BackupStrategy">
+        <id column="ID" property="id" />
+        <result column="NAME" property="name" />
+        <result column="DESCRIPTION" property="description" />
+        <result column="RESERVED_NUM" property="reservedNum" />
+        <result column="DISK_WRITE_LIMIT_TYPE" property="diskWriteLimitType" />
+        <result column="WRITE_RATIO_LIMIT" property="writeRatioLimit" />
+        <result column="WRITE_IOPS_LIMIT" property="writeIopsLimit" />
+        <result column="BACK_UP_MODE" property="backUpMode" />
+        <result column="FREQUENCY" property="frequency" />
+        <result column="DAY" property="day" />
+        <result column="HOUR" property="hour" />
+        <result column="MINUTES" property="minutes" />
+        <result column="HOUR_END" property="hourEnd" />
+        <result column="MINUTES_END" property="minutesEnd" />
+        <result column="OP_GROUP_ID" property="opGroupId" />
+        <result column="OP_GROUP_CODE" property="opGroupCode" />
+        <result column="NEXT_BACKUP_TIME" property="nextBackupTime" />
+        <result column="STATE" property="state" />
+        <result column="PUBLIC_CLOUD_ID" property="publicCloudId" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        ID AS id, NAME AS name, DESCRIPTION AS description, RESERVED_NUM AS reservedNum, DISK_WRITE_LIMIT_TYPE AS diskWriteLimitType, WRITE_RATIO_LIMIT AS writeRatioLimit, WRITE_IOPS_LIMIT AS writeIopsLimit, BACK_UP_MODE AS backUpMode, FREQUENCY AS frequency, DAY AS day, HOUR AS hour, MINUTES AS minutes, HOUR_END AS hourEnd, MINUTES_END AS minutesEnd, OP_GROUP_ID AS opGroupId, OP_GROUP_CODE AS opGroupCode, NEXT_BACKUP_TIME AS nextBackupTime, STATE AS state, PUBLIC_CLOUD_ID AS publicCloudId
+    </sql>
+
+    <select id="getBackupStrategyPageList" resultType="com.h3c.h3cloud.vmware.api.entity.BackupStrategy">
+        select * from
+        TBL_BACKUP_STRATEGY
+        <where>
+            <if test="map.name!=null and map.name!=''">
+                and NAME like CONCAT('%',#{map.name},'%')
+            </if>
+            <if test="map.operatorGroupCode!=null and map.operatorGroupCode!=''">
+                and OP_GROUP_CODE like #{map.operatorGroupCode}
+            </if>
+        </where>
+        <if test="map.sortField!=null and map.sortField!=''">
+            order by ${map.sortField}
+        </if>
+        <if test="map.sortField!=null and map.sortField!='' and map.sortDir!=null and map.sortDir!=''">
+            ${map.sortDir}
+        </if>
+    </select>
+
+    <select id="getBackupStrategyByPublicId" resultType="com.h3c.h3cloud.vmware.api.entity.BackupStrategy">
+        select * from
+        TBL_BACKUP_STRATEGY
+        <where>
+            <if test="publicId!=null and publicId!=''">
+                and PUBLIC_CLOUD_ID = #{publicId}
+            </if>
+        </where>
+    </select>
+
+</mapper>

@@ -1,0 +1,1427 @@
+m	Z	m
+Z dnd"d#
+Z!dod$d%
+Z"dpd&d'
+Z#dqd(d)
+Z$drd*d+
+Z%dsd,d-
+Z&dtd.d/
+Z'dud0d1
+Z(dvd2d3
+Z)dwd5d6
+Z*d7d8
+Z+d9d:
+Z,d;d<
+Z-d=d>
+Z.dxd?d@
+Z/dAdB
+Z0dydCdD
+Z1dzdEdF
+Z2d{dGdH
+Z3d|dIdJ
+Z4d}dKdL
+Z5d~dMdN
+dOdP
+dQdR
+dSdT
+dUdV
+dWdX
+dYdZ
+d[d\
+d]d^
+d_d`
+dadb
+dcdd
+dedf
+dgdh
+didj
+dkdl
+jFZFd
+mGZGmHZHmIZImJZJmKZKmLZLmMZMmNZNmOZOmPZPmQZQmRZRmSZSmTZTmUZUmVZV
+ZZZ[eXeZ
+eXe[<
+A collection of functions to find the weights and abscissas for
+Gaussian Quadrature.
+These calculations are done by finding the eigenvalues of a
+tridiagonal matrix whose entries are dependent on the coefficients
+in the recursion formula for the orthogonal polynomials with the
+corresponding weighting function over the interval.
+Many recursion relations for orthogonal polynomials are given:
+.. math::
+    a1n f_{n+1} (x) = (a2n + a3n x ) f_n (x) - a4n f_{n-1} (x)
+The recursion relation of interest is
+.. math::
+    P_{n+1} (x) = (x - A_n) P_n (x) - B_n P_{n-1} (x)
+where :math:`P` has a different normalization than :math:`f`.
+The coefficients can be found as:
+.. math::
+    A_n = -a2n / a3n
+    \qquad
+    B_n = ( a4n / a3n \sqrt{h_n-1 / h_n})^2
+where
+.. math::
+    h_n = \int_a^b w(x) f_n(x)^2
+assume:
+.. math::
+    P_0 (x) = 1
+    \qquad
+    P_{-1} (x) == 0
+For the mathematical background, see [golub.welsch-1969-mathcomp]_ and
+[abramowitz.stegun-1965]_.
+References
+----------
+.. [golub.welsch-1969-mathcomp]
+   Golub, Gene H, and John H Welsch. 1969. Calculation of Gauss
+   Quadrature Rules. *Mathematics of Computation* 23, 221-230+s1--s10.
+.. [abramowitz.stegun-1965]
+   Abramowitz, Milton, and Irene A Stegun. (1965) *Handbook of
+   Mathematical Functions: with Formulas, Graphs, and Mathematical
+   Tables*. Gaithersburg, MD: National Bureau of Standards.
+   http://www.math.sfu.ca/~cbm/aands/
+.. [townsend.trogdon.olver-2014]
+   Townsend, A. and Trogdon, T. and Olver, S. (2014)
+   *Fast computation of Gauss quadrature nodes and
+   weights on the whole real line*. :arXiv:`1410.5286`.
+.. [townsend.trogdon.olver-2015]
+   Townsend, A. and Trogdon, T. and Olver, S. (2015)
+   *Fast computation of Gauss quadrature nodes and
+   weights on the whole real line*.
+   IMA Journal of Numerical Analysis
+   :doi:`10.1093/imanum/drv002`.
+sqrt
+floor
+around
+hstack
+arccos
+arange)
+linalg)
+airy
+_ufuncs)
+specfun)
+legendre
+chebyt
+chebyu
+chebyc
+chebys
+jacobi
+laguerre
+genlaguerre
+hermite
+hermitenorm
+gegenbauer
+sh_legendre
+	sh_chebyt
+	sh_chebyu
+	sh_jacobiZ
+p_rootsZ
+t_rootsZ
+u_rootsZ
+c_rootsZ
+s_rootsZ
+j_rootsZ
+l_rootsZ
+la_rootsZ
+h_rootsZ
+he_rootsZ
+cg_rootsZ
+ps_rootsZ
+ts_rootsZ
+us_rootsZ
+js_roots)
+roots_legendre
+roots_chebyt
+roots_chebyu
+roots_chebyc
+roots_chebys
+roots_jacobi
+roots_laguerre
+roots_genlaguerre
+roots_hermite
+roots_hermitenorm
+roots_gegenbauer
+roots_sh_legendre
+roots_sh_chebyt
+roots_sh_chebyu
+roots_sh_jacobi)
+eval_legendre
+eval_chebyt
+eval_chebyu
+eval_chebyc
+eval_chebys
+eval_jacobi
+eval_laguerre
+eval_genlaguerre
+eval_hermite
+eval_hermitenorm
+eval_gegenbauer
+eval_sh_legendre
+eval_sh_chebyt
+eval_sh_chebyu
+eval_sh_jacobi
+poch
+binomc
+orthopoly1dN
+?Fc	
+roots
+weights
+wfuncrC
+>/usr/lib64/python3.9/site-packages/scipy/special/orthogonal.py
+<listcomp>~
+z(orthopoly1d.__init__.<locals>.<listcomp>c
+knnrC
+<lambda>
+z&orthopoly1d.__init__.<locals>.<lambda>rB
+range
+lenr
+poly1d
+__init__Z
+coeffs
+float
+array
+list
+ziprG
+weight_func
+limits
+normcoef
+_eval_func)
+selfrF
+knrH
+monic
+	eval_funcZ
+equiv_weights
+polyrC
+orthopoly1d.__init__c
+isinstancerV
+__call__)
+orthopoly1d.__call__c
+z$orthopoly1d._scale.<locals>.<lambda>)
+_coeffsr_
+_scale
+orthopoly1d._scale)
+NNFN)
+__name__
+__module__
+__qualname__rX
+[x,w] = gen_roots_and_weights(n,an_func,sqrt_bn_func,mu)
+    Returns the roots (x) of an nth order orthogonal polynomial,
+    and weights (w) to use in appropriate Gaussian quadrature with that
+    orthogonal polynomial.
+    The polynomials have the recurrence relation
+          P_n+1(x) = (x - A_n) P_n(x) - B_n P_n-1(x)
+    an_func(n)          should return A_n
+    sqrt_bn_func(n)     should return sqrt(B_n)
+    mu ( = h_0 )        is the integral of the weight over the orthogonal
+                        interval
+    
+dtype
+overwrite_a_bandrB
+zerosr
+eigvals_bandedrU
+sum)
+an_func
+bn_func
+symmetrizere
+_gen_roots_and_weights
+Gauss-Jacobi quadrature.
+    Compute the sample points and weights for Gauss-Jacobi
+    quadrature. The sample points are the roots of the nth degree
+    Jacobi polynomial, :math:`P^{\alpha, \beta}_n(x)`. These sample
+    points and weights correctly integrate polynomials of degree
+    :math:`2n - 1` or less over the interval :math:`[-1, 1]` with
+    weight function :math:`w(x) = (1 - x)^{\alpha} (1 +
+    x)^{\beta}`. See 22.2.1 in [AS]_ for details.
+    Parameters
+    ----------
+    n : int
+        quadrature order
+    alpha : float
+        alpha must be > -1
+    beta : float
+        beta must be > -1
+    mu : bool, optional
+        If True, return the sum of the weights, optional.
+    Returns
+    -------
+    x : ndarray
+        Sample points
+    w : ndarray
+        Weights
+    mu : float
+        Sum of the weights
+    See Also
+    --------
+    scipy.integrate.quadrature
+    scipy.integrate.fixed_quad
+    References
+    ----------
+    .. [AS] Milton Abramowitz and Irene A. Stegun, eds.
+        Handbook of Mathematical Functions with Formulas,
+        Graphs, and Mathematical Tables. New York: Dover, 1972.
+    r
+n must be a positive integer.rq
+z'alpha and beta must be greater than -1.
+where
+roots_jacobi.<locals>.<lambda>c
+cephesr5
+ValueErrorr!
+betar}
+alphar
+}	|	t
+Jacobi polynomial.
+    Defined to be the solution of
+    .. math::
+        (1 - x^2)\frac{d^2}{dx^2}P_n^{(\alpha, \beta)}
+          + (\beta - \alpha - (\alpha + \beta + 2)x)
+            \frac{d}{dx}P_n^{(\alpha, \beta)}
+          + n(n + \alpha + \beta + 1)P_n^{(\alpha, \beta)} = 0
+    for :math:`\alpha, \beta > -1`; :math:`P_n^{(\alpha, \beta)}` is a
+    polynomial of degree :math:`n`.
+    Parameters
+    ----------
+    n : int
+        Degree of the polynomial.
+    alpha : float
+        Parameter, must be greater than -1.
+    beta : float
+        Parameter, must be greater than -1.
+    monic : bool, optional
+        If `True`, scale the leading coefficient to be 1. Default is
+        `False`.
+    Returns
+    -------
+    P : orthopoly1d
+        Jacobi polynomial.
+    Notes
+    -----
+    For fixed :math:`\alpha, \beta`, the polynomials
+    :math:`P_n^{(\alpha, \beta)}` are orthogonal over :math:`[-1, 1]`
+    with weight function :math:`(1 - x)^\alpha(1 + x)^\beta`.
+    r
+n must be nonnegative.c
+jacobi.<locals>.<lambda>rB
+	ones_liker&
+_gam)
+ab1ra
+)	ap
+Gauss-Jacobi (shifted) quadrature.
+    Compute the sample points and weights for Gauss-Jacobi (shifted)
+    quadrature. The sample points are the roots of the nth degree
+    shifted Jacobi polynomial, :math:`G^{p,q}_n(x)`. These sample
+    points and weights correctly integrate polynomials of degree
+    :math:`2n - 1` or less over the interval :math:`[0, 1]` with
+    weight function :math:`w(x) = (1 - x)^{p-q} x^{q-1}`. See 22.2.2
+    in [AS]_ for details.
+    Parameters
+    ----------
+    n : int
+        quadrature order
+    p1 : float
+        (p1 - q1) must be > -1
+    q1 : float
+        q1 must be > 0
+    mu : bool, optional
+        If True, return the sum of the weights, optional.
+    Returns
+    -------
+    x : ndarray
+        Sample points
+    w : ndarray
+        Weights
+    mu : float
+        Sum of the weights
+    See Also
+    --------
+    scipy.integrate.quadrature
+    scipy.integrate.fixed_quad
+    References
+    ----------
+    .. [AS] Milton Abramowitz and Irene A. Stegun, eds.
+        Handbook of Mathematical Functions with Formulas,
+        Graphs, and Mathematical Tables. New York: Dover, 1972.
+    rq
+z>(p - q) must be greater than -1, and q must be greater than 0.r
+q1re
+scalerC
+Shifted Jacobi polynomial.
+    Defined by
+    .. math::
+        G_n^{(p, q)}(x)
+          = \binom{2n + p - 1}{n}^{-1}P_n^{(p - q, q - 1)}(2x - 1),
+    where :math:`P_n^{(\cdot, \cdot)}` is the nth Jacobi polynomial.
+    Parameters
+    ----------
+    n : int
+        Degree of the polynomial.
+    p : float
+        Parameter, must have :math:`p > q - 1`.
+    q : float
+        Parameter, must be greater than 0.
+    monic : bool, optional
+        If `True`, scale the leading coefficient to be 1. Default is
+        `False`.
+    Returns
+    -------
+    G : orthopoly1d
+        Shifted Jacobi polynomial.
+    Notes
+    -----
+    For fixed :math:`p, q`, the polynomials :math:`G_n^{(p, q)}` are
+    orthogonal over :math:`[0, 1]` with weight function :math:`(1 -
+    x)^{p - q}x^{q - 1}`.
+    r
+sh_jacobi.<locals>.<lambda>rB
+n1rM
+pprC
+Gauss-generalized Laguerre quadrature.
+    Compute the sample points and weights for Gauss-generalized
+    Laguerre quadrature. The sample points are the roots of the nth
+    degree generalized Laguerre polynomial, :math:`L^{\alpha}_n(x)`.
+    These sample points and weights correctly integrate polynomials of
+    degree :math:`2n - 1` or less over the interval :math:`[0,
+    \infty]` with weight function :math:`w(x) = x^{\alpha}
+    e^{-x}`. See 22.3.9 in [AS]_ for details.
+    Parameters
+    ----------
+    n : int
+        quadrature order
+    alpha : float
+        alpha must be > -1
+    mu : bool, optional
+        If True, return the sum of the weights, optional.
+    Returns
+    -------
+    x : ndarray
+        Sample points
+    w : ndarray
+        Weights
+    mu : float
+        Sum of the weights
+    See Also
+    --------
+    scipy.integrate.quadrature
+    scipy.integrate.fixed_quad
+    References
+    ----------
+    .. [AS] Milton Abramowitz and Irene A. Stegun, eds.
+        Handbook of Mathematical Functions with Formulas,
+        Graphs, and Mathematical Tables. New York: Dover, 1972.
+    r
+alpha must be greater than -1.rB
+z#roots_genlaguerre.<locals>.<lambda>c
+gammarV
+}	|	S
+Generalized (associated) Laguerre polynomial.
+    Defined to be the solution of
+    .. math::
+        x\frac{d^2}{dx^2}L_n^{(\alpha)}
+          + (\alpha + 1 - x)\frac{d}{dx}L_n^{(\alpha)}
+          + nL_n^{(\alpha)} = 0,
+    where :math:`\alpha > -1`; :math:`L_n^{(\alpha)}` is a polynomial
+    of degree :math:`n`.
+    Parameters
+    ----------
+    n : int
+        Degree of the polynomial.
+    alpha : float
+        Parameter, must be greater than -1.
+    monic : bool, optional
+        If `True`, scale the leading coefficient to be 1. Default is
+        `False`.
+    Returns
+    -------
+    L : orthopoly1d
+        Generalized Laguerre polynomial.
+    Notes
+    -----
+    For fixed :math:`\alpha`, the polynomials :math:`L_n^{(\alpha)}`
+    are orthogonal over :math:`[0, \infty)` with weight function
+    :math:`e^{-x}x^\alpha`.
+    The Laguerre polynomials are the special case where :math:`\alpha
+    = 0`.
+    See Also
+    --------
+    laguerre : Laguerre polynomial.
+    rq
+alpha must be > -1r
+genlaguerre.<locals>.<lambda>c
+Gauss-Laguerre quadrature.
+    Compute the sample points and weights for Gauss-Laguerre
+    quadrature. The sample points are the roots of the nth degree
+    Laguerre polynomial, :math:`L_n(x)`. These sample points and
+    weights correctly integrate polynomials of degree :math:`2n - 1`
+    or less over the interval :math:`[0, \infty]` with weight function
+    :math:`w(x) = e^{-x}`. See 22.2.13 in [AS]_ for details.
+    Parameters
+    ----------
+    n : int
+        quadrature order
+    mu : bool, optional
+        If True, return the sum of the weights, optional.
+    Returns
+    -------
+    x : ndarray
+        Sample points
+    w : ndarray
+        Weights
+    mu : float
+        Sum of the weights
+    See Also
+    --------
+    scipy.integrate.quadrature
+    scipy.integrate.fixed_quad
+    numpy.polynomial.laguerre.laggauss
+    References
+    ----------
+    .. [AS] Milton Abramowitz and Irene A. Stegun, eds.
+        Handbook of Mathematical Functions with Formulas,
+        Graphs, and Mathematical Tables. New York: Dover, 1972.
+    r
+)	aR
+Laguerre polynomial.
+    Defined to be the solution of
+    .. math::
+        x\frac{d^2}{dx^2}L_n + (1 - x)\frac{d}{dx}L_n + nL_n = 0;
+    :math:`L_n` is a polynomial of degree :math:`n`.
+    Parameters
+    ----------
+    n : int
+        Degree of the polynomial.
+    monic : bool, optional
+        If `True`, scale the leading coefficient to be 1. Default is
+        `False`.
+    Returns
+    -------
+    L : orthopoly1d
+        Laguerre Polynomial.
+    Notes
+    -----
+    The polynomials :math:`L_n` are orthogonal over :math:`[0,
+    \infty)` with weight function :math:`e^{-x}`.
+    r
+laguerre.<locals>.<lambda>c
+Gauss-Hermite (physicist's) quadrature.
+    Compute the sample points and weights for Gauss-Hermite
+    quadrature. The sample points are the roots of the nth degree
+    Hermite polynomial, :math:`H_n(x)`. These sample points and
+    weights correctly integrate polynomials of degree :math:`2n - 1`
+    or less over the interval :math:`[-\infty, \infty]` with weight
+    function :math:`w(x) = e^{-x^2}`. See 22.2.14 in [AS]_ for
+    details.
+    Parameters
+    ----------
+    n : int
+        quadrature order
+    mu : bool, optional
+        If True, return the sum of the weights, optional.
+    Returns
+    -------
+    x : ndarray
+        Sample points
+    w : ndarray
+        Weights
+    mu : float
+        Sum of the weights
+    Notes
+    -----
+    For small n up to 150 a modified version of the Golub-Welsch
+    algorithm is used. Nodes are computed from the eigenvalue
+    problem and improved by one step of a Newton iteration.
+    The weights are computed from the well-known analytical formula.
+    For n larger than 150 an optimal asymptotic algorithm is applied
+    which computes nodes and weights in a numerically stable manner.
+    The algorithm has linear runtime making computation for very
+    large n (several thousand or more) feasible.
+    See Also
+    --------
+    scipy.integrate.quadrature
+    scipy.integrate.fixed_quad
+    numpy.polynomial.hermite.hermgauss
+    roots_hermitenorm
+    References
+    ----------
+    .. [townsend.trogdon.olver-2014]
+        Townsend, A. and Trogdon, T. and Olver, S. (2014)
+        *Fast computation of Gauss quadrature nodes and
+        weights on the whole real line*. :arXiv:`1410.5286`.
+    .. [townsend.trogdon.olver-2015]
+        Townsend, A. and Trogdon, T. and Olver, S. (2015)
+        *Fast computation of Gauss quadrature nodes and
+        weights on the whole real line*.
+        IMA Journal of Numerical Analysis
+        :doi:`10.1093/imanum/drv002`.
+    .. [AS] Milton Abramowitz and Irene A. Stegun, eds.
+        Handbook of Mathematical Functions with Formulas,
+        Graphs, and Mathematical Tables. New York: Dover, 1972.
+    r
+roots_hermite.<locals>.<lambda>c
+TN)	r
+_roots_hermite_asy
+nodesrG
+Helper function for Tricomi initial guesses
+    For details, see formula 3.1 in lemma 3.1 in the
+    original paper.
+    Parameters
+    ----------
+    n : int
+        Quadrature order
+    k : ndarray of type int
+        Index of roots :math:`	au_k` to compute
+    maxit : int
+        Number of Newton maxit performed, the default
+        value of 5 is sufficient.
+    Returns
+    -------
+    tauk : ndarray
+        Roots of equation 3.1
+    See Also
+    --------
+    initial_nodes_a
+    roots_hermite_asy
+    rp
+_compute_tauk.<locals>.<lambda>c
+maxitr
+_compute_tauk
+)	ae
+Tricomi initial guesses
+    Computes an initial approximation to the square of the `k`-th
+    (positive) root :math:`x_k` of the Hermite polynomial :math:`H_n`
+    of order :math:`n`. The formula is the one from lemma 3.1 in the
+    original paper. The guesses are accurate except in the region
+    near :math:`\sqrt{2n + 1}`.
+    Parameters
+    ----------
+    n : int
+        Quadrature order
+    k : ndarray of type int
+        Index of roots to compute
+    Returns
+    -------
+    xksq : ndarray
+        Square of the approximate roots
+    See Also
+    --------
+    initial_nodes
+    roots_hermite_asy
+    r
+taukZ
+sigkr
+xksqrC
+_initial_nodes_a
+Gatteschi initial guesses
+    Computes an initial approximation to the square of the kth
+    (positive) root :math:`x_k` of the Hermite polynomial :math:`H_n`
+    of order :math:`n`. The formula is the one from lemma 3.2 in the
+    original paper. The guesses are accurate in the region just
+    below :math:`\sqrt{2n + 1}`.
+    Parameters
+    ----------
+    n : int
+        Quadrature order
+    k : ndarray of type int
+        Index of roots to compute
+    Returns
+    -------
+    xksq : ndarray
+        Square of the approximate root
+    See Also
+    --------
+    initial_nodes
+    roots_hermite_asy
+    rp
+g<n=
+UUUUUU
+?gUUUUUU
+?g`A
+^PTxt?r
+airyzorr
+_initial_nodes_b8
+Initial guesses for the Hermite roots
+    Computes an initial approximation to the non-negative
+    roots :math:`x_k` of the Hermite polynomial :math:`H_n`
+    of order :math:`n`. The Tricomi and Gatteschi initial
+    guesses are used in the region where they are accurate.
+    Parameters
+    ----------
+    n : int
+        Quadrature order
+    Returns
+    -------
+    xk : ndarray
+        Approximate roots
+    See Also
+    --------
+    roots_hermite_asy
+    g_
+)	r	
+astyper
+fitZ
+turnoverZ
+xasqZ
+xbsq
+ivrC
+_initial_nodes`
+}	d	}
+}!}"}#}$d
+d+dNd+
+|&dOd
+|&dPd
+|&dOd
+|&dPd
+})|	|
+|&dOd
+|&dOd
+|&dPd
+|&dOd
+|&dPd
+},|%|!|'|(|
+|"|*|+|
+|&dOd
+|&dOd
+|&dPd
+|&dOd
+|&dPd
+|&dOd
+|&dPd
+|&dOd
+|&dPd
+}4|.|!|/|0|
+|"|2|3|
+}5|-|5f
+Asymptotic series expansion of parabolic cylinder function
+    The implementation is based on sections 3.2 and 3.3 from the
+    original paper. Compared to the published version this code
+    adds one more term to the asymptotic series. The detailed
+    formulas can be found at [parabolic-asymptotics]_. The evaluation
+    is done in a transformed variable :math:`\theta := \arccos(t)`
+    where :math:`t := x / \mu` and :math:`\mu := \sqrt{2n + 1}`.
+    Parameters
+    ----------
+    n : int
+        Quadrature order
+    theta : ndarray
+        Transformed position variable
+    Returns
+    -------
+    U : ndarray
+        Value of the parabolic cylinder function :math:`U(a, \theta)`.
+    Ud : ndarray
+        Value of the derivative :math:`U^{\prime}(a, \theta)` of
+        the parabolic cylinder function.
+    See Also
+    --------
+    roots_hermite_asy
+    References
+    ----------
+    .. [parabolic-asymptotics]
+       https://dlmf.nist.gov/12.10#vii
+    r
+gUUUUUU
+gk~X
+9SsM
+(,a(
+ o@g
+ b@g
+\hAg
+f!Bg
+pt@g
+e Bg
+d{>Bl
+gUUUUUU
+gUUUUUU
+reshaper
+)6rt
+theta
+ctre
+etaZ
+zetaZ
+phiZ
+ctpZ
+AipZ
+phipZ
+UdrC
+_pbcf
+qtq(|
+Newton iteration for polishing the asymptotic approximation
+    to the zeros of the Hermite polynomials.
+    Parameters
+    ----------
+    n : int
+        Quadrature order
+    x_initial : ndarray
+        Initial guesses for the roots
+    maxit : int
+        Maximal number of Newton iterations.
+        The default 5 is sufficient, usually
+        only one or two steps are needed.
+    Returns
+    -------
+    nodes : ndarray
+        Quadrature nodes
+    weights : ndarray
+        Quadrature weights
+    See Also
+    --------
+    roots_hermite_asy
+    r
+Z	x_initialr
+dthetarM
+_newton
+Gauss-Hermite (physicist's) quadrature for large n.
+    Computes the sample points and weights for Gauss-Hermite quadrature.
+    The sample points are the roots of the nth degree Hermite polynomial,
+    :math:`H_n(x)`. These sample points and weights correctly integrate
+    polynomials of degree :math:`2n - 1` or less over the interval
+    :math:`[-\infty, \infty]` with weight function :math:`f(x) = e^{-x^2}`.
+    This method relies on asymptotic expansions which work best for n > 150.
+    The algorithm has linear runtime making computation for very large n
+    feasible.
+    Parameters
+    ----------
+    n : int
+        quadrature order
+    Returns
+    -------
+    nodes : ndarray
+        Quadrature nodes
+    weights : ndarray
+        Quadrature weights
+    See Also
+    --------
+    roots_hermite
+    References
+    ----------
+    .. [townsend.trogdon.olver-2014]
+       Townsend, A. and Trogdon, T. and Olver, S. (2014)
+       *Fast computation of Gauss quadrature nodes and
+       weights on the whole real line*. :arXiv:`1410.5286`.
+    .. [townsend.trogdon.olver-2015]
+       Townsend, A. and Trogdon, T. and Olver, S. (2015)
+       *Fast computation of Gauss quadrature nodes and
+       weights on the whole real line*.
+       IMA Journal of Numerical Analysis
+       :doi:`10.1093/imanum/drv002`.
+    rp
+Physicist's Hermite polynomial.
+    Defined by
+    .. math::
+        H_n(x) = (-1)^ne^{x^2}\frac{d^n}{dx^n}e^{-x^2};
+    :math:`H_n` is a polynomial of degree :math:`n`.
+    Parameters
+    ----------
+    n : int
+        Degree of the polynomial.
+    monic : bool, optional
+        If `True`, scale the leading coefficient to be 1. Default is
+        `False`.
+    Returns
+    -------
+    H : orthopoly1d
+        Hermite polynomial.
+    Notes
+    -----
+    The polynomials :math:`H_n` are orthogonal over :math:`(-\infty,
+    \infty)` with weight function :math:`e^{-x^2}`.
+    r
+hermite.<locals>.<lambda>rp
+Gauss-Hermite (statistician's) quadrature.
+    Compute the sample points and weights for Gauss-Hermite
+    quadrature. The sample points are the roots of the nth degree
+    Hermite polynomial, :math:`He_n(x)`. These sample points and
+    weights correctly integrate polynomials of degree :math:`2n - 1`
+    or less over the interval :math:`[-\infty, \infty]` with weight
+    function :math:`w(x) = e^{-x^2/2}`. See 22.2.15 in [AS]_ for more
+    details.
+    Parameters
+    ----------
+    n : int
+        quadrature order
+    mu : bool, optional
+        If True, return the sum of the weights, optional.
+    Returns
+    -------
+    x : ndarray
+        Sample points
+    w : ndarray
+        Weights
+    mu : float
+        Sum of the weights
+    Notes
+    -----
+    For small n up to 150 a modified version of the Golub-Welsch
+    algorithm is used. Nodes are computed from the eigenvalue
+    problem and improved by one step of a Newton iteration.
+    The weights are computed from the well-known analytical formula.
+    For n larger than 150 an optimal asymptotic algorithm is used
+    which computes nodes and weights in a numerical stable manner.
+    The algorithm has linear runtime making computation for very
+    large n (several thousand or more) feasible.
+    See Also
+    --------
+    scipy.integrate.quadrature
+    scipy.integrate.fixed_quad
+    numpy.polynomial.hermite_e.hermegauss
+    References
+    ----------
+    .. [AS] Milton Abramowitz and Irene A. Stegun, eds.
+        Handbook of Mathematical Functions with Formulas,
+        Graphs, and Mathematical Tables. New York: Dover, 1972.
+    r
+z#roots_hermitenorm.<locals>.<lambda>c
+N)	r
+Normalized (probabilist's) Hermite polynomial.
+    Defined by
+    .. math::
+        He_n(x) = (-1)^ne^{x^2/2}\frac{d^n}{dx^n}e^{-x^2/2};
+    :math:`He_n` is a polynomial of degree :math:`n`.
+    Parameters
+    ----------
+    n : int
+        Degree of the polynomial.
+    monic : bool, optional
+        If `True`, scale the leading coefficient to be 1. Default is
+        `False`.
+    Returns
+    -------
+    He : orthopoly1d
+        Hermite polynomial.
+    Notes
+    -----
+    The polynomials :math:`He_n` are orthogonal over :math:`(-\infty,
+    \infty)` with weight function :math:`e^{-x^2/2}`.
+    r
+hermitenorm.<locals>.<lambda>rp
+Gauss-Gegenbauer quadrature.
+    Compute the sample points and weights for Gauss-Gegenbauer
+    quadrature. The sample points are the roots of the nth degree
+    Gegenbauer polynomial, :math:`C^{\alpha}_n(x)`. These sample
+    points and weights correctly integrate polynomials of degree
+    :math:`2n - 1` or less over the interval :math:`[-1, 1]` with
+    weight function :math:`w(x) = (1 - x^2)^{\alpha - 1/2}`. See
+    22.2.3 in [AS]_ for more details.
+    Parameters
+    ----------
+    n : int
+        quadrature order
+    alpha : float
+        alpha must be > -0.5
+    mu : bool, optional
+        If True, return the sum of the weights, optional.
+    Returns
+    -------
+    x : ndarray
+        Sample points
+    w : ndarray
+        Weights
+    mu : float
+        Sum of the weights
+    See Also
+    --------
+    scipy.integrate.quadrature
+    scipy.integrate.fixed_quad
+    References
+    ----------
+    .. [AS] Milton Abramowitz and Irene A. Stegun, eds.
+        Handbook of Mathematical Functions with Formulas,
+        Graphs, and Mathematical Tables. New York: Dover, 1972.
+    r
+z alpha must be greater than -0.5.r
+z"roots_gegenbauer.<locals>.<lambda>c
+T)	r
+)	rt
+Gegenbauer (ultraspherical) polynomial.
+    Defined to be the solution of
+    .. math::
+        (1 - x^2)\frac{d^2}{dx^2}C_n^{(\alpha)}
+          - (2\alpha + 1)x\frac{d}{dx}C_n^{(\alpha)}
+          + n(n + 2\alpha)C_n^{(\alpha)} = 0
+    for :math:`\alpha > -1/2`; :math:`C_n^{(\alpha)}` is a polynomial
+    of degree :math:`n`.
+    Parameters
+    ----------
+    n : int
+        Degree of the polynomial.
+    monic : bool, optional
+        If `True`, scale the leading coefficient to be 1. Default is
+        `False`.
+    Returns
+    -------
+    C : orthopoly1d
+        Gegenbauer polynomial.
+    Notes
+    -----
+    The polynomials :math:`C_n^{(\alpha)}` are orthogonal over
+    :math:`[-1,1]` with weight function :math:`(1 - x^2)^{(\alpha -
+    1/2)}`.
+    r
+gegenbauer.<locals>.<lambda>r_
+__dict__)
+base
+factorrC
+Gauss-Chebyshev (first kind) quadrature.
+    Computes the sample points and weights for Gauss-Chebyshev
+    quadrature. The sample points are the roots of the nth degree
+    Chebyshev polynomial of the first kind, :math:`T_n(x)`. These
+    sample points and weights correctly integrate polynomials of
+    degree :math:`2n - 1` or less over the interval :math:`[-1, 1]`
+    with weight function :math:`w(x) = 1/\sqrt{1 - x^2}`. See 22.2.4
+    in [AS]_ for more details.
+    Parameters
+    ----------
+    n : int
+        quadrature order
+    mu : bool, optional
+        If True, return the sum of the weights, optional.
+    Returns
+    -------
+    x : ndarray
+        Sample points
+    w : ndarray
+        Weights
+    mu : float
+        Sum of the weights
+    See Also
+    --------
+    scipy.integrate.quadrature
+    scipy.integrate.fixed_quad
+    numpy.polynomial.chebyshev.chebgauss
+    References
+    ----------
+    .. [AS] Milton Abramowitz and Irene A. Stegun, eds.
+        Handbook of Mathematical Functions with Formulas,
+        Graphs, and Mathematical Tables. New York: Dover, 1972.
+    r
+_sinpirV
+Z	full_liker
+}	|	S
+Chebyshev polynomial of the first kind.
+    Defined to be the solution of
+    .. math::
+        (1 - x^2)\frac{d^2}{dx^2}T_n - x\frac{d}{dx}T_n + n^2T_n = 0;
+    :math:`T_n` is a polynomial of degree :math:`n`.
+    Parameters
+    ----------
+    n : int
+        Degree of the polynomial.
+    monic : bool, optional
+        If `True`, scale the leading coefficient to be 1. Default is
+        `False`.
+    Returns
+    -------
+    T : orthopoly1d
+        Chebyshev polynomial of the first kind.
+    Notes
+    -----
+    The polynomials :math:`T_n` are orthogonal over :math:`[-1, 1]`
+    with weight function :math:`(1 - x^2)^{-1/2}`.
+    See Also
+    --------
+    chebyu : Chebyshev polynomial of the second kind.
+    r
+chebyt.<locals>.<lambda>rB
+Gauss-Chebyshev (second kind) quadrature.
+    Computes the sample points and weights for Gauss-Chebyshev
+    quadrature. The sample points are the roots of the nth degree
+    Chebyshev polynomial of the second kind, :math:`U_n(x)`. These
+    sample points and weights correctly integrate polynomials of
+    degree :math:`2n - 1` or less over the interval :math:`[-1, 1]`
+    with weight function :math:`w(x) = \sqrt{1 - x^2}`. See 22.2.5 in
+    [AS]_ for details.
+    Parameters
+    ----------
+    n : int
+        quadrature order
+    mu : bool, optional
+        If True, return the sum of the weights, optional.
+    Returns
+    -------
+    x : ndarray
+        Sample points
+    w : ndarray
+        Weights
+    mu : float
+        Sum of the weights
+    See Also
+    --------
+    scipy.integrate.quadrature
+    scipy.integrate.fixed_quad
+    References
+    ----------
+    .. [AS] Milton Abramowitz and Irene A. Stegun, eds.
+        Handbook of Mathematical Functions with Formulas,
+        Graphs, and Mathematical Tables. New York: Dover, 1972.
+    r
+Chebyshev polynomial of the second kind.
+    Defined to be the solution of
+    .. math::
+        (1 - x^2)\frac{d^2}{dx^2}U_n - 3x\frac{d}{dx}U_n
+          + n(n + 2)U_n = 0;
+    :math:`U_n` is a polynomial of degree :math:`n`.
+    Parameters
+    ----------
+    n : int
+        Degree of the polynomial.
+    monic : bool, optional
+        If `True`, scale the leading coefficient to be 1. Default is
+        `False`.
+    Returns
+    -------
+    U : orthopoly1d
+        Chebyshev polynomial of the second kind.
+    Notes
+    -----
+    The polynomials :math:`U_n` are orthogonal over :math:`[-1, 1]`
+    with weight function :math:`(1 - x^2)^{1/2}`.
+    See Also
+    --------
+    chebyt : Chebyshev polynomial of the first kind.
+    r
+Gauss-Chebyshev (first kind) quadrature.
+    Compute the sample points and weights for Gauss-Chebyshev
+    quadrature. The sample points are the roots of the nth degree
+    Chebyshev polynomial of the first kind, :math:`C_n(x)`. These
+    sample points and weights correctly integrate polynomials of
+    degree :math:`2n - 1` or less over the interval :math:`[-2, 2]`
+    with weight function :math:`w(x) = 1 / \sqrt{1 - (x/2)^2}`. See
+    22.2.6 in [AS]_ for more details.
+    Parameters
+    ----------
+    n : int
+        quadrature order
+    mu : bool, optional
+        If True, return the sum of the weights, optional.
+    Returns
+    -------
+    x : ndarray
+        Sample points
+    w : ndarray
+        Weights
+    mu : float
+        Sum of the weights
+    See Also
+    --------
+    scipy.integrate.quadrature
+    scipy.integrate.fixed_quad
+    References
+    ----------
+    .. [AS] Milton Abramowitz and Irene A. Stegun, eds.
+        Handbook of Mathematical Functions with Formulas,
+        Graphs, and Mathematical Tables. New York: Dover, 1972.
+    Trp
+Chebyshev polynomial of the first kind on :math:`[-2, 2]`.
+    Defined as :math:`C_n(x) = 2T_n(x/2)`, where :math:`T_n` is the
+    nth Chebychev polynomial of the first kind.
+    Parameters
+    ----------
+    n : int
+        Degree of the polynomial.
+    monic : bool, optional
+        If `True`, scale the leading coefficient to be 1. Default is
+        `False`.
+    Returns
+    -------
+    C : orthopoly1d
+        Chebyshev polynomial of the first kind on :math:`[-2, 2]`.
+    Notes
+    -----
+    The polynomials :math:`C_n(x)` are orthogonal over :math:`[-2, 2]`
+    with weight function :math:`1/\sqrt{1 - (x/2)^2}`.
+    See Also
+    --------
+    chebyt : Chebyshev polynomial of the first kind.
+    References
+    ----------
+    .. [1] Abramowitz and Stegun, "Handbook of Mathematical Functions"
+           Section 22. National Bureau of Standards, 1972.
+    r
+chebyc.<locals>.<lambda>
+Gauss-Chebyshev (second kind) quadrature.
+    Compute the sample points and weights for Gauss-Chebyshev
+    quadrature. The sample points are the roots of the nth degree
+    Chebyshev polynomial of the second kind, :math:`S_n(x)`. These
+    sample points and weights correctly integrate polynomials of
+    degree :math:`2n - 1` or less over the interval :math:`[-2, 2]`
+    with weight function :math:`w(x) = \sqrt{1 - (x/2)^2}`. See 22.2.7
+    in [AS]_ for more details.
+    Parameters
+    ----------
+    n : int
+        quadrature order
+    mu : bool, optional
+        If True, return the sum of the weights, optional.
+    Returns
+    -------
+    x : ndarray
+        Sample points
+    w : ndarray
+        Weights
+    mu : float
+        Sum of the weights
+    See Also
+    --------
+    scipy.integrate.quadrature
+    scipy.integrate.fixed_quad
+    References
+    ----------
+    .. [AS] Milton Abramowitz and Irene A. Stegun, eds.
+        Handbook of Mathematical Functions with Formulas,
+        Graphs, and Mathematical Tables. New York: Dover, 1972.
+    Trp
+Chebyshev polynomial of the second kind on :math:`[-2, 2]`.
+    Defined as :math:`S_n(x) = U_n(x/2)` where :math:`U_n` is the
+    nth Chebychev polynomial of the second kind.
+    Parameters
+    ----------
+    n : int
+        Degree of the polynomial.
+    monic : bool, optional
+        If `True`, scale the leading coefficient to be 1. Default is
+        `False`.
+    Returns
+    -------
+    S : orthopoly1d
+        Chebyshev polynomial of the second kind on :math:`[-2, 2]`.
+    Notes
+    -----
+    The polynomials :math:`S_n(x)` are orthogonal over :math:`[-2, 2]`
+    with weight function :math:`\sqrt{1 - (x/2)}^2`.
+    See Also
+    --------
+    chebyu : Chebyshev polynomial of the second kind
+    References
+    ----------
+    .. [1] Abramowitz and Stegun, "Handbook of Mathematical Functions"
+           Section 22. National Bureau of Standards, 1972.
+    r
+chebys.<locals>.<lambda>r
+)	rt
+Gauss-Chebyshev (first kind, shifted) quadrature.
+    Compute the sample points and weights for Gauss-Chebyshev
+    quadrature. The sample points are the roots of the nth degree
+    shifted Chebyshev polynomial of the first kind, :math:`T_n(x)`.
+    These sample points and weights correctly integrate polynomials of
+    degree :math:`2n - 1` or less over the interval :math:`[0, 1]`
+    with weight function :math:`w(x) = 1/\sqrt{x - x^2}`. See 22.2.8
+    in [AS]_ for more details.
+    Parameters
+    ----------
+    n : int
+        quadrature order
+    mu : bool, optional
+        If True, return the sum of the weights, optional.
+    Returns
+    -------
+    x : ndarray
+        Sample points
+    w : ndarray
+        Weights
+    mu : float
+        Sum of the weights
+    See Also
+    --------
+    scipy.integrate.quadrature
+    scipy.integrate.fixed_quad
+    References
+    ----------
+    .. [AS] Milton Abramowitz and Irene A. Stegun, eds.
+        Handbook of Mathematical Functions with Formulas,
+        Graphs, and Mathematical Tables. New York: Dover, 1972.
+    r
+xwrC
+Shifted Chebyshev polynomial of the first kind.
+    Defined as :math:`T^*_n(x) = T_n(2x - 1)` for :math:`T_n` the nth
+    Chebyshev polynomial of the first kind.
+    Parameters
+    ----------
+    n : int
+        Degree of the polynomial.
+    monic : bool, optional
+        If `True`, scale the leading coefficient to be 1. Default is
+        `False`.
+    Returns
+    -------
+    T : orthopoly1d
+        Shifted Chebyshev polynomial of the first kind.
+    Notes
+    -----
+    The polynomials :math:`T^*_n` are orthogonal over :math:`[0, 1]`
+    with weight function :math:`(x - x^2)^{-1/2}`.
+    r
+Gauss-Chebyshev (second kind, shifted) quadrature.
+    Computes the sample points and weights for Gauss-Chebyshev
+    quadrature. The sample points are the roots of the nth degree
+    shifted Chebyshev polynomial of the second kind, :math:`U_n(x)`.
+    These sample points and weights correctly integrate polynomials of
+    degree :math:`2n - 1` or less over the interval :math:`[0, 1]`
+    with weight function :math:`w(x) = \sqrt{x - x^2}`. See 22.2.9 in
+    [AS]_ for more details.
+    Parameters
+    ----------
+    n : int
+        quadrature order
+    mu : bool, optional
+        If True, return the sum of the weights, optional.
+    Returns
+    -------
+    x : ndarray
+        Sample points
+    w : ndarray
+        Weights
+    mu : float
+        Sum of the weights
+    See Also
+    --------
+    scipy.integrate.quadrature
+    scipy.integrate.fixed_quad
+    References
+    ----------
+    .. [AS] Milton Abramowitz and Irene A. Stegun, eds.
+        Handbook of Mathematical Functions with Formulas,
+        Graphs, and Mathematical Tables. New York: Dover, 1972.
+    Tr
+m_usrC
+Shifted Chebyshev polynomial of the second kind.
+    Defined as :math:`U^*_n(x) = U_n(2x - 1)` for :math:`U_n` the nth
+    Chebyshev polynomial of the second kind.
+    Parameters
+    ----------
+    n : int
+        Degree of the polynomial.
+    monic : bool, optional
+        If `True`, scale the leading coefficient to be 1. Default is
+        `False`.
+    Returns
+    -------
+    U : orthopoly1d
+        Shifted Chebyshev polynomial of the second kind.
+    Notes
+    -----
+    The polynomials :math:`U^*_n` are orthogonal over :math:`[0, 1]`
+    with weight function :math:`(x - x^2)^{1/2}`.
+    r
+Gauss-Legendre quadrature.
+    Compute the sample points and weights for Gauss-Legendre
+    quadrature. The sample points are the roots of the nth degree
+    Legendre polynomial :math:`P_n(x)`. These sample points and
+    weights correctly integrate polynomials of degree :math:`2n - 1`
+    or less over the interval :math:`[-1, 1]` with weight function
+    :math:`w(x) = 1.0`. See 2.2.10 in [AS]_ for more details.
+    Parameters
+    ----------
+    n : int
+        quadrature order
+    mu : bool, optional
+        If True, return the sum of the weights, optional.
+    Returns
+    -------
+    x : ndarray
+        Sample points
+    w : ndarray
+        Weights
+    mu : float
+        Sum of the weights
+    See Also
+    --------
+    scipy.integrate.quadrature
+    scipy.integrate.fixed_quad
+    numpy.polynomial.legendre.leggauss
+    References
+    ----------
+    .. [AS] Milton Abramowitz and Irene A. Stegun, eds.
+        Handbook of Mathematical Functions with Formulas,
+        Graphs, and Mathematical Tables. New York: Dover, 1972.
+    r
+z roots_legendre.<locals>.<lambda>c
+Legendre polynomial.
+    Defined to be the solution of
+    .. math::
+        \frac{d}{dx}\left[(1 - x^2)\frac{d}{dx}P_n(x)\right]
+          + n(n + 1)P_n(x) = 0;
+    :math:`P_n(x)` is a polynomial of degree :math:`n`.
+    Parameters
+    ----------
+    n : int
+        Degree of the polynomial.
+    monic : bool, optional
+        If `True`, scale the leading coefficient to be 1. Default is
+        `False`.
+    Returns
+    -------
+    P : orthopoly1d
+        Legendre polynomial.
+    Notes
+    -----
+    The polynomials :math:`P_n` are orthogonal over :math:`[-1, 1]`
+    with weight function 1.
+    Examples
+    --------
+    Generate the 3rd-order Legendre polynomial 1/2*(5x^3 + 0x^2 - 3x + 0):
+    >>> from scipy.special import legendre
+    >>> legendre(3)
+    poly1d([ 2.5,  0. , -1.5,  0. ])
+    r
+legendre.<locals>.<lambda>r
+Gauss-Legendre (shifted) quadrature.
+    Compute the sample points and weights for Gauss-Legendre
+    quadrature. The sample points are the roots of the nth degree
+    shifted Legendre polynomial :math:`P^*_n(x)`. These sample points
+    and weights correctly integrate polynomials of degree :math:`2n -
+    1` or less over the interval :math:`[0, 1]` with weight function
+    :math:`w(x) = 1.0`. See 2.2.11 in [AS]_ for details.
+    Parameters
+    ----------
+    n : int
+        quadrature order
+    mu : bool, optional
+        If True, return the sum of the weights, optional.
+    Returns
+    -------
+    x : ndarray
+        Sample points
+    w : ndarray
+        Weights
+    mu : float
+        Sum of the weights
+    See Also
+    --------
+    scipy.integrate.quadrature
+    scipy.integrate.fixed_quad
+    References
+    ----------
+    .. [AS] Milton Abramowitz and Irene A. Stegun, eds.
+        Handbook of Mathematical Functions with Formulas,
+        Graphs, and Mathematical Tables. New York: Dover, 1972.
+    r
+Shifted Legendre polynomial.
+    Defined as :math:`P^*_n(x) = P_n(2x - 1)` for :math:`P_n` the nth
+    Legendre polynomial.
+    Parameters
+    ----------
+    n : int
+        Degree of the polynomial.
+    monic : bool, optional
+        If `True`, scale the leading coefficient to be 1. Default is
+        `False`.
+    Returns
+    -------
+    P : orthopoly1d
+        Shifted Legendre polynomial.
+    Notes
+    -----
+    The polynomials :math:`P^*_n` are orthogonal over :math:`[0, 1]`
+    with weight function 1.
+    r
+sh_legendre.<locals>.<lambda>rB
+__doc__Z
+numpyrV
+scipyr
+scipy.specialr
+Z	_polyfunsZ
+_rootfuns_mapZ	_evalfunsr[
+keys
+__all__rW
+globalsZ	_modattrs
+itemsZ
+newfunZ
+oldfun
+appendrC
+<module>

@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.h3c.h3cloud.vmware.api.mapper.VmMigrateStorageMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.h3c.h3cloud.vmware.api.entity.VmMigrateStorage">
+        <id column="id" property="id"/>
+        <result column="task_id" property="taskId"/>
+        <result column="status" property="status"/>
+        <result column="src_file_path" property="srcFilePath"/>
+        <result column="src_device_key" property="srcDeviceKey"/>
+        <result column="dest_file_full_path" property="destFileFullPath"/>
+        <result column="dest_pool_name" property="destPoolName"/>
+        <result column="dest_file_size" property="destFileSize"/>
+        <result column="src_device_remaining_capacity" property="srcDeviceRemainingCapacity"/>
+        <result column="src_device_migrated_capacity" property="srcDeviceMigratedCapacity"/>
+        <result column="dest_fmt" property="destFmt"/>
+        <result column="change_id" property="changeId"/>
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, task_id AS taskId, status, src_file_path AS srcFilePath, src_device_key AS srcDeviceKey,
+        dest_file_relative_path AS destFileRelativePath, dest_pool_name AS destPoolName, dest_fmt AS destFmt,
+        change_id AS changeId,dest_file_size as destFileSize,src_device_remaining_capacity as srcDeviceRemainingCapacity,
+        src_device_migrated_capacity as srcDeviceMigratedCapacity
+    </sql>
+
+    <insert id="insertBatch">
+        insert into TBL_VM_MIGRATE_STORAGE
+        (task_id ,status, src_file_path, src_device_key, dest_file_full_path, dest_pool_name ,
+        dest_fmt, change_id,dest_file_size,src_device_remaining_capacity)
+        values
+        <foreach item="item" index="index" collection="list" open="" separator="," close="">
+            (#{item.taskId},#{item.status},#{item.srcFilePath},#{item.srcDeviceKey},
+            #{item.destFileFullPath}, #{item.destPoolName}, #{item.destFmt}, #{item.changeId}
+            , #{item.destFileSize}, #{item.srcDeviceRemainingCapacity})
+        </foreach>
+    </insert>
+    <select id="getMigrateStoragePageList" resultType="com.h3c.h3cloud.vmware.api.entity.request.RqMigrateStorage">
+        select
+        s.*,
+        DEST_HOST_IP as destHostIp,
+        DEST_HOST_NAME AS destHostName
+        from TBL_VM_MIGRATE_STORAGE s
+        left join TBL_VM_MIGRATE_TASK t on t.id=s.task_id
+        <where>
+            <if test="map.taskId!=null and map.taskId!=''">
+                and s.TASK_ID = #{map.taskId}
+            </if>
+        </where>
+        <if test="map.sortField!=null and map.sortField!=''">
+            order by s.${map.sortField}
+        </if>
+        <if test="map.sortField!=null and map.sortField!='' and map.sortDir!=null and map.sortDir!=''">
+            ${map.sortDir}
+        </if>
+    </select>
+
+    <select id="getMigrateStorageByConfig" resultType="com.h3c.h3cloud.vmware.api.entity.request.RqMigrateStorage">
+        select
+        s.*,
+        t.DEST_HOST_IP as destHostIp,
+        t.DEST_HOST_NAME AS destHostName,
+        t.DEST_HOST_ID AS destHostId,
+        t.STATUS AS status
+        from TBL_VM_MIGRATE_STORAGE s
+        left join TBL_VM_MIGRATE_TASK t on t.id=s.task_id
+        <where>
+             t.STATUS in
+            <foreach collection="statuses" item="id"  open="(" separator="," close=")">
+                #{id}
+            </foreach>
+            <if test="destHostId!=null and destHostId!=''">
+                and t.DEST_HOST_ID = #{destHostId}
+            </if>
+            <if test="destPoolName!=null and destPoolName!=''">
+                and s.dest_pool_name = #{destPoolName}
+            </if>
+        </where>
+    </select>
+
+    <update id="updateSrcDeviceRemainingCapacity">
+        UPDATE
+        TBL_VM_MIGRATE_STORAGE SET SRC_DEVICE_REMAINING_CAPACITY = #{srcDeviceRemainingCapacity}
+        <where>
+            TASK_ID = #{taskId}
+            <if test="srcDeviceKey!=null and srcDeviceKey!=-1">
+                and SRC_DEVICE_KEY = #{srcDeviceKey}
+            </if>
+        </where>
+    </update>
+
+    <update id="updateStatusByTaskId">
+        UPDATE
+        TBL_VM_MIGRATE_STORAGE SET status = #{status}
+        <where>
+            <if test="taskId!=null and taskId!=-1">
+                and task_id = #{taskId}
+            </if>
+        </where>
+    </update>
+</mapper>

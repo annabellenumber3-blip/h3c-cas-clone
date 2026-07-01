@@ -1,0 +1,635 @@
+m	Z	m
+Z d%d
+Z!d&d
+d!d"
+d#d$
+This module implements multioutput regression and classification.
+The estimators provided in this module are meta-estimators: they require
+a base estimator to be provided in their constructor. The meta-estimator
+extends single output estimators to multioutput estimators.
+Parallel)
+ABCMeta
+abstractmethod
+BaseEstimator
+clone
+MetaEstimatorMixin)
+RegressorMixin
+ClassifierMixin
+is_classifier)
+cross_val_predict
+available_if)
+check_random_state)
+check_is_fitted
+has_fit_parameter
+_check_fit_params)
+check_classification_targets)
+delayed)
+MultiOutputRegressor
+MultiOutputClassifier
+ClassifierChain
+RegressorChainc
+sample_weight)
+fit)
+	estimator
+fit_params
+9/usr/lib64/python3.9/site-packages/sklearn/multioutput.py
+_fit_estimator'
+classesr
+partial_fit)
+first_timer
+_partial_fit_estimator0
+zrReturn a function to check if `estimator` or `estimators_` has `attr`.
+    Helper for Chain implementations.
+    c
+hasattr
+attrr
+	<genexpr>J
+z>_available_if_estimator_has.<locals>._check.<locals>.<genexpr>)
+estimators_
+selfr,
+_checkI
+z+_available_if_estimator_has.<locals>._checkr
+_available_if_estimator_hasC
+_MultiOutputEstimatorN
+n_jobsc
+__init__R
+_MultiOutputEstimator.__init__r$
+Incrementally fit a separate model for each class output.
+        Parameters
+        ----------
+        X : {array-like, sparse matrix} of shape (n_samples, n_features)
+            The input data.
+        y : {array-like, sparse matrix} of shape (n_samples, n_outputs)
+            Multi-output targets.
+        classes : list of ndarray of shape (n_outputs,), default=None
+            Each array is unique classes for one output in str/int.
+            Can be obtained via
+            ``[np.unique(y[:, i]) for i in range(y.shape[1])]``, where `y`
+            is the target matrix of the entire dataset.
+            This argument is required for the first call to partial_fit
+            and can be omitted in the subsequent calls.
+            Note that `y` doesn't need to contain all labels in `classes`.
+        sample_weight : array-like of shape (n_samples,), default=None
+            Sample weights. If `None`, then samples are equally weighted.
+            Only supported if the underlying regressor supports sample
+            weights.
+        Returns
+        -------
+        self : object
+            Returns a fitted instance.
+        r0
+no_validationT
+multi_outputr
+Qy must have at least two dimensions for multi-output regression but has only one.Nr
+5Underlying estimator does not support sample weights.r7
+z4_MultiOutputEstimator.partial_fit.<locals>.<genexpr>r
+n_features_in_
+feature_names_in_)
+_validate_data
+ndim
+ValueErrorr
+range
+shaper0
+z!_MultiOutputEstimator.partial_fitc
+Fit the model to data, separately for each output variable.
+        Parameters
+        ----------
+        X : {array-like, sparse matrix} of shape (n_samples, n_features)
+            The input data.
+        y : {array-like, sparse matrix} of shape (n_samples, n_outputs)
+            Multi-output targets. An indicator matrix turns on multilabel
+            estimation.
+        sample_weight : array-like of shape (n_samples,), default=None
+            Sample weights. If `None`, then samples are equally weighted.
+            Only supported if the underlying regressor supports sample
+            weights.
+        **fit_params : dict of string -> object
+            Parameters passed to the ``estimator.fit`` method of each step.
+            .. versionadded:: 0.23
+        Returns
+        -------
+        self : object
+            Returns a fitted instance.
+        r
+z0The base estimator should implement a fit methodr;
+fit_params_validatedr
+z,_MultiOutputEstimator.fit.<locals>.<genexpr>r
+_MultiOutputEstimator.fitc
+Predict multi-output variable using model for each target variable.
+        Parameters
+        ----------
+        X : {array-like, sparse matrix} of shape (n_samples, n_features)
+            The input data.
+        Returns
+        -------
+        y : {array-like, sparse matrix} of shape (n_samples, n_outputs)
+            Multi-output targets predicted across multiple predictors.
+            Note: Separate models are generated for each predictor.
+        r
+predictz4The base estimator should implement a predict methodr7
+z0_MultiOutputEstimator.predict.<locals>.<genexpr>)	r
+asarray
+_MultiOutputEstimator.predictc
+multioutput_onlyTr
+_more_tags
+z _MultiOutputEstimator._more_tags)
+__name__
+__module__
+__qualname__r
+	metaclassc
+Multi target regression.
+    This strategy consists of fitting one regressor per target. This is a
+    simple strategy for extending regressors that do not natively support
+    multi-target regression.
+    .. versionadded:: 0.18
+    Parameters
+    ----------
+    estimator : estimator object
+        An estimator object implementing :term:`fit` and :term:`predict`.
+    n_jobs : int or None, optional (default=None)
+        The number of jobs to run in parallel.
+        :meth:`fit`, :meth:`predict` and :meth:`partial_fit` (if supported
+        by the passed estimator) will be parallelized for each target.
+        When individual estimators are fast to train or predict,
+        using ``n_jobs > 1`` can result in slower performance due
+        to the parallelism overhead.
+        ``None`` means `1` unless in a :obj:`joblib.parallel_backend` context.
+        ``-1`` means using all available processes / threads.
+        See :term:`Glossary <n_jobs>` for more details.
+        .. versionchanged:: 0.20
+            `n_jobs` default changed from `1` to `None`.
+    Attributes
+    ----------
+    estimators_ : list of ``n_output`` estimators
+        Estimators used for predictions.
+    n_features_in_ : int
+        Number of features seen during :term:`fit`. Only defined if the
+        underlying `estimator` exposes such an attribute when fit.
+        .. versionadded:: 0.24
+    feature_names_in_ : ndarray of shape (`n_features_in_`,)
+        Names of features seen during :term:`fit`. Only defined if the
+        underlying estimators expose such an attribute when fit.
+        .. versionadded:: 1.0
+    See Also
+    --------
+    RegressorChain : A multi-label model that arranges regressions into a
+        chain.
+    MultiOutputClassifier : Classifies each output independently rather than
+        chaining.
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from sklearn.datasets import load_linnerud
+    >>> from sklearn.multioutput import MultiOutputRegressor
+    >>> from sklearn.linear_model import Ridge
+    >>> X, y = load_linnerud(return_X_y=True)
+    >>> regr = MultiOutputRegressor(Ridge(random_state=123)).fit(X, y)
+    >>> regr.predict(X[[0]])
+    array([[176..., 35..., 57...]])
+    Nr7
+superr:
+	__class__r
+MultiOutputRegressor.__init__r$
+Incrementally fit the model to data, for each output variable.
+        Parameters
+        ----------
+        X : {array-like, sparse matrix} of shape (n_samples, n_features)
+            The input data.
+        y : {array-like, sparse matrix} of shape (n_samples, n_outputs)
+            Multi-output targets.
+        sample_weight : array-like of shape (n_samples,), default=None
+            Sample weights. If `None`, then samples are equally weighted.
+            Only supported if the underlying regressor supports sample
+            weights.
+        Returns
+        -------
+        self : object
+            Returns a fitted instance.
+        r#
+z MultiOutputRegressor.partial_fit)
+__doc__r:
+__classcell__r
+Multi target classification.
+    This strategy consists of fitting one classifier per target. This is a
+    simple strategy for extending classifiers that do not natively support
+    multi-target classification.
+    Parameters
+    ----------
+    estimator : estimator object
+        An estimator object implementing :term:`fit`, :term:`score` and
+        :term:`predict_proba`.
+    n_jobs : int or None, optional (default=None)
+        The number of jobs to run in parallel.
+        :meth:`fit`, :meth:`predict` and :meth:`partial_fit` (if supported
+        by the passed estimator) will be parallelized for each target.
+        When individual estimators are fast to train or predict,
+        using ``n_jobs > 1`` can result in slower performance due
+        to the parallelism overhead.
+        ``None`` means `1` unless in a :obj:`joblib.parallel_backend` context.
+        ``-1`` means using all available processes / threads.
+        See :term:`Glossary <n_jobs>` for more details.
+        .. versionchanged:: 0.20
+            `n_jobs` default changed from `1` to `None`.
+    Attributes
+    ----------
+    classes_ : ndarray of shape (n_classes,)
+        Class labels.
+    estimators_ : list of ``n_output`` estimators
+        Estimators used for predictions.
+    n_features_in_ : int
+        Number of features seen during :term:`fit`. Only defined if the
+        underlying `estimator` exposes such an attribute when fit.
+        .. versionadded:: 0.24
+    feature_names_in_ : ndarray of shape (`n_features_in_`,)
+        Names of features seen during :term:`fit`. Only defined if the
+        underlying estimators expose such an attribute when fit.
+        .. versionadded:: 1.0
+    See Also
+    --------
+    ClassifierChain : A multi-label model that arranges binary classifiers
+        into a chain.
+    MultiOutputRegressor : Fits one regressor per target variable.
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from sklearn.datasets import make_multilabel_classification
+    >>> from sklearn.multioutput import MultiOutputClassifier
+    >>> from sklearn.linear_model import LogisticRegression
+    >>> X, y = make_multilabel_classification(n_classes=3, random_state=0)
+    >>> clf = MultiOutputClassifier(LogisticRegression()).fit(X, y)
+    >>> clf.predict(X[-2:])
+    array([[1, 1, 1],
+           [1, 0, 1]])
+    Nr7
+MultiOutputClassifier.__init__c
+Fit the model to data matrix X and targets Y.
+        Parameters
+        ----------
+        X : {array-like, sparse matrix} of shape (n_samples, n_features)
+            The input data.
+        Y : array-like of shape (n_samples, n_classes)
+            The target values.
+        sample_weight : array-like of shape (n_samples,), default=None
+            Sample weights. If `None`, then samples are equally weighted.
+            Only supported if the underlying classifier supports sample
+            weights.
+        **fit_params : dict of string -> object
+            Parameters passed to the ``estimator.fit`` method of each step.
+            .. versionadded:: 0.23
+        Returns
+        -------
+        self : object
+            Returns a fitted instance.
+        c
+classes_
+<listcomp>
+z-MultiOutputClassifier.fit.<locals>.<listcomp>)
+MultiOutputClassifier.fitc
+predict_proba)
+getattrr*
+z>MultiOutputClassifier._check_predict_proba.<locals>.<listcomp>Tre
+_check_predict_proba
+z*MultiOutputClassifier._check_predict_probac
+Return prediction probabilities for each class of each output.
+        This method will raise a ``ValueError`` if any of the
+        estimators do not have ``predict_proba``.
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            The input data.
+        Returns
+        -------
+        p : array of shape (n_samples, n_classes), or a list of n_outputs                 such arrays if n_outputs > 1.
+            The class probabilities of the input samples. The order of the
+            classes corresponds to that in the attribute :term:`classes_`.
+            .. versionchanged:: 0.19
+                This function now returns a list of arrays where the length of
+                the list is ``n_outputs``, and each array is (``n_samples``,
+                ``n_classes``) for that particular output.
+        c
+z7MultiOutputClassifier.predict_proba.<locals>.<listcomp>)
+resultsr
+z#MultiOutputClassifier.predict_probac
+Return the mean accuracy on the given test data and labels.
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            Test samples.
+        y : array-like of shape (n_samples, n_outputs)
+            True values for X.
+        Returns
+        -------
+        scores : float
+            Mean accuracy of predicted target versus true target.
+        r
+zTy must have at least two dimensions for multi target classification but has only onezCThe number of outputs of Y for fit {0} and score {1} should be same)
+axis)
+lenr0
+formatrK
+meanr/
+n_outputs_Z
+y_predr
+score
+MultiOutputClassifier.scorec
+_skip_testTr
+z MultiOutputClassifier._more_tags)
+zwReturn a function to check if `base_estimator` or `estimators_` has `attr`.
+    Helper for Chain implementations.
+    c
+zC_available_if_base_estimator_has.<locals>._check.<locals>.<genexpr>)
+base_estimatorr/
+z0_available_if_base_estimator_has.<locals>._checkr
+ _available_if_base_estimator_has
+_BaseChainN)
+order
+random_statec
+_BaseChain.__init__c
+Fit the model to data matrix X and targets Y.
+        Parameters
+        ----------
+        X : {array-like, sparse matrix} of shape (n_samples, n_features)
+            The input data.
+        Y : array-like of shape (n_samples, n_classes)
+            The target values.
+        **fit_params : dict of string -> object
+            Parameters passed to the `fit` method of each step.
+            .. versionadded:: 0.23
+        Returns
+        -------
+        self : object
+            Returns a fitted instance.
+        T)
+accept_sparseNr
+randomz
+invalid orderc
+z"_BaseChain.fit.<locals>.<listcomp>Z
+lil)
+order_
+isinstance
+tuplerN
+arrayrH
+strZ
+permutation
+sorted
+listrG
+issparse
+hstackZ
+tocsrZ
+lil_matrix
+zeros
+	enumerater
+expand_dims)
+Y_pred_chain
+X_aug
+	chain_idxr
+col_idxZ	cv_resultr
+_BaseChain.fitc
+Predict on the data matrix X using the ClassifierChain model.
+        Parameters
+        ----------
+        X : {array-like, sparse matrix} of shape (n_samples, n_features)
+            The input data.
+        Returns
+        -------
+        Y_pred : array-like of shape (n_samples, n_classes)
+            The predicted values.
+        TF
+resetr
+empty_likeru
+arange)	r2
+previous_predictionsr
+	inv_orderZ
+Y_predr
+_BaseChain.predict)
+A multi-label model that arranges binary classifiers into a chain.
+    Each model makes a prediction in the order specified by the chain using
+    all of the available features provided to the model plus the predictions
+    of models that are earlier in the chain.
+    Read more in the :ref:`User Guide <classifierchain>`.
+    .. versionadded:: 0.19
+    Parameters
+    ----------
+    base_estimator : estimator
+        The base estimator from which the classifier chain is built.
+    order : array-like of shape (n_outputs,) or 'random', default=None
+        If `None`, the order will be determined by the order of columns in
+        the label matrix Y.::
+            order = [0, 1, 2, ..., Y.shape[1] - 1]
+        The order of the chain can be explicitly set by providing a list of
+        integers. For example, for a chain of length 5.::
+            order = [1, 3, 2, 4, 0]
+        means that the first model in the chain will make predictions for
+        column 1 in the Y matrix, the second model will make predictions
+        for column 3, etc.
+        If order is `random` a random ordering will be used.
+    cv : int, cross-validation generator or an iterable, default=None
+        Determines whether to use cross validated predictions or true
+        labels for the results of previous estimators in the chain.
+        Possible inputs for cv are:
+        - None, to use true labels when fitting,
+        - integer, to specify the number of folds in a (Stratified)KFold,
+        - :term:`CV splitter`,
+        - An iterable yielding (train, test) splits as arrays of indices.
+    random_state : int, RandomState instance or None, optional (default=None)
+        If ``order='random'``, determines random number generation for the
+        chain order.
+        In addition, it controls the random seed given at each `base_estimator`
+        at each chaining iteration. Thus, it is only used when `base_estimator`
+        exposes a `random_state`.
+        Pass an int for reproducible output across multiple function calls.
+        See :term:`Glossary <random_state>`.
+    Attributes
+    ----------
+    classes_ : list
+        A list of arrays of length ``len(estimators_)`` containing the
+        class labels for each estimator in the chain.
+    estimators_ : list
+        A list of clones of base_estimator.
+    order_ : list
+        The order of labels in the classifier chain.
+    n_features_in_ : int
+        Number of features seen during :term:`fit`. Only defined if the
+        underlying `base_estimator` exposes such an attribute when fit.
+        .. versionadded:: 0.24
+    feature_names_in_ : ndarray of shape (`n_features_in_`,)
+        Names of features seen during :term:`fit`. Defined only when `X`
+        has feature names that are all strings.
+        .. versionadded:: 1.0
+    See Also
+    --------
+    RegressorChain : Equivalent for regression.
+    MultioutputClassifier : Classifies each output independently rather than
+        chaining.
+    References
+    ----------
+    Jesse Read, Bernhard Pfahringer, Geoff Holmes, Eibe Frank, "Classifier
+    Chains for Multi-label Classification", 2009.
+    Examples
+    --------
+    >>> from sklearn.datasets import make_multilabel_classification
+    >>> from sklearn.linear_model import LogisticRegression
+    >>> from sklearn.model_selection import train_test_split
+    >>> from sklearn.multioutput import ClassifierChain
+    >>> X, Y = make_multilabel_classification(
+    ...    n_samples=12, n_classes=3, random_state=0
+    ... )
+    >>> X_train, X_test, Y_train, Y_test = train_test_split(
+    ...    X, Y, random_state=0
+    ... )
+    >>> base_lr = LogisticRegression(solver='lbfgs', random_state=0)
+    >>> chain = ClassifierChain(base_lr, order='random', random_state=0)
+    >>> chain.fit(X_train, Y_train).predict(X_test)
+    array([[1., 1., 0.],
+           [1., 0., 0.],
+           [0., 1., 0.]])
+    >>> chain.predict_proba(X_test)
+    array([[0.8387..., 0.9431..., 0.4576...],
+           [0.8878..., 0.3684..., 0.2640...],
+           [0.0321..., 0.9935..., 0.0625...]])
+    c
+Fit the model to data matrix X and targets Y.
+        Parameters
+        ----------
+        X : {array-like, sparse matrix} of shape (n_samples, n_features)
+            The input data.
+        Y : array-like of shape (n_samples, n_classes)
+            The target values.
+        Returns
+        -------
+        self : object
+            Class instance.
+        c
+z'ClassifierChain.fit.<locals>.<listcomp>)
+ClassifierChain.fitre
+}	|	S
+Predict probability estimates.
+        Parameters
+        ----------
+        X : {array-like, sparse matrix} of shape (n_samples, n_features)
+            The input data.
+        Returns
+        -------
+        Y_prob : array-like of shape (n_samples, n_classes)
+            The predicted probabilities.
+        TFr
+Y_prob_chainr
+Y_probr
+ClassifierChain.predict_proba
+decision_functionc
+}	|	S
+Evaluate the decision_function of the models in the chain.
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            The input data.
+        Returns
+        -------
+        Y_decision : array-like of shape (n_samples, n_classes)
+            Returns the decision function of the sample for each model
+            in the chain.
+        TFr
+Y_decision_chainr
+Y_decisionr
+z!ClassifierChain.decision_functionc
+ClassifierChain._more_tags)
+A multi-label model that arranges regressions into a chain.
+    Each model makes a prediction in the order specified by the chain using
+    all of the available features provided to the model plus the predictions
+    of models that are earlier in the chain.
+    Read more in the :ref:`User Guide <regressorchain>`.
+    .. versionadded:: 0.20
+    Parameters
+    ----------
+    base_estimator : estimator
+        The base estimator from which the classifier chain is built.
+    order : array-like of shape (n_outputs,) or 'random', default=None
+        If `None`, the order will be determined by the order of columns in
+        the label matrix Y.::
+            order = [0, 1, 2, ..., Y.shape[1] - 1]
+        The order of the chain can be explicitly set by providing a list of
+        integers. For example, for a chain of length 5.::
+            order = [1, 3, 2, 4, 0]
+        means that the first model in the chain will make predictions for
+        column 1 in the Y matrix, the second model will make predictions
+        for column 3, etc.
+        If order is 'random' a random ordering will be used.
+    cv : int, cross-validation generator or an iterable, default=None
+        Determines whether to use cross validated predictions or true
+        labels for the results of previous estimators in the chain.
+        Possible inputs for cv are:
+        - None, to use true labels when fitting,
+        - integer, to specify the number of folds in a (Stratified)KFold,
+        - :term:`CV splitter`,
+        - An iterable yielding (train, test) splits as arrays of indices.
+    random_state : int, RandomState instance or None, optional (default=None)
+        If ``order='random'``, determines random number generation for the
+        chain order.
+        In addition, it controls the random seed given at each `base_estimator`
+        at each chaining iteration. Thus, it is only used when `base_estimator`
+        exposes a `random_state`.
+        Pass an int for reproducible output across multiple function calls.
+        See :term:`Glossary <random_state>`.
+    Attributes
+    ----------
+    estimators_ : list
+        A list of clones of base_estimator.
+    order_ : list
+        The order of labels in the classifier chain.
+    n_features_in_ : int
+        Number of features seen during :term:`fit`. Only defined if the
+        underlying `base_estimator` exposes such an attribute when fit.
+        .. versionadded:: 0.24
+    feature_names_in_ : ndarray of shape (`n_features_in_`,)
+        Names of features seen during :term:`fit`. Defined only when `X`
+        has feature names that are all strings.
+        .. versionadded:: 1.0
+    See Also
+    --------
+    ClassifierChain : Equivalent for classification.
+    MultiOutputRegressor : Learns each output independently rather than
+        chaining.
+    Examples
+    --------
+    >>> from sklearn.multioutput import RegressorChain
+    >>> from sklearn.linear_model import LogisticRegression
+    >>> logreg = LogisticRegression(solver='lbfgs',multi_class='multinomial')
+    >>> X, Y = [[1, 0], [0, 1], [1, 1]], [[0, 2], [1, 1], [2, 0]]
+    >>> chain = RegressorChain(base_estimator=logreg, order=[0, 1]).fit(X, Y)
+    >>> chain.predict(X)
+    array([[0., 2.],
+           [1., 1.],
+           [2., 0.]])
+    c
+Fit the model to data matrix X and targets Y.
+        Parameters
+        ----------
+        X : {array-like, sparse matrix} of shape (n_samples, n_features)
+            The input data.
+        Y : array-like of shape (n_samples, n_classes)
+            The target values.
+        **fit_params : dict of string -> object
+            Parameters passed to the `fit` method at each step
+            of the regressor chain.
+            .. versionadded:: 0.23
+        Returns
+        -------
+        self : object
+            Returns a fitted instance.
+        )
+RegressorChain.fitc
+RegressorChain._more_tags)
+NNT)+r\
+numpyrN
+scipy.sparseZ
+sparser{
+joblibr
+abcr
+baser
+model_selectionr
+utils.metaestimatorsr
+utilsr
+utils.validationr
+utils.multiclassr
+utils.fixesr
+__all__r!
+<module>

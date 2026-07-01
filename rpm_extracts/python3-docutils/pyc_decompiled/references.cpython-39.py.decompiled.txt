@@ -1,0 +1,425 @@
+m	Z	
+d	e	
+Transforms for resolving references.
+reStructuredText
+nodes
+utils)
+TransformError
+	Transformc
+PropagateTargetsa}
+    Propagate empty internal targets to the next element.
+    Given the following nodes::
+        <target ids="internal1" names="internal1">
+        <target anonymous="1" ids="id1">
+        <target ids="internal2" names="internal2">
+        <paragraph>
+            This is a test.
+    PropagateTargets propagates the ids and names of the internal
+    targets preceding the paragraph to the paragraph itself::
+        <target refid="internal1">
+        <target anonymous="1" refid="id1">
+        <target refid="internal2">
+        <paragraph ids="internal2 id1 internal1" names="internal2 internal1">
+            This is a test.
+    i
+refid
+refuri
+refnamer
+z&error: block-level target has childrenT)
+ascend
+names
+expect_referenced_by_name
+expect_referenced_by_id)
+document
+traverser
+target
+isinstance
+parentZ
+TextElement
+hasattr
+	next_nodeZ	InvisibleZ
+Targetable
+extendr
+update
+getattr
+note_refid)
+selfr
+name
+B/usr/lib/python3.9/site-packages/docutils/transforms/references.py
+apply*
+PropagateTargets.applyN
+__name__
+__module__
+__qualname__
+__doc__
+default_priorityr
+AnonymousHyperlinksa
+    Link anonymous references to targets.  Given::
+        <paragraph>
+            <reference anonymous="1">
+                internal
+            <reference anonymous="1">
+                external
+        <target anonymous="1" ids="id1">
+        <target anonymous="1" ids="id2" refuri="http://external">
+    Corresponding references are linked via "refid" or resolved via "refuri"::
+        <paragraph>
+            <reference anonymous="1" refid="id1">
+                text
+            <reference anonymous="1" refuri="http://external">
+                external
+        <target anonymous="1" ids="id1">
+        <target anonymous="1" ids="id2" refuri="http://external">
+    i
+	anonymousz]Anonymous hyperlink mismatch: %s references but %s targets.
+See "backrefs" attribute for IDs.
+	reference
+appendr
+reporter
+error
+set_id
+problematic
+	rawsource
+add_backref
+replace_self
+referencedr
+resolvedr
+anonymous_refsZ
+anonymous_targets
+node
+msgid
+prbidr
+AnonymousHyperlinks.applyNr 
+IndirectHyperlinksaN
+    a) Indirect external references::
+           <paragraph>
+               <reference refname="indirect external">
+                   indirect external
+           <target id="id1" name="direct external"
+               refuri="http://indirect">
+           <target id="id2" name="indirect external"
+               refname="direct external">
+       The "refuri" attribute is migrated back to all indirect targets
+       from the final direct target (i.e. a target not referring to
+       another indirect target)::
+           <paragraph>
+               <reference refname="indirect external">
+                   indirect external
+           <target id="id1" name="direct external"
+               refuri="http://indirect">
+           <target id="id2" name="indirect external"
+               refuri="http://indirect">
+       Once the attribute is migrated, the preexisting "refname" attribute
+       is dropped.
+    b) Indirect internal references::
+           <target id="id1" name="final target">
+           <paragraph>
+               <reference refname="indirect internal">
+                   indirect internal
+           <target id="id2" name="indirect internal 2"
+               refname="final target">
+           <target id="id3" name="indirect internal"
+               refname="indirect internal 2">
+       Targets which indirectly refer to an internal target become one-hop
+       indirect (their "refid" attributes are directly set to the internal
+       target's "id"). References which indirectly refer to an internal
+       target become direct internal references::
+           <target id="id1" name="final target">
+           <paragraph>
+               <reference refid="id1">
+                   indirect internal
+           <target id="id2" name="indirect internal 2" refid="id1">
+           <target id="id3" name="indirect internal" refid="id1">
+    i
+indirect_targetsr6
+resolve_indirect_target
+resolve_indirect_references
+IndirectHyperlinks.applyc
+qTq8|
+multiply_indirectr)
+nameids
+transformer
+unknown_reference_resolvers
+nonexistent_indirect_targetr
+note_referenced_byr
+circular_indirect_referencerC
+reftarget_id
+resolver_functionZ	reftargetr
+z*IndirectHyperlinks.resolve_indirect_targetc
+z>which is a duplicate, and cannot be used as a unique referencez
+which does not exist)
+indirect_target_errorrA
+z.IndirectHyperlinks.nonexistent_indirect_targetc
+forming a circular reference)
+z.IndirectHyperlinks.circular_indirect_referencec
+]8}	t
+"%s" r
+z	(id="%s")z7Indirect hyperlink target %s refers to target "%s", %s.r	
+	base_noder(
+refnamesr+
+refidsr-
+uniqr
+explanation
+naming
+reflistr
+z(IndirectHyperlinks.indirect_target_errorc
+rtqh|
+qhq@|
+)	Nr
+attnameZ
+call_methodZ
+attvalr
+z.IndirectHyperlinks.resolve_indirect_referencesN)
+ExternalTargetsa
+    Given::
+        <paragraph>
+            <reference refname="direct external">
+                direct external
+        <target id="id1" name="direct external" refuri="http://direct">
+    The "refname" attribute is replaced by the direct "refuri" attribute::
+        <paragraph>
+            <reference refuri="http://direct">
+                direct external
+        <target id="id1" name="direct external" refuri="http://direct">
+    i
+r`qT|
+qTq,q
+ExternalTargets.applyNr 
+InternalTargetsi
+resolve_reference_idsrA
+InternalTargets.applyc
+rJq>|
+        Given::
+            <paragraph>
+                <reference refname="direct internal">
+                    direct internal
+            <target id="id1" name="direct internal">
+        The "refname" attribute is replaced by "refid" linking to the target's
+        "id"::
+            <paragraph>
+                <reference refid="id1">
+                    direct internal
+            <target id="id1" name="direct internal">
+        r
+z%InternalTargets.resolve_reference_idsN)
+	Footnotesa
+    Assign numbers to autonumbered footnotes, and resolve links to footnotes,
+    citations, and their references.
+    Given the following ``document`` as input::
+        <document>
+            <paragraph>
+                A labeled autonumbered footnote referece:
+                <footnote_reference auto="1" id="id1" refname="footnote">
+            <paragraph>
+                An unlabeled autonumbered footnote referece:
+                <footnote_reference auto="1" id="id2">
+            <footnote auto="1" id="id3">
+                <paragraph>
+                    Unlabeled autonumbered footnote.
+            <footnote auto="1" id="footnote" name="footnote">
+                <paragraph>
+                    Labeled autonumbered footnote.
+    Auto-numbered footnotes have attribute ``auto="1"`` and no label.
+    Auto-numbered footnote_references have no reference text (they're
+    empty elements). When resolving the numbering, a ``label`` element
+    is added to the beginning of the ``footnote``, and reference text
+    to the ``footnote_reference``.
+    The transformed result will be::
+        <document>
+            <paragraph>
+                A labeled autonumbered footnote referece:
+                <footnote_reference auto="1" id="id1" refid="footnote">
+                    2
+            <paragraph>
+                An unlabeled autonumbered footnote referece:
+                <footnote_reference auto="1" id="id2" refid="id3">
+                    1
+            <footnote auto="1" id="id3" backrefs="id2">
+                <label>
+                    1
+                <paragraph>
+                    Unlabeled autonumbered footnote.
+            <footnote auto="1" id="footnote" name="footnote" backrefs="id1">
+                <label>
+                    2
+                <paragraph>
+                    Labeled autonumbered footnote.
+    Note that the footnotes are not in the same order as the references.
+    The labels and reference text are added to the auto-numbered ``footnote``
+    and ``footnote_reference`` elements.  Footnote elements are backlinked to
+    their references via "refids" attributes.  References are assigned "id"
+    and "refid" attributes.
+    After adding labels and reference text, the "auto" attributes can be
+    ignored.
+    il
+autofootnote_labelsr
+autofootnote_start
+number_footnotes
+number_footnote_references
+symbolize_footnotes
+resolve_footnotes_and_citations)
+startnumr
+Footnotes.applyc
+q^qJ|
+        Assign numbers to autonumbered footnotes.
+        For labeled autonumbered footnotes, copy the number over to
+        corresponding footnote references.
+        r)
+dupnames)
+autofootnotes
+strrD
+insertr
+label
+footnote_refsr+
+Text
+delattrr
+note_explicit_targetr\
+footnoterd
+Footnotes.number_footnotesc
+z3Assign numbers to autonumbered footnote references.r
+zUToo many autonumbered footnote references: only %s corresponding footnotes available.rM
+autofootnote_refsr6
+IndexErrorr-
+z$Footnotes.number_footnote_referencesc
+z<Add symbols indexes to "[*]"-style footnotes and references.r)
+zOToo many symbol footnote references: only %s corresponding footnotes available.rM
+symbol_footnotes
+divmodZ
+symbol_footnote_startr
+symbolsr,
+symbol_footnote_refsrf
+labelsri
+reps
+indexZ	labeltextrk
+Footnotes.symbolize_footnotesc
+qTqHd
+        Link manually-labeled footnotes and citations to/from their
+        references.
+        r
+Z	footnotesre
+resolve_referencesZ	citationsZ
+citation_refs)
+citationr
+z)Footnotes.resolve_footnotes_and_citationsc
+r0q$|
+noterR
+Footnotes.resolve_references)
+#CircularSubstitutionDefinitionErrorN)
+SubstitutionsaD
+    Given the following ``document`` as input::
+        <document>
+            <paragraph>
+                The
+                <substitution_reference refname="biohazard">
+                    biohazard
+                 symbol is deservedly scary-looking.
+            <substitution_definition name="biohazard">
+                <image alt="biohazard" uri="biohazard.png">
+    The ``substitution_reference`` will simply be replaced by the
+    contents of the corresponding ``substitution_definition``.
+    The transformed result will be::
+        <document>
+            <paragraph>
+                The
+                <image alt="biohazard" uri="biohazard.png">
+                 symbol is deservedly scary-looking.
+            <substitution_definition name="biohazard">
+                <image alt="biohazard" uri="biohazard.png">
+    
+}	|	d
+line_length_limiti
+z(Undefined substitution referenced: "%s".rM
+z;Substitution definition "%s" exceeds the line-length-limit.r(
+ltrimZ
+trimr
+rtrimz
+ref-originz*Circular substitution definition detected:)
+linerN
+z2Circular substitution definition referenced: "%s".)&r
+substitution_defsZ
+substitution_namesr
+settings
+listr
+substitution_reference
+lowerr+
+astextr/
+attributesr
+rstrip
+lstripZ
+deepcopy
+setdefaultrq
+substitution_definitionZ
+literal_blockrv
+childrenZ
+ReferentialZ
+note_refname)
+defs
+normed
+nestedru
+subreflistr:
+keyZ
+normed_nameZ
+subdefr9
+subdef_copyZ
+nested_refZ
+nested_nameZ
+ref_originr7
+Substitutions.applyNr 
+TargetNotesz
+    Creates a footnote for each external target in the text, and corresponding
+    footnote references after each reference.
+    i
+	startnode
+class)
+__init__Z
+detailsr+
+classes)
+TargetNotes.__init__c
+make_target_footnoter,
+notesZ
+nodelistr
+refsr
+TargetNotes.applyc
+}	|	d	
+TARGET_NOTE: 
+autorL
+textZ
+Classes)
+Z	paragraphr*
+note_autofootnoterh
+footnote_referencer
+note_autofootnote_refZ
+note_footnote_refr
+get_trim_footnote_ref_spacerw
+inlinerf
+footnote_nameZ
+footnote_idZ
+footnote_paragraphr:
+refnodero
+z TargetNotes.make_target_footnoteN)
+DanglingReferencesze
+    Check for dangling references (incl. footnote & citation) and for
+    unreferenced targets.
+    iR
+rBq,|
+z(Hyperlink target "%s" is not referenced.rM
+DanglingReferencesVisitorr
+walkr
+info)
+visitorr
+DanglingReferences.applyNr 
+SparseNodeVisitorr
+z"DanglingReferencesVisitor.__init__c
+unknown_visits
+z'DanglingReferencesVisitor.unknown_visitc
+zBDuplicate target name, cannot be used as a unique reference: "%s".rM
+Unknown target name: "%s".r(
+visit_referencev
+z)DanglingReferencesVisitor.visit_referenceN)
+visit_footnote_referenceZ
+visit_citation_referencer
+__docformat__
+docutilsr
+docutils.transformsr
+	Exceptionrq
+<module>

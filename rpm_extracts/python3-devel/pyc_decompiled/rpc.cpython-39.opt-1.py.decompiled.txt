@@ -1,0 +1,381 @@
+l	Z	d
+d!d"
+Z'd#d$
+Z(e)d%k
+d&l*m+Z+
+e+d'd(d)
+RPC Implementation, originally written for the Python Idle IDE
+For security reasons, GvR requested that Idle's Python execution server process
+connect to the Idle process, which listens for the connection.  Since Idle has
+only one client per server, this was not a limitation.
+   +---------------------------------+ +-------------+
+   | socketserver.BaseRequestHandler | | SocketIO    |
+   +---------------------------------+ +-------------+
+                   ^                   | register()  |
+                   |                   | unregister()|
+                   |                   +-------------+
+                   |                      ^  ^
+                   |                      |  |
+                   | + -------------------+  |
+                   | |                       |
+   +-------------------------+        +-----------------+
+   | RPCHandler              |        | RPCClient       |
+   | [attribute of RPCServer]|        |                 |
+   +-------------------------+        +-----------------+
+The RPCServer handler class is expected to provide register/unregister methods.
+RPCHandler inherits the mix-in class SocketIO, which provides these methods.
+See the Idle run.main() docstring for further information on how this was
+accomplished in Idle.
+z*Return code object from marshal string ms.)
+marshal
+loads)
+#/usr/lib64/python3.9/idlelib/rpc.py
+unpickle_code-
+zBReturn unpickle function and tuple with marshalled co code object.)
+dumpsr
+pickle_code3
+z.Return pickled (or marshalled) string for obj.)
+BytesIO
+CodePickler
+dump
+getvalue)
+objZ
+protocol
+__name__
+__module__
+__qualname__
+types
+CodeTyper
+copyreg
+dispatch_tabler
+z	127.0.0.1c
+	RPCServerNc
+RPCHandler
+socketserver
+	TCPServer
+__init__)
+self
+addrZ
+handlerclassr
+RPCServer.__init__c
+z@Override TCPServer method, no bind() phase for connecting entityNr
+server_bindP
+RPCServer.server_bindc
+Override TCPServer method, connect() instead of listen()
+        Due to the reversed connection, self.server_address is actually the
+        address of the Idle Client to which we are connecting.
+        N)
+socketZ
+connect
+server_addressr"
+server_activateT
+RPCServer.server_activatec
+z:Override TCPServer method, return already connected socket)
+get_request]
+RPCServer.get_requestc
+Override TCPServer method
+        Error message goes to __stderr__.  No error message if exiting
+        normally or socket raised EOF.  Other exceptions not handled in
+        server code will cause os._exit.
+        z)
+----------------------------------------
+filez
+Unhandled server exception!z
+Thread: %sz
+Client Address: z	Request: z#
+*** Unrecoverable, server exiting!z(----------------------------------------r
+SystemExit
+__stderr__
+print
+	threading
+current_thread
+name
+repr
+	traceback
+	print_exc
+_exit)
+requestZ
+client_addressZ
+erfr
+handle_errora
+RPCServer.handle_error)
+d!d"
+d#d$
+d%d&
+d'd(
+d)d*
+d-d.
+d/d0
+d1d2
+d3d4
+d5d6
+d7d8
+Z d9d:
+SocketIOr
+)	r.
+sockthread
+	debugging
+sock
+objecttable
+objtable
+	responses
+cvars)
+SocketIO.__init__c
+close)
+SocketIO.closec
+z!override for specific exit actionr
+exithook
+SocketIO.exithookc
+)	r:
+location
+strr.
+args
+debug
+SocketIO.debugc
+objectr
+register
+SocketIO.registerc
+KeyError
+unregister
+SocketIO.unregisterc
+localcall:)
+ERRORz
+Bad request formatrO
+Unknown object id: %r
+__methods__
+__attributes__z
+Unsupported method name: %r
+CALL
+QUEUE)
+QUEUEDNz
+Unsupported message type: %s
+CALLEXCzU*** Internal Error: rpc.py:SocketIO.localcall()
+ Object: %s 
+ Method: %s 
+ Args: %s
+	EXCEPTIONN)
+	TypeErrorr=
+_getmethods
+_getattributes
+hasattr
+getattr
+isinstance
+RemoteObject
+	remoteref
+request_queueZ
+putr*
+KeyboardInterrupt
+OSError
+	Exceptionr-
+seqr6
+howrI
+methodnamerE
+kwargsr
+methods
+attributes
+methodZ
+retZ
+msgr
+	localcall
+SocketIO.localcallc
+remotecall:asynccall: )
+	asynccall
+asyncreturn
+remotecall
+SocketIO.remotecallc
+remotequeue:asyncqueue: )
+asyncqueuern
+remotequeue
+SocketIO.remotequeuec
+asynccall:%d:
+newseqr.
+Z	Conditionr?
+putmessage
+cvarr
+SocketIO.asynccallc
+asyncqueue:%d:rs
+SocketIO.asyncqueuec
+Nz#asyncreturn:%d:call getresponse(): 
+waitz
+asyncreturn:%d:response: )
+getresponse
+decoderesponse)
+responser
+SocketIO.asyncreturnc
+decoderesponse: EXCEPTION
+EOFz
+decoderesponse: EOFrO
+decoderesponse: Internal ERROR:rV
+decoderesponse: Call Exception:)
+decode_interrupthook
+RuntimeError
+SystemError)
+whatr
+SocketIO.decoderesponsec
+EOFErrorr"
+SocketIO.decode_interrupthookc
+Listen on socket until I/O not ready or EOF
+        pollresponse() will loop looking for seq number None, which
+        never comes, and exit on EOFError.
+        Nrx
+myseqry
+mainloop:return)
+mainloop
+SocketIO.mainloopc
+_getresponse
+_proxify)
+SocketIO.getresponsec
+RemoteProxy
+RPCProxyrI
+list
+mapr
+SocketIO._proxifyc
+_getresponse:myseq:z-_getresponse:%s: thread woke up: response: %s)
+pollresponser?
+acquirer>
+release)
+SocketIO._getresponsec
+nextseq)
+SocketIO.newseqc
+putmessage:%d:r
+Cannot pickle:r(
+socket no longer exists)
+pickleZ
+PicklingErrorr-
+structZ
+pack
+selectr;
+send
+BUFSIZE
+AttributeErrorrX
+messagerF
+SocketIO.putmessage
+t	yl
+_stage0r
+buff
+bufneedr
+filenoZ
+recvr
+_stage1)
+pollpacket`
+SocketIO.pollpacketc
+bufstater
+unpackr
+SocketIO._stage0c
+packetr
+SocketIO._stage1c
+-----------------------r(
+cannot unpickle packet:)
+UnpicklingErrorr-
+print_stack)
+pollmessage
+SocketIO.pollmessagec
+}	|	d
+Handle messages received on the socket.
+        Some messages received may be asynchronous 'call' or 'queue' requests,
+        and some may be responses for other threads.
+        'call' requests are passed to self.localcall() with the expectation of
+        immediate execution, during which time the socket is not serviced.
+        'queue' requests are used for tasks (which may block or hang) to be
+        processed in a different thread.  These requests are fed into
+        request_queue by self.localcall().  Responses to queued requests are
+        taken from response_queue and sent across the link with the associated
+        sequence numbers.  Messages in the queues are (sequence_number,
+        request/response) tuples and code using this module removing messages
+        from the request_queue is responsible for returning the correct
+        sequence number in the response_queue.
+        pollresponse() will loop until a response message with the myseq
+        sequence number is received, and will save other responses in
+        self.responses and notify the owning thread.
+        r
+pollresponse:%d:myseq:%s)
+pollresponse:%d:localcall:call:z%pollresponse:%d:localcall:response:%srS
+response_queue
+queueZ
+Emptyru
+handle_EOFr
+notifyr
+qmsgrd
+resqre
+SocketIO.pollresponsec
+z+action taken upon link being closed by peerr
+EOFhookrH
+keyr
+SocketIO.handle_EOFc
+zBClasses using rpc client/server can override to augment EOF actionNr
+SocketIO.EOFhook)
+NN)"r
+idr<
+RemoteProxy.__init__N)
+current_handlerr8
+BaseRequestHandler)
+svrr
+RPCHandler.__init__c
+z(handle() method required by socketserverN)
+handle
+RPCHandler.handlec
+get_remote_proxy
+RPCHandler.get_remote_proxyN)
+	RPCClientFz
+listening_sockZ
+bindZ
+listen)
+addressZ
+family
+typer
+RPCClient.__init__c
+****** Connection request from r(
+** Invalid host: )
+acceptr:
+	LOCALHOSTr8
+working_sockr
+RPCClient.acceptc
+RPCClient.get_remote_proxyN)
+AF_INETZ
+SOCK_STREAMr
+sockiorI
+RPCProxy.__init__c
+__getattribute__)
+_RPCProxy__methods
+_RPCProxy__getmethodsr
+MethodProxyr
+_RPCProxy__attributes
+_RPCProxy__getattributesrp
+valuer
+__getattr__/
+RPCProxy.__getattr__c
+__getattributes=
+RPCProxy.__getattributesc
+__getmethodsA
+RPCProxy.__getmethods)	r
+dirr\
+callabler]
+	__bases__rY
+attr
+superr
+MethodProxy.__init__c
+__call__^
+MethodProxy.__call__N)
+z9Override standard display hook to use non-locale encodingN
+ascii
+backslashreplace
+strict
+builtins
+stdout
+write
+UnicodeEncodeError
+encode
+decode)
+text
+encoding
+bytesr
+displayhookf
+__main__)
+mainz
+idlelib.idle_test.test_rpcr
+	verbosity)
+__doc__r
+Picklerr
+Queuer`
+unittestr
+<module>

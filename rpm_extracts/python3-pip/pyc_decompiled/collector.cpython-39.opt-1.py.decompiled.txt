@@ -1,0 +1,376 @@
+l m!Z!
+d	l"m#Z#
+l$m%Z%
+l&m'Z'
+l(m)Z)
+l*m+Z+
+l,m-Z-m.Z.
+l/m0Z0
+l1m2Z2m3Z3m4Z4
+j8j9j:Z;e
+e<e<f
+Z=e<e
+ZBe<e'd
+ZCe<e'e
+ZDe=e
+d"d#
+ZEe;e<e<d$
+d%d&
+ZFe<e<d'
+d(d)
+ZGe<e<d'
+d*d+
+Id,e
+ZKe<eLe<d-
+d.d/
+ZMe<e<d
+d0d1
+ZNe;e<e<e
+d3d4
+d5d6
+d9d:
+ZQeQd7e
+d<d=
+d>d7
+ZSdNe#e
+e<e?f
+dAdB
+ZTdOe
+eLeSdD
+dEdF
+ZUdPe#e
+dHdI
+dJdK
+dLdM
+)QzO
+The main purpose of this module is to expose LinkCollector.collect_sources().
+Values)
+Callable
+Iterable
+List
+MutableMapping
+NamedTuple
+Optional
+Sequence
+Union)
+html5lib
+requests)
+Response)
+RetryError
+SSLError)
+NetworkConnectionError)
+Link)
+SearchScope)
+PipSession)
+raise_for_status)
+is_archive_file)
+pairwise
+redact_auth_from_url)
+CandidatesFromPage
+LinkSource
+build_source)
+returnc
+zgLook for VCS schemes in the URL.
+    Returns the matched VCS scheme, or None if there's no match.
+    z
++:N)
+schemes
+lower
+startswith
+len)
+scheme
+A/usr/lib/python3.9/site-packages/pip/_internal/index/collector.py
+_match_vcs_scheme0
+_NotHTMLN)
+content_type
+request_descr
+super
+__init__r'
+selfr'
+	__class__r#
+_NotHTML.__init__)
+__name__
+__module__
+__qualname__
+strr+
+__classcell__r#
+responser
+Check the Content-Type header to ensure the response contains HTML.
+    Raises `_NotHTML` if the content type is not text/html.
+    
+Content-Type
+	text/htmlN)
+headers
+getr
+request
+method)
+_ensure_html_headerB
+_NotHTTPN)
+sessionr
+Send a HEAD request to the URL, and ensure the response contains HTML.
+    Raises `_NotHTTP` if the URL is not available for a HEAD request, or
+    `_NotHTML` if the content type is not text/html.
+    >
+http
+httpsT)
+allow_redirectsN)
+urllib
+parse
+urlsplitr=
+headr
+netloc
+path
+query
+fragment
+respr#
+_ensure_html_responseP
+Access an HTML page with GET, and return the response.
+    This consists of three parts:
+    1. If the URL looks suspiciously like an archive, send a HEAD first to
+       check the Content-Type is HTML, to avoid downloading a large file.
+       Raise `_NotHTTP` if the content type cannot be determined, or
+       `_NotHTML` if it is not HTML.
+    2. Actually perform the request. Raise HTTP exceptions on network failures.
+    3. Check the Content-Type header to make sure we got HTML, and raise
+       `_NotHTML` otherwise.
+    
+Getting page %sr7
+z	max-age=0)
+Acceptz
+Cache-Control)
+filenamerJ
+logger
+debugr
+_get_html_response`
+z=Determine if we have any encoding information in our headers.r5
+charsetN)
+cgiZ
+parse_header)
+paramsr#
+_get_encoding_from_headers
+document
+page_urlr
+Determine the HTML document's base URL.
+    This looks for a ``<base>`` tag in the HTML document. If present, its href
+    attribute denotes the base URL of anchor tags in the document. If there is
+    no such tag (or if it does not have a valid href attribute), the HTML
+    file's URL is used as the base URL.
+    :param document: An HTML document representation. The current
+        implementation expects the result of ``html5lib.parse()``.
+    :param page_url: The URL of the HTML document.
+    z
+.//base
+hrefN)
+findallr9
+baserV
+_determine_base_url
+partr
+    Clean a "part" of a URL path (i.e. after splitting on "@" characters).
+    )
+quote
+unquote
+_clean_url_path_part
+    Clean the first part of a URL path that corresponds to a local
+    filesystem path (i.e. the first part after splitting on "@" characters).
+    )
+pathname2url
+url2pathnamer]
+_clean_file_url_path
+(@|%2F))
+is_local_pathr
+    Clean the path portion of a URL.
+    r6
+_reserved_chars_re
+splitr
+	itertools
+chain
+append
+upper
+join)
+clean_func
+partsZ
+cleaned_partsZ
+to_cleanZ
+reservedr#
+_clean_url_path
+    Make sure a link is fully quoted.
+    For example, if ' ' occurs in the URL, it will be replaced with "%20",
+    and without double-quoting other characters.
+    )
+urlparserE
+urlunparse
+_replace)
+resultra
+_clean_link
+anchorrU
+base_urlr
+    Convert an anchor element in a simple repository page to a Link.
+    rV
+data-requires-pythonz
+data-yanked)
+comes_fromZ
+requires_python
+yanked_reason)
+urljoinr
+Z	pyrequirerr
+linkr#
+_create_link_from_element
+CacheablePageContent
+HTMLPageN
+pager
+CacheablePageContent.__init__)
+otherr
+isinstance
+typery
+__eq__
+CacheablePageContent.__eq__
+hashry
+__hash__
+CacheablePageContent.__hash__)	r/
+object
+boolr~
+intr
+    Given a function that parses an Iterable[Link] from an HTMLPage, cache the
+    function's result (keyed by CacheablePageContent), unless the HTMLPage
+    `page` has `page.cache_link_parsing == False`.
+    N)
+maxsize)
+cacheable_pager
+listry
+wrapper
+z'with_cached_html_pages.<locals>.wrapperrw
+cache_link_parsingrv
+wrapper_wrapper
+z/with_cached_html_pages.<locals>.wrapper_wrapper)
+	functools
+	lru_cacherv
+wraps)
+with_cached_html_pages
+rJq.|
+    Parse an HTML document, and yield its anchor elements as Link objects.
+    F)
+transport_encodingZ
+namespaceHTMLElementsz
+.//a)
+content
+encodingr
+parse_links(
+z'Represents one page, along with its URLTN)
+        :param encoding: the encoding to decode the given content.
+        :param url: the URL from which the HTML was downloaded.
+        :param cache_link_parsing: whether links parsed from this page's url
+                                   should be cached. PyPI index urls should
+                                   have this set to False, for example.
+        N)
+HTMLPage.__init__r
+__str__V
+HTMLPage.__str__)
+__doc__
+bytesr
+reason
+methr
+Nz%Could not fetch URL %s: %s - skipping)
+_handle_get_page_failZ
+_make_html_paged
+}	|	t
+Nz?_get_html_page() missing 1 required keyword argument: 'session'
+zICannot look at %s URL %s because it does not support lookup as web pages.
+file
+index.htmlz# file: URL is directory, getting %srK
+z`Skipping page %s because it looks like an archive, and cannot be checked by a HTTP HEAD request.ziSkipping page %s because the %s request got Content-Type: %s.The only supported Content-Type is text/htmlz4There was a problem confirming the ssl certificate: )
+connection error: z	timed out)
+	TypeErrorr
+warningrA
+osrF
+isdirr:
+endswithrs
+infor
+ConnectionErrorZ
+Timeoutr
+vcs_schemer"
+excr
+_get_html_pagen
+CollectedSources
+find_links
+index_urlsN)
+__annotations__r#
+LinkCollectorz
+    Responsible for collecting Link objects from all configured locations,
+    making network requests as needed.
+    The class's main method is its collect_sources() method.
+    N)
+search_scoper
+LinkCollector.__init__F)
+options
+suppress_no_indexr
+        :param session: The Session to use to make requests.
+        :param suppress_no_index: Whether to ignore the --no-index option
+            when constructing the SearchScope object.
+        z
+Ignoring indexes: %s
+	<genexpr>
+z'LinkCollector.create.<locals>.<genexpr>
+Z	index_urlZ
+extra_index_urlsZ
+no_indexrM
+creater
+clsr>
+link_collectorr#
+LinkCollector.creater
+LinkCollector.find_links)
+locationr
+        Fetch an HTML page containing package links.
+        rK
+fetch_page
+LinkCollector.fetch_page)
+project_name
+candidates_from_pager
+page_validatorZ
+expand_dirr
+is_secure_origin
+z0LinkCollector.collect_sources.<locals>.<genexpr>c
+<listcomp>
+z1LinkCollector.collect_sources.<locals>.<listcomp>z' location(s) to search for versions of 
+collections
+OrderedDictr
+get_index_urls_locations
+valuesr
+isEnabledFor
+logging
+DEBUGrd
+index_url_sourcesZ
+find_links_sources
+linesr#
+collect_sources
+LinkCollector.collect_sources)
+classmethodr
+propertyr
+N)Yr
+urllib.parserA
+urllib.requestZ
+xml.etree.ElementTreeZ
+xmlZ
+optparser
+typingr
+pip._vendorr
+pip._vendor.requestsr
+pip._vendor.requests.exceptionsr
+pip._internal.exceptionsr
+pip._internal.models.linkr
+Z!pip._internal.models.search_scoper
+pip._internal.network.sessionr
+pip._internal.network.utilsr
+pip._internal.utils.filetypesr
+pip._internal.utils.miscr
+pip._internal.vcsr
+sourcesr
+Z	getLoggerr/
+etreeZ
+ElementTreeZ
+ElementZ
+HTMLElementr2
+ResponseHeadersr%
+	Exceptionr&
+compile
+IGNORECASErb
+<module>

@@ -1,0 +1,215 @@
+Distribution functions used in GLM
+ABCMeta
+abstractmethod)
+namedtupleN)
+xlogy
+DistributionBoundary)
+value
+	inclusivec
+ExponentialDispersionModela3
+Base class for reproductive Exponential Dispersion Models (EDM).
+    The pdf of :math:`Y\sim \mathrm{EDM}(y_\textrm{pred}, \phi)` is given by
+    .. math:: p(y| \theta, \phi) = c(y, \phi)
+        \exp\left(\frac{\theta y-A(\theta)}{\phi}\right)
+        = \tilde{c}(y, \phi)
+            \exp\left(-\frac{d(y, y_\textrm{pred})}{2\phi}\right)
+    with mean :math:`\mathrm{E}[Y] = A'(\theta) = y_\textrm{pred}`,
+    variance :math:`\mathrm{Var}[Y] = \phi \cdot v(y_\textrm{pred})`,
+    unit variance :math:`v(y_\textrm{pred})` and
+    unit deviance :math:`d(y,y_\textrm{pred})`.
+    Methods
+    -------
+    deviance
+    deviance_derivative
+    in_y_range
+    unit_deviance
+    unit_deviance_derivative
+    unit_variance
+    References
+    ----------
+    https://en.wikipedia.org/wiki/Exponential_dispersion_model.
+    c
+Returns ``True`` if y is in the valid range of Y~EDM.
+        Parameters
+        ----------
+        y : array of shape (n_samples,)
+            Target values.
+        z;_lower_bound attribute must be of type DistributionBoundaryN)	
+isinstance
+_lower_boundr
+	TypeErrorr
+greater_equalr
+greater)
+self
+D/usr/lib64/python3.9/site-packages/sklearn/_loss/glm_distribution.py
+in_y_range4
+z%ExponentialDispersionModel.in_y_rangec
+Compute the unit variance function.
+        The unit variance :math:`v(y_\textrm{pred})` determines the variance as
+        a function of the mean :math:`y_\textrm{pred}` by
+        :math:`\mathrm{Var}[Y_i] = \phi/s_i*v(y_\textrm{pred}_i)`.
+        It can also be derived from the unit deviance
+        :math:`d(y,y_\textrm{pred})` as
+        .. math:: v(y_\textrm{pred}) = \frac{2}{
+            \frac{\partial^2 d(y,y_\textrm{pred})}{
+            \partialy_\textrm{pred}^2}}\big|_{y=y_\textrm{pred}}
+        See also :func:`variance`.
+        Parameters
+        ----------
+        y_pred : array of shape (n_samples,)
+            Predicted mean.
+        Nr
+y_predr
+unit_varianceH
+z(ExponentialDispersionModel.unit_varianceFc
+Compute the unit deviance.
+        The unit_deviance :math:`d(y,y_\textrm{pred})` can be defined by the
+        log-likelihood as
+        :math:`d(y,y_\textrm{pred}) = -2\phi\cdot
+        \left(loglike(y,y_\textrm{pred},\phi) - loglike(y,y,\phi)\right).`
+        Parameters
+        ----------
+        y : array of shape (n_samples,)
+            Target values.
+        y_pred : array of shape (n_samples,)
+            Predicted mean.
+        check_input : bool, default=False
+            If True raise an exception on invalid y or y_pred values, otherwise
+            they will be propagated as NaN.
+        Returns
+        -------
+        deviance: array of shape (n_samples,)
+            Computed deviance
+        Nr
+check_inputr
+unit_deviance^
+z(ExponentialDispersionModel.unit_deviancec
+Compute the derivative of the unit deviance w.r.t. y_pred.
+        The derivative of the unit deviance is given by
+        :math:`\frac{\partial}{\partialy_\textrm{pred}}d(y,y_\textrm{pred})
+             = -2\frac{y-y_\textrm{pred}}{v(y_\textrm{pred})}`
+        with unit variance :math:`v(y_\textrm{pred})`.
+        Parameters
+        ----------
+        y : array of shape (n_samples,)
+            Target values.
+        y_pred : array of shape (n_samples,)
+            Predicted mean.
+        
+unit_deviance_derivativex
+z3ExponentialDispersionModel.unit_deviance_derivative
+Compute the deviance.
+        The deviance is a weighted sum of the per sample unit deviances,
+        :math:`D = \sum_i s_i \cdot d(y_i, y_\textrm{pred}_i)`
+        with weights :math:`s_i` and unit deviance
+        :math:`d(y,y_\textrm{pred})`.
+        In terms of the log-likelihood it is :math:`D = -2\phi\cdot
+        \left(loglike(y,y_\textrm{pred},\frac{phi}{s})
+        - loglike(y,y,\frac{phi}{s})\right)`.
+        Parameters
+        ----------
+        y : array of shape (n_samples,)
+            Target values.
+        y_pred : array of shape (n_samples,)
+            Predicted mean.
+        weights : {int, array of shape (n_samples,)}, default=1
+            Weights or exposure to which variance is inverse proportional.
+        )
+sumr
+weightsr
+deviance
+z#ExponentialDispersionModel.deviancec
+Compute the derivative of the deviance w.r.t. y_pred.
+        It gives :math:`\frac{\partial}{\partial y_\textrm{pred}}
+        D(y, \y_\textrm{pred}; weights)`.
+        Parameters
+        ----------
+        y : array, shape (n_samples,)
+            Target values.
+        y_pred : array, shape (n_samples,)
+            Predicted mean.
+        weights : {int, array of shape (n_samples,)}, default=1
+            Weights or exposure to which variance is inverse proportional.
+        )
+deviance_derivative
+z.ExponentialDispersionModel.deviance_derivativeN)
+__name__
+__module__
+__qualname__
+__doc__r
+	metaclassc
+TweedieDistributiona
+A class for the Tweedie distribution.
+    A Tweedie distribution with mean :math:`y_\textrm{pred}=\mathrm{E}[Y]`
+    is uniquely defined by it's mean-variance relationship
+    :math:`\mathrm{Var}[Y] \propto y_\textrm{pred}^power`.
+    Special cases are:
+    ===== ================
+    Power Distribution
+    ===== ================
+    0     Normal
+    1     Poisson
+    (1,2) Compound Poisson
+    2     Gamma
+    3     Inverse Gaussian
+    Parameters
+    ----------
+    power : float, default=0
+            The variance power of the `unit_variance`
+            :math:`v(y_\textrm{pred}) = y_\textrm{pred}^{power}`.
+            For ``0<power<1``, no distribution exists.
+    r
+power
+__init__
+TweedieDistribution.__init__c
+_power
+TweedieDistribution.powerc
+)	Nz*power must be a real number, input was {0}r
+z?Tweedie distribution is only defined for power<=0 and power>=1.
+numbersZ
+Realr
+formatr
+Infr
+ValueErrorr+
+Compute the unit variance of a Tweedie distribution
+        v(y_	extrm{pred})=y_	extrm{pred}**power.
+        Parameters
+        ----------
+        y_pred : array of shape (n_samples,)
+            Predicted mean.
+        )
+	z!TweedieDistribution.unit_varianceFc
+z>Mean Tweedie deviance error with power={} can only be used on r
+strictly positive y_pred.r
+z;Tweedie deviance is only defined for power<=0 and power>=1.r-
+z,non-negative y and strictly positive y_pred.z
+strictly positive y and y_pred.)
+anyr0
+maximumr
+log)
+message
+devr
+z!TweedieDistribution.unit_devianceN)
+propertyr(
+setterr
+NormalDistributionz1Class for the Normal (aka Gaussian) distribution.c
+superr*
+	__class__r
+NormalDistribution.__init__
+__classcell__r
+PoissonDistributionz*Class for the scaled Poisson distribution.c
+PoissonDistribution.__init__r=
+GammaDistributionz!Class for the Gamma distribution.c
+GammaDistribution.__init__r=
+InverseGaussianDistributionz>Class for the scaled InverseGaussianDistribution distribution.c
+z$InverseGaussianDistribution.__init__r=
+normalZ
+poissonZ
+gammaz
+inverse-gaussian)
+abcr
+collectionsr
+numpyr
+scipy.specialr
+EDM_DISTRIBUTIONSr
+<module>

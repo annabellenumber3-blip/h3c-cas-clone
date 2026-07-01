@@ -1,0 +1,15 @@
+[Unit]
+Description=vdpa daemon
+[Service]
+Type=forking
+EnvironmentFile=-/etc/sysconfig/vdpa
+ExecStartPre=/usr/bin/mkdir -p "/etc/vdpa/" "/var/run/vdpa/" "/var/run/vdpa/device/"
+ExecStart=/usr/share/dpdk/usertools/vdpa-ctl start $OPTIONS
+ExecStop=/usr/share/dpdk/usertools/vdpa-ctl stop
+ExecReload=/bin/kill -HUP $MAINPID
+KillMode=process
+Restart=on-failure
+RestartSec=2s
+TimeoutSec=0
+[Install]
+WantedBy=multi-user.target

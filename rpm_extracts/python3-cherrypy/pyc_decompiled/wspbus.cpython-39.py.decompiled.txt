@@ -1,0 +1,358 @@
+Z!e!
+An implementation of the Web Site Process Bus.
+This module is completely standalone, depending only on the stdlib.
+Web Site Process Bus
+--------------------
+A Bus object is used to contain and manage site-wide behavior:
+daemonization, HTTP server start/stop, process reload, signal handling,
+drop privileges, PID file management, logging for all of these,
+and many more.
+In addition, a Bus object provides a place for each web framework
+to register code that runs in response to site-wide events (like
+process start and stop), or which controls or otherwise interacts with
+the site-wide components mentioned above. For example, a framework which
+uses file-based templates would add known template filenames to an
+autoreload component.
+Ideally, a Bus object will be flexible enough to be useful in a variety
+of invocation scenarios:
+ 1. The deployer starts a site from the command line via a
+    framework-neutral deployment script; applications from multiple frameworks
+    are mixed in a single site. Command-line arguments and configuration
+    files are used to define site-wide components such as the HTTP server,
+    WSGI component graph, autoreload behavior, signal handling, etc.
+ 2. The deployer starts a site via some other process, such as Apache;
+    applications from multiple frameworks are mixed in a single site.
+    Autoreload and signal handling (from Python at least) are disabled.
+ 3. The deployer starts a site via a framework-specific mechanism;
+    for example, when running tests, exploring tutorials, or deploying
+    single applications from a single framework. The framework controls
+    which site-wide components are enabled as it sees fit.
+The Bus object in this package uses topic-based publish-subscribe
+messaging to accomplish all this. A few topic channels are built in
+('start', 'stop', 'exit', 'graceful', 'log', and 'main'). Frameworks and
+site containers are free to define their own. If a message is sent to a
+channel that has not been defined or has no listeners, there is no effect.
+In general, there should only ever be a single Bus object per process.
+Frameworks and site containers share a single Bus object by publishing
+messages and subscribing listeners.
+The Bus object works as a finite state machine which models the current
+state of the process. Bus methods move it from one state to another;
+those methods then publish to subscribed listeners on the channel for
+the new state.::
+                        O
+                        |
+                        V
+       STOPPING --> STOPPED --> EXITING -> X
+          A   A         |
+          |    \___     |
+          |        \    |
+          |         V   V
+        STARTED <-- STARTING
+always_iterablec
+ChannelFailuresz0Exception raised during errors on Bus.publish().
+z*Initialize ChannelFailures errors wrapper.N)
+superr
+__init__
+list
+_exceptions)
+self
+args
+kwargs
+	__class__
+;/usr/lib/python3.9/site-packages/cherrypy/process/wspbus.pyr
+ChannelFailures.__init__c
+z%Append the current exception to self.
+append
+exc_info
+handle_exceptionj
+z ChannelFailures.handle_exceptionc
+z*Return a list of seen exception instances.N)
+get_instancesn
+ChannelFailures.get_instancesc
+z5Render the list of errors, which happened in channel.)
+reprr
+	delimiter
+join)
+exception_stringsr
+__str__r
+ChannelFailures.__str__c
+z0Determine whether any error happened in channel.)
+boolr
+__bool__y
+ChannelFailures.__bool__)
+__name__
+__module__
+__qualname__
+__doc__r
+__repr__r
+__nonzero__
+__classcell__r
+_StateEnumc
+_StateEnum.StateNc
+Nz	states.%s)
+namer
+_StateEnum.State.__repr__)
+State
+isinstancer&
+object
+__setattr__)
+valuer
+_StateEnum.__setattr__N)
+SC_OPEN_MAXi
+d!d"
+d#d$
+d%d&
+d0d'd(
+d1d+d,
+Busas
+Process state-machine and messenger for HTTP site deployment.
+    All listeners for a given channel are guaranteed to be called even
+    if others at the same channel fail. Each failure is logged, but
+    execution proceeds on to the next listener. The only way to stop all
+    processing from inside a listener is to raise SystemExit and stop the
+    whole server.
+    Fc
+Initialize pub/sub bus.F)
+start
+stop
+exit
+graceful
+mainc
+set)
+channelr
+	<genexpr>
+Bus.__init__.<locals>.<genexpr>N)
+execv
+states
+STOPPED
+state
+dict
+	listeners
+_priorities)
+channelsr
+Bus.__init__Nc
+Add the given callback at the given channel (if not present).
+        If callback is None, return a partial suitable for decorating
+        the callback.
+        N)
+priorityr@
+	functools
+partial
+	subscriber>
+setdefaultr5
+getattrr?
+callbackr@
+ch_listenersr
+Bus.subscribec
+z(Discard the given callback (if present).N)
+discardr?
+unsubscribe
+Bus.unsubscribec
+z7Return output of all subscribers for the given channel.c
+listener
+Bus.publish.<locals>.<genexpr>r
+Error in %r listener %r
+level
+	traceback)
+sorted
+operator
+itemgetterr
+KeyboardInterrupt
+SystemExitr
+code
+	Exceptionr
+outputZ	raw_items
+itemsr@
+publish
+Bus.publishc
+z>Assert that the Bus is not running in atexit handler callback.z
+The main thread is exiting, but the Bus is in the %r state; shutting it down automatically now. You must either call bus.block() after start(), or call bus.exit() before the main thread exits.N)
+EXITING
+warnings
+warn
+RuntimeWarningr1
+_clean_exit
+Bus._clean_exitc
+Start all services.z
+Bus STARTINGr/
+Bus STARTEDz-Shutting down due to error in start listener:rN
+atexit
+registerrb
+STARTINGr<
+STARTEDrU
+e_infor
+z	Bus.startc
+z2Stop all services and prepare to exit the process.
+Bus EXITINGr1
+Bus EXITEDN)
+_exitre
+Z	exitstate
+EX_SOFTWAREr
+Bus.exitc
+Restart the process (may close connections).
+        This method does not restart the process from the calling thread;
+        instead, it stops the bus and asks the main thread to call execv.
+        TN)
+restart8
+Bus.restartc
+Advise all services to reload.z
+Bus gracefulr2
+Bus.graceful
+Wait for the EXITING state, KeyboardInterrupt or SystemExit.
+        This function is intended to be called only by the main thread.
+        After waiting for the EXITING state, it also waits for all threads
+        to terminate, and then calls os.execv if self.execv is True. This
+        design allows another thread to call bus.restart, yet have the main
+        thread perform the actual execv call (required on some platforms).
+        r4
+intervalr7
+z%Keyboard Interrupt: shutting down busz$SystemExit raised: shutting down busz)Waiting for child threads to terminate...z
+Waiting for thread %s.N)
+waitr:
+IOErrorr3
+	threading
+	enumerateZ
+currentThreadr(
+_MainThreadZ
+daemon
+getNamer
+	_do_execv)
+blockF
+z	Bus.blockc
+z=Poll for the given state(s) at intervals; publish to channel.N)
+time
+sleepr]
+Bus.waitc
+Re-execute the current process.
+        This must be called from the main thread, because certain platforms
+        (OS X) don't allow execv to be called in a child thread very well.
+        z
+Re-spawning %s
+javar
+SystemRestartZ
+win32c
+"%s"r
+argr
+<listcomp>
+z!Bus._do_execv.<locals>.<listcomp>)
+_get_true_argv
+NotImplementedErrorr
+executable
+_get_interpreter_argv
+argvr3
+_extend_pythonpathrh
+environ
+platformZ
+_systemrestartr{
+chdir
+_startup_cwd
+max_cloexec_files
+_set_cloexecr9
+Bus._do_execvc
+Retrieve current Python interpreter's arguments.
+        Returns empty tuple in case of frozen mode, uses built-in arguments
+        reproduction function otherwise.
+        Frozen mode is possible for the app has been packaged into a binary
+        executable using py2exe. In this case the interpreter's arguments are
+        already built-in into that executable.
+        :seealso: https://github.com/cherrypy/cherrypy/issues/1526
+        Ref: https://pythonhosted.org/PyInstaller/runtime-information.html
+        
+frozenF)
+subprocessZ
+_args_from_interpreter_flagsr
+Bus._get_interpreter_argvc
+Retrieve all real arguments of the python interpreter.
+        ...even those not listed in ``sys.argv``
+        :seealso: http://stackoverflow.com/a/28338254/595220
+        :seealso: http://stackoverflow.com/a/6683222/595220
+        :seealso: http://stackoverflow.com/a/28414807/595220
+        NF
+z[Cannot reconstruct command from '-c'. Ref: https://github.com/cherrypy/cherrypy/issues/1545r
+z9{} doesn't seem to be a module accessible by current user
+ctypesZ	c_wchar_pZ
+POINTERZ
+c_intZ	pythonapiZ
+Py_GetArgcArgvZ
+byrefr,
+index
+IndexError
+ValueError
+RuntimeErrorr
+access
+R_OK
+AttributeError
+format
+insertr
+char_pr
+argcZ
+_argvZ
+argv_lenZ
+is_commandZ	is_moduleZ
+m_indZ
+c_indZ
+original_moduler
+Bus._get_true_argvc
+Prepend current working dir to PATH environment variable if needed.
+        If sys.path[0] is an empty string, the interpreter was likely
+        invoked with -m and the effective path is about to change on
+        re-exec.  Add the current directory to $PYTHONPATH to ensure
+        that the new process sees the same path.
+        This issue cannot be addressed in the general case because
+        Python cannot reliably reconstruct the
+        original command line (http://bugs.python.org/issue14208).
+        (This idea filched from tornado.autoreload)
+        
+PYTHONPATH
+pathseprI
+path
+startswith)
+envZ
+path_prefixZ
+existing_pathZ
+needs_patchr
+Bus._extend_pythonpathc
+Set the CLOEXEC flag on all open files (except stdin/out/err).
+        If self.max_cloexec_files is an integer (the default), then on
+        platforms which support it, it represents the max open files setting
+        for the operating system. This function will be called just before
+        the process is restarted via os.execv() to prevent open files
+        from persisting into the new process.
+        Set self.max_cloexec_files to 0 to disable this behavior.
+        
+ranger
+fcntlZ
+F_GETFDro
+F_SETFDZ
+FD_CLOEXEC)
+flagsr
+Bus._set_cloexecc
+Stop all services.z
+Bus STOPPINGr0
+Bus STOPPEDN)
+STOPPINGr<
+Bus.stopc
+z?Start 'func' in a new thread T, then start self (and return T).Nr
+func
+	_callback9
+z*Bus.start_with_callback.<locals>._callback)
+targetr
+Bus Callback )
+ThreadZ
+setNamerr
+start_with_callback1
+Bus.start_with_callbackr
+z>Log the given message. Append the last traceback if requested.r
+_traceback
+format_exceptionr
+msgrP
+Bus.log)
+	max_filesr
+staticmethodr
+)#r!
+ImportErrorrS
+more_itertoolsr
+getcwdr
+sysconfr
+busr
+<module>

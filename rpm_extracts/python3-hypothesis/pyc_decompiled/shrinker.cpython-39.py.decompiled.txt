@@ -1,0 +1,736 @@
+m	Z	m
+Z&e&d
+Z'e&d
+d!d"
+d"e+
+defaultdict)
+DictN)
+int_from_bytes
+int_to_bytes)
+ChoiceTree
+prefix_selection_order
+random_selection_order)
+ConjectureResult
+Status)
+DRAW_FLOAT_LABEL
+float_to_lex
+lex_to_float)
+binary_search
+find_integer
+replace_all)
+Float
+Integer
+Lexical
+Ordering)
+SHRINKING_DFASc
+Returns a sort key such that "simpler" buffers are smaller than
+    "more complicated" ones.
+    We define sort_key so that x is simpler than y if x is shorter than y or if
+    they have the same length and x < y lexicographically. This is called the
+    shortlex order.
+    The reason for using the shortlex order is:
+    1. If x is shorter than y then that means we had to make fewer decisions
+       in constructing the test case when we ran x than we did when we ran y.
+    2. If x is the same length as y then replacing a byte with a lower byte
+       corresponds to reducing the value of an integer we drew with draw_bits
+       towards zero.
+    3. We want a total order, and given (2) the natural choices for things of
+       the same size are either the lexicographic or colexicographic orders
+       (the latter being the lexicographic order of the reverse of the string).
+       Because values drawn early in generation potentially get used in more
+       places they potentially have a more significant impact on the final
+       result, so it makes sense to prioritise reducing earlier values over
+       later ones. This makes the lexicographic order the more natural choice.
+    
+buffer
+K/usr/lib/python3.9/site-packages/hypothesis/internal/conjecture/shrinker.py
+sort_key%
+ShrinkPassDefinition
+SHRINK_PASS_DEFINITIONSc
+A shrink pass bundles together a large number of local changes to
+    the current shrink target.
+    Each shrink pass is defined by some function and some arguments to that
+    function. The ``generate_arguments`` function returns all arguments that
+    might be useful to run on the current shrink target.
+    The guarantee made by methods defined this way is that after they are
+    called then *either* the shrink target has changed *or* each of
+    ``fn(*args)`` has been called for every ``args`` in ``generate_arguments(self)``.
+    No guarantee is made that all of these will be called if the shrink target
+    changes.
+    c
+run_with_chooser
+__name__
+selfr
+nameT
+ShrinkPassDefinition.namec
+__attrs_post_init__X
+z(ShrinkPassDefinition.__attrs_post_init__N)
+__module__
+__qualname__
+__doc__
+attr
+ibr!
+propertyr%
+z2A convenient decorator for defining shrink passes.c
+Nz(Shrink passes should not be run directly)
+NotImplementedErrorr#
+runc
+z0defines_shrink_pass.<locals>.accept.<locals>.runT)
+is_shrink_pass)
+run_stepr.
+accept`
+z#defines_shrink_pass.<locals>.acceptr
+defines_shrink_pass]
+d d!
+d"d#
+d$d%
+d&d'
+d(d)
+d*d+
+d,d-
+d.d/
+d0d1
+d2d3
+d4d5
+d6d7
+Z d8d9
+Z!d:d;
+d<d=
+Z#d>d?
+Z$d@dA
+Z%dBdC
+dDdE
+dFdG
+dHdI
+dJdK
+dLdM
+dNdO
+dPdQ
+dRdS
+Z.dXdUdV
+Z/dWS
+Shrinkerat
+A shrinker is a child object of a ConjectureRunner which is designed to
+    manage the associated state of a particular shrink problem. That is, we
+    have some initial ConjectureData object and some property of interest
+    that it satisfies, and we want to find a ConjectureData object with a
+    shortlex (see sort_key above) smaller buffer that exhibits the same
+    property.
+    Currently the only property of interest we use is that the status is
+    INTERESTING and the interesting_origin takes on some fixed value, but we
+    may potentially be interested in other use cases later.
+    However we assume that data with a status < VALID never satisfies the predicate.
+    The shrinker keeps track of a value shrink_target which represents the
+    current best known ConjectureData object satisfying the predicate.
+    It refines this value by repeatedly running *shrink passes*, which are
+    methods that perform a series of transformations to the current shrink_target
+    and evaluate the underlying test function to find new ConjectureData
+    objects. If any of these satisfy the predicate, the shrink_target
+    is updated automatically. Shrinking runs until no shrink pass can
+    improve the shrink_target, at which point it stops. It may also be
+    terminated if the underlying engine throws RunIsComplete, but that
+    is handled by the calling code rather than the Shrinker.
+    =======================
+    Designing Shrink Passes
+    =======================
+    Generally a shrink pass is just any function that calls
+    cached_test_function and/or incorporate_new_buffer a number of times,
+    but there are a couple of useful things to bear in mind.
+    A shrink pass *makes progress* if running it changes self.shrink_target
+    (i.e. it tries a shortlex smaller ConjectureData object satisfying
+    the predicate). The desired end state of shrinking is to find a
+    value such that no shrink pass can make progress, i.e. that we
+    are at a local minimum for each shrink pass.
+    In aid of this goal, the main invariant that a shrink pass much
+    satisfy is that whether it makes progress must be deterministic.
+    It is fine (encouraged even) for the specific progress it makes
+    to be non-deterministic, but if you run a shrink pass, it makes
+    no progress, and then you immediately run it again, it should
+    never succeed on the second time. This allows us to stop as soon
+    as we have run each shrink pass and seen no progress on any of
+    them.
+    This means that e.g. it's fine to try each of N deletions
+    or replacements in a random order, but it's not OK to try N random
+    deletions (unless you have already shrunk at least once, though we
+    don't currently take advantage of this loophole).
+    Shrink passes need to be written so as to be robust against
+    change in the underlying shrink target. It is generally safe
+    to assume that the shrink target does not change prior to the
+    point of first modification - e.g. if you change no bytes at
+    index ``i``, all examples whose start is ``<= i`` still exist,
+    as do all blocks, and the data object is still of length
+    ``>= i + 1``. This can only be violated by bad user code which
+    relies on an external source of non-determinism.
+    When the underlying shrink_target changes, shrink
+    passes should not run substantially more test_function calls
+    on success than they do on failure. Say, no more than a constant
+    factor more. In particular shrink passes should not iterate to a
+    fixed point.
+    This means that shrink passes are often written with loops that
+    are carefully designed to do the right thing in the case that no
+    shrinks occurred and try to adapt to any changes to do a reasonable
+    job. e.g. say we wanted to write a shrink pass that tried deleting
+    each individual byte (this isn't an especially good choice,
+    but it leads to a simple illustrative example), we might do it
+    by iterating over the buffer like so:
+    .. code-block:: python
+        i = 0
+        while i < len(self.shrink_target.buffer):
+            if not self.incorporate_new_buffer(
+                self.shrink_target.buffer[:i] + self.shrink_target.buffer[i + 1 :]
+            ):
+                i += 1
+    The reason for writing the loop this way is that i is always a
+    valid index into the current buffer, even if the current buffer
+    changes as a result of our actions. When the buffer changes,
+    we leave the index where it is rather than restarting from the
+    beginning, and carry on. This means that the number of steps we
+    run in this case is always bounded above by the number of steps
+    we would run if nothing works.
+    Another thing to bear in mind about shrink pass design is that
+    they should prioritise *progress*. If you have N operations that
+    you need to run, you should try to order them in such a way as
+    to avoid stalling, where you have long periods of test function
+    invocations where no shrinks happen. This is bad because whenever
+    we shrink we reduce the amount of work the shrinker has to do
+    in future, and often speed up the test function, so we ideally
+    wanted those shrinks to happen much earlier in the process.
+    Sometimes stalls are inevitable of course - e.g. if the pass
+    makes no progress, then the entire thing is just one long stall,
+    but it's helpful to design it so that stalls are less likely
+    in typical behaviour.
+    The two easiest ways to do this are:
+    * Just run the N steps in random order. As long as a
+      reasonably large proportion of the operations succeed, this
+      guarantees the expected stall length is quite short. The
+      book keeping for making sure this does the right thing when
+      it succeeds can be quite annoying.
+    * When you have any sort of nested loop, loop in such a way
+      that both loop variables change each time. This prevents
+      stalls which occur when one particular value for the outer
+      loop is impossible to make progress on, rendering the entire
+      inner loop into a stall.
+    However, although progress is good, too much progress can be
+    a bad sign! If you're *only* seeing successful reductions,
+    that's probably a sign that you are making changes that are
+    too timid. Two useful things to offset this:
+    * It's worth writing shrink passes which are *adaptive*, in
+      the sense that when operations seem to be working really
+      well we try to bundle multiple of them together. This can
+      often be used to turn what would be O(m) successful calls
+      into O(log(m)).
+    * It's often worth trying one or two special minimal values
+      before trying anything more fine grained (e.g. replacing
+      the whole thing with zero).
+    c
+It's useful during shrinking to have access to derived values of
+        the current shrink target.
+        This decorator allows you to define these as cached properties. They
+        are calculated once, then cached until the shrink target changes, then
+        recalculated the next time they are used.c
+_Shrinker__derived_valuesr"
+KeyError
+setdefaultr#
+z&Shrinker.derived_value.<locals>.accept)
+derived_value
+Shrinker.derived_valuec
+Create a shrinker for a particular engine, with a given starting
+        point and predicate. When shrink() is called it will attempt to find an
+        example for which predicate is True and which is strictly smaller than
+        initial.
+        Note that initial is a ConjectureData object, and predicate
+        takes ConjectureData objects.
+        Nc
+datar
+<lambda>
+z#Shrinker.__init__.<locals>.<lambda>c
+sourceZ
+destinationr
+engine
+_Shrinker__predicate
+_Shrinker__allow_transitionr2
+Z%_Shrinker__pending_shrink_explanationr
+initial_size
+shrink_target
+update_shrink_target
+shrinks
+	max_stall
+call_count
+initial_calls
+calls_at_last_shrink
+passes_by_name
+passes
+extra_dfas)
+initialZ	predicateZ
+allow_transitionr
+__init__
+Shrinker.__init__c
+cached_calculations,
+Shrinker.cached_calculationsc
+fZ	cache_key
+keysr$
+Shrinker.cached.<locals>.acceptr
+cached0
+Shrinker.cachedc
+z<Creates a shrink pass corresponding to calling ``run(self)``)
+shrinker
+index)
+ShrinkPassr!
+appendrI
+definition
+add_new_pass:
+Shrinker.add_new_passc
+z>Return the ShrinkPass object for the pass with the given name.)
+isinstancerU
+shrink_passH
+Shrinker.shrink_passc
+match_cacheP
+Shrinker.match_cachec
+zTReturns all pairs (u, v) such that self.buffer[u:v] is accepted
+        by this DFA.c
+z+Shrinker.matching_regions.<locals>.<lambda>
+keyc
+matchesr
+dfar$
+	<genexpr>^
+z,Shrinker.matching_regions.<locals>.<genexpr>)
+all_matching_regionsr
+sort
+all)
+resultsr
+matching_regionsT
+Shrinker.matching_regionsc
+zWReturn the number of calls that have been made to the underlying
+        test function.)
+callsb
+Shrinker.callsc
+z`Returns True if after running this buffer the result would be
+        the current shrink_target.)
+bytes
+startswithr
+incorporate_new_buffer)
+consider_new_bufferh
+Shrinker.consider_new_bufferc
+Either runs the test function on this buffer and returns True if
+        that changed the shrink_target, or determines that doing so would
+        be useless and returns False without running it.NF)
+cached_test_function)
+previousr
+Shrinker.incorporate_new_bufferc
+Takes a ConjectureData or Overrun object updates the current
+        shrink_target if this data represents an improvement over it.N)	
+statusr
+VALIDrB
+incorporate_test_data
+Shrinker.incorporate_test_datac
+Returns a cached version of the underlying test function, so
+        that the result is either an Overrun object (if the buffer is
+        too short to be a valid test case) or a ConjectureData object
+        with status >= INVALID that would result from running this buffer.)
+StopShrinking)
+resultr
+Shrinker.cached_test_functionc
+debug)
+msgr
+Shrinker.debugc
+randomr#
+Shrinker.randomc
+Run the full set of shrinks and update shrink_target.
+        This method is "mostly idempotent" - calling it twice is unlikely to
+        have any effect, though it has a non-zero probability of doing so.
+        Nc
+Shrinker.shrink.<locals>.sz
+---------------------z
+Shrink pass profilingr|
+zYShrinking made a total of %d call%s of which %d shrank. This deleted %d byte%s out of %d.)
+Useful passes:z
+Useless passes:c
+	deletionsrD
+z!Shrinker.shrink.<locals>.<lambda>r`
+z=  * %s made %d call%s of which %d shrank, deleting %d byte%s.)
+anyrB
+greedy_shrinkrv
+report_debug_inforA
+sortedrJ
+total_deletedrm
+usefulrW
+shrink
+Shrinker.shrinkc
+Run a full set of greedy shrinks (that is, ones that will only ever
+        move to a better target) and update shrink_target appropriately.
+        This method iterates to a fixed point and so is idempontent - calling
+        it twice will have exactly the same effect as calling it once.
+        Z
+XXXXXZ
+XXXXZ
+XXXZ
+pass_to_descendant
+reorder_examples
+minimize_floats
+minimize_duplicated_blocksz
+minimize_individual_blocksz
+redistribute_block_pairs
+lower_blocks_togetherc
+dfa_replacement)
+<listcomp>	
+z*Shrinker.greedy_shrink.<locals>.<listcomp>N)
+fixate_shrink_passes
+block_programr
+Shrinker.greedy_shrinkc
+shrink_pass_choice_trees
+z!Shrinker.shrink_pass_choice_treesc
+}	qVt
+}	qV|
+q8t	|
+zoRun steps from each pass in ``passes`` until the current shrink target
+        is a fixed point of all of them.TFr]
+random_order
+list
+maprZ
+remove_discardedrm
+maxrE
+stepr
+__getitem__)
+any_ranZ
+reorderingZ
+can_discardZ
+calls_at_loop_startZ
+max_calls_per_failing_stepZ
+spZ	before_spZ
+failuresZ
+max_failures
+prevrG
+Shrinker.fixate_shrink_passesc
+Shrinker.bufferc
+blocksr#
+Shrinker.blocksc
+examplesr#
+Shrinker.examplesc
+all_boundsr#
+all_block_bounds|
+Shrinker.all_block_boundsc
+znAn index of all examples grouped by their label, with
+        the examples stored in their normal index order.)
+labelrV
+dict)
+examples_by_label
+Shrinker.examples_by_labelc
+strr#
+distinct_labels
+Shrinker.distinct_labelsc
+Attempt to replace each example with a descendant example.
+        This is designed to deal with strategies that call themselves
+        recursively. For example, suppose we had:
+        binary_tree = st.deferred(
+            lambda: st.one_of(
+                st.integers(), st.tuples(binary_tree, binary_tree)))
+        This pass guarantees that we can replace any binary tree with one of
+        its subtrees - each of those will create an interval that the parent
+        could validly be replaced with, and this pass will try doing that.
+        This is pretty expensive - it takes O(len(intervals)^2) - so we run it
+        late in the process when we've got the number of intervals as far down
+        as possible.
+        c
+z-Shrinker.pass_to_descendant.<locals>.<lambda>r]
+length)
+ancestorr
+zDShrinker.pass_to_descendant.<locals>.descendants.<locals>.<listcomp>)
+start
+end)
+mid)
+descendants
+z0Shrinker.pass_to_descendant.<locals>.descendantsc
+chooser
+ranger
+chooserr
+descendantr
+Shrinker.pass_to_descendantc
+Sometimes we find ourselves in a situation where changes to one part
+        of the byte stream unlock changes to other parts. Sometimes this is
+        good, but sometimes this can cause us to exhibit exponential slow
+        downs!
+        e.g. suppose we had the following:
+        m = draw(integers(min_value=0))
+        n = draw(integers(min_value=0))
+        assert abs(m - n) > 1
+        If this fails then we'll end up with a loop where on each iteration we
+        reduce each of m and n by 2 - m can't go lower because of n, then n
+        can't go lower because of m.
+        This will take us O(m) iterations to complete, which is exponential in
+        the data size, as we gradually zig zag our way towards zero.
+        This can only happen if we're failing to reduce the size of the byte
+        stream: The number of iterations that reduce the length of the byte
+        stream is bounded by that length.
+        So what we do is this: We keep track of which blocks are changing, and
+        then if there's some non-zero common offset to them we try and minimize
+        them all at once by lowering that offset.
+        This may not work, and it definitely won't get us out of all possible
+        exponential slow downs (an example of where it doesn't is where the
+        shape of the blocks changes as a result of this bouncing behaviour),
+        but it fails fast when it doesn't work and gets us out of a really
+        nastily slow case when it does.
+        r]
+currentr
+z6Shrinker.lower_common_block_offset.<locals>.<listcomp>c
+trivial
+blockedr
+zipr
+join)
+new_blocksr
+changed
+intsr$
+reoffset
+z4Shrinker.lower_common_block_offset.<locals>.reoffset
+_Shrinker__changed_blocksrB
+minr
+clear_change_tracking)
+offsetr
+lower_common_block_offset
+z"Shrinker.lower_common_block_offsetc
+"_Shrinker__last_checked_changed_at
+_Shrinker__all_changed_blocksr#
+Shrinker.clear_change_trackingc
+add)
+mark_changed
+Shrinker.mark_changedc
+newr
+z+Shrinker.__changed_blocks.<locals>.<lambda>c
+	endpointsr
+boundsr
+prev_target
+new_targetZ
+last_changedZ
+first_changedr
+__changed_blocks
+Shrinker.__changed_blocksc
+Shrinker.update_shrink_targetc
+j	}	|
+j	|	k
+Attempts to replace each block in the blocks list with b. Returns
+        True if it succeeded (which may include some additional modifications
+        to shrink_target).
+        In current usage it is expected that each of the blocks currently have
+        the same value, although this is not essential. Note that b must be
+        < the block at min(blocks) or this is not a valid shrink.
+        This method will attempt to do some small amount of work to delete data
+        that occurs after the end of the blocks. This is useful for cases where
+        there is some size dependency on the value of a block.
+        NFr
+z1Shrinker.try_shrinking_blocks.<locals>.<listcomp>c
+z/Shrinker.try_shrinking_blocks.<locals>.<lambda>)
+reverse)
+	bytearrayrB
+	enumerater
+childrenr
+initial_attemptr
+blockrd
+initial_dataZ	lost_dataZ
+regions_to_delete
+lostr
+replacementZ
+in_originalZ
+in_replacedZ
+try_with_deletedr
+try_shrinking_blocksR
+Shrinker.try_shrinking_blocksc
+Try removing all bytes marked as discarded.
+        This is primarily to deal with data that has been ignored while
+        doing rejection sampling - e.g. as a result of an integer range, or a
+        filtered strategy.
+        Such data will also be handled by the adaptive_example_deletion pass,
+        but that pass is necessarily more conservative and will try deleting
+        each interval individually. The common case is that all data drawn and
+        rejected can just be thrown away immediately in one block, so this pass
+        will be much faster than trying each one individually when it works.
+        returns False if there is discarded data and removing it does not work,
+        otherwise returns True.
+        r
+has_discardsr
+	discardedr
+reversedrp
+attemptrd
+Shrinker.remove_discardedc
+Returns a list of blocks grouped by their non-zero suffix,
+        as a list of (suffix, indices) pairs, skipping all groupings
+        where there is only one index.
+        This is only used for the arguments of minimize_duplicated_blocks.
+        )	r
+non_zero_suffixr
+duplicatesr
+blocks_by_non_zero_suffix
+z"Shrinker.blocks_by_non_zero_suffixc
+duplicated_block_suffixes
+z"Shrinker.duplicated_block_suffixesc
+Find blocks that have been duplicated in multiple places and attempt
+        to minimize all of the duplicates simultaneously.
+        This lets us handle cases where two values can't be shrunk
+        independently of each other but can easily be shrunk together.
+        For example if we had something like:
+        ls = data.draw(lists(integers()))
+        y = data.draw(integers())
+        assert y not in ls
+        Suppose we drew y = 3 and after shrinking we have ls = [3]. If we were
+        to replace both 3s with 0, this would be a valid shrink, but if we were
+        to replace either 3 with 0 on its own the test would start passing.
+        It is also useful for when that duplication is accidental and the value
+        of the blocks doesn't matter very much because it allows us to replace
+        more values at once.
+        r]
+targetsr
+z5Shrinker.minimize_duplicated_blocks.<locals>.<lambda>F
+full)
+z#Shrinker.minimize_duplicated_blocksc
+Some shrinks that we employ that only really make sense for our
+        specific floating point encoding that are hard to discover from any
+        sort of reasonable general principle. This allows us to make
+        transformations like replacing a NaN with an Infinity or replacing
+        a float with its nearest integers that we would otherwise not be
+        able to due to them requiring very specific transformations of
+        the bit sequence.
+        We only apply these transformations to blocks that "look like" our
+        standard float encodings because they are only really meaningful
+        there. The logic for detecting this is reasonably precise, but
+        it doesn't matter if it's wrong. These are always valid
+        transformations to make, they just don't necessarily correspond to
+        anything particularly meaningful for non-float values.
+        c
+z*Shrinker.minimize_floats.<locals>.<lambda>r]
+bufr
+Shrinker.minimize_floatsc
+qLq(d
+If there is a sum of generated integers that we need their sum
+        to exceed some bound, lowering one of them requires raising the
+        other. This pass enables that.c
+all_zeror
+z3Shrinker.redistribute_block_pairs.<locals>.<lambda>r]
+OverflowErrorrq
+next_blockr$
+boost\
+z0Shrinker.redistribute_block_pairs.<locals>.boost)
+z!Shrinker.redistribute_block_pairsc
+z0Shrinker.lower_blocks_together.<locals>.<lambda>r]
+lower
+z-Shrinker.lower_blocks_together.<locals>.lower)
+Shrinker.lower_blocks_togetherc
+}	|	|
+Attempt to minimize each block in sequence.
+        This is the pass that ensures that e.g. each integer we draw is a
+        minimum value. So it's the part that guarantees that if we e.g. do
+        x = data.draw(integers())
+        assert x < 10
+        then in our shrunk example, x = 10 rather than say 97.
+        If we are unsuccessful at minimizing a block of interest we then
+        check if that's because it's changing the size of the test case and,
+        if so, we also make an attempt to delete parts of the test case to
+        see if that fixes it.
+        We handle most of the common cases in try_shrinking_blocks which is
+        pretty good at clearing out large contiguous blocks of dead space,
+        but it fails when there is data that has to stay in particular places
+        in the list.
+        c
+z5Shrinker.minimize_individual_blocks.<locals>.<lambda>c
+first_example_after_block
+zFShrinker.minimize_individual_blocks.<locals>.first_example_after_blockc
+loweredr
+z#Shrinker.minimize_individual_blocksc
+This pass allows us to reorder the children of each example.
+        For example, consider the following:
+        .. code-block:: python
+            import hypothesis.strategies as st
+            from hypothesis import given
+            @given(st.text(), st.text())
+            def test_not_equal(x, y):
+                assert x != y
+        Without the ability to reorder x and y this could fail either with
+        ``x=""``, ``y="0"``, or the other way around. With reordering it will
+        reliably fail with ``x=""``, ``y="0"``.
+        c
+z-Shrinker.reorder_examples.<locals>.<listcomp>r]
+z?Shrinker.reorder_examples.<locals>.<lambda>.<locals>.<listcomp>)
+z+Shrinker.reorder_examples.<locals>.<lambda>r
+group
+piecesr
+Shrinker.reorder_examplesr]
+qHq4|
+Block programs are a mini-DSL for block rewriting, defined as a sequence
+        of commands that can be run at some index into the blocks
+        Commands are:
+            * "-", subtract one from this block.
+            * "X", delete this block
+        If a command does not apply (currently only because it's - on a zero
+        block) the block will be silently skipped over.
+        This method runs the block program in ``description`` at block index
+        ``i`` on the ConjectureData ``original``. If ``repeats > 1`` then it
+        will attempt to approximate the results of running it that many times.
+        Returns True if this successfully changes the underlying shrink target,
+        else False.
+        r
+Unrecognised command )
+description
+original
+repeatsr
+valuer
+run_block_program
+Shrinker.run_block_programN)
+)0r"
+{}({})z
+argsrO
+z/shrink_pass_family.<locals>.accept.<locals>.run)
+formatr"
+reprr
+z"shrink_pass_family.<locals>.acceptr
+shrink_pass_family.
+Mini-DSL for block rewriting. A sequence of commands that will be run
+    over all contiguous sequences of blocks of the description length in order.
+    Commands are:
+        * ".", keep this block unchanged
+        * "-", subtract one from this block.
+        * "0", replace this block with zero
+        * "X", delete this block
+    If a command does not apply (currently only because it's - on a zero
+    block) the block will be silently skipped over. As a side effect of
+    running a block program its score will be updated.
+    
+offset_left\
+z"block_program.<locals>.offset_leftc
+block_program.<locals>.<lambda>c
+Use one of our previously learned shrinking DFAs to reduce
+    the current test case. This works by finding a match of the DFA in the
+    current buffer that is not already minimal and attempting to replace it
+    with the minimal string matching that DFA.
+    c
+minimalr$
+z!dfa_replacement.<locals>.<lambda>N)
+nextZ
+all_matching_stringsr
+)	r$
+dfa_namerg
+replacedr
+slots
+defaultr
+z!ShrinkPass.step.<locals>.<lambda>T)
+Z	exhaustedrD
+explain_next_call_asr%
+last_prefixr
+clear_call_explanation)
+treeZ
+initial_shrinksrG
+sizeZ
+selection_orderr
+ShrinkPass.stepc
+ShrinkPass.nameN)
+Z	successesrm
+zEReturns the longest suffix of b that starts with a non-zero
+    byte.r
+collectionsr
+typingr
+hypothesis.internal.compatr
+Z)hypothesis.internal.conjecture.choicetreer
+Z#hypothesis.internal.conjecture.datar	
+Z%hypothesis.internal.conjecture.floatsr
+Z)hypothesis.internal.conjecture.junkdrawerr
+Z(hypothesis.internal.conjecture.shrinkingr
+Z5hypothesis.internal.conjecture.shrinking.learned_dfasr
+__annotations__r{
+	Exceptionrv
+<module>

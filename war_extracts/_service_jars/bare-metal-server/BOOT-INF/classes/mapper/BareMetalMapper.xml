@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.h3c.h3cloud.bare.metal.mapper.BareMetalMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.h3c.h3cloud.bare.metal.model.BareMetal">
+        <id column="ID" property="id" />
+        <result column="TITLE" property="title" />
+        <result column="DESCRIPTION" property="description" />
+        <result column="ILO_IP" property="iloIp" />
+        <result column="ILO_USER" property="iloUser" />
+        <result column="ILO_PW" property="iloPw" />
+        <result column="ILO_PROTOCOL" property="iloProtocol" />
+        <result column="ILO_PORT" property="iloPort" />
+        <result column="OS_VERSION" property="osVersion" />
+        <result column="CPU" property="cpu" />
+        <result column="CPU_SOCKET" property="cpuSocket" />
+        <result column="CPU_CORE" property="cpuCore" />
+        <result column="MEMORY" property="memory" />
+        <result column="OP_GROUP_ID" property="opGroupId" />
+        <result column="OP_GROUP_CODE" property="opGroupCode" />
+        <result column="INSTALL_STATUS" property="installStatus" />
+        <result column="STORAGE" property="storage" />
+        <result column="SERIAL_NUMBER" property="serialNumber" />
+        <result column="POWER_STATUS" property="powerStatus" />
+        <result column="UUID" property="uuid" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        ID AS id, TITLE AS title, DESCRIPTION AS description, ILO_IP AS iloIp, ILO_USER AS iloUser, ILO_PW AS iloPw,
+        ILO_PROTOCOL AS iloProtocol, ILO_PORT AS iloPort, CPU_SOCKET AS cpuSocket, CPU_CORE AS cpuCore,
+        OS_VERSION AS osVersion, CPU AS cpu, MEMORY AS memory, INSTALL_STATUS AS installStatus, STORAGE AS storage,
+        SERIAL_NUMBER AS serialNumber, POWER_STATUS AS powerStatus, UUID AS uuid
+    </sql>
+
+
+    <select id="getBareMetalPageList" resultType="com.h3c.h3cloud.bare.metal.model.BareMetal">
+        select * from
+        TBL_BARE_METAL
+        <where>
+            <if test="map.title!=null and map.title!=''">
+                and TITLE like #{map.title}
+            </if>
+            <if test="map.operatorGroupCode!=null and map.operatorGroupCode!=''">
+                and OP_GROUP_CODE like #{map.operatorGroupCode}
+            </if>
+        </where>
+        <if test="map.sortField!=null and map.sortField!=''">
+            order by ${map.sortField}
+        </if>
+        <if test="map.sortField!=null and map.sortField!='' and map.sortDir!=null and map.sortDir!=''">
+            ${map.sortDir}
+        </if>
+    </select>
+
+    <select id="sumCpuSocket" resultType="Integer">
+        select sum(CPU_SOCKET) from TBL_BARE_METAL;
+    </select>
+
+</mapper>

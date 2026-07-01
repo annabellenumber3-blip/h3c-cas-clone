@@ -1,0 +1,164 @@
+#!/bin/bash
+#
+############################################################################
+#    File Name: ovs_handle_bridge_event
+#  Description: add some special flows for bridge
+#        notes: The file is not encrypted, because we can open the file to configure flow table when necessary
+#        Input: $1: operation mode, such as init or add; must
+#        Input: $2: bridge name, is must when operation mode is add
+#-----------------------------------------------------------------------------
+#  Modification History
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+#
+OVS_SHELL_SCRIPT_PATH="/opt/bin"
+. ${OVS_SHELL_SCRIPT_PATH}/ovs_shellfuncs
+. ${OVS_SHELL_SCRIPT_PATH}/ovs_returncodes
+
+shellname="ovs_handle_bridge_event"
+
+SUBNET_FLOWS_PATH="/etc/net-agent/flows/bridge-subnet"
+
+wait_bridge_ready(){
+    local bridge_name
+    local count
+    bridge_name=$1
+    count=0
+
+    while true
+    do
+        strResult=$(ovs-ofctl -t 2 probe $bridge_name 2>&1)
+        if [ $? -eq 0 ]; then
+            break
+        else
+            if [ $? -ne 142 ]; then
+                sleep 1
+            fi
+
+            count=`expr $count + 1`
+            if [ $count -eq 10 ]; then
+                ovs_printlog ${shellname} err "failed to init $bridge_name or there is no bridge named $bridge_name\r\n"
+                return 1
+            fi
+        fi
+    done
+}
+
+ovs_handle_subnet_event() {
+    local bridge_name=$1
+    if test -f $OVS_SHELL_SCRIPT_PATH/ovs_subnet.pyc;then
+        xml_str="<request><operation>validate</operation><vswitch><name>$bridge_name</name></vswitch></request>"
+        /usr/bin/python3 $OVS_SHELL_SCRIPT_PATH/ovs_subnet.pyc --xml "$xml_str" || true
+    fi
+}
+
+##88dc types of data packets will cause VM of windows blue screen, add flow table to filter it
+ovs_handle_bridge_add() {
+    local bridge_name=$1
+    ##if wait_bridge_ready $bridge_name;then
+        ##ovs-ofctl -t 5 add-flow $bridge_name dl_type=0x88dc,actions=drop
+    ##fi
+    :
+    #ovs_handle_subnet_event $bridge_name
+
+    #if test -f $OVS_SHELL_SCRIPT_PATH/ovs_network_priority.pyc;then
+    #    /usr/bin/python $OVS_SHELL_SCRIPT_PATH/ovs_network_priority.pyc validate --bridge $bridge_name || true
+    #fi
+
+    ip link set dev $bridge_name up 2>/dev/null
+    if [ -x /opt/bin/roce_pfc.sh ]; then
+        /opt/bin/roce_pfc.sh $bridge_name 2>/dev/null
+    fi
+}
+
+ovs_handle_bridge_mod() {
+    local bridge_name=$1
+    ##if wait_bridge_ready $bridge_name;then
+        ##ovs-ofctl -t 5 add-flow $bridge_name dl_type=0x88dc,actions=drop
+    ##fi
+    :
+    ovs_handle_subnet_event $bridge_name
+
+    if test -f /opt/bin/ovs_network_priority.pyc;then
+        /usr/bin/python3 /opt/bin/ovs_network_priority.pyc validate --bridge $bridge_name || true
+    fi
+
+    if [ -x /opt/bin/roce_pfc.sh ]; then
+        /opt/bin/roce_pfc.sh $bridge_name 2>/dev/null
+    fi
+}
+
+ovs_handle_bridge_del() {
+    local bridge_name=$1
+    local flow_file="$SUBNET_FLOWS_PATH/flows.$bridge_name"
+
+    [ -e $flow_file ] && rm -f $flow_file
+}
+
+ovs_handle_bridge_init(){
+    local bridge_name
+
+    ALL_BRIDGE=$(/opt/bin/ovs_bridge.sh list --vswitch | cut -d ':' -f 2 | tr -d ' ' | sed 's/,/ /g')
+    for bridge_name in $ALL_BRIDGE
+    do
+        ovs_handle_bridge_add $bridge_name
+    done
+}
+
+ovs_handle_iface_ipv6(){
+    local active_backup_ifaces=""
+
+    sed -i -e '/disable_ipv6/d' /etc/sysctl.conf
+    for bond_port in $(ovs-vsctl --column=name --bare find port bond_mode=active-backup)
+    do
+        ifaces=$(ovs-vsctl -t 3 --if-exists get port $bond_port Interfaces 2> /dev/null | tr -d '[],'|
+            xargs ovs-vsctl -t 2 --bare --columns=name list Interface | grep -v "^ *$")
+        for iface in $ifaces
+        do
+            active_backup_ifaces="$active_backup_ifaces $iface"
+            if [ -f "/proc/sys/net/ipv6/conf/$iface/disable_ipv6" ]; then
+                echo 1 > /proc/sys/net/ipv6/conf/$iface/disable_ipv6
+            fi
+        done
+    done
+
+    for iface in $(ls -l /sys/class/net/ |grep -E "devices/pci|devices/platform" |awk '{print $9}')
+    do
+        if ! echo $active_backup_ifaces | grep -wq $iface; then
+            if [ -f "/proc/sys/net/ipv6/conf/$iface/disable_ipv6" ]; then
+                echo 0 > /proc/sys/net/ipv6/conf/$iface/disable_ipv6
+            fi
+        fi
+    done
+}
+
+ovs_handle_bridge_event(){
+
+    if [ $# -lt 1 ]; then
+        ovs_printlog ${shellname} err "Wrong arguments[$#]. Usage:\r\n \$1\r\n: mode such as init or add, must\r\n"
+        return ${OVS_ERR_WRONG_PARAM}
+    fi
+
+    local bridge_name
+
+    # init, add, del are removed, as the functionality are done in net-agent. keep mod handled
+    if [ $1 = "mod" ]; then
+        bridge_name=$2
+        ovs_handle_bridge_mod $bridge_name
+    elif [ $1 = "add" ]; then
+        bridge_name=$2
+        ovs_handle_bridge_add $bridge_name
+    elif [ $1 = "init" ]; then
+        ovs_handle_bridge_init
+    elif [ $1 = "del" ]; then
+        bridge_name=$2
+        ovs_handle_bridge_del $bridge_name
+    fi
+    ovs_handle_iface_ipv6
+}
+
+ovs_handle_bridge_event $@
+
+###############################################################################
+## end of file
+###############################################################################

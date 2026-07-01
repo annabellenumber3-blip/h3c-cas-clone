@@ -1,0 +1,552 @@
+d d!
+d"d#
+d'd(
+d)d*
+d,d-
+d.d/
+d0d1
+Z"d2Z#d3Z$d4Z%d5Z&e"e
+a'e"e
+a(e"e
+a)e"e
+Z*e!e
+d6d7
+Z,dpd
+d9d:d d;
+d<d=
+a-dqd
+d>d>d d?
+d@dA
+dCdD
+dEdF
+dGdH
+dIdJ
+dLdM
+dNdO
+dPdQ
+dRdS
+dUdV
+Z6drdXd
+dZd[
+d\d]
+Z8d^d_d`
+dadb
+Z9d_d!
+dcdd
+Z:d_d!
+dedf
+Z;dgd dh
+didj
+Z<e9e=
+Z>e9e?
+Z@e9eA
+ZBe9eC
+ZDe:eCeEf
+dkdl
+The config module holds package-wide configurables and provides
+a uniform API for working with them.
+Overview
+========
+This module supports the following requirements:
+- options are referenced using keys in dot.notation, e.g. "x.y.option - z".
+- keys are case-insensitive.
+- functions should accept partial/regex keys, when unambiguous.
+- options can be registered by modules at import time.
+- options can be registered at init-time (via core.config_init)
+- options have a default value, and (optionally) a description and
+  validation function associated with them.
+- options can be deprecated, in which case referencing them
+  should produce a warning.
+- deprecated options can optionally be rerouted to a replacement
+  so that accessing a deprecated option reroutes to a differently
+  named option.
+- options can be reset to their default value.
+- all option can be reset to their default value at once.
+- all options in a certain sub - namespace can be reset at once.
+- the user can set / get / reset or ask for the description of an option.
+- a developer can register and mark an option as deprecated.
+- you can register a callback to be invoked when the option value
+  is set or reset. Changing the stored value is considered misuse, but
+  is not verboten.
+Implementation
+==============
+- Data is stored using nested dictionaries, and should be accessed
+  through the provided API.
+- "Registered options" and "Deprecated options" have metadata associated
+  with them, which are stored in auxiliary dictionaries keyed on the
+  fully-qualified key, e.g. "x.y.z.option".
+- the config_init module is imported by the package's __init__.py file.
+  placing any register_option() calls there will ensure those options
+  are available as soon as pandas is loaded. If you use register_option
+  in a module, it will only be available after that module is imported,
+  which you should be aware of.
+- `config_prefix` is a context_manager (for use with the `with` keyword)
+  which can save developers some typing, see the docstring.
+annotations)
+namedtuple)
+ContextDecorator
+contextmanagerN)
+Callable
+Iterable
+cast)
+DeprecatedOptionz
+key msg rkey removal_ver
+RegisteredOptionz
+key defval doc validator cbz
+dict[str, DeprecatedOption]
+_deprecated_optionsz
+dict[str, RegisteredOption]
+_registered_options
+dict[str, Any]
+_global_config
+	list[str]
+_reserved_keysc
+OptionErrorzU
+    Exception for pandas.options, backwards compatible with KeyError
+    checks
+    N)
+__name__
+__module__
+__qualname__
+__doc__
+;/usr/lib64/python3.9/site-packages/pandas/_config/config.pyr
+bool)
+silent
+returnc
+No such keys(s): 
+Pattern matched multiple keys)
+_select_options
+_warn_if_deprecatedr
+repr
+_translate_key)
+keys
+keyr
+_get_single_key`
+	_get_root)
+root
+_get_optionr
+None
+z4Must provide an even number of non-keyword argumentsr
+Fz2_set_option() got an unexpected keyword argument "
+record)
+ValueError
+listr&
+	TypeError
+zipr(
+_get_registered_option
+	validatorr*
+warnings
+catch_warnings)
+args
+kwargs
+nargsr
+kwargr,
+_set_optionz
+_print_descc
+No such keys(s)
+_build_option_description
+.0r,
+	<genexpr>
+z#_describe_option.<locals>.<genexpr>)
+join
+print)
+_describe_option
+You must specify at least 4 characters when resetting multiple keys, use the special keyword "all" to reset all the options to their default value
+defval)
+_reset_option
+NTrR
+get_default_val
+DictWrapperz/provide attribute-style access to a nested dictrD
+prefixc
+object
+__setattr__)
+selfrY
+__init__
+DictWrapper.__init__r
+valr
+.z.You can only set the value of existing options)
+__getattribute__rY
+isinstance
+dictrC
+DictWrapper.__setattr__
+No such option)
+KeyErrorr
+errr
+__getattr__
+DictWrapper.__getattr__
+Iterable[str]r/
+__dir__
+DictWrapper.__dir__N)
+CallableDynamicDocc
+__doc_tmpl__
+__func__)
+funcZ
+doc_tmplr
+CallableDynamicDoc.__init__c
+kwdsr
+__call__
+CallableDynamicDoc.__call__c
+	opts_desc
+	opts_list)
+pp_options_listr5
+format)
+CallableDynamicDoc.__doc__N)
+propertyr
+get_option(pat)
+Retrieves the value of the specified option.
+Available options:
+{opts_list}
+Parameters
+----------
+pat : str
+    Regexp which should match a single option.
+    Note: partial matches are supported for convenience, but unless you use the
+    full option name (e.g. x.y.z.option_name), your code may break in future
+    versions if new options with similar names are introduced.
+Returns
+-------
+result : the value of the option
+Raises
+------
+OptionError : if no such option exists
+Notes
+-----
+The available options with its descriptions:
+{opts_desc}
+set_option(pat, value)
+Sets the value of the specified option.
+Available options:
+{opts_list}
+Parameters
+----------
+pat : str
+    Regexp which should match a single option.
+    Note: partial matches are supported for convenience, but unless you use the
+    full option name (e.g. x.y.z.option_name), your code may break in future
+    versions if new options with similar names are introduced.
+value : object
+    New value of option.
+Returns
+-------
+None
+Raises
+------
+OptionError if no such option exists
+Notes
+-----
+The available options with its descriptions:
+{opts_desc}
+describe_option(pat, _print_desc=False)
+Prints the description for one or more registered options.
+Call with not arguments to get a listing for all registered options.
+Available options:
+{opts_list}
+Parameters
+----------
+pat : str
+    Regexp pattern. All matching keys will have their description displayed.
+_print_desc : bool, default True
+    If True (default) the description(s) will be printed to stdout.
+    Otherwise, the description(s) will be returned as a unicode string
+    (for testing).
+Returns
+-------
+None by default, the description(s) as a unicode string if _print_desc
+is False
+Notes
+-----
+The available options with its descriptions:
+{opts_desc}
+reset_option(pat)
+Reset one or more options to their default value.
+Pass "all" as argument to reset all options.
+Available options:
+{opts_list}
+Parameters
+----------
+pat : str/regex
+    If specified only options matching `prefix*` will be reset.
+    Note: partial matches are supported for convenience, but unless you
+    use the full option name (e.g. x.y.z.option_name), your code may break
+    in future versions if new options with similar names are introduced.
+Returns
+-------
+None
+Notes
+-----
+The available options with its descriptions:
+{opts_desc}
+option_contexta
+    Context manager to temporarily set options in the `with` statement context.
+    You need to invoke as ``option_context(pat, val, [(pat, val), ...])``.
+    Examples
+    --------
+    >>> with option_context('display.max_rows', 10, 'display.max_columns', 5):
+    ...     ...
+    c
+z>Need to invoke as option_context(pat, val, [(pat, val), ...]).r 
+ops)
+option_context.__init__c
+<listcomp>
+z,option_context.__enter__.<locals>.<listcomp>TrR
+undorC
+	__enter__
+option_context.__enter__c
+__exit__
+option_context.__exit__N)
+Callable[[Any], Any] | Nonez
+Callable[[str], Any] | None)
+docr9
+    Register an option in the package-wide pandas config object
+    Parameters
+    ----------
+    key : str
+        Fully-qualified key, e.g. "x.y.option - z".
+    defval : object
+        Default value of the option.
+    doc : str
+        Description of the option.
+    validator : Callable, optional
+        Function of a single argument, should raise `ValueError` if
+        called with a value which is not a legal value for the option.
+    cb
+        a function of a single argument "key", which is called
+        immediately after an option value is set/reset. key is
+        the full name of the option.
+    Raises
+    ------
+    ValueError if `validator` is specified and `defval` is not a valid value.
+    r
+Option 'z
+' has already been registeredz
+' is a reserved keyr`
+ is not a valid identifierz
+ is a python keywordz5Path prefix to option '{option}' is already an option
+option)
+keyword
+tokenize
+lowerr
+split
+match
+Namer3
+	iskeywordr
+	enumeraterb
+pathr,
+cursor
+register_option
+str | None)
+rkeyr
+    Mark option `key` as deprecated, if code attempts to access this option,
+    a warning will be produced, using `msg` if given, or a default message
+    if not.
+    if `rkey` is given, any access to the key will be re-routed to `rkey`.
+    Neither the existence of `key` nor that if `rkey` is checked. If they
+    do not exist, any subsequence access will fail as usual, after the
+    deprecation warning is given.
+    Parameters
+    ----------
+    key : str
+        Name of the option to be deprecated.
+        must be a fully-qualified option name (e.g "x.y.z.rkey").
+    msg : str, optional
+        Warning message to output when the key is referenced.
+        if no message is given a default message will be emitted.
+    rkey : str, optional
+        Name of an option to reroute access to.
+        If specified, any referenced `key` will be
+        re-routed to `rkey` including set/get/reset.
+        rkey must be a fully-qualified option name (e.g "x.y.z.rkey").
+        used by the default message if no `msg` is specified.
+    removal_ver : optional
+        Specifies the version in which this option will
+        be removed. used by the default message if no `msg` is specified.
+    Raises
+    ------
+    OptionError
+        If the specified key has already been deprecated.
+    r|
+z)' has already been defined as deprecated.N)
+removal_verr
+deprecate_option
+    returns a list of keys matching `pat`
+    if pat=="all", returns all registered options
+    r
+search
+z#_select_options.<locals>.<listcomp>)
+sortedr&
+tuple[dict[str, Any], str])
+z4Returns True if the given option has been deprecated)
+_is_deprecated=
+    Retrieves the metadata for a deprecated option, if `key` is deprecated.
+    Returns
+    -------
+    DeprecatedOption (namedtuple) if key is deprecated, None otherwise
+    N)
+_get_deprecated_optionC
+    Retrieves the option metadata if `key` is a registered option.
+    Returns
+    -------
+    RegisteredOption (namedtuple) if key is deprecated, None otherwise
+    )
+getrd
+    if key id deprecated and a replacement key defined, will return the
+    replacement key, otherwise returns `key` as - is
+    N)
+    Checks if `key` is a deprecated option and if so, prints a warning.
+    Returns
+    -------
+    bool - True if `key` is deprecated, False otherwise.
+    
+' is deprecatedz
+ and will be removed in z
+, please use 'z
+' instead.z
+, please refrain from using it.TF)
+warn
+FutureWarningr
+zCBuilds a formatted description of a registered option and prints it
+No description available.z
+    [default: z
+] [currently: T
+    (Deprecatedz
+, use `z
+` instead.
+))	r8
+stripr
+_printc
+z@Builds a concise listing of available options, grouped by prefixr
+groupby)
+wrapr
+name
+.[rD
+  F)
+initial_indentZ
+subsequent_indentZ
+break_long_wordsr
+widthr
+pp_options_list.<locals>.ppc
+find
+z#pp_options_list.<locals>.<listcomp>rD
+rfind
+<lambda>
+z!pp_options_list.<locals>.<lambda>c
+	itertoolsr
+textwrapr
+singles
+    contextmanager for multiple invocations of API with a common prefix
+    supported API functions: (register / get / set )__option
+    Warning: This is not thread - safe, and won't work properly if you import
+    the API functions into your module using the "from x import y" construct.
+    Example
+    -------
+    import pandas._config.config as cf
+    with cf.config_prefix("display.font"):
+        cf.register_option("color", "red")
+        cf.register_option("size", " 5 pt")
+        cf.set_option(size, " 6 pt")
+        cf.get_option(size)
+        ...
+        etc'
+    will register options "display.font.color", "display.font.size", set the
+    value of "display.font.size"... and so on.
+    r
+pkey)
+inner
+z*config_prefix.<locals>.wrap.<locals>.inner)
+config_prefix.<locals>.wrapN)
+get_option
+set_option)
+_register_optionr-
+config_prefix
+z	type[Any]z
+Callable[[Any], None])
+_typer
+    Parameters
+    ----------
+    `_type` - a type to be compared against (e.g. type(x) == `_type`)
+    Returns
+    -------
+    validator - a function of a single argument x , which raises
+                ValueError if type(x) is not equal to `_type`
+    r.
+Value must have type 'r
+typer3
+is_type_factory.<locals>.innerr
+is_type_factory
+    Parameters
+    ----------
+    `_type` - the type to be checked against
+    Returns
+    -------
+    validator - a function of a single argument x , which raises
+                ValueError if x is not an instance of `_type`
+    
+Value must be an instance of )
+Z	type_reprr
+z"is_instance_factory.<locals>.inner)
+tupler5
+mapr
+is_instance_factory
+callable
+z%is_one_of_factory.<locals>.<listcomp>c
+z3is_one_of_factory.<locals>.inner.<locals>.<genexpr>c
+lvalr
+z4is_one_of_factory.<locals>.inner.<locals>.<listcomp>r
+Value must be one of z
+ or a callable)
+anyrM
+uvalsZ	pp_valuesr
+Z	callables
+legal_valuesr
+z is_one_of_factory.<locals>.innerr
+is_one_of_factory'
+int | None)
+valuer
+    Verify that value is None or a positive int.
+    Parameters
+    ----------
+    value : None or int
+            The `value` to be checked.
+    Raises
+    ------
+    ValueError
+        When the value is not None or is a negative integer
+    Nr
+z+Value must be a nonnegative integer or None)
+intr3
+is_nonnegative_int:
+    Parameters
+    ----------
+    `obj` - the object to be checked
+    Returns
+    -------
+    validator - returns True if object is callable
+        raises ValueError otherwise.
+    z
+Value must be a callableT)
+objr
+is_callable\
+NNN)
+F)Hr
+__future__r
+collectionsr
+contextlibr
+typingr
+pandas._typingr
+__annotations__r
+AttributeErrorre
+_get_option_tmplZ
+_set_option_tmplZ
+_describe_option_tmplZ
+_reset_option_tmplr
+reset_optionZ
+describe_option
+optionsru
+is_intr
+is_bool
+floatZ
+is_floatr
+is_str
+bytesZ
+is_textr
+<module>

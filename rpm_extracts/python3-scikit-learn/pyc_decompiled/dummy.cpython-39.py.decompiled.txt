@@ -1,0 +1,414 @@
+#povnl
+m	Z	
+BaseEstimator
+ClassifierMixin
+RegressorMixin)
+MultiOutputMixin)
+check_random_state)
+deprecated)
+_num_samples)
+check_array)
+check_consistent_length)
+check_is_fitted
+_check_sample_weight)
+_random_choice_csc
+_weighted_percentile)
+class_distributionc
+DummyClassifiera
+DummyClassifier makes predictions that ignore the input features.
+    This classifier serves as a simple baseline to compare against other more
+    complex classifiers.
+    The specific behavior of the baseline is selected with the `strategy`
+    parameter.
+    All strategies make predictions that ignore the input feature values passed
+    as the `X` argument to `fit` and `predict`. The predictions, however,
+    typically depend on values observed in the `y` parameter passed to `fit`.
+    Note that the "stratified" and "uniform" strategies lead to
+    non-deterministic predictions that can be rendered deterministic by setting
+    the `random_state` parameter if needed. The other strategies are naturally
+    deterministic and, once fit, always return a the same constant prediction
+    for any value of `X`.
+    Read more in the :ref:`User Guide <dummy_estimators>`.
+    .. versionadded:: 0.13
+    Parameters
+    ----------
+    strategy : {"most_frequent", "prior", "stratified", "uniform",             "constant"}, default="prior"
+        Strategy to use to generate predictions.
+        * "most_frequent": the `predict` method always returns the most
+          frequent class label in the observed `y` argument passed to `fit`.
+          The `predict_proba` method returns the matching one-hot encoded
+          vector.
+        * "prior": the `predict` method always returns the most frequent
+          class label in the observed `y` argument passed to `fit` (like
+          "most_frequent"). ``predict_proba`` always returns the empirical
+          class distribution of `y` also known as the empirical class prior
+          distribution.
+        * "stratified": the `predict_proba` method randomly samples one-hot
+          vectors from a multinomial distribution parametrized by the empirical
+          class prior probabilities.
+          The `predict` method returns the class label which got probability
+          one in the one-hot vector of `predict_proba`.
+          Each sampled row of both methods is therefore independent and
+          identically distributed.
+        * "uniform": generates predictions uniformly at random from the list
+          of unique classes observed in `y`, i.e. each class has equal
+          probability.
+        * "constant": always predicts a constant label that is provided by
+          the user. This is useful for metrics that evaluate a non-majority
+          class.
+          .. versionchanged:: 0.24
+             The default value of `strategy` has changed to "prior" in version
+             0.24.
+    random_state : int, RandomState instance or None, default=None
+        Controls the randomness to generate the predictions when
+        ``strategy='stratified'`` or ``strategy='uniform'``.
+        Pass an int for reproducible output across multiple function calls.
+        See :term:`Glossary <random_state>`.
+    constant : int or str or array-like of shape (n_outputs,), default=None
+        The explicit constant as predicted by the "constant" strategy. This
+        parameter is useful only for the "constant" strategy.
+    Attributes
+    ----------
+    classes_ : ndarray of shape (n_classes,) or list of such arrays
+        Unique class labels observed in `y`. For multi-output classification
+        problems, this attribute is a list of arrays as each output has an
+        independent set of possible classes.
+    n_classes_ : int or list of int
+        Number of label for each output.
+    class_prior_ : ndarray of shape (n_classes,) or list of such arrays
+        Frequency of each class observed in `y`. For multioutput classification
+        problems, this is computed independently for each output.
+    n_outputs_ : int
+        Number of outputs.
+    n_features_in_ : `None`
+        Always set to `None`.
+        .. versionadded:: 0.24
+        .. deprecated:: 1.0
+            Will be removed in 1.0
+    sparse_output_ : bool
+        True if the array returned from predict is to be in sparse CSC format.
+        Is automatically set to True if the input `y` is passed in sparse
+        format.
+    See Also
+    --------
+    DummyRegressor : Regressor that makes predictions using simple rules.
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from sklearn.dummy import DummyClassifier
+    >>> X = np.array([-1, 1, 1, 1])
+    >>> y = np.array([0, 1, 1, 1])
+    >>> dummy_clf = DummyClassifier(strategy="most_frequent")
+    >>> dummy_clf.fit(X, y)
+    DummyClassifier(strategy='most_frequent')
+    >>> dummy_clf.predict(X)
+    array([1, 1, 1, 1])
+    >>> dummy_clf.score(X, y)
+    0.75
+    
+priorN
+strategy
+random_state
+constantc
+selfr
+3/usr/lib64/python3.9/site-packages/sklearn/dummy.py
+__init__
+DummyClassifier.__init__c
+j	svt
+Fit the baseline classifier.
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            Training data.
+        y : array-like of shape (n_samples,) or (n_samples, n_outputs)
+            Target values.
+        sample_weight : array-like of shape (n_samples,), default=None
+            Sample weights.
+        Returns
+        -------
+        self : object
+            Returns the instance itself.
+        )
+most_frequent
+stratified
+uniformr
+.Unknown strategy type: %s, expected one of %s.r
+A local copy of the target data has been converted to a numpy array. Predicting on sparse target data with the uniform strategy would not save memory and would be slower.r
+MConstant target value has to be specified when the constant strategy is used.r
+0Constant target value should have shape (%d, 1).c
+	<genexpr>
+z&DummyClassifier.fit.<locals>.<genexpr>zrThe constant target value must be present in the training data. You provided constant={}. Possible values are: {}.)
+ValueError
+	_strategy
+issparseZ
+toarray
+warnings
+warn
+UserWarning
+sparse_output_
+asarrayZ
+atleast_1d
+ndim
+reshape
+shape
+n_outputs_r
+classes_
+n_classes_
+class_prior_
+range
+format
+list)
+sample_weight
+allowed_strategies
+err_msgr
+DummyClassifier.fitc
+j	d	k
+j	d	k
+Perform classification on test vectors X.
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            Test data.
+        Returns
+        -------
+        y : array-like of shape (n_samples,) or (n_samples, n_outputs)
+            Predicted target values for X.
+        r
+array
+argmax)
+<listcomp>
+z+DummyClassifier.predict.<locals>.<listcomp>r
+zCSparse target prediction is not supported with the uniform strategyr
+axisrH
+probar
+size)
+randintrI
+	n_samples
+predict_probar2
+tiler;
+vstack
+ravel)
+class_probr@
+retr
+predict
+DummyClassifier.predictc
+        Return probability estimates for the test vectors X.
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            Test data.
+        Returns
+        -------
+        P : ndarray of shape (n_samples, n_classes) or list of such arrays
+            Returns the probability of the sample for each class in
+            the model, where classes are ordered arithmetically, for each
+            output.
+        r
+dtypeg
+zerosZ
+float64Z
+onesZ
+multinomialZ
+astype
+where
+append)
+outr
+DummyClassifier.predict_probac
+        Return log probability estimates for the test vectors X.
+        Parameters
+        ----------
+        X : {array-like, object with finite length or shape}
+            Training data.
+        Returns
+        -------
+        P : ndarray of shape (n_samples, n_classes) or list of such arrays
+            Returns the log probability of the sample for each class in
+            the model, where classes are ordered arithmetically for each
+            output.
+        r
+log)
+z5DummyClassifier.predict_log_proba.<locals>.<listcomp>N)
+predict_log_proba
+z!DummyClassifier.predict_log_probac
+fails for the predict method)
+check_methods_subset_invarianceZ%check_methods_sample_order_invariance)
+poor_score
+no_validationZ
+_xfail_checksr
+_more_tags
+DummyClassifier._more_tagsc
+Return the mean accuracy on the given test data and labels.
+        In multi-label classification, this is the subset accuracy
+        which is a harsh metric since you require for each sample that
+        each label set be correctly predicted.
+        Parameters
+        ----------
+        X : None or array-like of shape (n_samples, n_features)
+            Test samples. Passing None as test samples gives the same result
+            as passing real test samples, since DummyClassifier
+            operates independently of the sampled observations.
+        y : array-like of shape (n_samples,) or (n_samples, n_outputs)
+            True labels for X.
+        sample_weight : array-like of shape (n_samples,), default=None
+            Sample weights.
+        Returns
+        -------
+        score : float
+            Mean accuracy of self.predict(X) wrt. y.
+        Nr
+super
+score
+	__class__r
+DummyClassifier.score
+A`n_features_in_` is deprecated in 1.0 and will be removed in 1.2.c
+n_features_in_
+DummyClassifier.n_features_in_)
+__name__
+__module__
+__qualname__
+__doc__r
+propertyrn
+__classcell__r
+DummyRegressora4
+Regressor that makes predictions using simple rules.
+    This regressor is useful as a simple baseline to compare with other
+    (real) regressors. Do not use it for real problems.
+    Read more in the :ref:`User Guide <dummy_estimators>`.
+    .. versionadded:: 0.13
+    Parameters
+    ----------
+    strategy : {"mean", "median", "quantile", "constant"}, default="mean"
+        Strategy to use to generate predictions.
+        * "mean": always predicts the mean of the training set
+        * "median": always predicts the median of the training set
+        * "quantile": always predicts a specified quantile of the training set,
+          provided with the quantile parameter.
+        * "constant": always predicts a constant value that is provided by
+          the user.
+    constant : int or float or array-like of shape (n_outputs,), default=None
+        The explicit constant as predicted by the "constant" strategy. This
+        parameter is useful only for the "constant" strategy.
+    quantile : float in [0.0, 1.0], default=None
+        The quantile to predict using the "quantile" strategy. A quantile of
+        0.5 corresponds to the median, while 0.0 to the minimum and 1.0 to the
+        maximum.
+    Attributes
+    ----------
+    constant_ : ndarray of shape (1, n_outputs)
+        Mean or median or quantile of the training targets or constant value
+        given by the user.
+    n_features_in_ : `None`
+        Always set to `None`.
+        .. versionadded:: 0.24
+        .. deprecated:: 1.0
+            Will be removed in 1.0
+    n_outputs_ : int
+        Number of outputs.
+    See Also
+    --------
+    DummyClassifier: Classifier that makes predictions using simple rules.
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from sklearn.dummy import DummyRegressor
+    >>> X = np.array([1.0, 2.0, 3.0, 4.0])
+    >>> y = np.array([2.0, 3.0, 5.0, 10.0])
+    >>> dummy_regr = DummyRegressor(strategy="mean")
+    >>> dummy_regr.fit(X, y)
+    DummyRegressor()
+    >>> dummy_regr.predict(X)
+    array([5., 5., 5., 5.])
+    >>> dummy_regr.score(X, y)
+    0.0
+    
+meanN
+quantilec
+DummyRegressor.__init__c
+Fit the random regressor.
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            Training data.
+        y : array-like of shape (n_samples,) or (n_samples, n_outputs)
+            Target values.
+        sample_weight : array-like of shape (n_samples,), default=None
+            Sample weights.
+        Returns
+        -------
+        self : object
+            Fitted estimator.
+        )
+medianrx
+	ensure_2dZ
+input_namer
+y must not be empty.r
+weightsry
+percentiler
+z&DummyRegressor.fit.<locals>.<listcomp>rx
+z>Quantile must be a scalar in the range [0.0, 1.0], but got %s.g
+csrZ
+cscZ
+coo)
+accept_sparserz
+ensure_min_samplesr$
+average
+	constant_ry
+isscalarr|
+	TypeError)
+DummyRegressor.fitFc
+Perform classification on test vectors X.
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            Test data.
+        return_std : bool, default=False
+            Whether to return the standard deviation of posterior prediction.
+            All zeros in this case.
+            .. versionadded:: 0.20
+        Returns
+        -------
+        y : array-like of shape (n_samples,) or (n_samples, n_outputs)
+            Predicted target values for X.
+        y_std : array-like of shape (n_samples,) or (n_samples, n_outputs)
+            Standard deviation of predictive distribution of query points.
+        rV
+fullr7
+return_stdrO
+y_stdr
+DummyRegressor.predictc
+DummyRegressor._more_tagsc
+Return the coefficient of determination R^2 of the prediction.
+        The coefficient R^2 is defined as `(1 - u/v)`, where `u` is the
+        residual sum of squares `((y_true - y_pred) ** 2).sum()` and `v` is the
+        total sum of squares `((y_true - y_true.mean()) ** 2).sum()`. The best
+        possible score is 1.0 and it can be negative (because the model can be
+        arbitrarily worse). A constant model that always predicts the expected
+        value of y, disregarding the input features, would get a R^2 score of
+        0.0.
+        Parameters
+        ----------
+        X : None or array-like of shape (n_samples, n_features)
+            Test samples. Passing None as test samples gives the same result
+            as passing real test samples, since `DummyRegressor`
+            operates independently of the sampled observations.
+        y : array-like of shape (n_samples,) or (n_samples, n_outputs)
+            True values for X.
+        sample_weight : array-like of shape (n_samples,), default=None
+            Sample weights.
+        Returns
+        -------
+        score : float
+            R^2 of `self.predict(X)` wrt. y.
+        Nr
+DummyRegressor.scorerl
+DummyRegressor.n_features_in_)
+numpyr3
+scipy.sparseZ
+sparser.
+baser
+utilsr
+utils.validationr	
+utils.randomr
+utils.statsr
+utils.multiclassr
+<module>

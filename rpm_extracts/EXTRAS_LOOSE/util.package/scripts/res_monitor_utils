@@ -1,0 +1,124 @@
+#!/bin/bash 
+SCRIPT_PATH="/opt/bin"
+source $SCRIPT_PATH/res_monitor_defines
+LOG_FILE=$1
+
+# proc chain format is: function1:function2
+# if function1 return 1(means it founds something abnormal)
+# will continue to execute function2 to do further work
+CONTINUE_PROC="false"
+
+#---------------------------function implmentation-----------------------------------
+get_dmesg_time()
+{
+    local ut=$(cut -d' ' -f1 < /proc/uptime)
+    local ts=`date +%s`
+
+    formated_time=$(date -d"70-1-1 + $ts sec - $ut sec + 3400.924122 sec" +"%F %T")
+    echo "$formated_time"
+}
+
+start_log_module()
+{
+    local log_file=$1
+    
+    if [ "X$log_file" != "X" ]; then
+        exec 1>>$log_file 2>&1
+
+        echo ""
+        echo "***************************************"
+        echo "time: $(date "+%Y-%m-%d %H:%M:%S")"
+        echo "***************************************"
+    fi
+}
+
+save_data_for_next_proc()
+{
+    local output_for_next_proc="$1"
+
+    echo "$output_for_next_proc" > $LAST_PROC_OUTPUT
+}
+
+get_data_of_previous_proc()
+{
+    cat $LAST_PROC_OUTPUT
+    #echo '' > $LAST_PROC_OUTPUT
+}
+
+print_proc_header()
+{
+    local command=$1
+    local index=$2
+
+    if [ $index -gt 1 ]; then
+        echo ""
+    fi
+
+    # format the output to use fold feature of text editor
+    echo "    ------------ [$command] -----------"
+}
+
+record_sub_cmd()
+{
+    local command="$1"
+
+    print_cmd_header "$command"
+    eval "$command" | sed s'/^/    /'| tee $LAST_SUBCMD_OUTPUT
+    echo ""
+}
+
+print_cmd_header()
+{
+    local command="$1"
+
+    echo "<$command>"
+}
+
+get_sub_cmd_output()
+{
+    cat $LAST_SUBCMD_OUTPUT
+}
+
+do_proc()
+{
+    local command="$1"
+    local ret=1
+    local command_output=""
+
+    #reset if we will continue proc cmd chain
+    CONTINUE_PROC="false"
+
+    command_output=$($command 2>&1)
+    ret=$?
+    
+    # ident the output with 4 spaces to use fold feature of text editor
+    echo "$command_output" | sed s'/^/        /'
+
+    # if we need to execute next handler
+    if [ $ret -ne 0 ]; then
+        CONTINUE_PROC="true"
+    else
+        CONTINUE_PROC="false"
+    fi
+}
+
+exe_commands()
+{
+    declare -a all_commands=("$@")
+    local index=1
+
+    for proc_chain in "${all_commands[@]}"; do
+        IFS=: read -a proc_array <<< "$proc_chain"
+
+        for proc in "${proc_array[@]}"; do
+            print_proc_header "$proc" $index
+            do_proc "$proc" && [ $CONTINUE_PROC = "false" ] && break
+        done
+
+        save_data_for_next_proc ""
+        let "index ++"
+    done
+}
+
+
+start_log_module $LOG_FILE

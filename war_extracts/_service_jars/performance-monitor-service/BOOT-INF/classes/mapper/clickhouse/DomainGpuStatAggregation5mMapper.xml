@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.h3c.h3cloud.performance.monitor.service.mapper.clickhouse.DomainGpuStatAggregation5mMapper">
+    <delete id ="deleteBeforeTime">
+        ALTER TABLE AGG_DOMAIN_GPU_STAT_5M DELETE WHERE TIME &lt; #{time}
+    </delete>
+    <select id="readPerfByDomainId" resultType="com.h3c.h3cloud.common.model.performance.DomainGpuStatData">
+        SELECT
+          DOMAIN_ID as domainId,
+          HOST_ID as hostId,
+          UUID_PCI as uuidPci,
+          round(avgMerge(UTILIZATION_AVG),2) as utilization,
+          round(avgMerge(MEMORY_USE_AVG),2) as memoryUse,
+          round(avgMerge(CODE_RATE_AVG),2) as codeRate,
+          round(avgMerge(DECODE_RATE_AVG),2) as decodeRateme,
+          TIME as time
+        FROM AGG_DOMAIN_GPU_STAT_5M
+        WHERE DOMAIN_ID =${domainId}
+          AND TIME BETWEEN ${startTime} AND ${endTime}
+        GROUP BY TIME, DOMAIN_ID, HOST_ID, UUID_PCI
+    </select>
+    <select id="queryPerfByResPoolId" resultType="com.h3c.h3cloud.common.model.performance.DomainGpuStatData">
+        SELECT rs.UUID_PCI as uuidPci, round(avgMerge(rs.UTILIZATION_AVG),2) as utilization,
+        round(avgMerge(rs.MEMORY_USE_AVG),2) as memoryUse,round(avgMerge(rs.CODE_RATE_AVG),2) as codeRate,
+        round(avgMerge(rs.DECODE_RATE_AVG),2) as decodeRate, rs.TIME as time, DOMAIN_ID as domainId
+        FROM AGG_DOMAIN_GPU_STAT_5M AS rs,
+        (SELECT d.bus, d.uuid, d.cluster_id, d.host_id, d.host_name FROM
+        ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_RES_POOL_DEVICE} AS d
+        WHERE d.res_pool_id = ${resPoolId}) AS dev
+        WHERE (((dev.uuid IS NOT NULL AND dev.uuid = rs.UUID_PCI) OR (dev.bus = rs.UUID_PCI))
+        AND dev.cluster_id = rs.CLUSTER_ID AND dev.host_id = rs.HOST_ID)
+        AND rs.TIME BETWEEN ${startTime} AND ${endTime}
+        GROUP BY time, domainId, uuidPci
+        ORDER BY TIME ASC
+    </select>
+    <select id="readDomainGpuRateByCondition" resultType="com.h3c.h3cloud.common.model.performance.DomainGpuStatStatistitcsData">
+        SELECT DOMAIN_ID as domainId,
+        <choose>
+            <when test="cycle!=null and cycle=='hour'">
+                formatDateTime(toDateTime(TIME), '%Y-%m-%d %H') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='week'">
+                formatDateTime(toDateTime(TIME), '%Y %V') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='month'">
+                formatDateTime(toDateTime(TIME), '%Y-%m') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='year'">
+                formatDateTime(toDateTime(TIME), '%Y') as timeStr,
+            </when>
+            <otherwise>
+                formatDateTime(toDateTime(TIME), '%Y-%m-%d') as timeStr,
+            </otherwise>
+        </choose>
+        UUID_PCI as uuidPci,
+        <choose>
+            <when test='type!=null and type=="0"'>
+                ROUND(avgMerge(UTILIZATION_AVG),2) as utilizationAvg,maxMerge(UTILIZATION_MAX) as utilizationMax, minMerge(UTILIZATION_MIN) as utilizationMin
+            </when>
+            <when test='type!=null and type=="1"'>
+                ROUND(avgMerge(MEMORY_USE_AVG),2) as memoryUseAvg, maxMerge(MEMORY_USE_MAX) as memoryUseMax, minMerge(MEMORY_USE_MIN) as memoryUseMin
+            </when>
+            <when test='type!=null and type=="2"'>
+                ROUND(avgMerge(CODE_RATE_AVG),2) as codeRateAvg, maxMerge(CODE_RATE_MAX) as codeRateMax, minMerge(CODE_RATE_MIN) as codeRateMin
+            </when>
+            <otherwise>
+                ROUND(avgMerge(DECODE_RATE_AVG),2) as decodeRateAvg, maxMerge(DECODE_RATE_MAX) as decodeRateMax, minMerge(DECODE_RATE_MIN) as decodeRateMin
+            </otherwise>
+        </choose>
+        FROM AGG_DOMAIN_GPU_STAT_5M detail WHERE TIME BETWEEN ${startTime} AND ${endTime}
+        <if test="domainId!=null and domainId!=''">
+            AND DOMAIN_ID = ${domainId}
+        </if>
+        <if test="vmIds!=null and vmIds!=''">
+            AND DOMAIN_ID in (${vmIds})
+        </if>
+        GROUP BY  DOMAIN_ID, UUID_PCI, timeStr ORDER BY timeStr
+    </select>
+    <select id="readDomainsGpuRateByCondition" resultType="com.h3c.h3cloud.common.model.performance.DomainGpuStatStatistitcsData">
+        SELECT DOMAIN_ID as domainId,
+        <choose>
+            <when test="cycle!=null and cycle=='hour'">
+                formatDateTime(toDateTime(TIME), '%Y-%m-%d %H') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='week'">
+                formatDateTime(toDateTime(TIME), '%Y %V') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='month'">
+                formatDateTime(toDateTime(TIME), '%Y-%m') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='year'">
+                formatDateTime(toDateTime(TIME), '%Y') as timeStr,
+            </when>
+            <otherwise>
+                formatDateTime(toDateTime(TIME), '%Y-%m-%d') as timeStr,
+            </otherwise>
+        </choose>
+        any(UUID_PCI) as uuidPci,
+        <choose>
+            <when test='type!=null and type=="0"'>
+                ROUND(avgMerge(UTILIZATION_AVG),2) as utilizationAvg
+            </when>
+            <when test='type!=null and type=="1"'>
+                ROUND(avgMerge(MEMORY_USE_AVG),2) as memoryUseAvg
+            </when>
+            <when test='type!=null and type=="2"'>
+                ROUND(avgMerge(CODE_RATE_AVG),2) as codeRateAvg
+            </when>
+            <otherwise>
+                ROUND(avgMerge(DECODE_RATE_AVG),2) as decodeRateAvg
+            </otherwise>
+        </choose>
+        FROM AGG_DOMAIN_GPU_STAT_5M detail WHERE TIME BETWEEN ${startTime} AND ${endTime}
+        <if test="vmIds!=null and vmIds!=''">
+            AND DOMAIN_ID in (${vmIds})
+        </if>
+        GROUP BY  DOMAIN_ID, timeStr ORDER BY timeStr
+    </select>
+</mapper>

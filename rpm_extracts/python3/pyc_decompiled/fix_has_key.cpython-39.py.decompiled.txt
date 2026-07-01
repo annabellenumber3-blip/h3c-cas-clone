@@ -1,0 +1,104 @@
+Fixer for has_key().
+Calls to .has_key() methods are expressed in terms of the 'in'
+operator:
+    d.has_key(k) -> k in d
+CAVEATS:
+1) While the primary target of this fixer is dict.has_key(), the
+   fixer will change any has_key() method call, regardless of its
+   class.
+2) Cases like this will not be converted:
+    m = d.has_key
+    if m(k):
+        ...
+   Only *calls* to has_key() are converted. While it is possible to
+   convert the above to something like
+    m = d.__contains__
+    if m(k):
+        ...
+   this is currently not done.
+pytree)
+fixer_base)
+Name
+parenthesizec
+	FixHasKeyTa
+    anchor=power<
+        before=any+
+        trailer< '.' 'has_key' >
+        trailer<
+            '('
+            ( not(arglist | argument<any '=' any>) arg=any
+            | arglist<(not argument<any '=' any>) arg=any ','>
+            )
+            ')'
+        >
+        after=any*
+    >
+    |
+    negation=not_test<
+        'not'
+        anchor=power<
+            before=any+
+            trailer< '.' 'has_key' >
+            trailer<
+                '('
+                ( not(arglist | argument<any '=' any>) arg=any
+                | arglist<(not argument<any '=' any>) arg=any ','>
+                )
+                ')'
+            >
+        >
+    >
+    c
+}	|	r
+negation
+anchorc
+clone
+1/usr/lib64/python3.9/lib2to3/fixes/fix_has_key.py
+<listcomp>R
+z'FixHasKey.transform.<locals>.<listcomp>
+before
+afterc
+prefix
+not)
+syms
+parent
+typeZ
+not_test
+pattern
+match
+getr
+comparisonZ
+and_testZ
+or_test
+testZ
+lambdefZ
+argumentr
+lenr
+NodeZ
+powerr
+comp_op
+tuple
+exprZ
+xor_exprZ
+and_exprZ
+shift_exprZ
+arith_exprZ
+termZ
+factor)
+selfZ
+nodeZ
+resultsr
+n_opZ
+n_not
+newr	
+	transformG
+FixHasKey.transformN)
+__name__
+__module__
+__qualname__Z
+BM_compatibleZ
+PATTERNr'
+__doc__
+fixer_utilr
+BaseFixr
+<module>

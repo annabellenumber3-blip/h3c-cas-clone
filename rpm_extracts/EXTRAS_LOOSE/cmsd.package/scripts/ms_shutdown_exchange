@@ -1,0 +1,35 @@
+#!/bin/bash
+
+help()
+{
+    echo "usage: $0 {wait-stop}"
+}
+
+wait_stop()
+{
+    drbdadm role r0 | cut -d '/' -f1 | grep -q "Primary" &> /dev/null
+    if [ $? -eq 0 ]; then
+        /usr/sbin/cmsadm exchange-role &> /dev/null
+    fi
+    time=1
+    while [ $time -le 60 ]; do   # timeout is 60 * 1 = 60s
+        drbdadm role r0 | cut -d '/' -f1 | grep -q "Primary" &> /dev/null
+        if [ $? -ne 0 ]; then
+            sleep 0.01
+            return 0
+        fi
+
+        sleep 1
+        let time+=1
+    done
+
+    return 1
+}
+
+case $1 in
+    wait-stop) wait_stop $* ;;
+    *) help  ;;
+esac
+
+exit $?
+

@@ -1,0 +1,285 @@
+l	Z	d
+z.Storage providers backends for Memory caching.
+ABCMeta
+abstractmethod
+concurrency_safe_rename)
+mkdirp
+memstr_to_bytes
+rm_subdirs)
+numpy_pickle
+CacheItemInfoz
+path size last_accessc
+z>Writes an object into a unique file in a concurrency-safe way.z
+{}.thread-{}-pid-{})
+	threadingZ
+current_thread
+format
+getpid)
+object_to_write
+filename
+write_funcZ	thread_id
+temporary_filename
+:/usr/lib/python3.9/site-packages/joblib/_store_backends.py
+concurrency_safe_write
+StoreBackendBasezaHelper Abstract Base Class which defines all methods that
+       a StorageBackend must implement.Nc
+Opens an item on the store and return a file-like object.
+        This method is private and only used by the StoreBackendMixin object.
+        Parameters
+        ----------
+        f: a file-like object
+            The file-like object where an item is stored and retrieved
+        mode: string, optional
+            the mode in which the file-like object is opened allowed valued are
+            'rb', 'wb'
+        Returns
+        -------
+        a file-like object
+        Nr
+self
+moder
+_open_item'
+StoreBackendBase._open_itemc
+Checks if an item location exists in the store.
+        This method is private and only used by the StoreBackendMixin object.
+        Parameters
+        ----------
+        location: string
+            The location of an item. On a filesystem, this corresponds to the
+            absolute path, including the filename, of a file.
+        Returns
+        -------
+        True if the item exists, False otherwise
+        Nr
+locationr
+_item_exists:
+StoreBackendBase._item_existsc
+Moves an item from src to dst in the store.
+        This method is private and only used by the StoreBackendMixin object.
+        Parameters
+        ----------
+        src: string
+            The source location of an item
+        dst: string
+            The destination location of an item
+        Nr
+srcZ
+dstr
+_move_itemK
+StoreBackendBase._move_itemc
+Creates a location on the store.
+        Parameters
+        ----------
+        location: string
+            The location in the store. On a filesystem, this corresponds to a
+            directory.
+        Nr
+create_locationY
+z StoreBackendBase.create_locationc
+Clears a location on the store.
+        Parameters
+        ----------
+        location: string
+            The location in the store. On a filesystem, this corresponds to a
+            directory or a filename absolute path
+        Nr
+clear_locationd
+StoreBackendBase.clear_locationc
+Returns the whole list of items available in the store.
+        Returns
+        -------
+        The list of items identified by their ids (e.g filename in a
+        filesystem).
+        Nr
+	get_itemso
+StoreBackendBase.get_itemsr
+Configures the store.
+        Parameters
+        ----------
+        location: string
+            The base location used by the store. On a filesystem, this
+            corresponds to a directory.
+        verbose: int
+            The level of verbosity of the store
+        backend_options: dict
+            Contains a dictionnary of named paremeters used to configure the
+            store backend.
+        Nr
+verbose
+backend_optionsr
+	configurey
+StoreBackendBase.configure)
+__name__
+__module__
+__qualname__
+__doc__r
+dictr&
+	metaclassc
+d d!
+d"d#
+d$d%
+StoreBackendMixina
+Class providing all logic for managing the store in a generic way.
+    The StoreBackend subclass has to implement 3 methods: create_location,
+    clear_location and configure. The StoreBackend also has to provide
+    a private _open_item, _item_exists and _move_item methods. The _open_item
+    method has to have the same signature as the builtin open and return a
+    file-like object.
+    r
+s~t	d
+zKLoad an item from the store given its path as a list of
+           strings.r
+{0}...z
+{0} from {1}
+	mmap_modeN
+output.pklzANon-existing item (may have been cleared).
+File %s does not exist
+path
+joinr
+printr
+hasattrr/
+KeyErrorr
+load)	r
+	full_pathr/
+itemr
+	load_item
+StoreBackendMixin.load_itemc
+zLDump an item in the store at the path given as a list of
+           strings.r0
+Persisting in %sc
+compress)
+dumpr=
+to_writeZ
+dest_filenamer
+z/StoreBackendMixin.dump_item.<locals>.write_funcN)
+_concurrency_safe_write)
+	item_pathr
+	dump_item
+StoreBackendMixin.dump_itemc
+z7Clear the item at the path, given as a list of strings.N
+clear_item
+StoreBackendMixin.clear_itemc
+zLCheck if there is an item at the path, given as a list of
+           stringsr0
+contains_item
+StoreBackendMixin.contains_itemc
+Return information about item.r
+get_item_info
+StoreBackendMixin.get_item_infoc
+z"Return actual metadata of an item.
+metadata.jsonr1
+utf-8N)	r
+json
+loads
+read
+decode)
+get_metadata
+StoreBackendMixin.get_metadatac
+z Store metadata of a computation.rJ
+writerL
+dumps
+encoder?
+z4StoreBackendMixin.store_metadata.<locals>.write_funcN)
+metadatarB
+store_metadata
+z StoreBackendMixin.store_metadatac
+z,Check cached function is available in store.)
+object_exists
+	func_pathr
+contains_path
+StoreBackendMixin.contains_pathc
+z0Clear all items with a common path in the store.NrD
+clear_path
+StoreBackendMixin.clear_pathc
+&Store the code of the cached function.N
+func_code.pyr<
+Z	func_coderW
+store_cached_func_code
+z(StoreBackendMixin.store_cached_func_codec
+get_cached_func_code
+z&StoreBackendMixin.get_cached_func_codec
+z?Return information related to the cached function if it exists.r
+get_cached_func_info
+z&StoreBackendMixin.get_cached_func_infoc
+Clear the whole store content.N)
+clear
+StoreBackendMixin.clearc
+z9Reduce store size to keep it under the given bytes limit.r.
+Deleting item {0}N)
+_get_items_to_deleter$
+OSError)
+bytes_limit
+items_to_deleter:
+reduce_store_size
+z#StoreBackendMixin.reduce_store_sizec
+z9Get items to delete to keep the store under a size limit.c
+size)
+.0r:
+	<genexpr>-
+z9StoreBackendMixin._get_items_to_delete.<locals>.<genexpr>r
+last_access)
+key)
+isinstance
+strr
+sort
+operator
+attrgetter
+appendrf
+itemsrf
+to_delete_sizerc
+size_so_farr:
+z&StoreBackendMixin._get_items_to_deletec
+z7Writes an object into a file in a concurrency-safe way.N)
+z)StoreBackendMixin._concurrency_safe_writec
+z/Printable representation of the store location.z#{class_name}(location="{location}"))
+class_namer
+	__class__r'
+__repr__I
+StoreBackendMixin.__repr__)
+FileSystemStoreBackendz7A StoreBackend used with local or network file systems.c
+Delete location on store.T)
+ignore_errorsN)
+shutilZ
+rmtreer
+z%FileSystemStoreBackend.clear_locationc
+Create object location on storeN)
+z&FileSystemStoreBackend.create_locationc
+z7Returns the whole list of items available in the store.z
+[a-f0-9]{32}r0
+dirpathr
+<listcomp>v
+z4FileSystemStoreBackend.get_items.<locals>.<listcomp>c
+getsizerz
+z3FileSystemStoreBackend.get_items.<locals>.<genexpr>)
+walkr
+matchr2
+basenamer3
+getatimera
+datetimeZ
+fromtimestamprn
+	filenamesZ
+is_cache_hash_dirZ
+output_filenamerj
+full_filenamesZ
+dirsizer
+z FileSystemStoreBackend.get_itemsr
+zsConfigure the store backend.
+        For this backend, valid store options are 'compress' and 'mmap_mode'
+        Nr=
+zSCompressed items cannot be memmapped in a filesystem store. Option will be ignored.
+stacklevel)
+existsr
+getr=
+warnings
+warnr/
+z FileSystemStoreBackend.configure)
+staticmethod
+openr
+os.pathr
+collectionsrp
+abcr
+Z	backportsr
+diskr
+namedtupler
+objectr-
+<module>

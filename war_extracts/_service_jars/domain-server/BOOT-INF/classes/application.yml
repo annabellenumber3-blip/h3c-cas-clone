@@ -1,0 +1,144 @@
+spring:
+  profiles:
+    active: prod
+  application:
+    name: domain-server
+  # 当同时使用spring-boot-starter-data-redis和spring-boot-starter-data-jpa时
+  # 未使用repository功能，消除日志中的“Multiple Spring Data modules found, entering strict repository configuration mode”信息
+  data:
+    redis:
+      repositories:
+        enabled: false
+    jpa:
+      repositories:
+        enabled: false
+  # redis相关配置
+  redis:
+    database: 0
+    host: 127.0.0.1
+    port: 6379
+    password: ENC(cEEATMmU91wDW7tTIw8OW8pszvTKSAru)
+    jedis:
+      pool:
+        # 连接池最大连接数（使用负值表示没有限制）
+        max-total: 100
+        # 连接池最大阻塞等待时间（使用负值表示没有限制）
+        max-wait: -1
+        # 连接池中的最大空闲连接
+        max-idle: 10
+        # 连接池中的最小空闲连接
+        min-idle: 0
+        #最大等待时间
+        max-wait-millis: 100000
+        #是否在从池中取出连接前进行检验,如果检验失败,则从池中去除连接并尝试取出另一个
+        test-on-borrow: true
+        # 连接超时时间（毫秒）默认是2000ms
+        timeout: 5000ms
+        #在空闲时检查有效性, 默认false
+        test-while-idle: true
+#  datasource:
+#    url: ${jdbc.url}
+#    username: ${jdbc.username}
+#    password: ${jdbc.password}
+#    driver-class-name: ${jdbc.driverClassName}
+  jpa:
+    hibernate:
+      current_session_context_class: org.springframework.orm.hibernate5.SpringSessionContext
+      ddl-auto: none
+      show-sql: false
+      cache:
+        use_second_level_cache: false
+        use_query_cache: false
+    open-in-view: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQL95Dialect
+  cache:
+    redis:
+      ## Entry expiration in milliseconds. By default the entries never expire.
+      time-to-live: 1d
+      #写入redis时是否使用键前缀。
+      use-key-prefix: true
+  rabbitmq:
+    host: 127.0.0.1
+    port: 5672
+    connection-timeout: 15000
+    username: cloud
+    password: ENC(7zAGwGxB7IT0ig/j+oGvcWpm5ckvpQIA)
+    virtual-host: cloudMsgHost
+    template:
+      exchange: domain-server-task-notify
+    ssl:
+      # Whether to enable SSL support. Determined automatically if an address is
+      # provided with the protocol (amqp:// vs. amqps://).
+      enabled: true
+      # Path to the key store that holds the SSL certificate.
+      key-store: file:/etc/rabbitmq/client/keycert.p12
+      # Key store type
+      key-store-type: PKCS12
+      # Password used to access the key store.
+      key-store-password: ENC(XCJBYdL+xbVKdWnVV3wuRQ0/bSArXlN+)
+      # Trust store that holds SSL certificates.
+      trust-store: file:/etc/rabbitmq/trustStore
+      # Trust store type.
+      trust-store-type: JKS
+      # Password used to access the trust store.
+      trust-store-password: ENC(5YpLs8FZSkVOLnaLxZa4SrSERy//rTXF)
+      # SSL algorithm to use. By default, configured by the Rabbit client library.
+      algorithm: TLSv1.2
+      # Whether to enable server side certificate validation.
+      validate-server-certificate: true
+      # Whether to enable hostname verification.
+      verify-hostname: false
+server:
+  servlet:
+    context-path: /domain-server
+  port: ${domain_server_port:26265}
+  ssl:
+    enabled: true
+    key-store: classpath:domain_server_https.p12
+    key-store-type: PKCS12
+    key-store-password: ENC(idxtpywbb5QhLDeQmsfOYAjcFpg3JH8l)
+    enabled-protocols: TLSv1.2,TLSv1.3
+    ciphers:
+      - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+      - TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
+      - TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+      - TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
+      - TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384
+      - TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384
+      - TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256
+      - TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256
+      - TLS_RSA_WITH_AES_256_GCM_SHA384
+      - TLS_RSA_WITH_AES_128_GCM_SHA256
+api:
+  # 最大的API请求异步执行线程数量 (数量不太合理)
+  worker-num: 100
+log:
+  path: /var/log/domain-server
+
+# cvk资源接收
+cvk-server:
+  port: ${cvk_agent_port:26165}
+  res:
+    name: cvk-server-name
+    port: ${cvk_res_report_port:26888}
+
+management:
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+  endpoint:
+    prometheus:
+      enabled: true
+    health:
+      enabled: true
+      show-components: always
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus
+  health:
+    db:
+      enabled: false

@@ -1,0 +1,231 @@
+d	e	
+fontTools.pens.basePen.py -- Tools and base classes to build pen objects.
+The Pen Protocol
+A Pen is a kind of object that standardizes the way how to "draw" outlines:
+it is a middle man between an outline and a drawing. In other words:
+it is an abstraction for drawing outlines, making sure that outline objects
+don't need to know the details about how and where they're being drawn, and
+that drawings don't need to know the details of how outlines are stored.
+The most basic pattern is this:
+	outline.draw(pen)  # 'outline' draws itself onto 'pen'
+Pens can be used to render outlines to the screen, but also to construct
+new outlines. Eg. an outline object can be both a drawable object (it has a
+draw() method) as well as a pen itself: you *build* an outline using pen
+methods.
+The AbstractPen class defines the Pen protocol. It implements almost
+nothing (only no-op closePath() and endPath() methods), but is useful
+for documentation purposes. Subclassing it basically tells the reader:
+"this class implements the Pen protocol.". An examples of an AbstractPen
+subclass is fontTools.pens.transformPen.TransformPen.
+The BasePen class is a base implementation useful for pens that actually
+draw (for example a pen renders outlines using a native graphics engine).
+BasePen contains a lot of base functionality, making it very easy to build
+a pen that fully conforms to the pen protocol. Note that if you subclass
+BasePen, you _don't_ override moveTo(), lineTo(), etc., but _moveTo(),
+_lineTo(), etc. See the BasePen doc string for details. Examples of
+BasePen subclasses are fontTools.pens.boundsPen.BoundsPen and
+fontTools.pens.cocoaPen.CocoaPen.
+Coordinates are usually expressed as (x, y) tuples, but generally any
+sequence of length 2 will do.
+print_function
+division
+absolute_import)
+LogMixin)
+AbstractPen
+NullPen
+BasePen
+decomposeSuperBezierSegment
+decomposeQuadraticSegmentc
+Begin a new sub path, set the current point to 'pt'. You must
+		end each sub path with a call to pen.closePath() or pen.endPath().
+NotImplementedError
+self
+:/usr/lib/python3.9/site-packages/fontTools/pens/basePen.py
+moveTo1
+AbstractPen.moveToc
+z4Draw a straight line from the current point to 'pt'.Nr
+lineTo7
+AbstractPen.lineToc
+Draw a cubic bezier with an arbitrary number of control points.
+		The last point specified is on-curve, all others are off-curve
+		(control) points. If the number of control points is > 2, the
+		segment is split into multiple bezier segments. This works
+		like this:
+		Let n be the number of control points (which is the number of
+		arguments to this call minus 1). If n==2, a plain vanilla cubic
+		bezier is drawn. If n==1, we fall back to a quadratic segment and
+		if n==0 we draw a straight line. It gets interesting when n>2:
+		n-1 PostScript-style cubic segments will be drawn as if it were
+		one curve. See decomposeSuperBezierSegment().
+		The conversion algorithm used for n>2 is inspired by NURB
+		splines, and is conceptually equivalent to the TrueType "implied
+		points" principle. See also decomposeQuadraticSegment().
+		Nr
+pointsr
+curveTo;
+AbstractPen.curveToc
+Draw a whole string of quadratic curve segments.
+		The last point specified is on-curve, all others are off-curve
+		points.
+		This method implements TrueType-style curves, breaking up curves
+		using 'implied points': between each two consequtive off-curve points,
+		there is one implied point exactly in the middle between them. See
+		also decomposeQuadraticSegment().
+		The last argument (normally the on-curve point) may be None.
+		This is to support contours that have NO on-curve points (a rarely
+		seen feature of TrueType outlines).
+		Nr
+qCurveToP
+AbstractPen.qCurveToc
+zkClose the current sub path. You must call either pen.closePath()
+		or pen.endPath() after each sub path.
+		Nr
+	closePatha
+AbstractPen.closePathc
+z}End the current sub path, but don't close it. You must call
+		either pen.closePath() or pen.endPath() after each sub path.
+		Nr
+endPathg
+AbstractPen.endPathc
+Add a sub glyph. The 'transformation' argument must be a 6-tuple
+		containing an affine transformation, or a Transform object from the
+		fontTools.misc.transform module. More precisely: it should be a
+		sequence containing 6 numbers.
+		Nr
+	glyphName
+transformationr
+addComponentm
+AbstractPen.addComponentN)
+__name__
+__module__
+__qualname__r
+A pen that does nothing.
+NullPen.moveToc
+NullPen.lineToc
+NullPen.curveToc
+NullPen.qCurveToc
+NullPen.closePathc
+NullPen.endPathc
+NullPen.addComponentN)
+__doc__r
+LoggingPenzHA pen with a `log` property (see fontTools.misc.loggingTools.LogMixin)
+DecomposingPena5
+ Implements a 'addComponent' method that decomposes components
+	(i.e. draws them onto self as simple contours).
+	It can also be used as a mixin class (e.g. see ContourRecordingPen).
+	You must override moveTo, lineTo, curveTo and qCurveTo. You may
+	additionally override closePath, endPath and addComponent.
+ Takes a single 'glyphSet' argument (dict), in which the glyphs
+		that are referenced as components are looked up by their name.
+		N)
+superr&
+__init__
+glyphSet
+	__class__r
+DecomposingPen.__init__c
+zA Transform the points of the base glyph and draw it onto self.
+TransformPenz,glyph '%s' is missing from glyphSet; skippedN)
+fontTools.pens.transformPenr-
+KeyError
+skipMissingComponents
+logZ
+warningZ
+draw)
+glyphZ
+tPenr
+DecomposingPen.addComponent)
+__classcell__r
+) r	
+Base class for drawing pens. You must override _moveTo, _lineTo and
+	_curveToOne. You may additionally override _closePath, _endPath,
+	addComponent and/or _qCurveToOne. You should not override any other
+	methods.
+_BasePen__currentPointr*
+BasePen.__init__c
+_moveTo
+BasePen._moveToc
+_lineTo
+BasePen._lineToc
+pt3r
+_curveToOne
+BasePen._curveToOnec
+_closePath
+BasePen._closePathc
+_endPath
+BasePen._endPathc
+This method implements the basic quadratic curve type. The
+		default implementation delegates the work to the cubic curve
+		function. Optionally override with a native implementation.
+		gUUUUUU
+pt0xZ
+pt0yZ
+pt1xZ
+pt1yZ
+pt2xZ
+pt2yZ
+mid1xZ
+mid1yZ
+mid2xZ
+mid2yr
+_qCurveToOne
+BasePen._qCurveToOnec
+zfReturn the current point. This is not part of the public
+		interface, yet is useful for subclasses.
+_getCurrentPoint
+BasePen._getCurrentPointc
+BasePen.closePathc
+BasePen.endPathc
+BasePen.moveToc
+BasePen.lineToc
+q@n4|
+can't get there from here)
+lenr8
+AssertionError)
+BasePen.curveToc
+impliedStartPointr;
+BasePen.qCurveTo)
+qTq2|
+Split the SuperBezier described by 'points' into a list of regular
+	bezier segments. The 'points' argument must be a sequence with length
+	3 or greater, containing (x, y) coordinates. The last point is the
+	destination on-curve point, the rest of the points are off-curve points.
+	The start point should not be supplied.
+	This function returns a list of (pt1, pt2, pt3) tuples, which each
+	specify a regular curveto-style bezier segment.
+range
+append)
+bezierSegmentsr5
+nDivisions
+factorZ
+temp1Z
+temp2Z
+tempr
+Split the quadratic curve segment described by 'points' into a list
+	of "atomic" quadratic segments. The 'points' argument must be a sequence
+	with length 2 or greater, containing (x, y) coordinates. The last point
+	is the destination on-curve point, the rest of the points are off-curve
+	points. The start point should not be supplied.
+	This function returns a list of (pt1, pt2) tuples, which each specify a
+	plain quadratic bezier segment.
+quadSegmentsrM
+Z	impliedPtr
+_TestPenz,Test class that prints PostScript to stdout.c
+%s %s movetor
+printr
+_TestPen._moveToc
+%s %s linetor
+_TestPen._lineToc
+%s %s %s %s %s %s curvetor
+bcp1Z
+bcp2r
+_TestPen._curveToOnec
+NZ	closepathrP
+_TestPen._closePathN)
+__main__N)
+__future__r
+fontTools.misc.py23Z
+fontTools.misc.loggingToolsr
+__all__
+objectr
+penr
+<module>

@@ -1,0 +1,81 @@
+m	Z	m
+Fixer that changes filter(F, X) into list(filter(F, X)).
+We avoid the transformation if the filter() call is directly contained
+in iter(<>), list(<>), tuple(<>), sorted(<>), ...join(<>), or
+for V in <>:.
+NOTE: This is still not correct if the original code was depending on
+filter(F, X) to return a string if X is a string and a tuple if X is a
+tuple.  That would require type inference, which we don't do.  Let
+Python 2.6 figure it out.
+fixer_base)
+Node)
+python_symbols)
+Name
+ArgList
+ListComp
+in_special_context
+parenthesizec
+	FixFilterTaV
+    filter_lambda=power<
+        'filter'
+        trailer<
+            '('
+            arglist<
+                lambdef< 'lambda'
+                         (fp=NAME | vfpdef< '(' fp=NAME ')'> ) ':' xp=any
+                >
+                ','
+                it=any
+            >
+            ')'
+        >
+        [extra_trailers=trailer*]
+    >
+    |
+    power<
+        'filter'
+        trailer< '(' arglist< none='None' ',' seq=any > ')' >
+        [extra_trailers=trailer*]
+    >
+    |
+    power<
+        'filter'
+        args=trailer< '(' [any] ')' >
+        [extra_trailers=trailer*]
+    >
+    z
+future_builtins.filterc
+extra_trailersZ
+filter_lambda
+prefixZ
+noneZ
+args
+filter
+list)
+should_skip
+appendZ
+clone
+type
+syms
+testr
+powerr
+selfZ
+nodeZ
+resultsZ
+trailers
+newr
+0/usr/lib64/python3.9/lib2to3/fixes/fix_filter.py
+	transform:
+FixFilter.transformN)
+__name__
+__module__
+__qualname__Z
+BM_compatibleZ
+PATTERNZ
+skip_onr
+__doc__r
+pytreer
+pygramr
+fixer_utilr
+ConditionalFixr
+<module>

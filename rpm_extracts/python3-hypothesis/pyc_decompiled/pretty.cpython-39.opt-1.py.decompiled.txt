@@ -1,0 +1,425 @@
+m	Z	
+d d!
+d"d#
+Z d$d%
+Z!d&d'
+Z"d(d)
+Z#dXd*d+
+Z$d,d-
+Z%d.d/
+Z&d0d1
+Z'd2d3
+Z(d4d5
+Z)d6d7
+Z*d8d9
+Z+e,e(e-e+e.e(e/e"d:d;e/
+e0e"d<d=e0
+e1e$d>d?e1
+e2e#d>d?e2
+e3e#d@dAe3
+e4e%e
+j5e)e
+j6e)e
+j7e(e
+j8e(e9e*e:e(e;e(e<e(i
+Z>dBdC
+Z?e1
+@eAeBd
+eCeDg
+ZEdEdF
+ZFdGdH
+ZGdIdJ
+ZHdKdL
+ZIdMdN
+ZJe?dOdPeF
+e?dOdQeG
+e?dRdQeG
+e?dOdSeH
+e?dOdTeI
+e?dUdVeJ
+Python advanced pretty printer.  This pretty printer is intended to
+replace the old `pprint` python module which does not allow developers
+to provide their own pretty print callbacks.
+This module is based on ruby's `prettyprint.rb` library by `Tanaka Akira`.
+Example Usage
+-------------
+To get a string of the output use `pretty`::
+    from pretty import pretty
+    string = pretty(complex_object)
+Extending
+---------
+The pretty library allows developers to add pretty printing rules for their
+own objects.  This process is straightforward.  All you have to do is to
+add a `_repr_pretty_` method to your object and call the methods on the
+pretty printer passed::
+    class MyObject(object):
+        def _repr_pretty_(self, p, cycle):
+            ...
+Here is an example implementation of a `_repr_pretty_` method for a list
+subclass::
+    class MyList(list):
+        def _repr_pretty_(self, p, cycle):
+            if cycle:
+                p.text('MyList(...)')
+            else:
+                with p.group(8, 'MyList([', '])'):
+                    for idx, item in enumerate(self):
+                        if idx:
+                            p.text(',')
+                            p.breakable()
+                        p.pretty(item)
+The `cycle` parameter is `True` if pretty detected a cycle.  You *have* to
+react to that or the result is an infinite loop.  `p.text()` just adds
+non breaking text to the output, `p.breakable()` either adds a whitespace
+or breaks here.  If you pass it an argument it's used instead of the
+default space.  `p.pretty` prettyprints another object using the pretty print
+method.
+The first parameter to the `group` function specifies the extra indentation
+of the next line.  In this example the next item will either be on the same
+line (if the items are short enough) or aligned with the right edge of the
+opening bracket of `MyList`.
+If you just want to indent something you can use the group function
+without open / close parameters.  You can also use this code::
+    with p.indent(2):
+        ...
+Inheritance diagram:
+.. inheritance-diagram:: IPython.lib.pretty
+   :parts: 3
+:copyright: 2007 by Armin Ronacher.
+            Portions (c) 2009 by Robert Kern.
+:license: BSD License.
+deque)
+contextmanager)
+StringIO)
+copysign
+isnan)
+pretty
+PrettyPrinter
+RepresentationPrinter
+for_type_by_namei
+PyPyc
+z{Safe version of getattr.
+    Same as getattr, but will return ``default`` on any Exception,
+    rather than raising.
+    N)
+getattr
+	Exception)
+attr
+default
+</usr/lib/python3.9/site-packages/hypothesis/vendor/pretty.py
+_safe_getattrY
+z)Pretty print the object's representation.
+max_seq_length)
+flush
+getvalue)
+verbose
+	max_width
+newliner
+stream
+printerr
+_PrettyPrinterBasec
+z1`with`-statement support for indenting/dedenting.N)
+indentation)
+self
+indentr
+_PrettyPrinterBase.indentr
+z8Like begin_group / end_group but for the with statement.N)
+begin_group
+	end_group)
+open
+closer
+group}
+_PrettyPrinterBase.groupN)
+__name__
+__module__
+__qualname__r
+Baseclass for the `RepresentationPrinter` prettyprinter that is used to
+    generate pretty reprs of objects.
+    Contrary to the `RepresentationPrinter` this printer knows nothing
+    about the default pprinters or the `_repr_pretty_` callback method.
+    r
+broken
+outputr
+output_width
+buffer_widthr
+buffer
+Group
+group_stack
+GroupQueue
+group_queuer 
+snans)
+root_groupr
+__init__
+PrettyPrinter.__init__c
+breakablesr.
+popleftr+
+width
+isinstance
+Text)
+_break_outer_groups
+z!PrettyPrinter._break_outer_groupsc
+Add literal text to the output.
+lenr.
+append
+addr-
+writer,
+textr
+PrettyPrinter.text
+_	n*|
+Add a breakable separator to the output.
+        This does not mean that it will automatically break here.  If no
+        breaking on this position takes place the `sep` is inserted
+        which default to one space.
+        r>
+want_breakr
+	Breakabler=
+sepr9
+	breakable
+PrettyPrinter.breakablec
+zUExplicitly insert a newline into the output, maintaining correct
+        indentation.rD
+break_
+PrettyPrinter.break_r
+        Begin a group.  If you want support for python < 2.5 which doesn't has
+        the with statement this is the preferred way:
+            p.begin_group(1, '{')
+            ...
+            p.end_group(1, '}')
+        The python 2.5 expression would be this:
+            with p.group(1, '{', '}'):
+                ...
+        The first parameter specifies the indentation for the next line (
+        usually the width of the opening text), the second the opening text.
+        All parameters are optional.
+        r>
+depthr@
+enqr 
+PrettyPrinter.begin_groupc
+z?Like enumerate, but with an upper limit on the number of items.
+...N)
+	enumerater
+idxr<
+_enumerate
+PrettyPrinter._enumeratec
+zCEnd a group.
+        See `begin_group` for more details.
+        N)
+popr7
+removerC
+dedentr&
+PrettyPrinter.end_groupc
+z&Flush data that is left in the buffer.r
+# Saw z
+ signaling NaN
+clearr-
+datar
+PrettyPrinter.flushN)
+__doc__
+MAX_SEQ_LENGTHr4
+zvGet a reasonable method resolution order of a class and its superclasses
+    for both old-style and new-style classes.
+__mro__rK
+hasattr
+typer(
+object
+	TypeErrorr\
+	obj_class
+mror
+_get_mro
+Special pretty printer that has a `pretty` method that calls the pretty
+    printer for a python object.
+    This class stores processing data on `self` so you must *never* use
+    this class in a threaded environment.  Always lock it or
+    reinstanciate it. Instances also have a verbose flag callbacks can
+    access to control their output.  For example the default instance
+    repr prints all attributes and methods that are not prefixed by an
+    underscore if the printer is in verbose mode.
+    Fr
+r\t	
+superr4
+stack
+_singleton_pprinters
+copy
+singleton_pprinters
+_type_pprinters
+type_pprinters
+_deferred_type_pprinters
+deferred_pprinters)	r!
+	__class__r
+RepresentationPrinter.__init__c
+Pretty print the given object.rn
+_repr_pretty_)
+idre
+KeyErrorr$
+_in_deferred_types
+__dict__ro
+callable
+_default_pprint)
+obj_id
+cyclera
+clsZ
+methr
+RepresentationPrinter.prettyc
+Check if the given class is specified in the deferred type registry.
+        Returns the printer from the registry if it exists, and None if
+        the class is not in the registry. Successful matches will be
+        moved to the regular type registry for future use.
+        r)
+name
+keyr
+z(RepresentationPrinter._in_deferred_types)	r(
+__classcell__r
+	Printablec
+NotImplementedError
+Printable.outputN)
+objsr9
+Text.__init__c
+Text.outputc
+Text.addN)
+Breakable.__init__c
+Breakable.outputN)
+Group.__init__N)
+queuerM
+groupsr'
+GroupQueue.__init__c
+GroupQueue.enqc
+reversedr7
+GroupQueue.deqc
+ValueError)
+GroupQueue.removeN)
+r*d	}
+zwThe default print function.
+    Used if an object does not provide one and it's none of the builtin
+    objects.
+    rn
+__repr__rK
+ at 0xr<
+ ...T
+_repr_pprintr#
+startswithr
+AttributeErrorr:
+types
+MethodTyperH
+klass
+firstrz
+value
+stepr
+Factory that returns a pprint function useful for sequences.
+    Used by the default pprint for tuples, dicts, and lists.
+    c
+tupler$
+typr
+basetype
+startr
+inner	
+z$_seq_pprinter_factory.<locals>.innerr
+_seq_pprinter_factory
+zJFactory that returns a pprint function useful for sets and
+    frozensets.c
+()rN
+sortedr
+itemsrR
+z$_set_pprinter_factory.<locals>.innerr
+_set_pprinter_factory$
+z`Factory that returns a pprint function used by the default pprint of
+    dicts and dict proxies.c
+{...}rK
+keysr
+z%_dict_pprinter_factory.<locals>.innerz
+_dict_pprinter_factory(z
+_dict_pprinter_factoryM
+The pprint for the super type.N
+<super: rN
+__thisclass__
+__self__r
+_super_pprintt
+z4The pprint function for regular expression patterns.z
+re.compile(NrK
+TEMPLATE
+IGNORECASE
+LOCALE
+	MULTILINE
+DOTALL
+UNICODE
+VERBOSE
+DEBUGr
+re.Tr
+repr
+pattern
+replace
+flagsrH
+prefixZ
+done_one
+flagr
+_re_pattern_pprint
+z!The pprint for classes and types.Nr)
+Try __name__z
+<unknown type>)
+__builtin__
+builtins
+exceptions
+strr
+_type_pprint
+z9A pprint that just redirects to the normal repr function.N)
+splitlinesrJ
+output_liner
+z4Base pprint for all functions and builtin functions.r
+get_pretty_function_descriptionN)
+hypothesis.internal.reflectionr
+_function_pprint
+Base pprint for all exceptions.r*
+argsr
+argr
+_exception_pprint
+nanrK
+-nan)
+struct
+pack
+floatr3
+_repr_float_counting_nans
+frozenset({z
+zrAdd a pretty printer for a type specified by the module and name of a
+    type rather than the type object itself.N)
+get)
+type_moduleZ	type_name
+funcrz
+oldfuncr
+)	rn
+default_factoryrH
+dict
+_defaultdict_pprint
+listr
+_ordereddict_pprint&
+_deque_pprint/
+_counter_pprint8
+_repr_dataframeA
+collections
+defaultdict
+OrderedDictZ
+ordereddictr
+Counterz
+pandas.core.frameZ	DataFrame)
+N)KrZ
+datetime
+platformr
+contextlibr
+mathr
+__all__r[
+compileZ
+_re_pattern_typeZ
+python_implementationZ
+PYPYr
+intr
+	frozensetrd
+FunctionType
+BuiltinFunctionTyper
+Z	timedelta
+BaseException
+slice
+range
+bytesri
+fromkeys
+maprp
+Ellipsis
+NotImplementedrf
+<module>

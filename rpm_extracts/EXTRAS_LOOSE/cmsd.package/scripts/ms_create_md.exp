@@ -1,0 +1,22 @@
+#!/usr/bin/expect
+##create drbd meta data, by gaoliang 2013-05-20
+set resource [lindex $argv 0]
+
+spawn -noecho drbdadm create-md $resource
+set timeout 120
+expect "*proceed*yes*" {
+    send "yes\r"
+    exp_continue
+} "*overwrite*yes*" {
+    send "yes\r"
+    exp_continue
+} "*Move*yes*" {
+    send "yes\r"
+    exp_continue
+} "*Permission denied*" {
+    exit 1
+} timeout {
+    exit 0
+} eof {
+    exit 0
+}

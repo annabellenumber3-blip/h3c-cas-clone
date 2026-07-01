@@ -1,0 +1,286 @@
+l	m	Z	
+d!d"
+d"e 
+d#d$
+SSH Agent interface
+select)
+asbytes
+io_sleep)
+byte_chr)
+SSHException
+AuthenticationException)
+Message)
+PKey)
+retry_on_signal
+rsa-sha2-256z
+rsa-sha2-512c
+AgentSSHc
+_conn
+_keys
+selfr
+2/usr/lib/python3.9/site-packages/paramiko/agent.py
+__init__;
+AgentSSH.__init__c
+        Return the list of keys available through the SSH agent, if any.  If
+        no SSH agent was running (or it couldn't be contacted), an empty list
+        will be returned.
+        :return:
+            a tuple of `.AgentKey` objects representing keys available on the
+            SSH agent
+        )
+get_keys?
+AgentSSH.get_keysc
+Nz!could not get keys from ssh-agent)
+_send_message
+cSSH2_AGENTC_REQUEST_IDENTITIES
+SSH2_AGENT_IDENTITIES_ANSWERr
+rangeZ
+get_int
+append
+AgentKey
+get_binaryZ
+get_string
+tupler
+conn
+ptype
+result
+keys
+_connectK
+AgentSSH._connectc
+closer
+_closeV
+AgentSSH._closec
+send
+struct
+pack
+	_read_allr
+unpack
+ordZ
+get_byte)
+datar
+AgentSSH._send_messagec
+lost ssh-agent)
+recvr.
+wantedr%
+extrar
+AgentSSH._read_allN)	
+__name__
+__module__
+__qualname__r
+AgentProxyThreadz@
+    Class in charge of communication between two channels.
+    c
+targetF)
+	threading
+Threadr
+_agent
+_exit
+agentr
+AgentProxyThread.__init__c
+sRt	d
+filenoz
+Unable to connect to SSH agent)
+get_connection
+_AgentProxyThread__inrZ
+_AgentProxyThread__addrr>
+connect
+isinstance
+intr
+hasattrr
+_communicate)
+addrr
+AgentProxyThread.runc
+fcntlrD
+F_GETFLZ
+F_SETFL
+O_NONBLOCKr?
+time
+sleepr
+oldflagsZ
+events
+fdr3
+AgentProxyThread._communicatec
+AgentProxyThread._closeN)
+__doc__r
+AgentLocalProxyz
+    Class to be used when wanting to ask a local SSH Agent being
+    asked from a remote fake agent (so use a unix socket for ex.)
+    c
+AgentLocalProxy.__init__c
+        Return a pair of socket object and string address.
+        May block!
+        
+socket
+AF_UNIX
+SOCK_STREAMZ
+bindr>
+_get_filenameZ
+listenZ
+accept)
+AgentLocalProxy.get_connectionN
+AgentRemoteProxyzA
+    Class to be used when wanting to ask a remote SSH Agent
+    c
+_AgentRemoteProxy__chan)
+chanr
+AgentRemoteProxy.__init__c
+AgentRemoteProxy.get_connectionNrZ
+    Returns some SSH agent object, or None if none were found/supported.
+    .. versionadded:: 2.10
+    
+SSH_AUTH_SOCKZ
+win32c
+environr
+<lambda>
+z&get_agent_connection.<locals>.<lambda>NrU
+win_pageant
+win_openssh)
+platformrV
+can_talk_to_agentZ
+PageantConnectionZ
+OpenSSHAgentConnectionrb
+get_agent_connection
+AgentClientProxya
+    Class proxying request as a client:
+    #. client ask for a request_forward_agent()
+    #. server creates a proxy and a fake SSH Agent
+    #. server ask for establishing a connection when needed,
+       calling the forward_agent_handler at client side.
+    #. the forward_agent_handler launch a thread for connecting
+       the remote fake agent and the local agent
+    #. Communication occurs ...
+    c
+_AgentClientProxy__chanRr[
+thread
+start
+chanRemoter
+AgentClientProxy.__init__c
+__del__
+AgentClientProxy.__del__c
+        Method automatically called by ``AgentProxyThread.run``.
+        N)
+AgentClientProxy.connectc
+        Close the current connection and terminate the agent
+        Should be called manually
+        rj
+joinr
+AgentClientProxy.closeN)
+AgentServerProxyz
+    :param .Transport t: Transport used for SSH Agent communication forwarding
+    :raises: `.SSHException` -- mostly if we lost the agent
+    c
+sshproxyz
+/sshproxy.ssh)
+_AgentServerProxy__t
+tempfileZ
+mkdtemp
+_dirrM
+chmod
+stat
+S_IRWXU
+_filerS
+AgentServerProxy.__init__c
+AgentServerProxy.__del__c
+auth-agent)
+open_forward_agent_channelr
+set_namer(
+Z	conn_sockr
+AgentServerProxy.connectc
+        Terminate the agent, clean the files, close connections
+        Should be called manually
+        Trp
+N)	rM
+removery
+rmdirru
+AgentServerProxy.closec
+        Helper for the environnement under unix
+        :return:
+            a dict containing the ``SSH_AUTH_SOCK`` environnement variables
+        r]
+get_env<
+AgentServerProxy.get_envc
+AgentServerProxy._get_filenameN)
+AgentRequestHandlera
+    Primary/default implementation of SSH agent forwarding functionality.
+    Simply instantiate this class, handing it a live command-executing session
+    object, and it will handle forwarding any local SSH agent processes it
+    finds.
+    For example::
+        # Connect
+        client = SSHClient()
+        client.connect(host, port, username)
+        # Obtain session
+        session = client.get_transport().open_session()
+        # Forward local agent
+        AgentRequestHandler(session)
+        # Commands executed after this point will see the forwarded agent on
+        # the remote end.
+        session.exec_command("git clone https://my.git.repository/")
+    c
+_AgentRequestHandler__chanCZ
+request_forward_agent
+_forward_agent_handler
+"_AgentRequestHandler__clientProxys)
+chanClientr
+AgentRequestHandler.__init__c
+z*AgentRequestHandler._forward_agent_handlerc
+AgentRequestHandler.__del__c
+AgentRequestHandler.closeN)
+Agenta
+    Client interface for using private keys from an SSH agent running on the
+    local machine.  If an SSH agent is running, this class can be used to
+    connect to it and retrieve `.PKey` objects which can be used when
+    attempting to authenticate to remote SSH servers.
+    Upon initialization, a session with the local machine's SSH agent is
+    opened, if one is running. If no agent is running, initialization will
+    succeed, but `get_keys` will return an empty tuple.
+    :raises: `.SSHException` --
+        if an SSH agent is found, but speaks an incompatible protocol
+    .. versionchanged:: 2.10
+        Added support for native openssh agent on windows (extending previous
+        putty pageant support)
+    c
+Agent.__init__c
+        Close the SSH agent connection.
+        N)
+Agent.closeN)
+    Private key held in a local SSH agent.  This type of key can be used for
+    authenticating to a remote server (signing).  Most other key operations
+    work as expected.
+    c
+blobZ
+public_blobr
+get_text
+name)
+AgentKey.__init__c
+AgentKey.asbytesc
+__str__
+AgentKey.__str__c
+get_name
+AgentKey.get_namec
+NotImplementedErrorr
+_fields
+AgentKey._fieldsNc
+key cannot be used for signing)
+add_byte
+cSSH2_AGENTC_SIGN_REQUESTZ
+add_stringr
+add_int
+ALGORITHM_FLAG_MAP
+getrA
+SSH2_AGENT_SIGN_RESPONSEr
+	algorithmr2
+sign_ssh_data
+AgentKey.sign_ssh_data)
+propertyr
+)+rR
+paramiko.commonr
+paramiko.py3compatr
+paramiko.ssh_exceptionr
+paramiko.messager
+paramiko.pkeyr	
+paramiko.utilr
+SSH_AGENT_RSA_SHA2_256Z
+SSH_AGENT_RSA_SHA2_512r
+objectr
+<module>

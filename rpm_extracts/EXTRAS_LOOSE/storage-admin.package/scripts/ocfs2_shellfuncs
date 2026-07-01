@@ -1,0 +1,613 @@
+##############################################################################
+# funcion   : get current datetime
+##############################################################################
+ocfs2date() {
+    date "+${__OCFS2_DATEFMT}"
+}
+
+##############################################################################
+# funcion   : get current month, eg. 201106
+##############################################################################
+ocfs2CurrentMonth() {
+    date "+%Y%m"
+}
+
+##############################################################################
+#    Func Name: ocfs2_printlog
+# Date Created: 2011-16-16 
+#       Author:  
+#  Description: print log to a log file; if debug and we're connected to a tty,
+#               then output to stderr,otherwise, to logfile.
+#        usage: $0 $1 $2 $3  
+#               $1 : the caller's name, usually, it is the shell name; must 
+#               $2 : the log level, it must be one of {crit|err|warn|info|debug}; must
+#               $3 : the message string; must
+#       Output: None
+#       Return: 0
+#      Caution: 
+#-----------------------------------------------------------------------------
+#  Modification History 
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+ocfs2_printlog() {
+    # check the invalidity of the params.
+    if [ $# -lt 3 ]; then
+        ocfs2_printlog testshell err "Not enough arguments [$#] to ocfs2_printlog."
+        return 0
+    fi
+    
+    #save the parameters
+    __OCFS2_LOG_FROM="$1"
+    shift    
+    __OCFS2_LOG_PRIO="$1"
+    shift
+    __OCFS2_LOG_MSG="$*"
+
+    #format the log/debug level.
+    case "${__OCFS2_LOG_PRIO}" in
+          crit)     __OCFS2_LOG_PRIO="CRIT";;
+          err)      __OCFS2_LOG_PRIO="ERROR";;
+          warn)     __OCFS2_LOG_PRIO="WARNING";;
+          info)     __OCFS2_LOG_PRIO="INFO";;
+          debug)    __OCFS2_LOG_PRIO="DEBUG";;
+          *)        __OCFS2_LOG_PRIO=`echo ${__OCFS2_LOG_PRIO}| tr '[a-z]' '[A-Z]'`;;
+    esac
+    
+    #make up the full message
+    __OCFS2_HOSTNAME=`hostname`
+    __OCFS2_LOG_MSG=`ocfs2date`" ["${__OCFS2_HOSTNAME}"] ["$$"] ("${__OCFS2_LOG_FROM}"): "${__OCFS2_LOG_PRIO}":"${__OCFS2_LOG_MSG}
+
+    #buildup the log file name
+    LOG_DIR="/var/log/caslog/storage-admin/"
+    if [ ! -d ${LOG_DIR} ];then
+        mkdir -p ${LOG_DIR}
+    fi
+    __OCFS2_LOGFILE="${LOG_DIR}cas_ocfs2.log"    
+    #echo ${__OCFS2_LOGFILE}
+
+    #
+    #if [ "${__OCFS2_LOG_PRIO}" = "DEBUG" -a tty >/dev/null ]; then
+    #    echo ${__OCFS2_LOG_MSG}
+    #else
+        echo -e ${__OCFS2_LOG_MSG} >> ${__OCFS2_LOGFILE}
+    #fi
+}
+
+##############################################################################
+#    Func Name: ocfs2_config_replace
+# Date Created: 2013-03-06 13:23:23
+#       Author: guozhonghua/02084
+#  Description: Replace config info with special files
+#        usage: $0 $1 $2 $3  
+#               $1 : the source string to be replaced
+#               $2 : the destination string to replaced
+#               $3 : the config file, like /etc/default/o2cb
+#       Output: None
+#       Return: 0
+#      Caution: 
+#-----------------------------------------------------------------------------
+#  Modification History 
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+function ocfs2_config_replace() 
+{
+    local MODULE_NAME=ocfs2_config_replace
+
+    # check the invalidity of the params.
+    if [ $# -lt 3 ]; then
+        ocfs2_printlog $MODULE_NAME err "Not enough arguments [$#] to ocfs2_printlog."
+        return $OCFS2_ERR_WRONG_PARAM
+    fi
+
+    # source string
+    local source_str=$1
+    local destination_str=$2
+    local config_file=$3
+    local config_file_org=$3".org"
+    local config_file_bak=$3".bak"
+    local rtn_code=0
+
+    # build up one source file
+    local has_source=`grep "$source_str" $config_file`
+    if [ -s $config_file ] && [ "X$has_source" != "X" ]; then
+        ocfs2_printlog $MODULE_NAME debug "Copy one source file $config_file $config_file_org."
+        cp $config_file $config_file_org
+        if [ $? -ne 0 ];then
+            ocfs2_printlog $MODULE_NAME err "Copy source file failed."	
+            return $OCFS2_CONFIGURE_FILE_NO_EXIST
+        fi
+    else 
+        ocfs2_printlog $MODULE_NAME err "Source config file is empty, $config_file"
+        return $OCFS2_CONFIGURE_FILE_NO_EXIST
+    fi
+
+    if [ ! -s $config_file_org ]; then
+        ocfs2_printlog $MODULE_NAME err "Source file error"
+        return $OCFS2_CONFIGURE_FILE_NO_EXIST
+    fi
+
+    # replace 
+    sed "s/.*$source_str.*/$destination_str/g" $config_file_org > $config_file_bak
+    rtn_code=$?
+    if [ $rtn_code != 0 ]; then
+        ocfs2_printlog $MODULE_NAME err "Replace $config_file_org failed"
+        return $OCFS2_CONFIGURE_FILE_NO_EXIST
+    fi
+
+    local has_replaces=`grep $destination_str $config_file_bak`
+    rtn_code=$?
+    if [ "X$has_replaces" = "X" -o $rtn_code -ne 0 ];then
+        ocfs2_printlog $MODULE_NAME err "Check $config_file_bak failed"
+        return $OCFS2_CONFIGURE_FILE_NO_EXIST
+    fi
+    
+    ocfs2_printlog $MODULE_NAME debug "File replaced: $has_replaces."	
+
+    mv $config_file_bak $config_file
+    rtn_code=$?
+    if [ $rtn_code -ne 0 ];then
+        ocfs2_printlog $MODULE_NAME err "mv $config_file_bak failed"
+        return $OCFS2_CONFIGURE_FILE_NO_EXIST
+    fi  
+}
+
+##############################################################################
+#    Func Name: get_disk_partition
+# Date Created: 2013-05-17 13:23:23
+#       Author: shichangkuo/09727
+#  Description: get disk partition
+#        usage: $0 $1 
+#               $1 : the disk path
+#       Output: None
+#       Return: 0
+#      Caution: 
+#-----------------------------------------------------------------------------
+#  Modification History 
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+function get_disk_partition()
+{
+    local disk_path=$1
+    local disk_device=`echo $disk_path | awk -F '/' '{print $3}'`
+    partprobe
+    local partition=`lsblk $disk_path | grep ${disk_device}[1-9]\d*  | wc -l`
+
+    return $partition
+}
+
+##############################################################################
+#    Func Name: ocfs2_disk_multi_part_check
+# Date Created: 2013-05-17 13:23:23
+#       Author: guozhonghua/02084
+#  Description: Disk multi-parts test
+#        usage: $0 $1 
+#               $1 : the naa of the disk
+#               $2 : optional, means the type of $1, default is 0.
+#                    when $2=0, $1 is naa; when $2=others, $1 is disk_path.
+#       Output: None
+#       Return: 0
+#      Caution: 
+#-----------------------------------------------------------------------------
+#  Modification History 
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+function ocfs2_disk_multi_part_check() 
+{
+    # The module name
+    local MODULE_NAME=ocfs2_disk_multi_part_check
+
+    # check the validity of the params.
+    if [ $# -lt 1 ]; then
+        ocfs2_printlog $MODULE_NAME err "Not enough arguments [$#] to ocfs2_printlog."
+        return $OCFS2_ERR_WRONG_PARAM
+    fi
+    
+    local type=0
+    if [ $# -ge 2 ]; then
+        type=$2
+    fi
+    local naa=$1
+    local disk_part=0
+
+    if [ $type -eq 0 ]; then
+        # the first parameter is naa of device, when type=0.
+        # get the dm, have a check with the dm
+        dm_info=`multipath -l | grep "^$naa\ " | awk '{print $2}'`
+        if [ "X$dm_info" != "X" ];then
+            ocfs2_printlog $MODULE_NAME debug "$naa multipath dm info: $dm_info."
+            
+            get_disk_partition /dev/$dm_info
+            disk_part=$?
+            if [ $disk_part -ge 1 ];then
+                ocfs2_printlog $MODULE_NAME err "device /dev/$dm_info($naa) disk_part=$disk_part."
+                return $OCFS2_DISK_MULTI_PARTS
+            fi
+        fi
+
+        # Loop all the disk, test whether it has multi-parts 
+        local disk_info_mc=`ls /dev/disk/by-path/* | grep -vE 'part[0-9]+$'`
+        for disk_mc in $disk_info_mc
+        do
+            local disk_naa=`/lib/udev/scsi_id --whitelist -u $disk_mc`
+            rtn_code=$?
+            if [ "X$disk_naa" = "X" ] || [ $rtn_code -ne 0 ];then
+                # log and continue
+                ocfs2_printlog $MODULE_NAME err "$disk_mc naa get error"
+                continue    
+            fi
+
+            # find the disk info
+            if [ "$disk_naa" = "$naa" ];then 
+                # debug log 
+                ocfs2_printlog $MODULE_NAME debug "naa of disk $disk_mc is $disk_naa."
+
+                #found the real device
+                disk_device=`readlink $disk_mc | awk -F '/' '{print $3}'`
+                get_disk_partition /dev/$disk_device
+                disk_part=$?
+                ocfs2_printlog $MODULE_NAME info "disk $disk_mc with $naa has $disk_part disk part(s)."
+                if [ $disk_part -ge 1 ];then                    
+                    return $OCFS2_DISK_MULTI_PARTS
+                fi 
+                # no need to break, because may have different partition in multi-lun paths, we should find all same naa devices.
+            fi
+        done
+    else
+        # the first parameter is device path, when type=others.
+        get_disk_partition $naa
+        disk_part=$?
+        ocfs2_printlog $MODULE_NAME info "The device $naa has $disk_part disk part(s)."
+        if [ $disk_part -ge 1 ];then 
+            return $OCFS2_DISK_MULTI_PARTS
+        fi
+    fi
+    return $OCFS2_SUCCESS
+}
+
+##############################################################################
+#    Func Name: ocfs2_disk_not_cvk_vg_check
+# Date Created: 2014-05-24
+#       Author: shichangkuo/09727
+#  Description: check disk whether is a CVK VG disk.
+#        usage: $0 $1 
+#               $1 : the naa of the disk
+#       Output: None
+#       Return: 0 --- cvk vg disk; 1 --- not cvk vg disk
+#      Caution: 
+#-----------------------------------------------------------------------------
+#  Modification History 
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+function ocfs2_disk_not_cvk_vg_check()
+{
+    local MODULE_NAME=ocfs2_disk_not_cvk_vg_check
+    # the name of VG created by cvk, must sync with define in ocfs2_iscsi_lvm_setup.py
+    local CVK_VG_NAME="CVK[[:xdigit:]]{32} "
+    local not_cvk_vg=1
+    local device=$1        
+    
+    # Get the VG created by cvk
+    local cvk_vgs=`vgs --noheadings 2>/dev/null | egrep $CVK_VG_NAME | awk '{print $1}'`
+    ocfs2_printlog $MODULE_NAME debug "cvk_vgs: $cvk_vgs, error code: $?"
+    
+    # get device vg name, maybe is empty.
+    local device_vg=`echo $device | awk -F '/' '{print $3}'`
+    if [ "X$device_vg" != "X" ]; then
+        for vg in $cvk_vgs
+        do
+            if [ "X$vg" = "X$device_vg" ]; then
+                not_cvk_vg=0
+                ocfs2_printlog $MODULE_NAME debug "The device $device is CVK_VG, no necessary to get naa."
+                break
+            fi
+        done
+    fi
+    
+    return $not_cvk_vg
+}
+
+##############################################################################
+#    Func Name: ocfs2_iscsi_default_check
+# Date Created: 2014-10-31
+#       Author: longjian/10400
+#  Description: if iscsi default file is empty, delete it and discovery once
+#        usage: $0 $1 $2
+#               $1 : the iscsi target
+#               $2 : the iscsi ip
+#       Output: None
+#       Return: OCFS2_SUCCESS if check pass.
+#      Caution: 
+#-----------------------------------------------------------------------------
+#  Modification History 
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+function ocfs2_iscsi_default_check()
+{
+    local MODULE_NAME=ocfs2_iscsi_default_check
+    local target=$1
+    local ip=$2
+    local ret
+    local re_discovery=0
+    transport=$3
+    transport=${transport:-default}
+    # NODE_CONFIG_DIR maybe located in /etc/iscsi/nodes(ubuntu) or /var/lib/iscsi/nodes(centos)
+    if [ -d /var/lib/iscsi/nodes ]; then
+        NODE_CONFIG_DIR="/var/lib/iscsi/nodes"
+    else
+        NODE_CONFIG_DIR="/etc/iscsi/nodes"
+    fi
+
+    # Check default file. if not exist, need discovery.
+    default_files=$(ls $NODE_CONFIG_DIR/$target/$ip,3260,*/$transport 2>/dev/null)
+    for file in $default_files
+    do
+        # do not care there are spaces.
+        local default_content=`cat $file`
+        if [ "X$default_content" = "X" ] ; then
+            # default file is empty. delete it and rediscovery.
+            re_discovery=1
+            file_dir=${file%/*}
+            ocfs2_printlog $MODULE_NAME warning "$file_dir is empty, delete it."            
+            rm -rf $file_dir
+            ret=$?
+            if [ $ret -ne 0 ]; then
+                ocfs2_printlog $MODULE_NAME warning "Failed to rm $file_dir."
+            fi
+        fi
+    done
+
+    if [ $re_discovery -gt 0 ] || [ "X$default_files" = "X" ]; then
+        targets_has=`iscsiadm --interface $transport -m discovery -t sendtargets -p $ip | grep $target$`
+        if [ "X$targets_has" = "X" ]; then
+            ocfs2_printlog $MODULE_NAME err "Discovery iSCSI targets failed, $target, $ip"
+            return $OCFS2_ISCSI_DISCOVERY
+        else
+            ocfs2_printlog $MODULE_NAME debug "Discovery iSCSI targets successfully, $target, $ip"
+        fi
+    fi
+    #ocfs2_printlog $MODULE_NAME debug "iscsi default check pass, $target, $ip"
+    return $OCFS2_SUCCESS
+}
+
+##############################################################################
+#    Func Name: try_to_stop_o2cb
+# Date Created: 2016-05-19
+#       Author: zhanglianlei/08789
+#  Description: try to stop o2cb service. 
+#               remove heartbeat directory and force-offline, if necessary.
+#        usage:
+#       Output: None
+#       Return: OCFS2_SUCCESS if check pass.
+#      Caution: 
+#-----------------------------------------------------------------------------
+#  Modification History 
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+function try_to_stop_o2cb() {
+    local fail_cnt=0
+    local result=$OCFS2_SUCCESS
+
+    OCFS2_O2HB_PATH=/sys/kernel/config/cluster/*/heartbeat
+    cmd_info1=`service o2cb stop 2>&1`
+    rtn_code=$?
+    if [ $rtn_code -ne 0 ]; then
+        ocfs2_printlog $MODULE_NAME err $cmd_info1
+        ocfs2_printlog $MODULE_NAME err "Stop o2cb service failed, try to remove heartbeat region and force-offline"
+
+        hb_dir=`ls $OCFS2_O2HB_PATH`
+        for file in $hb_dir
+        do
+            if [ -d $OCFS2_O2HB_PATH"/"$file ] && [ ${#file} -eq 32 ]; then
+                rmdir $OCFS2_O2HB_PATH"/"$file
+                tmp_ret=$?
+                ocfs2_printlog $MODULE_NAME debug "Remove residual heartbeat region $file, ret = $tmp_ret."
+                if [ $tmp_ret -ne 0 ]; then
+                    fail_cnt=`expr $fail_cnt + 1`
+                fi
+            fi  
+        done
+        if [ $fail_cnt -eq 0 ]; then
+            service o2cb force-offline
+            ocfs2_printlog $MODULE_NAME warning "service o2cb force-offline, ret = $?"
+            cmd_info1=`service o2cb stop 2>&1`
+            rtn_code=$?
+            if [ $rtn_code -ne 0 ]; then 
+                ocfs2_printlog $MODULE_NAME err "Stop o2cb service failed"
+                ocfs2_printlog $MODULE_NAME err $cmd_info1
+                result=$OCFS2_STOP_O2CB_SERVICE
+            fi
+        else
+            ocfs2_printlog $MODULE_NAME err "Remove ($fail_cnt) residual heartbeat regiones failed."
+            result=$OCFS2_STOP_O2CB_SERVICE
+        fi
+    else
+        ocfs2_printlog $MODULE_NAME debug "O2CB service stopped OK"
+    fi
+    return $result
+}
+
+##############################################################################
+#    Func Name: try_to_online_o2cb
+# Date Created: 2016-05-19
+#       Author: zhanglianlei/08789
+#  Description: try to online o2cb service
+#        usage: 
+#       Output: None
+#       Return: OCFS2_SUCCESS if check pass.
+#      Caution: 
+#-----------------------------------------------------------------------------
+#  Modification History 
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+function try_to_online_o2cb() {
+    cmd_info2=`service o2cb load 2>&1`
+    rtn_code=$?
+    if [ $rtn_code -ne 0 ]; then 
+        ocfs2_printlog $MODULE_NAME err "service o2cb load failed, try start"
+        ocfs2_printlog $MODULE_NAME err $cmd_info2
+
+        # Try to start the service
+        cmd_info2=`service o2cb start 2>&1`
+        rtn_code=$?
+        if [ $rtn_code -eq 0 ]; then
+            ocfs2_printlog $MODULE_NAME debug "start the o2cb service OK."
+            return $OCFS2_SUCCESS
+        fi
+
+        ocfs2_printlog $MODULE_NAME err "service o2cb start failed."
+        ocfs2_printlog $MODULE_NAME err $cmd_info2
+        return $OCFS2_START_O2CB_SERVICE
+    fi
+
+    # add error log 
+    cmd_info3=`service o2cb online 2>&1`
+    rtn_code=$?
+    if [ $rtn_code -ne 0 ]; then 
+        ocfs2_printlog $MODULE_NAME err "service o2cb online failed"
+        ocfs2_printlog $MODULE_NAME err $cmd_info3
+
+        # Try to start the service
+        cmd_info2=`service o2cb start 2>&1`
+        rtn_code=$?
+        if [ $rtn_code -ne 0 ]; then
+            ocfs2_printlog $MODULE_NAME err "service o2cb start failed."
+            ocfs2_printlog $MODULE_NAME err $cmd_info2
+            return $OCFS2_START_O2CB_SERVICE
+        fi
+    fi
+
+    ocfs2_printlog $MODULE_NAME debug "start the o2cb service OK."
+    return $OCFS2_SUCCESS
+}
+
+##############################################################################
+#    Func Name: query_all_hosts_from_database
+# Date Created: 2019-03-27
+#       Author: guozhonhua/02084
+#  Description: Query all hosts from database and print them
+#        usage:
+#       Output: None
+#       Return: OCFS2_SUCCESS if check pass.
+#      Caution:
+#-----------------------------------------------------------------------------
+#  Modification History
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+function query_all_hosts_from_database() {
+    all_hosts=""
+    # collect all cvks
+    get_database_free_func
+    clusters=$(exec_database_sql "select CLUSTER_ID from TBL_HOST group by CLUSTER_ID;")
+    for cluster in $clusters
+    do
+        host_ips=$(exec_database_sql "SELECT ipaddr FROM TBL_HOST WHERE cluster_id=$cluster")
+
+        all_hosts+="$host_ips "
+    done
+    host_ips=$(exec_database_sql "SELECT ipaddr FROM TBL_HOST WHERE cluster_id IS NULL")
+    all_hosts+="$host_ips "
+    echo $all_hosts
+
+    #ocfs2_printlog $MODULE_NAME debug "The hosts queryed form DB: $all_hosts."
+    return $OCFS2_SUCCESS
+}
+
+function query_all_host_pools_from_db() {
+    get_database_free_func
+    host_pools=$(exec_database_sql "select HOST_POOL_ID from TBL_HOST group by HOST_POOL_ID;")
+    for host_pool in $host_pools
+    do
+        if [ $host_pool != "NULL" ]; then
+            host_info=$(exec_database_sql "select NAME,IPADDR from TBL_HOST where HOST_POOL_ID=$host_pool;")
+	    echo "Host Pool ID:$host_pool"
+	    echo "$host_info"
+        fi
+	echo ""
+    done
+    host_info=$(exec_database_sql "select NAME,IPADDR from TBL_HOST where HOST_POOL_ID is NULL;")
+    if [ "X$host_info" != "X" ]; then
+	    echo "-"
+	    echo "$host_info"
+    fi
+}
+
+function query_all_hosts_in_pool_from_db() {
+    all_hosts=""
+
+    if [ "X$1" = "X-" ];then
+        pool_id="NULL"
+    else
+        pool_id=$1
+    fi
+
+    # collect all cvks
+    get_database_free_func
+    if [ $pool_id != "NULL" ]; then
+        host_ips=$(exec_database_sql "select IPADDR from TBL_HOST where HOST_POOL_ID=$pool_id;")
+    else
+        host_ips=$(exec_database_sql "select IPADDR from TBL_HOST where HOST_POOL_ID is NULL;")
+    fi
+
+    echo $host_ips
+
+    return $OCFS2_SUCCESS
+}
+
+function get_ssh_user()
+{
+    ssh_user="root"
+    if [ -e /etc/cvk/user_info.conf ]; then
+        ssh_user=`cat /etc/cvk/user_info.conf | grep "permit_user_ssh" | awk -F= '{print $2}'`
+    fi
+
+    echo $ssh_user
+}
+
+function exec_database_sql() {
+    DATABASE_CRYPT_KEY="hzbdbkz1"
+    if [ -f /opt/bin/db-auth.sh ]; then
+        eval $(/opt/bin/db-auth.sh -k $DATABASE_CRYPT_KEY print)
+        python /opt/bin/execute_database_query.pyc $DB_HOST $DB_PORT vservice "$DB_USER" "$DB_PASS" "$1" 2>/dev/null
+    else
+        mysql_free vservice -N -e "$1" 2>/dev/null
+    fi
+}
+
+function get_database_free_func() {
+    DATABASE_CRYPT_KEY="hzbdbkz1"
+    if [ -f /opt/bin/db-auth.sh ]; then
+        eval $(/opt/bin/db-auth.sh -k $DATABASE_CRYPT_KEY free)
+    else
+        eval $(/opt/bin/mysql-auth.sh -k $DATABASE_CRYPT_KEY free)
+    fi
+}
+
+##############################################################################
+#    Func Name: ocfs2_get_management_ip
+# Date Created: 2024-08-27
+#       Author:
+#  Description: get local management ip
+#        usage:
+#       Output: None
+#       Return: OCFS2_SUCCESS
+#      Caution:
+#-----------------------------------------------------------------------------
+#  Modification History
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+function ocfs2_get_management_ip() {
+    local_ip=""
+
+    local_ip=$(python /opt/bin/netcfgtool.pyc get --name=vswitch0 | grep ipv4 | awk -F "[=,/,']" '{print $3}')
+    if [ "X$local_ip" = "X" ]; then
+        #retry ipv6 if no ipv4
+        local_ip=$(python /opt/bin/netcfgtool.pyc get --name=vswitch0 | grep ipv6 | awk -F "[=,/,']" '{print $3}')
+    fi
+
+    echo $local_ip
+
+    return $OCFS2_SUCCESS
+}
+###############################################################################
+## end of file
+###############################################################################

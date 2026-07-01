@@ -1,0 +1,133 @@
+Convert graminit.[ch] spit out by pgen to Python code.
+Pgen is the Python parser generator.  It is useful to quickly create a
+parser from a grammar file in Python's grammar notation.  But I don't
+want my parsers to be written in C (yet), so I'm translating the
+parsing tables to Python data structures and writing a Python parse
+engine.
+Note that the token numbers are constants determined by the standard
+Python tokenizer.  The standard token module defines these numbers and
+their names (the names are not used much).  The token numbers are
+hardcoded into the Python tokenizer and into pgen.  A Python
+implementation of the Python tokenizer is also available, in the
+standard tokenize module.
+On the other hand, symbol numbers (representing the grammar's
+non-terminals) are assigned by pgen based on the actual grammar
+input.
+Note: this module is pretty much obsolete; the pgen module generates
+equivalent grammar tables directly from the Grammar.txt input file
+without having to invoke the Python pgen C program.
+grammar
+tokenc
+	Convertera2
+Grammar subclass that reads classic pgen output files.
+    The run() method reads the tables as produced by the pgen parser
+    generator, typically contained in two C files, graminit.h and
+    graminit.c.  The other methods are for internal use only.
+    See the base class for more documentation.
+    c
+z<Load the grammar tables from the text files written by pgen.N)
+parse_graminit_h
+parse_graminit_c
+finish_off)
+selfZ
+graminit_hZ
+graminit_c
+*/usr/lib64/python3.9/lib2to3/pgen2/conv.py
+run/
+Converter.runc
+Parse the .h file written by pgen.  (Internal)
+        This file is a sequence of #define statements defining the
+        nonterminals of the grammar as numbers.  We build two tables
+        mapping the numbers to names and back.
+        
+Can't open %s: %sNFr
+^#define\s+(\w+)\s+(\d+)$z
+%s(%s): can't parse %sT)
+open
+OSError
+print
+symbol2number
+number2symbol
+match
+strip
+groups
+int)	r
+filename
+lineno
+line
+symbol
+numberr	
+Converter.parse_graminit_hc
+} | |
+Parse the .c file written by pgen.  (Internal)
+        The file looks as follows.  The first two lines are always this:
+        #include "pgenheaders.h"
+        #include "grammar.h"
+        After that come four blocks:
+        1) one or more state definitions
+        2) a table defining dfas
+        3) a table defining labels
+        4) a struct defining the grammar
+        A state definition has the following form:
+        - one or more arc arrays, each of the form:
+          static arc arcs_<n>_<m>[<k>] = {
+                  {<i>, <j>},
+                  ...
+          };
+        - followed by a state array, of the form:
+          static state states_<s>[<t>] = {
+                  {<k>, arcs_<n>_<m>},
+                  ...
+          };
+        r
+#include "pgenheaders.h"
+#include "grammar.h"
+static arc z)static arc arcs_(\d+)_(\d+)\[(\d+)\] = {$z
+\s+{(\d+), (\d+)},$z
+z'static state states_(\d+)\[(\d+)\] = {$z
+\s+{(\d+), arcs_(\d+)_(\d+)},$z
+static dfa dfas\[(\d+)\] = {$z0\s+{(\d+), "(\w+)", (\d+), (\d+), states_(\d+),$
+\s+("(?:\\\d\d\d)*")},$
+z!static label labels\[(\d+)\] = {$z
+\s+{(\d+), (0|"\w+")},$
+grammar _PyParser_Grammar = {
+\s+(\d+),$z
+	dfas,
+\s+{(\d+), labels},$z	\s+(\d+)$)
+next
+startswithr
+list
+mapr
+range
+append
+states
+groupr
+eval
+	enumerate
+dfas
+labels
+start
+StopIteration)!r
+allarcsr-
+arcs
+stater2
+ndfasr
+firstZ	rawbitset
+byter3
+nlabelsr4
+Converter.parse_graminit_cc
+z1Create additional useful structures.  (Internal).N)
+keywords
+tokensr0
+NAME)
+ilabel
+type
+valuer	
+Converter.finish_offN)
+__name__
+__module__
+__qualname__
+__doc__r
+pgen2r
+Grammarr
+<module>

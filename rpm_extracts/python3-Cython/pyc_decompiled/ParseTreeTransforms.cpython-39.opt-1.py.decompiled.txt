@@ -1,0 +1,1573 @@
+m	Z	
+l m!Z!
+Z)d d!
+Z*d"d#
+Z+d$d%
+Z,d&d'
+d(d)
+d*d+
+d,d-
+d.d/
+d0d1
+d2d3
+d4d5
+d6d7
+d8d9
+d:d;
+d<d=
+d>d?
+d@dA
+dBdC
+dDdE
+dFdG
+dHdI
+dJdK
+dLdM
+dNdO
+dPdQ
+dRdS
+dTdU
+dVdW
+absolute_importN)
+PyrexTypes
+Naming
+	ExprNodes
+Nodes
+Options
+	UtilNodes
+LetNode
+LetRefNode
+TreeFragment
+EncodedString
+error
+warning
+copy
+_unicode
+Builtin)
+Errors)
+VisitorTransform
+TreeVisitor)
+CythonTransform
+EnvTransform
+ScopeTrackingTransform)
+CompileError
+InternalError)
+UtilityCodec
+SkipDeclarationsa)
+    Variable and function declarations can often have a deep tree structure,
+    and yet most transformations don't need to descend to this depth.
+    Declaration nodes are removed after AnalyseDeclarationsTransform, so there
+    is no need to use this for transformations after that point.
+    c
+self
+noder
+I/usr/lib64/python3.9/site-packages/Cython/Compiler/ParseTreeTransforms.py
+visit_CTypeDefNode%
+z#SkipDeclarations.visit_CTypeDefNodec
+visit_CVarDefNode(
+z"SkipDeclarations.visit_CVarDefNodec
+visit_CDeclaratorNode+
+z&SkipDeclarations.visit_CDeclaratorNodec
+visit_CBaseTypeNode.
+z$SkipDeclarations.visit_CBaseTypeNodec
+visit_CEnumDefNode1
+z#SkipDeclarations.visit_CEnumDefNodec
+visit_CStructOrUnionDefNode4
+z,SkipDeclarations.visit_CStructOrUnionDefNodeN)
+__name__
+__module__
+__qualname__
+__doc__r#
+NormalizeTreea\
+    This transform fixes up a few things after parsing
+    in order to make the parse tree more suitable for
+    transforms.
+    a) After parsing, blocks with only one statement will
+    be represented by that statement, not by a StatListNode.
+    When doing transforms this is annoying and inconsistent,
+    as one cannot in general remove a statement in a consistent
+    way and so on. This transform wraps any single statements
+    in a StatListNode containing a single statement.
+    b) The PassStatNode is a noop and serves no purpose beyond
+    plugging such one-statement blocks; i.e., once parsed a
+`    "pass" can just as well be represented using an empty
+    StatListNode. This means less special cases to worry about
+    in subsequent transforms (one always checks to see if a
+    StatListNode has no children to see if the block is empty).
+    c
+superr-
+__init__
+is_in_statlist
+is_in_expr
+context
+	__class__r
+NormalizeTree.__init__c
+visitchildren)
+stacktmpr
+visit_ExprNodeR
+NormalizeTree.visit_ExprNodeFc
+stats)
+StatListNoder<
+is_listcontainerr9
+visit_StatNodeY
+NormalizeTree.visit_StatNodec
+NTF)
+visit_StatListNodec
+z NormalizeTree.visit_StatListNodec
+visit_ParallelAssignmentNodei
+z*NormalizeTree.visit_ParallelAssignmentNodec
+z NormalizeTree.visit_CEnumDefNodec
+z)NormalizeTree.visit_CStructOrUnionDefNodec
+Eliminate PassStatNoder;
+visit_PassStatNoder
+z NormalizeTree.visit_PassStatNodec
+z!Eliminate useless string literalsN)
+expr
+is_string_literalrD
+visit_ExprStatNodey
+z NormalizeTree.visit_ExprStatNodec
+z#NormalizeTree.visit_CDeclaratorNode)
+__classcell__r
+PostParseErrorN)
+zHCannot assign default value to fields in cdef classes, structs or unionsz0Invalid buffer defaults specification (see docs)z0Special attributes must not have a type declaredc
+	PostParseaf
+    Basic interpretation of the parse tree, as well as validity
+    checking that can be done on a very basic level on the parse
+    tree (while still not being a problem with the basic syntax,
+    as such).
+    Specifically:
+    - Default values to cdef assignments are turned into single
+    assignments following the declaration (everywhere but in class
+    bodies, where they raise a compile error)
+    - Interpret some node structures into Python runtime values.
+    Some nodes take compile-time arguments (currently:
+    TemplatedTypeNode[args] and __cythonbufferdefaults__ = {args}),
+    which should be interpreted. This happens in a general way
+    and other steps should be taken to ensure validity.
+    Type arguments cannot be interpreted in this way.
+    - For __cythonbufferdefaults__ the arguments are checked for
+    validity.
+    TemplatedTypeNode has its directives interpreted:
+    Any first positional argument goes into the "dtype" attribute,
+    any "ndim" keyword argument goes into the "ndim" attribute and
+    so on. Also it is checked that the directive combination is valid.
+    - __cythonbufferdefaults__ attributes are parsed and put into the
+    type information.
+    Note: Currently Parsing.py does a lot of interpretation and
+    reorganization that can be refactored into this transform
+    if a more pure Abstract Syntax Tree is wanted.
+    c
+__cythonbufferdefaults__)
+handle_bufferdefaults
+specialattribute_handlersr3
+PostParse.__init__c
+value)
+name
+args
+star_arg
+starstar_arg
+body
+doc)
+YieldNodeCollectorr8
+result_expr
+	has_yield
+	has_await
+isinstancer
+YieldExprNoder
+ExprStatNoder<
+ReturnStatNode
+DefNoderQ
+def_node)
+	collectorrU
+visit_LambdaNode
+PostParse.visit_LambdaNodec
+is_async_def)	rW
+loopr
+visit_GeneratorExpressionNode
+z'PostParse.visit_GeneratorExpressionNodec
+has_local_scoperW
+visit_ComprehensionNode
+z!PostParse.visit_ComprehensionNodec
+defaultr
+DictNoderI
+ERR_BUF_DEFAULTS
+scope_nodeZ
+buffer_defaults_nodeZ
+buffer_defaults_pos)
+declr
+PostParse.handle_bufferdefaultsc
+cclass
+pyclass
+struct
+module
+first)
+declaratorsrZ
+CPtrDeclaratorNode
+baseZ
+CNameDeclaratorNoderf
+scope_typerh
+CClassDefNoderM
+getrQ
+ERR_INVALID_SPECIALATTR_TYPE
+ERR_CDEF_INCLASS
+append
+SingleAssignmentNoder
+NameNoder4
+nonfatal_error)	r 
+newdeclsri
+declbaseZ
+handlerZ
+first_assignment
+PostParse.visit_CVarDefNodec
+_visit_assignment_nodero
+visit_SingleAssignmentNode
+z$PostParse.visit_SingleAssignmentNodec
+lhs_listrp
+visit_CascadedAssignmentNode
+z&PostParse.visit_CascadedAssignmentNodec
+zgFlatten parallel assignments into separate single
+        assignments or cascaded assignments.
+        c
+is_sequence_constructorrF
+.0rE
+<listcomp>
+z4PostParse._visit_assignment_node.<locals>.<listcomp>
+expression)
+tempr
+flatten_parallel_assignments
+eliminate_rhs_duplicates
+lenr
+CascadedAssignmentNoderx
+ParallelAssignmentNode
+sort_common_subsequencesr	
+	expr_list
+expr_list_listZ	temp_refsZ
+nodesr
+assign_nodeZ
+duplicates_and_temps
+temp_refr
+z PostParse._visit_assignment_nodec
+_flatten_sequencerx
+result
+argr
+PostParse._flatten_sequencec
+visit_DelStatNodeF
+PostParse.visit_DelStatNodec
+ignore_nonexistingr
+finally_clause)
+is_except_asr
+DelStatNoder<
+targetrQ
+TryFinallyStatNoderU
+del_targetr
+visit_ExceptClauseNodeK
+z PostParse.visit_ExceptClauseNode)
+Replace rhs items by LetRefNodes if they appear more than once.
+    Creates a sequence of LetRefNodes that set up the required temps
+    and appends them to ref_node_sequence.  The input list is modified
+    in-place.
+    c
+is_literal
+is_namer
+addr
+ref_node
+item)
+find_duplicates
+ref_node_sequence
+	ref_nodes
+seen_nodesr
+z1eliminate_rhs_duplicates.<locals>.find_duplicatesr
+list
+maprR
+substitute_nodesr
+z2eliminate_rhs_duplicates.<locals>.substitute_nodes)
+setr
+Sort items/subsequences so that all items and subsequences that
+    an item contains appear before the item itself.  This is needed
+    because each rhs item must only be evaluated once, so its value
+    must be evaluated first and then reused when packing sequences
+    that contain it.
+    This implies a partial order, and the sort must be stable to
+    preserve the original order as much as possible, so we use a
+    simple insertion sort (which is very fast for short sequences, the
+    normal case in practice).
+    c
+containsr
+z*sort_common_subsequences.<locals>.containsc
+lower_than
+z,sort_common_subsequences.<locals>.lower_thanr
+	enumerate
+range)
+itemsr
+keyZ
+new_pos
+constant_result)
+literal
+charsr<
+stypeZ
+svalZ	sval_type
+charZ
+cvalr
+#unpack_string_to_character_literals
+z0flatten_parallel_assignments.<locals>.<listcomp>c
+z4starred assignment target must be in a list or tuplec
+is_starredr
+z,more than 1 starred expression in assignmentz#need more than %d value%s to unpack
+z/too many values to unpack (expected %d, got %d)r
+UnicodeNoder
+map_starred_assignment
+zipr
+input
+outputrp
+complete_assignments
+rhs_argsZ
+rhs_size
+lhs_targets
+starred_assignmentsro
+lhs_sizeZ
+starred_targets
+targetsrE
+cascader
+z6no starred arg found when splitting starred assignmentr
+ListNode)
+lhs_argsr
+starredZ
+lhs_remainingr
+starred_rhsr<
+PxdPostParsea
+    Basic interpretation/validity checking that should only be
+    done on pxd trees.
+    A lot of this checking currently happens in the parser; but
+    what is listed below happens here.
+    - "def" functions are let through only if they fill the
+    getbuffer/releasebuffer slots
+    - cdef functions are let through only if they are on the
+    top level and are declared "inline"
+    z>function definition in pxd file must be declared 'cdef inline'z5inline function definition in pxd file cannot be '%s'c
+pxd)
+__call__r
+PxdPostParse.__call__c
+oldr
+visit_CClassDefNode7
+z PxdPostParse.visit_CClassDefNodec
+__getbuffer__Z
+__releasebuffer__
+inline)
+private
+api)
+ERR_INLINE_ONLYrZ
+CFuncDefNode
+	modifiersZ
+inline_in_pxd
+visibility
+ERR_NOGO_WITH_INLINEr
+errr
+visit_FuncDefNode>
+PxdPostParse.visit_FuncDefNode)
+TrackNumpyAttributesc
+numpy_module_names
+TrackNumpyAttributes.__init__c
+numpy)
+module_namer
+as_namer
+visit_CImportStatNodea
+z*TrackNumpyAttributes.visit_CImportStatNodec
+objr
+is_numpy_attribute)
+visit_AttributeNodef
+z(TrackNumpyAttributes.visit_AttributeNode)
+recurse_to_children
+visit_NoderH
+d!d"
+d#d$
+d%d&
+d'd(
+d)d*
+Z d+d,
+Z!d-d.
+Z"d/d0
+Z#d1d2
+Z$d3d4
+InterpretCompilerDirectivesaq
+    After parsing, directives can be stored in a number of places:
+    - #cython-comments at the top of the file (stored in ModuleNode)
+    - Command-line arguments overriding these
+    - @cython.directivename decorators
+    - with cython.directivename: statements
+    This transform is responsible for interpreting these various sources
+    and store the directive in two ways:
+    - Set the directives attribute of the ModuleNode for global directives.
+    - Use a CompilerDirectivesNode to override directives for a subtree.
+    (The first one is primarily to not have to modify with the tree
+    structure, so that ModuleNode stay on top.)
+    The directives are stored in dictionaries from name to value in effect.
+    Each such dictionary is always filled in for all possible directives,
+    using default values where no value is given by the user.
+    The available directives are controlled in Options.py.
+    Note that we have to run this prior to analysis, and so some minor
+    duplication of functionality has to occur: We manually track cimports
+    and which names the "cython" module may have been imported to.
+    Tz
+--F)	Z
+typeofz
+operator.addressz
+operator.dereferencez
+operator.preincrementz
+operator.predecrementz
+operator.postincrementz
+operator.postdecrementz
+operator.typeidZ
+addressz
+operator.comma
+declare
+unionrl
+typedef
+sizeof
+castZ
+pointer
+compiled
+NULLZ
+fused_type
+parallel)
+prangeZ
+threadidc
+staticmethod)
+cython_module_names
+directive_names
+parallel_directivesr
+deepcopyr
+get_directive_defaultsr
+directives)
+compilation_directive_defaultsr
+z$InterpretCompilerDirectives.__init__c
+Nz4The %s compiler directive is not allowed in %s scopeFz
+Invalid directive: '%s'.T)
+directive_scopesru
+directive_typesr
+	directive
+scopeZ
+legal_scopesr
+check_directive_scope
+z1InterpretCompilerDirectives.check_directive_scopec
+sortedZ
+directive_commentsr
+wrong_scope_errorr
+module_scoper
+updater
+visit_ModuleNode
+z,InterpretCompilerDirectives.visit_ModuleNodec
+special_methodsr
+parse_basic_type)
+is_cython_directive
+z/InterpretCompilerDirectives.is_cython_directivec
+q>n(t
+        Checks to see if fullname (e.g. cython.parallel.prange) is a valid
+        parallel directive. If it is a star import it also updates the
+        parallel_directives.
+        
+cython.parallel.
+cython.parallelr
+cython.parallel.*z
+cython.parallel.%s
+No such directive: %s
+InitThreads
+ModuleSetupCode.c)
+startswith
+splitr
+valid_parallel_directivesr
+use_utility_coder
+load_cached)
+	full_namer<
+is_parallel_directive
+z1InterpretCompilerDirectives.is_parallel_directivec
+cython
+cython.r
+ is not a moduler
+z1InterpretCompilerDirectives.visit_CImportStatNodec
+rr|	|
+z0Compiler directive imports must be plain imports)
+relative_levelr
+imported_namesr
+	submodule
+newimpr<
+kindr
+qualified_namer
+visit_FromCImportStatNode
+z5InterpretCompilerDirectives.visit_FromCImportStatNodec
+	name_noder
+visit_FromImportStatNode!
+z4InterpretCompilerDirectives.visit_FromImportStatNodec
+ImportNoder
+CImportStatNoder<
+is_parallelr
+z6InterpretCompilerDirectives.visit_SingleAssignmentNodec
+is_cython_moduler
+cython_attribute)
+visit_NameNodeH
+z*InterpretCompilerDirectives.visit_NameNodec
+visit
+cppclassr8
+visit_NewExprNodeQ
+z-InterpretCompilerDirectives.visit_NewExprNodec
+%s.%sTrO
+z5The '%s' directive should be used as a function call.)
+CallNoder
+function
+as_cython_attributer
+explicit_args_kwds
+dict
+key_value_pairsrP
+try_to_parse_directiver<
+AttributeNoderz
+bool
+BoolNoderI
+optname
+directivetyperR
+kwdsr
+keyvaluer
+sub_optnamer
+try_to_parse_directivesV
+z3InterpretCompilerDirectives.try_to_parse_directivesc
+np_pythranz.The %s directive can only be used in C++ mode.
+	exceptvalr
+checkzYThe exceptval directive takes 0 or 1 positional arguments and the boolean keyword "check"z8The %s directive takes one compile-time boolean argumentz8The %s directive takes one compile-time integer argumentz7The %s directive takes one compile-time string argumentz(The %s directive takes one type argumentz1The %s directive takes no prepositional argumentsc
+zFInterpretCompilerDirectives.try_to_parse_directive.<locals>.<listcomp>z+The %s directive takes no keyword argumentsc
+strrP
+cpprI
+NoneNoder
+intZ
+IntNoder)
+StringNoder
+typer
+callable)	r 
+Z	arg_errorr(
+kwr$
+z2InterpretCompilerDirectives.try_to_parse_directivec
+CompilerDirectivesNode)
+old_directives
+new_directivesZ
+retbodyr
+visit_with_directives
+z1InterpretCompilerDirectives.visit_with_directivesc
+_extract_directivesr2
+z-InterpretCompilerDirectives.visit_FuncDefNodec
+locals)
+finalr
+zXCdef functions can only take cython.locals(), staticmethod, or final decorators, got %s.)
+directive_localsr4
+z-InterpretCompilerDirectives.visit_CVarDefNodec
+z/InterpretCompilerDirectives.visit_CClassDefNodec
+visit_CppClassNode
+z.InterpretCompilerDirectives.visit_CppClassNodec
+classr3
+visit_PyClassDefNode
+z0InterpretCompilerDirectives.visit_PyClassDefNodec
+qBq&|
+n t	|
+z8Cdef functions/classes cannot take arbitrary decorators.)
+decoratorsr&
+	decoratorr
+objectrx
+CVarDefNoderI
+extend)
+scope_namer
+realdecsZ
+bothZ
+decr1
+optdict
+	old_valuer
+z/InterpretCompilerDirectives._extract_directivesc
+Nz6Compiler directive with statements cannot contain 'as')
+nogil
+staterU
+with statement)
+managerr
+GILStatNoderU
+directive_dictr
+visit_WithStatNode 
+z.InterpretCompilerDirectives.visit_WithStatNode)'r)
+TypeofNodeZ
+AmpersandNodeZ
+DereferenceNodeZ
+inc_dec_constructorZ
+TypeidNode
+unop_method_nodesZ
+c_binop_constructor
+binop_method_nodesr
+ParallelRangeTransforma
+    Transform cython.parallel stuff. The parallel_directives come from the
+    module node, set there by InterpretCompilerDirectives.
+        x = cython.parallel.threadavailable()   -> ParallelThreadAvailableNode
+        with nogil, cython.parallel.parallel(): -> ParallelWithBlockNode
+            print cython.parallel.threadid()    -> ParallelThreadIdNode
+            for i in cython.parallel.prange(...):  -> ParallelRangeNode
+                ...
+    NF)
+cython.parallel.parallelz
+cython.parallel.threadidz
+cython.parallel.prangec
+node_is_parallel_directiveU
+z1ParallelRangeTransform.node_is_parallel_directivec
+        Figure out which parallel directive was used and return the associated
+        Node class.
+        E.g. for a cython.parallel.prange() call we return ParallelRangeNode
+        r
+Invalid directive: %sF)	
+namenode_is_cython_module
+join
+parallel_directiver
+rstrip
+directive_to_noderu
+clsr
+get_directive_class_nodeX
+z/ParallelRangeTransform.get_directive_class_nodec
+        If any parallel directives were imported, copy them over and visit
+        the AST
+        )
+z'ParallelRangeTransform.visit_ModuleNodec
+z%ParallelRangeTransform.visit_NameNodec
+	attributer
+z*ParallelRangeTransform.visit_AttributeNodec
+exclude)
+kwargs)
+GeneralCallNode
+positional_argsrR
+keyword_argsrR
+parallel_directive_classr
+visit_CallNode
+z%ParallelRangeTransform.visit_CallNodec
+z.Rewrite with cython.parallel.parallel() blocksz
+parallel withz*Nested parallel with blocks are disallowedNz%The parallel directive must be called)
+ParallelWithBlockNoderD
+newnoderU
+z)ParallelRangeTransform.visit_WithStatNodec
+z/Rewrite 'for i in cython.parallel.prange(...):'z+Can only iterate over an iteration variabler
+iteratorr
+sequencer
+ParallelRangeNoderD
+else_clauser
+Z	in_prangeZ
+previous_stateZ
+parallel_range_noder
+visit_ForInStatNode
+z*ParallelRangeTransform.visit_ForInStatNodec
+Visit a node that may be NoneN)
+ParallelRangeTransform.visit)
+in_context_manager_sectionrD
+ParallelThreadIdNoder\
+WithTransformc
+__aenter__
+	__enter__T)
+is_special_lookup)
+is_temp)
+Z	with_noder
+ExcValueNoder
+z4WithTransform.visit_WithStatNode.<locals>.<listcomp>r
+slowrR
+Z	with_statZ
+test_if_runrR
+await_expr
+operand)
+Z	conditionrU
+if_clausesr]
+patternr
+excinfo_target)
+except_clausesr]
+handle_error_case)
+is_asyncrU
+SimpleCallNoder 
+	CloneNoder
+enter_callZ
+AwaitExprNoder
+WithTargetAssignmentStatNode
+	TupleNoder
+ExceptClauseNodeZ
+IfStatNodeZ
+IfClauseNodeZ
+NotNodeZ
+WithExitCallNodeZ
+ReraiseStatNoder
+TryExceptStatNoder[
+except_clauser
+z WithTransform.visit_WithStatNodec
+WithTransform.visit_ExprNodeN)
+DecoratorTransforma
+    Transforms method decorators in cdef classes into nested calls or properties.
+    Python-style decorator properties are transformed into a PropertyNode
+    with up to the three getter, setter and deleter DefNodes.
+    The functional style isn't supported yet.
+    N
+__get__
+__set__
+__del__)
+getter
+setter
+deleterc
+_propertiesrx
+popr
+z&DecoratorTransform.visit_CClassDefNodec
+z4'property %s:' syntax is deprecated, use '@property')
+levelr
+visit_PropertyNode>
+z%DecoratorTransform.visit_PropertyNodec
+}	|	r<|
+propertyr
+z3Mismatching property names, expected '%s', got '%s'
+classmethodr
+_reject_decorated_propertyr
+remover<
+PropertyNoder>
+is_attributer
+_map_property_attributerS
+_add_to_propertyZ
+is_classmethodZ
+is_staticmethod
+chain_decorators)
+properties
+decorator_noder=
+Z	stat_list
+propZ
+handler_name
+funcZ
+decsr
+visit_DefNodeD
+z DecoratorTransform.visit_DefNodec
+Nz=Property methods with additional decorators are not supported)
+decor
+z-DecoratorTransform._reject_decorated_propertyc
+qVq,|
+statr
+z#DecoratorTransform._add_to_propertyc
+        Decorators are applied directly in DefNode and PyClassDefNode to avoid
+        reassignments to the function/class name - except for cdef class methods.
+        For those, the reassignment is required as methods are originally
+        defined in the PyMethodDef struct.
+        The IndirectionNode allows DefNode to override the decorator.
+        rn
+IndirectionNodeZ
+decorator_indirection)
+decorator_resultr=
+reassignmentr
+z#DecoratorTransform.chain_decorators)
+CnameDirectivesTransformz
+    Only part of the CythonUtilityCode pipeline. Must be run before
+    DecoratorTransform in case this is a decorator for a cdef class.
+    It filters out @cname('my_cname') decorators and rewrites them to
+    CnameDecoratorNodes.
+    c
+j	r |
+)	Nr<
+cnamez/cname decorator does not take keyword argumentsr
+z*cname decorator takes exactly one argumentr
+z4argument to cname decorator must be a string literal)
+getattrr
+AssertionErrorr
+str_type
+compile_time_valuer
+CnameDecoratorNoder<
+handle_function
+z(CnameDirectivesTransform.handle_functionN)	r)
+ForwardDeclareTypesc
+envr
+visit_CompilerDirectivesNode
+z0ForwardDeclareTypes.visit_CompilerDirectivesNodec
+z$ForwardDeclareTypes.visit_ModuleNodec
+in_cincluder8
+old_cinclude_flagr
+visit_CDefExternNode
+z(ForwardDeclareTypes.visit_CDefExternNodec
+z&ForwardDeclareTypes.visit_CEnumDefNodec
+entriesr
+z/ForwardDeclareTypes.visit_CStructOrUnionDefNodec
+j	rP|
+class_namer
+is_extension_typeZ
+is_builtin_typer
+cfunc_entries
+is_fusedZ"get_all_specialized_function_types)
+entryr
+z'ForwardDeclareTypes.visit_CClassDefNodeN)	r)
+d!d"
+d#d$
+d%d&
+d'd(
+d)d*
+d+d,
+d-d.
+d/d0
+d1d2
+d3d4
+Z d5d6
+Z!d7d8
+Z"d9d:
+Z#d;d<
+Z$d=d>
+Z%d?d@
+Z&dAdB
+AnalyseDeclarationsTransformzr
+property NAME:
+    def __get__(self):
+        return ATTR
+    def __set__(self, value):
+        ATTR = value
+    
+c_classN
+pipelinez
+property NAME:
+    def __get__(self):
+        return ATTR
+    def __set__(self, value):
+        ATTR = value
+    def __del__(self):
+        ATTR = None
+    z?
+property NAME:
+    def __get__(self):
+        return ATTR
+    a
+cdef class NAME:
+    cdef TYPE value
+    def __init__(self, MEMBER=None):
+        cdef int count
+        count = 0
+        INIT_ASSIGNMENTS
+        if IS_UNION and count > 1:
+            raise ValueError, "At most one union member should be specified."
+    def __str__(self):
+        return STR_FORMAT % MEMBER_TUPLE
+    def __repr__(self):
+        return REPR_FORMAT % MEMBER_TUPLE
+    )
+if VALUE is not None:
+    ATTR = VALUE
+    count += 1
+    r
+seen_vars_stackr
+fused_error_funcsr/
+_super_visit_FuncDefNoder
+rootZ
+super_classr5
+z%AnalyseDeclarationsTransform.__call__c
+z+AnalyseDeclarationsTransform.visit_NameNodec
+extra_module_declarationsr
+analyse_declarations
+current_envr8
+z-AnalyseDeclarationsTransform.visit_ModuleNodec
+	in_lambdar
+z-AnalyseDeclarationsTransform.visit_LambdaNodec
+extern
+__reduce__
+__reduce_ex__)
+visit_ClassDefNoder
+implementedrU
+var_entriesZ
+needs_property
+create_Propertyr
+lookup
+_inject_pickle_methods)
+z0AnalyseDeclarationsTransform.visit_CClassDefNodec
+j	d	d
+}	n8|
+)-NZ
+auto_pickleFTc
+__weakref__
+__dict__Nrn
+	<genexpr>s
+zFAnalyseDeclarationsTransform._inject_pickle_methods.<locals>.<genexpr>Z	__cinit__r
+<lambda>w
+zEAnalyseDeclarationsTransform._inject_pickle_methods.<locals>.<lambda>)
+is_pyobjectZ
+can_coerce_to_pyobjectZ
+can_coerce_from_pyobjectr
+zGAnalyseDeclarationsTransform._inject_pickle_methods.<locals>.<listcomp>c
+is_struct_or_unionr
+z2no default __reduce__ due to non-trivial __cinit__z6%s cannot be converted to a Python object for picklingr
+self.%sNrn
+zZPickling of struct members such as %s must be explicitly requested with @auto_pickle(True)c
+                def __reduce_cython__(self):
+                    raise TypeError("%(msg)s")
+                def __setstate_cython__(self, __pyx_state):
+                    raise TypeError("%(msg)s")
+                
+msgr
+0x%s
+utf-8r
+__pyx_unpickle_%sa
+                def %(unpickle_func_name)s(__pyx_type, long __pyx_checksum, __pyx_state):
+                    cdef object __pyx_PickleError
+                    cdef object __pyx_result
+                    if __pyx_checksum != %(checksum)s:
+                        from pickle import PickleError as __pyx_PickleError
+                        raise __pyx_PickleError("Incompatible checksums (%%s vs %(checksum)s = (%(members)s))" %% __pyx_checksum)
+                    __pyx_result = %(class_name)s.__new__(__pyx_type)
+                    if __pyx_state is not None:
+                        %(unpickle_func_name)s__set_state(<%(class_name)s> __pyx_result, __pyx_state)
+                    return __pyx_result
+                cdef %(unpickle_func_name)s__set_state(%(class_name)s __pyx_result, tuple __pyx_state):
+                    %(assignments)s
+                    if len(__pyx_state) > %(num_members)d and hasattr(__pyx_result, '__dict__'):
+                        __pyx_result.__dict__.update(__pyx_state[%(num_members)d])
+                z
+z!__pyx_result.%s = __pyx_state[%s]Nr
+unpickle_func_name
+checksum
+membersr
+assignmentsZ
+num_membersrm
+                def __reduce_cython__(self):
+                    cdef tuple state
+                    cdef object _dict
+                    cdef bint use_setstate
+                    state = (%(members)s)
+                    _dict = getattr(self, '__dict__', None)
+                    if _dict is not None:
+                        state += (_dict,)
+                        use_setstate = True
+                    else:
+                        use_setstate = %(any_notnone_members)s
+                    if use_setstate:
+                        return %(unpickle_func_name)s, (type(self), %(checksum)s, None), state
+                    else:
+                        return %(unpickle_func_name)s, (type(self), %(checksum)s, state)
+                def __setstate_cython__(self, __pyx_state):
+                    %(unpickle_func_name)s__set_state(self, __pyx_state)
+                c
+ or c
+self.%s is not None)
+False)
+any_notnone_members)#r
+	base_type
+sortrM
+substituter
+create_to_py_utility_codeZ
+create_from_py_utility_coder
+hashlibZ
+encodeZ	hexdigestr
+enter_scope
+exit_scope)
+auto_pickle_forcedZ
+all_membersrQ
+cinitZ
+inherited_reduceZ
+non_pyZ
+structsr
+pickle_funcr|
+all_members_namesr
+unpickle_funcr
+z3AnalyseDeclarationsTransform._inject_pickle_methodsc
+        Create function calls to the decorators and reassignments to
+        the function.
+        )
+lookup_hererx
+old_decoratorsr
+	transformr]
+reassignmentsr
+_handle_fused_def_decorators
+z9AnalyseDeclarationsTransform._handle_fused_def_decoratorsc
+z#Handle def or cpdef fused functionsr
+binding)
+insert
+py_funcr
+update_fused_defnode_entryr
+PyCFunctionNode
+from_defnodeZ	ProxyNodeZ
+coerce_to_tempZ
+resulting_fused_function
+_create_assignmentrk
+fused_func_assignmentr
+pycfuncr
+_handle_def
+z(AnalyseDeclarationsTransform._handle_defc
+z:Create a fused function for a DefNode with fused argumentsr
+	FusedNodez
+Fused lambdas not allowedz
+Cannot nest fused functionsr
+fused_functionr
+PassStatNoderU
+get_fused_typesr
+FusedCFuncDefNoder8
+_create_fused_function
+z3AnalyseDeclarationsTransform._create_fused_functionc
+z8Handle cleanup for 'with gil' blocks in nogil functions.)
+finally_except_clauseN)
+has_with_gil_blockr
+NogilTryFinallyStatNoderU
+EnsureGILNode)
+lenvr!
+_handle_nogil_cleanup6
+z2AnalyseDeclarationsTransform._handle_nogil_cleanupc
+Fused generators not supported)
+is_generator
+has_fused_argumentsr
+gbodyr
+_handle_fusedC
+z*AnalyseDeclarationsTransform._handle_fusedc
+        Analyse a function and its body, as that hasn't happened yet.  Also
+        analyse the directive_locals set by @cython.locals().
+        Then, if we are a function with fused arguments, replace the function
+        (after it has declared itself in the symbol table!) with a
+        FusedCFuncDefNode, and analyse its children (which are in turn normal
+        functions). If we're a normal function, just analyse the body of the
+        function.
+        
+Not a type)
+local_scopeZ
+declare_argumentsr8
+analyse_as_type
+declare_varr<
+varZ	type_noder-
+z.AnalyseDeclarationsTransform.visit_FuncDefNodec
+is_wrapperZ
+parent_scopeZ
+fused_py_func
+is_generator_bodyZ
+needs_assignment_synthesis
+_synthesize_assignment
+z*AnalyseDeclarationsTransform.visit_DefNodec
+visit_GeneratorBodyDefNode|
+z7AnalyseDeclarationsTransform.visit_GeneratorBodyDefNodec
+pymethdef_cname
+code_objectr
+is_py_class_scope
+is_c_class_scope
+outer_scopeZ
+is_closure_scoper
+InnerFunctionNoder<
+CodeObjectNode
+py_cfunc_node
+current_directivesru
+is_cyfunctionr
+genvrp
+z3AnalyseDeclarationsTransform._synthesize_assignmentc
+assmtr
+z/AnalyseDeclarationsTransform._create_assignmentc
+expr_scopeZ
+analyse_scoped_declarationsr8
+visit_ScopedExprNode
+z1AnalyseDeclarationsTransform.visit_ScopedExprNodec
+visit_TempResultFromStatNode
+z9AnalyseDeclarationsTransform.visit_TempResultFromStatNodec
+z/AnalyseDeclarationsTransform.visit_CppClassNodec
+VALUE
+ATTRrb
+%s(%s)z
+%s, 
+INIT_ASSIGNMENTSZ
+IS_UNIONZ
+MEMBER_TUPLEZ
+STR_FORMATZ
+REPR_FORMATr
+init_assignmentr
+struct_or_union_wrapperr
+Z	is_structrl
+replacer=
+shadowrU
+kw_onlyr
+declaratorr
+basic_pyobject_property
+basic_propertyr
+self_valuer
+attributesr
+init_assignments
+attrZ
+str_formatZ
+wrapper_classZ
+class_bodyZ
+init_methodZ
+arg_templater
+templaterx
+z8AnalyseDeclarationsTransform.visit_CStructOrUnionDefNodec
+z2AnalyseDeclarationsTransform.visit_CDeclaratorNodec
+z/AnalyseDeclarationsTransform.visit_CTypeDefNodec
+z0AnalyseDeclarationsTransform.visit_CBaseTypeNodec
+public)
+z/AnalyseDeclarationsTransform.visit_CEnumDefNodec
+z,cdef variable '%s' declared after it is usedr
+visit_CNameDeclaratorNode!
+z6AnalyseDeclarationsTransform.visit_CNameDeclaratorNodec
+z.AnalyseDeclarationsTransform.visit_CVarDefNodec
+child_node)
+visit_CnameDecoratorNode/
+z5AnalyseDeclarationsTransform.visit_CnameDecoratorNodec
+)	Nr
+readonlyr
+basic_property_ror
+z,AnalyseDeclarationsTransform.create_Property))r)
+ CalculateQualifiedNamesTransformz^
+    Calculate and store the '__qualname__' and the global
+    module name on some nodes.
+    c
+global_scoper
+_super_visit_ClassDefNoder8
+_superr5
+z1CalculateQualifiedNamesTransform.visit_ModuleNodeNc
+qualnamer
+_set_qualnameY
+z.CalculateQualifiedNamesTransform._set_qualnamec
+is_pyglobalZ
+is_pyclass_attrrQ
+_append_entryb
+z.CalculateQualifiedNamesTransform._append_entryc
+visit_ClassNodeh
+z0CalculateQualifiedNamesTransform.visit_ClassNodec
+visit_PyClassNamespaceNodem
+z;CalculateQualifiedNamesTransform.visit_PyClassNamespaceNodec
+<locals>)
+orig_qualified_namer
+visit_PyCFunctionNodes
+z6CalculateQualifiedNamesTransform.visit_PyCFunctionNodec
+z.CalculateQualifiedNamesTransform.visit_DefNodec
+<lambda>r
+z2CalculateQualifiedNamesTransform.visit_FuncDefNodec
+z3CalculateQualifiedNamesTransform.visit_ClassDefNode)
+AnalyseExpressionsTransformc
+infer_typesrU
+analyse_expressionsr8
+z,AnalyseExpressionsTransform.visit_ModuleNodec
+z-AnalyseExpressionsTransform.visit_FuncDefNodec
+analyse_scoped_expressionsr8
+z0AnalyseExpressionsTransform.visit_ScopedExprNodec
+        Replace index nodes used to specialize cdef functions with fused
+        argument types with the Attribute- or NameNode referring to the
+        function. We then need to copy over the specialization properties to
+        the attribute or name node.
+        Because the indexing might be a Python indexing operation on a fused
+        function, or (usually) a Cython indexing operation, we need to
+        re-analyse the types.
+        )
+is_fused_indexr-
+is_errorrr
+visit_IndexNode
+z+AnalyseExpressionsTransform.visit_IndexNodeN)
+FindInvalidUseOfFusedTypesc
+Nz-Return type is not specified as argument type)
+return_typer
+z,FindInvalidUseOfFusedTypes.visit_FuncDefNodec
+Nz6Invalid use of fused types, type cannot be specialized)
+z)FindInvalidUseOfFusedTypes.visit_ExprNodeN)
+ExpandInplaceOperatorsc
+)	NFc
+index)
+z@Don't allow things like attributes of buffer indexing operations)
+is_subscriptrr
+Z	IndexNoder<
+BufferIndexNode
+ValueError)
+settingrr
+tempsr
+side_effect_free_referencer
+zVExpandInplaceOperators.visit_InPlaceAssignmentNode.<locals>.side_effect_free_referenceT)
+operator
+operand1
+operand2Z
+inplacer
+is_cpp_classrZ
+binop_noder<
+analyse_target_typesZ
+analyse_typesZ
+analyse_operationr
+Z	coerce_to
+reverser	
+)	r 
+let_ref_nodes
+dupZ
+binop
+visit_InPlaceAssignmentNode
+z2ExpandInplaceOperators.visit_InPlaceAssignmentNodec
+z%ExpandInplaceOperators.visit_ExprNodeN)
+AdjustDefByDirectivesz
+    Adjust function and class definitions by the decorator directives:
+    @cython.cfunc
+    @cython.cclass
+    @cython.ccall
+    @cython.inline
+    @cython.nogil
+    c
+in_py_classr8
+z&AdjustDefByDirectives.visit_ModuleNodec
+z2AdjustDefByDirectives.visit_CompilerDirectivesNodec
+returnsZ
+annotation_typingr7
+ccallT)
+overridabler
+except_valZ
+cfuncz#cfunc directive is not allowed hereFz,Python functions cannot be declared 'inline'z+Python functions cannot be declared 'nogil')
+return_type_annotation
+as_cfunctionr
+return_type_noder
+z#AdjustDefByDirectives.visit_DefNodec
+z&AdjustDefByDirectives.visit_LambdaNodec
+	as_cclassr
+old_in_pyclassr
+z*AdjustDefByDirectives.visit_PyClassDefNodec
+z)AdjustDefByDirectives.visit_CClassDefNodeN)
+AlignFunctionDefinitionszq
+    This class takes the signatures from a .pxd file and applies them to
+    the def methods in a .py file.
+    c
+z)AlignFunctionDefinitions.visit_ModuleNodec
+'%s' redeclared
+previous declaration here)	r
+Z	is_cclassr
+is_builtin_scoper
+pxd_defr
+z-AlignFunctionDefinitions.visit_PyClassDefNodeNc
+defined_in_pxdr-
+z,AlignFunctionDefinitions.visit_CClassDefNodec
+auto_cpdef)
+is_cfunctionr
+is_module_scoper
+is_cdef_func_compatibler*
+z&AlignFunctionDefinitions.visit_DefNodec
+z1AlignFunctionDefinitions.visit_FromImportStatNodec
+z'AlignFunctionDefinitions.visit_ExprNode)
+RemoveUnreachableCodec
+remove_unreachabler
+warn.unreachable
+Unreachable coder
+is_terminatorr
+idxr
+z(RemoveUnreachableCode.visit_StatListNodec
+visit_IfClauseNode
+z(RemoveUnreachableCode.visit_IfClauseNodec
+clauser
+visit_IfStatNode
+z&RemoveUnreachableCode.visit_IfStatNodec
+visit_TryExceptStatNode
+z-RemoveUnreachableCode.visit_TryExceptStatNodec
+visit_TryFinallyStatNode
+z.RemoveUnreachableCode.visit_TryFinallyStatNodeN)
+yieldsr
+finallys
+excepts
+has_return_valuerX
+YieldNodeCollector.__init__c
+YieldNodeCollector.visit_Nodec
+visit_YieldExprNode
+z&YieldNodeCollector.visit_YieldExprNodec
+visit_AwaitExprNode
+z&YieldNodeCollector.visit_AwaitExprNodec
+visit_ReturnStatNode
+z'YieldNodeCollector.visit_ReturnStatNodec
+z+YieldNodeCollector.visit_TryFinallyStatNodec
+z*YieldNodeCollector.visit_TryExceptStatNodec
+z%YieldNodeCollector.visit_ClassDefNodec
+z$YieldNodeCollector.visit_FuncDefNodec
+z#YieldNodeCollector.visit_LambdaNodec
+z0YieldNodeCollector.visit_GeneratorExpressionNodec
+visit_CArgDeclNode
+z%YieldNodeCollector.visit_CArgDeclNode)
+MarkClosureVisitorc
+needs_closurer8
+z#MarkClosureVisitor.visit_ModuleNodec
+j d	
+}	|	S
+NFTZ
+iterable_coroutinec
+is_await)
+z7MarkClosureVisitor.visit_FuncDefNode.<locals>.<genexpr>z/'await' not allowed in generators (use 'yield')r
+is_async_gen_body)
+lambda_namer"
+)!rA
+AsyncDefNoderX
+AsyncGenNoder7
+in_async_genr
+IterableAsyncDefNoderY
+nextr
+GeneratorDefNoder
+Z	label_numr8
+in_generatorZ
+GeneratorBodyDefNoderQ
+coroutine_typeZ
+yield_expr
+foundr
+retnoder
+	coroutiner
+z$MarkClosureVisitor.visit_FuncDefNodec
+NFTz1closures inside cpdef functions not yet supported)
+visit_CFuncDefNodeJ
+z%MarkClosureVisitor.visit_CFuncDefNodec
+NFTr@
+z#MarkClosureVisitor.visit_LambdaNodec
+z%MarkClosureVisitor.visit_ClassDefNodeN)
+CreateClosureClassesc
+pathr
+CreateClosureClasses.__init__c
+z%CreateClosureClasses.visit_ModuleNodec
+s.q |
+iter_local_scopesr
+from_closurerx
+in_closure)
+find_entries_used_in_closuresn
+z2CreateClosureClasses.find_entries_used_in_closuresNc
+}	|	j
+sz|	j
+}	qn|
+t%j&
+rht%j&|
+j$d	<
+j(|	j
+NTFz%DefNode does not have assignment nodez
+%s_%sr
+definingZ
+implementingZ
+no_gc_clearZ
+freelist)
+is_cdefr
+valuesrK
+is_cglobalrL
+needs_outer_scoper
+needs_self_codeZ
+is_passthroughZ
+scope_classZ
+next_idr
+closure_class_prefixr
+declare_c_classr<
+is_final_typeZ
+is_internalZ
+is_closure_class_scoper`
+closure_freelist_sizer
+outer_scope_cnameZ
+in_subscoperQ
+is_declared_genericZ
+check_c_class)
+target_module_scopeZ
+inner_noder
+func_scopeZ
+cscoper
+class_scoperQ
+closure_entryr
+create_class_from_scope{
+z,CreateClosureClasses.create_class_from_scopec
+was_in_lambdar
+z%CreateClosureClasses.visit_LambdaNodec
+z&CreateClosureClasses.visit_FuncDefNodec
+z/CreateClosureClasses.visit_GeneratorBodyDefNodec
+z'CreateClosureClasses.visit_CFuncDefNode)
+InjectGilHandlinga
+    Allow certain Python operations inside of nogil blocks by implicitly acquiring the GIL.
+    Must run before the AnalyseDeclarationsTransform to make sure the GILStatNodes get
+    set up, parallel sections know that the GIL is acquired inside of them, etc.
+    c
+InjectGilHandling.__call__c
+zRAllow raising exceptions in nogil sections by wrapping them in a 'with gil' block.rB
+visit_RaiseStatNode
+z%InjectGilHandling.visit_RaiseStatNodec
+	was_nogilr
+visit_GILStatNode
+z#InjectGilHandling.visit_GILStatNodec
+CFuncDeclaratorNodeZ
+with_gilr8
+z$InjectGilHandling.visit_CFuncDefNodec
+visit_ParallelRangeNode
+z)InjectGilHandling.visit_ParallelRangeNodec
+z InjectGilHandling.visit_ExprNode)
+GilChecka,
+    Call `node.gil_check(env)` on each node to make sure we hold the
+    GIL when we need it.  Raise an error when on Python operations
+    inside a `nogil` environment.
+    Additionally, raise exceptions for closely nested with gil or with nogil
+    statements. The latter would abort Python.
+    c
+	env_stackrA
+nogil_declarator_onlyr/
+GilCheck.__call__c
+attrsrT
+outer_attrsr
+Z	gil_staterV
+_visit_scoped_children8
+GilCheck._visit_scoped_childrenc
+nogil_checkr^
+inner_nogilr
+GilCheck.visit_FuncDefNodec
+z3Trying to acquire the GIL while it is already held.z;Trying to release the GIL while it was previously released.)
+is_nogilr
+GilCheck.visit_GILStatNodec
+NFrA
+z)prange() can only be used without the GILr
+)	rA
+z GilCheck.visit_ParallelRangeNodec
+Nz5The parallel section may only be used without the GILr
+visit_ParallelWithBlockNode{
+z$GilCheck.visit_ParallelWithBlockNodec
+        Take care of try/finally statements in nogil code sections.
+        NT)
+is_try_finally_in_nogilr8
+z!GilCheck.visit_TryFinallyStatNodec
+in_nogil_contextr
+GilCheck.visit_Node)
+TransformBuiltinMethodszQ
+    Replace Cython's own cython.* builtins by the corresponding tree nodes.
+    c
+declaration_onlyr8
+z2TransformBuiltinMethods.visit_SingleAssignmentNodec
+visit_cython_attributer
+z+TransformBuiltinMethods.visit_AttributeNodec
+z&TransformBuiltinMethods.visit_NameNodec
+__version__r
+	frozensetr
+z>'%s' not a valid cython attribute or is being used incorrectly)
+NullNoderz
+builtin_scoper
+cython_scope
+lookup_qualified_namer
+versionr
+z.TransformBuiltinMethods.visit_cython_attributec
+GlobalsExprNoder<
+LocalsExprNode
+current_scope_node)
+visit_ExecStatNode
+z*TransformBuiltinMethods.visit_ExecStatNodec
+varsr6
+zGBuiltin 'locals()' called with wrong number of args, expected 0, got %drm
+zGBuiltin 'vars()' called with wrong number of args, expected 0-1, got %dzFBuiltin 'dir()' called with wrong number of args, expected 0-1, got %dc
+z9TransformBuiltinMethods._inject_locals.<locals>.<genexpr>c
+IdentifierStringNodern
+z:TransformBuiltinMethods._inject_locals.<locals>.<listcomp>rh
+SortedDictKeysNoder
+)	r 
+	func_namer
+locals_dictZ
+local_namesr
+_inject_locals
+z&TransformBuiltinMethods._inject_localsc
+not_in)
+NoneCheckNode)
+visit_PrimaryCmpNode
+z,TransformBuiltinMethods.visit_PrimaryCmpNodec
+visit_CascadedCmpNode
+z-TransformBuiltinMethods.visit_CascadedCmpNodec
+_inject_eval	
+z$TransformBuiltinMethods._inject_evalc
+requires_classobjZ
+class_cellZ	is_activer
+ClassCellNoder<
+class_noderP
+_inject_super
+z%TransformBuiltinMethods._inject_superc
+%s() takes exactly one argumentr
+z %s() takes exactly two arguments)
+Dcast() takes exactly two arguments and an optional typecheck keywordF
+	typecheckr
+z#sizeof() takes exactly one argument)
+arg_typeZ
+cmodz"cmod() takes exactly two arguments
+cdivz"cdiv() takes exactly two arguments
+z*'%s' not a valid cython language construct)
+dirr6
+evalr/
+TypecastNodeZ
+SizeofTypeNodeZ
+SizeofVarNoder
+Z	cdivisionrz
+visit_SimpleCallNode2
+z,TransformBuiltinMethods.visit_SimpleCallNodec
+visit_GeneralCallNodex
+z-TransformBuiltinMethods.visit_GeneralCallNodeN)
+ReplaceFusedTypeChecksa0
+    This is not a transform in the pipeline. It is invoked on the specific
+    versions of a cdef function with fused argument types. It filters out any
+    type branches that don't match. e.g.
+        if fused_t is mytype:
+            ...
+        elif fused_t in other_fused_type:
+            ...
+    c
+ConstantFoldingT)
+reevaluate)
+Optimizer
+ReplaceFusedTypeChecks.__init__c
+        Filters out any if clauses with false compile time type check
+        expression.
+        )
+z'ReplaceFusedTypeChecks.visit_IfStatNodec
+}	|	D
+ignoreFrO
+is_not
+inrr
+Type is fusedz-Can only use 'in' or 'not in' on a fused typer
+local_errorsr
+specialize_typer
+same_asrZ
+CTypedefTypeZ
+typedef_base_typer
+get_specialized_types)
+type1Z
+type2Z
+false_nodeZ	true_node
+is_same
+typesZ
+specialized_typer
+z+ReplaceFusedTypeChecks.visit_PrimaryCmpNodec
+Type is not specific)
+specializer
+fused_to_specific
+KeyErrorr
+z&ReplaceFusedTypeChecks.specialize_typec
+z!ReplaceFusedTypeChecks.visit_Node)
+DebugTransformz9
+    Write debug information for this Cython module.
+    c
+visitedr4
+gdb_debug_outputwriter
+c_file
+c_output_file
+nested_funcdefs
+register_stepinto)
+optionsr
+DebugTransform.__init__c
+)	Nr
+filenameZ
+c_filenameZ
+ModuleZ	FunctionsTFZ
+GlobalsZ
+__pyx_)
+full_module_namer
+startr8
+ serialize_modulenode_as_function
+endr
+serialize_local_variables)
+nested_funcdefr
+DebugTransform.visit_ModuleNodec
+z	<unknown>r
+pf_cnamer
+lineno
+Function
+Locals
+	Arguments
+StepIntoFunctionsT)
+func_cnamer
+arg_entriesr8
+z DebugTransform.visit_FuncDefNodec
+NZ	is_calledFrn
+StepIntoFunctionr
+DebugTransform.visit_NameNodec
+        Serialize the module-level code as a function so the debugger will know
+        it's a "relevant frame" and it will know where to set the breakpoint
+        for 'break modulename'.
+        r
+initZ
+PyInit_r
+True)
+is_initmodule_function)
+rpartitionr
+!_serialize_modulenode_as_function)
+Z	cname_py2Z	cname_py3Z	py2_attrsZ	py3_attrsr
+z/DebugTransform.serialize_modulenode_as_functionc
+z0DebugTransform._serialize_modulenode_as_functionc
+)	NZ
+PythonObjectZ
+CObjectz
+%s->%sz
+%s.%s.%s
+LocalVar)
+cur_scope_cnameZ
+outer_entryr
+vartyper
+qnamer
+z(DebugTransform.serialize_local_variables)
+__future__r
+Visitorr
+StringEncodingr
+Coder
+<module>

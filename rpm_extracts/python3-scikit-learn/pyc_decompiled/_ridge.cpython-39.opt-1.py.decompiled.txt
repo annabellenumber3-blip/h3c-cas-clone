@@ -1,0 +1,1312 @@
+l	Z	d
+m Z 
+m!Z!
+m"Z"
+m#Z#
+m$Z$
+l%m&Z&
+l%m'Z'
+l(m)Z)
+l*m+Z+
+l,m-Z-
+l.m/Z/
+l0m1Z1
+Z2dSd
+Z3d!d
+d#d$
+Z4d%d&
+Z5dTd(d)
+Z6d*d+
+Z7dUd,d-
+Z8d.d/
+d'd'd!d1
+d2d3
+Z:dVd4d5
+d6d7
+d9d:
+d;d<
+d=d>
+d>e>e<
+Z?d?d@
+Z@dAdB
+dCdD
+dEdF
+dGdH
+dIdJ
+dKdL
+dMdN
+dOdP
+dQdR
+dRe>eH
+Ridge regression
+ABCMeta
+abstractmethod)
+partialN)
+linalg)
+sparse)
+optimize
+LinearClassifierMixin
+LinearModel)
+_deprecate_normalize
+_preprocess_data
+_rescale_data)
+sag_solver
+MultiOutputMixin
+RegressorMixin
+is_classifier)
+safe_sparse_dot)
+	row_norms)
+check_array)
+check_consistent_length)
+check_scalar)
+compute_sample_weight)
+column_or_1d)
+check_is_fitted)
+_check_sample_weight)
+LabelBinarizer)
+GridSearchCV)
+check_scoring)
+ConvergenceWarning)
+mean_variance_axisc
+Create LinearOperator for matrix products with implicit centering.
+    Matrix product `LinearOperator @ coef` returns `(X - X_offset) @ coef`.
+    c
+X_offset
+sample_weight_sqrt
+A/usr/lib64/python3.9/site-packages/sklearn/linear_model/_ridge.py
+matvec1
+z&_get_rescaled_operator.<locals>.matvecc
+rmatvec4
+z'_get_rescaled_operator.<locals>.rmatvec)
+shaper+
+LinearOperatorr.
+X1r)
+_get_rescaled_operator+
+MbP?c	
+j	|	|	f
+dtyper
+curr_alphar)
+_mvV
+0_solve_sparse_cg.<locals>.create_mv.<locals>._mvr)
+	create_mvU
+z#_solve_sparse_cg.<locals>.create_mvc
+legacy)
+atol)
+maxiterr@
+Failed with error code %dz/sparse_cg did not converge after %d iterations.)
+onesr.
+	sp_linalgZ
+aslinearoperatorr1
+empty
+ranger/
+	TypeErrorr-
+ValueError
+warnings
+warnr
+alpha
+max_iterr@
+verboser'
+X_scaler(
+	n_samples
+n_features
+X_offset_scale
+coefsr>
+y_columnZ
+coef
+infor)
+_solve_sparse_cg;
+fit_interceptrN
+Solve Ridge regression via LSQR.
+    We expect that y is always mean centered.
+    If X is dense, we expect it to be mean centered such that we can solve
+        ||y - Xw||_2^2 + alpha * ||w||_2^2
+    If X is sparse, we expect X_offset to be given such that we can solve
+        ||y - (X - X_offset)w||_2^2 + alpha * ||w||_2^2
+    With sample weights S=diag(sample_weight), this becomes
+        ||sqrt(S) (y - (X - X_offset) w)||_2^2 + alpha * ||w||_2^2
+    and we expect y and X to already be rescaled, i.e. sqrt(S) @ y, sqrt(S) @ X. In
+    this case, X_offset is the sample_weight weighted mean of X before scaling by
+    sqrt(S). The objective then reads
+       ||y - (X - sqrt(S) X_offset) w)||_2^2 + alpha * ||w||_2^2
+    Nr
+damprA
+btolZ
+iter_limr
+issparser1
+int32
+sqrtrG
+lsqr)
+n_iterZ
+sqrt_alpharU
+_solve_lsqr
+dense_outputr
+sym_posZ
+overwrite_ar3
+array_equal
+flatr
+solverF
+ravel)
+	n_targets
+	one_alpharT
+target
+current_alphar)
+_solve_cholesky
+	|	|	
+?NTFrc
+zNSingular matrix in solving dual problem. Using least-squares solution instead.)
+copyrC
+atleast_1d
+isinstance
+ndarrayr^
+newaxis
+outerre
+LinAlgErrorrJ
+lstsqrF
+sample_weightrp
+has_sw
+	dual_coefZ
+dual_coefsrl
+_solve_cholesky_kernel
+full_matricesg
+svdrC
+zeros
+sizer4
+idxZ
+s_nnzZ
+d_UT_yr)
+_solve_svd
+Solve ridge regression with LBFGS.
+    The main purpose is fitting with forcing coefficients to be positive.
+    For unconstrained ridge regression, there are faster dedicated solver methods.
+    Note that with positive bounds on the coefficients, LBFGS seems faster
+    than scipy.optimize.lsq_linear.
+    NrB
+L-BFGS-BT)
+methodr@
+optionsr
+boundsr3
+residual
+grad
+funcU
+_solve_lbfgs.<locals>.func
+successzWThe lbfgs solver did not converge. Try increasing max_iter or tol. Currently: max_iter=z	 and tol=r6
+infrD
+minimizerJ
+positiverN
+configrT
+resultr)
+_solve_lbfgs'
+auto
+saga
+cscZ
+coor)
+is_X_sparse
+solverr)
+_get_valid_accept_sparsel
+random_state
+return_n_iter
+return_intercept
+check_inputc
+Solve the ridge equation by the method of normal equations.
+    Read more in the :ref:`User Guide <ridge_regression>`.
+    Parameters
+    ----------
+    X : {ndarray, sparse matrix, LinearOperator} of shape         (n_samples, n_features)
+        Training data.
+    y : ndarray of shape (n_samples,) or (n_samples, n_targets)
+        Target values.
+    alpha : float or array-like of shape (n_targets,)
+        Constant that multiplies the L2 term, controlling regularization
+        strength. `alpha` must be a non-negative float i.e. in `[0, inf)`.
+        When `alpha = 0`, the objective is equivalent to ordinary least
+        squares, solved by the :class:`LinearRegression` object. For numerical
+        reasons, using `alpha = 0` with the `Ridge` object is not advised.
+        Instead, you should use the :class:`LinearRegression` object.
+        If an array is passed, penalties are assumed to be specific to the
+        targets. Hence they must correspond in number.
+    sample_weight : float or array-like of shape (n_samples,), default=None
+        Individual weights for each sample. If given a float, every sample
+        will have the same weight. If sample_weight is not None and
+        solver='auto', the solver will be set to 'cholesky'.
+        .. versionadded:: 0.17
+    solver : {'auto', 'svd', 'cholesky', 'lsqr', 'sparse_cg',             'sag', 'saga', 'lbfgs'}, default='auto'
+        Solver to use in the computational routines:
+        - 'auto' chooses the solver automatically based on the type of data.
+        - 'svd' uses a Singular Value Decomposition of X to compute the Ridge
+          coefficients. It is the most stable solver, in particular more stable
+          for singular matrices than 'cholesky' at the cost of being slower.
+        - 'cholesky' uses the standard scipy.linalg.solve function to
+          obtain a closed-form solution via a Cholesky decomposition of
+          dot(X.T, X)
+        - 'sparse_cg' uses the conjugate gradient solver as found in
+          scipy.sparse.linalg.cg. As an iterative algorithm, this solver is
+          more appropriate than 'cholesky' for large-scale data
+          (possibility to set `tol` and `max_iter`).
+        - 'lsqr' uses the dedicated regularized least-squares routine
+          scipy.sparse.linalg.lsqr. It is the fastest and uses an iterative
+          procedure.
+        - 'sag' uses a Stochastic Average Gradient descent, and 'saga' uses
+          its improved, unbiased version named SAGA. Both methods also use an
+          iterative procedure, and are often faster than other solvers when
+          both n_samples and n_features are large. Note that 'sag' and
+          'saga' fast convergence is only guaranteed on features with
+          approximately the same scale. You can preprocess the data with a
+          scaler from sklearn.preprocessing.
+        - 'lbfgs' uses L-BFGS-B algorithm implemented in
+          `scipy.optimize.minimize`. It can be used only when `positive`
+          is True.
+        All solvers except 'svd' support both dense and sparse data. However, only
+        'lsqr', 'sag', 'sparse_cg', and 'lbfgs' support sparse input when
+        `fit_intercept` is True.
+        .. versionadded:: 0.17
+           Stochastic Average Gradient descent solver.
+        .. versionadded:: 0.19
+           SAGA solver.
+    max_iter : int, default=None
+        Maximum number of iterations for conjugate gradient solver.
+        For the 'sparse_cg' and 'lsqr' solvers, the default value is determined
+        by scipy.sparse.linalg. For 'sag' and saga solver, the default value is
+        1000. For 'lbfgs' solver, the default value is 15000.
+    tol : float, default=1e-3
+        Precision of the solution.
+    verbose : int, default=0
+        Verbosity level. Setting verbose > 0 will display additional
+        information depending on the solver used.
+    positive : bool, default=False
+        When set to ``True``, forces the coefficients to be positive.
+        Only 'lbfgs' solver is supported in this case.
+    random_state : int, RandomState instance, default=None
+        Used when ``solver`` == 'sag' or 'saga' to shuffle the data.
+        See :term:`Glossary <random_state>` for details.
+    return_n_iter : bool, default=False
+        If True, the method also returns `n_iter`, the actual number of
+        iteration performed by the solver.
+        .. versionadded:: 0.17
+    return_intercept : bool, default=False
+        If True and if X is sparse, the method also returns the intercept,
+        and the solver is automatically changed to 'sag'. This is only a
+        temporary fix for fitting the intercept with sparse data. For dense
+        data, use sklearn.linear_model._preprocess_data before your regression.
+        .. versionadded:: 0.17
+    check_input : bool, default=True
+        If False, the input arrays X and y will not be checked.
+        .. versionadded:: 0.21
+    Returns
+    -------
+    coef : ndarray of shape (n_features,) or (n_targets, n_features)
+        Weight vector(s).
+    n_iter : int, optional
+        The actual number of iteration performed by the solver.
+        Only returned if `return_n_iter` is True.
+    intercept : float or ndarray of shape (n_targets,)
+        The intercept of the model. Only returned if `return_intercept`
+        is True and if X is a scipy sparse array.
+    Notes
+    -----
+    This function won't compute the intercept.
+    Regularization improves the conditioning of the problem and
+    reduces the variance of the estimates. Larger values specify stronger
+    regularization. Alpha corresponds to ``1 / (2C)`` in other linear
+    models such as :class:`~sklearn.linear_model.LogisticRegression` or
+    :class:`~sklearn.svm.LinearSVC`. If an array is passed, penalties are
+    assumed to be specific to the targets. Hence they must correspond in
+    number.
+    N)
+_ridge_regression)
+ridge_regressions
+r.t"|
+t't(|
+} }!d#t
+}"t*|
+d$| d%|
+}#}$}%|
+r\t+|
+rzt,d)
+)*Nr
+lbfgsr
+cholesky
+	sparse_cg)
+zZKnown solvers are 'sparse_cg', 'cholesky', 'svd' 'lsqr', 'sag', 'saga' or 'lbfgs'. Got %s.zJWhen positive=True, only 'lbfgs' solver can be used. Please change solver z" to 'lbfgs' or set positive=False.
+N'lbfgs' solver can be used only when positive=True. Please use another solver.zxIn Ridge, only 'sag' solver can directly fit the intercept. Please change solver to 'sag' or set return_intercept=False.rW
+accept_sparser4
+orderF)
+Z	ensure_2dr
+Target y has the wrong shape %sr
+Tz:Number of samples in X and y does not correspond: %d != %dr3
+left
+target_type
+min_valZ
+include_boundarieszENumber of targets and number of penalties do not correspond: %d != %d)
+squaredrX
+is_saga)
+z3SVD solver does not support sparse inputs currently).r
+float64
+float32r
+ndim
+reshaper
+tupler
+numbers
+Real
+asarrayrh
+repeatrZ
+maxrF
+	enumeraterg
+intr
+)&r&
+_dtype
+_accept_sparserQ
+n_samples_ri
+max_squared_sumZ	interceptrU
+alpha_irl
+init
+coef_
+n_iter_
+_BaseRidgero
+deprecatedNr2
+	normalize
+copy_XrN
+selfrM
+__init__
+_BaseRidge.__init__c
+defaultZ
+estimator_namer
+solver='zh' does not support positive fitting. Please set the solver to 'auto' or 'lbfgs', or set `positive=False`)
+solver='{}' does not support fitting the intercept on sparse data. Please set the solver to 'auto' or 'lsqr', 'sparse_cg', 'sag', 'lbfgs' or set `fit_intercept=False`)
+"sag" solver requires many iterations to fit an intercept with sparse inputs. Either set the solver to "auto" or "sparse_cg", or set a low "tol" and a high "max_iter" (especially if inputs are not standardized).r
+	__class__
+__name__
+_normalizer
+formatrN
+Integralr
+intercept_
+_set_intercept)	r
+y_offsetrP
+paramsr)
+_BaseRidge.fit)
+__module__
+__qualname__r
+	metaclassc
+Ridgea
+Linear least squares with l2 regularization.
+    Minimizes the objective function::
+    ||y - Xw||^2_2 + alpha * ||w||^2_2
+    This model solves a regression model where the loss function is
+    the linear least squares function and regularization is given by
+    the l2-norm. Also known as Ridge Regression or Tikhonov regularization.
+    This estimator has built-in support for multi-variate regression
+    (i.e., when y is a 2d-array of shape (n_samples, n_targets)).
+    Read more in the :ref:`User Guide <ridge_regression>`.
+    Parameters
+    ----------
+    alpha : {float, ndarray of shape (n_targets,)}, default=1.0
+        Constant that multiplies the L2 term, controlling regularization
+        strength. `alpha` must be a non-negative float i.e. in `[0, inf)`.
+        When `alpha = 0`, the objective is equivalent to ordinary least
+        squares, solved by the :class:`LinearRegression` object. For numerical
+        reasons, using `alpha = 0` with the `Ridge` object is not advised.
+        Instead, you should use the :class:`LinearRegression` object.
+        If an array is passed, penalties are assumed to be specific to the
+        targets. Hence they must correspond in number.
+    fit_intercept : bool, default=True
+        Whether to fit the intercept for this model. If set
+        to false, no intercept will be used in calculations
+        (i.e. ``X`` and ``y`` are expected to be centered).
+    normalize : bool, default=False
+        This parameter is ignored when ``fit_intercept`` is set to False.
+        If True, the regressors X will be normalized before regression by
+        subtracting the mean and dividing by the l2-norm.
+        If you wish to standardize, please use
+        :class:`~sklearn.preprocessing.StandardScaler` before calling ``fit``
+        on an estimator with ``normalize=False``.
+        .. deprecated:: 1.0
+            ``normalize`` was deprecated in version 1.0 and
+            will be removed in 1.2.
+    copy_X : bool, default=True
+        If True, X will be copied; else, it may be overwritten.
+    max_iter : int, default=None
+        Maximum number of iterations for conjugate gradient solver.
+        For 'sparse_cg' and 'lsqr' solvers, the default value is determined
+        by scipy.sparse.linalg. For 'sag' solver, the default value is 1000.
+        For 'lbfgs' solver, the default value is 15000.
+    tol : float, default=1e-3
+        Precision of the solution.
+    solver : {'auto', 'svd', 'cholesky', 'lsqr', 'sparse_cg',             'sag', 'saga', 'lbfgs'}, default='auto'
+        Solver to use in the computational routines:
+        - 'auto' chooses the solver automatically based on the type of data.
+        - 'svd' uses a Singular Value Decomposition of X to compute the Ridge
+          coefficients. It is the most stable solver, in particular more stable
+          for singular matrices than 'cholesky' at the cost of being slower.
+        - 'cholesky' uses the standard scipy.linalg.solve function to
+          obtain a closed-form solution.
+        - 'sparse_cg' uses the conjugate gradient solver as found in
+          scipy.sparse.linalg.cg. As an iterative algorithm, this solver is
+          more appropriate than 'cholesky' for large-scale data
+          (possibility to set `tol` and `max_iter`).
+        - 'lsqr' uses the dedicated regularized least-squares routine
+          scipy.sparse.linalg.lsqr. It is the fastest and uses an iterative
+          procedure.
+        - 'sag' uses a Stochastic Average Gradient descent, and 'saga' uses
+          its improved, unbiased version named SAGA. Both methods also use an
+          iterative procedure, and are often faster than other solvers when
+          both n_samples and n_features are large. Note that 'sag' and
+          'saga' fast convergence is only guaranteed on features with
+          approximately the same scale. You can preprocess the data with a
+          scaler from sklearn.preprocessing.
+        - 'lbfgs' uses L-BFGS-B algorithm implemented in
+          `scipy.optimize.minimize`. It can be used only when `positive`
+          is True.
+        All solvers except 'svd' support both dense and sparse data. However, only
+        'lsqr', 'sag', 'sparse_cg', and 'lbfgs' support sparse input when
+        `fit_intercept` is True.
+        .. versionadded:: 0.17
+           Stochastic Average Gradient descent solver.
+        .. versionadded:: 0.19
+           SAGA solver.
+    positive : bool, default=False
+        When set to ``True``, forces the coefficients to be positive.
+        Only 'lbfgs' solver is supported in this case.
+    random_state : int, RandomState instance, default=None
+        Used when ``solver`` == 'sag' or 'saga' to shuffle the data.
+        See :term:`Glossary <random_state>` for details.
+        .. versionadded:: 0.17
+           `random_state` to support Stochastic Average Gradient.
+    Attributes
+    ----------
+    coef_ : ndarray of shape (n_features,) or (n_targets, n_features)
+        Weight vector(s).
+    intercept_ : float or ndarray of shape (n_targets,)
+        Independent term in decision function. Set to 0.0 if
+        ``fit_intercept = False``.
+    n_iter_ : None or ndarray of shape (n_targets,)
+        Actual number of iterations for each target. Available only for
+        sag and lsqr solvers. Other solvers will return None.
+        .. versionadded:: 0.17
+    n_features_in_ : int
+        Number of features seen during :term:`fit`.
+        .. versionadded:: 0.24
+    feature_names_in_ : ndarray of shape (`n_features_in_`,)
+        Names of features seen during :term:`fit`. Defined only when `X`
+        has feature names that are all strings.
+        .. versionadded:: 1.0
+    See Also
+    --------
+    RidgeClassifier : Ridge classifier.
+    RidgeCV : Ridge regression with built-in cross validation.
+    :class:`~sklearn.kernel_ridge.KernelRidge` : Kernel ridge regression
+        combines ridge regression with the kernel trick.
+    Notes
+    -----
+    Regularization improves the conditioning of the problem and
+    reduces the variance of the estimates. Larger values specify stronger
+    regularization. Alpha corresponds to ``1 / (2C)`` in other linear
+    models such as :class:`~sklearn.linear_model.LogisticRegression` or
+    :class:`~sklearn.svm.LinearSVC`.
+    Examples
+    --------
+    >>> from sklearn.linear_model import Ridge
+    >>> import numpy as np
+    >>> n_samples, n_features = 10, 5
+    >>> rng = np.random.RandomState(0)
+    >>> y = rng.randn(n_samples)
+    >>> X = rng.randn(n_samples, n_features)
+    >>> clf = Ridge(alpha=1.0)
+    >>> clf.fit(X, y)
+    Ridge()
+    ro
+superr
+Ridge.__init__c
+Fit Ridge regression model.
+        Parameters
+        ----------
+        X : {ndarray, sparse matrix} of shape (n_samples, n_features)
+            Training data.
+        y : ndarray of shape (n_samples,) or (n_samples, n_targets)
+            Target values.
+        sample_weight : float or ndarray of shape (n_samples,), default=None
+            Individual weights for each sample. If given a float, every sample
+            will have the same weight.
+        Returns
+        -------
+        self : object
+            Fitted estimator.
+        T
+multi_output
+	y_numericr
+_validate_datarC
+z	Ridge.fit)
+__doc__r
+__classcell__r)
+_RidgeClassifierMixinc
+s\t	|
+Validate `X` and `y` and binarize `y`.
+        Parameters
+        ----------
+        X : {ndarray, sparse matrix} of shape (n_samples, n_features)
+            Training data.
+        y : ndarray of shape (n_samples,)
+            Target values.
+        sample_weight : float or ndarray of shape (n_samples,), default=None
+            Individual weights for each sample. If given a float, every sample
+            will have the same weight.
+        solver : str
+            The solver used in `Ridge` to know which sparse format to support.
+        Returns
+        -------
+        X : {ndarray, sparse matrix} of shape (n_samples, n_features)
+            Validated training data.
+        y : ndarray of shape (n_samples,)
+            Validated target values.
+        sample_weight : ndarray of shape (n_samples,)
+            Validated sample weights.
+        Y : ndarray of shape (n_samples, n_classes)
+            The binarized version of `y`.
+        TF)
+Z	pos_labelZ	neg_label
+multilabel)
+_label_binarizerZ
+fit_transform
+y_type_
+startswithr
+class_weightr
+_prepare_datan
+z#_RidgeClassifierMixin._prepare_datac
+Predict class labels for samples in `X`.
+        Parameters
+        ----------
+        X : {array-like, spare matrix} of shape (n_samples, n_features)
+            The data matrix for which we want to predict the targets.
+        Returns
+        -------
+        y_pred : ndarray of shape (n_samples,) or (n_samples, n_outputs)
+            Vector or matrix containing the predictions. In binary and
+            multiclass problems, this is a vector containing `n_samples`. In
+            a multilabel problem, it returns a matrix of shape
+            `(n_samples, n_outputs)`.
+        r
+attributesr
+decision_functionZ
+inverse_transformr
+predict)
+scoresr
+_RidgeClassifierMixin.predictc
+Classes labels.)
+classes_
+_RidgeClassifierMixin.classes_c
+_more_tags
+z _RidgeClassifierMixin._more_tags)	r
+propertyr
+RidgeClassifiera
+Classifier using Ridge regression.
+    This classifier first converts the target values into ``{-1, 1}`` and
+    then treats the problem as a regression task (multi-output regression in
+    the multiclass case).
+    Read more in the :ref:`User Guide <ridge_regression>`.
+    Parameters
+    ----------
+    alpha : float, default=1.0
+        Regularization strength; must be a positive float. Regularization
+        improves the conditioning of the problem and reduces the variance of
+        the estimates. Larger values specify stronger regularization.
+        Alpha corresponds to ``1 / (2C)`` in other linear models such as
+        :class:`~sklearn.linear_model.LogisticRegression` or
+        :class:`~sklearn.svm.LinearSVC`.
+    fit_intercept : bool, default=True
+        Whether to calculate the intercept for this model. If set to false, no
+        intercept will be used in calculations (e.g. data is expected to be
+        already centered).
+    normalize : bool, default=False
+        This parameter is ignored when ``fit_intercept`` is set to False.
+        If True, the regressors X will be normalized before regression by
+        subtracting the mean and dividing by the l2-norm.
+        If you wish to standardize, please use
+        :class:`~sklearn.preprocessing.StandardScaler` before calling ``fit``
+        on an estimator with ``normalize=False``.
+        .. deprecated:: 1.0
+            ``normalize`` was deprecated in version 1.0 and
+            will be removed in 1.2.
+    copy_X : bool, default=True
+        If True, X will be copied; else, it may be overwritten.
+    max_iter : int, default=None
+        Maximum number of iterations for conjugate gradient solver.
+        The default value is determined by scipy.sparse.linalg.
+    tol : float, default=1e-3
+        Precision of the solution.
+    class_weight : dict or 'balanced', default=None
+        Weights associated with classes in the form ``{class_label: weight}``.
+        If not given, all classes are supposed to have weight one.
+        The "balanced" mode uses the values of y to automatically adjust
+        weights inversely proportional to class frequencies in the input data
+        as ``n_samples / (n_classes * np.bincount(y))``.
+    solver : {'auto', 'svd', 'cholesky', 'lsqr', 'sparse_cg',             'sag', 'saga', 'lbfgs'}, default='auto'
+        Solver to use in the computational routines:
+        - 'auto' chooses the solver automatically based on the type of data.
+        - 'svd' uses a Singular Value Decomposition of X to compute the Ridge
+          coefficients. It is the most stable solver, in particular more stable
+          for singular matrices than 'cholesky' at the cost of being slower.
+        - 'cholesky' uses the standard scipy.linalg.solve function to
+          obtain a closed-form solution.
+        - 'sparse_cg' uses the conjugate gradient solver as found in
+          scipy.sparse.linalg.cg. As an iterative algorithm, this solver is
+          more appropriate than 'cholesky' for large-scale data
+          (possibility to set `tol` and `max_iter`).
+        - 'lsqr' uses the dedicated regularized least-squares routine
+          scipy.sparse.linalg.lsqr. It is the fastest and uses an iterative
+          procedure.
+        - 'sag' uses a Stochastic Average Gradient descent, and 'saga' uses
+          its unbiased and more flexible version named SAGA. Both methods
+          use an iterative procedure, and are often faster than other solvers
+          when both n_samples and n_features are large. Note that 'sag' and
+          'saga' fast convergence is only guaranteed on features with
+          approximately the same scale. You can preprocess the data with a
+          scaler from sklearn.preprocessing.
+          .. versionadded:: 0.17
+             Stochastic Average Gradient descent solver.
+          .. versionadded:: 0.19
+             SAGA solver.
+        - 'lbfgs' uses L-BFGS-B algorithm implemented in
+          `scipy.optimize.minimize`. It can be used only when `positive`
+          is True.
+    positive : bool, default=False
+        When set to ``True``, forces the coefficients to be positive.
+        Only 'lbfgs' solver is supported in this case.
+    random_state : int, RandomState instance, default=None
+        Used when ``solver`` == 'sag' or 'saga' to shuffle the data.
+        See :term:`Glossary <random_state>` for details.
+    Attributes
+    ----------
+    coef_ : ndarray of shape (1, n_features) or (n_classes, n_features)
+        Coefficient of the features in the decision function.
+        ``coef_`` is of shape (1, n_features) when the given problem is binary.
+    intercept_ : float or ndarray of shape (n_targets,)
+        Independent term in decision function. Set to 0.0 if
+        ``fit_intercept = False``.
+    n_iter_ : None or ndarray of shape (n_targets,)
+        Actual number of iterations for each target. Available only for
+        sag and lsqr solvers. Other solvers will return None.
+    classes_ : ndarray of shape (n_classes,)
+        The classes labels.
+    n_features_in_ : int
+        Number of features seen during :term:`fit`.
+        .. versionadded:: 0.24
+    feature_names_in_ : ndarray of shape (`n_features_in_`,)
+        Names of features seen during :term:`fit`. Defined only when `X`
+        has feature names that are all strings.
+        .. versionadded:: 1.0
+    See Also
+    --------
+    Ridge : Ridge regression.
+    RidgeClassifierCV :  Ridge classifier with built-in cross validation.
+    Notes
+    -----
+    For multi-class classification, n_class classifiers are trained in
+    a one-versus-all approach. Concretely, this is implemented by taking
+    advantage of the multi-variate response support in Ridge.
+    Examples
+    --------
+    >>> from sklearn.datasets import load_breast_cancer
+    >>> from sklearn.linear_model import RidgeClassifier
+    >>> X, y = load_breast_cancer(return_X_y=True)
+    >>> clf = RidgeClassifier().fit(X, y)
+    >>> clf.score(X, y)
+    0.9595...
+    ro
+F)	r[
+RidgeClassifier.__init__c
+Fit Ridge classifier model.
+        Parameters
+        ----------
+        X : {ndarray, sparse matrix} of shape (n_samples, n_features)
+            Training data.
+        y : ndarray of shape (n_samples,)
+            Target values.
+        sample_weight : float or ndarray of shape (n_samples,), default=None
+            Individual weights for each sample. If given a float, every sample
+            will have the same weight.
+            .. versionadded:: 0.17
+               *sample_weight* support to RidgeClassifier.
+        Returns
+        -------
+        self : object
+            Instance of the estimator.
+        r
+RidgeClassifier.fit)
+eigenz9Unknown value for 'gcv_mode'. Got {} instead of one of {})
+gcv_modeZ
+possible_gcv_modesr)
+_check_gcv_mode
+Find the column of vectors that is most aligned with the query.
+    Both query and the columns of vectors must have their l2 norm equal to 1.
+    Parameters
+    ----------
+    query : ndarray of shape (n_samples,)
+        Normalized query vector.
+    vectors : ndarray of shape (n_samples, n_features)
+        Vectors to which we compare query, as columns. Must be normalized.
+    )
+absr"
+argmax)
+queryZ
+vectorsZ
+abs_cosine
+indexr)
+_find_smallest_angle
+_X_CenterStackOpz
+Behaves as centered and scaled X with an added intercept column.
+    This operator behaves as
+    np.hstack([X - sqrt_sw[:, None] * X_mean, sqrt_sw[:, None]])
+    c
+X_mean
+sqrt_sw
+_X_CenterStackOp.__init__c
+_matvec
+_X_CenterStackOp._matvecc
+_matmat
+_X_CenterStackOp._matmatc
+_XT_CenterStackOpr&
+_transpose
+_X_CenterStackOp._transpose)	r
+Behaves as transposed centered and scaled X with an intercept column.
+    This operator behaves as
+    np.hstack([X - sqrt_sw[:, None] * X_mean, sqrt_sw[:, None]]).T
+    c
+_XT_CenterStackOp.__init__c
+resr)
+_XT_CenterStackOp._matvecc
+_XT_CenterStackOp._matmat)
+_IdentityRegressorz9Fake regressor which will directly output the prediction.c
+Z	y_predictr)
+z$_IdentityRegressor.decision_functionc
+_IdentityRegressor.predictN)
+_IdentityClassifierz
+Fake classifier which will directly output the prediction.
+    We inherit from LinearClassifierMixin to get the proper shape for the
+    output `y`.
+    c
+classesr)
+_IdentityClassifier.__init__c
+z%_IdentityClassifier.decision_functionN)
+d d!
+d"d#
+d'd$d%
+	_RidgeGCVa
+Ridge regression with built-in Leave-one-out Cross-Validation.
+    This class is not intended to be used directly. Use RidgeCV instead.
+    Notes
+    -----
+    We want to solve (K + alpha*Id)c = y,
+    where K = X X^T is the kernel matrix.
+    Let G = (K + alpha*Id).
+    Dual solution: c = G^-1y
+    Primal solution: w = X^T c
+    Compute eigendecomposition K = Q V Q^T.
+    Then G^-1 = Q (V + alpha*Id)^-1 Q^T,
+    where (V + alpha*Id) is diagonal.
+    It is thus inexpensive to inverse for many alphas.
+    Let loov be the vector of prediction values for each example
+    when the model was fitted with all examples but this example.
+    loov = (KG^-1Y - diag(KG^-1)Y) / diag(I-KG^-1)
+    Let looe be the vector of prediction errors for each example
+    when the model was fitted with all examples but this example.
+    looe = y - loov = c / diag(G^-1)
+    The best score (negative mean squared error or user-provided scoring) is
+    stored in the `best_score_` attribute, and the selected hyperparameter in
+    `alpha_`.
+    References
+    ----------
+    http://cbcl.mit.edu/publications/ps/MIT-CSAIL-TR-2007-025.pdf
+    https://www.mit.edu/~9.520/spring07/Classes/rlsslides.pdf
+    
+$@Tr
+scoringr
+store_cv_values
+is_clf
+alpha_per_targetc
+alphasr[
+_RidgeGCV.__init__c
+axis)
+sum)
+v_prime
+_decomp_diagP
+_RidgeGCV._decomp_diagc
+slicerC
+	_diag_dotU
+_RidgeGCV._diag_dotc
+Computes the Gram matrix XX^T with possible centering.
+        Parameters
+        ----------
+        X : {ndarray, sparse matrix} of shape (n_samples, n_features)
+            The preprocessed design matrix.
+        sqrt_sw : ndarray of shape (n_samples,)
+            square roots of sample weights
+        Returns
+        -------
+        gram : ndarray of shape (n_samples, n_samples)
+            The Gram matrix.
+        X_mean : ndarray of shape (n_feature,)
+            The weighted mean of ``X`` for each feature.
+        Notes
+        -----
+        When X is dense the centering has been done in preprocessing
+        so the mean is 0 and we just compute XX^T.
+        When X is sparse it has not been centered in preprocessing, but it has
+        been scaled by sqrt(sample weights).
+        When self.fit_intercept is False no centering is done.
+        The centered X is never actually computed because centering would break
+        the sparsity of X.
+        r
+dia_matrixr"
+centerr
+sample_weight_matrix
+X_weightedr
+X_mXZ
+X_mX_mr)
+_compute_gram]
+_RidgeGCV._compute_gramc
+Computes covariance matrix X^TX with possible centering.
+        Parameters
+        ----------
+        X : sparse matrix of shape (n_samples, n_features)
+            The preprocessed design matrix.
+        sqrt_sw : ndarray of shape (n_samples,)
+            square roots of sample weights
+        Returns
+        -------
+        covariance : ndarray of shape (n_features, n_features)
+            The covariance matrix.
+        X_mean : ndarray of shape (n_feature,)
+            The weighted mean of ``X`` for each feature.
+        Notes
+        -----
+        Since X is sparse it has not been centered in preprocessing, but it has
+        been scaled by sqrt(sample weights).
+        When self.fit_intercept is False no centering is done.
+        The centered X is never actually computed because centering would break
+        the sparsity of X.
+        r
+weight_sumr)
+_compute_covariance
+_RidgeGCV._compute_covariancec
+Compute the diagonal of (X - X_mean).dot(A).dot((X - X_mean).T)
+        without explicitly centering X nor computing X.dot(A)
+        when X is sparse.
+        Parameters
+        ----------
+        X : sparse matrix of shape (n_samples, n_features)
+        A : ndarray of shape (n_features, n_features)
+        X_mean : ndarray of shape (n_features,)
+        sqrt_sw : ndarray of shape (n_features,)
+            square roots of sample weights
+        Returns
+        -------
+        diag : np.ndarray, shape (n_samples,)
+            The computed diagonal.
+        r
+minr[
+intercept_colZ
+scaleZ
+batch_sizeZ
+diag
+startZ
+batchZ
+X_batchr)
+_sparse_multidot_diag
+_RidgeGCV._sparse_multidot_diagc
+z?Eigendecomposition of X.X^T, used when n_samples <= n_features.)
+eighr"
+eigvalsr
+QT_yr)
+_eigen_decompose_gram
+_RidgeGCV._eigen_decompose_gramc
+Compute dual coefficients and diagonal of G^-1.
+        Used when we have a decomposition of X.X^T (n_samples <= n_features).
+        ro
+normr
+normalized_sw
+intercept_dim
+G_inverse_diagr)
+_solve_eigen_gram
+_RidgeGCV._solve_eigen_gramc
+z_Eigendecomposition of X^T.X, used when n_samples > n_features
+        and X is sparse.
+        r
+covr
+nullspace_dimr&
+_eigen_decompose_covariance
+z%_RidgeGCV._eigen_decompose_covariancec
+}	|	
+Compute dual coefficients and diagonal of G^-1.
+        Used when we have a decomposition of X^T.X
+        (n_samples > n_features and X is sparse), and not fitting an intercept.
+        r
+y_hat
+hat_diagr)
+$_solve_eigen_covariance_no_intercept$
+z._RidgeGCV._solve_eigen_covariance_no_interceptc
+Compute dual coefficients and diagonal of G^-1.
+        Used when we have a decomposition of X^T.X
+        (n_samples > n_features and X is sparse),
+        and we are fitting an intercept.
+        r
+intercept_svr+
+X_opr1
+!_solve_eigen_covariance_intercept6
+z+_RidgeGCV._solve_eigen_covariance_interceptc
+Compute dual coefficients and diagonal of G^-1.
+        Used when we have a decomposition of X^T.X
+        (n_samples > n_features and X is sparse).
+        )
+_solve_eigen_covarianceU
+z!_RidgeGCV._solve_eigen_covariancec
+hstackr
+intercept_columnr
+singvalsr
+singvals_sq
+UT_yr)
+_svd_decompose_design_matrixc
+z&_RidgeGCV._svd_decompose_design_matrixc
+Compute dual coefficients and diagonal of G^-1.
+        Used when we have an SVD decomposition of X
+        (n_samples > n_features and X is dense).
+        r
+_solve_svd_design_matrixq
+z"_RidgeGCV._solve_svd_design_matrixc
+rxt)t
+nFt,
+_2t3|
+j2j4|
+Fit Ridge regression model with gcv.
+        Parameters
+        ----------
+        X : {ndarray, sparse matrix} of shape (n_samples, n_features)
+            Training data. Will be cast to float64 if necessary.
+        y : ndarray of shape (n_samples,) or (n_samples, n_targets)
+            Target values. Will be cast to float64 if necessary.
+        sample_weight : float or ndarray of shape (n_samples,), default=None
+            Individual weights for each sample. If given a float, every sample
+            will have the same weight.
+        Returns
+        -------
+        self : object
+        Fr
+allow_noner
+NNNr
+identity_estimatorZ
+predictionsZ
+scorerrL
+<listcomp>
+z!_RidgeGCV.fit.<locals>.<listcomp>)8r
+cv_values_r
+floatr
+meanrh
+aranger
+arrayrG
+full
+alpha_
+best_score_Z
+dual_coef_r
+Z	decomposerf
+decomposition
+errorZ
+n_alphasZ	best_coefZ
+best_scoreZ
+best_alpharU
+squared_errorsZ
+alpha_scoreZ	to_updateZ
+cv_values_shaper)
+_RidgeGCV.fit)
+staticmethodr
+_BaseRidgeCVr
+_BaseRidgeCV.__init__c
+j!j"|
+_%t&|
+Fit Ridge regression model with cv.
+        Parameters
+        ----------
+        X : ndarray of shape (n_samples, n_features)
+            Training data. If using GCV, will be cast to float64
+            if necessary.
+        y : ndarray of shape (n_samples,) or (n_samples, n_targets)
+            Target values. Will be cast to X's dtype if necessary.
+        sample_weight : float or ndarray of shape (n_samples,), default=None
+            Individual weights for each sample. If given a float, every sample
+            will have the same weight.
+        Returns
+        -------
+        self : object
+            Fitted estimator.
+        Notes
+        -----
+        When sample_weight is provided, the selected hyperparameter may depend
+        on whether we use leave-one-out cross-validation (cv=None or cv='auto')
+        or another form of cross-validation, because only leave-one-out
+        cross-validation takes the sample weights into account when computing
+        the validation score.
+        r
+neitherr
+alphas[
+z2cv!=None and store_cv_values=True are incompatiblez3cv!=None and alpha_per_target=True are incompatiblerM
+feature_names_in_)(rG
+listr
+best_estimator_rM
+n_features_in_
+hasattrrI
+check_scalar_alpharD
+Z	estimator
+parametersr
+modelZ
+gsr)
+_BaseRidgeCV.fit)
+RidgeCVae
+Ridge regression with built-in cross-validation.
+    See glossary entry for :term:`cross-validation estimator`.
+    By default, it performs efficient Leave-One-Out Cross-Validation.
+    Read more in the :ref:`User Guide <ridge_regression>`.
+    Parameters
+    ----------
+    alphas : ndarray of shape (n_alphas,), default=(0.1, 1.0, 10.0)
+        Array of alpha values to try.
+        Regularization strength; must be a positive float. Regularization
+        improves the conditioning of the problem and reduces the variance of
+        the estimates. Larger values specify stronger regularization.
+        Alpha corresponds to ``1 / (2C)`` in other linear models such as
+        :class:`~sklearn.linear_model.LogisticRegression` or
+        :class:`~sklearn.svm.LinearSVC`.
+        If using Leave-One-Out cross-validation, alphas must be positive.
+    fit_intercept : bool, default=True
+        Whether to calculate the intercept for this model. If set
+        to false, no intercept will be used in calculations
+        (i.e. data is expected to be centered).
+    normalize : bool, default=False
+        This parameter is ignored when ``fit_intercept`` is set to False.
+        If True, the regressors X will be normalized before regression by
+        subtracting the mean and dividing by the l2-norm.
+        If you wish to standardize, please use
+        :class:`~sklearn.preprocessing.StandardScaler` before calling ``fit``
+        on an estimator with ``normalize=False``.
+        .. deprecated:: 1.0
+            ``normalize`` was deprecated in version 1.0 and will be removed in
+            1.2.
+    scoring : str, callable, default=None
+        A string (see model evaluation documentation) or
+        a scorer callable object / function with signature
+        ``scorer(estimator, X, y)``.
+        If None, the negative mean squared error if cv is 'auto' or None
+        (i.e. when using leave-one-out cross-validation), and r2 score
+        otherwise.
+    cv : int, cross-validation generator or an iterable, default=None
+        Determines the cross-validation splitting strategy.
+        Possible inputs for cv are:
+        - None, to use the efficient Leave-One-Out cross-validation
+        - integer, to specify the number of folds.
+        - :term:`CV splitter`,
+        - An iterable yielding (train, test) splits as arrays of indices.
+        For integer/None inputs, if ``y`` is binary or multiclass,
+        :class:`~sklearn.model_selection.StratifiedKFold` is used, else,
+        :class:`~sklearn.model_selection.KFold` is used.
+        Refer :ref:`User Guide <cross_validation>` for the various
+        cross-validation strategies that can be used here.
+    gcv_mode : {'auto', 'svd', 'eigen'}, default='auto'
+        Flag indicating which strategy to use when performing
+        Leave-One-Out Cross-Validation. Options are::
+            'auto' : use 'svd' if n_samples > n_features, otherwise use 'eigen'
+            'svd' : force use of singular value decomposition of X when X is
+                dense, eigenvalue decomposition of X^T.X when X is sparse.
+            'eigen' : force computation via eigendecomposition of X.X^T
+        The 'auto' mode is the default and is intended to pick the cheaper
+        option of the two depending on the shape of the training data.
+    store_cv_values : bool, default=False
+        Flag indicating if the cross-validation values corresponding to
+        each alpha should be stored in the ``cv_values_`` attribute (see
+        below). This flag is only compatible with ``cv=None`` (i.e. using
+        Leave-One-Out Cross-Validation).
+    alpha_per_target : bool, default=False
+        Flag indicating whether to optimize the alpha value (picked from the
+        `alphas` parameter list) for each target separately (for multi-output
+        settings: multiple prediction targets). When set to `True`, after
+        fitting, the `alpha_` attribute will contain a value for each target.
+        When set to `False`, a single alpha is used for all targets.
+        .. versionadded:: 0.24
+    Attributes
+    ----------
+    cv_values_ : ndarray of shape (n_samples, n_alphas) or             shape (n_samples, n_targets, n_alphas), optional
+        Cross-validation values for each alpha (only available if
+        ``store_cv_values=True`` and ``cv=None``). After ``fit()`` has been
+        called, this attribute will contain the mean squared errors if
+        `scoring is None` otherwise it will contain standardized per point
+        prediction values.
+    coef_ : ndarray of shape (n_features) or (n_targets, n_features)
+        Weight vector(s).
+    intercept_ : float or ndarray of shape (n_targets,)
+        Independent term in decision function. Set to 0.0 if
+        ``fit_intercept = False``.
+    alpha_ : float or ndarray of shape (n_targets,)
+        Estimated regularization parameter, or, if ``alpha_per_target=True``,
+        the estimated regularization parameter for each target.
+    best_score_ : float or ndarray of shape (n_targets,)
+        Score of base estimator with best alpha, or, if
+        ``alpha_per_target=True``, a score for each target.
+        .. versionadded:: 0.23
+    n_features_in_ : int
+        Number of features seen during :term:`fit`.
+        .. versionadded:: 0.24
+    feature_names_in_ : ndarray of shape (`n_features_in_`,)
+        Names of features seen during :term:`fit`. Defined only when `X`
+        has feature names that are all strings.
+        .. versionadded:: 1.0
+    See Also
+    --------
+    Ridge : Ridge regression.
+    RidgeClassifier : Classifier based on ridge regression on {-1, 1} labels.
+    RidgeClassifierCV : Ridge classifier with built-in cross validation.
+    Examples
+    --------
+    >>> from sklearn.datasets import load_diabetes
+    >>> from sklearn.linear_model import RidgeCV
+    >>> X, y = load_diabetes(return_X_y=True)
+    >>> clf = RidgeCV(alphas=[1e-3, 1e-2, 1e-1, 1]).fit(X, y)
+    >>> clf.score(X, y)
+    0.5166...
+    N)
+RidgeClassifierCVa
+Ridge classifier with built-in cross-validation.
+    See glossary entry for :term:`cross-validation estimator`.
+    By default, it performs Leave-One-Out Cross-Validation. Currently,
+    only the n_features > n_samples case is handled efficiently.
+    Read more in the :ref:`User Guide <ridge_regression>`.
+    Parameters
+    ----------
+    alphas : ndarray of shape (n_alphas,), default=(0.1, 1.0, 10.0)
+        Array of alpha values to try.
+        Regularization strength; must be a positive float. Regularization
+        improves the conditioning of the problem and reduces the variance of
+        the estimates. Larger values specify stronger regularization.
+        Alpha corresponds to ``1 / (2C)`` in other linear models such as
+        :class:`~sklearn.linear_model.LogisticRegression` or
+        :class:`~sklearn.svm.LinearSVC`.
+    fit_intercept : bool, default=True
+        Whether to calculate the intercept for this model. If set
+        to false, no intercept will be used in calculations
+        (i.e. data is expected to be centered).
+    normalize : bool, default=False
+        This parameter is ignored when ``fit_intercept`` is set to False.
+        If True, the regressors X will be normalized before regression by
+        subtracting the mean and dividing by the l2-norm.
+        If you wish to standardize, please use
+        :class:`~sklearn.preprocessing.StandardScaler` before calling ``fit``
+        on an estimator with ``normalize=False``.
+        .. deprecated:: 1.0
+            ``normalize`` was deprecated in version 1.0 and
+            will be removed in 1.2.
+    scoring : str, callable, default=None
+        A string (see model evaluation documentation) or
+        a scorer callable object / function with signature
+        ``scorer(estimator, X, y)``.
+    cv : int, cross-validation generator or an iterable, default=None
+        Determines the cross-validation splitting strategy.
+        Possible inputs for cv are:
+        - None, to use the efficient Leave-One-Out cross-validation
+        - integer, to specify the number of folds.
+        - :term:`CV splitter`,
+        - An iterable yielding (train, test) splits as arrays of indices.
+        Refer :ref:`User Guide <cross_validation>` for the various
+        cross-validation strategies that can be used here.
+    class_weight : dict or 'balanced', default=None
+        Weights associated with classes in the form ``{class_label: weight}``.
+        If not given, all classes are supposed to have weight one.
+        The "balanced" mode uses the values of y to automatically adjust
+        weights inversely proportional to class frequencies in the input data
+        as ``n_samples / (n_classes * np.bincount(y))``.
+    store_cv_values : bool, default=False
+        Flag indicating if the cross-validation values corresponding to
+        each alpha should be stored in the ``cv_values_`` attribute (see
+        below). This flag is only compatible with ``cv=None`` (i.e. using
+        Leave-One-Out Cross-Validation).
+    Attributes
+    ----------
+    cv_values_ : ndarray of shape (n_samples, n_targets, n_alphas), optional
+        Cross-validation values for each alpha (only if ``store_cv_values=True`` and
+        ``cv=None``). After ``fit()`` has been called, this attribute will
+        contain the mean squared errors if `scoring is None` otherwise it
+        will contain standardized per point prediction values.
+    coef_ : ndarray of shape (1, n_features) or (n_targets, n_features)
+        Coefficient of the features in the decision function.
+        ``coef_`` is of shape (1, n_features) when the given problem is binary.
+    intercept_ : float or ndarray of shape (n_targets,)
+        Independent term in decision function. Set to 0.0 if
+        ``fit_intercept = False``.
+    alpha_ : float
+        Estimated regularization parameter.
+    best_score_ : float
+        Score of base estimator with best alpha.
+        .. versionadded:: 0.23
+    classes_ : ndarray of shape (n_classes,)
+        The classes labels.
+    n_features_in_ : int
+        Number of features seen during :term:`fit`.
+        .. versionadded:: 0.24
+    feature_names_in_ : ndarray of shape (`n_features_in_`,)
+        Names of features seen during :term:`fit`. Defined only when `X`
+        has feature names that are all strings.
+        .. versionadded:: 1.0
+    See Also
+    --------
+    Ridge : Ridge regression.
+    RidgeClassifier : Ridge classifier.
+    RidgeCV : Ridge regression with built-in cross validation.
+    Notes
+    -----
+    For multi-class classification, n_class classifiers are trained in
+    a one-versus-all approach. Concretely, this is implemented by taking
+    advantage of the multi-variate response support in Ridge.
+    Examples
+    --------
+    >>> from sklearn.datasets import load_breast_cancer
+    >>> from sklearn.linear_model import RidgeClassifierCV
+    >>> X, y = load_breast_cancer(return_X_y=True)
+    >>> clf = RidgeClassifierCV(alphas=[1e-3, 1e-2, 1e-1, 1]).fit(X, y)
+    >>> clf.score(X, y)
+    0.9630...
+    r
+RidgeClassifierCV.__init__c
+Fit Ridge classifier with cv.
+        Parameters
+        ----------
+        X : ndarray of shape (n_samples, n_features)
+            Training vectors, where `n_samples` is the number of samples
+            and `n_features` is the number of features. When using GCV,
+            will be cast to float64 if necessary.
+        y : ndarray of shape (n_samples,)
+            Target values. Will be cast to X's dtype if necessary.
+        sample_weight : float or ndarray of shape (n_samples,), default=None
+            Individual weights for each sample. If given a float, every sample
+            will have the same weight.
+        Returns
+        -------
+        self : object
+            Fitted estimator.
+        r
+RidgeClassifierCV.fitc
+check_sample_weights_invariancez8zero sample_weight is not equivalent to removing samples)
+_xfail_checksr)
+RidgeClassifierCV._more_tags)
+NNN)
+TNr2
+NNN)
+FNFFNNTF)Kr
+abcr
+	functoolsr
+numpyrC
+scipyr
+scipy.sparserE
+_baser	
+_sagr
+baser
+utils.extmathr
+utilsr
+utils.validationr
+preprocessingr
+model_selectionr
+metricsr
+exceptionsr
+utils.sparsefuncsr 
+<module>

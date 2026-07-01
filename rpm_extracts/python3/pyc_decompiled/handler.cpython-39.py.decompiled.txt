@@ -1,0 +1,217 @@
+This module contains the core classes of version 2.0 of SAX for Python.
+This file provides only default classes with absolutely minimum
+functionality, from which drivers and applications can be subclassed.
+Many of these classes are empty and are included only as documentation
+of the interfaces.
+$Id$
+2.0betac
+ErrorHandlera
+Basic interface for SAX error handlers.
+    If you create an object that implements this interface, then
+    register the object with your XMLReader, the parser will call the
+    methods in your object to report all warnings and errors. There
+    are three levels of errors available: warnings, (possibly)
+    recoverable errors, and unrecoverable errors. All methods take a
+    SAXParseException as the only parameter.c
+Handle a recoverable error.N
+selfZ	exceptionr
+'/usr/lib64/python3.9/xml/sax/handler.py
+error 
+ErrorHandler.errorc
+Handle a non-recoverable error.Nr
+fatalError$
+ErrorHandler.fatalErrorc
+Handle a warning.N)
+printr
+warning(
+ErrorHandler.warningN)
+__name__
+__module__
+__qualname__
+__doc__r
+ContentHandlerz
+Interface for receiving logical document content events.
+    This is the main callback interface in SAX, and the one most
+    important to applications. The order of events in this interface
+    mirrors the order of the information in the document.c
+_locator
+__init__6
+ContentHandler.__init__c
+Called by the parser to give the application a locator for
+        locating the origin of document events.
+        SAX parsers are strongly encouraged (though not absolutely
+        required) to supply a locator: if it does so, it must supply
+        the locator to the application by invoking this method before
+        invoking any of the other methods in the DocumentHandler
+        interface.
+        The locator allows the application to determine the end
+        position of any document-related event, even if the parser is
+        not reporting an error. Typically, the application will use
+        this information for reporting its own errors (such as
+        character content that does not match an application's
+        business rules). The information returned by the locator is
+        probably not sufficient for use with a search engine.
+        Note that the locator will return correct information only
+        during the invocation of the events in this interface. The
+        application should not attempt to use it at any other time.Nr
+locatorr
+setDocumentLocator9
+z!ContentHandler.setDocumentLocatorc
+Receive notification of the beginning of a document.
+        The SAX parser will invoke this method only once, before any
+        other methods in this interface or in DTDHandler (except for
+        setDocumentLocator).Nr
+startDocumentP
+ContentHandler.startDocumentc
+Receive notification of the end of a document.
+        The SAX parser will invoke this method only once, and it will
+        be the last method invoked during the parse. The parser shall
+        not invoke this method until it has either abandoned parsing
+        (because of an unrecoverable error) or reached the end of
+        input.Nr
+endDocumentW
+ContentHandler.endDocumentc
+Begin the scope of a prefix-URI Namespace mapping.
+        The information from this event is not necessary for normal
+        Namespace processing: the SAX XML reader will automatically
+        replace prefixes for element and attribute names when the
+        http://xml.org/sax/features/namespaces feature is true (the
+        default).
+        There are cases, however, when applications need to use
+        prefixes in character data or in attribute values, where they
+        cannot safely be expanded automatically; the
+        start/endPrefixMapping event supplies the information to the
+        application to expand prefixes in those contexts itself, if
+        necessary.
+        Note that start/endPrefixMapping events are not guaranteed to
+        be properly nested relative to each-other: all
+        startPrefixMapping events will occur before the corresponding
+        startElement event, and all endPrefixMapping events will occur
+        after the corresponding endElement event, but their order is
+        not guaranteed.Nr
+prefixZ
+urir
+startPrefixMapping`
+z!ContentHandler.startPrefixMappingc
+End the scope of a prefix-URI mapping.
+        See startPrefixMapping for details. This event will always
+        occur after the corresponding endElement event, but the order
+        of endPrefixMapping events is not otherwise guaranteed.Nr
+endPrefixMappingw
+ContentHandler.endPrefixMappingc
+Signals the start of an element in non-namespace mode.
+        The name parameter contains the raw XML 1.0 name of the
+        element type as a string and the attrs parameter holds an
+        instance of the Attributes class containing the attributes of
+        the element.Nr
+name
+attrsr
+startElement~
+ContentHandler.startElementc
+Signals the end of an element in non-namespace mode.
+        The name parameter contains the name of the element type, just
+        as with the startElement event.Nr
+endElement
+ContentHandler.endElementc
+Signals the start of an element in namespace mode.
+        The name parameter contains the name of the element type as a
+        (uri, localname) tuple, the qname parameter the raw XML 1.0
+        name used in the source document, and the attrs parameter
+        holds an instance of the Attributes class containing the
+        attributes of the element.
+        The uri part of the name tuple is None for elements which have
+        no namespace.Nr
+qnamer
+startElementNS
+ContentHandler.startElementNSc
+Signals the end of an element in namespace mode.
+        The name parameter contains the name of the element type, just
+        as with the startElementNS event.Nr
+endElementNS
+ContentHandler.endElementNSc
+Receive notification of character data.
+        The Parser will call this method to report each chunk of
+        character data. SAX parsers may return all contiguous
+        character data in a single chunk, or they may split it into
+        several chunks; however, all of the characters in any single
+        event must come from the same external entity so that the
+        Locator provides useful information.Nr
+contentr
+characters
+ContentHandler.charactersc
+Receive notification of ignorable whitespace in element content.
+        Validating Parsers must use this method to report each chunk
+        of ignorable whitespace (see the W3C XML 1.0 recommendation,
+        section 2.10): non-validating parsers may also use this method
+        if they are capable of parsing and using content models.
+        SAX parsers may return all contiguous whitespace in a single
+        chunk, or they may split it into several chunks; however, all
+        of the characters in any single event must come from the same
+        external entity, so that the Locator provides useful
+        information.Nr
+whitespacer
+ignorableWhitespace
+z"ContentHandler.ignorableWhitespacec
+Receive notification of a processing instruction.
+        The Parser will invoke this method once for each processing
+        instruction found: note that processing instructions may occur
+        before or after the main document element.
+        A SAX parser should never report an XML declaration (XML 1.0,
+        section 2.8) or a text declaration (XML 1.0, section 4.3.1)
+        using this method.Nr
+target
+datar
+processingInstruction
+z$ContentHandler.processingInstructionc
+Receive notification of a skipped entity.
+        The Parser will invoke this method once for each entity
+        skipped. Non-validating processors may skip entities if they
+        have not seen the declarations (because, for example, the
+        entity was declared in an external DTD subset). All processors
+        may skip external entities, depending on the values of the
+        http://xml.org/sax/features/external-general-entities and the
+        http://xml.org/sax/features/external-parameter-entities
+        properties.Nr
+skippedEntity
+ContentHandler.skippedEntityN)
+DTDHandlerz
+Handle DTD events.
+    This interface specifies only those DTD events required for basic
+    parsing (unparsed entities and attributes).c
+z$Handle a notation declaration event.Nr
+publicId
+systemIdr
+notationDecl
+DTDHandler.notationDeclc
+z,Handle an unparsed entity declaration event.Nr
+ndatar
+unparsedEntityDecl
+DTDHandler.unparsedEntityDeclN)
+EntityResolvera7
+Basic interface for resolving entities. If you create an object
+    implementing this interface, then register the object with your
+    Parser, the parser will call the method in your object to
+    resolve all external entities. Note that DefaultHandler implements
+    this interface with the default behaviour.c
+Resolve the system identifier of an entity and return either
+        the system identifier to read from as a string, or an InputSource
+        to read from.r
+resolveEntity
+EntityResolver.resolveEntityN)
+z&http://xml.org/sax/features/namespacesz.http://xml.org/sax/features/namespace-prefixesz,http://xml.org/sax/features/string-interningz&http://xml.org/sax/features/validationz5http://xml.org/sax/features/external-general-entitiesz7http://xml.org/sax/features/external-parameter-entitiesz-http://xml.org/sax/properties/lexical-handlerz1http://xml.org/sax/properties/declaration-handlerz&http://xml.org/sax/properties/dom-nodez(http://xml.org/sax/properties/xml-stringz-http://www.python.org/sax/properties/encodingz3http://www.python.org/sax/properties/interning-dictN)
+versionr
+feature_namespacesZ
+feature_namespace_prefixesZ
+feature_string_interningZ
+feature_validationZ
+feature_external_gesZ
+feature_external_pesZ
+all_featuresZ
+property_lexical_handlerZ
+property_declaration_handlerZ
+property_dom_nodeZ
+property_xml_stringZ
+property_encodingZ
+property_interning_dictZ
+all_propertiesr
+<module>

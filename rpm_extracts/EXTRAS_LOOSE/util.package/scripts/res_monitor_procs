@@ -1,0 +1,34 @@
+#!/bin/bash 
+#------------------common proc ----------------------
+record_process_proc_info()
+{
+    local pid=$1
+
+    record_sub_cmd "cat /proc/$pid/cmdline"
+    record_sub_cmd "cat /proc/$pid/limits"
+    record_sub_cmd "ls -l /proc/$pid/fd"
+    #record_sub_cmd "cat /proc/$pid/fdinfo/????" 
+    record_sub_cmd "cat /proc/$pid/numa_maps"
+    record_sub_cmd "cat /proc/$pid/smaps"
+    record_sub_cmd "pmap -d $pid"
+    record_sub_cmd "cat /proc/$pid/statm"
+    record_sub_cmd "cat /proc/$pid/stat"
+    record_sub_cmd "cat /proc/$pid/status"
+    record_sub_cmd "cat /proc/$pid/io"
+    record_sub_cmd "cat /proc/$pid/syscall"
+    record_sub_cmd "ls -l /proc/$pid/task"
+}
+
+record_process_cache()
+{
+    local pid=$1
+
+    test ! -x "$TOOLS_FINCORE" && return 1
+
+    local opened_files=$(lsof -p $pid | awk '{print $9}' | 
+                         grep -v ".jar\|.so\|.ibd\|.MYI\|.MYD\|localhost.*\|pipe\|socket\|^\*\|/$\|/dev/null")
+
+    record_sub_cmd "$TOOLS_FINCORE `echo $opened_files`"
+
+    return 0
+}

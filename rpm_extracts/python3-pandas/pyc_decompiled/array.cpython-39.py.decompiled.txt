@@ -1,0 +1,861 @@
+m	Z	m
+l!m"Z"
+l#m$Z$m%Z%m&Z&m'Z'
+l(m)Z)m*Z*m+Z+m,Z,m-Z-m.Z.m/Z/m0Z0m1Z1m2Z2
+l3m4Z4m5Z5
+l6m7Z7m8Z8m9Z9
+l:m;
+m<Z=
+l>m?Z?
+l@mAZA
+lBmCZC
+lDmEZE
+lFm;
+mGZH
+lImJZJmKZK
+lLmMZM
+lNmOZO
+lPmQZQ
+lRm;
+mSZS
+lTmU
+mWZW
+d d!d"d#
+d$d%
+Z[d2d&d'
+d(d)
+e?eEeA
+Z]d3d
+d,d-
+d.d/
+Z^d0d1
+SparseArray data structure
+annotations)
+abcN)
+Callable
+Sequence
+TypeVar)
+lib)
+BlockIndex
+IntIndex
+SparseIndex)
+NaT)
+Dtype
+NpDtype
+Scalar)
+function)
+PerformanceWarning)
+astype_nansafe
+"construct_1d_arraylike_from_scalar
+find_common_type
+maybe_box_datetimelike)
+is_array_like
+is_bool_dtype
+is_datetime64_any_dtype
+is_datetime64tz_dtype
+is_dtype_equal
+is_integer
+is_object_dtype
+	is_scalar
+is_string_dtype
+pandas_dtype)
+ABCIndex
+	ABCSeries)
+isna
+na_value_for_dtype
+notna)
+OpsMixin)
+ExtensionArray)
+SparseDtype)
+PandasObject)
+extract_array
+sanitize_array)
+check_array_indexer)
+interpolate_2d)
+check_below_min_count
+SparseArrayT
+SparseArray)
+bound
+klass
+np.ndarray)
+returnc
+    Create a 0-dim ndarray containing the fill value
+    Parameters
+    ----------
+    arr : SparseArray
+    Returns
+    -------
+    fill_value : ndarray
+        0-dim ndarray with just the fill value.
+    Notes
+    -----
+    coerce fill_value to arr dtype if possible
+    int64 SparseArray can have NaN as fill_value if there is no missing
+    
+dtypeN)
+asarray
+fill_valuer6
+subtype
+ValueError)
+E/usr/lib64/python3.9/site-packages/pandas/core/arrays/sparse/array.py
+	_get_fillX
+strr
+left
+right
+namer4
+rN|	j
+    Perform a binary operation between two arrays.
+    Parameters
+    ----------
+    left : Union[SparseArray, ndarray]
+    right : Union[SparseArray, ndarray]
+    op : Callable
+        The binary operation to perform
+    name str
+        Name of the callable.
+    Returns
+    -------
+    SparseArray
+    
+ignore
+boolZ
+sparse_Z
+_uint8
+startswithr6
+astype
+sp_index
+ngapsr7
+errstate
+to_denser>
+equals
+	sp_values
+viewZ
+uint8rO
+getattr
+splib
+_wrap_result)
+ltypeZ
+rtyper:
+result_dtype
+result
+fill
+index
+opnameZ
+left_sp_valuesZ
+right_sp_valuesZ	sparse_opr<
+_sparse_array_opp
+Dtype | Noner5
+    wrap op result to have correct dtype
+    rD
+sparse_indexr9
+item_from_zerodimr
+datari
+d"d#
+d$d%
+d&d'
+d(d)
+d*d)
+d+d!
+d,d-
+d.d/
+d0d!
+d1d2
+d3d4
+d5d6
+d0d!
+d7d8
+d9d!
+d:d;
+d0d!
+d<d=
+d>d?
+d@dA
+dCdD
+Z!dEdF
+Z"dGdH
+Z#dIdJ
+dLdM
+dOdP
+dQdR
+Z&dSdT
+Z'dUdV
+dXdY
+dZd[
+Z*d\d!
+d]d^
+d`da
+dcdd
+dgdh
+didj
+Z/dkdl
+Z0dmdn
+Z1e1Z2dodp
+Z3dqdr
+Z4dNds
+d+dOdt
+dudv
+dwdx
+dzd{
+d0d0d|d}
+Z<e=j>e?j@f
+ZEeEZFd
+ZJd+d!
+    An ExtensionArray for storing sparse data.
+    Parameters
+    ----------
+    data : array-like
+        A dense array of values to store in the SparseArray. This may contain
+        `fill_value`.
+    sparse_index : SparseIndex, optional
+    index : Index
+    fill_value : scalar, optional
+        Elements in `data` that are `fill_value` are not stored in the
+        SparseArray. For memory savings, this should be the most common value
+        in `data`. By default, `fill_value` depends on the dtype of `data`:
+        =========== ==========
+        data.dtype  na_value
+        =========== ==========
+        float       ``np.nan``
+        int         ``0``
+        bool        False
+        datetime64  ``pd.NaT``
+        timedelta64 ``pd.NaT``
+        =========== ==========
+        The fill value is potentially specified in three ways. In order of
+        precedence, these are
+        1. The `fill_value` argument
+        2. ``dtype.fill_value`` if `fill_value` is None and `dtype` is
+           a ``SparseDtype``
+        3. ``data.dtype.fill_value`` if `fill_value` is None and `dtype`
+           is not a ``SparseDtype`` and `data` is a ``SparseArray``.
+    kind : {'integer', 'block'}, default 'integer'
+        The type of storage for sparse locations.
+        * 'block': Stores a `block` and `block_length` for each
+          contiguous *span* of sparse values. This is best when
+          sparse data tends to be clumped together, with large
+          regions of ``fill-value`` values between sparse values.
+        * 'integer': uses an integer to store the location of
+          each sparse value.
+    dtype : np.dtype or SparseDtype, optional
+        The dtype to use for the SparseArray. For numpy dtypes, this
+        determines the dtype of ``self.sp_values``. For SparseDtype,
+        this determines ``self.sp_values`` and ``self.fill_value``.
+    copy : bool, default False
+        Whether to explicitly copy the incoming `data` array.
+    Attributes
+    ----------
+    None
+    Methods
+    -------
+    None
+    Examples
+    --------
+    >>> from pandas.arrays import SparseArray
+    >>> arr = SparseArray([0, 0, 1, 2])
+    >>> arr
+    [0, 0, 1, 2]
+    Fill: 0
+    IntIndex
+    Indices: array([2, 3], dtype=int32)
+    
+sparse_arrayZ
+get_valuesr
+_sparse_indexN
+integerFra
+}	|	d
+t j!d
+t"d	d
+Nz$must only pass scalars with an indexrK
+extract_numpyz
+Creating SparseArray from z_ data loses timezone information.  Cast to object before sparse to retain timezone information.rE
+stacklevelz
+datetime64[ns]r
+kindr9
+Non array-like type z' must have the same length as the index)*
+isinstancer'
+typerS
+construct_from_string
+	TypeErrorr
+	Exceptionr7
+lengthr
+arrayr
+objectZ
+atleast_1dr8
+copyr#
+ndarrayr
+warnings
+warn
+UserWarningr
+datetime64
+make_sparse
+npoints
+AssertionError
+_sparse_values
+_dtype)
+selfrj
+fill_value_dtype
+sparse_valuesr<
+__init__*
+SparseArray.__init__z
+type[SparseArrayT]r2
+clsrk
+__new__rl
+newr<
+_simple_new
+SparseArray._simple_newc
+        Create a SparseArray from a scipy.sparse matrix.
+        .. versionadded:: 0.25.0
+        Parameters
+        ----------
+        data : scipy.sparse.sp_matrix
+            This should be a SciPy sparse matrix where the size
+            of the second dimension is 1. In other words, a
+            sparse matrix with a single column.
+        Returns
+        -------
+        SparseArray
+        Examples
+        --------
+        >>> import scipy.sparse
+        >>> mat = scipy.sparse.coo_matrix((4, 1))
+        >>> pd.arrays.SparseArray.from_spmatrix(mat)
+        [0.0, 0.0, 0.0, 0.0]
+        Fill: 0.0
+        IntIndex
+        Indices: array([], dtype=int32)
+        rK
+z''data' must have a single column, not '
+shaper;
+tocscZ
+sort_indicesrj
+indicesr7
+itemr'
+ncolr3
+idxZ
+zeror6
+from_spmatrix
+SparseArray.from_spmatrix
+NpDtype | None)
+result_typert
+fullr
+to_int_indexr
+outr<
+	__array__
+SparseArray.__array__c
+Nz8SparseArray does not support item assignment via setitem)
+value
+msgr<
+__setitem__
+SparseArray.__setitem__)
+scalarsr6
+_from_sequence
+SparseArray._from_sequencec
+valuesZ
+originalr<
+_from_factorized
+SparseArray._from_factorized)
+        The SparseIndex containing the location of non- ``fill_value`` points.
+        )
+SparseArray.sp_indexc
+        An ndarray containing the non- ``fill_value`` values.
+        Examples
+        --------
+        >>> s = SparseArray([0, 0, 1, 0, 2], fill_value=0)
+        >>> s.sp_values
+        array([1, 2])
+        )
+SparseArray.sp_valuesc
+SparseArray.dtypec
+        Elements in `data` that are `fill_value` are not stored.
+        For memory savings, this should be the most common value in the array.
+        )
+SparseArray.fill_valuec
+        The kind of sparse index for this array. One of {'integer', 'block'}.
+        rm
+blockN)
+SparseArray.kindc
+sp_vals
+maskr<
+_valid_sp_valuesS
+SparseArray._valid_sp_values
+intc
+__len__Y
+SparseArray.__len__c
+_is_na_fill_valuer
+_null_fill_value\
+SparseArray._null_fill_valuec
+_fill_value_matches`
+SparseArray._fill_value_matchesc
+nbytesrS
+SparseArray.nbytes
+floatc
+        The percent of non- ``fill_value`` points, as decimal.
+        Examples
+        --------
+        >>> s = SparseArray([0, 0, 1, 1, 1], fill_value=0)
+        >>> s.density
+        0.6
+        )
+densityj
+SparseArray.densityc
+        The number of non- ``fill_value`` points.
+        Examples
+        --------
+        >>> s = SparseArray([0, 0, 1, 1, 1], fill_value=0)
+        >>> s.npoints
+        3
+        )
+SparseArray.npointsc
+SparseArray.isnac
+        Fill missing values with `value`.
+        Parameters
+        ----------
+        value : scalar, optional
+        method : str, optional
+            .. warning::
+               Using 'method' will result in high memory use,
+               as all `fill_value` methods will be converted to
+               an in-memory ndarray
+        limit : int, optional
+        Returns
+        -------
+        SparseArray
+        Notes
+        -----
+        When `value` is specified, the result's ``fill_value`` depends on
+        ``self.fill_value``. The goal is to maintain low-memory use.
+        If ``self.fill_value`` is NA, the result dtype will be
+        ``SparseDtype(self.dtype, fill_value=value)``. This will preserve
+        amount of memory used before and after filling.
+        When ``self.fill_value`` is not NA, the result dtype will be
+        ``self.dtype``. Again, this preserves the amount of memory used.
+        Nz(Must specify one of 'method' or 'value'.z0fillna with 'method' requires high memory usage.)
+method
+limit
+wherer"
+filledZ
+new_valuesZ	new_dtyper<
+fillna
+SparseArray.fillnarK
+na_valuer7
+_concat_same_type)
+periodsr9
+empty
+shift
+SparseArray.shiftc
+        Get the location of the first missing value.
+        Returns
+        -------
+        int
+        r
+searchsorted)
+diffr<
+_first_fill_value_loc
+z!SparseArray._first_fill_value_locc
+list
+algos
+uniquerW
+insertr9
+uniquesZ
+fill_locr<
+SparseArray.uniquec
+_values_for_factorize
+z!SparseArray._values_for_factorizer
+na_sentinelr5
+	factorizer7
+codesr
+SparseArray.factorizeTrO
+dropnac
+rLt	|
+        Returns a Series containing counts of unique values.
+        Parameters
+        ----------
+        dropna : bool, default True
+            Don't include counts of NaN, even if NaN is in sp_values.
+        Returns
+        -------
+        counts : Series
+        r
+Index
+Seriesr
+pandasr
+value_counts_arraylikerW
+anyr7
+keysZ
+countsZ
+fcountsr
+value_counts
+SparseArray.value_countsc
+too many indices for array.r5
+Cannot slice with 'r
+tuplerx
+Ellipsis
+IndexErrorr
+_get_val_atrV
+slicer|
+arange
+int32
+taker/
+comZ
+is_bool_indexer
+hasattrr;
+data_slicer
+__getitem__*
+SparseArray.__getitem__c
+Out of bounds accessr
+lookupr9
+sp_loc
+valr<
+SparseArray._get_val_at)
+allow_fillr9
+)	Nz*'indices' must be an array, not a scalar 'z
+'.r5
+sizerz
+_take_with_fill
+_take_without_fillrt
+kwargsr<
+SparseArray.takec
+zKInvalid value in 'indices'. Must be between -1 and the length of the array.
+!out of bounds value in 'indices'.r
+.cannot do a non-empty take from an empty axes.
+maxrx
+empty_liker]
+lookup_arrayr
+taken
+sp_indexerZ
+new_fill_indicesZ
+old_fill_indicesr
+SparseArray._take_with_fillz
+np.ndarray | SparseArrayc
+to_shiftr
+fillabler
+SparseArray._take_without_fillr@
+Nz(searchsorted requires high memory usage.rE
+)	r~
+sideZ
+sorterr
+SparseArray.searchsorted)
+SparseArray.copyz
+Sequence[SparseArrayT])
+	to_concatr4
+q6t	
+}	t	
+}	t	
+appendrW
+concatenater
+to_block_index
+blocs
+blengthsr	
+sp_kindr
+SparseArray._concat_same_typec
+        Change the dtype of a SparseArray.
+        The output will always be a SparseArray. To convert to a dense
+        ndarray with a certain dtype, use :meth:`numpy.asarray`.
+        Parameters
+        ----------
+        dtype : np.dtype or ExtensionDtype
+            For SparseDtype, this changes the dtype of
+            ``self.sp_values`` and the ``self.fill_value``.
+            For other dtypes, this only changes the dtype of
+            ``self.sp_values``.
+        copy : bool, default True
+            Whether to ensure a copy is made, even if not necessary.
+        Returns
+        -------
+        SparseArray
+        Examples
+        --------
+        >>> arr = pd.arrays.SparseArray([0, 0, 1, 2])
+        >>> arr
+        [0, 0, 1, 2]
+        Fill: 0
+        IntIndex
+        Indices: array([2, 3], dtype=int32)
+        >>> arr.astype(np.dtype('int32'))
+        [0, 0, 1, 2]
+        Fill: 0
+        IntIndex
+        Indices: array([2, 3], dtype=int32)
+        Using a NumPy dtype with a different kind (e.g. float) will coerce
+        just ``self.sp_values``.
+        >>> arr.astype(np.dtype('float64'))
+        ... # doctest: +NORMALIZE_WHITESPACE
+        [0.0, 0.0, 1.0, 2.0]
+        Fill: 0.0
+        IntIndex
+        Indices: array([2, 3], dtype=int32)
+        Use a SparseDtype if you wish to be change the fill value as well.
+        >>> arr.astype(SparseDtype("float64", fill_value=np.nan))
+        ... # doctest: +NORMALIZE_WHITESPACE
+        [nan, nan, 1.0, 2.0]
+        Fill: nan
+        IntIndex
+        Indices: array([2, 3], dtype=int32)
+        T)
+update_dtyper
+_subtype_with_strr
+SparseArray.astypec
+        Map categories using input correspondence (dict, Series, or function).
+        Parameters
+        ----------
+        mapper : dict, Series, callable
+            The correspondence from old values to new.
+        Returns
+        -------
+        SparseArray
+            The output array will have the same density as the input.
+            The output fill value will be the result of applying the
+            mapping to ``self.fill_value``
+        Examples
+        --------
+        >>> arr = pd.arrays.SparseArray([0, 1, 2])
+        >>> arr.map(lambda x: x + 10)
+        [10, 11, 12]
+        Fill: 10
+        IntIndex
+        Indices: array([1, 2], dtype=int32)
+        >>> arr.map({0: 10, 1: 11, 2: 12})
+        [10, 11, 12]
+        Fill: 10
+        IntIndex
+        Indices: array([1, 2], dtype=int32)
+        >>> arr.map(pd.Series([10, 11, 12], index=[0, 1, 2]))
+        [10, 11, 12]
+        Fill: 10
+        IntIndex
+        Indices: array([1, 2], dtype=int32)
+        c
+mapperr<
+<listcomp>
+z#SparseArray.map.<locals>.<listcomp>c
+to_dictr
+Mappingr
+SparseArray.mapc
+        Convert SparseArray to a NumPy array.
+        Returns
+        -------
+        arr : NumPy array
+        r5
+SparseArray.to_densec
+z*Necessary for making this object picklableN)
+__setstate__r
+__dict__
+update)
+stateZ
+nd_stater9
+SparseArray.__setstate__c
+nonzero
+SparseArray.nonzero)
+skipna)
+cannot perform z
+ with type Z
+filter_typeZ
+numeric_onlyrB
+pop)
+_reduce
+SparseArray._reducec
+        Tests whether all elements evaluate True
+        Returns
+        -------
+        all : bool
+        See Also
+        --------
+        numpy.all
+        F)
+validate_allrW
+axis
+argsr
+SparseArray.allr
+        Tests whether at least one of elements evaluate True
+        Returns
+        -------
+        any : bool
+        See Also
+        --------
+        numpy.any
+        T)
+validate_anyrW
+SparseArray.anyr
+	min_countr4
+        Sum of non-NA/null values
+        Parameters
+        ----------
+        axis : int, default 0
+            Not Used. NumPy compatibility.
+        min_count : int, default 0
+            The required number of valid values to perform the summation. If fewer
+            than ``min_count`` valid values are present, the result will be the missing
+            value indicator for subarray type.
+        *args, **kwargs
+            Not Used. NumPy compatibility.
+        Returns
+        -------
+        scalar
+        NF)
+compat)
+validate_sumr
+sumr
+valid_vals
+sp_sum
+nsparser<
+SparseArray.sumc
+        Cumulative sum of non-NA/null values.
+        When performing the cumulative summation, any non-NA/null values will
+        be skipped. The resulting SparseArray will preserve the locations of
+        NaN values, but the fill value will be `np.nan` regardless.
+        Parameters
+        ----------
+        axis : int or None
+            Axis over which to perform the cumulative summation. If None,
+            perform cumulative summation over flattened array.
+        Returns
+        -------
+        cumsum : SparseArray
+        Nz
+axis(=z
+) out of boundsr
+validate_cumsum
+ndimr;
+cumsumrW
+SparseArray.cumsumc
+        Mean of non-NA/null values
+        Returns
+        -------
+        mean : float
+        N)	r
+validate_meanr
+mean\
+SparseArray.meanc
+validate_maxr
+nanmaxr
+SparseArray.maxc
+validate_minr
+nanminr
+SparseArray.minz
+np.ufunc)
+ufuncr
+sp_valueZ
+	<genexpr>
+z.SparseArray.__array_ufunc__.<locals>.<genexpr>c
+z/SparseArray.__array_ufunc__.<locals>.<listcomp>r
+_HANDLED_TYPESr/
+NotImplemented
+opsZ!maybe_dispatch_ufunc_to_dunder_oprx
+zipr
+inputsr
+arraysr<
+__array_ufunc__
+SparseArray.__array_ufunc__c
+__abs__
+SparseArray.__abs__c
+divmod
+length mismatch: 
+ vs. r6
+__name__rs
+otherrB
+op_namer]
+lfillZ
+rfillr6
+_arith_method
+SparseArray._arith_methodc
+stripr`
+bool_)
+_cmp_method
+SparseArray._cmp_methodc
+_unary_method
+SparseArray._unary_methodc
+operator
+posr
+__pos__
+SparseArray.__pos__c
+negr
+__neg__
+SparseArray.__neg__c
+invertr
+__invert__
+SparseArray.__invert__c
+Fill: 
+printingZ
+pprint_thingr9
+pp_strZ
+pp_fillZ
+pp_indexr<
+__repr__
+SparseArray.__repr__c
+boxedr<
+_formatter
+SparseArray._formatter)
+NNNrm
+NNN)
+F)Mr
+__module__
+__qualname__
+__doc__Z
+_subtypr(
+_hidden_attrs
+	frozenset
+__annotations__r
+classmethodr
+propertyrS
+setterrr
+_internal_get_valuesr
+numbers
+Numberr
+_logical_methodr 
+n4t	|
+    Convert ndarray to sparse format
+    Parameters
+    ----------
+    arr : ndarray
+    kind : {'block', 'integer'}
+    fill_value : NaN or another value
+    dtype : np.dtype, optional
+    copy : bool, default False
+    Returns
+    -------
+    (sparse_values, index, fill_value) : (ndarray, SparseIndex, Scalar)
+    rK
+expected dimension <= 1 dataNr
+make_mask_object_ndarrayrx
+make_sparse_indexr
+)	r3
+sparsified_valuesr<
+must be block or integer type)
+get_blocksr
+locsZ
+lensr^
+NN)`r.
+__future__r
+collectionsr
+typingr
+numpyr7
+pandas._libsr
+pandas._libs.sparseZ
+_libsZ
+sparserZ
+pandas._libs.tslibsr
+pandas._typingr
+pandas.compat.numpyr
+pandas.errorsr
+pandas.core.dtypes.castr
+pandas.core.dtypes.commonr
+pandas.core.dtypes.genericr 
+pandas.core.dtypes.missingr"
+pandas.core.algorithmsZ
+coreZ
+algorithmsr
+pandas.core.arrayliker%
+pandas.core.arraysr&
+pandas.core.arrays.sparse.dtyper'
+pandas.core.baser(
+pandas.core.common
+commonr
+pandas.core.constructionr)
+pandas.core.indexersr+
+pandas.core.missingr,
+pandas.core.nanopsr-
+pandas.core.opsr
+pandas.io.formats.printing
+formatsr)
+_sparray_doc_kwargsr>
+<module>

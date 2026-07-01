@@ -1,0 +1,181 @@
+Z	d	d
+d!d"d#
+)$z3
+A number of functions that enhance IDLE on macOS.
+expanduserN)
+platformc
+    Initializes OS X Tk variant values for
+    isAquaTk(), isCarbonTk(), isCocoaTk(), and isXQuartz().
+    
+darwin
+windowingsystemZ
+xquartzZ
+aqua
+otherZ
+AppKitZ
+winfoZ
+server
+cocoa
+carbonN)
+tkinterZ
+call
+_tk_typeZ
+destroy)
+rootZ
+&/usr/lib64/python3.9/idlelib/macosx.py
+_init_tk_type
+    Returns True if IDLE is using a native OS X Tk (Cocoa or Carbon).
+    r	
+isAquaTk%
+    Returns True if IDLE is using a Carbon Aqua Tk (instead of the
+    newer Cocoa Aqua Tk).
+    r
+isCarbonTk-
+    Returns True if IDLE is using a Cocoa Aqua Tk.
+    r	
+	isCocoaTk6
+    Returns True if IDLE is using an OS X X11 Tk.
+    r
+	isXQuartz>
+    Returns a string warning message if the Tk version in use appears to
+    be one known to cause problems with IDLE.
+    1. Apple Cocoa-based Tk 8.5.7 shipped with Mac OS X 10.6 is unusable.
+    2. Apple Cocoa-based Tk 8.5.9 in OS X 10.7 and 10.8 is better but
+        can still crash unexpectedly.
+    
+info
+patchlevel)
+8.5.7z
+8.5.9Fz
+WARNING: The version of Tcl/Tk ({0}) in use may be unstable.
+Visit https://www.python.org/download/mac/tcltk/ for current information.N)
+format)
+tkVersionWarningG
+    Fetch the macOS system preferences.
+    r
+Nz.~/Library/Preferences/.GlobalPreferences.plist
+open
+plistlib
+load
+OSError)
+plist_pathZ
+plist_filer
+readSystemPreferences\
+    Warn if "Prefer tabs when opening documents" is set to "Always".
+    r
+AppleWindowTabbingMode
+alwaysz
+WARNING: The system preference "Prefer tabs when opening documents" is set to "Always". This will cause various problems with IDLE. For the best experience, change this setting when running IDLE (via System Preferences -> Dock).)
+get)
+prefsr
+preferTabsPreferenceWarningk
+    This ensures that the application will respond to open AppleEvents, which
+    makes is feasible to use IDLE as the default application for python files.
+    c
+args
+flistr
+doOpenFile
+z'addOpenEventSupport.<locals>.doOpenFilez
+::tk::mac::OpenDocumentN)
+createcommand)
+addOpenEventSupport
+consoleZ
+hide)
+TclError
+hideTkConsole
+	}	d&
+d#|	
+)(zf
+    Replace the Tk root menu by something that is more appropriate for
+    IDLE with an Aqua Tk.
+    r
+Menu)
+mainmenu
+window
+menur0
+nameZ
+tearoffZ
+Window)
+labelr7
+Z	underlinec
+endr5
+index
+deleteZ
+add_windows_to_menu)
+postwindowsmenu
+z)overrideRootMenu.<locals>.postwindowsmenuc
+Handle Help 'About IDLE' event.r
+help_aboutN)
+idlelibr>
+AboutDialog)
+eventr>
+about_dialog
+z&overrideRootMenu.<locals>.about_dialogc
+z&Handle Options 'Configure IDLE' event.r
+configdialogZ
+SettingsN)
+inversedictZ
+instance_dictZ
+ConfigDialog)
+config_dialog
+z'overrideRootMenu.<locals>.config_dialogc
+Handle Help 'IDLE Help' event.r
+helpN)
+show_idlehelp)
+help_dialog
+z%overrideRootMenu.<locals>.help_dialog
+<<about-idle>>z
+<<open-config-dialog>>z
+::tk::mac::ShowPreferencesz
+<<close-all-windows>>
+exitZ
+appleZ
+applicationZ
+IDLE)
+About IDLErF
+tkAboutDialogz
+::tk::mac::ShowHelp)
+menudefs
+insertZ	configureZ
+add_cascadeZ
+register_callbackZ
+bindr)
+close_all_callbackr
+Z	closeItemZ
+menubarZ
+menudictr7
+overrideRootMenu
+Removed bad AquaTk Button-2 (right) and Paste bindings.
+    They prevent context menu access and seem to be gone in AquaTk8.6.
+    See issue #24801.
+    
+Textz
+<B2>z
+<B2-Motion>z
+<<PasteSelection>>N)
+unbind_classr+
+fixb2context
+    Perform initial OS X customizations if needed.
+    Called from pyshell.main() after initial calls to Tk()
+    There are currently three major versions of Tk in use on OS X:
+        1. Aqua Cocoa Tk (native default since OS X 10.6)
+        2. Aqua Carbon Tk (original native, 32-bit only, deprecated)
+        3. X11 (supported by some third-party distributors, deprecated)
+    There are various differences among the three that affect IDLE
+    behavior, primarily with menus, mouse key events, and accelerators.
+    Some one-time customizations are performed here.
+    Others are dynamically tested throughout idlelib by calls to the
+    isAquaTk(), isCarbonTk(), isCocoaTk(), isXQuartz() functions which
+    are initialized here as well.
+    N)
+setupApp
+__main__)
+mainz
+idlelib.idle_test.test_macosxr6
+	verbosity)
+__doc__Z
+os.pathr
+sysr
+__name__Z
+unittestrN
+<module>

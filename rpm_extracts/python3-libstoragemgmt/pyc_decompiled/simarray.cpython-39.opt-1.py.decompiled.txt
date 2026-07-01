@@ -1,0 +1,1503 @@
+m	Z	m
+size_human_2_size_bytes)
+System
+Volume
+Disk
+Pool
+FileSystem
+AccessGroup
+FsSnapshot
+	NfsExport
+LsmError
+TargetPort
+ErrorNumber
+	JobStatus
+Battery
+int_divc
+bs_objz
+database is lockedz%Timeout to require lock on state filez%Got unexpected error from sqlite3: %sz
+Got unexpected error: %s)
+sqlite3
+OperationalError
+type
+SimArray
+hasattrr
+trans_rollback
+strr
+TIMEOUT
+PLUGIN_BUG
+	Exception)
+argsZ
+kargs
+	sql_errorZ
+base_error
+method
+;/usr/lib/python3.9/site-packages/lsm/plugin/sim/simarray.py
+wrapper 
+_handle_errors.<locals>.wrapperr 
+_handle_errors
+    Generate a random VPD83 NAA_Type3 ID
+    Z
+%02x
+range
+appendr
+randomZ
+randint
+join)
+_random_vpd:
+	enumerate
+description)
+cursor
+colr 
+_dict_factoryD
+PoolRAIDc
+<lambda>M
+PoolRAID.<lambda>c
+        Return a integer indicating how many disks should be used as
+        real data(not mirrored or parity) disks.
+        Treating RAID 5 and 6 using fixed parity disk.
+        z0data_disk_count(): Got unsupported raid type(%d)Fz;data_disk_count(): Illegal disk count(%d) for raid type(%d))
+listr6
+_RAID_DISK_CHK
+keysr
+_RAID_PARITY_DISK_COUNT_FUNC)
+	raid_type
+disk_countr 
+data_disk_countn
+PoolRAID.data_disk_countN)
+__name__
+__module__
+__qualname__r
+RAID_TYPE_JBOD
+RAID_TYPE_RAID0
+RAID_TYPE_RAID1Z
+RAID_TYPE_RAID3Z
+RAID_TYPE_RAID4
+RAID_TYPE_RAID5
+RAID_TYPE_RAID6
+RAID_TYPE_RAID10Z
+RAID_TYPE_RAID15Z
+RAID_TYPE_RAID16
+RAID_TYPE_RAID50
+RAID_TYPE_RAID60Z
+RAID_TYPE_RAID51Z
+RAID_TYPE_RAID61rK
+staticmethodrP
+d!d"
+Z-d#d$
+Z.d%d&
+d(d)
+Z0d*d+
+Z1d,d-
+Z2d.d/
+Z3d0d1
+Z4d2d3
+Z5d4d5
+Z6d6d7
+d9d:
+d;d<
+Z9d=d>
+d?d@
+dAdB
+Z<dCdD
+Z=dEdF
+Z>dGdH
+Z?e@dIdJ
+dKdL
+ZBdMdN
+ZCdOdP
+ZDdQdR
+ZEdSdT
+ZFdUdV
+ZGdWdX
+ZHdYdZ
+d[d\
+ZJd]d^
+ZKd_d`
+ZLe@dadb
+dcdd
+ZNdedf
+ZOdgdh
+ZPdidj
+ZQdkdl
+ZRdmdn
+ZSdodp
+ZTdqdr
+ZUdsdt
+dvdw
+ZWdxdy
+ZXdzd{
+ZYd|d}
+ZZd~d
+Znd'S
+	BackStorez
+4.1z
+LSM_SIMULATOR_DATA_%s_%srG
+sim-01z
+LSM simulated storage plug-ini
+z d%t
+)'Ni
+Z	IMMEDIATE)
+timeoutZ
+isolation_levelz
+PRAGMA foreign_keys = ON;
+            CREATE TABLE systems (
+            id TEXT PRIMARY KEY,
+            name TEXT NOT NULL,
+            status INTEGER NOT NULL,
+            status_info TEXT,
+            read_cache_pct INTEGER,
+            version TEXT NOT NULL);
+            a%
+            CREATE TABLE tgts (
+            id INTEGER PRIMARY KEY,
+            port_type INTEGER NOT NULL,
+            service_address TEXT NOT NULL,
+            network_address TEXT NOT NULL,
+            physical_address TEXT NOT NULL,
+            physical_name TEXT NOT NULL);
+            a
+            CREATE TABLE pools (
+            id INTEGER PRIMARY KEY,
+            name TEXT UNIQUE NOT NULL,
+            status INTEGER NOT NULL,
+            status_info TEXT,
+            element_type INTEGER NOT NULL,
+            unsupported_actions INTEGER,
+            raid_type INTEGER NOT NULL,
+            parent_pool_id INTEGER,
+            member_type INTEGER,
+            strip_size INTEGER,
+            total_space LONG);
+            a
+            CREATE TABLE disks (
+            id INTEGER PRIMARY KEY,
+            total_space LONG NOT NULL,
+            disk_type INTEGER NOT NULL,
+            status INTEGER NOT NULL,
+            disk_prefix TEXT NOT NULL,
+            location TEXT NOT NULL,
+            owner_pool_id INTEGER,
+            role TEXT,
+            vpd83 TEXT,
+            rpm INTEGER,
+            link_type INTEGER,
+            FOREIGN KEY(owner_pool_id)
+            REFERENCES pools(id) ON DELETE SET DEFAULT);
+            a;
+            CREATE TABLE volumes (
+            id INTEGER PRIMARY KEY,
+            vpd83 TEXT NOT NULL,
+            name TEXT UNIQUE NOT NULL,
+            total_space LONG NOT NULL,
+            consumed_size LONG NOT NULL,
+            admin_state INTEGER,
+            is_hw_raid_vol INTEGER,
+            write_cache_policy INTEGER NOT NULL,
+            read_cache_policy INTEGER NOT NULL,
+            phy_disk_cache INTEGER NOT NULL,
+            pool_id INTEGER NOT NULL,
+            FOREIGN KEY(pool_id)
+            REFERENCES pools(id) ON DELETE CASCADE);
+            zx
+            CREATE TABLE ags (
+            id INTEGER PRIMARY KEY,
+            name TEXT UNIQUE NOT NULL);
+            z
+            CREATE TABLE inits (
+            id TEXT UNIQUE NOT NULL,
+            init_type INTEGER NOT NULL,
+            owner_ag_id INTEGER NOT NULL,
+            FOREIGN KEY(owner_ag_id)
+            REFERENCES ags(id) ON DELETE CASCADE);
+            a
+            CREATE TABLE vol_masks (
+            vol_id INTEGER NOT NULL,
+            ag_id INTEGER NOT NULL,
+            FOREIGN KEY(vol_id) REFERENCES volumes(id) ON DELETE CASCADE,
+            FOREIGN KEY(ag_id) REFERENCES ags(id) ON DELETE CASCADE);
+            aV
+            CREATE TABLE vol_reps (
+            rep_type INTEGER,
+            src_vol_id INTEGER NOT NULL,
+            dst_vol_id INTEGER NOT NULL,
+            FOREIGN KEY(src_vol_id)
+            REFERENCES volumes(id) ON DELETE CASCADE,
+            FOREIGN KEY(dst_vol_id)
+            REFERENCES volumes(id) ON DELETE CASCADE);
+            a`
+            CREATE TABLE fss (
+            id INTEGER PRIMARY KEY,
+            name TEXT UNIQUE NOT NULL,
+            total_space LONG NOT NULL,
+            consumed_size LONG NOT NULL,
+            free_space LONG,
+            pool_id INTEGER NOT NULL,
+            FOREIGN KEY(pool_id)
+            REFERENCES pools(id) ON DELETE CASCADE);
+            a
+            CREATE TABLE fs_snaps (
+            id INTEGER PRIMARY KEY,
+            name TEXT UNIQUE NOT NULL,
+            fs_id INTEGER NOT NULL,
+            timestamp LONG NOT NULL,
+            FOREIGN KEY(fs_id)
+            REFERENCES fss(id) ON DELETE CASCADE);
+            a-
+            CREATE TABLE fs_clones (
+            src_fs_id INTEGER NOT NULL,
+            dst_fs_id INTEGER NOT NULL,
+            FOREIGN KEY(src_fs_id)
+            REFERENCES fss(id) ON DELETE CASCADE,
+            FOREIGN KEY(dst_fs_id)
+            REFERENCES fss(id) ON DELETE CASCADE);
+            ad
+            CREATE TABLE exps (
+            id INTEGER PRIMARY KEY,
+            fs_id INTEGER NOT NULL,
+            exp_path TEXT UNIQUE NOT NULL,
+            auth_type TEXT,
+            anon_uid INTEGER,
+            anon_gid INTEGER,
+            options TEXT,
+            FOREIGN KEY(fs_id)
+            REFERENCES fss(id) ON DELETE CASCADE);
+            z
+            CREATE TABLE exp_root_hosts (
+            host TEXT NOT NULL,
+            exp_id INTEGER NOT NULL,
+            FOREIGN KEY(exp_id)
+            REFERENCES exps(id) ON DELETE CASCADE);
+            z
+            CREATE TABLE exp_rw_hosts (
+            host TEXT NOT NULL,
+            exp_id INTEGER NOT NULL,
+            FOREIGN KEY(exp_id)
+            REFERENCES exps(id) ON DELETE CASCADE);
+            z
+            CREATE TABLE exp_ro_hosts (
+            host TEXT NOT NULL,
+            exp_id INTEGER NOT NULL,
+            FOREIGN KEY(exp_id)
+            REFERENCES exps(id) ON DELETE CASCADE);
+            z
+            CREATE TABLE jobs (
+            id INTEGER PRIMARY KEY,
+            duration REAL NOT NULL,
+            timestamp TEXT NOT NULL,
+            data_type INTEGER,
+            data_id INTEGER);
+            z
+            CREATE TABLE batteries (
+            id INTEGER PRIMARY KEY,
+            name TEXT NOT NULL,
+            type INTEGER NOT NULL,
+            status INTEGER NOT NULL);
+            a
+            CREATE VIEW pools_view AS
+                SELECT
+                    pool0.id,
+                        'POOL_ID_' ||
+                            SUBSTR('{ID_PADDING}' || pool0.id,
+                                   -{ID_FMT_LEN}, {ID_FMT_LEN})
+                    lsm_pool_id,
+                    pool0.name,
+                    pool0.status,
+                    pool0.status_info,
+                    pool0.element_type,
+                    pool0.unsupported_actions,
+                    pool0.raid_type,
+                    pool0.member_type,
+                    pool0.parent_pool_id,
+                        'POOL_ID_' ||
+                            SUBSTR('{ID_PADDING}' || pool0.parent_pool_id,
+                                   -{ID_FMT_LEN}, {ID_FMT_LEN})
+                    parent_lsm_pool_id,
+                    pool0.strip_size,
+                    pool1.total_space total_space,
+                    pool1.total_space -
+                    pool2.vol_consumed_size  -
+                    pool3.fs_consumed_size -
+                    pool4.sub_pool_consumed_size free_space,
+                    pool1.data_disk_count,
+                    pool5.disk_count
+                FROM
+                    pools pool0
+                        LEFT JOIN (
+                            SELECT
+                                pool.id,
+                                    ifnull(pool.total_space,
+                                        ifnull(SUM(disk.total_space), 0))
+                                total_space,
+                                COUNT(disk.id) data_disk_count
+                            FROM pools pool
+                                LEFT JOIN disks disk
+                                    ON pool.id = disk.owner_pool_id AND
+                                       disk.role = 'DATA'
+                            GROUP BY
+                                pool.id
+                        ) pool1 ON pool0.id = pool1.id
+                        LEFT JOIN (
+                            SELECT
+                                pool.id,
+                                ifnull(SUM(volume.consumed_size), 0)
+                                vol_consumed_size
+                            FROM pools pool
+                                LEFT JOIN volumes volume
+                                    ON volume.pool_id = pool.id
+                            GROUP BY
+                                pool.id
+                        ) pool2 ON pool0.id = pool2.id
+                        LEFT JOIN (
+                            SELECT
+                                pool.id,
+                                ifnull(SUM(fs.consumed_size), 0)
+                                fs_consumed_size
+                            FROM pools pool
+                                LEFT JOIN fss fs
+                                    ON fs.pool_id = pool.id
+                            GROUP BY
+                                pool.id
+                        ) pool3 ON pool0.id = pool3.id
+                        LEFT JOIN (
+                            SELECT
+                                pool.id,
+                                ifnull(SUM(sub_pool.total_space), 0)
+                                sub_pool_consumed_size
+                            FROM pools pool
+                                LEFT JOIN pools sub_pool
+                                    ON sub_pool.parent_pool_id = pool.id
+                            GROUP BY
+                                pool.id
+                        ) pool4 ON pool0.id = pool4.id
+                        LEFT JOIN (
+                            SELECT
+                                pool.id,
+                                COUNT(disk.id) disk_count
+                            FROM pools pool
+                                LEFT JOIN disks disk
+                                    ON pool.id = disk.owner_pool_id
+                            GROUP BY
+                                pool.id
+                        ) pool5 ON pool0.id = pool5.id
+                GROUP BY
+                    pool0.id;
+            a
+            CREATE VIEW tgts_view AS
+                SELECT
+                    id,
+                        'TGT_PORT_ID_' ||
+                            SUBSTR('{ID_PADDING}' || id,
+                                   -{ID_FMT_LEN}, {ID_FMT_LEN})
+                    lsm_tgt_id,
+                    port_type,
+                    service_address,
+                    network_address,
+                    physical_address,
+                    physical_name
+                FROM
+                    tgts;
+            a
+            CREATE VIEW disks_view AS
+                SELECT
+                    id,
+                        'DISK_ID_' ||
+                            SUBSTR('{ID_PADDING}' || id,
+                                   -{ID_FMT_LEN}, {ID_FMT_LEN})
+                    lsm_disk_id,
+                        disk_prefix || '_' || id
+                    name,
+                    total_space,
+                    disk_type,
+                    role,
+                    status,
+                    vpd83,
+                    rpm,
+                    link_type,
+                    location,
+                    owner_pool_id
+                FROM
+                    disks;
+            af
+            CREATE VIEW volumes_view AS
+                SELECT
+                    id,
+                        'VOL_ID_' ||
+                            SUBSTR('{ID_PADDING}' || id,
+                                   -{ID_FMT_LEN}, {ID_FMT_LEN})
+                    lsm_vol_id,
+                    vpd83,
+                    name,
+                    total_space,
+                    consumed_size,
+                    admin_state,
+                    is_hw_raid_vol,
+                    write_cache_policy,
+                    read_cache_policy,
+                    phy_disk_cache,
+                    pool_id,
+                        'POOL_ID_' ||
+                            SUBSTR('{ID_PADDING}' || pool_id,
+                                   -{ID_FMT_LEN}, {ID_FMT_LEN})
+                    lsm_pool_id
+                FROM
+                    volumes;
+            a
+            CREATE VIEW fss_view AS
+                SELECT
+                    id,
+                        'FS_ID_' ||
+                            SUBSTR('{ID_PADDING}' || id,
+                                   -{ID_FMT_LEN}, {ID_FMT_LEN})
+                    lsm_fs_id,
+                    name,
+                    total_space,
+                    consumed_size,
+                    free_space,
+                    pool_id,
+                        'POOL_ID_' ||
+                            SUBSTR('{ID_PADDING}' || pool_id,
+                                   -{ID_FMT_LEN}, {ID_FMT_LEN})
+                    lsm_pool_id
+                FROM
+                    fss;
+            a
+            CREATE VIEW bats_view AS
+                SELECT
+                    id,
+                        'BAT_ID_' ||
+                            SUBSTR('{ID_PADDING}' || id,
+                                   -{ID_FMT_LEN}, {ID_FMT_LEN})
+                    lsm_bat_id,
+                    name,
+                    type,
+                    status
+                FROM
+                    batteries;
+            ap
+            CREATE VIEW fs_snaps_view AS
+                SELECT
+                    id,
+                        'FS_SNAP_ID_' ||
+                            SUBSTR('{ID_PADDING}' || id,
+                                   -{ID_FMT_LEN}, {ID_FMT_LEN})
+                    lsm_fs_snap_id,
+                    name,
+                    timestamp,
+                    fs_id,
+                        'FS_ID_' ||
+                            SUBSTR('{ID_PADDING}' || fs_id,
+                                   -{ID_FMT_LEN}, {ID_FMT_LEN})
+                    lsm_fs_id
+                FROM
+                    fs_snaps;
+            a;
+            CREATE VIEW volumes_by_ag_view AS
+                SELECT
+                    vol.id,
+                        'VOL_ID_' ||
+                            SUBSTR('{ID_PADDING}' || vol.id,
+                                   -{ID_FMT_LEN}, {ID_FMT_LEN})
+                    lsm_vol_id,
+                    vol.vpd83,
+                    vol.name,
+                    vol.total_space,
+                    vol.consumed_size,
+                    vol.pool_id,
+                        'POOL_ID_' ||
+                            SUBSTR('{ID_PADDING}' || vol.pool_id,
+                                   -{ID_FMT_LEN}, {ID_FMT_LEN})
+                    lsm_pool_id,
+                    vol.admin_state,
+                    vol.is_hw_raid_vol,
+                    vol_mask.ag_id ag_id,
+                    vol.write_cache_policy,
+                    vol.read_cache_policy,
+                    vol.phy_disk_cache
+                FROM
+                    volumes vol
+                        LEFT JOIN vol_masks vol_mask
+                            ON vol_mask.vol_id = vol.id;
+            a
+            CREATE VIEW ags_view AS
+                SELECT
+                    ag.id,
+                        'AG_ID_' ||
+                            SUBSTR('{ID_PADDING}' || ag.id,
+                                   -{ID_FMT_LEN}, {ID_FMT_LEN})
+                    lsm_ag_id,
+                    ag.name,
+                        CASE
+                            WHEN count(DISTINCT init.init_type) = 1
+                                THEN init.init_type
+                            WHEN count(DISTINCT init.init_type) = 2
+                                THEN {AG_INIT_TYPE_MIXED}
+                            ELSE {AG_INIT_TYPE_UNKNOWN}
+                        END
+                    init_type,
+                    group_concat(init.id, '{SPLITTER}') init_ids_str
+                FROM
+                    ags ag
+                        LEFT JOIN inits init
+                            ON ag.id = init.owner_ag_id
+                GROUP BY
+                    ag.id
+                ORDER BY
+                    init.init_type;
+            aO
+            CREATE VIEW ags_by_vol_view AS
+                SELECT
+                    ag_new.id,
+                        'AG_ID_' ||
+                            SUBSTR('{ID_PADDING}' || ag_new.id,
+                                   -{ID_FMT_LEN}, {ID_FMT_LEN})
+                    lsm_ag_id,
+                    ag_new.name,
+                    ag_new.init_type,
+                    ag_new.init_ids_str,
+                    vol_mask.vol_id vol_id
+                FROM
+                    (
+                        SELECT
+                            ag.id,
+                            ag.name,
+                                CASE
+                                    WHEN count(DISTINCT init.init_type) = 1
+                                        THEN init.init_type
+                                    WHEN count(DISTINCT init.init_type) = 2
+                                        THEN {AG_INIT_TYPE_MIXED}
+                                    ELSE {AG_INIT_TYPE_UNKNOWN}
+                                END
+                            init_type,
+                            group_concat(init.id, '{SPLITTER}') init_ids_str
+                        FROM
+                            ags ag
+                                LEFT JOIN inits init
+                                    ON ag.id = init.owner_ag_id
+                        GROUP BY
+                            ag.id
+                        ORDER BY
+                            init.init_type
+                    ) ag_new
+                        LEFT JOIN vol_masks vol_mask
+                            ON vol_mask.ag_id = ag_new.id
+            ;
+            ag
+            CREATE VIEW exps_view AS
+                SELECT
+                    exp.id,
+                        'EXP_ID_' ||
+                            SUBSTR('{ID_PADDING}' || exp.id,
+                                   -{ID_FMT_LEN}, {ID_FMT_LEN})
+                    lsm_exp_id,
+                    exp.fs_id,
+                        'FS_ID_' ||
+                            SUBSTR('{ID_PADDING}' || exp.fs_id,
+                                   -{ID_FMT_LEN}, {ID_FMT_LEN})
+                    lsm_fs_id,
+                    exp.exp_path,
+                    exp.auth_type,
+                    exp.anon_uid,
+                    exp.anon_gid,
+                    exp.options,
+                    exp2.exp_root_hosts_str,
+                    exp3.exp_rw_hosts_str,
+                    exp4.exp_ro_hosts_str
+                FROM
+                    exps exp
+                        LEFT JOIN (
+                            SELECT
+                                exp_t2.id,
+                                    group_concat(
+                                        exp_root_host.host, '{SPLITTER}')
+                                exp_root_hosts_str
+                            FROM
+                                exps exp_t2
+                                LEFT JOIN exp_root_hosts exp_root_host
+                                    ON exp_t2.id = exp_root_host.exp_id
+                            GROUP BY
+                                exp_t2.id
+                        ) exp2
+                            ON exp.id = exp2.id
+                        LEFT JOIN (
+                            SELECT
+                                exp_t3.id,
+                                    group_concat(
+                                        exp_rw_host.host, '{SPLITTER}')
+                                exp_rw_hosts_str
+                            FROM
+                                exps exp_t3
+                                LEFT JOIN exp_rw_hosts exp_rw_host
+                                    ON exp_t3.id = exp_rw_host.exp_id
+                            GROUP BY
+                                exp_t3.id
+                        ) exp3
+                            ON exp.id = exp3.id
+                        LEFT JOIN (
+                            SELECT
+                                exp_t4.id,
+                                    group_concat(
+                                        exp_ro_host.host, '{SPLITTER}')
+                                exp_ro_hosts_str
+                            FROM
+                                exps exp_t4
+                                LEFT JOIN exp_ro_hosts exp_ro_host
+                                    ON exp_t4.id = exp_ro_host.exp_id
+                            GROUP BY
+                                exp_t4.id
+                        ) exp4
+                            ON exp.id = exp4.id
+                GROUP BY
+                    exp.id;
+            ;
+            
+ID_PADDINGZ
+ID_FMT_LENZ
+AG_INIT_TYPE_MIXEDZ
+AG_INIT_TYPE_UNKNOWNZ
+SPLITTERz
+already exists
+LStored simulator state incompatible with simulator, please move or delete %s) 
+path
+exists
+close
+open
+O_WRONLY
+O_CREAT
+chmod
+	statefile
+	lastrowidr
+connect
+intr
+sql_connr5
+row_factory
+formatr]
+_ID_FMT_LENr
+INIT_TYPE_ISCSI_WWPN_MIXEDZ
+INIT_TYPE_UNKNOWN
+_LIST_SPLITTERr0
+executescriptr
+DatabaseErrorr
+INVALID_ARGUMENT)
+selfrn
+sql_cmd
+sql_curr
+__init__
+BackStore.__init__c
+versionTre
+sim_syss
+lenrL
+VERSION_SIGNATUREr
+_check_version-
+BackStore._check_versionc
+d t%j&d!d!d!d"d#
+d t%j'd$d$d$d%d#
+d t%j(d&d'd(d)d#
+d t%j(d&d*d+d,d#
+d t%j(d&d-d+d,d#
+d.d/t)j*t)j
+d.d1t)j+t)j
+)2z^
+        Raise error if version not match.
+        If empty database found, initiate.
+        N
+systemsr&
+name
+status
+status_inforz
+read_cache_pctZ
+2TiBZ
+512GiBr
+disksz
+2TiB SATA Diski 
+Port: %d Box: 1 Bay: 1)
+disk_prefix
+total_space
+	disk_typer
+vpd83
+	link_type
+locationrB
+2TiB SAS Diski
+Port: %d Box: 1 Bay: 2ra
+512GiB SSD Diskz
+Port: %d Box: 1 Bay: 3r$
+2TiB SSD Diskz
+Port: %d Box: 1 Bay: 4z
+Pool 1)
+sim_disk_ids
+element_type
+unsupported_actionsz
+Pool 2(sub pool of Pool 1))
+parent_pool_idr
+sizez
+Pool 3)
+lsm_test_aggr)
+tgtsz
+50:0a:09:86:99:4b:8d:c5Z
+FC_a_0b)
+	port_type
+service_address
+network_address
+physical_address
+physical_namez
+50:0a:09:86:99:4b:8d:c6Z	FCoE_b_0cz"iqn.1986-05.com.example:sim-tgt-03z sim-iscsi-tgt-3.example.com:3260z
+a4:4e:31:47:f4:e0Z
+iSCSI_c_0dz
+10.0.0.1:3260z
+a4:4e:31:47:f4:e1Z
+iSCSI_c_0ez%[2001:470:1f09:efe:a64e:31ff::1]:3260
+	batteriesz'Battery SIMB01, 8000 mAh, 05 March 2016)
+z&Capacitor SIMC01, 500 J, 05 March 2016),
+trans_beginr~
+trans_commit
+	_data_addr]
+SYS_ID
+SYS_NAMEr
+	STATUS_OKr}
+_DEFAULT_READ_CACHE_PCTr
+Z	TYPE_SATAr,
+LINK_TYPE_ATAr(
+TYPE_SASZ
+LINK_TYPE_SASr|
+TYPE_SSDZ
+RPM_NON_ROTATING_MEDIUM
+sim_pool_create_from_diskr
+ELEMENT_TYPE_POOLZ
+ELEMENT_TYPE_FS
+ELEMENT_TYPE_VOLUMEZ
+ELEMENT_TYPE_DELTAZ
+ELEMENT_TYPE_SYS_RESERVED
+UNSUPPORTED_VOLUME_GROW
+UNSUPPORTED_VOLUME_SHRINK
+sim_pool_create_sub_poolrU
+TYPE_FCZ	TYPE_FCOEZ
+TYPE_ISCSIr
+TYPE_CHEMICALZ
+TYPE_CAPACITOR)
+size_bytes_2tZ
+size_bytes_512gZ
+pool_1_disks
+test_pool_disksZ
+ssd_pool_disksZ	pool_1_idr 
+check_version_and_init;
+z BackStore.check_version_and_initc
+        Execute sql command and get all output.
+        )
+executero
+fetchall)
+	_sql_exec
+BackStore._sql_execc
+SELECT * FROM %s
+table_namerw
+_get_table
+BackStore._get_tablec
+BEGIN IMMEDIATE TRANSACTION;)
+BackStore.trans_beginc
+commitr
+BackStore.trans_commitc
+rollbackr
+BackStore.trans_rollbackc
+<listcomp>
+z'BackStore._data_add.<locals>.<listcomp>z INSERT INTO %s (%s) VALUES (%s);z
+'%s'z
+', ')
+valuesr*
+Z	data_dictrL
+BackStore._data_addFc
+SELECT * FROM %s WHERE %sr
+z%_data_find(): Got non-unique data: %s)
+locals)
+table
+	condition
+flag_uniquerw
+Z	sim_datasr 
+_data_find
+BackStore._data_findc
+Nz#UPDATE %s SET %s=NULL WHERE id='%s'z#UPDATE %s SET %s='%s' WHERE id='%s'r
+data_idZ
+column_name
+valuerw
+_data_update-
+BackStore._data_updatec
+DELETE FROM %s WHERE %s;r
+_data_delete7
+BackStore._data_deleteNc
+        Return a job id(Integer)
+        
+jobsZ
+LSM_SIM_TIME)
+duration
+	timestamp
+	data_typer
+getenvr]
+JOB_DEFAULT_DURATION
+timero
+job_data_typer
+sim_job_create;
+BackStore.sim_job_createc
+id="%s"
+sim_job_idr 
+sim_job_deleteJ
+BackStore.sim_job_deletec
+        Return (progress, data_type, data) tuple.
+        progress is the integer of percent.
+        r
+id=%sT
+Job not foundr
+NOT_FOUND_JOBrp
+floatr]
+JOB_DATA_TYPE_VOL
+sim_vol_of_id
+JOB_DATA_TYPE_FS
+sim_fs_of_id
+JOB_DATA_TYPE_FS_SNAP
+sim_fs_snap_of_id)
+sim_job
+progress
+datar
+sim_job_statusM
+BackStore.sim_job_statusc
+        Return a list of sim_sys dict.
+        r
+BackStore.sim_syssc
+lsm_disk_idNr 
+	<genexpr>w
+z1BackStore.lsm_disk_ids_of_pool.<locals>.<genexpr>
+disks_view
+owner_pool_id="%s"
+sim_pool_idr 
+lsm_disk_ids_of_poolv
+BackStore.lsm_disk_ids_of_poolc
+        Return a list of sim_disk dict.
+        r
+	sim_disks|
+BackStore.sim_disksc
+        Return a list of sim_pool dict.
+        
+pools_viewr
+	sim_pools
+BackStore.sim_poolsc
+_sim_data_of_idr
+NOT_FOUND_POOLr
+sim_pool_of_id
+BackStore.sim_pool_of_idr
+]$}	|
+]$}	|
+poolsr&
+member_type
+strip_sizer
+owner_pool_id
+roleZ
+DATAZ
+PARITY)
+DEFAULT_STRIP_SIZEr
+BLK_SIZEr
+MEMBER_TYPE_DISKr6
+sim_disk_idr 
+z#BackStore.sim_pool_create_from_diskc
+RAID_TYPE_OTHER
+MEMBER_TYPE_POOLro
+z"BackStore.sim_pool_create_sub_poolc
+Nz3SELECT COUNT(id) FROM disks WHERE owner_pool_id=%s;r
+sim_pool_disks_count
+BackStore.sim_pool_disks_countc
+NzCSELECT COUNT(id) FROM disks WHERE owner_pool_id=%s and role='DATA';r
+sim_pool_data_disks_count
+z#BackStore.sim_pool_data_disks_countc
+        Return a list of sim_vol dict.
+        Z
+volumes_by_ag_viewz
+ag_id=%s
+volumes_viewN
+	sim_ag_idr 
+sim_vols
+BackStore.sim_volsc
+%s not found)
+lsm_error_noZ	data_name
+sim_datar 
+BackStore._sim_data_of_idc
+        Return sim_vol if found. Raise error if not found.
+        r
+NOT_FOUND_VOLUME
+sim_vol_idr 
+BackStore.sim_vol_of_idc
+free_space
+Insufficient space in pool)
+NOT_ENOUGH_SPACE)
+size_bytes
+sim_poolr 
+_check_pool_free_space
+z BackStore._check_pool_free_spacec
+_block_rounding
+BackStore._block_roundingc
+pool_idr
+consumed_size
+admin_state
+is_hw_raid_vol
+write_cache_policy
+read_cache_policy
+phy_disk_cache
+volumes
++Name '%s' is already in use by other volume)
+dictr,
+ADMIN_STATE_ENABLED
+DEFAULT_WRITE_CACHE_POLICY
+DEFAULT_READ_CACHE_POLICY
+DEFAULT_PHYSICAL_DISK_CACHEr
+IntegrityErrorr
+NAME_CONFLICTro
+sim_volr
+sim_vol_create
+BackStore.sim_vol_createc
+        This does not check whether volume exist or not.
+        z Volume is masked to access grouprG
+z%Requested volume has child dependencyr
+_sim_ag_ids_of_masked_volr
+	IS_MASKED
+dst_sim_vol_ids_of_srcr|
+HAS_CHILD_DEPENDENCYr
+dst_sim_vol_ids
+dst_sim_vol_idr2
+sim_vol_delete
+BackStore.sim_vol_deletec
+	vol_masks
+ag_id="%s" AND vol_id="%s"z2Volume is already masked to requested access group)
+ag_id
+vol_id)
+sim_ag_of_idr
+NO_STATE_CHANGEr
+exist_maskr 
+sim_vol_mask2
+BackStore.sim_vol_maskc
+z.Volume is not masked to requested access group)
+sim_vol_unmaskB
+BackStore.sim_vol_unmaskc
+z6BackStore._sim_vol_ids_of_masked_ag.<locals>.<genexpr>r
+ag_id="%s"r
+_sim_vol_ids_of_masked_agO
+z#BackStore._sim_vol_ids_of_masked_agc
+z6BackStore._sim_ag_ids_of_masked_vol.<locals>.<genexpr>r
+vol_id="%s"r
+z#BackStore._sim_ag_ids_of_masked_volc
+z%Volume size is identical to requestedr
+z.Requested pool does not allow volume size growr
+NO_SUPPORTr
+new_size_bytes
+org_new_size_bytesr
+Z	incrementr 
+sim_vol_resizeY
+BackStore.sim_vol_resizec
+        Return a list of dst_vol_id for provided source volume ID.
+        c
+dst_vol_idNr 
+z3BackStore.dst_sim_vol_ids_of_src.<locals>.<genexpr>
+vol_reps
+src_vol_id="%s")
+src_sim_vol_idr 
+z BackStore.dst_sim_vol_ids_of_srcc
+src_vol_idNr 
+z,BackStore.sim_vol_replica.<locals>.<genexpr>r*
+dst_vol_id="%s"rG
+rep_type)
+REPLICATE_COPYrJ
+blk_rangesZ
+cur_src_sim_vol_idsr 
+sim_vol_replica
+BackStore.sim_vol_replicac
+Nz+Provided volume is not a replication sourcer*
+sim_vol_src_replica_break
+z#BackStore.sim_vol_src_replica_breakc
+z,Volume admin state is identical to requestedr
+new_admin_stater
+sim_vol_state_change
+BackStore.sim_vol_state_changec
+        Update 'init_type' and 'init_ids' of sim_ag
+        Z
+init_ids_str
+init_ids
+splitr]
+sim_agr 
+_sim_ag_format
+BackStore._sim_ag_formatc
+ags_by_vol_viewz	vol_id=%s
+ags_viewc
+z%BackStore.sim_ags.<locals>.<listcomp>r
+sim_agsr 
+BackStore.sim_agsc
+inits)
+	init_typeZ
+owner_ag_idz6Initiator '%s' is already in use by other access group)
+EXISTS_INITIATOR)
+init_idr
+_sim_init_create
+BackStore._sim_init_createc
+in_user
+in_pass
+out_user
+out_passr 
+iscsi_chap_auth_set
+BackStore.iscsi_chap_auth_setc
+agsr
+z1Name '%s' is already in use by other access group)
+sim_ag_create
+BackStore.sim_ag_createc
+Nz!Access group has volume masked torG
+sim_ag_delete
+BackStore.sim_ag_deletec
+z!Initiator already in access groupz.Only support iSCSI IQN and WWPN initiator type)	r
+INIT_TYPE_ISCSI_IQNZ
+INIT_TYPE_WWPNr%
+sim_ag_init_add
+BackStore.sim_ag_init_addc
+z(Initiator is not in defined access grouprG
+z6Refused to remove the last initiator from access groupr>
+LAST_INIT_IN_ACCESS_GROUPr
+sim_ag_init_delete
+BackStore.sim_ag_init_deletec
+Access Group)
+NOT_FOUND_ACCESS_GROUPr]
+BackStore.sim_ag_of_idc
+        Return a list of sim_fs dict.
+        
+fss_viewr
+sim_fss"
+BackStore.sim_fssTc
+File System)
+NOT_FOUND_FSr
+	sim_fs_idZ
+raise_errorr
+BackStore.sim_fs_of_idc
+fss)
+z'Name '%s' is already in use by other fs)
+sim_fs_create0
+BackStore.sim_fs_createc
+Nz*Requested file system has child dependencyrP
+clone_dst_sim_fs_ids_of_srcr
+sim_fs_deleteC
+BackStore.sim_fs_deletec
+z*File System size is identical to requestedr
+)	r]
+sim_fsr
+sim_fs_resizeL
+BackStore.sim_fs_resizec
+fs_snaps_viewz
+fs_id="%s")
+sim_fs_snapsj
+BackStore.sim_fs_snapsc
+File system snapshot
+fs_idzFDefined file system snapshot ID is not belong to requested file system)
+NOT_FOUND_FS_SSr
+sim_fs_snap_idrO
+sim_fs_snapr 
+BackStore.sim_fs_snap_of_idc
+fs_snaps)
+z6The name is already used by other file system snapshot)
+sim_fs_snap_createy
+BackStore.sim_fs_snap_createc
+files
+restore_files
+flag_all_filesr 
+sim_fs_snap_restore
+BackStore.sim_fs_snap_restorec
+sim_fs_snap_delete
+BackStore.sim_fs_snap_deletec
+Nz&DELETE FROM fs_snaps WHERE fs_id='%s';r
+sim_fs_snap_del_by_fs
+BackStore.sim_fs_snap_del_by_fsc
+	fs_clones)
+	src_fs_id
+	dst_fs_id)
+src_sim_fs_id
+dst_sim_fs_idr[
+sim_fs_clone
+BackStore.sim_fs_clonec
+src_fs_name
+dst_fs_namer[
+sim_fs_file_clone
+BackStore.sim_fs_file_clonec
+        Return a list of dst_fs_id for provided clone source fs ID.
+        c
+z8BackStore.clone_dst_sim_fs_ids_of_src.<locals>.<genexpr>rf
+src_fs_id="%s")
+z%BackStore.clone_dst_sim_fs_ids_of_srcc
+sim_fs_src_clone_break
+z BackStore.sim_fs_src_clone_breakc
+root_hosts
+rw_hosts
+ro_hostsz
+exp_%s_strr5
+sim_expZ
+key_namer
+_sim_exp_format
+BackStore._sim_exp_formatc
+z%BackStore.sim_exps.<locals>.<genexpr>
+	exps_view)
+sim_exps
+BackStore.sim_expsc
+NFS Export)
+NOT_FOUND_NFS_EXPORT
+sim_exp_idr 
+sim_exp_of_id
+BackStore.sim_exp_of_idc
+/nfs_exp_%srD
+exps)
+exp_path
+anon_uid
+anon_gid
+	auth_type
+optionsz/Export path is already used by other NFS exportZ
+exp_root_hosts)
+host
+exp_idZ
+exp_rw_hostsZ
+exp_ro_hosts)	r,
+Z	root_hostZ
+rw_hostZ
+ro_hostr 
+sim_exp_create
+BackStore.sim_exp_createc
+sim_exp_delete
+BackStore.sim_exp_deletec
+        Return a list of sim_tgt dict.
+        Z	tgts_viewr
+sim_tgts
+BackStore.sim_tgtsc
+        Return a list of sim_bat dict.
+        Z	bats_viewr
+sim_bats
+BackStore.sim_batsc
+pdcr 
+sim_vol_pdc_set
+BackStore.sim_vol_pdc_setc
+rcpr 
+sim_vol_rcp_set
+BackStore.sim_vol_rcp_setc
+wcpr 
+sim_vol_wcp_set 
+BackStore.sim_vol_wcp_set)
+N)orQ
+VERSIONr
+MODE_HARDWARE_RAID
+SYS_MODEr
+WRITE_CACHE_POLICY_AUTOr
+READ_CACHE_POLICY_ENABLEDr
+PHYSICAL_DISK_CACHE_DISABLEDr
+SUPPORTED_VCR_RAID_TYPES
+SUPPORTED_VCR_STRIP_SIZESry
+d!d"
+d#d$
+d%d&
+d'd(
+d)d*
+d+d,
+d-d.
+d/d0
+d1d2
+d4d5
+d6d7
+d8d9
+d:d;
+d<d=
+d>d?
+d@dA
+dBdC
+dDdE
+dFdG
+dHdI
+dJdK
+dLdM
+dNdO
+dPdQ
+dRdS
+dTdU
+dVdW
+dXdY
+dZd[
+d\d]
+d^d_
+d`da
+dbdc
+ddde
+dfdg
+dhdi
+djdk
+dldm
+dndo
+dpdq
+drds
+dtdu
+dvdw
+dxdy
+dzd{
+d|d}
+LSM_SIM_DATAz
+/lsm_sim_datac
+ValueError)
+lsm_idZ	lsm_errorr 
+_lsm_id_to_sim_id)
+SimArray._lsm_id_to_sim_idc
+job_idr 
+_sim_job_id_of0
+SimArray._sim_job_id_ofc
+Pool not found)
+_sim_pool_id_of5
+SimArray._sim_pool_id_ofc
+Volume not found)
+_sim_vol_id_of:
+SimArray._sim_vol_id_ofc
+File system not found)
+_sim_fs_id_of@
+SimArray._sim_fs_id_ofc
+File system snapshot not found)
+snap_idr 
+_sim_fs_snap_id_ofF
+SimArray._sim_fs_snap_id_ofc
+File system export not found
+_sim_exp_id_ofM
+SimArray._sim_exp_id_ofc
+_sim_ag_id_ofT
+SimArray._sim_ag_id_ofc
+SIM_DATA_FILEr]
+SimArray.__init__Nc
+JOB_ID_%0*d)
+sim_data_idr
+_job_createe
+SimArray._job_creater
+INPROGRESSZ
+COMPLETEr]
+_sim_vol_2_lsmr
+_sim_fs_2_lsmr
+_sim_fs_snap_2_lsm)	rv
+flagsr
+job_statusj
+SimArray.job_statusc
+job_free~
+SimArray.job_freec
+time_out_set
+SimArray.time_out_setc
+time_out_get
+SimArray.time_out_getc
+_fw_version
+_modeZ
+_read_cache_pct)
+sim_sysr 
+_sim_sys_2_lsm
+SimArray._sim_sys_2_lsmc
+z#SimArray.systems.<locals>.<genexpr>)
+SimArray.systemsc
+System not foundr
+NOT_FOUND_SYSTEMr
+systemZ
+read_pctr
+system_read_cache_pct_update
+z%SimArray.system_read_cache_pct_updatec
+lsm_vol_idr
+lsm_pool_id)
+SimArray._sim_vol_2_lsmc
+z#SimArray.volumes.<locals>.<genexpr>)
+SimArray.volumesc
+)	Nr
+sys_idr
+_sim_pool_2_lsm
+SimArray._sim_pool_2_lsmc
+z!SimArray.pools.<locals>.<genexpr>)
+SimArray.poolsc
+_vpd83Z	_locationZ
+_rpmZ
+_link_type)
+STATUS_FREEr]
+sim_diskZ
+disk_statusr 
+_sim_disk_2_lsm
+SimArray._sim_disk_2_lsmc
+z!SimArray.disks.<locals>.<genexpr>)
+SimArray.disksFc
+        The '_internal_use' parameter is only for SimArray internal use.
+        This method will return the new sim_vol id instead of job_id when
+        '_internal_use' marked as True.
+        F)
+N)	r
+vol_namer
+thinpr
+_internal_use
+_is_hw_raid_volZ
+new_sim_vol_idr
+volume_create
+SimArray.volume_createc
+volume_delete
+SimArray.volume_deletec
+volume_resize
+SimArray.volume_resizec
+PROVISION_FULLr1
+dst_pool_idr0
+new_vol_namer
+src_sim_volr
+volume_replicate
+SimArray.volume_replicatec
+!volume_replicate_range_block_size%
+z*SimArray.volume_replicate_range_block_sizec
+rangesr
+volume_replicate_range-
+SimArray.volume_replicate_rangec
+volume_enable?
+SimArray.volume_enablec
+ADMIN_STATE_DISABLEDr
+volume_disableG
+SimArray.volume_disablec
+NTF)
+volume_child_dependencyO
+z SimArray.volume_child_dependencyc
+volume_child_dependency_rmj
+z#SimArray.volume_child_dependency_rmc
+	lsm_fs_idr
+SimArray._sim_fs_2_lsmc
+SimArray.fs.<locals>.<genexpr>)
+SimArray.fsc
+fs_namer
+new_sim_fs_idr
+	fs_create
+SimArray.fs_createc
+	fs_delete
+SimArray.fs_deletec
+	fs_resize
+SimArray.fs_resizec
+src_sim_fsr
+fs_clone
+SimArray.fs_clonec
+fs_file_clone
+SimArray.fs_file_clonec
+lsm_fs_snap_idr
+SimArray._sim_fs_snap_2_lsmc
+z(SimArray.fs_snapshots.<locals>.<genexpr>)
+fs_snapshots
+SimArray.fs_snapshotsc
+Z	snap_namer
+fs_snapshot_create
+SimArray.fs_snapshot_createc
+fs_snapshot_delete
+SimArray.fs_snapshot_deletec
+)	rv
+fs_snapshot_restore
+SimArray.fs_snapshot_restorec
+NFT)
+fs_child_dependency
+SimArray.fs_child_dependencyc
+        Assuming API defination is break all clone relationship and remove
+        all snapshot of this source file system.
+        Tr
+Fz9No snapshot or fs clone target found for this file system)
+fs_child_dependency_rm
+SimArray.fs_child_dependency_rmc
+lsm_exp_idr
+_sim_exp_2_lsm
+SimArray._sim_exp_2_lsmc
+z$SimArray.exports.<locals>.<listcomp>)
+exports#	
+SimArray.exportsc
+	fs_export'	
+SimArray.fs_exportc
+fs_unexport2	
+SimArray.fs_unexportc
+NZ	lsm_ag_idr
+_sim_ag_2_lsm9	
+SimArray._sim_ag_2_lsmc
+SimArray.ags.<locals>.<genexpr>)
+SimArray.agsc
+new_sim_ag_id
+new_sim_agr 
+access_group_createC	
+SimArray.access_group_createc
+access_group_deleteO	
+SimArray.access_group_deletec
+access_group_initiator_addV	
+z#SimArray.access_group_initiator_addc
+access_group_initiator_delete_	
+z&SimArray.access_group_initiator_deletec
+volume_maski	
+SimArray.volume_maskc
+volume_unmaskr	
+SimArray.volume_unmaskc
+z?SimArray.volumes_accessible_by_access_group.<locals>.<listcomp>)
+"volumes_accessible_by_access_group{	
+z+SimArray.volumes_accessible_by_access_groupc
+z<SimArray.access_groups_granted_to_volume.<locals>.<listcomp>)
+access_groups_granted_to_volume
+z(SimArray.access_groups_granted_to_volumec
+iscsi_chap_auth
+SimArray.iscsi_chap_authc
+lsm_tgt_idr
+sim_tgtr 
+_sim_tgt_2_lsm
+SimArray._sim_tgt_2_lsmc
+z(SimArray.target_ports.<locals>.<genexpr>)
+target_ports
+SimArray.target_portsc
+z;volume_raid_info(): Got unsupported RAID_TYPE_MIXED pool %sr
+OPT_IO_SIZE_UNKNOWNr
+RAID_TYPE_UNKNOWNr
+RAID_TYPE_MIXEDr
+lsm_volr
+min_io_sizeZ
+opt_io_sizerN
+volume_raid_info
+SimArray.volume_raid_infoc
+parent_lsm_pool_idr
+MEMBER_TYPE_UNKNOWN)
+lsm_poolr
+member_idsr 
+pool_member_info
+SimArray.pool_member_infoc
+volume_raid_create_cap_get
+z#SimArray.volume_raid_create_cap_getc
+qbz&|
+}	~	n
+}	~	0
+Nz%Provided 'raid_type' is not supportedz&Provided 'strip_size' is not supportedz
+Pool for volume %sc
+Disk not found)
+NOT_FOUND_DISKr
+z/SimArray.volume_raid_create.<locals>.<listcomp>z'Disk %s is not in DISK.STATUS_FREE mode)
+VCR_STRIP_SIZE_DEFAULTr
+DISK_NOT_FREEr
+Z	pool_namer
+diskr
+volume_raid_create
+SimArray.volume_raid_createc
+volumer
+sim_volume_idr
+volume_ident_led_on
+SimArray.volume_ident_led_onc
+volume_ident_led_off!
+SimArray.volume_ident_led_offc
+lsm_bat_idr
+sim_batr 
+_sim_bat_2_lsm+
+SimArray._sim_bat_2_lsmc
+z%SimArray.batteries.<locals>.<genexpr>)
+SimArray.batteriesc
+Z WRITE_CACHE_STATUS_WRITE_THROUGHZ
+READ_CACHE_STATUS_DISABLEDr
+WRITE_CACHE_STATUS_WRITE_BACKZ
+WRITE_CACHE_POLICY_WRITE_BACKZ
+WRITE_CACHE_POLICY_UNKNOWNZ
+WRITE_CACHE_STATUS_UNKNOWNr
+READ_CACHE_STATUS_ENABLEDZ
+READ_CACHE_POLICY_UNKNOWNZ
+READ_CACHE_STATUS_UNKNOWN)
+write_cache_statusZ
+read_cache_statusZ
+flag_battery_okr
+volume_cache_info4
+SimArray.volume_cache_infoc
+!volume_physical_disk_cache_updateV
+z*SimArray.volume_physical_disk_cache_updatec
+ volume_write_cache_policy_update_
+z)SimArray.volume_write_cache_policy_updatec
+volume_read_cache_policy_updateh
+z(SimArray.volume_read_cache_policy_update)
+)VrQ
+tempfileZ
+gettempdirr
+lsmr
+objectr6
+<module>

@@ -1,0 +1,1274 @@
+l	Z	d
+d d!
+d"d#
+d$d%
+d&d'
+d(d)
+d*d+
+d,d-
+d.d/
+d0d1
+d2d3
+d4d5
+d6d7
+d8d9
+d:d;
+d<d=
+d>d?
+d@dA
+dBdC
+dDdE
+dEe0e1
+dFdG
+dHdI
+dJdK
+dLdM
+dMe0
+dNdO
+e6e1
+dPdQ
+e6e1
+dRdS
+dTdU
+dVdW
+dWe9e1
+dXdY
+dYe9e1
+dZd[
+d[e9
+d\d]
+e6e1
+d^d_
+d`da
+dbdc
+dce0
+ddde
+deeAe
+dfdg
+dgeAe
+dhdi
+dieAe
+djdk
+dkeAe
+dldm
+dndo
+dpdq
+drds
+dudv
+ZKdwdx
+ZLeMdyk
+){z_Test suite for statistics module, including helper NumericTestCase and
+approx_equal function.
+support)
+Decimal
+Fractionc
+z:Return -1.0 for negatives, including -0.0, otherwise +1.0.
+math
+copysign
+,/usr/lib64/python3.9/test/test_statistics.py
+sign
+Return True if a and b are both the same kind of NAN.
+    >>> _nan_equal(Decimal('NAN'), Decimal('NAN'))
+    True
+    >>> _nan_equal(Decimal('sNAN'), Decimal('sNAN'))
+    True
+    >>> _nan_equal(Decimal('NAN'), Decimal('sNAN'))
+    False
+    >>> _nan_equal(Decimal(42), Decimal('NAN'))
+    False
+    >>> _nan_equal(float('NAN'), float('NAN'))
+    True
+    >>> _nan_equal(float('NAN'), 0.5)
+    False
+    >>> _nan_equal(float('NAN'), Decimal('NAN'))
+    False
+    NAN payloads are not compared.
+    F
+type
+isinstance
+floatr
+isnanZ
+as_tuple)
+aexpZ
+bexpr
+_nan_equal"
+Return the absolute and relative errors between two numbers.
+    >>> _calc_errors(100, 75)
+    (25, 0.25)
+    >>> _calc_errors(100, 100)
+    (0, 0.0)
+    Returns the (absolute error, relative error) between the two arguments.
+    
+inf)
+absr
+actual
+expected
+base
+abs_err
+rel_errr
+_calc_errorsA
+approx_equal(x, y [, tol [, rel]]) => True|False
+    Return True if numbers x and y are approximately equal, to within some
+    margin of error, otherwise return False. Numbers which compare equal
+    will also compare approximately equal.
+    x is approximately equal to y if the difference between them is less than
+    an absolute error tol or a relative error rel, whichever is bigger.
+    If given, both tol and rel must be finite, non-negative numbers. If not
+    given, default values are tol=1e-12 and rel=1e-7.
+    >>> approx_equal(1.2589, 1.2587, tol=0.0003, rel=0)
+    True
+    >>> approx_equal(1.2589, 1.2587, tol=0.0001, rel=0)
+    False
+    Absolute error is defined as abs(x-y); if that is less than or equal to
+    tol, x and y are considered approximately equal.
+    Relative error is defined as abs((x-y)/x) or abs((x-y)/y), whichever is
+    smaller, provided x or y are not zero. If that figure is less than or
+    equal to rel, x and y are considered approximately equal.
+    Complex numbers are not directly supported. If you wish to compare to
+    complex numbers, extract their real and imaginary parts and compare them
+    individually.
+    NANs always compare unequal, even with themselves. Infinities compare
+    approximately equal if they have the same sign (both positive or both
+    negative). Infinities with different signs compare unequal; so do
+    comparisons of infinities with finite numbers.
+    r
+z%error tolerances must be non-negativeFT)
+ValueErrorr
+isinfr
+relZ
+actual_errorZ
+allowed_errorr
+approx_equalQ
+_DoNothinga
+    When doing numeric work, especially with floats, exact equality is often
+    not what you want. Due to round-off error, it is often a bad idea to try
+    to compare floats with equality. Instead the usual procedure is to test
+    them with some (hopefully small!) allowance for error.
+    The ``approx_equal`` function allows you to specify either an absolute
+    error tolerance, or a relative error, or both.
+    Absolute error tolerances are simple, but you need to know the magnitude
+    of the quantities being compared:
+    >>> approx_equal(12.345, 12.346, tol=1e-3)
+    True
+    >>> approx_equal(12.345e6, 12.346e6, tol=1e-3)  # tol is too small.
+    False
+    Relative errors are more suitable when the values you are comparing can
+    vary in magnitude:
+    >>> approx_equal(12.345, 12.346, rel=1e-4)
+    True
+    >>> approx_equal(12.345e6, 12.346e6, rel=1e-4)
+    True
+    but a naive implementation of relative error testing can run into trouble
+    around zero.
+    If you supply both an absolute tolerance and a relative error, the
+    comparison succeeds if either individual test succeeds:
+    >>> approx_equal(12.345e6, 12.346e6, tol=1e-3, rel=1e-4)
+    True
+    N)
+__name__
+__module__
+__qualname__
+__doc__r
+statistics
+_statistics)
+blocked)
+freshc
+TestModulesZ
+_normal_dist_inv_cdfc
+func_names
+assertEqual
+getattr
+py_statisticsr+
+selfZ
+fnamer
+test_py_functions
+TestModules.test_py_functions
+requires _statisticsc
+c_statisticsr+
+test_c_functions
+TestModules.test_c_functionsN)	r*
+unittest
+skipUnlessr:
+NumericTestCasez
+Unit test class for numeric work.
+    This subclasses TestCase. In addition to the standard method
+    ``TestCase.assertAlmostEqual``,  ``assertApproxEqual`` is provided.
+    r
+Test passes if ``first`` and ``second`` are approximately equal.
+        This test passes if ``first`` and ``second`` are equal to
+        within ``tol``, an absolute error, or ``rel``, a relative error.
+        If either ``tol`` or ``rel`` are None or not given, they default to
+        test attributes of the same name (by default, 0).
+        The objects may be either numbers, or sequences of numbers. Sequences
+        are tested element-by-element.
+        >>> class MyTest(NumericTestCase):
+        ...     def test_number(self):
+        ...         x = 1.0/6
+        ...         y = sum([x]*6)
+        ...         self.assertApproxEqual(y, 1.0, tol=1e-15)
+        ...     def test_sequence(self):
+        ...         a = [1.001, 1.001e-10, 1.001e10]
+        ...         b = [1.0, 1e-10, 1e10]
+        ...         self.assertApproxEqual(a, b, rel=1e-3)
+        ...
+        >>> import unittest
+        >>> from io import StringIO  # Suppress test runner output.
+        >>> suite = unittest.TestLoader().loadTestsFromTestCase(MyTest)
+        >>> unittest.TextTestRunner(stream=StringIO()).run(suite)
+        <unittest.runner.TextTestResult run=2 errors=0 failures=0>
+        N)
+collections
+Sequence
+_check_approx_seq
+_check_approx_num)
+first
+secondr&
+checkr
+assertApproxEqual
+z!NumericTestCase.assertApproxEqualc
+Nz0sequences differ in length: %d items != %d items)
+_formatMessage
+failureException
+	enumerate
+ziprC
+standardMsg
+z!NumericTestCase._check_approx_seqc
+_make_std_err_msgrJ
+idxrN
+z!NumericTestCase._check_approx_numc
+Nzk  %r != %r
+  values differ by more than tol=%r and rel=%r
+  -> absolute error = %r
+  -> relative error = %rz,numeric sequences first differ at index %d.
+)	rD
+template
+headerr
+z!NumericTestCase._make_std_err_msg)
+NNN)
+staticmethodrR
+TestSignz5Test that the helper function sign() works correctly.c
+testZeroes(
+TestSign.testZeroesN)
+ApproxEqualSymmetryTestc
+gfffff
+B@gfffff
+2.54
+B@gR
+2.59
+do_relative_symmetry)
+args1Z
+args2r
+test_relative_symmetry3
+z.ApproxEqualSymmetryTest.test_relative_symmetryc
+minr
+assertTruer(
+deltaZ
+rel_err1Z
+rel_err2r'
+z,ApproxEqualSymmetryTest.do_relative_symmetryc
+intr
+do_symmetry_test)
+argsre
+type_r
+test_symmetryO
+z%ApproxEqualSymmetryTest.test_symmetryc
+Nz+approx_equal comparisons don't match for %r)
+format)
+flag1Z
+flag2r
+z(ApproxEqualSymmetryTest.do_symmetry_testN)
+ApproxEqualExactTestc
+equality failure for x=%r)
+resultr
+do_exactly_equal_testt
+z*ApproxEqualExactTest.do_exactly_equal_testc
+test_exactly_equal_intsz
+z,ApproxEqualExactTest.test_exactly_equal_intsc
+pf@g!
+Q@gB`
+"KB@r
+test_exactly_equal_floats
+z.ApproxEqualExactTest.test_exactly_equal_floatsc
+test_exactly_equal_fractions
+z1ApproxEqualExactTest.test_exactly_equal_fractionsc
+8.2 31.274 912.04 16.745 1.2047r
+splitrt
+test_exactly_equal_decimals
+z0ApproxEqualExactTest.test_exactly_equal_decimalsc
+test_exactly_equal_absolute
+z0ApproxEqualExactTest.test_exactly_equal_absolutec
+3.571
+0.01r
+81.3971)
+$test_exactly_equal_absolute_decimals
+z9ApproxEqualExactTest.test_exactly_equal_absolute_decimalsc
+g33333SY@g
+11.68r
+test_exactly_equal_relative
+z0ApproxEqualExactTest.test_exactly_equal_relativec
+0@g\
+7.2z
+0.1r
+test_exactly_equal_both
+z,ApproxEqualExactTest.test_exactly_equal_bothN)
+ApproxEqualUnequalTestc
+inequality failure for x=%r)
+assertFalse)
+do_exactly_unequal_test
+z.ApproxEqualUnequalTest.do_exactly_unequal_testc
+test_exactly_unequal_ints
+z0ApproxEqualUnequalTest.test_exactly_unequal_intsc
+@gfffff
+W"@g=
+p=1@r
+test_exactly_unequal_floats
+z2ApproxEqualUnequalTest.test_exactly_unequal_floatsc
+)	Nr
+test_exactly_unequal_fractions
+z5ApproxEqualUnequalTest.test_exactly_unequal_fractionsc
+Nz!3.1415 298.12 3.47 18.996 0.00245)
+test_exactly_unequal_decimals
+z4ApproxEqualUnequalTest.test_exactly_unequal_decimalsN)
+ApproxEqualInexactTestc
+Test failure for x={!r}, y={!r}r
+do_approx_equal_abs_test
+z/ApproxEqualInexactTest.do_approx_equal_abs_testc
+test_approx_equal_absolute_ints
+z6ApproxEqualInexactTest.test_approx_equal_absolute_intsc
+N)	g
+gfffffFX
+g333333
+g333333
+?g333333
+!test_approx_equal_absolute_floats
+z8ApproxEqualInexactTest.test_approx_equal_absolute_floatsc
+	<genexpr>
+zNApproxEqualInexactTest.test_approx_equal_absolute_fractions.<locals>.<genexpr>)
+numeratorsr
+$test_approx_equal_absolute_fractions
+z;ApproxEqualInexactTest.test_approx_equal_absolute_fractionsc
+1.0 3.5 36.08 61.79 7912.3648)
+#test_approx_equal_absolute_decimals
+z:ApproxEqualInexactTest.test_approx_equal_absolute_decimalsc
+test_cross_zero
+z&ApproxEqualInexactTest.test_cross_zeroc
+do_approx_equal_rel_test
+z/ApproxEqualInexactTest.do_approx_equal_rel_testc
+test_approx_equal_relative_ints
+z6ApproxEqualInexactTest.test_approx_equal_relative_intsc
+(|B@g
+!test_approx_equal_relative_floats
+z8ApproxEqualInexactTest.test_approx_equal_relative_floatsc
+qBq2d
+$test_approx_equal_relative_fractions
+z;ApproxEqualInexactTest.test_approx_equal_relative_fractionsc
+Nz$0.02 1.0 5.7 13.67 94.138 91027.9321
+0.001
+0.05)
+#test_approx_equal_relative_decimals
+z:ApproxEqualInexactTest.test_approx_equal_relative_decimalsc
+tol_flagZ
+rel_flagrG
+do_check_both)
+z$ApproxEqualInexactTest.do_check_bothc
+Mbp?
+8?Tg?5^
+Mb`?g-C
+test_approx_equal_both11
+z.ApproxEqualInexactTest.test_approx_equal_both1c
+?8?TFr
+test_approx_equal_both26
+z.ApproxEqualInexactTest.test_approx_equal_both2c
+MbP?r
+test_approx_equal_both3:
+z.ApproxEqualInexactTest.test_approx_equal_both3c
+test_approx_equal_both4>
+z.ApproxEqualInexactTest.test_approx_equal_both4N)
+ApproxEqualSpecialsTestc
+test_infG
+z ApproxEqualSpecialsTest.test_infc
+nanr
+otherr
+test_nanQ
+z ApproxEqualSpecialsTest.test_nanc
+nzeror
+test_float_zeroesW
+z)ApproxEqualSpecialsTest.test_float_zeroesc
+-0.0r
+test_decimal_zeroes[
+z+ApproxEqualSpecialsTest.test_decimal_zeroesN)
+TestApproxEqualErrorsc
+assertRaisesr#
+test_bad_tolc
+z"TestApproxEqualErrors.test_bad_tolc
+test_bad_relg
+z"TestApproxEqualErrors.test_bad_relN)
+TestNumericTestCasec
+generate_substringsZ
+assertIn)
+actual_msgr
+Z	substringr
+do_testw
+TestNumericTestCase.do_testc
+issubclassr>
+TestCaserZ
+ test_numerictestcase_is_testcase}
+z4TestNumericTestCase.test_numerictestcase_is_testcasec
+test_error_msg_numeric
+z*TestNumericTestCase.test_error_msg_numericc
+test_error_msg_sequence
+z+TestNumericTestCase.test_error_msg_sequencec
+z5Return substrings we expect to see in error messages.z
+tol=%rz
+rel=%rz
+absolute error = %rz
+relative error = %rNz
+differ at index %d)
+append)	r7
+substringsr
+z'TestNumericTestCase.generate_substringsN)
+GlobalsTestr-
+__all__c
+%s not present)
+expected_metadatard
+hasattr
+module)
+metar
+	test_meta
+GlobalsTest.test_metac
+private name "%s" in __all__z
+missing name "%s" in __all__)
+startswithrd
+namer
+test_check_all
+GlobalsTest.test_check_allN)
+DocTestsr
+z)Docstrings are omitted with -OO and abovec
+optionflagsr
+doctestZ
+testmodr.
+ELLIPSIS
+assertGreaterr3
+failedZ
+triedr
+test_doc_tests
+DocTests.test_doc_testsN)	r*
+skipIf
+flags
+optimizer
+StatisticsErrorTestc
+NzNExpected StatisticsError to be a ValueError, but got a subclass of %r instead.
+StatisticsError)
+__base__)
+errmsgr
+test_has_exception
+z&StatisticsErrorTest.test_has_exceptionN)
+ExactRatioTestc
+x:^V
+_exact_ratio)
+test_int
+ExactRatioTest.test_intc
+test_fraction
+ExactRatioTest.test_fractionc
+randomZ
+uniform
+<listcomp>
+z-ExactRatioTest.test_float.<locals>.<listcomp>rj
+range)
+datar
+denr
+test_float
+ExactRatioTest.test_floatc
+0.125r
+12.345)
+-1.98)
+test_decimal
+ExactRatioTest.test_decimalc
+qBq2d
+INFc
+z(ExactRatioTest.test_inf.<locals>.MyFloatN
+MyFloat
+z*ExactRatioTest.test_inf.<locals>.MyDecimalNr'
+	MyDecimal
+ratior
+ExactRatioTest.test_infc
+NANc
+z.ExactRatioTest.test_float_nan.<locals>.MyFloatNr'
+assertIsr3
+test_float_nan
+ExactRatioTest.test_float_nanc
+sNANc
+z2ExactRatioTest.test_decimal_nan.<locals>.MyDecimalNr'
+test_decimal_nan
+ExactRatioTest.test_decimal_nanN)
+DecimalToRatioTestc
+test_infinity
+z DecimalToRatioTest.test_infinityc
+DecimalToRatioTest.test_nanc
+Nz	9.8765e12z
+9.8765e-12r
+assertGreaterEqualr
+assertLessEqual)
+numbersr
+	test_sign
+DecimalToRatioTest.test_signc
+0.1234)
+test_negative_exponent,
+z)DecimalToRatioTest.test_negative_exponentc
+1.234e7)
+test_positive_exponent1
+z)DecimalToRatioTest.test_positive_exponentc
+1e2)
+1.47e5)
+test_regression_205366
+z(DecimalToRatioTest.test_regression_20536N)	r*
+IsFiniteTestc
+5.5)
+	_isfiniterz
+test_finiteB
+IsFiniteTest.test_finitec
+IsFiniteTest.test_infinityc
+IsFiniteTest.test_nanN)
+CoerceTestc
+z%CoerceTest.test_bool.<locals>.MyClassNr'
+MyClassm
+_coerce
+bool)
+	test_boolg
+CoerceTest.test_boolc
+z Assert that type A coerces to B.N)
+assertCoerceTop
+CoerceTest.assertCoerceToc
+z6Checks that type A coerces to B, including subclasses.c
+z/CoerceTest.check_coerce_to.<locals>.SubclassOfANr'
+SubclassOfAz
+z/CoerceTest.check_coerce_to.<locals>.SubclassOfBNr'
+SubclassOfB}
+check_coerce_tou
+CoerceTest.check_coerce_toc
+z=Assert that coercing A to B, or vice versa, raises TypeError.N)
+	TypeErrorr.
+assertCoerceRaises
+CoerceTest.assertCoerceRaisesc
+z>Check that type T coerces correctly with subclasses of itself.c
+z*CoerceTest.check_type_coercions.<locals>.UNr'
+z*CoerceTest.check_type_coercions.<locals>.VNr'
+z*CoerceTest.check_type_coercions.<locals>.WNr'
+typr
+check_type_coercions
+CoerceTest.check_type_coercionsc
+CoerceTest.test_intc
+CoerceTest.test_fractionc
+CoerceTest.test_decimalc
+CoerceTest.test_floatc
+listr
+tuple
+dictrk
+bad_typeZ	good_typer
+test_non_numeric_types
+z!CoerceTest.test_non_numeric_typesc
+z6CoerceTest.test_incompatible_types.<locals>.MySubclassNr'
+MySubclass
+test_incompatible_types
+z"CoerceTest.test_incompatible_typesN)
+ConvertTestc
+z5Check that x equals y, and has the same type as well.N)
+check_exact_equal
+ConvertTest.check_exact_equalc
+z#ConvertTest.test_int.<locals>.MyIntNr'
+MyInt
+_convertr
+ConvertTest.test_intc
+z-ConvertTest.test_fraction.<locals>.MyFractionc
+	__class__
+super
+__truediv__
+z9ConvertTest.test_fraction.<locals>.MyFraction.__truediv__
+__classcell__r
+MyFraction
+ConvertTest.test_fractionc
+)	NrY
+z'ConvertTest.test_float.<locals>.MyFloatc
+z3ConvertTest.test_float.<locals>.MyFloat.__truediv__rh
+ConvertTest.test_floatc
+)	Nr
+0.025c
+z+ConvertTest.test_decimal.<locals>.MyDecimalc
+z7ConvertTest.test_decimal.<locals>.MyDecimal.__truediv__rh
+-0.9375)
+ConvertTest.test_decimalc
+ConvertTest.test_infc
+ConvertTest.test_nanc
+test_invalid_input_type
+z#ConvertTest.test_invalid_input_typeN)
+FailNegTestz Test _fail_neg private function.c
+	_fail_negr3
+values
+newr
+test_pass_through
+FailNegTest.test_pass_throughc
+next)
+test_negatives_raise
+z FailNegTest.test_negatives_raisec
+badness #%d
+z(expected exception, but it didn't happen)	r
+randintru
+failr3
+test_error_msg
+FailNegTest.test_error_msgN)
+FindLteqTestc
+subTestr
+_find_lteq)
+test_invalid_input_values
+z&FindLteqTest.test_invalid_input_valuesc
+expected_ir
+test_locate_successfully
+z%FindLteqTest.test_locate_successfullyN
+FindRteqTestc
+_find_rteq)
+z&FindRteqTest.test_invalid_input_valuesc
+z%FindRteqTest.test_locate_successfullyNr
+UnivariateCommonMixinc
+funcrZ
+test_no_argsA
+z"UnivariateCommonMixin.test_no_argsc
+iterr
+emptyr
+test_empty_dataE
+z%UnivariateCommonMixin.test_empty_datac
+z"Return int data for various tests.r
+sortedr
+shuffle
+prepare_dataJ
+z"UnivariateCommonMixin.prepare_datac
+data has been modified)
+assertListEqual)
+savedr
+test_no_inplace_modificationsQ
+z3UnivariateCommonMixin.test_no_inplace_modificationsc
+test_order_doesnt_matter[
+z.UnivariateCommonMixin.test_order_doesnt_matterc
+zBUnivariateCommonMixin.test_type_of_data_collection.<locals>.MyListNr'
+MyListj
+zCUnivariateCommonMixin.test_type_of_data_collection.<locals>.MyTupleNr'
+MyTuplel
+objr
+zXUnivariateCommonMixin.test_type_of_data_collection.<locals>.generator.<locals>.<genexpr>r
+	generatorn
+zEUnivariateCommonMixin.test_type_of_data_collection.<locals>.generator)
+kindrs
+test_type_of_data_collectionh
+z2UnivariateCommonMixin.test_type_of_data_collectionc
+test_range_datav
+z%UnivariateCommonMixin.test_range_datac
+check_for_type_error
+objectrZ
+test_bad_arg_types|
+z(UnivariateCommonMixin.test_bad_arg_typesc
+z*UnivariateCommonMixin.check_for_type_errorc
+z@UnivariateCommonMixin.test_type_of_data_element.<locals>.MyFloatc
+zLUnivariateCommonMixin.test_type_of_data_element.<locals>.MyFloat.__truediv__c
+__add__rf
+zHUnivariateCommonMixin.test_type_of_data_element.<locals>.MyFloat.__add__)
+__radd__ri
+zCUnivariateCommonMixin.test_type_of_data_element.<locals>.<listcomp>)
+rawr
+test_type_of_data_element
+z/UnivariateCommonMixin.test_type_of_data_elementN)
+UnivariateTypeMixinam
+Mixin class for type-conserving functions.
+    This mixin class holds test(s) for functions which conserve the type of
+    individual data points. E.g. the mean of a list of Fractions should itself
+    be a Fraction.
+    Not all tests to do with types need go in this class. Only those that
+    rely on the function returning the same type as its input data.
+    c
+z4Return the types which are expected to be conserved.c
+zHUnivariateTypeMixin.prepare_types_for_conservation_test.<locals>.MyFloatc
+zTUnivariateTypeMixin.prepare_types_for_conservation_test.<locals>.MyFloat.__truediv__c
+__rtruediv__rf
+zUUnivariateTypeMixin.prepare_types_for_conservation_test.<locals>.MyFloat.__rtruediv__c
+__sub__rf
+zPUnivariateTypeMixin.prepare_types_for_conservation_test.<locals>.MyFloat.__sub__c
+__rsub__rf
+zQUnivariateTypeMixin.prepare_types_for_conservation_test.<locals>.MyFloat.__rsub__c
+__pow__rf
+zPUnivariateTypeMixin.prepare_types_for_conservation_test.<locals>.MyFloat.__pow__c
+zPUnivariateTypeMixin.prepare_types_for_conservation_test.<locals>.MyFloat.__add__)
+#prepare_types_for_conservation_test
+z7UnivariateTypeMixin.prepare_types_for_conservation_testc
+z<UnivariateTypeMixin.test_types_conserved.<locals>.<listcomp>)
+test_types_conserved
+z(UnivariateTypeMixin.test_types_conservedN)
+TestSumCommonc
+_sumrD
+valuer
+simplified_sum
+z+TestSumCommon.setUp.<locals>.simplified_sum)
+setUp
+TestSumCommon.setUpN)
+TestSumc
+TestSum.setUpc
+ffffff
+TestSum.test_empty_datac
+	test_ints
+TestSum.test_intsc
+test_floats
+TestSum.test_floatsc
+test_fractions
+TestSum.test_fractionsc
+5.246z
+1.702z
+-0.025z
+3.974z
+2.328z
+4.617z
+2.843z
+20.686r
+test_decimals
+TestSum.test_decimalsc
+z7TestSum.test_compare_with_math_fsum.<locals>.<listcomp>r
+fsumr
+test_compare_with_math_fsum
+z#TestSum.test_compare_with_math_fsumc
+)	Nc
+z/TestSum.test_start_argument.<locals>.<listcomp>rj
+test_start_argument
+TestSum.test_start_argumentc
+999)
+test_strings_fail
+TestSum.test_strings_failc
+999)
+test_bytes_fail
+TestSum.test_bytes_failc
+test_mixed_sum
+TestSum.test_mixed_sumN)
+SumTortureTestc
+countr
+test_torture
+SumTortureTest.test_tortureN)
+SumSpecialValuesc
+SumSpecialValues.test_nanc
+z8Check x is an infinity of the same type and sign as inf.r
+check_infinity3
+SumSpecialValues.check_infinityc
+do_test_inf:
+SumSpecialValues.do_test_infc
+test_float_infB
+SumSpecialValues.test_float_infc
+test_decimal_infG
+z!SumSpecialValues.test_decimal_infc
+test_float_mismatched_infsL
+z+SumSpecialValues.test_float_mismatched_infsc
+decimal
+localcontextZ
+ExtendedContextrd
+3test_decimal_extendedcontext_mismatched_infs_to_nanR
+zDSumSpecialValues.test_decimal_extendedcontext_mismatched_infs_to_nanc
+BasicContextr
+InvalidOperationr.
+0test_decimal_basiccontext_mismatched_infs_to_nanY
+zASumSpecialValues.test_decimal_basiccontext_mismatched_infs_to_nanc
+test_decimal_snan_raises`
+z)SumSpecialValues.test_decimal_snan_raisesN)
+AverageMixinc
+@E@g
+0.28
+test_single_valuel
+AverageMixin.test_single_valuec
+4.9712
+'prepare_values_for_repeated_single_testq
+z4AverageMixin.prepare_values_for_repeated_single_testc
+test_repeated_single_valuet
+z'AverageMixin.test_repeated_single_valueN)
+TestMeanc
+meanr
+TestMean.setUpc
+test_torture_pep
+TestMean.test_torture_pepc
+TestMean.test_intsc
+@1@g
+@7@g
+ 9@g
+TestMean.test_floatsc
+1.634z
+2.517z
+3.912z
+4.072z
+5.813z
+3.5896)
+TestMean.test_decimalsc
+TestMean.test_fractionsc
+TestMean.test_infc
+)	Nr
+-inf)
+test_mismatched_infs
+TestMean.test_mismatched_infsc
+TestMean.test_nanc
+333333
+@g333333
+ @g333333 @g
+z*TestMean.test_big_data.<locals>.<listcomp>
+test_big_data
+TestMean.test_big_datac
+z.TestMean.test_doubled_data.<locals>.<listcomp>r
+test_doubled_data
+TestMean.test_doubled_datac
+1e4)
+test_regression_20561
+TestMean.test_regression_20561c
+bigZ
+tinyr
+test_regression_25177
+TestMean.test_regression_25177N)
+TestHarmonicMeanc
+harmonic_meanr
+TestHarmonicMean.setUpc
+remove
+TestHarmonicMean.prepare_datac
+4.125r
+z8TestHarmonicMean.prepare_values_for_repeated_single_testc
+	test_zero
+TestHarmonicMean.test_zeroc
+excrr
+test_negative_error
+z$TestHarmonicMean.test_negative_errorc
+3.14)
+5.6r
+test_invalid_type_error
+z(TestHarmonicMean.test_invalid_type_errorc
+g333333
+TestHarmonicMean.test_intsc
+test_floats_exact	
+z"TestHarmonicMean.test_floats_exactc
+test_singleton_lists
+z%TestHarmonicMean.test_singleton_listsc
+0.10z
+0.20z
+1.68z
+0.32z
+5.94z
+2.75i
+test_decimals_exact
+z$TestHarmonicMean.test_decimals_exactc
+TestHarmonicMean.test_fractionsc
+TestHarmonicMean.test_infc
+TestHarmonicMean.test_nanc
+z>TestHarmonicMean.test_multiply_data_points.<locals>.<listcomp>r
+test_multiply_data_points1
+z*TestHarmonicMean.test_multiply_data_pointsc
+z6TestHarmonicMean.test_doubled_data.<locals>.<listcomp>r
+z"TestHarmonicMean.test_doubled_data)
+TestMedianc
+medianr
+TestMedian.setUpc
++Overload method from UnivariateCommonMixin.r
+TestMedian.prepare_datac
+test_even_intsM
+TestMedian.test_even_intsc
+test_odd_intsS
+TestMedian.test_odd_intsc
+test_odd_fractionsY
+TestMedian.test_odd_fractionsc
+test_even_fractionsa
+TestMedian.test_even_fractionsc
+5.8r
+test_odd_decimalsi
+TestMedian.test_odd_decimalsc
+1.2r*
+3.65r/
+test_even_decimalsq
+TestMedian.test_even_decimals)
+TestMedianDataTypec
+TestMedianDataType.setUpc
+TestMedianDataType.prepare_dataN)
+TestMedianLowc
+median_lowr
+TestMedianLow.setUpc
+TestMedianLow.test_even_intsc
+z!TestMedianLow.test_even_fractionsc
+1.1z
+2.2z
+3.3z
+4.4r<
+6.6r
+z TestMedianLow.test_even_decimalsN
+TestMedianHighc
+median_highr
+TestMedianHigh.setUpc
+TestMedianHigh.test_even_intsc
+z"TestMedianHigh.test_even_fractionsc
+z!TestMedianHigh.test_even_decimalsNr5
+TestMedianGroupedc
+median_groupedr
+TestMedianGrouped.setUpc
+`3@)
+test_odd_number_repeated
+z*TestMedianGrouped.test_odd_number_repeatedc
+*3@r?
+g["8
+test_even_number_repeated
+z+TestMedianGrouped.test_even_number_repeatedc
+Ng333333
+32.9714r
+z,TestMedianGrouped.test_repeated_single_valuec
+)	Nrh
+z$TestMedianGrouped.test_odd_fractionsc
+)	Nrh
+z%TestMedianGrouped.test_even_fractionsc
+8.5r
+z#TestMedianGrouped.test_odd_decimalsc
+)	Nr<
+z$TestMedianGrouped.test_even_decimalsc
+g["8
+test_interval
+TestMedianGrouped.test_intervalc
+intervalr
+test_data_type_error
+z&TestMedianGrouped.test_data_type_errorN)
+TestModec
+moder
+TestMode.setUpc
+TestMode.prepare_datac
+TestMode.test_range_datac
+abcbdbr
+fe fi fo fum fi fiZ
+test_nominal_data>
+TestMode.test_nominal_datac
+test_discrete_dataE
+TestMode.test_discrete_datac
+test_bimodal_dataM
+TestMode.test_bimodal_datac
+test_unique_dataT
+TestMode.test_unique_datac
+test_none_dataZ
+TestMode.test_none_datac
+Counterr3
+test_counter_dataa
+TestMode.test_counter_dataN)
+TestMultiModec
+aabbbbbbbbccr
+aabbbbccddddeeffffgg)
+	multimoder3
+test_basicsk
+TestMultiMode.test_basicsN)
+	TestFMeanc
+floats
+5.25
+decimalsr~
+	fractions)
+TFTTF
+333333
+booleansr
+mixed types)
+iterator)	r.
+fmeanr
+expected_meanr
+actual_meanr
+TestFMean.test_basicsc
+test_error_cases
+TestFMean.test_error_casesc
+Infr
+nan and infinityZ
+infinity)	r.
+NaNrx
+test_special_values
+TestFMean.test_special_valuesN)
+VarianceStdevMixinr!
+8.392r
+z$VarianceStdevMixin.test_single_valuec
+)	Nr
+<Cr|
+62.4802)
+z-VarianceStdevMixin.test_repeated_single_valuec
+test_domain_error_regression
+z/VarianceStdevMixin.test_domain_error_regressionc
+	@rB
+shiftr
+z6VarianceStdevMixin.test_shift_data.<locals>.<listcomp>)
+test_shift_data
+z"VarianceStdevMixin.test_shift_datac
+z;VarianceStdevMixin.test_shift_data_exact.<locals>.<genexpr>i
+z<VarianceStdevMixin.test_shift_data_exact.<locals>.<listcomp>)
+allr
+test_shift_data_exact
+z(VarianceStdevMixin.test_shift_data_exactc
+z:VarianceStdevMixin.test_iter_list_same.<locals>.<listcomp>r
+test_iter_list_same
+z&VarianceStdevMixin.test_iter_list_sameN)
+TestPVariancec
+	pvariancer
+TestPVariance.setUpc
+_ArY
+test_exact_uniform
+z TestPVariance.test_exact_uniformc
+exactr
+TestPVariance.test_intsc
+assertIsInstance
+TestPVariance.test_fractionsc
+12.1z
+12.2z
+12.5z
+12.9z
+0.096875
+TestPVariance.test_decimalsN)
+TestVariancec
+variancer
+TestVariance.setUpc
+g33333
+!=Cr
+4.2084
+TestVariance.test_single_valuec
+TestVariance.test_intsc
+TestVariance.test_fractionsc
+9.5r|
+TestVariance.test_decimalsc
+xbarr
+test_center_not_at_mean,
+z$TestVariance.test_center_not_at_meanN)	r*
+TestPStdevc
+pstdevr
+TestPStdev.setUpc
+z7TestPStdev.test_compare_to_variance.<locals>.<listcomp>r
+sqrtr.
+test_compare_to_variance6
+z#TestPStdev.test_compare_to_variancec
+murJ
+z"TestPStdev.test_center_not_at_meanN)
+	TestStdevc
+stdevr
+TestStdev.setUpc
+wi@g
+f7?+
+35.719r
+TestStdev.test_single_valuec
+z6TestStdev.test_compare_to_variance.<locals>.<listcomp>r
+z"TestStdev.test_compare_to_variancec
+z!TestStdev.test_center_not_at_meanN)
+TestGeometricMeanc
+expovariate
+z1TestGeometricMean.test_basics.<locals>.<listcomp>c
+lognormvariater
+triangularr
+geometric_mean
+assertAlmostEqualr
+seedr
+prodr
+iscloser
+rngZ
+gm_decimalZ
+gm_floatr
+TestGeometricMean.test_basicsc
+places)	r.
+test_various_input_typesn
+z*TestGeometricMean.test_various_input_typesc
+assertNotEqual)
+largeZ
+big_gmZ
+smallZ
+small_gmr
+test_big_and_small
+z$TestGeometricMean.test_big_and_smallc
+z"TestGeometricMean.test_error_casesc
+)	r.
+z%TestGeometricMean.test_special_valuesN)
+TestQuantilesc
+)$N)
+@o@r|
+t@rh
+Xv@r
+`t@r
+ l@r
+v@r_
+@v@g
+datatyper
+z4TestQuantiles.test_specific_cases.<locals>.<genexpr>r
+	inclusive
+methodc
+g3333
+z,TestQuantiles.test_specific_cases.<locals>.fc
+	quantilesr
+choicesr 
+sdata
+padded_datar
+actr
+test_specific_cases
+z!TestQuantiles.test_specific_casesc
+d!d"
+d$d%
+))N)
+r@r|
+pw@r
+@`@r
+@_@r
+z>TestQuantiles.test_specific_cases_inclusive.<locals>.<genexpr>c
+z6TestQuantiles.test_specific_cases_inclusive.<locals>.fc
+Z	randranger
+z?TestQuantiles.test_specific_cases_inclusive.<locals>.<listcomp>i
+test_specific_cases_inclusive
+z+TestQuantiles.test_specific_cases_inclusivec
+test_equal_inputs
+TestQuantiles.test_equal_inputsc
+z9TestQuantiles.test_equal_sized_groups.<locals>.<listcomp>r
+bisect
+	<setcomp>9	
+z8TestQuantiles.test_equal_sized_groups.<locals>.<setcomp>)
+setr
+sortr3
+totalr
+group_sizeZ
+group_sizes
+posZ
+sizesr
+test_equal_sized_groups%	
+z%TestQuantiles.test_equal_sized_groupsc
+TestQuantiles.test_error_casesN)
+d!d"
+d#d$
+TestNormalDistc
+_muZ
+_sigma)
+NormalDistr
+varsr3
+	__slots__
+test_slots\	
+TestNormalDist.test_slotsc
+zGTestNormalDist.test_instantiation_and_attributes.<locals>.NewNormalDistNr'
+NewNormalDists	
+nndr
+!test_instantiation_and_attributesb	
+z0TestNormalDist.test_instantiation_and_attributesc
+zBTestNormalDist.test_alternative_constructor.<locals>.NewNormalDistNr'
+from_samplesrX
+test_alternative_constructorx	
+z+TestNormalDist.test_alternative_constructorc
+happiness and joy)
+trouble and despair)
+samplesr3
+sigmar
+data1Z
+data2Z
+data3Z
+data4r
+test_sample_generation
+z%TestNormalDist.test_sample_generationc
+ggDio
+?gV}
+?gsh
+?g|a2U0*
+?gW[
+|a2U
+?gvq
+?ga2U0*
+?g"lxz
+-InfrX
+assertLess
+pdfr
+cdfrL
+est_pdf
+test_pdf
+TestNormalDist.test_pdfc
+z+TestNormalDist.test_cdf.<locals>.<listcomp>r
+gffffff
+@gu<f
+@gVe
+cdfsr
+cum_probr	
+test_cdf
+TestNormalDist.test_cdfc
+qTq@|
+]$}	|	|
+startr
+inv_cdfr
+itemsrL
+rowr
+test_inv_cdf
+TestNormalDist.test_inv_cdfc
+abs_tolNr
+z0TestNormalDist.test_quantiles.<locals>.<genexpr>)
+test_quantiles)
+TestNormalDist.test_quantilesc
+) NrX
+?gM-[
+stepsr
+z0Numerical integration cross-check for overlap() rp
+zHTestNormalDist.test_overlap.<locals>.overlap_numeric.<locals>.<listcomp>)
+center
+widthZ
+x_arrZ
+overlap_numericB
+z4TestNormalDist.test_overlap.<locals>.overlap_numericru
+?ga2U0*
+overlapr
+published_resultr
+test_overlap6
+TestNormalDist.test_overlapc
+gffffff
+gffffff
+zscorer
+test_zscoreu
+TestNormalDist.test_zscorec
+test_properties
+TestNormalDist.test_propertiesc
+'test_same_type_addition_and_subtraction
+z6TestNormalDist.test_same_type_addition_and_subtractionc
+test_translation_and_scaling
+z+TestNormalDist.test_translation_and_scalingc
+assertIsNotr3
+test_unary_operations
+z$TestNormalDist.test_unary_operationsc
+z'TestNormalDist.test_equality.<locals>.Ac
+__eq__
+z.TestNormalDist.test_equality.<locals>.A.__eq__N)
+z5TestNormalDist.test_equality.<locals>.SizedNormalDistc
+__init__r
+z>TestNormalDist.test_equality.<locals>.SizedNormalDist.__init__)
+SizedNormalDist
+z3TestNormalDist.test_equality.<locals>.LognormalDistc
+z<TestNormalDist.test_equality.<locals>.LognormalDist.__init__N)
+LognormalDist
+NotImplemented)
+nd3Z
+nd4Z
+nd5Z
+nd6rI
+lndr
+test_equality
+TestNormalDist.test_equalityc
+copyr3
+deepcopy
+pickle
+loads
+dumps)
+test_pickle_and_copy
+z#TestNormalDist.test_pickle_and_copyc
+NDr/
+test_hashability
+TestNormalDist.test_hashabilityc
+z NormalDist(mu=37.5, sigma=5.625))
+reprr
+	test_repr
+TestNormalDist.test_reprN)
+skip_if_pgo_taskr
+TestNormalDistPythonc
+modulesrZ
+TestNormalDistPython.setUpc
+tearDown
+TestNormalDistPython.tearDownN)
+TestNormalDistCc
+TestNormalDistC.setUpc
+TestNormalDistC.tearDownN)
+z&Used for doctest/unittest integration.)
+addTestsr
+DocTestSuite)
+loaderZ
+tests
+ignorer
+load_tests
+__main__)
+)Or-
+collections.abcr3
+testr
+import_fresh_moduler5
+mainr
+<module>

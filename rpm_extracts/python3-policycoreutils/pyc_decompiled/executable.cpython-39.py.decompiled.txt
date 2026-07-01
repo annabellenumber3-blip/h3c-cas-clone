@@ -1,0 +1,297 @@
+d	Z	d
+Z!d Z"d!Z#d"Z$d#Z%d$Z&d%Z'd&Z(d'S
+policy_module(TEMPLATETYPE, 1.0.0)
+########################################
+# Declarations
+type TEMPLATETYPE_t;
+type TEMPLATETYPE_exec_t;
+init_daemon_domain(TEMPLATETYPE_t, TEMPLATETYPE_exec_t)
+permissive TEMPLATETYPE_t;
+type TEMPLATETYPE_initrc_exec_t;
+init_script_file(TEMPLATETYPE_initrc_exec_t)
+policy_module(TEMPLATETYPE, 1.0.0)
+########################################
+# Declarations
+type TEMPLATETYPE_t;
+type TEMPLATETYPE_exec_t;
+domain_type(TEMPLATETYPE_t)
+domain_entry_file(TEMPLATETYPE_t, TEMPLATETYPE_exec_t)
+role system_r types TEMPLATETYPE_t;
+permissive TEMPLATETYPE_t;
+policy_module(TEMPLATETYPE, 1.0.0)
+########################################
+# Declarations
+type TEMPLATETYPE_t;
+type TEMPLATETYPE_exec_t;
+inetd_service_domain(TEMPLATETYPE_t, TEMPLATETYPE_exec_t)
+permissive TEMPLATETYPE_t;
+policy_module(TEMPLATETYPE, 1.0.0)
+########################################
+# Declarations
+attribute_role TEMPLATETYPE_roles;
+roleattribute system_r TEMPLATETYPE_roles;
+type TEMPLATETYPE_t;
+type TEMPLATETYPE_exec_t;
+application_domain(TEMPLATETYPE_t, TEMPLATETYPE_exec_t)
+role TEMPLATETYPE_roles types TEMPLATETYPE_t;
+permissive TEMPLATETYPE_t;
+policy_module(TEMPLATETYPE, 1.0.0)
+########################################
+# Declarations
+sandbox_x_domain_template(TEMPLATETYPE)
+permissive TEMPLATETYPE_t;
+permissive TEMPLATETYPE_client_t;
+policy_module(TEMPLATETYPE, 1.0.0)
+########################################
+# Declarations
+apache_content_template(TEMPLATETYPE)
+permissive httpd_TEMPLATETYPE_script_t;
+allow TEMPLATETYPE_t self:fifo_file rw_fifo_file_perms;
+allow TEMPLATETYPE_t self:unix_stream_socket create_stream_socket_perms;
+optional_policy(`
+	dbus_system_domain(TEMPLATETYPE_t, TEMPLATETYPE_exec_t)
+allow TEMPLATETYPE_t self:fifo_file manage_fifo_file_perms;
+allow TEMPLATETYPE_t self:unix_stream_socket create_stream_socket_perms;
+auth_use_nsswitch(TEMPLATETYPE_t)
+logging_send_syslog_msg(TEMPLATETYPE_t)
+sysnet_dns_name_resolve(TEMPLATETYPE_t)
+auth_domtrans_chk_passwd(TEMPLATETYPE_t)
+mta_send_mail(TEMPLATETYPE_t)
+optional_policy(`
+	dbus_system_bus_client(TEMPLATETYPE_t)
+	dbus_connect_system_bus(TEMPLATETYPE_t)
+optional_policy(`
+	kerberos_use(TEMPLATETYPE_t)
+optional_policy(`
+	kerberos_keytab_template(TEMPLATETYPE, TEMPLATETYPE_t)
+	kerberos_manage_host_rcache(TEMPLATETYPE_t)
+logging_send_audit_msgs(TEMPLATETYPE_t)
+optional_policy(`
+	gen_require(`
+		type USER_t;
+		role USER_r;
+	TEMPLATETYPE_run(USER_t, USER_r)
+domain_use_interactive_fds(TEMPLATETYPE_t)
+files_read_etc_files(TEMPLATETYPE_t)
+miscfiles_read_localization(TEMPLATETYPE_t)
+## <summary>policy for TEMPLATETYPE</summary>a
+########################################
+## <summary>
+##	Execute TEMPLATETYPE_exec_t in the TEMPLATETYPE domain.
+## </summary>
+## <param name="domain">
+## <summary>
+##	Domain allowed to transition.
+## </summary>
+## </param>
+interface(`TEMPLATETYPE_domtrans',`
+	gen_require(`
+		type TEMPLATETYPE_t, TEMPLATETYPE_exec_t;
+	corecmd_search_bin($1)
+	domtrans_pattern($1, TEMPLATETYPE_exec_t, TEMPLATETYPE_t)
+######################################
+## <summary>
+##	Execute TEMPLATETYPE in the caller domain.
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+interface(`TEMPLATETYPE_exec',`
+	gen_require(`
+		type TEMPLATETYPE_exec_t;
+	corecmd_search_bin($1)
+	can_exec($1, TEMPLATETYPE_exec_t)
+########################################
+## <summary>
+##	Execute TEMPLATETYPE in the TEMPLATETYPE domain, and
+##	allow the specified role the TEMPLATETYPE domain.
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed to transition
+##	</summary>
+## </param>
+## <param name="role">
+##	<summary>
+##	The role to be allowed the TEMPLATETYPE domain.
+##	</summary>
+## </param>
+interface(`TEMPLATETYPE_run',`
+	gen_require(`
+		type TEMPLATETYPE_t;
+		attribute_role TEMPLATETYPE_roles;
+	TEMPLATETYPE_domtrans($1)
+	roleattribute $2 TEMPLATETYPE_roles;
+########################################
+## <summary>
+##	Role access for TEMPLATETYPE
+## </summary>
+## <param name="role">
+##	<summary>
+##	Role allowed access
+##	</summary>
+## </param>
+## <param name="domain">
+##	<summary>
+##	User domain for the role
+##	</summary>
+## </param>
+interface(`TEMPLATETYPE_role',`
+	gen_require(`
+		type TEMPLATETYPE_t;
+		attribute_role TEMPLATETYPE_roles;
+	roleattribute $1 TEMPLATETYPE_roles;
+	TEMPLATETYPE_domtrans($2)
+	ps_process_pattern($2, TEMPLATETYPE_t)
+	allow $2 TEMPLATETYPE_t:process { signull signal sigkill };
+########################################
+## <summary>
+##	Execute sandbox in the TEMPLATETYPE_t domain, and
+##	allow the specified role the TEMPLATETYPE_t domain.
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed to transition.
+##	</summary>
+## </param>
+## <param name="role">
+##	<summary>
+##	The role to be allowed the TEMPLATETYPE_t domain.
+##	</summary>
+## </param>
+interface(`TEMPLATETYPE_transition',`
+	gen_require(`
+		type TEMPLATETYPE_t;
+		type TEMPLATETYPE_client_t;
+	allow $1 TEMPLATETYPE_t:process { signal_perms transition };
+	dontaudit $1 TEMPLATETYPE_t:process { noatsecure siginh rlimitinh };
+	role $2 types TEMPLATETYPE_t;
+	role $2 types TEMPLATETYPE_client_t;
+	allow TEMPLATETYPE_t $1:process { sigchld signull };
+	allow TEMPLATETYPE_t $1:fifo_file rw_inherited_fifo_file_perms;
+	allow TEMPLATETYPE_client_t $1:process { sigchld signull };
+	allow TEMPLATETYPE_client_t $1:fifo_file rw_inherited_fifo_file_perms;
+########################################
+## <summary>
+##	Change to the TEMPLATETYPE role.
+## </summary>
+## <param name="role">
+##	<summary>
+##	Role allowed access.
+##	</summary>
+## </param>
+## <rolecap/>
+interface(`TEMPLATETYPE_role_change',`
+	gen_require(`
+		role TEMPLATETYPE_r;
+	allow $1 TEMPLATETYPE_r;
+########################################
+## <summary>
+##	Execute TEMPLATETYPE server in the TEMPLATETYPE domain.
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+interface(`TEMPLATETYPE_initrc_domtrans',`
+	gen_require(`
+		type TEMPLATETYPE_initrc_exec_t;
+	init_labeled_script_domtrans($1, TEMPLATETYPE_initrc_exec_t)
+########################################
+## <summary>
+##	Send and receive messages from
+##	TEMPLATETYPE over dbus.
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+interface(`TEMPLATETYPE_dbus_chat',`
+	gen_require(`
+		type TEMPLATETYPE_t;
+		class dbus send_msg;
+	allow $1 TEMPLATETYPE_t:dbus send_msg;
+	allow TEMPLATETYPE_t $1:dbus send_msg;
+########################################
+## <summary>
+##	All of the rules required to administrate
+##	an TEMPLATETYPE environment
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+## <param name="role">
+##	<summary>
+##	Role allowed access.
+##	</summary>
+## </param>
+## <rolecap/>
+interface(`TEMPLATETYPE_admin',`
+	gen_require(`
+		type TEMPLATETYPE_t;z
+	allow $1 TEMPLATETYPE_t:process { signal_perms };
+	ps_process_pattern($1, TEMPLATETYPE_t)
+    tunable_policy(`deny_ptrace',`',`
+        allow $1 TEMPLATETYPE_t:process ptrace;
+    ')
+		type TEMPLATETYPE_initrc_exec_t;z
+	TEMPLATETYPE_initrc_domtrans($1)
+	domain_system_change_exemption($1)
+	role_transition $2 TEMPLATETYPE_initrc_exec_t system_r;
+	allow $2 system_r;
+zb	optional_policy(`
+		systemd_passwd_agent_exec($1)
+		systemd_read_fifo_file_passwd_run($1)
+zEEXECUTABLE		--	gen_context(system_u:object_r:TEMPLATETYPE_exec_t,s0)
+z #  No file context, leave blank
+zKEXECUTABLE	--	gen_context(system_u:object_r:TEMPLATETYPE_initrc_exec_t,s0)
+N))Z
+te_daemon_typesZ
+te_initscript_typesZ
+te_dbusd_typesZ
+te_inetd_typesZ
+te_userapp_typesZ
+te_sandbox_typesZ
+te_cgi_typesZ
+te_daemon_rulesZ
+te_inetd_rulesZ
+te_dbusd_rulesZ
+te_userapp_rulesZ
+te_cgi_rulesZ
+te_sandbox_rulesZ
+te_uid_rulesZ
+te_syslog_rulesZ
+te_resolve_rulesZ
+te_pam_rulesZ
+te_mail_rulesZ
+te_dbus_rulesZ
+te_kerberos_rulesZ
+te_manage_krb5_rcache_rulesZ
+te_audit_rulesZ
+te_run_rulesZ
+te_fd_rulesZ
+te_etc_rulesZ
+te_localization_rulesZ
+if_heading_rulesZ
+if_program_rulesZ
+if_user_program_rulesZ
+if_sandbox_rulesZ
+if_role_change_rulesZ
+if_initscript_rulesZ
+if_dbus_rulesZ
+if_begin_adminZ
+if_middle_adminZ
+if_initscript_admin_typesZ
+if_initscript_adminZ
+if_end_adminZ
+fc_programZ
+fc_userZ
+fc_initscript
+A/usr/lib/python3.9/site-packages/sepolicy/templates/executable.py
+<module>

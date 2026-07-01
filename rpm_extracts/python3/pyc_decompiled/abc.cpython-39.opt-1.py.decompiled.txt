@@ -1,0 +1,314 @@
+l	Z	W
+d d!
+d"d#
+d#e"
+)$z(Abstract base classes related to import.
+_bootstrap)
+_bootstrap_external)
+	machinery
+_frozen_importlib)
+Protocol
+runtime_checkablec
+registerr
+getattr
+__name__
+AttributeError
+_frozen_importlib_external)
+abstract_cls
+classes
+frozen_cls
+%/usr/lib64/python3.9/importlib/abc.py
+	_register
+Findera<
+Legacy abstract base class for import finders.
+    It may be subclassed for compatibility with legacy third party
+    reimplementations of the import system.  Otherwise, finder
+    implementations should derive from the more specific MetaPathFinder
+    or PathEntryFinder ABCs.
+    Deprecated since Python 3.3
+    Nc
+An abstract method that should find a module.
+        The fullname is a str and the optional path is a str or None.
+        Returns a Loader object or None.
+        Nr
+self
+fullname
+pathr
+find_module+
+Finder.find_module)
+__module__
+__qualname__
+__doc__
+abstractmethodr
+	metaclassc
+MetaPathFinderz8Abstract base class for import finders on sys.meta_path.c
+Return a loader for the module.
+        If no module is found, return None.  The fullname is a str and
+        the path is a list of strings or None.
+        This method is deprecated since Python 3.4 in favor of
+        finder.find_spec(). If find_spec() exists then backwards-compatible
+        functionality is provided for this method.
+        zxMetaPathFinder.find_module() is deprecated since Python 3.4 in favor of MetaPathFinder.find_spec() (available since 3.4)
+stacklevel
+	find_specN)
+warnings
+warn
+DeprecationWarning
+hasattrr%
+loader)
+foundr
+MetaPathFinder.find_modulec
+An optional method for clearing the finder's cache, if any.
+        This method is used by importlib.invalidate_caches().
+        Nr
+invalidate_cachesO
+z MetaPathFinder.invalidate_cachesN)
+PathEntryFinderz>Abstract base class for path entry finders used by PathFinder.c
+Return (loader, namespace portion) for the path entry.
+        The fullname is a str.  The namespace portion is a sequence of
+        path entries contributing to part of a namespace package. The
+        sequence may be empty.  If loader is not None, the portion will
+        be ignored.
+        The portion will be discarded if another path entry finder
+        locates the module as a normal module or package.
+        This method is deprecated since Python 3.4 in favor of
+        finder.find_spec(). If find_spec() is provided than backwards-compatible
+        functionality is provided.
+        zzPathEntryFinder.find_loader() is deprecated since Python 3.4 in favor of PathEntryFinder.find_spec() (available since 3.4)r"
+submodule_search_locationsr*
+portionsr
+find_loader_
+PathEntryFinder.find_loaderc
+An optional method for clearing the finder's cache, if any.
+        This method is used by PathFinder.invalidate_caches().
+        Nr
+z!PathEntryFinder.invalidate_cachesN)	r
+_find_module_shimr
+Loaderz'Abstract base class for import loaders.c
+Return a module to initialize and into which to load.
+        This method should raise ImportError if anything prevents it
+        from creating a new module.  It may return None to indicate
+        that the spec should create the new module.
+        Nr
+specr
+create_module
+Loader.create_modulec
+Return the loaded module.
+        The module must be added to sys.modules and have import-related
+        attributes set properly.  The fullname is a str.
+        ImportError is raised on failure.
+        This method is deprecated in favor of loader.exec_module(). If
+        exec_module() exists then it is used to provide a backwards-compatible
+        functionality for this method.
+        
+exec_module)
+ImportErrorr
+_load_module_shim
+load_module
+Loader.load_modulec
+Return a module's repr.
+        Used by the module type when the method does not raise
+        NotImplementedError.
+        This method is deprecated.
+        N)
+NotImplementedError)
+moduler
+module_repr
+Loader.module_reprN)
+ResourceLoaderz
+Abstract base class for loaders which can return data from their
+    back-end storage.
+    This ABC represents one of the optional protocols specified by PEP 302.
+    c
+zwAbstract method which when implemented should return the bytes for
+        the specified path.  The path must be a str.N)
+OSError
+get_data
+ResourceLoader.get_dataN)
+InspectLoaderz
+Abstract base class for loaders which support inspection about the
+    modules they can load.
+    This ABC represents one of the optional protocols specified by PEP 302.
+    c
+Optional method which when implemented should return whether the
+        module is a package.  The fullname is a str.  Returns a bool.
+        Raises ImportError if the module cannot be found.
+        N
+is_package
+InspectLoader.is_packagec
+Method which returns the code object for the module.
+        The fullname is a str.  Returns a types.CodeType if possible, else
+        returns None if a code object does not make sense
+        (e.g. built-in module). Raises ImportError if the module cannot be
+        found.
+        N)
+get_source
+source_to_code)
+sourcer
+get_code
+InspectLoader.get_codec
+Abstract method which should return the source code for the
+        module.  The fullname is a str.  Returns a str.
+        Raises ImportError if the module cannot be found.
+        NrC
+InspectLoader.get_source
+<string>c
+Compile 'data' into a code object.
+        The 'data' argument can be anything that compile() can handle. The'path'
+        argument should be where the data was retrieved (when applicable).
+execT)
+dont_inherit)
+compile)
+datar
+InspectLoader.source_to_codeN)
+staticmethodrF
+_LoaderBasicsr6
+ExecutionLoaderz
+Abstract base class for loaders that wish to support the execution of
+    modules as scripts.
+    This ABC represents one of the optional protocols specified in PEP 302.
+    c
+Abstract method which should return the value that __file__ is to be
+        set to.
+        Raises ImportError if the module cannot be found.
+        NrC
+get_filename
+ExecutionLoader.get_filenamec
+Method to return the code object for fullname.
+        Should return None if not applicable (e.g. built-in module).
+        Raise ImportError if the module cannot be found.
+        N)
+ExecutionLoader.get_codeN)
+FileLoaderz[Abstract base class partially implementing the ResourceLoader and
+    ExecutionLoader ABCs.N)
+SourceLoadera
+Abstract base class for loading source code (and optionally any
+    corresponding bytecode).
+    To support loading from source code, the abstractmethods inherited from
+    ResourceLoader and ExecutionLoader need to be implemented. To also support
+    loading from bytecode, the optional methods specified directly by this ABC
+    is required.
+    Inherited abstractmethods not implemented in this ABC:
+        * ResourceLoader.get_data
+        * ExecutionLoader.get_filename
+    c
+z6Return the (int) modification time for the path (str).
+mtime)
+path_stats
+__func__rS
+intr@
+path_mtime<
+SourceLoader.path_mtimec
+Return a metadata dict for the source pointed to by the path (str).
+        Possible keys:
+        - 'mtime' (mandatory) is the numeric timestamp of last source
+          code modification;
+        - 'size' (optional) is the size in bytes of the source code.
+        rT
+SourceLoader.path_statsc
+Write the bytes to the path (if possible).
+        Accepts a str path and data as bytes.
+        Any needed intermediary directories are to be created. If for some
+        reason the file cannot be written because of permissions, fail
+        silently.
+        Nr
+set_dataM
+SourceLoader.set_dataN)
+ResourceReaderz
+Abstract base class to provide resource-reading support.
+    Loaders that support resource reading are expected to implement
+    the ``get_resource_reader(fullname)`` method and have it either return None
+    or an object compatible with this ABC.
+    c
+Return an opened, file-like object for binary reading.
+        The 'resource' argument is expected to represent only a file name
+        and thus not contain any subdirectory components.
+        If the resource cannot be found, FileNotFoundError is raised.
+        N
+FileNotFoundError
+resourcer
+open_resourcec
+ResourceReader.open_resourcec
+Return the file system path to the specified resource.
+        The 'resource' argument is expected to represent only a file name
+        and thus not contain any subdirectory components.
+        If the resource does not exist on the file system, raise
+        FileNotFoundError.
+        Nr[
+resource_pathn
+ResourceReader.resource_pathc
+z7Return True if the named 'name' is consider a resource.Nr[
+namer
+is_resourcez
+ResourceReader.is_resourcec
+z?Return an iterable of strings over the contents of the package.r
+contents
+ResourceReader.contentsN)
+Traversablezt
+    An object with a subset of pathlib.Path methods suitable for
+    traversing directories and opening files.
+    c
+        Yield Traversable objects in self
+        Nr
+iterdir
+Traversable.iterdirc
+        Read contents of self as bytes
+        Nr
+read_bytes
+Traversable.read_bytesNc
+encodingr
+	read_text
+Traversable.read_textc
+        Return True if self is a dir
+        Nr
+is_dir
+Traversable.is_dirc
+        Return True if self is a file
+        Nr
+is_file
+Traversable.is_filec
+        Return Traversable child in self
+        Nr
+childr
+joinpath
+Traversable.joinpathc
+__truediv__
+Traversable.__truediv__
+        mode may be 'r' or 'rb' to open as text or binary. Return a handle
+        suitable for reading (same as pathlib.Path.open).
+        When opening as text, accepts encoding parameters such as those
+        accepted by io.TextIOWrapper.
+        Nr
+mode
+args
+kwargsr
+open
+Traversable.openc
+        The base name of this object without any parent references.
+        Nr
+Traversable.name)
+abstractpropertyra
+TraversableResourcesc
+z3Return a Traversable object for the loaded package.Nr
+files
+TraversableResources.filesc
+z"TraversableResources.open_resourcec
+z"TraversableResources.resource_pathc
+isfiler@
+z TraversableResources.is_resourcec
+itemr
+	<genexpr>
+z0TraversableResources.contents.<locals>.<genexpr>)
+TraversableResources.contentsN)
+excra
+typingr
+ABCMetar
+BuiltinImporter
+FrozenImporter
+PathFinder
+WindowsRegistryFinderr.
+FileFinderr3
+ExtensionFileLoaderrR
+SourceFileLoader
+SourcelessFileLoaderrS
+<module>

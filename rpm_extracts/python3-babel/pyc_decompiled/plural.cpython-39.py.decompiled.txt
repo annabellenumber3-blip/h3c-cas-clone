@@ -1,0 +1,450 @@
+d"d#
+dBd$d%
+dCd&d'
+d(d)
+d*d+
+d,d-
+d.d/
+d0d1
+d2d3
+d4d5
+d6d7
+d8d9
+d:d;
+d;e!
+d<d=
+d=e!
+d>d?
+d?e#
+d@dA
+dAe!
+    babel.numbers
+    ~~~~~~~~~~~~~
+    CLDR Plural support.  See UTS #35.
+    :copyright: (c) 2013-2021 by the Babel Team.
+    :license: BSD, see LICENSE for more details.
+decimal)
+zeroZ
+oneZ
+many
+otherr
+Extract operands from a decimal, a float or an int, according to `CLDR rules`_.
+    The result is a 6-tuple (n, i, v, w, f, t), where those symbols are as follows:
+    ====== ===============================================================
+    Symbol Value
+    ------ ---------------------------------------------------------------
+    n      absolute value of the source number (integer and decimals).
+    i      integer digits of n.
+    v      number of visible fraction digits in n, with trailing zeros.
+    w      number of visible fraction digits in n, without trailing zeros.
+    f      visible fractional digits in n, with trailing zeros.
+    t      visible fractional digits in n, without trailing zeros.
+    ====== ===============================================================
+    .. _`CLDR rules`: https://www.unicode.org/reports/tr35/tr35-33/tr35-numbers.html#Operands
+    :param source: A real number
+    :type source: int|float|decimal.Decimal
+    :return: A n-i-v-w-f-t tuple
+    :rtype: tuple[decimal.Decimal, int, int, int, int, int]
+    r
+str)
+0/usr/lib/python3.9/site-packages/babel/plural.py
+	<genexpr>A
+z#extract_operands.<locals>.<genexpr>
+isinstance
+floatr
+Decimalr
+as_tupleZ
+exponent
+digits
+join
+rstrip
+len)
+source
+iZ	dec_tupleZ
+expZ
+fraction_digitsZ
+trailingZ
+no_trailing
+extract_operands
+e	d	d
+PluralRuleaf
+Represents a set of language pluralization rules.  The constructor
+    accepts a list of (tag, expr) tuples or a dict of `CLDR rules`_. The
+    resulting object is callable and accepts one parameter with a positive or
+    negative number (both integer and float) for the number that indicates the
+    plural form for a string and returns the tag for the format:
+    >>> rule = PluralRule({'one': 'n is 1'})
+    >>> rule(1)
+    'one'
+    >>> rule(2)
+    'other'
+    Currently the CLDR defines these tags: zero, one, two, few, many and
+    other where other is an implicit default.  Rules should be mutually
+    exclusive; for a given numeric value, only one rule should apply (i.e.
+    the condition should only be true for one of the plural rule elements.
+    .. _`CLDR rules`: https://www.unicode.org/reports/tr35/tr35-33/tr35-numbers.html#Language_Plural_Rules
+    )
+abstract
+_funcc
+Initialize the rule instance.
+        :param rules: a list of ``(tag, expr)``) tuples with the rules
+                      conforming to UTS #35 or a dict with the tags as keys
+                      and expressions as values.
+        :raise RuleError: if the expression is malformed
+        z
+unknown tag %rz
+tag %r defined twiceN)
+dict
+items
+setr"
+sorted
+list
+_plural_tags
+ValueError
+_Parser
+append)
+self
+rules
+found
+exprr-
+__init__c
+PluralRule.__init__c
+<%s %r>z
+%s: %sr
+<listcomp>}
+z'PluralRule.__repr__.<locals>.<listcomp>)
+type
+__name__r
+__repr__y
+PluralRule.__repr__c
+Create a `PluralRule` instance for the given rules.  If the rules
+        are a `PluralRule` object, that object is returned.
+        :param rules: the rules as list or dict, or a `PluralRule` object
+        :raise RuleError: if the expression is malformed
+        )
+clsr0
+parse
+PluralRule.parsec
+The `PluralRule` as a dict of unicode plural rules.
+        >>> rule = PluralRule({'one': 'n is 1'})
+        >>> rule.rules
+        {'one': 'n is 1'}
+        c
+_compiler
+z$PluralRule.rules.<locals>.<listcomp>)
+_UnicodeCompiler
+compiler$
+PluralRule.rulesc
+z'PluralRule.<lambda>.<locals>.<listcomp>)
+	frozensetr"
+<lambda>
+PluralRule.<lambda>z
+        A set of explicitly defined tags in this rule.  The implicit default
+        ``'other'`` rules is not part of this set unless there is an explicit
+        rule for it.)
+docc
+__getstate__
+PluralRule.__getstate__c
+__setstate__
+PluralRule.__setstate__c
+hasattr
+	to_pythonr#
+__call__
+PluralRule.__call__N)
+__module__
+__qualname__
+__doc__
+	__slots__r4
+classmethodr>
+propertyr0
+tagsrI
+Convert a list/dict of rules or a `PluralRule` object into a JavaScript
+    function.  This function depends on no external library:
+    >>> to_javascript({'one': 'n is 1'})
+    "(function(n) { return (n == 1) ? 'one' : 'other'; })"
+    Implementation detail: The function generated will probably evaluate
+    expressions involved into range operations multiple times.  This has the
+    advantage that external helper functions are not required and is not a
+    big performance hit for these simple calculations.
+    :param rule: the rules as list or dict, or a `PluralRule` object
+    :raise RuleError: if the expression is malformed
+    z
+(function(n) { return z
+%s ? %r : z
+%r; })r
+_JavaScriptCompilerrB
+_fallback_tagr
+ruleZ
+to_js
+resultr6
+to_javascript
+Convert a list/dict of rules or a `PluralRule` object into a regular
+    Python function.  This is useful in situations where you need a real
+    function and don't are about the actual rule object:
+    >>> func = to_python({'one': 'n is 1', 'few': 'n in 2..4'})
+    >>> func(1)
+    'one'
+    >>> func(3)
+    'few'
+    >>> func = to_python({'one': 'n in 1,11', 'few': 'n in 3..10,13..19'})
+    >>> func(11)
+    'one'
+    >>> func(15)
+    'few'
+    :param rule: the rules as list or dict, or a `PluralRule` object
+    :raise RuleError: if the expression is malformed
+    )
+WITHINZ
+MODr 
+def evaluate(n):z' n, i, v, w, f, t = extract_operands(n)z
+ if (%s): return %rz
+ return %r
+<rule>
+execZ
+evaluate)
+in_range_list
+within_range_list
+cldr_modulor 
+_PythonCompilerrB
+eval)
+	namespaceZ
+to_python_funcrX
+coder
+The plural rule as gettext expression.  The gettext expression is
+    technically limited to integers and returns indices rather than tags.
+    >>> to_gettext({'one': 'n is 1', 'two': 'n is 2'})
+    'nplurals=3; plural=((n == 1) ? 0 : (n == 2) ? 1 : 2)'
+    :param rule: the rules as list or dict, or a `PluralRule` object
+    :raise RuleError: if the expression is malformed
+    c
+Z	used_tagsr
+to_gettext.<locals>.<listcomp>z
+nplurals=%d; plural=(z
+%s ? %d : z
+%d)r
+_GettextCompilerrB
+indexr
+_get_indexrX
+to_gettext
+Integer range list test.  This is the callback for the "in" operator
+    of the UTS #35 pluralization rule language:
+    >>> in_range_list(1, [(1, 3)])
+    True
+    >>> in_range_list(3, [(1, 3)])
+    True
+    >>> in_range_list(3, [(1, 3), (5, 8)])
+    True
+    >>> in_range_list(1.2, [(1, 4)])
+    False
+    >>> in_range_list(10, [(1, 4)])
+    False
+    >>> in_range_list(10, [(1, 4), (6, 8)])
+    False
+    )
+range_listr
+Float range test.  This is the callback for the "within" operator
+    of the UTS #35 pluralization rule language:
+    >>> within_range_list(1, [(1, 3)])
+    True
+    >>> within_range_list(1.0, [(1, 3)])
+    True
+    >>> within_range_list(1.2, [(1, 4)])
+    True
+    >>> within_range_list(8.8, [(1, 4), (7, 15)])
+    True
+    >>> within_range_list(10, [(1, 4)])
+    False
+    >>> within_range_list(10.5, [(1, 4), (20, 30)])
+    False
+    c
+min_Z
+max_
+z$within_range_list.<locals>.<genexpr>)
+anyrh
+Javaish modulo.  This modulo operator returns the value with the sign
+    of the dividend rather than the divisor like Python does:
+    >>> cldr_modulo(-3, 5)
+    -3
+    >>> cldr_modulo(-3, -5)
+    -3
+    >>> cldr_modulo(3, 5)
+    3
+    r
+reverse
+	RuleErrorz
+Raised if a rule is malformed.N)
+nivwftz
+wordz)\b(and|or|is|(?:with)?in|not|mod|[{0}])\b
+valuez
+symbolz
+%|,|!=|=
+ellipsisz
+\.{2,3}|\u2026c
+z5malformed CLDR pluralization rule.  Got unexpected %rrm
+splitr
+_RULES
+match
+endr.
+grouprs
+posr|
+tokrW
+tokenize_ruleM
+tokens
+type_ru
+test_next_token`
+popr
+skip_tokene
+value_nodej
+namer
+ident_noden
+range_list_noder
+notr
+negatev
+Internal parser.  This class can translate a single rule into an abstract
+    tree of tuples. It implements the following grammar::
+        condition     = and_condition ('or' and_condition)*
+                        ('@integer' samples)?
+                        ('@decimal' samples)?
+        and_condition = relation ('and' relation)*
+        relation      = is_relation | in_relation | within_relation
+        is_relation   = expr 'is' ('not')? value
+        in_relation   = expr (('not')? 'in' | '=' | '!=') range_list
+        within_relation = expr ('not')? 'within' range_list
+        expr          = operand (('mod' | '%') value)?
+        operand       = 'n' | 'i' | 'f' | 't' | 'v' | 'w'
+        range_list    = (range | value) (',' range_list)*
+        value         = digit+
+        digit         = 0|1|2|3|4|5|6|7|8|9
+        range         = value'..'value
+        samples       = sampleRange (',' sampleRange)* (',' ('
+'|'...'))?
+        sampleRange   = decimalValue '~' decimalValue
+        decimalValue  = value ('.' value)?
+    - Whitespace can occur between or around any of the above tokens.
+    - Rules should be mutually exclusive; for a given numeric value, only one
+      rule should apply (i.e. the condition should only be true for one of
+      the plural rule elements).
+    - The in and within relations can take comma-separated lists, such as:
+      'n in 3,5,7..15'.
+    - Samples are ignored.
+    The translator parses the expression on instanciation into an attribute
+    called `ast`.
+    c
+Expected end of rule, got %rrm
+	conditionrs
+stringr
+_Parser.__init__Nc
+Nz#expected %s but end of rule reachedz
+expected %s but got %rrm
+reprrs
+term
+tokenr
+expect
+_Parser.expectc
+and_conditionr
+_Parser.conditionc
+and)
+relationr
+_Parser.and_conditionc
+)	Nrt
+isnot
+withinz#Cannot negate operator based rules.r
+newfangled_relationrj
+left
+negated
+methodrr
+_Parser.relationc
+)	Nrv
+!=Tz'Expected "=" or "!=" or legacy relationr
+_Parser.newfangled_relationc
+range_or_value
+_Parser.range_or_valuec
+_Parser.range_listc
+Expected identifier variable
+modr
+_VARSrs
+_Parser.exprc
+_Parser.value)
+%Compiler factory for the `_Compiler`.c
+tmplr
+z"_binary_compiler.<locals>.<lambda>r
+_binary_compiler
+z!_unary_compiler.<locals>.<lambda>r
+_unary_compiler
+	_CompilerzZThe compilers are able to transform the expressions into multiple
+    output formats.
+    c
+compile_)
+getattr)
+argr
+argsr
+_Compiler.compilec
+_Compiler.<lambda>c
+(%s && %s)z
+(%s || %s)z
+(!%s)z
+(%s %% %s)
+(%s == %s)z
+(%s != %s)c
+NotImplementedError)
+compile_relation
+_Compiler.compile_relationN)
+	compile_n
+	compile_i
+	compile_v
+	compile_w
+	compile_f
+	compile_tZ
+compile_valuer
+compile_and
+compile_orr
+compile_not
+compile_mod
+compile_is
+compile_isnotr
+)	r`
+z!Compiles an expression to Python.z
+(%s and %s)z
+(%s or %s)z
+(not %s)z
+MOD(%s, %s)c
+[%s]r
+(%s, %s))
+tuple
+maprB
+range_r;
+z4_PythonCompiler.compile_relation.<locals>.<listcomp>rn
+%s(%s, %s))
+upperrB
+compile_range_listr
+z _PythonCompiler.compile_relationN)
+z)Compile into a gettext plural expression.c
+(%s >= %s && %s <= %s)z
+(%s)z
+ || )
+item
+maxr
+z!_GettextCompiler.compile_relationN)
+compile_zeror
+z/Compiles the expression to plain of JavaScript.c
+parseInt(n, 10)r
+_JavaScriptCompiler.<lambda>c
+(parseInt(%s, 10) == %s && %s))
+z$_JavaScriptCompiler.compile_relationN)
+z+Returns a unicode pluralization rule again.z
+%s is %sz
+%s is not %sz	%s and %sz
+%s or %sz	%s mod %sc
+_UnicodeCompiler.compile_notFc
+%s..%sz
+%s%s %s %sz
+ notr
+rangesr
+z!_UnicodeCompiler.compile_relationN)
+N)&rP
+babel._compatr
+objectr!
+	Exceptionrs
+UNICODE
+formatrz
+<module>

@@ -1,0 +1,230 @@
+d d!
+d$d%d&d'
+Support for remote Python debugging.
+Some ASCII art to describe the structure:
+       IN PYTHON SUBPROCESS          #             IN IDLE PROCESS
+                                     #
+                                     #        oid='gui_adapter'
+                 +----------+        #       +------------+          +-----+
+                 | GUIProxy |--remote#call-->| GUIAdapter |--calls-->| GUI |
++-----+--calls-->+----------+        #       +------------+          +-----+
+| Idb |                               #                             /
++-----+<-calls--+------------+         #      +----------+<--calls-/
+                | IdbAdapter |<--remote#call--| IdbProxy |
+                +------------+         #      +----------+
+                oid='idb_adapter'      #
+The purpose of the Proxy and Adapter classes is to translate certain
+arguments and return values that cannot be transported through the RPC
+barrier, in particular frame and traceback objects.
+debugger
+idb_adapterZ
+gui_adapterc
+frametable)
+frame
+*/usr/lib64/python3.9/idlelib/debugger_r.py
+wrap_frame(
+z0replace info[2], a traceback instance, by its IDN
+tracebacktable)
+info
+	tracebackZ
+traceback_id
+modified_infor	
+	wrap_info-
+GUIProxyc
+conn
+oid)
+selfr
+gui_adap_oidr	
+__init__;
+GUIProxy.__init__Nc
+interaction)
+remotecallr
+messager
+GUIProxy.interaction)
+__name__
+__module__
+__qualname__r
+d!d"
+d#d$
+d%d&
+d'd(
+IdbAdapterc
+idb)
+IdbAdapter.__init__c
+set_step
+IdbAdapter.set_stepc
+set_quitr#
+IdbAdapter.set_quitc
+set_continuer#
+IdbAdapter.set_continuec
+set_next
+IdbAdapter.set_nextc
+set_returnr'
+IdbAdapter.set_returnc
+frame2
+<listcomp>e
+z(IdbAdapter.get_stack.<locals>.<listcomp>)
+	get_stack)
+tbidr
+stack
+IdbAdapter.get_stackc
+__main__r!
+__dict__)
+cmdr2
+IdbAdapter.runc
+	set_break
+filename
+lineno
+msgr	
+IdbAdapter.set_breakc
+clear_breakr7
+IdbAdapter.clear_breakc
+clear_all_file_breaks
+z IdbAdapter.clear_all_file_breaksc
+getattr)
+namer
+frame_attrz
+IdbAdapter.frame_attrc
+	f_globalsr
+	dicttable
+dict
+didr	
+frame_globals~
+IdbAdapter.frame_globalsc
+f_localsr
+frame_locals
+IdbAdapter.frame_localsc
+f_coder
+	codetable)
+code
+cidr	
+frame_code
+IdbAdapter.frame_codec
+co_name
+	code_name
+IdbAdapter.code_namec
+co_filenamerO
+code_filename
+IdbAdapter.code_filenamec
+Nz"dict_keys not public or pickleable)
+NotImplementedError
+	dict_keys
+IdbAdapter.dict_keysc
+list
+keys)
+dict_keys_list
+IdbAdapter.dict_keys_listc
+reprlib
+repr)
+keyrD
+valuer	
+	dict_item
+IdbAdapter.dict_itemN)
+Start the debugger and its RPC link in the Python subprocess
+    Start the subprocess side of the split debugger and set up that side of the
+    RPC link by instantiating the GUIProxy, Idb debugger, and IdbAdapter
+    objects and linking them together.  Register the IdbAdapter with the
+    RPCServer to handle RPC requests from the split debugger GUI via the
+    IdbProxy.
+    )
+Idbr 
+register
+idb_adap_oid)
+rpchandlerr
+Z	gui_proxyr!
+idb_adapr	
+start_debugger
+FrameProxyc
+_conn
+_fid
+_oid
+_dictcache)
+FrameProxy.__init__c
+AttributeError
+_get_f_code
+_get_f_globals
+_get_f_localsrb
+__getattr__
+FrameProxy.__getattr__c
+	CodeProxy)
+FrameProxy._get_f_codec
+_get_dict_proxyrT
+FrameProxy._get_f_globalsc
+FrameProxy._get_f_localsc
+	DictProxyrb
+dpr	
+FrameProxy._get_dict_proxyN)	r
+_cid)
+CodeProxy.__init__c
+CodeProxy.__getattr__N)
+_did)
+DictProxy.__init__c
+DictProxy.keysc
+__getitem__
+DictProxy.__getitem__c
+DictProxy.__getattr__N)
+GUIAdapterc
+gui)
+GUIAdapter.__init__c
+GUIAdapter.interactionNr
+IdbProxyc
+shell)
+IdbProxy.__init__c
+methodname
+args
+kwargsr\
+call.
+IdbProxy.callc
+asyncqueuer
+interpZ
+active_seq)
+locals
+seqr	
+IdbProxy.runc
+z&IdbProxy.get_stack.<locals>.<listcomp>
+IdbProxy.get_stackc
+IdbProxy.set_continuec
+IdbProxy.set_stepc
+IdbProxy.set_nextc
+IdbProxy.set_returnc
+IdbProxy.set_quitc
+IdbProxy.set_breakc
+IdbProxy.clear_breakc
+IdbProxy.clear_all_file_breaksN)
+Start the subprocess debugger, initialize the debugger GUI and RPC link
+    Request the RPCServer start the Python subprocess debugger and link.  Set
+    up the Idle side of the split debugger by instantiating the IdbProxy,
+    debugger GUI, and debugger GUIAdapter objects and linking them together.
+    Register the GUIAdapter with the RPCClient to handle debugger GUI
+    interaction requests coming from the subprocess debugger via the GUIProxy.
+    The IdbAdapter will pass execution and environment requests coming from the
+    Idle debugger GUI to the subprocess debugger via the IdbProxy.
+    
+exec
+start_the_debugger)
+Debuggerru
+rpccltZ
+pyshellZ	idb_proxyrv
+gui_adapr	
+start_remote_debuggerZ
+Shut down subprocess debugger and Idle side of debugger RPC link
+    Request that the RPCServer shut down the subprocess debugger and link.
+    Unregister the GUIAdapter, which will cause a GC on the Idle process
+    debugger and RPC link objects.  (The second reference to the debugger GUI
+    is deleted in pyshell.close_remote_debugger().)
+    N)
+close_subprocess_debuggerZ
+unregisterr
+close_remote_debuggerr
+stop_the_debugger)
+idb_adap_oid_retr	
+restart_subprocess_debugger
+mainz!idlelib.idle_test.test_debugger_rr
+	verbosity
+exit)
+__doc__rY
+typesZ
+idlelibr
+Z	debuggingr_
+unittestr
+<module>

@@ -1,0 +1,39 @@
+#!/usr/bin/expect
+# Author : mozhanfei/13122
+# Date   : 2017-09-20
+# Des    : Cat the file content
+# usage  :
+# Params :
+#      $0: server
+
+if {$argc<1} {
+    send_user "usage: $argv0 server\n"
+    exit 11
+}
+
+set server [lindex $argv 0]
+
+spawn ssh $server date
+set timeout 60
+expect "*(yes/no)*" {
+    send "yes\r"
+    exp_continue
+} "Permission denied, please try again" {
+    send_user "\n"
+    exit 51
+} "*assword:" {
+    send "password\r"
+    exp_continue
+} "ssh:" {
+    send_user "\n"
+    exit 50
+} "cat:" {
+    send_user "\n"
+    exit 52
+} timeout {
+    send_user "\n"
+    exit 50
+} eof { 
+    send_user "\n"
+    exit 0
+}

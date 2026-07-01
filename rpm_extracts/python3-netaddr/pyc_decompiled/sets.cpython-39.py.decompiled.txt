@@ -1,0 +1,367 @@
+m	Z	
+z2Set based operations for IP addresses and subnets.
+	IPNetwork
+	IPAddress
+IPRange
+cidr_merge
+cidr_exclude
+iprange_to_cidrs)
+_sys_maxint
+_dict_keys
+	_int_typec
+Calculate IPSet([supernet]) - IPSet(subnets).
+    Assumptions: subnets is sorted, subnet_idx points to the first
+    element in subnets that is a subnet of supernet.
+    Results are appended to the ranges parameter as tuples of in format
+    (version, first, last). Return value is the first subnet_idx that
+    does not point to a subnet of supernet (or len(subnets) if all
+    subsequents items are a subnet of supernet).
+    
+_module
+version
+first
+append
+last)
+supernetZ
+subnetsZ
+subnet_idxZ
+rangesr
+subnetZ
+prev_subnetZ
+cur_subnetr
+3/usr/lib/python3.9/site-packages/netaddr/ip/sets.py
+	_subtract
+Iterate over sorted_ranges, merging where possible
+    Sorted ranges must be a sorted iterable of (version, first, last) tuples.
+    Merging occurs for pairs like [(4, 10, 42), (4, 43, 100)] which is merged
+    into (4, 10, 100), and leads to return value
+    ( IPAddress(10, 4), IPAddress(100, 4) ), which is suitable input for the
+    iprange_to_cidrs function.
+    Nr
+sorted_rangesZ
+current_versionZ
+current_startZ
+current_stopZ
+next_versionZ
+next_startZ	next_stopr
+_iter_merged_ranges8
+d!d"
+dJd#d$
+d%d&
+d'd(
+d)d*
+d+d,
+d-d.
+d/d0
+d1d2
+d3d4
+Z d5d6
+Z!e!Z"d7d8
+Z#e#Z$d9d:
+Z%e%Z&d;d<
+Z'e(d=d>
+Z)d?d@
+Z*e*Z+dAdB
+Z,dCdD
+Z-dEdF
+IPSetz[
+    Represents an unordered collection (set) of unique IP addresses and
+    subnets.
+    )
+_cidrs
+__weakref__Nr
+        Constructor.
+        :param iterable: (optional) an iterable containing IP addresses,
+            subnets or ranges.
+        :param flags: decides which rules are applied to the interpretation
+            of the addr value. See the netaddr.core namespace documentation
+            for supported constant values.
+        Tr
+flags)
+isinstancer
+cidrr
+dict
+fromkeysr
+iter_cidrsr
+self
+iterabler
+Z	mergeable
+addrr
+__init__]
+IPSet.__init__c
+z.:return: Pickled state of an ``IPSet`` object.c
+__getstate__
+<listcomp>~
+z&IPSet.__getstate__.<locals>.<listcomp>)
+tupler
+IPSet.__getstate__c
+        :param state: data used to unpickle a pickled ``IPSet`` object.
+        c
+value
+	prefixlenr
+	<genexpr>
+z%IPSet.__setstate__.<locals>.<genexpr>TN)
+stater
+__setstate__
+IPSet.__setstate__c
+rlqR|
+rR|	|
+        Same as compact(), but assume that added_network is the only change and
+        that this IPSet was properly compacted before added_network was added.
+        This allows to perform compaction much faster. added_network must
+        already be present in self._cidrs.
+        Nr
+_prefixlenr
+widthr
+_value
+previous
+next)
+added_networkZ
+added_firstZ
+added_lastZ
+added_versionZ
+potential_supernetZ	to_remover
+itemZ
+shift_widthZ
+the_bit
+	candidater
+_compact_single_network
+IPSet._compact_single_networkc
+        Compact internal list of `IPNetwork` objects using a CIDR merge.
+        TN)
+cidrsr
+compact
+IPSet.compactc
+        Raises ``TypeError`` if this method is called.
+        .. note:: IPSet objects are not hashable and cannot be used as             dictionary keys or as members of other sets.         z
+IP sets are unhashable!N)
+	TypeErrorr.
+__hash__
+IPSet.__hash__c
+        :param ip: An IP address or subnet.
+        :return: ``True`` if IP address or subnet is a member of this IP set.
+        Tr
+__contains__
+IPSet.__contains__c
+z9Return True if IPSet contains at least one IP, else False)
+boolr
+__nonzero__
+IPSet.__nonzero__c
+        :return: an iterator over the IP addresses within this IP set.
+        )
+_itertools
+chain
+sortedr
+__iter__
+IPSet.__iter__c
+        :return: an iterator over individual IP subnets within this IP set.
+        
+IPSet.iter_cidrsc
+        Adds an IP address or subnet or IPRange to this IP set. Has no effect if
+        it is already present.
+        Note that where possible the IP address or subnet is merged with other
+        members of the set to form more concise CIDR blocks.
+        :param addr: An IP address or subnet in either string or object form, or
+            an IPRange object.
+        :param flags: decides which rules are applied to the interpretation
+            of the addr value. See the netaddr.core namespace documentation
+            for supported constant values.
+        r
+updater=
+Z	new_cidrsr
+add	
+z	IPSet.addc
+rlt	|
+        Removes an IP address or subnet or IPRange from this IP set. Does
+        nothing if it is not already a member.
+        Note that this method behaves more like discard() found in regular
+        Python sets because it doesn't raise KeyError exceptions if the
+        IP address or subnet is question does not exist. It doesn't make sense
+        to fully emulate that behaviour here as IP sets contain groups of
+        individual IP addresses as individual set members using IPNetwork
+        objects.
+        :param addr: An IP address or subnet, or an IPRange.
+        :param flags: decides which rules are applied to the interpretation
+            of the addr value. See the netaddr.core namespace documentation
+            for supported constant values.
+        r
+remover
+Z	remainderZ
+matching_cidrr
+IPSet.removec
+        Removes and returns an arbitrary IP address or subnet from this IP
+        set.
+        :return: An IP address or subnet.
+        r
+popitemr.
+popb
+z	IPSet.popc
+        :param other: an IP set.
+        :return: ``True`` if this IP set has no elements (IP addresses
+            or subnets) in common with other. Intersection *must* be an
+            empty set.
+        )
+intersection)
+other
+resultr
+isdisjointk
+IPSet.isdisjointc
+z':return: a shallow copy of this IP set.)
+	__class__r
+obj_copyr
+copyv
+IPSet.copyc
+        Update the contents of this IP set with the union of itself and
+        other IP set.
+        :param iterable: an iterable containing IP addresses, subnets or ranges.
+        :param flags: decides which rules are applied to the interpretation
+            of the addr value. See the netaddr.core namespace documentation
+            for supported constant values.
+        c
+IPSet.update.<locals>.<genexpr>TNrG
+an iterable was expected!r
+hasattrr>
+IPSet.updatec
+z5Remove all IP addresses and subnets from this IP set.N
+clear
+IPSet.clearc
+        :param other: an IP set
+        :return: ``True`` if this IP set is equivalent to the ``other`` IP set,
+            ``False`` otherwise.
+        N
+AttributeError
+NotImplemented
+__eq__
+IPSet.__eq__c
+        :param other: an IP set
+        :return: ``False`` if this IP set is equivalent to the ``other`` IP set,
+            ``True`` otherwise.
+        NrW
+__ne__
+IPSet.__ne__c
+        :param other: an IP set
+        :return: ``True`` if this IP set is less than the ``other`` IP set,
+            ``False`` otherwise.
+        r
+size
+issubsetrZ
+__lt__
+IPSet.__lt__c
+        :param other: an IP set.
+        :return: ``True`` if every IP address and subnet in this IP set
+            is found within ``other``.
+        FTrU
+IPSet.issubsetc
+        :param other: an IP set.
+        :return: ``True`` if this IP set is greater than the ``other`` IP set,
+            ``False`` otherwise.
+        r
+issupersetrZ
+__gt__
+IPSet.__gt__c
+        :param other: an IP set.
+        :return: ``True`` if every IP address and subnet in other IP set
+            is found within this one.
+        r
+IPSet.issupersetc
+        :param other: an IP set.
+        :return: the union of this IP set and another as a new IP set
+            (combines IP addresses and subnets from both sets).
+        )
+ip_setr
+union
+IPSet.unionc
+q0|	|
+q0|	|
+        :param other: an IP set.
+        :return: the intersection of this IP set and another as a new IP set.
+            (IP addresses and subnets common to both sets).
+        r
+result_cidrs
+own_nets
+other_nets
+own_idx
+	other_idx
+own_len
+	other_len
+own_cur
+	other_currP
+IPSet.intersectionc
+q0|	|
+q0|	|
+q*t	
+        :param other: an IP set.
+        :return: the symmetric difference of this IP set and another as a new
+            IP set (all IP addresses and subnets that are in exactly one
+            of the sets).
+        r
+result_rangesre
+start
+stopr<
+symmetric_difference+
+IPSet.symmetric_differencec
+        :param other: an IP set.
+        :return: the difference between this IP set and another as a new IP
+            set (all IP addresses and subnets that are in this IP set but
+            not found in the other.)
+        r
+differenceo
+IPSet.differencec
+        :return: the cardinality of this IP set (i.e. sum of individual IP             addresses). Raises ``IndexError`` if size > maxint (a Python             limitation). Use the .size property for subnets of any size.
+        zUrange contains more than %d (sys.maxint) IP addresses!Use the .size property instead.)
+IndexError)
+__len__
+IPSet.__len__c
+        The cardinality of this IP set (based on the number of individual IP
+        addresses including those implicitly defined in subnets).
+        c
+IPSet.size.<locals>.<listcomp>)
+sumr
+IPSet.sizec
+z8:return: Python statement to create an equivalent objectz	IPSet(%r)c
+str)
+z"IPSet.__repr__.<locals>.<listcomp>rH
+__repr__
+IPSet.__repr__c
+        Returns True if the members of the set form a contiguous IP
+        address range (with no gaps), False otherwise.
+        :return: ``True`` if the ``IPSet`` object is contiguous.
+        r
+iscontiguous
+IPSet.iscontiguousc
+        Generates an IPRange for this IPSet, if all its members
+        form a single contiguous sequence.
+        Raises ``ValueError`` if the set is not contiguous.
+        :return: An ``IPRange`` for all IPs in the IPSet.
+        Nr
+IPSet is not contiguous)
+ValueErrorr;
+iprange
+IPSet.iprangec
+Generate the merged IPRanges for this IPSet.
+        In contrast to self.iprange(), this will work even when the IPSet is
+        not contiguous. Adjacent IPRanges will be merged together, so you
+        get the minimal number of IPRanges.
+        c
+z'IPSet.iter_ipranges.<locals>.<listcomp>N)
+iter_ipranges
+IPSet.iter_ipranges)
+__name__
+__module__
+__qualname__
+__doc__
+	__slots__r'
+__bool__rG
+__le__rb
+__ge__rc
+__or__rN
+__and__rp
+__xor__rq
+__sub__rs
+propertyr]
+__str__rx
+	itertoolsrD
+netaddr.ipr
+netaddr.compatr
+objectr
+<module>

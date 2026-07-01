@@ -1,0 +1,348 @@
+Counter with CBC-MAC (CCM) mode.
+CcmMode
+	unhexlify)
+byte_string
+bord
+_copy_bytes)
+is_writeable_buffer)
+strxor)
+long_to_bytes)
+BLAKE2s)
+get_random_bytesc
+Enum
+type)
+enumsr
+=/usr/lib64/python3.9/site-packages/Crypto/Cipher/_mode_ccm.py
+enum3
+NOT_STARTED
+PROCESSING_AUTH_DATA
+PROCESSING_PLAINTEXTc
+Z	d"d
+Counter with CBC-MAC (CCM).
+    This is an Authenticated Encryption with Associated Data (`AEAD`_) mode.
+    It provides both confidentiality and authenticity.
+    The header of the message may be left in the clear, if needed, and it will
+    still be subject to authentication. The decryption step tells the receiver
+    if the message comes from a source that really knowns the secret key.
+    Additionally, decryption detects if any part of the message - including the
+    header - has been modified or corrupted.
+    This mode requires a nonce. The nonce shall never repeat for two
+    different messages encrypted with the same key, but it does not need
+    to be random.
+    Note that there is a trade-off between the size of the nonce and the
+    maximum size of a single message you can encrypt.
+    It is important to use a large nonce if the key is reused across several
+    messages and the nonce is chosen randomly.
+    It is acceptable to us a short nonce if the key is only used a few times or
+    if the nonce is taken from a counter.
+    The following table shows the trade-off when the nonce is chosen at
+    random. The column on the left shows how many messages it takes
+    for the keystream to repeat **on average**. In practice, you will want to
+    stop using the key way before that.
+    +--------------------+---------------+-------------------+
+    | Avg. # of messages |    nonce      |     Max. message  |
+    | before keystream   |    size       |     size          |
+    | repeats            |    (bytes)    |     (bytes)       |
+    +====================+===============+===================+
+    |       2^52         |      13       |        64K        |
+    +--------------------+---------------+-------------------+
+    |       2^48         |      12       |        16M        |
+    +--------------------+---------------+-------------------+
+    |       2^44         |      11       |         4G        |
+    +--------------------+---------------+-------------------+
+    |       2^40         |      10       |         1T        |
+    +--------------------+---------------+-------------------+
+    |       2^36         |       9       |        64P        |
+    +--------------------+---------------+-------------------+
+    |       2^32         |       8       |        16E        |
+    +--------------------+---------------+-------------------+
+    This mode is only available for ciphers that operate on 128 bits blocks
+    (e.g. AES but not TDES).
+    See `NIST SP800-38C`_ or RFC3610_.
+    .. _`NIST SP800-38C`: http://csrc.nist.gov/publications/nistpubs/800-38C/SP800-38C.pdf
+    .. _RFC3610: https://tools.ietf.org/html/rfc3610
+    .. _AEAD: http://blog.cryptographyengineering.com/2012/05/how-to-choose-authenticated-encryption.html
+    :undocumented: __init__
+    c
+zFCCM mode is only available for ciphers that operate on 128 bits blocks)
+z@Parameter 'mac_len' must be even and in the range 4..16 (not %d)
+z<Length of parameter 'nonce' must be in the range 7..13 bytesZ
+nonce
+block_sizer
+_factoryZ
+_key
+_mac_len
+_msg_len
+_assoc_lenZ
+_cipher_params
+_mac_tag
+ValueError
+newZ
+MODE_CBC
+_mac
+	MacStatusr
+_mac_status
+update
+encrypt
+decrypt
+digest
+verify
+_next
+_cumul_assoc_len
+_cumul_msg_len
+_cacheZ
+MODE_CTR
+struct
+pack
+_cipher
+_s_0
+_start_mac)	
+self
+factory
+keyr 
+mac_len
+msg_len
+	assoc_len
+cipher_params
+__init__t
+CcmMode.__init__c
+isinstancer6
+listr(
+insert
+joinr
+_update)
+flagsZ
+b_0Z
+assoc_len_encodedZ
+enc_sizeZ
+first_data_to_macr
+CcmMode._start_macc
+Z	len_cacher
+_pad_cache_and_update
+CcmMode._pad_cache_and_updatec
+Protect associated data
+        If there is any associated data, the caller has to invoke
+        this function one or more times, before using
+        ``decrypt`` or ``encrypt``.
+        By *associated data* it is meant any data (e.g. packet headers) that
+        will not be encrypted and will be transmitted in the clear.
+        However, the receiver is still able to detect any modification to it.
+        In CCM, the *associated data* is also called
+        *additional authenticated data* (AAD).
+        If there is no associated data, this method must not be called.
+        The caller may split associated data in segments of any size, and
+        invoke this method multiple times, each time with the next segment.
+        :Parameters:
+          assoc_data : bytes/bytearray/memoryview
+            A piece of associated data. There are no restrictions on its size.
+        z<update() can only be called immediately after initializationNz
+Associated data is too long)
+	TypeErrorr/
+assoc_datar
+CcmMode.updaterF
+zPUpdate the MAC with associated data or plaintext
+           (without FSM checks)Nr
+appendr(
+minr*
+assoc_data_ptZ
+fillerZ
+update_lenr
+CcmMode._updateNc
+Encrypt data with the key set at initialization.
+        A cipher object is stateful: once you have encrypted a message
+        you cannot encrypt (or decrypt) another message using the same
+        object.
+        This method can be called only **once** if ``msg_len`` was
+        not passed at initialization.
+        If ``msg_len`` was given, the data to encrypt can be broken
+        up in two or more pieces and `encrypt` can be called
+        multiple times.
+        That is, the statement:
+            >>> c.encrypt(a) + c.encrypt(b)
+        is equivalent to:
+             >>> c.encrypt(a+b)
+        This function does not add any padding to the plaintext.
+        :Parameters:
+          plaintext : bytes/bytearray/memoryview
+            The piece of data to encrypt.
+            It can be of any length.
+        :Keywords:
+          output : bytearray/memoryview
+            The location where the ciphertext must be written to.
+            If ``None``, the ciphertext is returned.
+        :Return:
+          If ``output`` is ``None``, the ciphertext as ``bytes``.
+          Otherwise, ``None``.
+        z@encrypt() can only be called after initialization or an update()Nc
+<listcomp>[
+z#CcmMode.encrypt.<locals>.<listcomp>
+Associated data is too short
+Message is too long
+output)
+sumr$
+	plaintextrZ
+CcmMode.encryptc
+Decrypt data with the key set at initialization.
+        A cipher object is stateful: once you have decrypted a message
+        you cannot decrypt (or encrypt) another message with the same
+        object.
+        This method can be called only **once** if ``msg_len`` was
+        not passed at initialization.
+        If ``msg_len`` was given, the data to decrypt can be
+        broken up in two or more pieces and `decrypt` can be
+        called multiple times.
+        That is, the statement:
+            >>> c.decrypt(a) + c.decrypt(b)
+        is equivalent to:
+             >>> c.decrypt(a+b)
+        This function does not remove any padding from the plaintext.
+        :Parameters:
+          ciphertext : bytes/bytearray/memoryview
+            The piece of data to decrypt.
+            It can be of any length.
+        :Keywords:
+          output : bytearray/memoryview
+            The location where the plaintext must be written to.
+            If ``None``, the plaintext is returned.
+        :Return:
+          If ``output`` is ``None``, the plaintext as ``bytes``.
+          Otherwise, ``None``.
+        z@decrypt() can only be called after initialization or an update()Nc
+z#CcmMode.decrypt.<locals>.<listcomp>rW
+ciphertextrZ
+CcmMode.decryptc
+Compute the *binary* MAC tag.
+        The caller invokes this function at the very end.
+        This method returns the MAC that shall be sent to the receiver,
+        together with the ciphertext.
+        :Return: the MAC, as a byte string.
+        zAdigest() cannot be called when decrypting or validating a message)
+_digest
+CcmMode.digestc
+rdt	d
+z#CcmMode._digest.<locals>.<listcomp>rW
+Message is too short)
+CcmMode._digestc
+Compute the *printable* MAC tag.
+        This method is like `digest`.
+        :Return: the MAC, as a hexadecimal string.
+        
+%02x)
+z%CcmMode.hexdigest.<locals>.<listcomp>)
+	hexdigest
+CcmMode.hexdigestc
+rht	d
+Validate the *binary* MAC tag.
+        The caller invokes this function at the very end.
+        This method checks if the decrypted message is indeed valid
+        (that is, if the key is correct) and it has not been
+        tampered with while in transit.
+        :Parameters:
+          received_mac_tag : bytes/bytearray/memoryview
+            This is the *binary* MAC, as received from the sender.
+        :Raises ValueError:
+            if the MAC does not match. The message has been tampered with
+            or the key is incorrect.
+        z3verify() cannot be called when encrypting a messager
+digest_bitsr>
+dataz
+MAC check failedN)
+received_mac_tagZ
+secretZ
+mac1Z
+mac2r
+CcmMode.verifyc
+Validate the *printable* MAC tag.
+        This method is like `verify`.
+        :Parameters:
+          hex_mac_tag : string
+            This is the *printable* MAC, as received from the sender.
+        :Raises ValueError:
+            if the MAC does not match. The message has been tampered with
+            or the key is incorrect.
+        N)
+hex_mac_tagr
+	hexverify
+CcmMode.hexverifyc
+Perform encrypt() and digest() in one step.
+        :Parameters:
+          plaintext : bytes/bytearray/memoryview
+            The piece of data to encrypt.
+        :Keywords:
+          output : bytearray/memoryview
+            The location where the ciphertext must be written to.
+            If ``None``, the ciphertext is returned.
+        :Return:
+            a tuple with two items:
+            - the ciphertext, as ``bytes``
+            - the MAC tag, as ``bytes``
+            The first item becomes ``None`` when the ``output`` parameter
+            specified a location for the result.
+        rY
+encrypt_and_digest+
+CcmMode.encrypt_and_digestc
+Perform decrypt() and verify() in one step.
+        :Parameters:
+          ciphertext : bytes/bytearray/memoryview
+            The piece of data to decrypt.
+          received_mac_tag : bytes/bytearray/memoryview
+            This is the *binary* MAC, as received from the sender.
+        :Keywords:
+          output : bytearray/memoryview
+            The location where the plaintext must be written to.
+            If ``None``, the plaintext is returned.
+        :Return: the plaintext as ``bytes`` or ``None`` when the ``output``
+            parameter specified a location for the result.
+        :Raises ValueError:
+            if the MAC does not match. The message has been tampered with
+            or the key is incorrect.
+        rY
+decrypt_and_verifyA
+CcmMode.decrypt_and_verify)
+__name__
+__module__
+__qualname__
+__doc__rD
+)	aN
+Create a new block cipher, configured in CCM mode.
+    :Parameters:
+      factory : module
+        A symmetric cipher module from `Crypto.Cipher` (like
+        `Crypto.Cipher.AES`).
+    :Keywords:
+      key : bytes/bytearray/memoryview
+        The secret key to use in the symmetric cipher.
+      nonce : bytes/bytearray/memoryview
+        A value that must never be reused for any other encryption.
+        Its length must be in the range ``[7..13]``.
+        11 or 12 bytes are reasonable values in general. Bear in
+        mind that with CCM there is a trade-off between nonce length and
+        maximum message size.
+        If not specified, a 11 byte long random string is used.
+      mac_len : integer
+        Length of the MAC, in bytes. It must be even and in
+        the range ``[4..16]``. The default is 16.
+      msg_len : integer
+        Length of the message to (de)cipher.
+        If not specified, ``encrypt`` or ``decrypt`` may only be called once.
+      assoc_len : integer
+        Length of the associated data.
+        If not specified, all data is internally buffered.
+    r>
+Missing parameter: Nr 
+KeyErrorrO
+strr
+dictr
+)	r=
+kwargsr>
+_create_ccm_cipherY
+__all__r7
+binasciir
+Crypto.Util.py3compatr
+Crypto.Util._raw_apir
+Crypto.Util.strxorr
+Crypto.Util.numberr	
+Crypto.Hashr
+Crypto.Randomr
+objectr
+<module>

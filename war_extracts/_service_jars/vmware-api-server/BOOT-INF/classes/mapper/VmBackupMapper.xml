@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.h3c.h3cloud.vmware.api.mapper.VmBackupMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.h3c.h3cloud.vmware.api.entity.VmBackup">
+        <id column="ID" property="id"/>
+        <result column="NAME" property="name"/>
+        <result column="BACKUP_MODE" property="backupMode"/>
+        <result column="BACKUP_STORAGE_LOCATION" property="backupStorageLocation"/>
+        <result column="BACKUP_STORAGE_NAME" property="backupStorageName"/>
+        <result column="DOMAIN_KEY" property="domainKey"/>
+        <result column="DOMAIN_NAME" property="domainName"/>
+        <result column="PUBLIC_CLOUD_ID" property="publicCloudId"/>
+        <result column="BACKUP_LOCATION" property="backupLocation"/>
+        <result column="BACKUP_TIME" property="backupTime"/>
+        <result column="BACKUP_SIZE" property="backupSize"/>
+        <result column="IS_LEAF" property="isLeaf"/>
+        <result column="DEFAULT_BACKUP_NAME" property="defaultBackupName"/>
+        <result column="HOST_ID" property="hostId"/>
+        <result column="HOST_IP" property="hostIp"/>
+        <result column="HOST_NAME" property="hostName"/>
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        ID AS id, NAME AS name, BACKUP_MODE AS backupMode, BACKUP_STORAGE_LOCATION AS backupStorageLocation, DOMAIN_KEY
+        AS domainKey, PUBLIC_CLOUD_ID AS publicCloudId, BACKUP_LOCATION AS backupLocation, BACKUP_TIME AS backupTime,
+        BACKUP_SIZE AS backupSize, IS_LEAF AS isLeaf, DEFAULT_BACKUP_NAME AS defaultBackupName, HOST_ID AS hostId
+    </sql>
+
+    <resultMap id="ResponseResultMap" type="com.h3c.h3cloud.vmware.api.entity.response.RsVmBackup">
+        <id column="ID" property="id"/>
+        <result column="NAME" property="name"/>
+        <result column="BACKUP_MODE" property="backupMode"/>
+        <result column="BACKUP_STORAGE_LOCATION" property="backupStorageLocation"/>
+        <result column="BACKUP_STORAGE_NAME" property="backupStorageName"/>
+        <result column="DOMAIN_KEY" property="domainKey"/>
+        <result column="DOMAIN_NAME" property="domainName"/>
+        <result column="BACKUP_LOCATION" property="backupLocation"/>
+        <result column="BACKUP_TIME" property="backupTime"/>
+        <result column="BACKUP_SIZE" property="backupSize"/>
+        <result column="IS_LEAF" property="isLeaf"/>
+        <result column="DEFAULT_BACKUP_NAME" property="defaultBackupName"/>
+        <result column="HOST_ID" property="hostId"/>
+        <result column="HOST_IP" property="hostIp"/>
+        <result column="HOST_NAME" property="hostName"/>
+        <result column="PARENT_ID" property="parentId"/>
+        <result column="PUBLIC_CLOUD_ID" property="publicCloudId"/>
+        <association property="publicCloud" javaType="com.h3c.h3cloud.vmware.api.entity.PublicCloud">
+            <id column="PUBLIC_ID" property="id"/>
+            <result column="BACKUP_NAME" property="name"/>
+            <result column="DESCRIPTION" property="description"/>
+            <result column="FLAG" property="flag"/>
+            <result column="URI" property="uri"/>
+            <result column="PROTOCAL" property="protocal"/>
+            <result column="PORT" property="port"/>
+            <result column="USER_NAME" property="userName"/>
+            <!--<result column="PASSWORD" property="password" />-->
+            <result column="OP_GROUP_ID" property="opGroupId"/>
+            <result column="OP_GROUP_CODE" property="opGroupCode"/>
+        </association>
+        <collection property="children" ofType="com.h3c.h3cloud.vmware.api.entity.response.RsVmBackup"
+                    select="selectBackupById" column="id"/>
+    </resultMap>
+
+    <resultMap id="resultMapForMax" type="com.h3c.h3cloud.vmware.api.entity.response.RsVmBackup">
+        <id column="ID" property="id"/>
+        <result column="NAME" property="name"/>
+        <result column="BACKUP_MODE" property="backupMode"/>
+        <result column="BACKUP_STORAGE_LOCATION" property="backupStorageLocation"/>
+        <result column="BACKUP_STORAGE_NAME" property="backupStorageName"/>
+        <result column="DOMAIN_KEY" property="domainKey"/>
+        <result column="DOMAIN_NAME" property="domainName"/>
+        <result column="BACKUP_LOCATION" property="backupLocation"/>
+        <result column="BACKUP_TIME" property="backupTime"/>
+        <result column="BACKUP_SIZE" property="backupSize"/>
+        <result column="IS_LEAF" property="isLeaf"/>
+        <result column="DEFAULT_BACKUP_NAME" property="defaultBackupName"/>
+        <result column="HOST_ID" property="hostId"/>
+        <result column="PARENT_ID" property="parentId"/>
+        <result column="PUBLIC_CLOUD_ID" property="publicCloudId"/>
+        <association property="publicCloud" javaType="com.h3c.h3cloud.vmware.api.entity.PublicCloud">
+            <id column="PUBLIC_ID" property="id"/>
+            <result column="BACKUP_NAME" property="name"/>
+            <result column="DESCRIPTION" property="description"/>
+            <result column="FLAG" property="flag"/>
+            <result column="URI" property="uri"/>
+            <result column="PROTOCAL" property="protocal"/>
+            <result column="PORT" property="port"/>
+            <result column="USER_NAME" property="userName"/>
+            <!--<result column="PASSWORD" property="password" />-->
+            <result column="OP_GROUP_ID" property="opGroupId"/>
+            <result column="OP_GROUP_CODE" property="opGroupCode"/>
+        </association>
+    </resultMap>
+
+    <!-- sql 片段 -->
+    <sql id="ResponseResultList">
+        TDB.ID, TDB.NAME, TDB.BACKUP_MODE, TDB.BACKUP_STORAGE_LOCATION, TDB.BACKUP_STORAGE_NAME, TDB.DOMAIN_KEY,
+        TDB.DOMAIN_NAME, TDB.BACKUP_LOCATION, TDB.BACKUP_TIME, TDB.BACKUP_SIZE, TDB.IS_LEAF, TDB.DEFAULT_BACKUP_NAME,
+        TDB.HOST_ID, TDB.HOST_IP, TDB.HOST_NAME, TDB.PARENT_ID, TDB.PUBLIC_CLOUD_ID, TPC.ID as PUBLIC_ID, TPC.NAME as
+        BACKUP_NAME, TPC.DESCRIPTION,
+        TPC.FLAG, TPC.URI, TPC.PROTOCAL, TPC.PORT, TPC.USER_NAME, TPC.OP_GROUP_ID, TPC.OP_GROUP_CODE
+    </sql>
+
+    <select id="selectBackupById" resultMap="ResponseResultMap">
+        select TDB.ID, TDB.NAME, TDB.BACKUP_MODE, TDB.BACKUP_STORAGE_LOCATION, TDB.BACKUP_STORAGE_NAME, TDB.DOMAIN_KEY,
+        TDB.DOMAIN_NAME, TDB.BACKUP_LOCATION,
+        TDB.BACKUP_TIME, TDB.BACKUP_SIZE, TDB.IS_LEAF, TDB.DEFAULT_BACKUP_NAME, TDB.HOST_ID, TDB.HOST_IP, TDB.HOST_NAME,
+        TDB.PARENT_ID,
+        TDB.PUBLIC_CLOUD_ID, TPC.ID as PUBLIC_ID, TPC.NAME as BACKUP_NAME, TPC.DESCRIPTION, TPC.FLAG, TPC.URI,
+        TPC.PROTOCAL, TPC.PORT,
+        TPC.USER_NAME, TPC.OP_GROUP_ID, TPC.OP_GROUP_CODE
+        from TBL_DOMAIN_BACKUP TDB left join TBL_PUBLIC_CLOUD TPC on TDB.PUBLIC_CLOUD_ID = TPC.ID
+        where PARENT_ID = #{id}
+    </select>
+
+    <!-- 分页查询备份 -->
+    <select id="getPageList" resultMap="ResponseResultMap">
+        select
+        <include refid="ResponseResultList"></include>
+        from TBL_DOMAIN_BACKUP TDB
+        left join TBL_PUBLIC_CLOUD TPC on TDB.PUBLIC_CLOUD_ID = TPC.ID
+        <where>
+            <if test="map.domainKey != null and map.domainKey != ''">
+                DOMAIN_KEY = #{map.domainKey} and IS_LEAF = 0
+            </if>
+        </where>
+    </select>
+
+    <!-- 查询备份 不分页 -->
+    <select id="getVmBackupList" resultMap="ResponseResultMap">
+        select
+        <include refid="ResponseResultList"></include>
+        from TBL_DOMAIN_BACKUP TDB
+        left join TBL_PUBLIC_CLOUD TPC on TDB.PUBLIC_CLOUD_ID = TPC.ID
+        <where>
+            <if test="map.domainKey != null and map.domainKey != ''">
+                DOMAIN_KEY = #{map.domainKey} and IS_LEAF = 0
+            </if>
+        </where>
+    </select>
+
+    <!-- 查询最新备份周期的备份信息 -->
+    <select id="selectMaxBackupByVmKey" parameterType="String" resultMap="resultMapForMax">
+        select distinct on (TDB.BACKUP_STORAGE_LOCATION, TDB.HOST_ID) TDB.ID, TDB.NAME, TDB.BACKUP_MODE,
+        TDB.BACKUP_STORAGE_LOCATION, TDB.BACKUP_STORAGE_NAME, TDB.DOMAIN_KEY,
+        TDB.DOMAIN_NAME, TDB.BACKUP_LOCATION, TDB.BACKUP_TIME, TDB.BACKUP_SIZE, TDB.IS_LEAF, TDB.DEFAULT_BACKUP_NAME, TDB.HOST_ID,
+        TDB.PARENT_ID, TDB.PUBLIC_CLOUD_ID, TPC.ID as PUBLIC_ID, TPC.NAME as BACKUP_NAME, TPC.DESCRIPTION, TPC.FLAG, TPC.URI, TPC.PROTOCAL, TPC.PORT,
+        TPC.USER_NAME, TPC.OP_GROUP_ID, TPC.OP_GROUP_CODE
+        from TBL_DOMAIN_BACKUP TDB
+        left join TBL_PUBLIC_CLOUD TPC on TDB.PUBLIC_CLOUD_ID = TPC.ID
+        <where>
+            <if test="domainKey != null and domainKey != ''">
+                TDB.DOMAIN_KEY = #{domainKey} and TDB.ID IN
+                (select max(ID) from TBL_DOMAIN_BACKUP where DOMAIN_KEY = #{domainKey} group by BACKUP_STORAGE_LOCATION , HOST_ID)
+            </if>
+        </where>
+    </select>
+
+    <select id="selectBackupWithChildren" resultMap="ResponseResultMap">
+        select
+        <include refid="ResponseResultList"></include>
+        from TBL_DOMAIN_BACKUP TDB left join TBL_PUBLIC_CLOUD TPC on TDB.PUBLIC_CLOUD_ID = TPC.ID
+        <where>
+            <if test="map.id != null">
+                TDB.ID = #{map.id}
+            </if>
+            <if test="map.isLeaf != null">
+                and IS_LEAF = #{map.isLeaf}
+            </if>
+        </where>
+    </select>
+
+    <select id="selectRsBackupWithChildren" parameterType="Long" resultMap="ResponseResultMap">
+        select
+        <include refid="ResponseResultList"></include>
+        from TBL_DOMAIN_BACKUP TDB left join TBL_PUBLIC_CLOUD TPC on TDB.PUBLIC_CLOUD_ID = TPC.ID
+        <where>
+            <if test="id != null">
+                TDB.ID = #{id}
+            </if>
+        </where>
+    </select>
+
+    <!-- 级联删除虚拟机备份 包含子节点 -->
+    <delete id="deleteBackupWithChildren">
+        delete from TBL_DOMAIN_BACKUP where ID = #{id} or PARENT_ID = #{id}
+    </delete>
+
+    <select id="getVmBackupByPath" resultMap="ResponseResultMap">
+        select TDB.ID, TDB.NAME, TDB.BACKUP_MODE, TDB.BACKUP_STORAGE_LOCATION, TDB.DOMAIN_KEY, TDB.BACKUP_LOCATION,
+        TDB.BACKUP_TIME, TDB.BACKUP_SIZE, TDB.IS_LEAF, TDB.DEFAULT_BACKUP_NAME, TDB.HOST_ID, TDB.PARENT_ID,
+        TPC.ID AS PUBLIC_ID, TPC.NAME AS BACKUP_NAME, TPC.DESCRIPTION, TPC.FLAG, TPC.URI, TPC.PROTOCAL, TPC.PORT,
+        TPC.USER_NAME, TPC.OP_GROUP_ID, TPC.OP_GROUP_CODE
+        from TBL_DOMAIN_BACKUP TDB left join TBL_PUBLIC_CLOUD TPC on TDB.PUBLIC_CLOUD_ID = TPC.ID
+        <where>
+            <if test="backupLocation != null and backupLocation != ''">
+                and BACKUP_LOCATION = #{backupLocation}
+            </if>
+        </where>
+    </select>
+
+    <select id="getVmBackupByVmKey" resultMap="ResponseResultMap">
+        select TDB.ID, TDB.NAME, TDB.BACKUP_MODE, TDB.BACKUP_STORAGE_LOCATION, TDB.DOMAIN_KEY, TDB.BACKUP_LOCATION,
+        TDB.BACKUP_TIME, TDB.BACKUP_SIZE, TDB.IS_LEAF, TDB.DEFAULT_BACKUP_NAME, TDB.HOST_ID, TDB.PARENT_ID,
+        TPC.ID AS PUBLIC_ID, TPC.NAME AS BACKUP_NAME, TPC.DESCRIPTION, TPC.FLAG, TPC.URI, TPC.PROTOCAL, TPC.PORT,
+        TPC.USER_NAME, TPC.OP_GROUP_ID, TPC.OP_GROUP_CODE
+        from TBL_DOMAIN_BACKUP TDB left join TBL_PUBLIC_CLOUD TPC on TDB.PUBLIC_CLOUD_ID = TPC.ID
+        <where>
+            <if test="domainKey != null and domainKey != ''">
+                and DOMAIN_KEY = #{domainKey}
+            </if>
+            order by TDB.ID desc
+        </where>
+    </select>
+
+    <select id="backupVM" resultType="com.h3c.h3cloud.common.model.VMwareVmBackupInfoEntity">
+        select
+        distinct domain_name as domainName,public_cloud_id as publicCloudId,domain_key as domainKey
+        from TBL_DOMAIN_BACKUP
+        <where>
+            <if test="publicCloudId !=null">
+                and public_cloud_id=#{publicCloudId}
+            </if>
+            <if test="vmTitle !=null and vmTitle !=''">
+                and domain_name like CONCAT('%',#{vmTitle},'%')
+            </if>
+        </where>
+        order by domain_name;
+    </select>
+
+    <delete id="deleteBypublicId">
+        delete from TBL_DOMAIN_BACKUP
+        where
+        PUBLIC_CLOUD_ID = #{publicCloudId}
+    </delete>
+</mapper>

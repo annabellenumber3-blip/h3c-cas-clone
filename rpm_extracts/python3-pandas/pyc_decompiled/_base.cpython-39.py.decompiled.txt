@@ -1,0 +1,794 @@
+m Z 
+l!m"Z"
+l#m$Z$m%Z%m&Z&m'Z'
+l(m)Z)
+l*m+Z+
+l,m-Z-
+l.m/Z/m0Z0m1Z1m2Z2
+l3m4Z4m5Z5m6Z6m7Z7m8Z8
+l9m:Z:
+;e<e
+d5d d!d"
+d#d$
+d%d&
+j?d'
+d(d)
+j?d'
+ZAd*ZBd+ZCeDeEeFeBeCf
+ZGe e+d,
+d6d.d!d/d0
+d1d2
+d3d4
+annotationsN)
+BytesIO)
+fill)
+Mapping
+cast)
+config)
+STR_NA_VALUES)
+Buffer
+DtypeArg
+FilePathOrBuffer
+StorageOptions)
+get_version
+import_optional_dependency)
+EmptyDataError)
+Appender
+deprecate_nonkeyword_arguments
+doc)
+find_stack_level)
+is_bool
+is_float
+is_integer
+is_list_like)
+	DataFrame)
+_shared_docs)
+Version)
+	IOHandles
+get_handle
+stringify_path
+validate_header_arg)
+fill_mi_header
+get_default_engine
+get_writer
+maybe_convert_usecols
+pop_header_name)
+TextParsera.
+Read an Excel file into a pandas DataFrame.
+Supports `xls`, `xlsx`, `xlsm`, `xlsb`, `odf`, `ods` and `odt` file extensions
+read from a local filesystem or URL. Supports an option to read
+a single sheet or a list of sheets.
+Parameters
+----------
+io : str, bytes, ExcelFile, xlrd.Book, path object, or file-like object
+    Any valid string path is acceptable. The string could be a URL. Valid
+    URL schemes include http, ftp, s3, and file. For file URLs, a host is
+    expected. A local file could be: ``file://localhost/path/to/table.xlsx``.
+    If you want to pass in a path object, pandas accepts any ``os.PathLike``.
+    By file-like object, we refer to objects with a ``read()`` method,
+    such as a file handle (e.g. via builtin ``open`` function)
+    or ``StringIO``.
+sheet_name : str, int, list, or None, default 0
+    Strings are used for sheet names. Integers are used in zero-indexed
+    sheet positions. Lists of strings/integers are used to request
+    multiple sheets. Specify None to get all sheets.
+    Available cases:
+    * Defaults to ``0``: 1st sheet as a `DataFrame`
+    * ``1``: 2nd sheet as a `DataFrame`
+    * ``"Sheet1"``: Load sheet with name "Sheet1"
+    * ``[0, 1, "Sheet5"]``: Load first, second and sheet named "Sheet5"
+      as a dict of `DataFrame`
+    * None: All sheets.
+header : int, list of int, default 0
+    Row (0-indexed) to use for the column labels of the parsed
+    DataFrame. If a list of integers is passed those row positions will
+    be combined into a ``MultiIndex``. Use None if there is no header.
+names : array-like, default None
+    List of column names to use. If file contains no header row,
+    then you should explicitly pass header=None.
+index_col : int, list of int, default None
+    Column (0-indexed) to use as the row labels of the DataFrame.
+    Pass None if there is no such column.  If a list is passed,
+    those columns will be combined into a ``MultiIndex``.  If a
+    subset of data is selected with ``usecols``, index_col
+    is based on the subset.
+usecols : int, str, list-like, or callable default None
+    * If None, then parse all columns.
+    * If str, then indicates comma separated list of Excel column letters
+      and column ranges (e.g. "A:E" or "A,C,E:F"). Ranges are inclusive of
+      both sides.
+    * If list of int, then indicates list of column numbers to be parsed.
+    * If list of string, then indicates list of column names to be parsed.
+    * If callable, then evaluate each column name against it and parse the
+      column if the callable returns ``True``.
+    Returns a subset of the columns according to behavior above.
+squeeze : bool, default False
+    If the parsed data only contains one column then return a Series.
+dtype : Type name or dict of column -> type, default None
+    Data type for data or columns. E.g. {'a': np.float64, 'b': np.int32}
+    Use `object` to preserve data as stored in Excel and not interpret dtype.
+    If converters are specified, they will be applied INSTEAD
+    of dtype conversion.
+engine : str, default None
+    If io is not a buffer or path, this must be set to identify io.
+    Supported engines: "xlrd", "openpyxl", "odf", "pyxlsb".
+    Engine compatibility :
+    - "xlrd" supports old-style Excel files (.xls).
+    - "openpyxl" supports newer Excel file formats.
+    - "odf" supports OpenDocument file formats (.odf, .ods, .odt).
+    - "pyxlsb" supports Binary Excel files.
+    .. versionchanged:: 1.2.0
+        The engine `xlrd <https://xlrd.readthedocs.io/en/latest/>`_
+        now only supports old-style ``.xls`` files.
+        When ``engine=None``, the following logic will be
+        used to determine the engine:
+       - If ``path_or_buffer`` is an OpenDocument format (.odf, .ods, .odt),
+         then `odf <https://pypi.org/project/odfpy/>`_ will be used.
+       - Otherwise if ``path_or_buffer`` is an xls format,
+         ``xlrd`` will be used.
+       - Otherwise if ``path_or_buffer`` is in xlsb format,
+         ``pyxlsb`` will be used.
+         .. versionadded:: 1.3.0
+       - Otherwise ``openpyxl`` will be used.
+         .. versionchanged:: 1.3.0
+converters : dict, default None
+    Dict of functions for converting values in certain columns. Keys can
+    either be integers or column labels, values are functions that take one
+    input argument, the Excel cell content, and return the transformed
+    content.
+true_values : list, default None
+    Values to consider as True.
+false_values : list, default None
+    Values to consider as False.
+skiprows : list-like, int, or callable, optional
+    Line numbers to skip (0-indexed) or number of lines to skip (int) at the
+    start of the file. If callable, the callable function will be evaluated
+    against the row indices, returning True if the row should be skipped and
+    False otherwise. An example of a valid callable argument would be ``lambda
+    x: x in [0, 2]``.
+nrows : int, default None
+    Number of rows to parse.
+na_values : scalar, str, list-like, or dict, default None
+    Additional strings to recognize as NA/NaN. If dict passed, specific
+    per-column NA values. By default the following values are interpreted
+    as NaN: 'z
+', '
+    )
+subsequent_indentan
+keep_default_na : bool, default True
+    Whether or not to include the default NaN values when parsing the data.
+    Depending on whether `na_values` is passed in, the behavior is as follows:
+    * If `keep_default_na` is True, and `na_values` are specified, `na_values`
+      is appended to the default NaN values used for parsing.
+    * If `keep_default_na` is True, and `na_values` are not specified, only
+      the default NaN values are used for parsing.
+    * If `keep_default_na` is False, and `na_values` are specified, only
+      the NaN values specified `na_values` are used for parsing.
+    * If `keep_default_na` is False, and `na_values` are not specified, no
+      strings will be parsed as NaN.
+    Note that if `na_filter` is passed in as False, the `keep_default_na` and
+    `na_values` parameters will be ignored.
+na_filter : bool, default True
+    Detect missing value markers (empty strings and the value of na_values). In
+    data without any NAs, passing na_filter=False can improve the performance
+    of reading a large file.
+verbose : bool, default False
+    Indicate number of NA values placed in non-numeric columns.
+parse_dates : bool, list-like, or dict, default False
+    The behavior is as follows:
+    * bool. If True -> try parsing the index.
+    * list of int or names. e.g. If [1, 2, 3] -> try parsing columns 1, 2, 3
+      each as a separate date column.
+    * list of lists. e.g.  If [[1, 3]] -> combine columns 1 and 3 and parse as
+      a single date column.
+    * dict, e.g. {'foo' : [1, 3]} -> parse columns 1, 3 as date and call
+      result 'foo'
+    If a column or index contains an unparsable date, the entire column or
+    index will be returned unaltered as an object data type. If you don`t want to
+    parse some cells as date just change their type in Excel to "Text".
+    For non-standard datetime parsing, use ``pd.to_datetime`` after ``pd.read_excel``.
+    Note: A fast-path exists for iso8601-formatted dates.
+date_parser : function, optional
+    Function to use for converting a sequence of string columns to an array of
+    datetime instances. The default uses ``dateutil.parser.parser`` to do the
+    conversion. Pandas will try to call `date_parser` in three different ways,
+    advancing to the next if an exception occurs: 1) Pass one or more arrays
+    (as defined by `parse_dates`) as arguments; 2) concatenate (row-wise) the
+    string values from the columns defined by `parse_dates` into a single array
+    and pass that; and 3) call `date_parser` once for each row using one or
+    more strings (corresponding to the columns defined by `parse_dates`) as
+    arguments.
+thousands : str, default None
+    Thousands separator for parsing string columns to numeric.  Note that
+    this parameter is only necessary for columns stored as TEXT in Excel,
+    any numeric columns will automatically be parsed, regardless of display
+    format.
+comment : str, default None
+    Comments out remainder of line. Pass a character or characters to this
+    argument to indicate comments in the input file. Any data between the
+    comment string and the end of the current line is ignored.
+skipfooter : int, default 0
+    Rows at the end to skip (0-indexed).
+convert_float : bool, default True
+    Convert integral floats to int (i.e., 1.0 --> 1). If False, all numeric
+    data will be read in as floats: Excel stores all numbers as floats
+    internally.
+    .. deprecated:: 1.3.0
+        convert_float will be removed in a future version
+mangle_dupe_cols : bool, default True
+    Duplicate columns will be specified as 'X', 'X.1', ...'X.N', rather than
+    'X'...'X'. Passing in False will cause data to be overwritten if there
+    are duplicate names in the columns.
+storage_options : dict, optional
+    Extra options that make sense for a particular storage connection, e.g.
+    host, port, username, password, etc., if using a URL that will
+    be parsed by ``fsspec``, e.g., starting "s3://", "gcs://". An error
+    will be raised if providing this argument with a local path or
+    a file-like buffer. See the fsspec and backend storage implementation
+    docs for the set of allowed keys and values.
+    .. versionadded:: 1.2.0
+Returns
+-------
+DataFrame or dict of DataFrames
+    DataFrame from the passed in Excel file. See notes in sheet_name
+    argument for more information on when a dict of DataFrames is returned.
+See Also
+--------
+DataFrame.to_excel : Write DataFrame to an Excel file.
+DataFrame.to_csv : Write DataFrame to a comma-separated values (csv) file.
+read_csv : Read a comma-separated values (csv) file into DataFrame.
+read_fwf : Read a table of fixed-width formatted lines into DataFrame.
+Examples
+--------
+The file can be read using the file name as string or an open file object:
+>>> pd.read_excel('tmp.xlsx', index_col=0)  # doctest: +SKIP
+       Name  Value
+0   string1      1
+1   string2      2
+2  #Comment      3
+>>> pd.read_excel(open('tmp.xlsx', 'rb'),
+...               sheet_name='Sheet3')  # doctest: +SKIP
+   Unnamed: 0      Name  Value
+0           0   string1      1
+1           1   string2      2
+2           2  #Comment      3
+Index and header can be specified via the `index_col` and `header` arguments
+>>> pd.read_excel('tmp.xlsx', index_col=None, header=None)  # doctest: +SKIP
+     0         1      2
+0  NaN      Name  Value
+1  0.0   string1      1
+2  1.0   string2      2
+3  2.0  #Comment      3
+Column types are inferred but can be explicitly specified
+>>> pd.read_excel('tmp.xlsx', index_col=0,
+...               dtype={'Name': str, 'Value': float})  # doctest: +SKIP
+       Name  Value
+0   string1    1.0
+1   string2    2.0
+2  #Comment    3.0
+True, False, and NA values, and thousands separators have defaults,
+but can be explicitly specified, too. Supply the values you would like
+as strings or lists of strings!
+>>> pd.read_excel('tmp.xlsx', index_col=0,
+...               na_values=['string1', 'string2'])  # doctest: +SKIP
+       Name  Value
+0       NaN      1
+1       NaN      2
+2  #Comment      3
+Comment lines in the excel input file can be skipped using the `comment` kwarg
+>>> pd.read_excel('tmp.xlsx', index_col=0, comment='#')  # doctest: +SKIP
+      Name  Value
+0  string1    1.0
+1  string2    2.0
+2     None    NaN
+sheet_namez
+2.0)
+allowed_args
+versionFT
+DtypeArg | Noner
+dtype
+storage_optionsc
+NFT)
+enginez_Engine should not be specified when passing an ExcelFile - ExcelFile already has the engine set)
+header
+names
+	index_col
+usecols
+squeezer+
+converters
+true_values
+false_values
+skiprows
+nrows
+	na_values
+keep_default_na
+	na_filter
+verbose
+parse_dates
+date_parser
+	thousands
+comment
+skipfooter
+convert_float
+mangle_dupe_cols)
+isinstance
+	ExcelFiler-
+ValueError
+parse
+close)
+should_close
+data
+;/usr/lib64/python3.9/site-packages/pandas/io/excel/_base.py
+read_excelJ
+d%d d!
+d"d#
+BaseExcelReaderNr
+method)
+handle
+compression
+is_text
+readr
+zCMust explicitly set engine if not passing in buffer or path for io.)
+handlesrC
+_workbook_classr
+book
+hasattr
+seek
+load_workbook
+	ExceptionrG
+bytesr
+self
+filepath_or_bufferr,
+__init__
+BaseExcelReader.__init__c
+BaseExcelReader._workbook_classc
+BaseExcelReader.load_workbookc
+BaseExcelReader.closec
+sheet_names
+BaseExcelReader.sheet_namesc
+namerI
+get_sheet_by_name
+z!BaseExcelReader.get_sheet_by_namec
+indexrI
+get_sheet_by_index
+z"BaseExcelReader.get_sheet_by_indexc
+sheetrA
+get_sheet_data
+BaseExcelReader.get_sheet_data
+None)
+returnc
+Worksheet index z
+ is invalid, z
+ worksheets found)
+lenra
+n_sheetsrI
+raise_if_bad_sheet_by_index
+z+BaseExcelReader.raise_if_bad_sheet_by_index
+str)
+Worksheet named 'z
+' not found)
+raise_if_bad_sheet_by_name
+z*BaseExcelReader.raise_if_bad_sheet_by_namer
+FTr*
+} }!|
+}#n t
+}#|"
+}#|#t
+]j}$|
+r`|%|
+}&|&j
+NTzCconvert_float is deprecated and will be removed in a future version
+stacklevelFz
+Reading sheet rG
+has_index_namesr2
+skip_blank_linesr<
+warnings
+warn
+FutureWarningr
+listra
+dict
+fromkeys
+keys
+printrn
+append
+ranger%
+columnsZ	set_namesr
+)'r\
+kwdsrq
+ret_dict
+sheets
+outputZ
+asheetnamerg
+header_namesZ
+control_row
+rowZ
+header_name
+offset
+colZ
+last
+parserrI
+BaseExcelReader.parse)
+NNNFNNNNNNFFNNNr
+__name__
+__module__
+__qualname__r^
+property
+abstractmethodrU
+	metaclassc
+d d!
+d"d#
+d$d%
+ExcelWritera
+    Class for writing DataFrame objects into excel sheets.
+    Default is to use xlwt for xls, openpyxl for xlsx, odf for ods.
+    See DataFrame.to_excel for typical usage.
+    The writer should be used as a context manager. Otherwise, call `close()` to save
+    and close any opened file handles.
+    Parameters
+    ----------
+    path : str or typing.BinaryIO
+        Path to xls or xlsx or ods file.
+    engine : str (optional)
+        Engine to use for writing. If None, defaults to
+        ``io.excel.<extension>.writer``.  NOTE: can only be passed as a keyword
+        argument.
+        .. deprecated:: 1.2.0
+            As the `xlwt <https://pypi.org/project/xlwt/>`__ package is no longer
+            maintained, the ``xlwt`` engine will be removed in a future
+            version of pandas.
+    date_format : str, default None
+        Format string for dates written into Excel files (e.g. 'YYYY-MM-DD').
+    datetime_format : str, default None
+        Format string for datetime objects written into Excel files.
+        (e.g. 'YYYY-MM-DD HH:MM:SS').
+    mode : {'w', 'a'}, default 'w'
+        File mode to use (write or append). Append does not work with fsspec URLs.
+    storage_options : dict, optional
+        Extra options that make sense for a particular storage connection, e.g.
+        host, port, username, password, etc., if using a URL that will
+        be parsed by ``fsspec``, e.g., starting "s3://", "gcs://".
+        .. versionadded:: 1.2.0
+    if_sheet_exists : {'error', 'new', 'replace'}, default 'error'
+        How to behave when trying to write to a sheet that already
+        exists (append mode only).
+        * error: raise a ValueError.
+        * new: Create a new sheet, with a name determined by the engine.
+        * replace: Delete the contents of the sheet before writing to it.
+        .. versionadded:: 1.3.0
+    engine_kwargs : dict, optional
+        Keyword arguments to be passed into the engine.
+        .. versionadded:: 1.3.0
+    **kwargs : dict, optional
+        Keyword arguments to be passed into the engine.
+        .. deprecated:: 1.3.0
+            Use engine_kwargs instead.
+    Attributes
+    ----------
+    None
+    Methods
+    -------
+    None
+    Notes
+    -----
+    None of the methods and properties are considered public.
+    For compatibility with CSV writers, ExcelWriter serializes lists
+    and dicts to strings before writing.
+    Examples
+    --------
+    Default usage:
+    >>> df = pd.DataFrame([["ABC", "XYZ"]], columns=["Foo", "Bar"])
+    >>> with ExcelWriter("path_to_file.xlsx") as writer:
+    ...     df.to_excel(writer)
+    To write to separate sheets in a single file:
+    >>> df1 = pd.DataFrame([["AAA", "BBB"]], columns=["Spam", "Egg"])
+    >>> df2 = pd.DataFrame([["ABC", "XYZ"]], columns=["Foo", "Bar"])
+    >>> with ExcelWriter("path_to_file.xlsx") as writer:
+    ...     df1.to_excel(writer, sheet_name="Sheet1")
+    ...     df2.to_excel(writer, sheet_name="Sheet2")
+    You can set the date format or datetime format:
+    >>> from datetime import date, datetime
+    >>> df = pd.DataFrame(
+    ...     [
+    ...         [date(2014, 1, 31), date(1999, 9, 24)],
+    ...         [datetime(1998, 5, 26, 23, 33, 4), datetime(2014, 2, 28, 13, 5, 13)],
+    ...     ],
+    ...     index=["Date", "Datetime"],
+    ...     columns=["X", "Y"],
+    ... )
+    >>> with ExcelWriter(
+    ...     "path_to_file.xlsx",
+    ...     date_format="YYYY-MM-DD",
+    ...     datetime_format="YYYY-MM-DD HH:MM:SS"
+    ... ) as writer:
+    ...     df.to_excel(writer)
+    You can also append to an existing Excel file:
+    >>> with ExcelWriter("path_to_file.xlsx", mode="a", engine="openpyxl") as writer:
+    ...     df.to_excel(writer, sheet_name="Sheet3")
+    You can store Excel file in RAM:
+    >>> import io
+    >>> df = pd.DataFrame([["ABC", "XYZ"]], columns=["Foo", "Bar"])
+    >>> buffer = io.BytesIO()
+    >>> with pd.ExcelWriter(buffer) as writer:
+    ...     df.to_excel(writer)
+    You can pack Excel file into zip archive:
+    >>> import zipfile
+    >>> df = pd.DataFrame([["ABC", "XYZ"]], columns=["Foo", "Bar"])
+    >>> with zipfile.ZipFile("path_to_file.zip", "w") as zf:
+    ...     with zf.open("filename.xlsx", "w") as buffer:
+    ...         with pd.ExcelWriter(buffer) as writer:
+    ...             df.to_excel(writer)
+    N
+FilePathOrBuffer | ExcelWriterrn
+str | Nonez
+dict | None)
+path
+moder,
+if_sheet_exists
+engine_kwargsc	
+|	r$|
+Nz*Cannot use both engine_kwargs and **kwargsz9Use of **kwargs is deprecated, use engine_kwargs instead.
+auto
+xlsx
+	io.excel.z
+.writerT
+silent
+writer
+No engine for filetype: '
+xlwtz
+io.excel.xls.writera
+As the xlwt package is no longer maintained, the xlwt engine will be removed in a future version of pandas. This is the only engine in pandas that supports writing in the xls format. Install openpyxl and write to an xlsx file instead. You can set the option io.excel.xls.writer to 'xlwt' to silence this warning. While this option is deprecated and will also raise a warning, it can be globally set and the warning suppressed.
+splitextr
+get_optionr!
+KeyErrorr"
+object
+__new__)
+clsr
+date_format
+datetime_formatr
+kwargs
+errZ
+xls_config_enginerI
+ExcelWriter.__new__c
+z'Extensions that writer engine supports.NrI
+supported_extensions[
+z ExcelWriter.supported_extensionsc
+Name of engine.NrI
+ExcelWriter.enginer
+        Write given formatted cells into Excel an excel sheet
+        Parameters
+        ----------
+        cells : generator
+            cell of formatted data to save to Excel sheet
+        sheet_name : str, default None
+            Name of Excel sheet, if None, then use self.cur_sheet
+        startrow : upper left cell row to dump data frame
+        startcol : upper left cell column to dump data frame
+        freeze_panes: int tuple of length 2
+            contains the bottom-most row and right-most column to freeze
+        NrI
+cellsr(
+startrowZ
+startcolZ
+freeze_panesrI
+write_cellsg
+ExcelWriter.write_cellsc
+        Save workbook to disk.
+        NrI
+save{
+ExcelWriter.savec	
+copression)
+YYYY-MM-DDz
+YYYY-MM-DD HH:MM:SS)
+error
+replacer
+zS' is not valid for if_sheet_exists. Valid options are 'error', 'new' and 'replace'.z7if_sheet_exists is only valid in append mode (mode='a')r
+check_extensionr
+	cur_sheetr
+ExcelWriter.__init__c
+getattrrT
+__fspath__
+ExcelWriter.__fspath__c
+Nz7Must pass explicit sheet_name or set cur_sheet property)
+_get_sheet_name
+ExcelWriter._get_sheet_namec
+        Convert numpy types to Python types for the Excel writers.
+        Parameters
+        ----------
+        val : object
+            Value to be written into cells
+        Returns
+        -------
+        Tuple with the first element being the converted value and the second
+            being an optional format
+        Ni
+floatr
+boolrC
+datetimer
+dater
+Z	timedeltaZ
+total_secondsrn
+valZ
+fmtrI
+_value_with_fmt
+ExcelWriter._value_with_fmt
+        checks that path's extension against the Writer's supported
+        extensions.  If it isn't supported, raises UnsupportedFiletypeError.
+        
+	extensionr
+	<genexpr>
+z.ExcelWriter.check_extension.<locals>.<genexpr>z
+Invalid extension for engine 'z
+': 'r
+startswith
+anyr
+ExcelWriter.check_extensionc
+	__enter__
+ExcelWriter.__enter__c
+exc_type
+	exc_value
+	tracebackrI
+__exit__
+ExcelWriter.__exit__c
+z+synonym for save, to make it more file-like)
+contentrI
+ExcelWriter.close)
+NNNr
+NNN)
+NNNr
+NNN)
+__doc__r
+classmethodr
+content_or_pathr,
+    Inspect the path or content of an excel file and get its format.
+    Adopted from xlrd: https://github.com/python-excel/xlrd.
+    Parameters
+    ----------
+    content_or_path : str or file-like object
+        Path to file or content of file to inspect. May be a URL.
+    {storage_options}
+    Returns
+    -------
+    str or None
+        Format of file if it can be determined.
+    Raises
+    ------
+    ValueError
+        If resulting stream is empty.
+    BadZipFile
+        If resulting stream does not have an XLS signature and is not a valid zipfile.
+    rQ
+stream is emptyc
+peekrI
+z'inspect_excel_format.<locals>.<genexpr>
+xlsc
+lower)
+<listcomp>F
+z(inspect_excel_format.<locals>.<listcomp>z
+xl/workbook.xmlr
+xl/workbook.binZ
+xlsbz
+content.xmlZ
+zip)
+	PEEK_SIZErE
+XLS_SIGNATURESr
+ZIP_SIGNATURE
+zipfileZ
+ZipFileZ
+namelist)
+streamZ
+bufZ
+component_namesrI
+inspect_excel_format
+m	Z	
+)#rD
+    Class for parsing tabular excel sheets into DataFrame objects.
+    See read_excel for more documentation.
+    Parameters
+    ----------
+    path_or_buffer : str, path object (pathlib.Path or py._path.local.LocalPath),
+        a file-like object, xlrd workbook or openpyxl workbook.
+        If a string or path object, expected to be a path to a
+        .xls, .xlsx, .xlsb, .xlsm, .odf, .ods, or .odt file.
+    engine : str, default None
+        If io is not a buffer or path, this must be set to identify io.
+        Supported engines: ``xlrd``, ``openpyxl``, ``odf``, ``pyxlsb``
+        Engine compatibility :
+        - ``xlrd`` supports old-style Excel files (.xls).
+        - ``openpyxl`` supports newer Excel file formats.
+        - ``odf`` supports OpenDocument file formats (.odf, .ods, .odt).
+        - ``pyxlsb`` supports Binary Excel files.
+        .. versionchanged:: 1.2.0
+           The engine `xlrd <https://xlrd.readthedocs.io/en/latest/>`_
+           now only supports old-style ``.xls`` files.
+           When ``engine=None``, the following logic will be
+           used to determine the engine:
+           - If ``path_or_buffer`` is an OpenDocument format (.odf, .ods, .odt),
+             then `odf <https://pypi.org/project/odfpy/>`_ will be used.
+           - Otherwise if ``path_or_buffer`` is an xls format,
+             ``xlrd`` will be used.
+           - Otherwise if ``path_or_buffer`` is in xlsb format,
+             `pyxlsb <https://pypi.org/project/pyxlsb/>`_ will be used.
+           .. versionadded:: 1.3.0
+           - Otherwise if `openpyxl <https://pypi.org/project/openpyxl/>`_ is installed,
+             then ``openpyxl`` will be used.
+           - Otherwise if ``xlrd >= 2.0`` is installed, a ``ValueError`` will be raised.
+           - Otherwise ``xlrd`` will be used and a ``FutureWarning`` will be raised.
+             This case will raise a ``ValueError`` in a future version of pandas.
+           .. warning::
+            Please do not report issues when using ``xlrd`` to read ``.xlsx`` files.
+            This is not supported, switch to using ``openpyxl`` instead.
+    r
+	ODFReader)
+OpenpyxlReader)
+PyxlsbReader)
+XlrdReader)
+xlrdZ
+openpyxlZ
+odfZ
+pyxlsbz
+Mapping[str, Any]
+_enginesNr
+Unknown engine: r
+ignore)
+errorsr
+zLExcel file format cannot be determined, you must specify an engine manually.r
+.readerTr
+readerr
+Your version of xlrd is zM. In xlrd >= 2.0, only the xls format is supported. Install openpyxl instead.rp
+_ior
+Bookr
+_reader)
+path_or_bufferr-
+xlrd_versionr
+ExcelFile.__init__c
+ExcelFile.__fspath__FTc
+        Parse specified sheet(s) into a DataFrame.
+        Equivalent to read_excel(ExcelFile, ...)  See the read_excel
+        docstring for more info on accepted parameters.
+        Returns
+        -------
+        DataFrame or dict of DataFrames
+            DataFrame from the passed in Excel file.
+        )
+ExcelFile.parsec
+ExcelFile.bookc
+ExcelFile.sheet_namesc
+close io if necessaryN)
+ExcelFile.closec
+ExcelFile.__enter__c
+ExcelFile.__exit__c
+AttributeErrorr`
+__del__!
+ExcelFile.__del__)
+NNNFNNNNNNFNNNr
+pandas.io.excel._odfreaderr
+pandas.io.excel._openpyxlr
+pandas.io.excel._pyxlsbr
+pandas.io.excel._xlrdr
+__annotations__r^
+NNNFNNNNNNNNTTFFNNNr
+NTN)
+N)JZ
+__future__r
+textwrapr
+typingr
+pandas._configr
+pandas._libs.parsersr	
+pandas._typingr
+pandas.compat._optionalr
+pandas.errorsr
+pandas.util._decoratorsr
+pandas.util._exceptionsr
+pandas.core.dtypes.commonr
+pandas.core.framer
+pandas.core.shared_docsr
+pandas.util.versionr
+pandas.io.commonr
+pandas.io.excel._utilr 
+pandas.io.parsersr%
+join
+sortedZ
+_read_excel_docrK
+ABCMetarL
+maprl
+<module>

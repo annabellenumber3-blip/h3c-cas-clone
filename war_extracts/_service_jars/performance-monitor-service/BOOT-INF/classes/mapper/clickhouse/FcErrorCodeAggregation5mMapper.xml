@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.h3c.h3cloud.performance.monitor.service.mapper.clickhouse.FcErrorCodeAggregation5mMapper">
+    <delete id ="deleteBeforeTime">
+        ALTER TABLE AGG_FC_STORAGE_ERROR_CODE_5M DELETE WHERE TIME &lt; #{time}
+    </delete>
+    <select id="readPhysicPortFcErrorCodeByCondition" resultType="com.h3c.h3cloud.common.model.performance.FcErrorCodeData">
+        SELECT  FEC.PHYSIC_PORT AS physicPort, avgMerge(ERROR_FRAMES_AVG) as errorFrames,  avgMerge(INVALID_CRC_COUNT_AVG) as invalidCrcCount,
+        avgMerge(LOSS_OF_SIGNAL_COUNT_AVG) as lossOfSignalCount,
+        avgMerge(LOSS_OF_SYNC_COUNT_AVG) as lossOfSyncCount, avgMerge(LINK_FAILURE_COUNT_AVG) as linkFailureCount,
+        avgMerge(INVALID_TX_WORD_COUNT_AVG) as invalidTxWordCount, FEC.TIME AS time
+        FROM AGG_FC_STORAGE_ERROR_CODE_5M FEC
+        WHERE PHYSIC_PORT = #{physicPort} AND TIME BETWEEN ${startTime} AND ${endTime}
+        <if test="operatorGroupCode!=null and operatorGroupCode!=''">
+            AND FEC.OP_GROUP_CODE LIKE #{operatorGroupCode}
+        </if>
+        GROUP BY HOST_POOL_ID, CLUSTER_ID, HOST_ID, PHYSIC_PORT, TIME
+        ORDER BY TIME ASC
+    </select>
+    <select id="isFcErrorCodeExistsRecently" resultType="com.h3c.h3cloud.common.model.performance.FcErrorCodeStatisticsData">
+        SELECT sumMerge(ERROR_FRAMES_SUM) as errorFramesSum,  sumMerge(INVALID_CRC_COUNT_SUM) as invalidCrcCountSum, sumMerge(LOSS_OF_SIGNAL_COUNT_SUM) as lossOfSignalCountSum,
+        sumMerge(LOSS_OF_SYNC_COUNT_SUM) as lossOfSyncCountSum, sumMerge(LINK_FAILURE_COUNT_SUM) as linkFailureCountSum, sumMerge(INVALID_TX_WORD_COUNT_SUM) as invalidTxWordCountSum
+        FROM AGG_FC_STORAGE_ERROR_CODE_5M
+        WHERE HOST_ID = ${hostId} AND PHYSIC_PORT = #{physicPort}
+        <if test="startTime!=null and startTime!=''">
+            AND TIME BETWEEN ${startTime} AND ${endTime}
+        </if>
+        GROUP BY HOST_ID, PHYSIC_PORT
+        LIMIT 0,${limit}
+    </select>
+</mapper>

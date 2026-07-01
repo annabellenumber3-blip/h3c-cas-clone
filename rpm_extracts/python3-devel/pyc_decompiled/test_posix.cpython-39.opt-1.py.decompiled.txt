@@ -1,0 +1,1068 @@
+l	Z	d
+Z%e&d k
+Test posix functions
+support)
+assert_python_ok
+posixNz
+-dummy-symlink
+z(test is only meaningful on 32-bit buildsc
+sched_getschedulerFr
+hasattrr
+OSError
+errno
+ENOSYS)
+'/usr/lib64/python3.9/test/test_posix.py
+_supports_sched
+requires POSIX scheduler APIc
+d!d"
+e	d#
+d%d&
+e	d'
+d)d*
+e	d+
+d-d.
+d/d0
+d4d5
+e	d6
+d8d9
+d:d;
+e	d<
+d>d?
+e	d@
+dBdC
+e	dD
+dFdG
+e	dD
+e	dH
+dJdK
+e	dD
+dLdM
+e	dN
+dPdQ
+e	dR
+dTdU
+e	dR
+e	dV
+dXdY
+e	dR
+dZd[
+e	d\
+d^d_
+e	d\
+d`da
+e	db
+ddde
+e	db
+dfdg
+didj
+dldm
+e	dn
+dpdq
+e	dn
+drds
+e	dt
+dvdw
+e	dt
+dxdy
+e	dz
+d|d}
+e	d~
+e	jHe
+ZNe4jOe
+Zzey
+Z{eye
+Z|e}
+PosixTesterc
+ignorez
+.* potential security risk .*)
+openr
+TESTFN
+close
+teardown_filesZ
+check_warnings
+_warnings_manager
+	__enter__
+warnings
+filterwarnings
+RuntimeWarning
+self
+setUp+
+PosixTester.setUpc
+unlinkr
+__exit__)
+teardown_filer
+tearDown5
+PosixTester.tearDownc
+ctermid
+getcwd
+getcwdb
+uname
+times
+getloadavg
+getegid
+geteuid
+getgid
+	getgroups
+getpid
+getpgrp
+getppid
+getuid
+sync
+getattrr
+assertRaises
+	TypeError)
+NO_ARG_FUNCTIONS
+nameZ
+posix_funcr
+testNoArgFunctions:
+PosixTester.testNoArgFunctions
+	getresuidz
+test needs posix.getresuid()c
+assertEqual
+assertGreaterEqual)
+user_ids
+valr
+test_getresuidI
+PosixTester.test_getresuid
+	getresgidz
+test needs posix.getresgid()c
+Z	group_idsr>
+test_getresgidQ
+PosixTester.test_getresgid
+	setresuidz
+test needs posix.setresuid()c
+assertIsNonerB
+current_user_idsr
+test_setresuidY
+PosixTester.test_setresuidc
+new_user_idsr
+test_setresuid_exceptiona
+z$PosixTester.test_setresuid_exception
+	setresgidz
+test needs posix.setresgid()c
+current_group_idsr
+test_setresgidj
+PosixTester.test_setresgidc
+new_group_idsr
+test_setresgid_exceptionr
+z$PosixTester.test_setresgid_exception
+initgroupsz
+test needs os.initgroups()c
+foor
+need a pwd entry
+z+Expected OSError to be raised by initgroups)
+object
+osr0
+getpwuid
+pw_name
+KeyError
+unittest
+SkipTestr
+EPERM
+fail)
+test_initgroups{
+PosixTester.test_initgroups
+statvfsz
+test needs posix.statvfs()c
+assertTruer
+curdir
+test_statvfs
+PosixTester.test_statvfs
+fstatvfsz
+test needs posix.fstatvfs()c
+filenor\
+test_fstatvfs
+PosixTester.test_fstatvfs
+	ftruncatez
+test needs posix.ftruncate()c
+testr
+write
+flushr
+test_ftruncate
+PosixTester.test_ftruncate
+truncatez
+test needs posix.truncate()c
+test_truncate
+PosixTester.test_truncate
+execveNz/test needs execve() to support the fd parameter
+forkz
+test needs os.fork()c
+pass
+exitcode)
+executable
+O_RDONLYrm
+chdir
+path
+splitr
+environr
+wait_processr
+pidr
+test_fexecve
+PosixTester.test_fexecve
+waitidz
+test needs posix.waitid()c
+P_PID
+WEXITEDr;
+si_pid)
+resr
+test_waitid
+PosixTester.test_waitidc
+Positional args not allowed)
+msgc
+<lambda>
+z3PosixTester.test_register_at_fork.<locals>.<lambda>z
+Args must be callable
+beforeZ
+three)
+after_in_childs
+Five)
+after_in_parentz
+Args must not be Nonez
+Invalid arg was allowedc
+if 1:
+            import os
+            r, w = os.pipe()
+            fin_r, fin_w = os.pipe()
+            os.register_at_fork(before=lambda: os.write(w, b'A'))
+            os.register_at_fork(after_in_parent=lambda: os.write(w, b'C'))
+            os.register_at_fork(after_in_child=lambda: os.write(w, b'E'))
+            os.register_at_fork(before=lambda: os.write(w, b'B'),
+                                after_in_parent=lambda: os.write(w, b'D'),
+                                after_in_child=lambda: os.write(w, b'F'))
+            pid = os.fork()
+            if pid == 0:
+                # At this point, after-forkers have already been executed
+                os.close(w)
+                # Wait for parent to tell us to exit
+                os.read(fin_r, 1)
+                os._exit(0)
+            else:
+                try:
+                    os.close(w)
+                    with open(r, "rb") as f:
+                        data = f.read()
+                        assert len(data) == 6, data
+                        # Check before-fork callbacks
+                        assert data[:2] == b'BA', data
+                        # Check after-fork callbacks
+                        assert sorted(data[2:]) == list(b'CDEF'), data
+                        assert data.index(b'C') < data.index(b'D'), data
+                        assert data.index(b'E') < data.index(b'F'), data
+                finally:
+                    os.write(fin_w, b'!')
+            rn
+register_at_forkr
+coder
+test_register_at_fork
+#z!PosixTester.test_register_at_fork
+lockfz
+test needs posix.lockf()c
+testr
+O_WRONLY
+O_CREATrf
+lseek
+SEEK_SETr
+F_LOCK
+F_ULOCKr
+test_lockf
+PosixTester.test_lockf
+preadz
+test needs posix.pread()c
+O_RDWRr
+readr
+test_pread
+PosixTester.test_pread
+preadvz
+test needs posix.preadv()c
+test1tt2t3t5t6t6t8c
+	bytearray
+<listcomp>*
+z+PosixTester.test_preadv.<locals>.<listcomp>
+t1tt2s
+t3ts
+listr
+bufr
+test_preadv%
+PosixTester.test_preadv
+	RWF_HIPRIz
+test needs posix.RWF_HIPRIc
+z1PosixTester.test_preadv_flags.<locals>.<listcomp>r
+preadv2 not availablez0RWF_HIPRI is not supported by the current system)
+NotImplementedError
+skipTestr
+EINVALZ
+ENOTSUPrW
+instr
+test_preadv_flags0
+PosixTester.test_preadv_flagsc
+	exceptionr	
+bytesr
+test_preadv_overflow_32bitsF
+z'PosixTester.test_preadv_overflow_32bits
+pwritez
+test needs posix.pwrite()c
+xxr2
+txxtr
+test_pwriteS
+PosixTester.test_pwrite
+pwritevz
+test needs posix.pwritev()c
+test1s
+tt2s
+xxtest1tt2t3
+test_pwritev^
+PosixTester.test_pwritevz
+os.RWF_SYNCz
+test needs os.RWF_SYNCc
+xxtest1tt2r
+RWF_SYNCr;
+test_pwritev_flagsl
+PosixTester.test_pwritev_flagsc
+test_pwritev_overflow_32bits{
+z(PosixTester.test_pwritev_overflow_32bits
+posix_fallocatez"test needs posix.posix_fallocate()c
+j	t	j
+sunos
+freebsd
+netbsdZ
+openbsdZ
+gnukfreebsdz test may fail on ZFS filesystems)
+platform
+startswithrW
+test_posix_fallocate
+z PosixTester.test_posix_fallocatec
+EBADF
+test_posix_fallocate_errno
+z&PosixTester.test_posix_fallocate_errno
+posix_fadvisez test needs posix.posix_fadvise()c
+)	rR
+POSIX_FADV_WILLNEEDr
+test_posix_fadvise
+PosixTester.test_posix_fadvisec
+test_posix_fadvise_errno
+z$PosixTester.test_posix_fadvise_errnoz!test needs fd support in os.utimec
+timerR
+utimer4
+ValueErrorr
+nowr
+test_utime_with_fd
+PosixTester.test_utime_with_fdz.test needs follow_symlinks support in os.utimec
+follow_symlinksr
+test_utime_nofollow_symlinks
+z(PosixTester.test_utime_nofollow_symlinks
+writevz
+test needs posix.writev()c
+test1tt2t3)
+sizer
+test_writev
+PosixTester.test_writevc
+test_writev_overflow_32bits
+z'PosixTester.test_writev_overflow_32bits
+readvz
+test needs posix.readv()c
+)	Nr
+z*PosixTester.test_readv.<locals>.<listcomp>r
+test_readv
+PosixTester.test_readvc
+test_readv_overflow_32bits
+z&PosixTester.test_readv_overflow_32bits
+dupz
+test needs posix.dup()c
+assertIsInstancer
+test_dup
+PosixTester.test_dup
+confstrz
+test needs posix.confstr()c
+CS_garbage
+CS_PATHr
+test_confstr$
+PosixTester.test_confstr
+dup2z
+test needs posix.dup2()c
+fp2r
+	test_dup2*
+PosixTester.test_dup2
+	O_CLOEXECz
+needs os.O_CLOEXECr
+addCleanupr
+assertFalse
+get_inheritabler
+test_oscloexec5
+PosixTester.test_oscloexec
+O_EXLOCKz
+test needs posix.O_EXLOCKc
+O_SHLOCK)
+O_NONBLOCKr
+test_osexlock<
+PosixTester.test_osexlockr
+test needs posix.O_SHLOCKc
+fd1Z
+fd2r
+test_osshlockL
+PosixTester.test_osshlock
+fstatz
+test needs posix.fstat()c
+Nz4should be string, bytes, os.PathLike or integer, not)
+stat
+assertRaisesRegexr5
+floatr
+test_fstat]
+PosixTester.test_fstatc
+fsencodeZ
+assertWarnsRegex
+DeprecationWarningr
+	test_statk
+PosixTester.test_stat
+mkfifoz
+don't have mkfifo()c
+posix.mkfifo(): %s)
+S_IRUSR
+S_IWUSR
+PermissionErrorr
+S_ISFIFO
+st_mode)
+test_mkfifo|
+PosixTester.test_mkfifo
+mknod
+S_IFIFOz
+don't have mknod()/S_IFIFOc
+t	yp
+modeZ
+device
+dir_fd)
+assertInr	
+EACCESr]
+test_mknod
+PosixTester.test_mknod
+makedevz
+test needs posix.makedev()c
+st_devr
+majorr;
+OverflowError
+minorr
+devr
+test_makedev
+PosixTester.test_makedevc
+)	z/Common code for chown, fchown and lchown tests.c
+st_uid
+st_gid)
+gidr
+first_paramr
+	stat_funcr
+check_stat
+z6PosixTester._test_all_chown_common.<locals>.check_statrD
+HP-UXZ
+SunOSz1Skipping because of non-standard chown() behaviorN)
+systemrW
+strr
+chown_funcr'
+Z	big_value
+_test_all_chown_common
+z"PosixTester._test_all_chown_common
+chownz
+test needs os.chown()c
+create_empty_filer-
+test_chown
+PosixTester.test_chown
+fchownz
+test needs os.fchown()c
+Z	test_filer
+test_fchown
+PosixTester.test_fchown
+lchownz
+test needs os.lchown()c
+lstat)
+symlink
+_DUMMY_SYMLINKr-
+test_lchown
+PosixTester.test_lchownrt
+test needs posix.chdir()c
+test_chdir
+PosixTester.test_chdirc
+listdirrR
+test_listdir
+PosixTester.test_listdirc
+test_listdir_default
+z PosixTester.test_listdir_defaultc
+test_listdir_bytes!
+PosixTester.test_listdir_bytesc
+memoryviewZ
+assertWarnsr
+assertIs
+typer
+namesr6
+test_listdir_bytes_like&
+z#PosixTester.test_listdir_bytes_likez)test needs fd support for posix.listdir()c
+.)	r
+sortedr9
+test_listdir_fd.
+PosixTester.test_listdir_fd
+accessz
+test needs posix.access()c
+R_OKr_
+test_access=
+PosixTester.test_access
+umaskz
+test needs posix.umask()c
+old_maskr
+test_umaskA
+PosixTester.test_umask
+strerrorz
+test needs posix.strerror()c
+test_strerrorG
+PosixTester.test_strerror
+pipez
+test needs posix.pipe()c
+reader
+writerr
+	test_pipeL
+PosixTester.test_pipe
+pipe2z
+test needs os.pipe2()
+DEADBEEFr
+get_blockingr
+PIPE_MAX_SIZE)
+test_pipe2R
+PosixTester.test_pipe2c
+	_testcapir4
+INT_MAXZ
+UINT_MAX)
+test_pipe2_c_limitsn
+PosixTester.test_pipe2_c_limitsr
+test needs posix.utime()c
+test_utimew
+PosixTester.test_utimec
+st_flags
+2chflag UF_IMMUTABLE not supported by underlying fsr
+UF_IMMUTABLEr
+EOPNOTSUPPr
+chflags)
+chflags_funcZ
+target_file
+kwargsr 
+flags
+errr
+new_str
+_test_chflags_regular_file
+z&PosixTester._test_chflags_regular_filera
+test needs os.chflags()c
+test_chflags
+PosixTester.test_chflags
+lchflagsz
+test needs os.lchflags()c
+test_lchflags_regular_file
+z&PosixTester.test_lchflags_regular_filec
+chflags_nofollow
+z;PosixTester.test_lchflags_symlink.<locals>.chflags_nofollowr^
+appendr4
+Z	testfn_stZ
+dummy_symlink_strj
+fnrc
+new_testfn_stZ
+new_dummy_symlink_str
+test_lchflags_symlink
+z!PosixTester.test_lchflags_symlinkc
+nt)	rR
+itemsr;
+Z	item_type
+test_environ
+PosixTester.test_environc
+FRUIT
+VEGETABLEZ
+cabbages
+FRUIT
+VEGETABLEs
+cabbageZ
+FRUITz
+orange
+VEGETABLE=cabbages
+FRUITs
+orange
+VEGETABLE=cabbagez
+FRUIT=ORANGEZ
+lemons
+FRUIT=ORANGEs
+lemon)
+putenvr_
+test_putenv
+PosixTester.test_putenvr$
+test needs posix.getcwd()c
+Nz8getcwd-test-directory-0123456789abcdef-01234567890abcdefz
+.getcwdr
+Nz?mkdir cannot create directory sufficiently deep for getcwd testi
+mkdirrW
+rmdir)
+dirnameZ
+current_path_length
+_create_and_do_getcwdr
+zEPosixTester.test_getcwd_long_pathnames.<locals>._create_and_do_getcwd)	rR
+abspathr
+rmtree)
+	base_pathr
+test_getcwd_long_pathnames
+z&PosixTester.test_getcwd_long_pathnames
+getgrouplistz
+test needs posix.getgrouplist()rT
+test needs pwd.getpwuid()r0
+test needs os.getuid()c
+user
+groupr
+test_getgrouplist
+PosixTester.test_getgrouplistr)
+test needs os.getegid()c
+id -G 2>/dev/nullc
+	<genexpr>
+z-PosixTester.test_getgroups.<locals>.<genexpr>z
+need working 'id -G'
+darwinr
+MACOSX_DEPLOYMENT_TARGETz
+10.0c
+z$getgroups(2) is broken prior to 10.6)
+popenr
+stripr
+setrv
+	sysconfigZ
+get_config_var
+tuple
+symmetric_differencer
+groupsZ
+retZ
+idg_groupsr
+symdiffr
+test_getgroups
+PosixTester.test_getgroupsz)test needs dir_fd support for os.access()c
+test_access_dir_fd$
+PosixTester.test_access_dir_fdz'test needs dir_fd support in os.chmod()c
+chmodr
+S_IRWXUr
+test_chmod_dir_fd,
+PosixTester.test_chmod_dir_fdz'test needs dir_fd support in os.chown()c
+test_chown_dir_fd9
+PosixTester.test_chown_dir_fdz&test needs dir_fd support in os.stat()c
+	testline
+should be integer or None, notl
+x:^V
+outfilerG
+test_stat_dir_fdD
+PosixTester.test_stat_dir_fdz'test needs dir_fd support in os.utime()c
+supports_follow_symlinksr
+test_utime_dir_fdZ
+PosixTester.test_utime_dir_fdz&test needs dir_fd support in os.link()c
+link
+src_dir_fd
+dst_dir_fdz
+posix.link(): %sr2
+test_link_dir_fdx
+PosixTester.test_link_dir_fdz'test needs dir_fd support in os.mkdir()c
+dirr
+test_mkdir_dir_fd
+PosixTester.test_mkdir_dir_fdzAtest requires both stat.S_IFIFO and dir_fd support for os.mknod()c
+test_mknod_dir_fd
+PosixTester.test_mknod_dir_fdz&test needs dir_fd support in os.open()c
+utf-8)
+encoding)
+decoder;
+test_open_dir_fd
+PosixTester.test_open_dir_fdz*test needs dir_fd support in os.readlink()c
+readlinkr 
+test_readlink_dir_fd
+z PosixTester.test_readlink_dir_fdz(test needs dir_fd support in os.rename()c
+renr
+renamer
+test_rename_dir_fd
+PosixTester.test_rename_dir_fd
+SIGCHLDz2CLD_XXXX be placed in si_code for a SIGCHLD signal
+waitid_resultz
+test needs os.waitid_resultc
+CLD_EXITED
+CLD_KILLED
+CLD_DUMPED
+CLD_TRAPPED
+CLD_STOPPED
+CLD_CONTINUEDr_
+test_cld_xxxx_constants
+z#PosixTester.test_cld_xxxx_constantsz)test needs dir_fd support in os.symlink()c
+test_symlink_dir_fd
+PosixTester.test_symlink_dir_fdz(test needs dir_fd support in os.unlink()c
+delr
+test_unlink_dir_fd
+PosixTester.test_unlink_dir_fdz(test needs dir_fd support in os.mkfifo()c
+test_mkfifo_dir_fd
+PosixTester.test_mkfifo_dir_fd
+sched_yieldz
+don't have scheduling support
+sched_setaffinityz!don't have sched affinity supportc
+test_sched_yield
+PosixTester.test_sched_yield
+sched_get_priority_maxz!requires sched_get_priority_max()c
+SCHED_RR
+sched_get_priority_minr
+test_sched_priority
+PosixTester.test_sched_priorityc
+)	Nc
+SCHED_
+schedr
+zDPosixTester.test_get_and_set_scheduler_and_param.<locals>.<listcomp>r
+sched_priority)
+__dict__ro
+sched_getparamr
+sched_setscheduler
+sched_setparamr5
+sched_paramr
+possible_schedulersZ
+mine
+parentr
+paramZ
+larger
+$test_get_and_set_scheduler_and_param
+z0PosixTester.test_get_and_set_scheduler_and_param
+sched_rr_get_intervalz
+no functionc
+z only works on SCHED_RR processesg
+assertLess)
+intervalr
+test_sched_rr_get_interval@
+z&PosixTester.test_sched_rr_get_intervalc
+sched_getaffinityr
+maskZ
+cpur
+test_sched_getaffinityO
+z"PosixTester.test_sched_getaffinityc
+popr
+mapr
+test_sched_setaffinityZ
+z"PosixTester.test_sched_setaffinityc
+	RTLD_LAZY
+RTLD_NOW
+RTLD_GLOBAL
+RTLD_LOCALr_
+test_rtld_constantsh
+PosixTester.test_rtld_constants
+	SEEK_HOLEz(test needs an OS that reports file holesc
+r+bs
+helloz
+OSError raised!)
+tellrb
+ranger;
+	SEEK_DATAZ
+assertLessEqualr
+fnor
+test_fs_holeso
+PosixTester.test_fs_holesc
+        Test functions that call path_error2(), providing two filenames in their exceptions.
+        )
+replacer
+noodly2Z
+doesnotexistfilenamez
+'doesnotexistfilename' -> '{}'z#No valid path_error2() test for os.)	r3
+formatr+
+functionZ
+dstr
+test_path_error2
+PosixTester.test_path_error2c
+existsru
+fn_with_NULr
+test_path_with_null_character
+z)PosixTester.test_path_with_null_characterc
+test_path_with_null_byte
+z$PosixTester.test_path_with_null_byte
+pidfd_openz
+pidfd_open unavailablec
+z"system does not support pidfd_openz
+pidfd_open syscall blocked: r
+isinstancer
+test_pidfd_open
+PosixTester.test_pidfd_open)
+__name__
+__module__
+__qualname__r
+skipUnlessr
+supports_fdrz
+requires_32br
+requires_linux_versionr
+cpython_onlyr[
+supports_dir_fdr
+signalr
+requires_sched_hZ
+requires_sched_affinityr
+requires_schedr
+PosixGroupsTesterc
+not enough privilegesr,
+need posix.getgroupsr
+getgroups(2) is broken on OSX)	r
+saved_groupsr_
+PosixGroupsTester.setUpc
+	setgroupsrN
+PosixGroupsTester.tearDownrN
+test needs posix.initgroups()c
+maxr
+z!PosixGroupsTester.test_initgroupsr
+test needs posix.setgroups()c
+assertListEqualr,
+test_setgroups
+z PosixGroupsTester.test_setgroupsN)
+d d!
+d"d#
+d$d%
+d&d'
+d*d+
+d,d-
+Z d.d/
+Z!d0d1
+Z"d2d3
+Z#d4d5
+Z$d6d7
+_PosixSpawnMixin
+-Srn
+argsr
+python_args
+_PosixSpawnMixin.python_argsc
+2if 1:
+            import os
+            with open(zO, "w") as pidfile:
+                pidfile.write(str(os.getpid()))
+            rn
+spawn_funcrR
+pidfile
+scriptr
+test_returns_pid
+z!_PosixSpawnMixin.test_returns_pidc
+no_such_executabler
+FileNotFoundErrorr
+filename
+waitpid
+assertNotEqual)
+excZ
+pid2Z
+statusr
+test_no_such_executable
+z(_PosixSpawnMixin.test_no_such_executablec
+zL, "w") as envfile:
+                envfile.write(os.environ['foo'])
+        rn
+barrp
+envfiler
+test_specify_environment
+z)_PosixSpawnMixin.test_specify_environmentc
+file_actionsrp
+NOOP_PROGRAMrR
+test_none_file_actions(
+z'_PosixSpawnMixin.test_none_file_actionsc
+test_empty_file_actions1
+z(_PosixSpawnMixin.test_empty_file_actionsc
+resetidsr
+test_resetids_explicit_default:
+z/_PosixSpawnMixin.test_resetids_explicit_defaultc
+test_resetidsC
+_PosixSpawnMixin.test_resetidsc
+test_resetids_wrong_typeL
+z)_PosixSpawnMixin.test_resetids_wrong_typec
+Z	setpgroupr
+test_setpgroupR
+_PosixSpawnMixin.test_setpgroupc
+023r#
+test_setpgroup_wrong_type[
+z*_PosixSpawnMixin.test_setpgroup_wrong_type
+pthread_sigmaskz
+need signal.pthread_sigmask()c
+I            import signal
+            signal.raise_signal(signal.SIGUSR1)rn
+setsigmaskr
+textwrap
+dedentr
+SIGUSR1r
+test_setsigmaska
+z _PosixSpawnMixin.test_setsigmaskc
+NSIGr_
+test_setsigmask_wrong_typep
+z+_PosixSpawnMixin.test_setsigmask_wrong_typec
+NTz0
+                import os
+                fd = z`
+                sid = os.getsid(0)
+                os.write(fd, str(sid).encode())
+            rn
+setsidz
+setsid is not supported: z
+setsid failed with: r
+set_inheritabler)
+getsidr-
+rfdZ
+wfdr
+outputZ	child_sidZ
+parent_sidr
+test_setsid
+_PosixSpawnMixin.test_setsidc
+Z	setsigdefrp
+SIG_IGNr)
+original_handlerr
+test_setsigdef
+_PosixSpawnMixin.test_setsigdefc
+test_setsigdef_wrong_type
+z*_PosixSpawnMixin.test_setsigdef_wrong_typer
+bpo-34685: test can fail on BSDc
+zF            import os, sys
+            if os.sched_getscheduler(0) != zV:
+                sys.exit(101)
+            if os.sched_getparam(0).sched_priority != z
+                sys.exit(102)rn
+Z	schedulerrp
+policyZ
+priorityr
+test_setscheduler_only_param
+z-_PosixSpawnMixin.test_setscheduler_only_paramc
+test_setscheduler_with_policy
+z._PosixSpawnMixin.test_setscheduler_with_policyc
+POSIX_SPAWN_OPENru
+realpath
+__file__rs
+POSIX_SPAWN_CLOSE
+POSIX_SPAWN_DUP2r
+test_multiple_file_actions
+z+_PosixSpawnMixin.test_multiple_file_actionsc
+t	d	
+test_bad_file_actions
+z&_PosixSpawnMixin.test_bad_file_actionsc
+Oif 1:
+            import sys
+            sys.stdout.write("hello")
+            r2
+hello)
+O_TRUNCr
+test_open_file
+_PosixSpawnMixin.test_open_filec
+if 1:
+            import os
+            try:
+                os.fstat(0)
+            except OSError as e:
+                with open(z_, 'w') as closefile:
+                    closefile.write('is closed %d' % e.errno)
+            rn
+is closed %d)
+Z	closefiler
+test_close_file$
+z _PosixSpawnMixin.test_close_filec
+)	NrG
+dupfiler
+Z	childfiler
+_PosixSpawnMixin.test_dup2)&r
+skipIfr
+posix_spawnz
+test needs os.posix_spawnc
+TestPosixSpawnrL
+posix_spawnpz
+test needs os.posix_spawnpc
+TestPosixSpawnPrN
+posix_spawnp_test_program.exe
+PATHr
+            import os
+            from test import support
+            args = %a
+            pid = os.posix_spawnp(args[0], args, os.environ)
+            support.wait_process(pid, exitcode=0)
+        )
+tempfileZ
+mkdtempr
+joinr5
+pathseprw
+temp_dirZ
+programZ
+program_fullpathru
+spawn_argsr
+test_posix_spawnpS
+z!TestPosixSpawnP.test_posix_spawnp)	r
+skip_unless_symlinkrU
+test weak linking on macOSc
+TestPosixWeaklinkingc
+HAVE_r
+config_varsr
+	<setcomp>
+z-TestPosixWeaklinking.setUp.<locals>.<setcomp>c
+partr
+z-TestPosixWeaklinking.setUp.<locals>.<genexpr>rD
+get_config_vars
+	availabler
+mac_verrv
+TestPosixWeaklinking.setUpc
+ not weak-linked)
+_verify_available
+z&TestPosixWeaklinking._verify_availablec
+)	NZ
+HAVE_PWRITEV)
+os.pwritev is not availabler
+os.readv is not availablez
+os.pwritev is availablez
+os.readv is available)
+z!TestPosixWeaklinking.test_pwritevc
+HAVE_FSTATAT
+dir_fd unavailable
+filer
+_have_functions
+assertNotInr
+TestPosixWeaklinking.test_statc
+HAVE_FACCESSATr]
+follow_symlinks unavailableFr
+effective_ids unavailableT)
+effective_ids)
+z TestPosixWeaklinking.test_accessc
+)	NZ
+HAVE_FCHMODATr]
+HAVE_LCHMODr^
+test_chmod
+TestPosixWeaklinking.test_chmodc
+HAVE_FCHOWNATr]
+HAVE_LCHOWNr^
+TestPosixWeaklinking.test_chownc
+HAVE_LINKATr]
+src_dir_fd unavailable
+source
+targetr
+dst_dir_fd unavailable
+dataTr
+FileExistsError)
+Z	link_pathZ
+target_path
+source_pathr
+	test_link
+TestPosixWeaklinking.test_linkc
+HAVE_FDOPENDIRr]
+zClistdir: path should be string, bytes, os.PathLike or None, not intr
+zCscandir: path should be string, bytes, os.PathLike or None, not int)
+scandirr_
+test_listdir_scandir
+z)TestPosixWeaklinking.test_listdir_scandirc
+HAVE_MKDIRATr]
+test_mkdir
+TestPosixWeaklinking.test_mkdirc
+)	NZ
+HAVE_RENAMEATr]
+z%src_dir_fd and dst_dir_fd unavailabler
+test_rename_replace
+z(TestPosixWeaklinking.test_rename_replacec
+HAVE_UNLINKATr]
+test_unlink_rmdir
+z&TestPosixWeaklinking.test_unlink_rmdirc
+HAVE_OPENATr]
+	test_open'
+TestPosixWeaklinking.test_openc
+HAVE_READLINKATr]
+test_readlink2
+z"TestPosixWeaklinking.test_readlinkc
+HAVE_SYMLINKATr]
+test_symlink=
+z!TestPosixWeaklinking.test_symlinkc
+HAVE_FUTIMENSZ
+HAVE_UTIMENSAT)
+TestPosixWeaklinking.test_utimeN)
+reap_childrenr
+tearDownModuleW
+__main__)(
+__doc__re
+test.support.script_helperr
+import_moduler
+gettempdirr
+maxsizer
+TestCaser
+mainr
+<module>

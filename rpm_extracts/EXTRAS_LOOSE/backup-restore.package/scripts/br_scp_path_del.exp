@@ -1,0 +1,54 @@
+#!/usr/bin/expect -f
+##################################################################################
+# Author : zhanglianxiang/09608
+# Description: ssh delete directory on remote server
+#   usage: expect br_scp_path_del.exp 192.168.0.221 22 testaa/testbb/testcc 123456
+#      $0: the server
+#      $1: port
+#      $2: the dir to be delete
+#      $3: the password to execute the ssh
+##################################################################################
+
+if {$argc<4} {
+    send_user "usage: $argv0 server port dir password"
+    exit 4
+}
+
+# get the information values
+set server [lindex $argv 0]
+set ser_port [lindex $argv 1]
+set password [lindex $argv 2]
+set des_dir [lindex $argv 3]
+if {"$password" == "0"} {
+    set pubarg yes
+} else {
+    set pubarg no
+}
+# replace // with / in des_dir
+regsub -all {//} $des_dir / des_dir
+spawn ssh -oPubkeyAuthentication=$pubarg -oUserKnownHostsFile=/dev/null -p $ser_port $server rm -fr $des_dir
+set timeout 60
+expect "*(yes/no)*" {
+    send "yes\r"
+    exp_continue
+} "Permission denied, please try again" {
+    send_user "\n"
+    # User name or password error
+    exit 51
+} "*assword:" {
+    send "$password\r"
+    exp_continue
+} "ssh:" {
+    # server ip or port error
+    send_user "\n"
+    exit 50
+} "rmdir:" {
+    # no privileges, remove directory failed
+    send_user "\n"
+    exit 52
+} timeout {
+    send_user "\n"
+    exit 50
+} eof {
+    exit 0
+}

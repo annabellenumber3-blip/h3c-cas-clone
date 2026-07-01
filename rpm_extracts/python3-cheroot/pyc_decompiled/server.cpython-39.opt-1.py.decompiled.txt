@@ -1,0 +1,908 @@
+l	Z	d
+m Z 
+d	l!m"Z"m#Z#
+l!m$Z$
+l%m&Z&
+l'm(Z(m)Z)
+Z/e,
+oFe/
+Z0e0
+l1Z1d
+l2Z2W
+Z1Z2Y
+l3Z3e,
+_5e4e
+_6e4e
+Z;d Z<d!Z=d"Z>d#Z?d$Z@d%ZAe	
+Cd&eAf
+ZEe4e
+d)d*
+d+d,
+d,eG
+d-d.
+d/d0
+d1d2
+d3d4
+d5d6
+d7d8
+d9d:
+ZOd;d<d=
+ZPdAd?d@
+A high-speed, production ready, thread pooled, generic HTTP server.
+For those of you wanting to understand internals of this module, here's the
+basic call flow. The server's listening thread runs a very tight loop,
+sticking incoming connections onto a Queue::
+    server = HTTPServer(...)
+    server.start()
+    ->  while True:
+            tick()
+            # This blocks until a request comes in:
+            child = socket.accept()
+            conn = HTTPConnection(child, ...)
+            server.requests.put(conn)
+Worker threads are kept in a pool and poll the Queue, popping off and then
+handling each connection in turn. Each connection can consist of an arbitrary
+number of requests and their responses, so we run a nested loop::
+    while True:
+        conn = server.requests.get()
+        conn.communicate()
+        ->  while True:
+                req = HTTPRequest(...)
+                req.parse_request()
+                ->  # Read the Request-Line, e.g. "GET /page HTTP/1.1"
+                    req.rfile.readline()
+                    read_headers(req.rfile, req.inheaders)
+                req.respond()
+                ->  response = app(...)
+                    try:
+                        for chunk in response:
+                            if chunk:
+                                req.write(chunk)
+                    finally:
+                        if hasattr(response, "close"):
+                            response.close()
+                if req.close_connection:
+                    return
+For running a server you can invoke :func:`start() <HTTPServer.start()>` (it
+will run the server forever) or use invoking :func:`prepare()
+<HTTPServer.prepare()>` and :func:`serve() <HTTPServer.serve()>` like this::
+    server = HTTPServer(...)
+    server.prepare()
+    try:
+        threading.Thread(target=server.serve).start()
+        # waiting/detecting some appropriate stop condition here
+        ...
+    finally:
+        server.stop()
+And now for a trivial doctest to exercise the test suite
+>>> 'HTTPServer' in globals()
+True
+absolute_import
+division
+print_functionN)
+	lru_cache)
+queue)
+urllib
+connections
+errors
+__version__)
+bton
+ntou)
+IS_PPC)
+threadpool)
+MakeFile
+StreamWriter)
+HTTPRequest
+HTTPConnection
+HTTPServer
+HeaderReader
+DropUnderscoreHeaderReader
+SizeCheckWrapper
+KnownLengthRFile
+ChunkedRFile
+Gateway
+get_ssl_adapter_classZ
+WindowsZ
+SERVER_SOFTWARE
+Google App Engine/F)
+AF_INET6
+IPPROTO_IPV6
+IPV6_V6ONLY
+SO_PEERCRED
+%2Fs
+(?i))
+Accepts
+Accept-Charsets
+Accept-Encodings
+Accept-Languages
+Accept-Rangess
+Allows
+Cache-Control
+Connections
+Content-Encodings
+Content-Language
+Expects
+If-Matchs
+If-None-Matchs
+Pragmas
+Proxy-Authenticates
+Trailer
+Transfer-Encodings
+Upgrades
+Varys
+Vias
+Warnings
+WWW-Authenticate
+statisticsc
+z`Object for reading headers from an HTTP request.
+    Interface and default implementation.
+    Nc
+        Read headers from the given stream into the given header dict.
+        If hdict is None, a new header dict is created. Returns the populated
+        header dict.
+        Headers which are repeated are folded together using a comma if their
+        specification so dictates.
+        This function raises ValueError when the read bytes violate the HTTP
+        spec.
+        You should probably return "400 Bad Request" if this happens.
+        N
+Illegal end of headers.
+HTTP requires CRLF terminatorsr
+Illegal header line.s
+readline
+ValueError
+CRLF
+endswith
+SPACE
+strip
+split
+COLON
+_transform_key
+_allow_header
+comma_separated_headers
+join)
+self
+rfileZ
+hdict
+line
+hnameZ
+existing
+2/usr/lib/python3.9/site-packages/cheroot/server.py
+__call__
+HeaderReader.__call__c
+NTrF
+key_namerF
+HeaderReader._allow_headerc
+titlerI
+HeaderReader._transform_key)
+__name__
+__module__
+__qualname__
+__doc__rH
+zDCustom HeaderReader to exclude any headers with underscores in them.c
+superr
+orig
+	__class__rF
+z(DropUnderscoreHeaderReader._allow_header)
+__classcell__rF
+Wraps a file-like object, raising MaxSizeExceeded if too large.
+    :param rfile: ``file`` of a limited size
+    :param int maxlen: maximum length of the file being read
+    c
+z%Initialize SizeCheckWrapper instance.r
+maxlen
+bytes_read)
+__init__
+SizeCheckWrapper.__init__c
+MaxSizeExceeded
+_check_length	
+SizeCheckWrapper._check_lengthNc
+Read a chunk from ``rfile`` buffer and return it.
+        :param int size: amount of data to read
+        :returns: chunk from ``rfile``, limited by size if specified
+        :rtype: bytes
+        )
+readrW
+lenr[
+size
+datarF
+SizeCheckWrapper.readc
+Read a single line from ``rfile`` buffer and return it.
+        :param int size: minimum amount of data to read
+        :returns: one line from ``rfile``
+        :rtype: bytes
+        N
+)	rB
+append
+EMPTYr@
+resrF
+SizeCheckWrapper.readliner
+rFqR
+Read all lines from ``rfile`` buffer and return them.
+        :param int sizehint: hint of minimum amount of data to read
+        :returns: lines of bytes read from ``rfile``
+        :rtype: list[bytes]
+        r
+sizehint
+total
+linesrC
+	readlines4
+SizeCheckWrapper.readlinesc
+z*Release resources allocated for ``rfile``.N
+closerZ
+SizeCheckWrapper.closec
+Return file iterator.rF
+__iter__L
+SizeCheckWrapper.__iter__c
+Generate next file chunk.)
+nextrB
+__next__P
+SizeCheckWrapper.__next__)
+Wraps a file-like object, returning an empty string when exhausted.
+    :param rfile: ``file`` of a known size
+    :param int content_length: length of the file being read
+    c
+z%Initialize KnownLengthRFile instance.N)
+	remaining)
+content_lengthrF
+KnownLengthRFile.__init__Nc
+Read a chunk from ``rfile`` buffer and return it.
+        :param int size: amount of data to read
+        :rtype: bytes
+        :returns: chunk from ``rfile``, limited by size if specified
+        r
+minrB
+KnownLengthRFile.readc
+KnownLengthRFile.readliner
+rFqR
+KnownLengthRFile.readlinesc
+KnownLengthRFile.closec
+KnownLengthRFile.__iter__c
+KnownLengthRFile.__next__)
+Wraps a file-like object, returning an empty string when exhausted.
+    This class is intended to provide a conforming wsgi.input value for
+    request entities that have been encoded with the 'chunked' transfer
+    encoding.
+    :param rfile: file encoded with the 'chunked' transfer encoding
+    :param int maxlen: maximum length of the file being read
+    :param int bufsize: size of the buffer used to read the file
+    
+z!Initialize ChunkedRFile instance.r
+buffer
+bufsize
+closed)
+ChunkedRFile.__init__c
+Request Entity Too Larger
+z)Bad chunked transfer size: {chunk_size!r})
+chunk_sizeT
+z2Bad chunked transfer coding (expected '\r\n', got 
+	SEMICOLON
+intr4
+format
+IOErrorr]
+repr)
+chunkZ
+crlfrF
+_fetch
+ChunkedRFile._fetchNc
+ChunkedRFile.readc
+findrf
+newline_posry
+ChunkedRFile.readliner
+rFqR
+ChunkedRFile.readlinesc
+rZqt|
+zqRead HTTP headers and yield them.
+        Returns:
+            Generator: yields CRLF separated lines.
+        z:Cannot read trailers until the request body has been read.r1
+read_trailer_linesM
+ChunkedRFile.read_trailer_linesc
+ChunkedRFile.close)
+zrAn HTTP Request (and response).
+    A single HTTP connection may consist of multiple request/response pairs.
+    NFTc
+Initialize HTTP request container instance.
+        Args:
+            server (HTTPServer): web server object receiving this request
+            conn (HTTPConnection): HTTP connection object for this request
+            proxy_mode (bool): whether this HTTPServer should behave as a PROXY
+            server for certain requests
+            strict_mode (bool): whether we should return a 400 Bad Request when
+            we encounter a request that a HTTP compliant client should not be
+            making
+        Fs
+httpNs
+httpsz
+HTTP/1.0r
+server
+conn
+ready
+started_request
+scheme
+ssl_adapter
+response_protocol
+	inheaders
+status
+outheaders
+sent_headersrT
+close_connection
+chunked_read
+chunked_write
+proxy_mode
+strict_mode)
+HTTPRequest.__init__c
+z;Parse the next HTTP request start-line and message-headers.z
+414 Request-URI Too LongzHThe Request-URI sent with the request exceeds the maximum allowed bytes.N
+413 Request Entity Too LargezCThe headers sent with the request exceed the maximum allowed bytes.T)
+max_request_header_size
+read_request_liner
+simple_response
+read_request_headersr
+successrF
+parse_request
+HTTPRequest.parse_requestc
+|	}	
+pLt |
+|	d	u
+j#d 
+}	|	
+s~t!|	
+_&|	|
+j)j*d
+j)j*d!
+_+d"t,|
+Read and parse first line of the HTTP request.
+        Returns:
+            bool: True if the request line is valid or False if it's malformed.
+        TF
+400 Bad Requestr2
+HTTP/z$Malformed Request-Line: bad protocol
+z#Malformed Request-Line: bad version)
+505 HTTP Version Not Supportedz
+Cannot fulfill requestz
+Malformed Request-Linez
+Malformed method name: According to RFC 2616 (section 5.1.1) and its successors RFC 7230 (section 3.1.1) and RFC 7231 (section 4.1) method names are case-sensitive and uppercase.
+asciiz
+Malformed Request-URIs
+OPTIONSs
+CONNECTz
+405 Method Not Allowedr*
+//zFInvalid path in Request-URI: request-target must match authority-form.z2Absolute URI not allowed if server is not a proxy.z
+Invalid path in Request-URI: request-target must contain origin-form which starts with absolute-path (URI starting with a slash "/").z!Illegal #fragment in Request-URI.z
+Invalid path in Request-URI.c
+parse
+unquote_to_bytes
+<listcomp>
+z1HTTPRequest.read_request_line.<locals>.<listcomp>r
+HTTP/%s.%s).rB
+startswithr^
+tuple
+mapr
+IndexError
+upper
+methodr
+PY2r
+urlsplit
+UnicodeErrorr
+port
+FORWARD_SLASH
+QUOTED_SLASH_REGEX
+args
+QUOTED_SLASHr
+	authority
+path
+protocolZ
+request_protocolr{
+request_liner
+req_protocolZ
+respr
+fragmentZ
+uri_is_absolute_formZ	uri_splitZ
+_schemeZ
+_authority
+_pathZ
+_qsZ	_fragmentZ
+_portZ
+invalid_pathZ
+disallowed_absoluteZ
+atoms
+sprF
+HTTPRequest.read_request_linec
+Read ``self.rfile`` into ``self.inheaders``.
+        Ref: :py:attr:`self.inheaders <HTTPRequest.outheaders>`.
+        :returns: success status
+        :rtype: bool
+        r
+Content-Lengthz Malformed Content-Length Header.r
+CThe entity sent with the request exceeds the maximum allowed bytes.
+HTTP/1.1r-
+closeT
+Keep-Aliver/
+lowerr
+z4HTTPRequest.read_request_headers.<locals>.<listcomp>
+chunkedz
+501 Unimplementedr.
+100-continuer
+100 Continue)
+header_readerrB
+max_request_body_sizer
+encoder7
+wfile
+write
+socket
+errorr
+socket_errors_to_ignore)
+mrbs
+msgrF
+z HTTPRequest.read_request_headersc
+j	sP|
+z/Call the gateway and write its iterable output.r
+gateway
+respondr
+ensure_headers_sentr
+HTTPRequest.respondr
+z+Write a simple response back to the client.z
+%s %s
+Content-Length: %s
+Content-Type: text/plain
+ISO-8859-1N
+413Z
+414Tr
+Connection: close
+strr
+isinstancer
+	text_typer
+proto_statusrz
+content_type
+bufr
+HTTPRequest.simple_responsec
+z:Ensure headers are sent to the client if not already sent.TN)
+send_headersrZ
+HTTPRequest.ensure_headers_sentc
+z$Write unbuffered data to the client.r
+hexr^
+chunk_size_hexr
+HTTPRequest.writec
+rLn2|
+Assert, process, and send the HTTP response message-headers.
+        You must set ``self.status``, and :py:attr:`self.outheaders
+        <HTTPRequest.outheaders>` before calling this.
+        c
+valuerF
+z,HTTPRequest.send_headers.<locals>.<listcomp>Nr
+content-length
+HEAD)
+connection)
+timeout={connection_timeout})
+connection_timeoutr
+dates
+Date)
+usegmts
+servers
+Serverr
+can_add_keepalive_connectionr
+timeoutr
+getattrrB
+emailZ
+utilsZ
+formatdate
+server_namer
+hkeysr
+needs_chunkedZ
+can_keepry
+protor
+HTTPRequest.send_headers)
+z#An HTTP connection (active socket).NFc
+Initialize HTTPConnection instance.
+        Args:
+            server (HTTPServer): web server object receiving this request
+            sock (socket._socketobject): the raw socket object (usually
+                TCP) for this connection
+            makefile (file): a fileobject class for reading from the socket
+        
+maxsizeN)
+rbufsizerB
+wbufsizer
+requests_seen
+peercreds_enabled
+peercreds_resolve_enabledr
+resolve_peer_creds
+get_peer_creds)
+sock
+makefilerF
+HTTPConnection.__init__c
+zrRead each request and respond appropriately.
+        Returns true if the connection should be kept open.
+        F
+Enabledr
+z	timed outz
+The read operation timed outz
+408 Request Timeoutz
+socket.error %s
+level
+	tracebackz
+500 Internal Server ErrorN)
+RequestHandlerClassr
+statsr
+_conditional_errorr
+	error_logr
+logging
+WARNING
+KeyboardInterrupt
+SystemExit
+FatalSSLAlert
+NoSSLError
+_handle_no_ssl
+	Exception
+ERROR)
+request_seen
+reqr
+errnumZ
+timeout_errsrF
+communicate
+HTTPConnection.communicatec
+zUThe client sent a plain HTTP request, but this server only speaks HTTPS on this port.r
+_sock
+AttributeErrorZ
+_socketr
+linger)
+Z	resp_sockr
+HTTPConnection._handle_no_sslc
+zvRespond with an error.
+        Don't bother writing if a response
+        has already started being written.
+        N)
+responserF
+z!HTTPConnection._conditional_errorc
+z,Close the socket underlying this connection.N)
+_close_kernel_socketr
+HTTPConnection.closec
+Return the PID/UID/GID tuple of the peer socket for UNIX sockets.
+        This function uses SO_PEERCRED to query the UNIX PID, UID, GID
+        of the peer, which is only available if the bind address is
+        a UNIX domain socket.
+        Raises:
+            NotImplementedError: in case of unsupported socket type
+            RuntimeError: in case of SO_PEERCRED lookup unsupported or disabled
+        Z
+3iz5SO_PEERCRED is only supported in Linux kernel and WSLz0Peer creds lookup is disabled within this serverN)
+IS_WINDOWSr
+family
+AF_UNIX
+NotImplementedErrorr
+RuntimeErrorZ
+getsockopt
+SOL_SOCKETr"
+struct
+calcsizer
+raise_from
+unpack)
+PEERCRED_STRUCT_DEFZ
+peer_credsZ
+socket_err
+gidrF
+HTTPConnection.get_peer_credsc
+z,Return the id of the connected peer process.
+peer_pid
+HTTPConnection.peer_pidc
+z1Return the user id of the connected peer process.r#
+peer_uid
+HTTPConnection.peer_uidc
+z2Return the group id of the connected peer process.r#
+peer_gid
+HTTPConnection.peer_gidc
+Look up the username and group tuple of the ``PEERCREDS``.
+        :returns: the username and group tuple of the ``PEERCREDS``
+        :raises NotImplementedError: if the OS is unsupported
+        :raises RuntimeError: if UID/GID lookup is unsupported or disabled
+        z
+UID/GID lookup is unavailable under current platform. It can only be done under UNIX-like OS but not under the Google App Enginez-UID/GID lookup is disabled within this server)
+IS_UID_GID_RESOLVABLEr
+getpwuidr%
+pw_name
+getgrgidr&
+gr_name)
+user
+grouprF
+z!HTTPConnection.resolve_peer_credsc
+z2Return the username of the connected peer process.
+	peer_user
+HTTPConnection.peer_userc
+z/Return the group of the connected peer process.r0
+peer_group
+HTTPConnection.peer_groupc
+Close kernel socket in outdated Python versions.
+        On old Python versions,
+        Python's socket module does NOT call close on the kernel
+        socket when you call socket.close(). We do so manually here
+        because we want this server to send a FIN TCP segment
+        immediately. Note this must be called *before* calling
+        socket.close(), because the latter drops its reference to
+        the kernel socket.
+        r
+hasattrr
+z#HTTPConnection._close_kernel_socket) rM
+remote_addrZ
+remote_portZ
+ssl_env
+DEFAULT_BUFFER_SIZEr
+Z	last_usedr
+propertyr$
+Z!e!j"d
+Z&e'j(d d!
+Z)e d"d#
+Z*d$d%
+Z+d<d(d)
+Z,d=d*d+
+Z-d,d-
+Z.e/d.d/
+Z0e/d0d1
+Z1e/d2d3
+Z2d4d5
+Z3e d6d7
+Z4e4j"d8d7
+Z4d9d:
+An HTTP server.z	127.0.0.1Nr
+Cheroot/{version!s})
+versionFr
+Initialize HTTPServer instance.
+        Args:
+            bind_addr (tuple): network interface to listen to
+            gateway (Gateway): gateway for processing HTTP requests
+            minthreads (int): minimum number of threads for HTTP thread pool
+            maxthreads (int): maximum number of threads for HTTP thread pool
+            server_name (str): web server name to be advertised via Server
+                HTTP header
+        r
+maxFN)
+	bind_addrr
+ThreadPool
+requests
+servingr8
+clear_stats)
+minthreads
+maxthreadsr
+HTTPServer.__init__c
+Reset server stat counters..Nr
+<lambda>G
+z(HTTPServer.clear_stats.<locals>.<lambda>c
+runtimer@
+AcceptsrC
+qsize
+_threads)
+idlerF
+RequestsNrF
+	<genexpr>P
+;HTTPServer.clear_stats.<locals>.<lambda>.<locals>.<genexpr>
+Worker Threadsr
+valuesr@
+Bytes ReadNrF
+Bytes WrittenNrF
+	Work TimeNrF
+>NrF
+Bind Addressz
+Run timerE
+Accepts/secZ
+QueueZ
+Threadsz
+Threads Idlez
+Socket ErrorsrG
+Read Throughputz
+Write ThroughputrL
+Cheroot HTTPServer %d)
+_start_time
+	_run_timer
+idrZ
+HTTPServer.clear_statsc
+Return server uptime.N)
+timerZ
+HTTPServer.runtimec
+z1Render Server instance representing bind address.z	%s.%s(%r))
+__str__s
+HTTPServer.__str__c
+Return the interface on which to listen for connections.
+        For TCP sockets, a (host, port) tuple. Host values may be any
+        :term:`IPv4` or :term:`IPv6` address, or any valid hostname.
+        The string 'localhost' is a synonym for '127.0.0.1' (or '::1',
+        if your hosts file prefers :term:`IPv6`).
+        The string '0.0.0.0' is a special :term:`IPv4` entry meaning
+        "any active interface" (INADDR_ANY), and '::' is the similar
+        IN6ADDR_ANY for :term:`IPv6`.
+        The empty string or :py:data:`None` are not allowed.
+        For UNIX sockets, supply the file name as a string.
+        Systemd socket activation is automatic and doesn't require tempering
+        with this variable.
+        .. glossary::
+           :abbr:`IPv4 (Internet Protocol version 4)`
+              Internet Protocol version 4
+           :abbr:`IPv6 (Internet Protocol version 6)`
+              Internet Protocol version 6
+        )
+_bind_addrrZ
+HTTPServer.bind_addrc
+z5Set the interface on which to listen for connections.r
+NzzHost values of '' or None are not allowed. Use '0.0.0.0' (IPv4) or '::' (IPv6) instead to listen on all active interfaces.N)
+z4Run the server forever, and stop it cleanly on exit.z!Keyboard Interrupt: shutting downz SystemExit raised: shutting downN)
+startr	
+stopr
+safe_start
+HTTPServer.safe_startc
+njt	|
+_ t!
+Prepare server to serving requests.
+        It binds a socket's port, setups the socket to ``listen()`` and does
+        other preparing things.
+        Nz	%s Serverz
+No socket could be createdZ
+LISTEN_PIDr
+%s -- (%s: %s)r
+_interrupt
+softwarer8
+getenvZ
+fromfd
+AF_INET
+SOCK_STREAMr
+binary_type
+bind_unix_socketr
+getaddrinfo
+	AF_UNSPECZ
+AI_PASSIVEZ
+gaierrorr
+bindrr
+settimeoutZ
+listen
+request_queue_sizer	
+ConnectionManager
+_connectionsr;
+serr
+hostr
+infoZ	sock_typer:
+socktyper
+	canonname
+sarF
+prepare
+HTTPServer.preparec
+z1Serve requests, after invoking :func:`prepare()`.Tz
+Error in HTTPServer.tickr
+FN)	r<
+tickr	
+serve
+HTTPServer.servec
+zmRun the server forever.
+        It is shortcut for invoking :func:`prepare()` then :func:`serve()`.
+        N)
+HTTPServer.startc
+z4Context manager for running this server in a thread.)
+targetTN)
+	threadingZ
+Threadrt
+Z	setDaemonrZ
+threadrF
+_run_in_thread
+HTTPServer._run_in_threadc
+z>Flag whether it is allowed to add a new keep-alive connection.)
+z'HTTPServer.can_add_keepalive_connectionc
+z7Put an idle connection back into the ConnectionManager.N)
+putrr
+put_conn.
+HTTPServer.put_connr
+Write error message to log.
+        Args:
+            msg (str): error message
+            level (int): logging level
+            traceback (bool): add traceback to output or not
+        z
+{msg!s}
+stderrr
+flush
+traceback_
+format_exc)
+tblinesrF
+HTTPServer.error_logc
+z.Create (or recreate) the actual socket object.)
+prepare_socketr:
+nodelayr
+bind_socketr
+resolve_real_bind_addr)
+typer
+HTTPServer.bindc
+z*Create (or recreate) a UNIX socket object.z0AF_UNIX sockets are not supported under Windows.i
+zJremove() argument 1 must be encoded string without null bytes, not unicodez
+embedded NUL characterz0argument must be a string without NUL charactersNz'unlink: embedded null character in pathz
+embedded null byter
+follow_symlinksz(Failed to set socket fs mode permissions)
+unlinkr:
+OSError
+	TypeErrorr
+fchmod
+filenor
+lchmodr
+chmodr
+fs_permissionsZ
+typ_err
+err_msgZ
+val_errr
+FS_PERMS_SETrF
+HTTPServer.bind_unix_socketc
+sJ|	sJ|
+z%Create and prepare the socket object.Nr
+::0z	::0.0.0.0)
+prevent_socket_inheritancer
+setsockoptr
+SO_REUSEADDRr
+IPPROTO_TCPZ
+TCP_NODELAYrh
+IS_EPHEMERAL_PORTZ
+listening_ipv6rF
+HTTPServer.prepare_socketc
+z#Bind the socket to given interface.)
+socket_r:
+HTTPServer.bind_socketc
+z/Retrieve actual bind address from bound socket.Nr
+getsocknamer
+z!HTTPServer.resolve_real_bind_addrc
+z0Accept a new connection and put it on the Queue.N)
+get_connr;
+Fullrr
+expirerz
+HTTPServer.tickc
+Flag interrupt of the server.)
+	interrupt
+HTTPServer.interruptc
+z;Perform the shutdown of this server and save the exception.TN)
+)	z5Gracefully shutdown a server that is serving forever.FNg
+sleepr
+connectrr
+shutdown_timeout)
+HTTPServer.stop)
+NFF)
+)6rM
+ConnectionClassr
+keep_alive_conn_limitrX
+setterr\
+contextlib
+contextmanagerrx
+staticmethodr
+zDBase class to interface HTTPServer with other systems, such as WSGI.c
+zuInitialize Gateway instance with request.
+        Args:
+            req (HTTPRequest): current HTTP request
+        N)
+Gateway.__init__c
+z>Process the current request. Must be overridden in a subclass.N)
+Gateway.respondN)
+z%cheroot.ssl.builtin.BuiltinSSLAdapterz&cheroot.ssl.pyopenssl.pyOpenSSLAdapter)
+builtinZ	pyopensslr
+z/Return an SSL adapter class for the given name.
+z!'%s' object has no attribute '%s')
+ssl_adaptersr
+string_types
+rfindr}
+modules
+KeyError
+__import__
+globals
+localsr
+nameZ
+adapterZ
+last_dotZ	attr_nameZ
+mod_path
+modrF
+)RrP
+__future__r
+__metaclass__r`
+email.utilsr
+platformr
+	functoolsr
+ImportErrorZ
+backports.functools_lru_cacher
+Z	six.movesr
+_compatr
+workersr
+__all__
+systemr
+IS_GAEr'
+ASTERISKr
+compiler@
+<module>

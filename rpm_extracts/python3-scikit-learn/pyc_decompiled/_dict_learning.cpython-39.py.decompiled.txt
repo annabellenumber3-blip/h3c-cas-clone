@@ -1,0 +1,1228 @@
+NJ}Ec
+m Z 
+l!m"Z"m#Z#m$Z$m%Z%
+Z&d4d
+Z(d5d
+d d!
+Z*d6d"d#
+Z+d7d$d%d
+d%d%d%d
+d'd(d)
+d*d+
+d,d-
+d.d/
+d/e-e
+d0d1
+d1e-e
+d2d3
+d3e-e
+ Dictionary learning.
+ceil)
+linalg)
+Parallel
+effective_n_jobs
+BaseEstimator
+TransformerMixin
+ _ClassNamePrefixFeaturesOutMixin)
+check_array
+check_random_state
+gen_even_slices
+gen_batches)
+deprecated)
+randomized_svd
+	row_norms
+svd_flip)
+check_is_fitted)
+check_scalar)
+delayed)
+Lasso
+orthogonal_mp_gram
+	LassoLars
+Larsc
+larsz9Positive constraint not supported for '{}' coding method.)
+ValueError
+format)
+method
+positive
+J/usr/lib64/python3.9/site-packages/sklearn/decomposition/_dict_learning.py
+_check_positive_coding
+lasso_larsT
+r\t	|
+Generic sparse coding.
+    Each column of the result is the solution to a Lasso problem.
+    Parameters
+    ----------
+    X : ndarray of shape (n_samples, n_features)
+        Data matrix.
+    dictionary : ndarray of shape (n_components, n_features)
+        The dictionary matrix against which to solve the sparse coding of
+        the data. Some of the algorithms assume normalized rows.
+    gram : ndarray of shape (n_components, n_components) or None
+        Precomputed Gram matrix, `dictionary * dictionary'`
+        gram can be `None` if method is 'threshold'.
+    cov : ndarray of shape (n_components, n_samples), default=None
+        Precomputed covariance, `dictionary * X'`.
+    algorithm : {'lasso_lars', 'lasso_cd', 'lars', 'omp', 'threshold'},             default='lasso_lars'
+        The algorithm used:
+        * `'lars'`: uses the least angle regression method
+          (`linear_model.lars_path`);
+        * `'lasso_lars'`: uses Lars to compute the Lasso solution;
+        * `'lasso_cd'`: uses the coordinate descent method to compute the
+          Lasso solution (`linear_model.Lasso`). lasso_lars will be faster if
+          the estimated components are sparse;
+        * `'omp'`: uses orthogonal matching pursuit to estimate the sparse
+          solution;
+        * `'threshold'`: squashes to zero all coefficients less than
+          regularization from the projection `dictionary * data'`.
+    regularization : int or float, default=None
+        The regularization parameter. It corresponds to alpha when
+        algorithm is `'lasso_lars'`, `'lasso_cd'` or `'threshold'`.
+        Otherwise it corresponds to `n_nonzero_coefs`.
+    init : ndarray of shape (n_samples, n_components), default=None
+        Initialization value of the sparse code. Only used if
+        `algorithm='lasso_cd'`.
+    max_iter : int, default=1000
+        Maximum number of iterations to perform if `algorithm='lasso_cd'` or
+        `'lasso_lars'`.
+    copy_cov : bool, default=True
+        Whether to copy the precomputed covariance matrix; if `False`, it may
+        be overwritten.
+    check_input : bool, default=True
+        If `False`, the input arrays `X` and dictionary will not be checked.
+    verbose : int, default=0
+        Controls the verbosity; the higher, the more messages.
+    positive: bool, default=False
+        Whether to enforce a positivity constraint on the sparse code.
+        .. versionadded:: 0.20
+    Returns
+    -------
+    code : ndarray of shape (n_components, n_features)
+        The sparse codes.
+    See Also
+    --------
+    sklearn.linear_model.lars_path
+    sklearn.linear_model.orthogonal_mp
+    sklearn.linear_model.Lasso
+    SparseCoder
+    
+zRDictionary and X have different numbers of features:dictionary.shape: {} X.shape{}
+lasso_cdFr"
+ignore)
+all)
+alpha
+fit_intercept
+verbose
+	normalize
+precompute
+fit_pathr
+max_iter)
+warm_startr
+check_inputr
+n_nonzero_coefsr-
+	threshold
+outr
+squared)
+Gramr/
+tolZ
+norms_squaredZ
+copy_Xyz\Sparse coding method must be "lasso_lars" "lasso_cd", "lasso", "threshold" or "omp", got %s.r
+ndim
+newaxis
+shaper
+floatZ
+seterrr
+fitZ
+coef_r
+intZ
+sign
+maximum
+clipr
+reshape)
+dictionary
+gram
+	algorithm
+regularization
+copy_cov
+initr.
+	n_samples
+n_features
+n_componentsr(
+err_mgtr"
+new_codeZ
+clfr
+_sparse_encode"
+n_jobsr0
+	t	|
+Sparse coding.
+    Each row of the result is the solution to a sparse coding problem.
+    The goal is to find a sparse array `code` such that::
+        X ~= code * dictionary
+    Read more in the :ref:`User Guide <SparseCoder>`.
+    Parameters
+    ----------
+    X : ndarray of shape (n_samples, n_features)
+        Data matrix.
+    dictionary : ndarray of shape (n_components, n_features)
+        The dictionary matrix against which to solve the sparse coding of
+        the data. Some of the algorithms assume normalized rows for meaningful
+        output.
+    gram : ndarray of shape (n_components, n_components), default=None
+        Precomputed Gram matrix, `dictionary * dictionary'`.
+    cov : ndarray of shape (n_components, n_samples), default=None
+        Precomputed covariance, `dictionary' * X`.
+    algorithm : {'lasso_lars', 'lasso_cd', 'lars', 'omp', 'threshold'},             default='lasso_lars'
+        The algorithm used:
+        * `'lars'`: uses the least angle regression method
+          (`linear_model.lars_path`);
+        * `'lasso_lars'`: uses Lars to compute the Lasso solution;
+        * `'lasso_cd'`: uses the coordinate descent method to compute the
+          Lasso solution (`linear_model.Lasso`). lasso_lars will be faster if
+          the estimated components are sparse;
+        * `'omp'`: uses orthogonal matching pursuit to estimate the sparse
+          solution;
+        * `'threshold'`: squashes to zero all coefficients less than
+          regularization from the projection `dictionary * data'`.
+    n_nonzero_coefs : int, default=None
+        Number of nonzero coefficients to target in each column of the
+        solution. This is only used by `algorithm='lars'` and `algorithm='omp'`
+        and is overridden by `alpha` in the `omp` case. If `None`, then
+        `n_nonzero_coefs=int(n_features / 10)`.
+    alpha : float, default=None
+        If `algorithm='lasso_lars'` or `algorithm='lasso_cd'`, `alpha` is the
+        penalty applied to the L1 norm.
+        If `algorithm='threshold'`, `alpha` is the absolute value of the
+        threshold below which coefficients will be squashed to zero.
+        If `algorithm='omp'`, `alpha` is the tolerance parameter: the value of
+        the reconstruction error targeted. In this case, it overrides
+        `n_nonzero_coefs`.
+        If `None`, default to 1.
+    copy_cov : bool, default=True
+        Whether to copy the precomputed covariance matrix; if `False`, it may
+        be overwritten.
+    init : ndarray of shape (n_samples, n_components), default=None
+        Initialization value of the sparse codes. Only used if
+        `algorithm='lasso_cd'`.
+    max_iter : int, default=1000
+        Maximum number of iterations to perform if `algorithm='lasso_cd'` or
+        `'lasso_lars'`.
+    n_jobs : int, default=None
+        Number of parallel jobs to run.
+        ``None`` means 1 unless in a :obj:`joblib.parallel_backend` context.
+        ``-1`` means using all processors. See :term:`Glossary <n_jobs>`
+        for more details.
+    check_input : bool, default=True
+        If `False`, the input arrays X and dictionary will not be checked.
+    verbose : int, default=0
+        Controls the verbosity; the higher, the more messages.
+    positive : bool, default=False
+        Whether to enforce positivity when finding the encoding.
+        .. versionadded:: 0.20
+    Returns
+    -------
+    code : ndarray of shape (n_samples, n_components)
+        The sparse codes.
+    See Also
+    --------
+    sklearn.linear_model.lars_path : Compute Least Angle Regression or Lasso
+        path using LARS algorithm.
+    sklearn.linear_model.orthogonal_mp : Solves Orthogonal Matching Pursuit problems.
+    sklearn.linear_model.Lasso : Train Linear Model with L1 prior as regularizer.
+    SparseCoder : Find a sparse representation of data from a fixed precomputed
+        dictionary.
+    r%
+order
+dtyper
+?)	rE
+this_slice
+	<genexpr>
+z sparse_encode.<locals>.<genexpr>)
+float64
+float32r9
+maxr
+empty
+listr
+zip)
+codeZ
+slicesZ
+code_viewsrU
+Z	this_viewr
+sparse_encode
+Update the dense dictionary factor in place.
+    Parameters
+    ----------
+    dictionary : ndarray of shape (n_components, n_features)
+        Value of the dictionary at the previous iteration.
+    Y : ndarray of shape (n_samples, n_features)
+        Data matrix.
+    code : ndarray of shape (n_samples, n_components)
+        Sparse coding of the data against which to optimize the dictionary.
+    A : ndarray of shape (n_components, n_components), default=None
+        Together with `B`, sufficient stats of the online model to update the
+        dictionary.
+    B : ndarray of shape (n_features, n_components), default=None
+        Together with `A`, sufficient stats of the online model to update the
+        dictionary.
+    verbose: bool, default=False
+        Degree of output the procedure will print.
+    random_state : int, RandomState instance or None, default=None
+        Used for randomly initializing the dictionary. Pass an int for
+        reproducible results across multiple function calls.
+        See :term:`Glossary <random_state>`.
+    positive : bool, default=False
+        Whether to enforce positivity when finding the dictionary.
+        .. versionadded:: 0.20
+    Nr
+sizer3
+ unused atoms resampled.)
+rangeZ
+choiceZ
+stdZ
+normal
+lenr7
+norm
+print)
+random_stater
+n_unused
+newdZ
+noise_levelZ
+noiser
+_update_dict
+yE>r
+	dict_init
+	code_init
+callbackr*
+return_n_iter
+positive_dict
+positive_code
+method_max_iterc
+rL|	d
+rL|	t
+Solves a dictionary learning matrix factorization problem.
+    Finds the best dictionary and the corresponding sparse code for
+    approximating the data matrix X by solving::
+        (U^*, V^*) = argmin 0.5 || X - U V ||_Fro^2 + alpha * || U ||_1,1
+                     (U,V)
+                    with || V_k ||_2 = 1 for all  0 <= k < n_components
+    where V is the dictionary and U is the sparse code. ||.||_Fro stands for
+    the Frobenius norm and ||.||_1,1 stands for the entry-wise matrix norm
+    which is the sum of the absolute values of all the entries in the matrix.
+    Read more in the :ref:`User Guide <DictionaryLearning>`.
+    Parameters
+    ----------
+    X : ndarray of shape (n_samples, n_features)
+        Data matrix.
+    n_components : int
+        Number of dictionary atoms to extract.
+    alpha : int
+        Sparsity controlling parameter.
+    max_iter : int, default=100
+        Maximum number of iterations to perform.
+    tol : float, default=1e-8
+        Tolerance for the stopping condition.
+    method : {'lars', 'cd'}, default='lars'
+        The method used:
+        * `'lars'`: uses the least angle regression method to solve the lasso
+           problem (`linear_model.lars_path`);
+        * `'cd'`: uses the coordinate descent method to compute the
+          Lasso solution (`linear_model.Lasso`). Lars will be faster if
+          the estimated components are sparse.
+    n_jobs : int, default=None
+        Number of parallel jobs to run.
+        ``None`` means 1 unless in a :obj:`joblib.parallel_backend` context.
+        ``-1`` means using all processors. See :term:`Glossary <n_jobs>`
+        for more details.
+    dict_init : ndarray of shape (n_components, n_features), default=None
+        Initial value for the dictionary for warm restart scenarios. Only used
+        if `code_init` and `dict_init` are not None.
+    code_init : ndarray of shape (n_samples, n_components), default=None
+        Initial value for the sparse code for warm restart scenarios. Only used
+        if `code_init` and `dict_init` are not None.
+    callback : callable, default=None
+        Callable that gets invoked every five iterations
+    verbose : bool, default=False
+        To control the verbosity of the procedure.
+    random_state : int, RandomState instance or None, default=None
+        Used for randomly initializing the dictionary. Pass an int for
+        reproducible results across multiple function calls.
+        See :term:`Glossary <random_state>`.
+    return_n_iter : bool, default=False
+        Whether or not to return the number of iterations.
+    positive_dict : bool, default=False
+        Whether to enforce positivity when finding the dictionary.
+        .. versionadded:: 0.20
+    positive_code : bool, default=False
+        Whether to enforce positivity when finding the code.
+        .. versionadded:: 0.20
+    method_max_iter : int, default=1000
+        Maximum number of iterations to perform.
+        .. versionadded:: 0.22
+    Returns
+    -------
+    code : ndarray of shape (n_samples, n_components)
+        The sparse code factor in the matrix factorization.
+    dictionary : ndarray of shape (n_components, n_features),
+        The dictionary factor in the matrix factorization.
+    errors : array
+        Vector of errors at each iteration.
+    n_iter : int
+        Number of iterations run. Returned only if `return_n_iter` is
+        set to True.
+    See Also
+    --------
+    dict_learning_online
+    DictionaryLearning
+    MiniBatchDictionaryLearning
+    SparsePCA
+    MiniBatchSparsePCA
+    
+cdz2Coding method %r not supported as a fit algorithm.
+lasso_N
+full_matricesr$
+[dict_learning]
+.zCIteration % 3i (elapsed time: % 3is, % 4.1fmn, current cost % 7.3f)
+z+--- Convergence reached after %d iterations
+timer<
+arrayr
+svdr
+zeros
+r_r9
+asfortranarray
+nanre
+stdout
+write
+flushr`
+sumr@
+append
+locals)
+t0r_
+errorsZ
+current_cost
+dict_learning
+'zB' is deprecated in version 1.1 and will be removed in version 1.3.ry
+warnings
+warn
+FutureWarning)
+param
+name
+default
+additional_message
+msgr
+_check_warn_deprecated
+MbP?rR
+n_iterr.
+return_codern
+batch_sizer*
+shufflerN
+iter_offsetri
+return_inner_stats
+inner_statsrq
+max_no_improvementc
+d	d 
+d!|"j
+d	d 
+d"d#
+}&t t!|
+}&}'|"|'
+})|	d
+t"j#
+t"j#
+n<|	
+r:|	d%k
+s$|&t&d&|	
+d'|&|)|)d(
+t'|(|
+|	d)
+	}*|&|
+}+|+d
+},|$|,9
+}$|$t
+(|*j)|*
+}$|%|,9
+}%|%t
+(|(j)|*
+}%t*|
+|(|*|$|%|	|
+|$|%f
+|$|%f
+|	d)
+d.|)|)d(
+Solves a dictionary learning matrix factorization problem online.
+    Finds the best dictionary and the corresponding sparse code for
+    approximating the data matrix X by solving::
+        (U^*, V^*) = argmin 0.5 || X - U V ||_Fro^2 + alpha * || U ||_1,1
+                     (U,V)
+                     with || V_k ||_2 = 1 for all  0 <= k < n_components
+    where V is the dictionary and U is the sparse code. ||.||_Fro stands for
+    the Frobenius norm and ||.||_1,1 stands for the entry-wise matrix norm
+    which is the sum of the absolute values of all the entries in the matrix.
+    This is accomplished by repeatedly iterating over mini-batches by slicing
+    the input data.
+    Read more in the :ref:`User Guide <DictionaryLearning>`.
+    Parameters
+    ----------
+    X : ndarray of shape (n_samples, n_features)
+        Data matrix.
+    n_components : int or None, default=2
+        Number of dictionary atoms to extract. If None, then ``n_components``
+        is set to ``n_features``.
+    alpha : float, default=1
+        Sparsity controlling parameter.
+    n_iter : int, default=100
+        Number of mini-batch iterations to perform.
+        .. deprecated:: 1.1
+           `n_iter` is deprecated in 1.1 and will be removed in 1.3. Use
+           `max_iter` instead.
+    max_iter : int, default=None
+        Maximum number of iterations over the complete dataset before
+        stopping independently of any early stopping criterion heuristics.
+        If ``max_iter`` is not None, ``n_iter`` is ignored.
+        .. versionadded:: 1.1
+    return_code : bool, default=True
+        Whether to also return the code U or just the dictionary `V`.
+    dict_init : ndarray of shape (n_components, n_features), default=None
+        Initial values for the dictionary for warm restart scenarios.
+        If `None`, the initial values for the dictionary are created
+        with an SVD decomposition of the data via :func:`~sklearn.utils.randomized_svd`.
+    callback : callable, default=None
+        A callable that gets invoked at the end of each iteration.
+    batch_size : int, default=3
+        The number of samples to take in each batch.
+    verbose : bool, default=False
+        To control the verbosity of the procedure.
+    shuffle : bool, default=True
+        Whether to shuffle the data before splitting it in batches.
+    n_jobs : int, default=None
+        Number of parallel jobs to run.
+        ``None`` means 1 unless in a :obj:`joblib.parallel_backend` context.
+        ``-1`` means using all processors. See :term:`Glossary <n_jobs>`
+        for more details.
+    method : {'lars', 'cd'}, default='lars'
+        * `'lars'`: uses the least angle regression method to solve the lasso
+          problem (`linear_model.lars_path`);
+        * `'cd'`: uses the coordinate descent method to compute the
+          Lasso solution (`linear_model.Lasso`). Lars will be faster if
+          the estimated components are sparse.
+    iter_offset : int, default=0
+        Number of previous iterations completed on the dictionary used for
+        initialization.
+        .. deprecated:: 1.1
+           `iter_offset` serves internal purpose only and will be removed in 1.3.
+    random_state : int, RandomState instance or None, default=None
+        Used for initializing the dictionary when ``dict_init`` is not
+        specified, randomly shuffling the data when ``shuffle`` is set to
+        ``True``, and updating the dictionary. Pass an int for reproducible
+        results across multiple function calls.
+        See :term:`Glossary <random_state>`.
+    return_inner_stats : bool, default=False
+        Return the inner statistics A (dictionary covariance) and B
+        (data approximation). Useful to restart the algorithm in an
+        online setting. If `return_inner_stats` is `True`, `return_code` is
+        ignored.
+        .. deprecated:: 1.1
+           `return_inner_stats` serves internal purpose only and will be removed in 1.3.
+    inner_stats : tuple of (A, B) ndarrays, default=None
+        Inner sufficient statistics that are kept by the algorithm.
+        Passing them at initialization is useful in online settings, to
+        avoid losing the history of the evolution.
+        `A` `(n_components, n_components)` is the dictionary covariance matrix.
+        `B` `(n_features, n_components)` is the data approximation matrix.
+        .. deprecated:: 1.1
+           `inner_stats` serves internal purpose only and will be removed in 1.3.
+    return_n_iter : bool, default=False
+        Whether or not to return the number of iterations.
+        .. deprecated:: 1.1
+           `return_n_iter` will be removed in 1.3 and n_iter will always be returned.
+    positive_dict : bool, default=False
+        Whether to enforce positivity when finding the dictionary.
+        .. versionadded:: 0.20
+    positive_code : bool, default=False
+        Whether to enforce positivity when finding the code.
+        .. versionadded:: 0.20
+    method_max_iter : int, default=1000
+        Maximum number of iterations to perform when solving the lasso problem.
+        .. versionadded:: 0.22
+    tol : float, default=1e-3
+        Control early stopping based on the norm of the differences in the
+        dictionary between 2 steps. Used only if `max_iter` is not None.
+        To disable early stopping based on changes in the dictionary, set
+        `tol` to 0.0.
+        .. versionadded:: 1.1
+    max_no_improvement : int, default=10
+        Control early stopping based on the consecutive number of mini batches
+        that does not yield an improvement on the smoothed cost function. Used only if
+        `max_iter` is not None.
+        To disable convergence detection based on cost function, set
+        `max_no_improvement` to None.
+        .. versionadded:: 1.1
+    Returns
+    -------
+    code : ndarray of shape (n_samples, n_components),
+        The sparse code (only returned if `return_code=True`).
+    dictionary : ndarray of shape (n_components, n_features),
+        The solutions to the dictionary learning problem.
+    n_iter : int
+        Number of iterations run. Returned only if `return_n_iter` is
+        set to `True`.
+    See Also
+    --------
+    dict_learning
+    DictionaryLearning
+    MiniBatchDictionaryLearning
+    SparsePCA
+    MiniBatchSparsePCA
+    Nc
+argr
+z'dict_learning_online.<locals>.<genexpr>zuThe following arguments are incompatible with 'max_iter': return_n_iter, return_inner_stats, iter_offset, inner_statsr
+Fz,From 1.3 inner_stats will never be returned.)
+From 1.3 'n_iter' will never be returned. Refer to the 'n_iter_' and 'n_steps_' attributes of the MiniBatchDictionaryLearning object instead.rv
+fit_algorithmr
+transform_algorithm
+transform_alphars
+transform_max_iterr*
+Use 'max_iter' instead.r
+AThe default value of batch_size will change from 3 to 256 in 1.3.
+z/Coding method not supported as a fit algorithm.
+copyrw
+requirementsr}
+Y@z.Iteration % 3i (elapsed time: % 3is, % 4.1fmn)r~
+Learning code...
+|z"done (total time: % 3is, % 4.1fmn)),r'
+MiniBatchDictionaryLearningr=
+components_
+	transformr
+requirer
+	itertools
+cycler^
+)-rB
+depsr
+estr_
+X_train
+batchesrg
+batchZ
+this_Xr
+Z	this_code
+theta
+betar
+dict_learning_online
+_BaseSparseCodingz>Base class from SparseCoder and DictionaryLearning algorithms.c
+transform_n_nonzero_coefsr
+split_signrN
+selfr
+__init__
+_BaseSparseCoding.__init__c
+zWPrivate method allowing to accommodate both DictionaryLearning and
+        SparseCoder.F)
+resetr(
+NzYBy default transform_alpha will be equal toalpha instead of 1.0 starting from version 1.2)
+_validate_data
+hasattrr(
+minimum)
+split_coder
+_transform
+_BaseSparseCoding._transformc
+Encode the data as a sparse combination of the dictionary atoms.
+        Coding method is determined by the object parameter
+        `transform_algorithm`.
+        Parameters
+        ----------
+        X : ndarray of shape (n_samples, n_features)
+            Test data to be transformed, must have the same number of
+            features as the data used to train the model.
+        Returns
+        -------
+        X_new : ndarray of shape (n_samples, n_components)
+            Transformed data.
+        )
+_BaseSparseCoding.transformN)
+__name__
+__module__
+__qualname__
+__doc__r
+SparseCodera
+Sparse coding.
+    Finds a sparse representation of data against a fixed, precomputed
+    dictionary.
+    Each row of the result is the solution to a sparse coding problem.
+    The goal is to find a sparse array `code` such that::
+        X ~= code * dictionary
+    Read more in the :ref:`User Guide <SparseCoder>`.
+    Parameters
+    ----------
+    dictionary : ndarray of shape (n_components, n_features)
+        The dictionary atoms used for sparse coding. Lines are assumed to be
+        normalized to unit norm.
+    transform_algorithm : {'lasso_lars', 'lasso_cd', 'lars', 'omp',             'threshold'}, default='omp'
+        Algorithm used to transform the data:
+        - `'lars'`: uses the least angle regression method
+          (`linear_model.lars_path`);
+        - `'lasso_lars'`: uses Lars to compute the Lasso solution;
+        - `'lasso_cd'`: uses the coordinate descent method to compute the
+          Lasso solution (linear_model.Lasso). `'lasso_lars'` will be faster if
+          the estimated components are sparse;
+        - `'omp'`: uses orthogonal matching pursuit to estimate the sparse
+          solution;
+        - `'threshold'`: squashes to zero all coefficients less than alpha from
+          the projection ``dictionary * X'``.
+    transform_n_nonzero_coefs : int, default=None
+        Number of nonzero coefficients to target in each column of the
+        solution. This is only used by `algorithm='lars'` and `algorithm='omp'`
+        and is overridden by `alpha` in the `omp` case. If `None`, then
+        `transform_n_nonzero_coefs=int(n_features / 10)`.
+    transform_alpha : float, default=None
+        If `algorithm='lasso_lars'` or `algorithm='lasso_cd'`, `alpha` is the
+        penalty applied to the L1 norm.
+        If `algorithm='threshold'`, `alpha` is the absolute value of the
+        threshold below which coefficients will be squashed to zero.
+        If `algorithm='omp'`, `alpha` is the tolerance parameter: the value of
+        the reconstruction error targeted. In this case, it overrides
+        `n_nonzero_coefs`.
+        If `None`, default to 1.
+    split_sign : bool, default=False
+        Whether to split the sparse feature vector into the concatenation of
+        its negative part and its positive part. This can improve the
+        performance of downstream classifiers.
+    n_jobs : int, default=None
+        Number of parallel jobs to run.
+        ``None`` means 1 unless in a :obj:`joblib.parallel_backend` context.
+        ``-1`` means using all processors. See :term:`Glossary <n_jobs>`
+        for more details.
+    positive_code : bool, default=False
+        Whether to enforce positivity when finding the code.
+        .. versionadded:: 0.20
+    transform_max_iter : int, default=1000
+        Maximum number of iterations to perform if `algorithm='lasso_cd'` or
+        `lasso_lars`.
+        .. versionadded:: 0.22
+    Attributes
+    ----------
+    n_components_ : int
+        Number of atoms.
+    n_features_in_ : int
+        Number of features seen during :term:`fit`.
+        .. versionadded:: 0.24
+    feature_names_in_ : ndarray of shape (`n_features_in_`,)
+        Names of features seen during :term:`fit`. Defined only when `X`
+        has feature names that are all strings.
+        .. versionadded:: 1.0
+    See Also
+    --------
+    DictionaryLearning : Find a dictionary that sparsely encodes data.
+    MiniBatchDictionaryLearning : A faster, less accurate, version of the
+        dictionary learning algorithm.
+    MiniBatchSparsePCA : Mini-batch Sparse Principal Components Analysis.
+    SparsePCA : Mini-batch Sparse Principal Components Analysis.
+    sparse_encode : Sparse coding where each row of the result is the solution
+        to a sparse coding problem.
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from sklearn.decomposition import SparseCoder
+    >>> X = np.array([[-1, -1, -1], [0, 0, 3]])
+    >>> dictionary = np.array(
+    ...     [[0, 1, 0],
+    ...      [-1, -1, 2],
+    ...      [1, 1, 1],
+    ...      [0, 1, 1],
+    ...      [0, 2, 1]],
+    ...    dtype=np.float64
+    ... )
+    >>> coder = SparseCoder(
+    ...     dictionary=dictionary, transform_algorithm='lasso_lars',
+    ...     transform_alpha=1e-10,
+    ... )
+    >>> coder.transform(X)
+    array([[ 0.,  0., -1.,  0.,  0.],
+           [ 0.,  1.,  1.,  0.,  0.]])
+    rC
+NFr#
+superr
+	__class__r
+SparseCoder.__init__c
+Do nothing and return the estimator unchanged.
+        This method is just there to implement the usual API and hence
+        work in pipelines.
+        Parameters
+        ----------
+        X : Ignored
+            Not used, present for API consistency by convention.
+        y : Ignored
+            Not used, present for API consistency by convention.
+        Returns
+        -------
+        self : object
+            Returns the instance itself.
+        r
+SparseCoder.fitc
+Encode the data as a sparse combination of the dictionary atoms.
+        Coding method is determined by the object parameter
+        `transform_algorithm`.
+        Parameters
+        ----------
+        X : ndarray of shape (n_samples, n_features)
+            Training vector, where `n_samples` is the number of samples
+            and `n_features` is the number of features.
+        y : Ignored
+            Not used, present for API consistency by convention.
+        Returns
+        -------
+        X_new : ndarray of shape (n_samples, n_components)
+            Transformed data.
+        )
+SparseCoder.transformc
+requires_fit
+preserves_dtype
+_more_tags
+SparseCoder._more_tagsc
+Number of atoms.r
+n_components_
+SparseCoder.n_components_c
+z%Number of features seen during `fit`.r$
+n_features_in_
+SparseCoder.n_features_in_c
+&Number of transformed output features.)
+_n_features_out
+SparseCoder._n_features_out)
+_required_parametersr
+propertyr
+__classcell__r
+DictionaryLearninga
+Dictionary learning.
+    Finds a dictionary (a set of atoms) that performs well at sparsely
+    encoding the fitted data.
+    Solves the optimization problem::
+        (U^*,V^*) = argmin 0.5 || X - U V ||_Fro^2 + alpha * || U ||_1,1
+                    (U,V)
+                    with || V_k ||_2 <= 1 for all  0 <= k < n_components
+    ||.||_Fro stands for the Frobenius norm and ||.||_1,1 stands for
+    the entry-wise matrix norm which is the sum of the absolute values
+    of all the entries in the matrix.
+    Read more in the :ref:`User Guide <DictionaryLearning>`.
+    Parameters
+    ----------
+    n_components : int, default=None
+        Number of dictionary elements to extract. If None, then ``n_components``
+        is set to ``n_features``.
+    alpha : float, default=1.0
+        Sparsity controlling parameter.
+    max_iter : int, default=1000
+        Maximum number of iterations to perform.
+    tol : float, default=1e-8
+        Tolerance for numerical error.
+    fit_algorithm : {'lars', 'cd'}, default='lars'
+        * `'lars'`: uses the least angle regression method to solve the lasso
+          problem (:func:`~sklearn.linear_model.lars_path`);
+        * `'cd'`: uses the coordinate descent method to compute the
+          Lasso solution (:class:`~sklearn.linear_model.Lasso`). Lars will be
+          faster if the estimated components are sparse.
+        .. versionadded:: 0.17
+           *cd* coordinate descent method to improve speed.
+    transform_algorithm : {'lasso_lars', 'lasso_cd', 'lars', 'omp',             'threshold'}, default='omp'
+        Algorithm used to transform the data:
+        - `'lars'`: uses the least angle regression method
+          (:func:`~sklearn.linear_model.lars_path`);
+        - `'lasso_lars'`: uses Lars to compute the Lasso solution.
+        - `'lasso_cd'`: uses the coordinate descent method to compute the
+          Lasso solution (:class:`~sklearn.linear_model.Lasso`). `'lasso_lars'`
+          will be faster if the estimated components are sparse.
+        - `'omp'`: uses orthogonal matching pursuit to estimate the sparse
+          solution.
+        - `'threshold'`: squashes to zero all coefficients less than alpha from
+          the projection ``dictionary * X'``.
+        .. versionadded:: 0.17
+           *lasso_cd* coordinate descent method to improve speed.
+    transform_n_nonzero_coefs : int, default=None
+        Number of nonzero coefficients to target in each column of the
+        solution. This is only used by `algorithm='lars'` and
+        `algorithm='omp'`. If `None`, then
+        `transform_n_nonzero_coefs=int(n_features / 10)`.
+    transform_alpha : float, default=None
+        If `algorithm='lasso_lars'` or `algorithm='lasso_cd'`, `alpha` is the
+        penalty applied to the L1 norm.
+        If `algorithm='threshold'`, `alpha` is the absolute value of the
+        threshold below which coefficients will be squashed to zero.
+        If `None`, defaults to `alpha`.
+    n_jobs : int or None, default=None
+        Number of parallel jobs to run.
+        ``None`` means 1 unless in a :obj:`joblib.parallel_backend` context.
+        ``-1`` means using all processors. See :term:`Glossary <n_jobs>`
+        for more details.
+    code_init : ndarray of shape (n_samples, n_components), default=None
+        Initial value for the code, for warm restart. Only used if `code_init`
+        and `dict_init` are not None.
+    dict_init : ndarray of shape (n_components, n_features), default=None
+        Initial values for the dictionary, for warm restart. Only used if
+        `code_init` and `dict_init` are not None.
+    verbose : bool, default=False
+        To control the verbosity of the procedure.
+    split_sign : bool, default=False
+        Whether to split the sparse feature vector into the concatenation of
+        its negative part and its positive part. This can improve the
+        performance of downstream classifiers.
+    random_state : int, RandomState instance or None, default=None
+        Used for initializing the dictionary when ``dict_init`` is not
+        specified, randomly shuffling the data when ``shuffle`` is set to
+        ``True``, and updating the dictionary. Pass an int for reproducible
+        results across multiple function calls.
+        See :term:`Glossary <random_state>`.
+    positive_code : bool, default=False
+        Whether to enforce positivity when finding the code.
+        .. versionadded:: 0.20
+    positive_dict : bool, default=False
+        Whether to enforce positivity when finding the dictionary.
+        .. versionadded:: 0.20
+    transform_max_iter : int, default=1000
+        Maximum number of iterations to perform if `algorithm='lasso_cd'` or
+        `'lasso_lars'`.
+        .. versionadded:: 0.22
+    Attributes
+    ----------
+    components_ : ndarray of shape (n_components, n_features)
+        dictionary atoms extracted from the data
+    error_ : array
+        vector of errors at each iteration
+    n_features_in_ : int
+        Number of features seen during :term:`fit`.
+        .. versionadded:: 0.24
+    feature_names_in_ : ndarray of shape (`n_features_in_`,)
+        Names of features seen during :term:`fit`. Defined only when `X`
+        has feature names that are all strings.
+        .. versionadded:: 1.0
+    n_iter_ : int
+        Number of iterations run.
+    See Also
+    --------
+    MiniBatchDictionaryLearning: A faster, less accurate, version of the
+        dictionary learning algorithm.
+    MiniBatchSparsePCA : Mini-batch Sparse Principal Components Analysis.
+    SparseCoder : Find a sparse representation of data from a fixed,
+        precomputed dictionary.
+    SparsePCA : Sparse Principal Components Analysis.
+    References
+    ----------
+    J. Mairal, F. Bach, J. Ponce, G. Sapiro, 2009: Online dictionary learning
+    for sparse coding (https://www.di.ens.fr/sierra/pdfs/icml09.pdf)
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from sklearn.datasets import make_sparse_coded_signal
+    >>> from sklearn.decomposition import DictionaryLearning
+    >>> X, dictionary, code = make_sparse_coded_signal(
+    ...     n_samples=100, n_components=15, n_features=20, n_nonzero_coefs=10,
+    ...     random_state=42, data_transposed=False
+    ... )
+    >>> dict_learner = DictionaryLearning(
+    ...     n_components=15, transform_algorithm='lasso_lars', transform_alpha=0.1,
+    ...     random_state=42,
+    ... )
+    >>> X_transformed = dict_learner.fit_transform(X)
+    We can check the level of sparsity of `X_transformed`:
+    >>> np.mean(X_transformed == 0)
+    0.41...
+    We can compare the average squared euclidean norm of the reconstruction
+    error of the sparse coded signal relative to the squared euclidean norm of
+    the original signal:
+    >>> X_hat = X_transformed @ dict_learner.components_
+    >>> np.mean(np.sum((X_hat - X) ** 2, axis=1) / np.sum(X ** 2, axis=1))
+    0.07...
+    Nr$
+DictionaryLearning.__init__c
+Fit the model from data in X.
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            Training vector, where `n_samples` is the number of samples
+            and `n_features` is the number of features.
+        y : Ignored
+            Not used, present for API consistency by convention.
+        Returns
+        -------
+        self : object
+            Returns the instance itself.
+        Nr$
+n_iter_r
+error_)
+DictionaryLearning.fitc
+z"DictionaryLearning._n_features_outc
+DictionaryLearning._more_tags)
+d	d	d
+d	d	d
+d!d"
+d,d#d$
+d-d%d&
+d'd(
+d)d*
+Mini-batch dictionary learning.
+    Finds a dictionary (a set of atoms) that performs well at sparsely
+    encoding the fitted data.
+    Solves the optimization problem::
+       (U^*,V^*) = argmin 0.5 || X - U V ||_Fro^2 + alpha * || U ||_1,1
+                    (U,V)
+                    with || V_k ||_2 <= 1 for all  0 <= k < n_components
+    ||.||_Fro stands for the Frobenius norm and ||.||_1,1 stands for
+    the entry-wise matrix norm which is the sum of the absolute values
+    of all the entries in the matrix.
+    Read more in the :ref:`User Guide <DictionaryLearning>`.
+    Parameters
+    ----------
+    n_components : int, default=None
+        Number of dictionary elements to extract.
+    alpha : float, default=1
+        Sparsity controlling parameter.
+    n_iter : int, default=1000
+        Total number of iterations over data batches to perform.
+        .. deprecated:: 1.1
+           ``n_iter`` is deprecated in 1.1 and will be removed in 1.3. Use
+           ``max_iter`` instead.
+    max_iter : int, default=None
+        Maximum number of iterations over the complete dataset before
+        stopping independently of any early stopping criterion heuristics.
+        If ``max_iter`` is not None, ``n_iter`` is ignored.
+        .. versionadded:: 1.1
+    fit_algorithm : {'lars', 'cd'}, default='lars'
+        The algorithm used:
+        - `'lars'`: uses the least angle regression method to solve the lasso
+          problem (`linear_model.lars_path`)
+        - `'cd'`: uses the coordinate descent method to compute the
+          Lasso solution (`linear_model.Lasso`). Lars will be faster if
+          the estimated components are sparse.
+    n_jobs : int, default=None
+        Number of parallel jobs to run.
+        ``None`` means 1 unless in a :obj:`joblib.parallel_backend` context.
+        ``-1`` means using all processors. See :term:`Glossary <n_jobs>`
+        for more details.
+    batch_size : int, default=3
+        Number of samples in each mini-batch.
+    shuffle : bool, default=True
+        Whether to shuffle the samples before forming batches.
+    dict_init : ndarray of shape (n_components, n_features), default=None
+        Initial value of the dictionary for warm restart scenarios.
+    transform_algorithm : {'lasso_lars', 'lasso_cd', 'lars', 'omp',             'threshold'}, default='omp'
+        Algorithm used to transform the data:
+        - `'lars'`: uses the least angle regression method
+          (`linear_model.lars_path`);
+        - `'lasso_lars'`: uses Lars to compute the Lasso solution.
+        - `'lasso_cd'`: uses the coordinate descent method to compute the
+          Lasso solution (`linear_model.Lasso`). `'lasso_lars'` will be faster
+          if the estimated components are sparse.
+        - `'omp'`: uses orthogonal matching pursuit to estimate the sparse
+          solution.
+        - `'threshold'`: squashes to zero all coefficients less than alpha from
+          the projection ``dictionary * X'``.
+    transform_n_nonzero_coefs : int, default=None
+        Number of nonzero coefficients to target in each column of the
+        solution. This is only used by `algorithm='lars'` and
+        `algorithm='omp'`. If `None`, then
+        `transform_n_nonzero_coefs=int(n_features / 10)`.
+    transform_alpha : float, default=None
+        If `algorithm='lasso_lars'` or `algorithm='lasso_cd'`, `alpha` is the
+        penalty applied to the L1 norm.
+        If `algorithm='threshold'`, `alpha` is the absolute value of the
+        threshold below which coefficients will be squashed to zero.
+        If `None`, defaults to `alpha`.
+    verbose : bool or int, default=False
+        To control the verbosity of the procedure.
+    split_sign : bool, default=False
+        Whether to split the sparse feature vector into the concatenation of
+        its negative part and its positive part. This can improve the
+        performance of downstream classifiers.
+    random_state : int, RandomState instance or None, default=None
+        Used for initializing the dictionary when ``dict_init`` is not
+        specified, randomly shuffling the data when ``shuffle`` is set to
+        ``True``, and updating the dictionary. Pass an int for reproducible
+        results across multiple function calls.
+        See :term:`Glossary <random_state>`.
+    positive_code : bool, default=False
+        Whether to enforce positivity when finding the code.
+        .. versionadded:: 0.20
+    positive_dict : bool, default=False
+        Whether to enforce positivity when finding the dictionary.
+        .. versionadded:: 0.20
+    transform_max_iter : int, default=1000
+        Maximum number of iterations to perform if `algorithm='lasso_cd'` or
+        `'lasso_lars'`.
+        .. versionadded:: 0.22
+    callback : callable, default=None
+        A callable that gets invoked at the end of each iteration.
+        .. versionadded:: 1.1
+    tol : float, default=1e-3
+        Control early stopping based on the norm of the differences in the
+        dictionary between 2 steps. Used only if `max_iter` is not None.
+        To disable early stopping based on changes in the dictionary, set
+        `tol` to 0.0.
+        .. versionadded:: 1.1
+    max_no_improvement : int, default=10
+        Control early stopping based on the consecutive number of mini batches
+        that does not yield an improvement on the smoothed cost function. Used only if
+        `max_iter` is not None.
+        To disable convergence detection based on cost function, set
+        `max_no_improvement` to None.
+        .. versionadded:: 1.1
+    Attributes
+    ----------
+    components_ : ndarray of shape (n_components, n_features)
+        Components extracted from the data.
+    inner_stats_ : tuple of (A, B) ndarrays
+        Internal sufficient statistics that are kept by the algorithm.
+        Keeping them is useful in online settings, to avoid losing the
+        history of the evolution, but they shouldn't have any use for the
+        end user.
+        `A` `(n_components, n_components)` is the dictionary covariance matrix.
+        `B` `(n_features, n_components)` is the data approximation matrix.
+        .. deprecated:: 1.1
+           `inner_stats_` serves internal purpose only and will be removed in 1.3.
+    n_features_in_ : int
+        Number of features seen during :term:`fit`.
+        .. versionadded:: 0.24
+    feature_names_in_ : ndarray of shape (`n_features_in_`,)
+        Names of features seen during :term:`fit`. Defined only when `X`
+        has feature names that are all strings.
+        .. versionadded:: 1.0
+    n_iter_ : int
+        Number of iterations over the full dataset.
+    iter_offset_ : int
+        The number of iteration on data batches that has been performed before.
+        .. deprecated:: 1.1
+           `iter_offset_` has been renamed `n_steps_` and will be removed in 1.3.
+    random_state_ : RandomState instance
+        RandomState instance that is generated either from a seed, the random
+        number generattor or by `np.random`.
+        .. deprecated:: 1.1
+           `random_state_` serves internal purpose only and will be removed in 1.3.
+    n_steps_ : int
+        Number of mini-batches processed.
+        .. versionadded:: 1.1
+    See Also
+    --------
+    DictionaryLearning : Find a dictionary that sparsely encodes data.
+    MiniBatchSparsePCA : Mini-batch Sparse Principal Components Analysis.
+    SparseCoder : Find a sparse representation of data from a fixed,
+        precomputed dictionary.
+    SparsePCA : Sparse Principal Components Analysis.
+    References
+    ----------
+    J. Mairal, F. Bach, J. Ponce, G. Sapiro, 2009: Online dictionary learning
+    for sparse coding (https://www.di.ens.fr/sierra/pdfs/icml09.pdf)
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from sklearn.datasets import make_sparse_coded_signal
+    >>> from sklearn.decomposition import MiniBatchDictionaryLearning
+    >>> X, dictionary, code = make_sparse_coded_signal(
+    ...     n_samples=100, n_components=15, n_features=20, n_nonzero_coefs=10,
+    ...     random_state=42, data_transposed=False)
+    >>> dict_learner = MiniBatchDictionaryLearning(
+    ...     n_components=15, batch_size=3, transform_algorithm='lasso_lars',
+    ...     transform_alpha=0.1, random_state=42)
+    >>> X_transformed = dict_learner.fit_transform(X)
+    We can check the level of sparsity of `X_transformed`:
+    >>> np.mean(X_transformed == 0)
+    0.38...
+    We can compare the average squared euclidean norm of the reconstruction
+    error of the sparse coded signal relative to the squared euclidean norm of
+    the original signal:
+    >>> X_hat = X_transformed @ dict_learner.components_
+    >>> np.mean(np.sum((X_hat - X) ** 2, axis=1) / np.sum(X ** 2, axis=1))
+    0.059...
+    Nr$
+z$MiniBatchDictionaryLearning.__init__zMThe attribute `iter_offset_` is deprecated in 1.1 and will be removed in 1.3.c
+iter_offset_
+z(MiniBatchDictionaryLearning.iter_offset_zNThe attribute `random_state_` is deprecated in 1.1 and will be removed in 1.3.c
+_random_stater
+random_state_
+z)MiniBatchDictionaryLearning.random_state_zMThe attribute `inner_stats_` is deprecated in 1.1 and will be removed in 1.3.c
+_inner_statsr
+inner_stats_
+z(MiniBatchDictionaryLearning.inner_stats_c
+min_valru
+Coding method zB not supported as a fit algorithm. Expected either "lars" or "cd".rv
+_batch_sizer
+_n_componentsr9
+_fit_algorithmr
+_check_params
+z)MiniBatchDictionaryLearning._check_paramsc
+z!Initialization of the dictionary.Nr
+concatenater
+_initialize_dict
+z,MiniBatchDictionaryLearning._initialize_dictc
+Update the inner stats inplace.r$
+stepr
+_update_inner_stats6
+z/MiniBatchDictionaryLearning._update_inner_statsc
+z7Perform the update on the dictionary for one minibatch.r
+batch_costrg
+_minibatch_stepD
+z+MiniBatchDictionaryLearning._minibatch_stepc
+Helper function to encapsulate the early stopping logic.
+        Early stopping is based on two factors:
+        - A small change of the dictionary between two minibatch updates. This is
+          controlled by the tol parameter.
+        - No more improvement on a smoothed estimate of the objective function for a
+          a certain number of consecutive minibatch updates. This is controlled by
+          the max_no_improvement parameter.
+        r
+Minibatch step 
+: mean batch cost: FNz
+, ewa cost: z,Converged (small dictionary change) at step Tz>Converged (lack of improvement in objective function) at step )
+	_ewa_costr
+_ewa_cost_min
+_no_improvementr
+new_dict
+old_dictrJ
+n_stepsr
+Z	dict_diffr
+_check_convergencel
+z.MiniBatchDictionaryLearning._check_convergencec
+t t!|
+j$d	u
+d	d	
+j&|	
+t t!|
+j$d	u
+za'n_iter' is deprecated in version 1.1 and will be removed in version 1.3. Use 'max_iter' instead.r#
+ batches processed.)*r
+n_steps_r
+n_steps_per_iterr
+X_batchr
+trigger_verboser
+MiniBatchDictionaryLearning.fitc
+Update the model using the data in X as a mini-batch.
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            Training vector, where `n_samples` is the number of samples
+            and `n_features` is the number of features.
+        y : Ignored
+            Not used, present for API consistency by convention.
+        iter_offset : int, default=None
+            The number of iteration on data batches that has been
+            performed before this call to `partial_fit`. This is optional:
+            if no number is passed, the memory of the object is
+            used.
+            .. deprecated:: 1.1
+               ``iter_offset`` will be removed in 1.3.
+        Returns
+        -------
+        self : object
+            Return the instance itself.
+        r
+zM'iter_offset' is deprecated in version 1.1 and will be removed in version 1.3r
+getattrr
+has_componentsrC
+partial_fit'	
+z'MiniBatchDictionaryLearning.partial_fitc
+z+MiniBatchDictionaryLearning._n_features_outc
+z&MiniBatchDictionaryLearning._more_tags)
+)	Nr"
+NTNr#
+NNFNF)
+mathr
+numpyr7
+scipyr
+joblibr
+baser
+utilsr
+utils.extmathr
+utils.validationr
+utils.fixesr
+linear_modelr
+<module>

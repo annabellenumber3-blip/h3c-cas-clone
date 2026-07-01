@@ -1,0 +1,129 @@
+Wrapper for mod_fastcgi, for use as a CherryPy HTTP server when testing.
+To autostart fastcgi, the "apache" executable or script must be
+on your system path, or you must override the global APACHE_PATH.
+On some platforms, "apache" may be called "apachectl", "apache2ctl",
+or "httpd"--create a symlink to them if needed.
+You'll also need the WSGIServer from flup.servers.
+See http://projects.amor.org/misc/wiki/ModPythonGateway
+KNOWN BUGS
+==========
+1. Apache processes Range headers automatically; CherryPy's truncated
+    output is then truncated again by Apache. See test_core.testRanges.
+    This was worked around in http://www.cherrypy.org/changeset/1319.
+2. Apache does not allow custom HTTP methods like CONNECT as per the spec.
+    See test_core.testHTTPMethods.
+3. Max request header and body settings do not work with Apache.
+4. Apache replaces status "reason phrases" automatically. For example,
+    CherryPy may set "304 Not modified" but Apache will write out
+    "304 Not Modified" (capital "M").
+5. Apache does not allow custom error codes as per the spec.
+6. Apache (or perhaps modpython, or modpython_gateway) unquotes %xx in the
+    Request-URI too early.
+7. mod_python will not read request bodies which use the "chunked"
+    transfer-coding (it passes REQUEST_CHUNKED_ERROR to ap_setup_client_block
+    instead of REQUEST_CHUNKED_DECHUNK, see Apache2's http_protocol.c and
+    mod_python's requestobject.c).
+8. Apache will output a "Content-Length: 0" response header even if there's
+    no response entity body. This isn't really a bug; it just differs from
+    the CherryPy default.
+servers)
+helper
+%s %sz'(not recognized|No such file|not found)z
+%s must be on your system path.)	
+popen4
+readline
+search
+IGNORECASE
+IOError
+read
+close)
+argsZ
+pipeinZ
+pipeout
+	firstline
+output
+</usr/lib/python3.9/site-packages/cherrypy/test/modfastcgi.py
+read_process.
+apache2ctlz
+fastcgi.confa
+# Apache2 server conf file for testing CherryPy with mod_fastcgi.
+# fumanchu: I had to hard-code paths due to crazy Debian layouts :(
+ServerRoot /usr/lib/apache2
+User #1000
+ErrorLog %(root)s/mod_fastcgi.error.log
+DocumentRoot "%(root)s"
+ServerName 127.0.0.1
+Listen %(port)s
+LoadModule fastcgi_module modules/mod_fastcgi.so
+LoadModule rewrite_module modules/mod_rewrite.so
+Options +ExecCGI
+SetHandler fastcgi-script
+RewriteEngine On
+RewriteRule ^(.*)$ /fastcgi.pyc [L]
+FastCgiExternalServer "%(server)s" -host 127.0.0.1:4000
+SCRIPT_NAME)
+cherrypyZ
+tree)
+environZ
+start_responser
+erase_script_nameS
+ModFCGISupervisorz'cherrypy.process.servers.FlupFCGIServerTc
+FCGI Server on %s:%s)
+host
+port
+selfr
+__str___
+ModFCGISupervisor.__str__c
+z	127.0.0.1
+applicationZ
+bindAddressr
+FlupFCGIServerr
+server
+httpserverZ	bind_addrZ
+socket_port
+start_apacheZ
+engine
+start
+	sync_apps)
+modulenamer
+ModFCGISupervisor.startc
+fastcgi.pyc
+rootr
+-k start -f %s)
+	CONF_PATHr
+path
+isabs
+join
+curdir
+open
+repr
+templater
+replace
+writer
+APACHE_PATH
+print)
+fcgiconf
+resultr
+ModFCGISupervisor.start_apachec
+z5Gracefully shutdown a server that is serving forever.z
+-k stopN)
+LocalWSGISupervisor
+stopr
+ModFCGISupervisor.stopc
+get_appr
+fcgiserverr
+ModFCGISupervisor.sync_appsN)
+__name__
+__module__
+__qualname__Z
+httpserver_classZ
+using_apacheZ
+using_wsgi
+conf_fastcgir0
+__doc__r
+cherrypy.processr
+cherrypy.testr
+getcwd
+dirname
+__file__r-
+<module>

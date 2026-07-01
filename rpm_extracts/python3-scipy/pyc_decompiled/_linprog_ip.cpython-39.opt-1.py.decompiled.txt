@@ -1,0 +1,722 @@
+m	Z	
+Z$d)d
+Z&d*d%d&
+Interior-point method for linear programming
+The *interior-point* method uses the primal-dual path following algorithm
+outlined in [1]_. This algorithm supports sparse constraint matrices and
+is typically faster than the simplex methods, especially for large, sparse
+problems. Note, however, that the solution returned may be slightly less
+accurate than those of the simplex methods and will not, in general,
+correspond with a vertex of the polytope defined by the constraints.
+    .. versionadded:: 1.0.0
+References
+----------
+.. [1] Andersen, Erling D., and Knud D. Andersen. "The MOSEK interior point
+       optimizer for linear programming: an implementation of the
+       homogeneous algorithm." High performance optimization. Springer US,
+       2000. 197-232.
+warn)
+LinAlgError
+OptimizeWarning
+OptimizeResult
+_check_unknown_options)
+_postsolveT)
+cholesky)
+analyzeF
+MMD_AT_PLUS_Ac
+    Given solver options, return a handle to the appropriate linear system
+    solver.
+    Parameters
+    ----------
+    M : 2-D array
+        As defined in [4] Equation 8.31
+    sparse : bool (default = False)
+        True if the system to be solved is sparse. This is typically set
+        True when the original ``A_ub`` and ``A_eq`` arrays are sparse.
+    lstsq : bool (default = False)
+        True if the system is ill-conditioned and/or (nearly) singular and
+        thus a more robust least-squares solver is desired. This is sometimes
+        needed as the solution is approached.
+    sym_pos : bool (default = True)
+        True if the system matrix is symmetric positive definite
+        Sometimes this needs to be set false as the solution is approached,
+        even when the system should be symmetric positive definite, due to
+        numerical difficulties.
+    cholesky : bool (default = True)
+        True if the system is to be solved by Cholesky, rather than LU,
+        decomposition. This is typically faster unless the problem is very
+        small or prone to numerical difficulties.
+    permc_spec : str (default = 'MMD_AT_PLUS_A')
+        Sparsity preservation strategy used by SuperLU. Acceptable values are:
+        - ``NATURAL``: natural ordering.
+        - ``MMD_ATA``: minimum degree ordering on the structure of A^T A.
+        - ``MMD_AT_PLUS_A``: minimum degree ordering on the structure of A^T+A.
+        - ``COLAMD``: approximate minimum degree column ordering.
+        See SuperLU documentation.
+    Returns
+    -------
+    solve : function
+        Handle to the appropriate solver function
+    Fc
+linalgZ
+lsqr
+sym_pos
+@/usr/lib64/python3.9/site-packages/scipy/optimize/_linprog_ip.py
+solveW
+_get_solver.<locals>.solve)
+permc_specc
+lstsq
+Z	cho_solver
+_get_solverZ
+cholmod_factorZ
+cholesky_inplace
+	Exception
+cholmod_analyze
+has_umfpackr
+factorizedZ
+splur
+cho_factor
+KeyboardInterrupt)
+sparser
+} |	|
+}!|	|
+}#|$|
+}$d	}%|%
+zdt	|
+}&}'t	|
+}(})t
+r^d	}
+rxd	}
+}*~*n
+}*~*0
+|(|&|
+|)|'|
+    Given standard form problem defined by ``A``, ``b``, and ``c``;
+    current variable estimates ``x``, ``y``, ``z``, ``tau``, and ``kappa``;
+    algorithmic parameters ``gamma and ``eta;
+    and options ``sparse``, ``lstsq``, ``sym_pos``, ``cholesky``, ``pc``
+    (predictor-corrector), and ``ip`` (initial point improvement),
+    get the search direction for increments to the variable estimates.
+    Parameters
+    ----------
+    As defined in [4], except:
+    sparse : bool
+        True if the system to be solved is sparse. This is typically set
+        True when the original ``A_ub`` and ``A_eq`` arrays are sparse.
+    lstsq : bool
+        True if the system is ill-conditioned and/or (nearly) singular and
+        thus a more robust least-squares solver is desired. This is sometimes
+        needed as the solution is approached.
+    sym_pos : bool
+        True if the system matrix is symmetric positive definite
+        Sometimes this needs to be set false as the solution is approached,
+        even when the system should be symmetric positive definite, due to
+        numerical difficulties.
+    cholesky : bool
+        True if the system is to be solved by Cholesky, rather than LU,
+        decomposition. This is typically faster unless the problem is very
+        small or prone to numerical difficulties.
+    pc : bool
+        True if the predictor-corrector method of Mehrota is to be used. This
+        is almost always (if not always) beneficial. Even though it requires
+        the solution of an additional linear system, the factorization
+        is typically (implicitly) reused so solution is efficient, and the
+        number of algorithm iterations is typically reduced.
+    ip : bool
+        True if the improved initial point suggestion due to [4] section 4.3
+        is desired. It's unclear whether this is beneficial.
+    permc_spec : str (default = 'MMD_AT_PLUS_A')
+        (Has effect only with ``sparse = True``, ``lstsq = False``, ``sym_pos =
+        True``.) A matrix is factorized in each iteration of the algorithm.
+        This option specifies how to permute the columns of the matrix for
+        sparsity preservation. Acceptable values are:
+        - ``NATURAL``: natural ordering.
+        - ``MMD_ATA``: minimum degree ordering on the structure of A^T A.
+        - ``MMD_AT_PLUS_A``: minimum degree ordering on the structure of A^T+A.
+        - ``COLAMD``: approximate minimum degree column ordering.
+        This option can impact the convergence of the
+        interior point algorithm; test different values to determine which
+        performs best for your problem. For more information, refer to
+        ``scipy.sparse.linalg.splu``.
+    Returns
+    -------
+    Search directions as defined in [4]
+    References
+    ----------
+    .. [4] Andersen, Erling D., and Knud D. Andersen. "The MOSEK interior point
+           optimizer for linear programming: an implementation of the
+           homogeneous algorithm." High performance optimization. Springer US,
+           2000. 197-232.
+    r
+FFTFr
+csc)
+format
+Solving system with option 'cholesky':True failed. It is normal for this to happen occasionally, especially as the solution is approached. However, if you see this frequently, consider setting option 'cholesky' to False.
+stacklevelz
+Solving system with option 'sym_pos':True failed. It is normal for this to happen occasionally, especially as the solution is approached. However, if you see this frequently, consider setting option 'sym_pos' to False.aU
+Solving system with option 'sym_pos':False failed. This may happen occasionally, especially as the solution is approached. However, if you see this frequently, your problem may be numerically challenging. If you cannot improve the formulation, consider setting 'lstsq' to True. Consider also setting `presolve` to True, if it is not already.N
+shape
+	transposer
+diagsZ
+reshaper
+_sym_solve
+anyZ
+isnanr
+ValueError
+	TypeErrorr
+	_get_step
+min)-
+kappa
+gamma
+etar"
+n_xZ
+r_PZ
+r_DZ
+Dinvr
+n_corrections
+alpha
+d_tau
+d_kappaZ
+rhatpZ
+rhatdZ
+rhatgZ
+rhatxsZ
+rhattkZ
+solved
+d_yZ
+beta1r
+_get_delta
+    An implementation of [4] equation 8.31 and 8.32
+    References
+    ----------
+    .. [4] Andersen, Erling D., and Knud D. Andersen. "The MOSEK interior point
+           optimizer for linear programming: an implementation of the
+           homogeneous algorithm." High performance optimization. Springer US,
+           2000. 197-232.
+    )
+    An implementation of [4] equation 8.21
+    References
+    ----------
+    .. [4] Andersen, Erling D., and Knud D. Andersen. "The MOSEK interior point
+           optimizer for linear programming: an implementation of the
+           homogeneous algorithm." High performance optimization. Springer US,
+           2000. 197-232.
+    r
+alpha0Z
+i_xZ
+i_zZ
+alpha_xZ	alpha_tauZ
+alpha_zZ
+alpha_kapparF
+    Given problem status code, return a more detailed message.
+    Parameters
+    ----------
+    status : int
+        An integer representing the exit status of the optimization::
+         0 : Optimization terminated successfully
+         1 : Iteration limit reached
+         2 : Problem appears to be infeasible
+         3 : Problem appears to be unbounded
+         4 : Serious numerical difficulties encountered
+    Returns
+    -------
+    message : str
+        A string descriptor of the exit status of the optimization.
+    )
+%Optimization terminated successfully.z?The iteration limit was reached before the algorithm converged.zTThe algorithm terminated successfully and determined that the problem is infeasible.zSThe algorithm terminated successfully and determined that the problem is unbounded.a
+Numerical difficulties were encountered before the problem converged. Please check your problem formulation for errors, independence of linear equality constraints, and reasonable scaling and matrix condition numbers. If you continue to encounter this error, please submit a bug report.r
+statusZ
+messagesr
+_get_messagex
+    An implementation of [4] Equation 8.9
+    References
+    ----------
+    .. [4] Andersen, Erling D., and Knud D. Andersen. "The MOSEK interior point
+           optimizer for linear programming: an implementation of the
+           homogeneous algorithm." High performance optimization. Springer US,
+           2000. 197-232.
+    r
+_do_step
+    Return the starting point from [4] 4.4
+    References
+    ----------
+    .. [4] Andersen, Erling D., and Knud D. Andersen. "The MOSEK interior point
+           optimizer for linear programming: an implementation of the
+           homogeneous algorithm." High performance optimization. Springer US,
+           2000. 197-232.
+    r
+onesZ
+zeros)
+tau0
+kappa0r
+_get_blind_start
+    Implementation of several equations from [4] used as indicators of
+    the status of optimization.
+    References
+    ----------
+    .. [4] Andersen, Erling D., and Knud D. Andersen. "The MOSEK interior point
+           optimizer for linear programming: an implementation of the
+           homogeneous algorithm." High performance optimization. Springer US,
+           2000. 197-232.
+    c
+_indicators.<locals>.r_pc
+_indicators.<locals>.r_dc
+_indicators.<locals>.r_gc
+_indicators.<locals>.muc
+norm)
+_indicators.<locals>.normr
+max)
+c0r:
+objrd
+r_p0Z
+r_d0Z
+r_g0Z
+mu_0
+rho_A
+rho_p
+rho_d
+rho_g
+rho_mur
+_indicators
+)	a\
+    Print indicators of optimization status to the console.
+    Parameters
+    ----------
+    rho_p : float
+        The (normalized) primal feasibility, see [4] 4.5
+    rho_d : float
+        The (normalized) dual feasibility, see [4] 4.5
+    rho_g : float
+        The (normalized) duality gap, see [4] 4.5
+    alpha : float
+        The step size, see [4] 4.3
+    rho_mu : float
+        The (normalized) path parameter, see [4] 4.5
+    obj : float
+        The objective function value of the current iterate
+    header : bool
+        True if a header is to be printed
+    References
+    ----------
+    .. [4] Andersen, Erling D., and Knud D. Andersen. "The MOSEK interior point
+           optimizer for linear programming: an implementation of the
+           homogeneous algorithm." High performance optimization. Springer US,
+           2000. 197-232.
+    z
+Primal Feasibility z
+Dual Feasibility   z
+Duality Gap        z
+Step            z
+Path Parameter     z
+Objective          z<{0:<20.13}{1:<20.13}{2:<20.13}{3:<17.13}{4:<20.13}{5:<20.13}N)
+printr#
+float
+isinstance
+str)
+headerZ
+fmtr
+_display_iter
+} }!}"t
+| |!|"|
+}%|	r
+}'n(|
+}&|&f
+|&|'|	|
+}(})}*}+},|
+|(|)|*|+|,|-
+	}-t
+|(|)|*|+|,|-
+} }!}"t
+| |!|"|
+}/|.
+s"|/
+}0|0|$|%|
+    Solve a linear programming problem in standard form:
+    Minimize::
+        c @ x
+    Subject to::
+        A @ x == b
+            x >= 0
+    using the interior point method of [4].
+    Parameters
+    ----------
+    A : 2-D array
+        2-D array such that ``A @ x``, gives the values of the equality
+        constraints at ``x``.
+    b : 1-D array
+        1-D array of values representing the RHS of each equality constraint
+        (row) in ``A`` (for standard form problem).
+    c : 1-D array
+        Coefficients of the linear objective function to be minimized (for
+        standard form problem).
+    c0 : float
+        Constant term in objective function due to fixed (and eliminated)
+        variables. (Purely for display.)
+    alpha0 : float
+        The maximal step size for Mehrota's predictor-corrector search
+        direction; see :math:`\beta_3`of [4] Table 8.1
+    beta : float
+        The desired reduction of the path parameter :math:`\mu` (see  [6]_)
+    maxiter : int
+        The maximum number of iterations of the algorithm.
+    disp : bool
+        Set to ``True`` if indicators of optimization status are to be printed
+        to the console each iteration.
+    tol : float
+        Termination tolerance; see [4]_ Section 4.5.
+    sparse : bool
+        Set to ``True`` if the problem is to be treated as sparse. However,
+        the inputs ``A_eq`` and ``A_ub`` should nonetheless be provided as
+        (dense) arrays rather than sparse matrices.
+    lstsq : bool
+        Set to ``True`` if the problem is expected to be very poorly
+        conditioned. This should always be left as ``False`` unless severe
+        numerical difficulties are frequently encountered, and a better option
+        would be to improve the formulation of the problem.
+    sym_pos : bool
+        Leave ``True`` if the problem is expected to yield a well conditioned
+        symmetric positive definite normal equation matrix (almost always).
+    cholesky : bool
+        Set to ``True`` if the normal equations are to be solved by explicit
+        Cholesky decomposition followed by explicit forward/backward
+        substitution. This is typically faster for moderate, dense problems
+        that are numerically well-behaved.
+    pc : bool
+        Leave ``True`` if the predictor-corrector method of Mehrota is to be
+        used. This is almost always (if not always) beneficial.
+    ip : bool
+        Set to ``True`` if the improved initial point suggestion due to [4]_
+        Section 4.3 is desired. It's unclear whether this is beneficial.
+    permc_spec : str (default = 'MMD_AT_PLUS_A')
+        (Has effect only with ``sparse = True``, ``lstsq = False``, ``sym_pos =
+        True``.) A matrix is factorized in each iteration of the algorithm.
+        This option specifies how to permute the columns of the matrix for
+        sparsity preservation. Acceptable values are:
+        - ``NATURAL``: natural ordering.
+        - ``MMD_ATA``: minimum degree ordering on the structure of A^T A.
+        - ``MMD_AT_PLUS_A``: minimum degree ordering on the structure of A^T+A.
+        - ``COLAMD``: approximate minimum degree column ordering.
+        This option can impact the convergence of the
+        interior point algorithm; test different values to determine which
+        performs best for your problem. For more information, refer to
+        ``scipy.sparse.linalg.splu``.
+    callback : callable, optional
+        If a callback function is provided, it will be called within each
+        iteration of the algorithm. The callback function must accept a single
+        `scipy.optimize.OptimizeResult` consisting of the following fields:
+            x : 1-D array
+                Current solution vector
+            fun : float
+                Current value of the objective function
+            success : bool
+                True only when an algorithm has completed successfully,
+                so this is always False as the callback function is called
+                only while the algorithm is still iterating.
+            slack : 1-D array
+                The values of the slack variables. Each slack variable
+                corresponds to an inequality constraint. If the slack is zero,
+                the corresponding constraint is active.
+            con : 1-D array
+                The (nominally zero) residuals of the equality constraints,
+                that is, ``b - A_eq @ x``
+            phase : int
+                The phase of the algorithm being executed. This is always
+                1 for the interior-point method because it has only one phase.
+            status : int
+                For revised simplex, this is always 0 because if a different
+                status is detected, the algorithm terminates.
+            nit : int
+                The number of iterations performed.
+            message : str
+                A string descriptor of the exit status of the optimization.
+    postsolve_args : tuple
+        Data needed by _postsolve to convert the solution to the standard-form
+        problem into the solution to the original problem.
+    Returns
+    -------
+    x_hat : float
+        Solution vector (for standard form problem).
+    status : int
+        An integer representing the exit status of the optimization::
+         0 : Optimization terminated successfully
+         1 : Iteration limit reached
+         2 : Problem appears to be infeasible
+         3 : Problem appears to be unbounded
+         4 : Serious numerical difficulties encountered
+    message : str
+        A string descriptor of the exit status of the optimization.
+    iteration : int
+        The number of iterations taken to solve the problem
+    References
+    ----------
+    .. [4] Andersen, Erling D., and Knud D. Andersen. "The MOSEK interior point
+           optimizer for linear programming: an implementation of the
+           homogeneous algorithm." High performance optimization. Springer US,
+           2000. 197-232.
+    .. [6] Freund, Robert M. "Primal-Dual Interior-Point Methods for Linear
+           Programming based on Newton's Method." Unpublished Course Notes,
+           March 2004. Available 2/25/2017 at:
+           https://ocw.mit.edu/courses/sloan-school-of-management/15-084j-nonlinear-programming-spring-2004/lecture-notes/lec14_int_pt_mthd.pdf
+    r
+slack
+conZ
+nitZ
+phaseZ
+completerT
+message
+successrS
+_ip_hsd.<locals>.etac
+csc_matrixr/
+meanrQ
+FloatingPointErrorr3
+ZeroDivisionErrorrU
+)1r7
+beta
+maxiter
+disp
+tolr"
+callback
+postsolve_args
+	iterationr:
+x_orw
+resrT
+inf1Z
+inf2Z
+x_hatr
+_ip_hsd'
+    Minimize a linear objective function subject to linear
+    equality and non-negativity constraints using the interior point method
+    of [4]_. Linear programming is intended to solve problems
+    of the following form:
+    Minimize::
+        c @ x
+    Subject to::
+        A @ x == b
+            x >= 0
+    User-facing documentation is in _linprog_doc.py.
+    Parameters
+    ----------
+    c : 1-D array
+        Coefficients of the linear objective function to be minimized.
+    c0 : float
+        Constant term in objective function due to fixed (and eliminated)
+        variables. (Purely for display.)
+    A : 2-D array
+        2-D array such that ``A @ x``, gives the values of the equality
+        constraints at ``x``.
+    b : 1-D array
+        1-D array of values representing the right hand side of each equality
+        constraint (row) in ``A``.
+    callback : callable, optional
+        Callback function to be executed once per iteration.
+    postsolve_args : tuple
+        Data needed by _postsolve to convert the solution to the standard-form
+        problem into the solution to the original problem.
+    Options
+    -------
+    maxiter : int (default = 1000)
+        The maximum number of iterations of the algorithm.
+    tol : float (default = 1e-8)
+        Termination tolerance to be used for all termination criteria;
+        see [4]_ Section 4.5.
+    disp : bool (default = False)
+        Set to ``True`` if indicators of optimization status are to be printed
+        to the console each iteration.
+    alpha0 : float (default = 0.99995)
+        The maximal step size for Mehrota's predictor-corrector search
+        direction; see :math:`\beta_{3}` of [4]_ Table 8.1.
+    beta : float (default = 0.1)
+        The desired reduction of the path parameter :math:`\mu` (see [6]_)
+        when Mehrota's predictor-corrector is not in use (uncommon).
+    sparse : bool (default = False)
+        Set to ``True`` if the problem is to be treated as sparse after
+        presolve. If either ``A_eq`` or ``A_ub`` is a sparse matrix,
+        this option will automatically be set ``True``, and the problem
+        will be treated as sparse even during presolve. If your constraint
+        matrices contain mostly zeros and the problem is not very small (less
+        than about 100 constraints or variables), consider setting ``True``
+        or providing ``A_eq`` and ``A_ub`` as sparse matrices.
+    lstsq : bool (default = False)
+        Set to ``True`` if the problem is expected to be very poorly
+        conditioned. This should always be left ``False`` unless severe
+        numerical difficulties are encountered. Leave this at the default
+        unless you receive a warning message suggesting otherwise.
+    sym_pos : bool (default = True)
+        Leave ``True`` if the problem is expected to yield a well conditioned
+        symmetric positive definite normal equation matrix
+        (almost always). Leave this at the default unless you receive
+        a warning message suggesting otherwise.
+    cholesky : bool (default = True)
+        Set to ``True`` if the normal equations are to be solved by explicit
+        Cholesky decomposition followed by explicit forward/backward
+        substitution. This is typically faster for problems
+        that are numerically well-behaved.
+    pc : bool (default = True)
+        Leave ``True`` if the predictor-corrector method of Mehrota is to be
+        used. This is almost always (if not always) beneficial.
+    ip : bool (default = False)
+        Set to ``True`` if the improved initial point suggestion due to [4]_
+        Section 4.3 is desired. Whether this is beneficial or not
+        depends on the problem.
+    permc_spec : str (default = 'MMD_AT_PLUS_A')
+        (Has effect only with ``sparse = True``, ``lstsq = False``, ``sym_pos =
+        True``, and no SuiteSparse.)
+        A matrix is factorized in each iteration of the algorithm.
+        This option specifies how to permute the columns of the matrix for
+        sparsity preservation. Acceptable values are:
+        - ``NATURAL``: natural ordering.
+        - ``MMD_ATA``: minimum degree ordering on the structure of A^T A.
+        - ``MMD_AT_PLUS_A``: minimum degree ordering on the structure of A^T+A.
+        - ``COLAMD``: approximate minimum degree column ordering.
+        This option can impact the convergence of the
+        interior point algorithm; test different values to determine which
+        performs best for your problem. For more information, refer to
+        ``scipy.sparse.linalg.splu``.
+    unknown_options : dict
+        Optional arguments not used by this particular solver. If
+        `unknown_options` is non-empty a warning is issued listing all
+        unused options.
+    Returns
+    -------
+    x : 1-D array
+        Solution vector.
+    status : int
+        An integer representing the exit status of the optimization::
+         0 : Optimization terminated successfully
+         1 : Iteration limit reached
+         2 : Problem appears to be infeasible
+         3 : Problem appears to be unbounded
+         4 : Serious numerical difficulties encountered
+    message : str
+        A string descriptor of the exit status of the optimization.
+    iteration : int
+        The number of iterations taken to solve the problem.
+    Notes
+    -----
+    This method implements the algorithm outlined in [4]_ with ideas from [8]_
+    and a structure inspired by the simpler methods of [6]_.
+    The primal-dual path following method begins with initial 'guesses' of
+    the primal and dual variables of the standard form problem and iteratively
+    attempts to solve the (nonlinear) Karush-Kuhn-Tucker conditions for the
+    problem with a gradually reduced logarithmic barrier term added to the
+    objective. This particular implementation uses a homogeneous self-dual
+    formulation, which provides certificates of infeasibility or unboundedness
+    where applicable.
+    The default initial point for the primal and dual variables is that
+    defined in [4]_ Section 4.4 Equation 8.22. Optionally (by setting initial
+    point option ``ip=True``), an alternate (potentially improved) starting
+    point can be calculated according to the additional recommendations of
+    [4]_ Section 4.4.
+    A search direction is calculated using the predictor-corrector method
+    (single correction) proposed by Mehrota and detailed in [4]_ Section 4.1.
+    (A potential improvement would be to implement the method of multiple
+    corrections described in [4]_ Section 4.2.) In practice, this is
+    accomplished by solving the normal equations, [4]_ Section 5.1 Equations
+    8.31 and 8.32, derived from the Newton equations [4]_ Section 5 Equations
+    8.25 (compare to [4]_ Section 4 Equations 8.6-8.8). The advantage of
+    solving the normal equations rather than 8.25 directly is that the
+    matrices involved are symmetric positive definite, so Cholesky
+    decomposition can be used rather than the more expensive LU factorization.
+    With default options, the solver used to perform the factorization depends
+    on third-party software availability and the conditioning of the problem.
+    For dense problems, solvers are tried in the following order:
+    1. ``scipy.linalg.cho_factor``
+    2. ``scipy.linalg.solve`` with option ``sym_pos=True``
+    3. ``scipy.linalg.solve`` with option ``sym_pos=False``
+    4. ``scipy.linalg.lstsq``
+    For sparse problems:
+    1. ``sksparse.cholmod.cholesky`` (if scikit-sparse and SuiteSparse are installed)
+    2. ``scipy.sparse.linalg.factorized`` (if scikit-umfpack and SuiteSparse are installed)
+    3. ``scipy.sparse.linalg.splu`` (which uses SuperLU distributed with SciPy)
+    4. ``scipy.sparse.linalg.lsqr``
+    If the solver fails for any reason, successively more robust (but slower)
+    solvers are attempted in the order indicated. Attempting, failing, and
+    re-starting factorization can be time consuming, so if the problem is
+    numerically challenging, options can be set to  bypass solvers that are
+    failing. Setting ``cholesky=False`` skips to solver 2,
+    ``sym_pos=False`` skips to solver 3, and ``lstsq=True`` skips
+    to solver 4 for both sparse and dense problems.
+    Potential improvements for combatting issues associated with dense
+    columns in otherwise sparse problems are outlined in [4]_ Section 5.3 and
+    [10]_ Section 4.1-4.2; the latter also discusses the alleviation of
+    accuracy issues associated with the substitution approach to free
+    variables.
+    After calculating the search direction, the maximum possible step size
+    that does not activate the non-negativity constraints is calculated, and
+    the smaller of this step size and unity is applied (as in [4]_ Section
+    4.1.) [4]_ Section 4.3 suggests improvements for choosing the step size.
+    The new point is tested according to the termination conditions of [4]_
+    Section 4.5. The same tolerance, which can be set using the ``tol`` option,
+    is used for all checks. (A potential improvement would be to expose
+    the different tolerances to be set independently.) If optimality,
+    unboundedness, or infeasibility is detected, the solve procedure
+    terminates; otherwise it repeats.
+    The expected problem formulation differs between the top level ``linprog``
+    module and the method specific solvers. The method specific solvers expect a
+    problem in standard form:
+    Minimize::
+        c @ x
+    Subject to::
+        A @ x == b
+            x >= 0
+    Whereas the top level ``linprog`` module expects a problem of form:
+    Minimize::
+        c @ x
+    Subject to::
+        A_ub @ x <= b_ub
+        A_eq @ x == b_eq
+         lb <= x <= ub
+    where ``lb = 0`` and ``ub = None`` unless set in ``bounds``.
+    The original problem contains equality, upper-bound and variable constraints
+    whereas the method specific solver requires equality constraints and
+    variable non-negativity.
+    ``linprog`` module converts the original problem to standard form by
+    converting the simple bounds to upper bound constraints, introducing
+    non-negative slack variables for inequality constraints, and expressing
+    unbounded variables as the difference between two non-negative variables.
+    References
+    ----------
+    .. [4] Andersen, Erling D., and Knud D. Andersen. "The MOSEK interior point
+           optimizer for linear programming: an implementation of the
+           homogeneous algorithm." High performance optimization. Springer US,
+           2000. 197-232.
+    .. [6] Freund, Robert M. "Primal-Dual Interior-Point Methods for Linear
+           Programming based on Newton's Method." Unpublished Course Notes,
+           March 2004. Available 2/25/2017 at
+           https://ocw.mit.edu/courses/sloan-school-of-management/15-084j-nonlinear-programming-spring-2004/lecture-notes/lec14_int_pt_mthd.pdf
+    .. [8] Andersen, Erling D., and Knud D. Andersen. "Presolving in linear
+           programming." Mathematical Programming 71.2 (1995): 221-245.
+    .. [9] Bertsimas, Dimitris, and J. Tsitsiklis. "Introduction to linear
+           programming." Athena Scientific 1 (1997): 997.
+    .. [10] Andersen, Erling D., et al. Implementation of interior point methods
+            for large scale linear programming. HEC/Universite de Geneve, 1996.
+    NzPSparse cholesky is only available with scikit-sparse. Setting `cholesky = False`r
+FzEOption combination 'sparse':True and 'lstsq':True is not recommended.zvInvalid option combination 'lstsq':True and 'cholesky':True; option 'cholesky' has no effect when 'lstsq' is set True.)
+NATURALZ
+MMD_ATAr
+COLAMDz
+Invalid permc_spec option: 'zc'. Acceptable values are 'NATURAL', 'MMD_ATA', 'MMD_AT_PLUS_A', and 'COLAMD'. Reverting to default.r
+Invalid option combination 'sym_pos':False and 'cholesky':True: Cholesky decomposition is only possible for symmetric positive definite matrices.)
+has_cholmodr
+upperrr
+unknown_optionsZ
+valid_permc_specr:
+_linprog_ip5
+FFTTr
+FFTTTFr
+FFTNTFr
+__doc__Z
+numpyr1
+scipyr
+scipy.sparser"
+warningsr
+scipy.linalgr
+optimizer
+_linprog_utilr
+sksparseZ
+sksparse.cholmodr	
+cholmodr
+ImportErrorZ
+scikits.umfpackZ
+scikitsr
+<module>

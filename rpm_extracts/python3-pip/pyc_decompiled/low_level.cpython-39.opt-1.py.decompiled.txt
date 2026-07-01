@@ -1,0 +1,218 @@
+d d!d"d#
+d$d%
+Low-level helpers for the SecureTransport bindings.
+These are Python functions that are not directly related to the high-level APIs
+but are necessary to get them to work. They include a whole bunch of low-level
+CoreFoundation messing about and memory management. The concerns in this module
+are almost entirely about trying to avoid memory leaks and providing
+appropriate and useful assistance to the higher-level code.
+CFConst
+CoreFoundation
+Securitys;
+-----BEGIN CERTIFICATE-----
+(.*?)
+-----END CERTIFICATE-----c
+    Given a bytestring, create a CFData object from it. This CFData object must
+    be CFReleased by the caller.
+    )
+CFDataCreate
+kCFAllocatorDefault
+len)
+bytestring
+Z/usr/lib/python3.9/site-packages/pip/_vendor/urllib3/contrib/_securetransport/low_level.py
+_cf_data_from_bytes
+    Given a list of Python tuples, create an associated CFDictionary.
+    c
+	<genexpr>,
+z-_cf_dictionary_from_tuples.<locals>.<genexpr>c
+	CFTypeRefZ
+CFDictionaryCreater
+kCFTypeDictionaryKeyCallBacksZ
+kCFTypeDictionaryValueCallBacks)
+tuplesZ
+dictionary_size
+keys
+valuesZ
+cf_keysZ	cf_valuesr	
+_cf_dictionary_from_tuples%
+    Given a Python binary data, create a CFString.
+    The string must be CFReleased by the caller.
+    )
+ctypesZ
+c_char_pr
+CFStringCreateWithCStringr
+kCFStringEncodingUTF8)
+py_bstrZ
+c_str
+cf_strr	
+_cfstr;
+    Given a list of Python binary data, create an associated CFMutableArray.
+    The array must be CFReleased by the caller.
+    Raises an ssl.SSLError on failure.
+    Nr
+Unable to allocate memory!z
+Unable to allocate array: %s)
+CFArrayCreateMutabler
+byref
+kCFTypeArrayCallBacks
+MemoryErrorr
+CFArrayAppendValue
+	CFRelease
+BaseException
+SSLError)
+lstZ
+cf_arr
+itemr
+_create_cfstring_arrayI
+    Creates a Unicode string from a CFString object. Used entirely for error
+    reporting.
+    Yes, it annoys me quite a lot that this function is this complex.
+    Ni
+z'Error copying C string from CFStringRef
+utf-8)
+castZ
+POINTERZ
+c_void_pr
+CFStringGetCStringPtrr
+create_string_bufferZ
+CFStringGetCString
+OSError
+value
+decode)
+value_as_void_p
+string
+buffer
+resultr	
+_cf_string_to_unicodeh
+    Checks the return code and throws an exception if there is an error to
+    report
+    r
+OSStatus %s)
+SecCopyErrorMessageStringr.
+errorZ
+exception_classZ
+cf_error_string
+outputr	
+_assert_no_error
+    Given a bundle of certs in PEM format, turns them into a CFArray of certs
+    that can be used to validate a cert chain.
+    s
+base64Z	b64decode
+group)
+matchr	
+<listcomp>
+z(_cert_array_from_pem.<locals>.<listcomp>z
+No root certificates specifiedr
+Unable to build cert object!)
+replace
+_PEM_CERTS_RE
+finditerr!
+SecCertificateCreateWithDatar
+	Exception)
+pem_bundleZ	der_certsZ
+cert_arrayZ	der_bytesZ
+certdataZ
+certr	
+_cert_array_from_pem
+    Returns True if a given CFTypeRef is a certificate.
+    )
+SecCertificateGetTypeIDr
+CFGetTypeID
+expectedr	
+_is_cert
+    Returns True if a given CFTypeRef is an identity.
+    )
+SecIdentityGetTypeIDr
+_is_identity
+    This function creates a temporary Mac keychain that we can use to work with
+    credentials. This keychain uses a one-time password and a temporary file to
+    store the data. We expect to have one keychain per socket. The returned
+    SecKeychainRef must be freed by the caller, including calling
+    SecKeychainDelete.
+    Returns a tuple of the SecKeychainRef and the path to the temporary
+    directory that contains it.
+    
+urandomr4
+Z	b16encoder*
+tempfileZ
+mkdtemp
+path
+join
+encoder
+SecKeychainRefZ
+SecKeychainCreater
+random_bytes
+filename
+passwordZ
+tempdirectoryZ
+keychain_path
+keychain
+statusr	
+_temporary_keychain
+    Given a single file, loads all the trust objects from it into arrays and
+    the keychain.
+    Returns a tuple of lists: the first list is a list of identities, the
+    second a list of certs.
+    N
+open
+readr
+CFArrayRefr
+SecItemImportr
+CFArrayGetCount
+rangeZ
+CFArrayGetValueAtIndexr'
+CFRetain
+appendr@
+certificates
+identitiesZ
+result_array
+raw_filedataZ
+filedatar-
+result_count
+indexr#
+_load_items_from_file
+    Load certificates and maybe keys from a number of files. Has the end goal
+    of returning a CFArray containing one SecIdentityRef, and then zero or more
+    SecCertificateRef objects, suitable for use as a client certificate trust
+    chain.
+    c
+z*_load_client_cert_chain.<locals>.<genexpr>r
+extendr
+SecIdentityRefZ SecIdentityCreateWithCertificater
+popr
+	itertools
+chainr
+pathsrS
+Z	file_pathZ
+new_identitiesZ	new_certsZ
+new_identityrL
+trust_chainr#
+objr	
+_load_client_cert_chain.
+SSLv2Z
+SSLv3Z
+TLSv1z
+TLSv1.1z
+TLSv1.2c
+    Builds a TLS alert record for an unknown CA.
+    r_
+>BBBH)
+TLS_PROTOCOL_VERSIONS
+struct
+packr
+versionZ
+ver_majZ
+ver_minZ
+severity_fatalZ
+description_unknown_ca
+msgZ
+msg_lenZ
+record_type_alert
+recordr	
+_build_tls_unknown_ca_alert
+__doc__r4
+rer!
+bindingsr
+compile
+DOTALLr9
+<module>

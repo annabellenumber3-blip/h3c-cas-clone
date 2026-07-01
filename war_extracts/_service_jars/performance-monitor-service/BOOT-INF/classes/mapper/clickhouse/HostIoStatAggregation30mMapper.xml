@@ -1,0 +1,442 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.h3c.h3cloud.performance.monitor.service.mapper.clickhouse.HostIoStatAggregation30mMapper">
+    <delete id ="deleteBeforeTime">
+        ALTER TABLE AGG_HOST_IO_STAT_30M DELETE WHERE TIME &lt; #{time}
+    </delete>
+    <select id="readInfoByCondition" resultType="com.h3c.h3cloud.common.model.performance.HostIoStatData">
+        SELECT DEV_NAME as devName, TIME as time,
+        <choose>
+            <when test="hostId!=null and hostId!=''">
+                fs.title as title,
+                ROUND(t.IO_STAT_AVG,2) as ioStat,
+                ROUND(t.RD_STAT_AVG,2) as rdStat,
+                ROUND(t.WR_STAT_AVG,2) as wrStat,
+                ROUND(t.RD_REQ_PS_AVG,2) AS rdReqps,
+                ROUND(t.WR_REQ_PS_AVG,2) AS wrReqps,
+                ROUND(t.RD_LATENCY_AVG,2) as rdLatency,
+                ROUND(t.WR_LATENCY_AVG,2) as wrLatency,
+                ROUND(t.UTILIZATION_AVG,2) as utilization
+            </when>
+            <otherwise>
+                any(fs.title) as title,
+                ROUND(sum(t.IO_STAT_AVG),2) as ioStat,
+                ROUND(sum(t.RD_STAT_AVG),2) as rdStat,
+                ROUND(sum(t.WR_STAT_AVG),2) as wrStat,
+                ROUND(sum(t.RD_REQ_PS_AVG),2) AS rdReqps,
+                ROUND(sum(t.WR_REQ_PS_AVG),2) AS wrReqps
+            </otherwise>
+        </choose>
+        FROM (SELECT DEV_NAME, HOST_ID, TIME,
+        avgMerge(IO_STAT_AVG) as IO_STAT_AVG,
+        avgMerge(RD_STAT_AVG) as RD_STAT_AVG,
+        avgMerge(WR_STAT_AVG) as WR_STAT_AVG,
+        avgMerge(RD_REQ_PS_AVG) AS RD_REQ_PS_AVG,
+        avgMerge(WR_REQ_PS_AVG) AS WR_REQ_PS_AVG,
+        avgMerge(RD_LATENCY_AVG) as RD_LATENCY_AVG,
+        avgMerge(WR_LATENCY_AVG) as WR_LATENCY_AVG,
+        avgMerge(UTILIZATION_AVG) as UTILIZATION_AVG
+        FROM AGG_HOST_IO_STAT_30M
+        WHERE TIME BETWEEN ${startTime} AND ${endTime}
+        <if test="hostId!=null and hostId!=''">
+            AND HOST_ID=${hostId}
+        </if>
+        <if test="clusterId!=null and clusterId!=''">
+            AND CLUSTER_ID=${clusterId} AND DEV_NAME in (select storage_pool_name from ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_STORAGE_POOL_CONFIG} con WHERE con.type in(1,2,9,10))
+        </if>
+        <if test="currentDisk!=null and currentDisk!=''">
+            AND DEV_NAME =#{currentDisk}
+        </if>
+        GROUP BY HOST_POOL_ID, CLUSTER_ID, HOST_ID, DEV_NAME, TIME
+        ) t   LEFT JOIN ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_SHARE_FILE_SYSTEM} fs on fs.name = t.DEV_NAME
+        <if test="hostId==null or hostId==''">
+            GROUP BY t.DEV_NAME,t.TIME
+        </if>
+        ORDER BY TIME ASC
+    </select>
+    <select id="readCvksInfoByCondition" resultType="com.h3c.h3cloud.common.model.performance.HostIoStatData">
+        SELECT host.name hostName, DEV_NAME as devName, TIME as time, HOST_ID as hostId,
+        ROUND(avgMerge(IO_STAT_AVG),2) as ioStat,
+        ROUND(avgMerge(RD_STAT_AVG),2) as rdStat,
+        ROUND(avgMerge(WR_STAT_AVG),2) as wrStat,
+        ROUND(avgMerge(RD_REQ_PS_AVG),2) AS rdReqps,
+        ROUND(avgMerge(WR_REQ_PS_AVG),2) AS wrReqps,
+        ROUND(avgMerge(RD_LATENCY_AVG),2)  as rdLatency,
+        ROUND(avgMerge(WR_LATENCY_AVG),2)  as wrLatency,
+        ROUND(avgMerge(UTILIZATION_AVG),2)  as utilization, any(fs.title) as title
+        FROM AGG_HOST_IO_STAT_30M t
+        LEFT JOIN ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_SHARE_FILE_SYSTEM} fs on fs.name = t.DEV_NAME
+        RIGHT JOIN ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_HOST} host ON t.HOST_ID = host.id
+        WHERE TIME BETWEEN ${startTime} AND ${endTime}
+        <if test="hostIds!=null and hostIds!=''">
+            AND t.HOST_ID IN (${hostIds})
+        </if>
+        <if test="clusterId!=null and clusterId!=''">
+            AND t.CLUSTER_ID =${clusterId}
+        </if>
+        <if test="currentDisk!=null and currentDisk!=''">
+            AND t.DEV_NAME = #{currentDisk}
+        </if>
+        <if test="clusterId!=null and clusterId!=''">
+            AND t.DEV_NAME in (select storage_pool_name from ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_STORAGE_POOL_CONFIG} con WHERE con.type in(1,2,9,10))
+        </if>
+        GROUP BY DEV_NAME, TIME, host.name, HOST_ID
+        ORDER BY TIME ASC
+    </select>
+    <select id="readDiskCycleByCondition" resultType="com.h3c.h3cloud.common.model.performance.HostIoStatStatisticsData">
+        SELECT HOST_ID as hostId,
+        <choose>
+            <when test="cycle!=null and cycle=='hour'">
+                formatDateTime(toDateTime(TIME), '%Y-%m-%d %H') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='week'">
+                formatDateTime(toDateTime(TIME), '%Y %V') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='month'">
+                formatDateTime(toDateTime(TIME), '%Y-%m') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='year'">
+                formatDateTime(toDateTime(TIME), '%Y') as timeStr,
+            </when>
+            <otherwise>
+                formatDateTime(toDateTime(TIME), '%Y-%m-%d') as timeStr,
+            </otherwise>
+        </choose>
+        DEV_NAME as devName,
+        <choose>
+            <when test='type!=null and type=="0"'>
+                ROUND(avgMerge(RD_LATENCY_AVG),2) as rdLatencyAvg , maxMerge(RD_LATENCY_MAX) as rdLatencyMax, minMerge(RD_LATENCY_MIN) as rdLatencyMin
+            </when>
+            <otherwise>
+                ROUND(avgMerge(WR_LATENCY_AVG),2) as wrLatencyAvg , maxMerge(WR_LATENCY_MAX) as wrLatencyMax, minMerge(WR_LATENCY_MIN) as wrLatencyMin
+            </otherwise>
+        </choose>
+        FROM AGG_HOST_IO_STAT_30M detail  WHERE TIME BETWEEN ${startTime} AND ${endTime}
+        <if test="hostId!=null and hostId!=''">
+            AND HOST_ID = ${hostId}
+        </if>
+        <if test="hostIds!=null and hostIds!=''">
+            AND HOST_ID in (${hostIds})
+        </if>
+        GROUP BY  HOST_ID, DEV_NAME, timeStr ORDER BY timeStr
+    </select>
+    <select id="readDiskIOPSByCondition" resultType="com.h3c.h3cloud.common.model.performance.HostIoStatStatisticsData">
+        SELECT HOST_ID as hostId,
+        <choose>
+            <when test="cycle!=null and cycle=='hour'">
+                formatDateTime(toDateTime(TIME), '%Y-%m-%d %H') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='week'">
+                formatDateTime(toDateTime(TIME), '%Y %V') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='month'">
+                formatDateTime(toDateTime(TIME), '%Y-%m') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='year'">
+                formatDateTime(toDateTime(TIME), '%Y') as timeStr,
+            </when>
+            <otherwise>
+                formatDateTime(toDateTime(TIME), '%Y-%m-%d') as timeStr,
+            </otherwise>
+        </choose>
+        DEV_NAME as devName,
+        <choose>
+            <when test='type!=null and type=="0"'>
+                ROUND(avgMerge(RD_REQ_PS_AVG),2) as rdReqpsAvg , maxMerge(RD_REQ_PS_MAX) as rdReqpsMax, minMerge(RD_REQ_PS_MIN) as rdReqpsMin
+            </when>
+            <otherwise>
+                ROUND(avgMerge(WR_REQ_PS_AVG),2) as wrReqpsAvg , maxMerge(WR_REQ_PS_MAX) as wrReqpsMax, minMerge(WR_REQ_PS_MIN) as wrReqpsMin
+            </otherwise>
+        </choose>
+        FROM AGG_HOST_IO_STAT_30M detail  WHERE TIME BETWEEN ${startTime} AND ${endTime}
+        <if test="hostId!=null and hostId!=''">
+            AND HOST_ID = ${hostId}
+        </if>
+        <if test="hostIds!=null and hostIds!=''">
+            AND HOST_ID in (${hostIds})
+        </if>
+        GROUP BY  HOST_ID, DEV_NAME, timeStr ORDER BY timeStr
+    </select>
+    <select id="readDiskRateByCondition" resultType="com.h3c.h3cloud.common.model.performance.HostIoStatStatisticsData">
+        SELECT HOST_ID as hostId,
+        <choose>
+            <when test="cycle!=null and cycle=='hour'">
+                formatDateTime(toDateTime(TIME), '%Y-%m-%d %H') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='week'">
+                formatDateTime(toDateTime(TIME), '%Y %V') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='month'">
+                formatDateTime(toDateTime(TIME), '%Y-%m') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='year'">
+                formatDateTime(toDateTime(TIME), '%Y') as timeStr,
+            </when>
+            <otherwise>
+                formatDateTime(toDateTime(TIME), '%Y-%m-%d') as timeStr,
+            </otherwise>
+        </choose>
+        DEV_NAME as devName,
+        <choose>
+            <when test='type!=null and type=="0"'>
+                ROUND(avgMerge(RD_STAT_AVG),2) as rdStatAvg , maxMerge(RD_STAT_MAX) as rdStatMax, minMerge(RD_STAT_MIN) as rdStatMin
+            </when>
+            <when test='type!=null and type=="1"'>
+                ROUND(avgMerge(WR_STAT_AVG),2) as wrStatAvg , maxMerge(WR_STAT_MAX) as wrStatMax, minMerge(WR_STAT_MIN) as rdStatMin
+            </when>
+            <otherwise>
+                ROUND(avgMerge(UTILIZATION_AVG),2) as utilizationAvg , maxMerge(UTILIZATION_MAX) as utilizationMax, minMerge(UTILIZATION_MIN) as utilizationMin
+            </otherwise>
+        </choose>
+        FROM AGG_HOST_IO_STAT_30M detail  WHERE TIME BETWEEN ${startTime} AND ${endTime}
+        <if test="hostId!=null and hostId!=''">
+            AND HOST_ID = ${hostId}
+        </if>
+        <if test="hostIds!=null and hostIds!=''">
+            AND HOST_ID in (${hostIds})
+        </if>
+        GROUP BY  HOST_ID, DEV_NAME, timeStr ORDER BY timeStr
+    </select>
+    <select id="readCycleByCondition" resultType="com.h3c.h3cloud.common.model.performance.HostIoStatStatisticsData">
+        SELECT HOST_ID as hostId,
+        <choose>
+            <when test="cycle!=null and cycle=='hour'">
+                formatDateTime(toDateTime(TIME), '%Y-%m-%d %H') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='week'">
+                formatDateTime(toDateTime(TIME), '%Y %V') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='month'">
+                formatDateTime(toDateTime(TIME), '%Y-%m') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='year'">
+                formatDateTime(toDateTime(TIME), '%Y') as timeStr,
+            </when>
+            <otherwise>
+                formatDateTime(toDateTime(TIME), '%Y-%m-%d') as timeStr,
+            </otherwise>
+        </choose>
+        DEV_NAME as devName,
+        ROUND(sum(IO_STAT_AVG * if((${endTime} - toUnixTimestamp(TIME)) > 1800, 1800, ${endTime} - toUnixTimestamp(TIME))),2) as ioStatSum
+        FROM (SELECT HOST_ID, DEV_NAME, TIME, avgMerge(IO_STAT_AVG) as IO_STAT_AVG FROM AGG_HOST_IO_STAT_30M detail
+        WHERE TIME BETWEEN ${startTime} AND ${endTime}
+        <if test="hostId!=null and hostId!=''">
+            AND HOST_ID = ${hostId}
+        </if>
+        <if test="hostIds!=null and hostIds!=''">
+            AND HOST_ID in (${hostIds})
+        </if>
+        GROUP BY HOST_POOL_ID, CLUSTER_ID, HOST_ID, DEV_NAME, TIME) t
+        GROUP BY  HOST_ID, DEV_NAME, timeStr ORDER BY timeStr
+    </select>
+    <select id="readIOTopNHostByCondition" resultType="com.h3c.h3cloud.common.model.performance.HostIoStatStatisticsData">
+        SELECT TD.name as hostName,t.HOST_ID as hostId,
+        ROUND(sum(IO_STAT_AVG * if((${endTime} - toUnixTimestamp(TIME)) > 1800, 1800, ${endTime} - toUnixTimestamp(TIME))),2) as ioStatSum
+        FROM (SELECT HOST_ID, DEV_NAME, TIME, avgMerge(IO_STAT_AVG) as IO_STAT_AVG FROM AGG_HOST_IO_STAT_30M FLOW
+        WHERE TIME BETWEEN ${startTime} AND ${endTime}
+        <if test="hostPoolId!=null and hostPoolId!=''">
+            AND FLOW.HOST_POOL_ID =${hostPoolId}
+        </if>
+        <if test="clusterId!=null and clusterId!=''">
+            AND FLOW.CLUSTER_ID =${clusterId}
+        </if>
+        <if test="operatorGroupCode!=null and operatorGroupCode!=''">
+            AND FLOW.OP_GROUP_CODE LIKE #{operatorGroupCode}
+        </if>
+        GROUP BY HOST_POOL_ID, CLUSTER_ID, HOST_ID, DEV_NAME, TIME) t,
+        ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_HOST} TD  WHERE TD.id = t.HOST_ID
+        GROUP BY hostId,hostName ORDER BY ioStatSum DESC
+        <if test="limit!=null and limit!=''">
+            LIMIT 0,${limit}
+        </if>
+    </select>
+    <select id="readHostIODaily" resultType="com.h3c.h3cloud.common.model.performance.HostIoStatStatisticsData">
+        SELECT HOST_ID as hostId, HOST_POOL_ID as hostPoolId, CLUSTER_ID as clusterId, TIME as time, DEV_NAME as devName,
+        IO_STAT as ioStatAvg, RD_STAT as rdStatAvg, WR_STAT as wrStatAvg,
+        RD_STAT_MAX as rdStatMax, RD_STAT_MIN as rdStatMin, WR_STAT_MAX as wrStatMax, WR_STAT_MIN as wrStatMin,
+        UTILIZATION as utilizationAvg, UTILIZATION_MAX as utilizationMax, UTILIZATION_MIN as utilizationMin FROM AGG_HOST_IO_STAT_30M
+        WHERE TIME BETWEEN ${startTime} AND ${endTime}
+    </select>
+    <select id="readDiskLatencyByCondition" resultType="com.h3c.h3cloud.common.model.performance.HostIoStatStatisticsData">
+        SELECT HOST_ID as hostId,
+        <choose>
+            <when test="cycle!=null and cycle=='hour'">
+                formatDateTime(toDateTime(TIME), '%Y-%m-%d %H') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='week'">
+                formatDateTime(toDateTime(TIME), '%Y %V') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='month'">
+                formatDateTime(toDateTime(TIME), '%Y-%m') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='year'">
+                formatDateTime(toDateTime(TIME), '%Y') as timeStr,
+            </when>
+            <otherwise>
+                formatDateTime(toDateTime(TIME), '%Y-%m-%d') as timeStr,
+            </otherwise>
+        </choose>
+        DEV_NAME as devName,
+        <choose>
+            <when test='type!=null and type=="0"'>
+                ROUND(avgMerge(RD_LATENCY_AVG),2) as rdLatencyAvg , maxMerge(RD_LATENCY_MAX) as rdLatencyMax, minMerge(RD_LATENCY_MIN) as rdLatencyMin
+            </when>
+            <otherwise>
+                ROUND(avgMerge(WR_LATENCY_AVG),2) as wrLatencyAvg , maxMerge(WR_LATENCY_MAX) as wrLatencyMax, minMerge(WR_LATENCY_MIN) as wrLatencyMin
+            </otherwise>
+        </choose>
+        FROM AGG_HOST_IO_STAT_30M detail  WHERE TIME BETWEEN ${startTime} AND ${endTime}
+        <if test="hostId!=null and hostId!=''">
+            AND HOST_ID = ${hostId}
+        </if>
+        <if test="hostIds!=null and hostIds!=''">
+            AND HOST_ID in (${hostIds})
+        </if>
+        GROUP BY  HOST_ID, DEV_NAME, timeStr ORDER BY timeStr
+    </select>
+
+    <select id="readHostsDiskRateByCondition" resultType="com.h3c.h3cloud.common.model.performance.HostIoStatStatisticsData">
+        SELECT HOST_ID as hostId,
+        <choose>
+            <when test="cycle!=null and cycle=='hour'">
+                formatDateTime(toDateTime(TIME), '%Y-%m-%d %H') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='week'">
+                formatDateTime(toDateTime(TIME), '%Y %V') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='month'">
+                formatDateTime(toDateTime(TIME), '%Y-%m') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='year'">
+                formatDateTime(toDateTime(TIME), '%Y') as timeStr,
+            </when>
+            <otherwise>
+                formatDateTime(toDateTime(TIME), '%Y-%m-%d') as timeStr,
+            </otherwise>
+        </choose>
+        any(DEV_NAME) as devName,
+        <choose>
+            <when test='type!=null and type=="0"'>
+                ROUND(avgMerge(RD_STAT_AVG),2) as rdStatAvg
+            </when>
+            <when test='type!=null and type=="1"'>
+                ROUND(avgMerge(WR_STAT_AVG),2) as wrStatAvg
+            </when>
+            <otherwise>
+                ROUND(avgMerge(UTILIZATION_AVG),2) as utilizationAvg
+            </otherwise>
+        </choose>
+        FROM AGG_HOST_IO_STAT_30M detail  WHERE TIME BETWEEN ${startTime} AND ${endTime}
+        <if test="hostIds!=null and hostIds!=''">
+            AND HOST_ID in (${hostIds})
+        </if>
+        GROUP BY  HOST_ID, timeStr ORDER BY timeStr
+    </select>
+    <select id="readHostsLatencyByCondition" resultType="com.h3c.h3cloud.common.model.performance.HostIoStatStatisticsData">
+        SELECT HOST_ID as hostId,
+        <choose>
+            <when test="cycle!=null and cycle=='hour'">
+                formatDateTime(toDateTime(TIME), '%Y-%m-%d %H') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='week'">
+                formatDateTime(toDateTime(TIME), '%Y %V') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='month'">
+                formatDateTime(toDateTime(TIME), '%Y-%m') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='year'">
+                formatDateTime(toDateTime(TIME), '%Y') as timeStr,
+            </when>
+            <otherwise>
+                formatDateTime(toDateTime(TIME), '%Y-%m-%d') as timeStr,
+            </otherwise>
+        </choose>
+        any(DEV_NAME) as devName,
+        <choose>
+            <when test='type!=null and type=="0"'>
+                ROUND(avgMerge(RD_LATENCY_AVG),2) as rdLatencyAvg
+            </when>
+            <otherwise>
+                ROUND(avgMerge(WR_LATENCY_AVG),2) as wrLatencyAvg
+            </otherwise>
+        </choose>
+        FROM AGG_HOST_IO_STAT_30M detail  WHERE TIME BETWEEN ${startTime} AND ${endTime}
+        <if test="hostId!=null and hostId!=''">
+            AND HOST_ID = ${hostId}
+        </if>
+        <if test="hostIds!=null and hostIds!=''">
+            AND HOST_ID in (${hostIds})
+        </if>
+        GROUP BY  HOST_ID, timeStr ORDER BY timeStr
+    </select>
+    <select id="readHostsIOPSByCondition" resultType="com.h3c.h3cloud.common.model.performance.HostIoStatStatisticsData">
+        SELECT HOST_ID as hostId,
+        <choose>
+            <when test="cycle!=null and cycle=='hour'">
+                formatDateTime(toDateTime(TIME), '%Y-%m-%d %H') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='week'">
+                formatDateTime(toDateTime(TIME), '%Y %V') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='month'">
+                formatDateTime(toDateTime(TIME), '%Y-%m') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='year'">
+                formatDateTime(toDateTime(TIME), '%Y') as timeStr,
+            </when>
+            <otherwise>
+                formatDateTime(toDateTime(TIME), '%Y-%m-%d') as timeStr,
+            </otherwise>
+        </choose>
+        any(DEV_NAME) as devName,
+        <choose>
+            <when test='type!=null and type=="0"'>
+                ROUND(avgMerge(RD_REQ_PS_AVG),2) as rdReqpsAvg
+            </when>
+            <otherwise>
+                ROUND(avgMerge(WR_REQ_PS_AVG),2) as wrReqpsAvg
+            </otherwise>
+        </choose>
+        FROM AGG_HOST_IO_STAT_30M detail  WHERE TIME BETWEEN ${startTime} AND ${endTime}
+        <if test="hostId!=null and hostId!=''">
+            AND HOST_ID = ${hostId}
+        </if>
+        <if test="hostIds!=null and hostIds!=''">
+            AND HOST_ID in (${hostIds})
+        </if>
+        GROUP BY  HOST_ID, timeStr ORDER BY timeStr
+    </select>
+    <select id="readHostsCycleByCondition" resultType="com.h3c.h3cloud.common.model.performance.HostIoStatStatisticsData">
+        SELECT HOST_ID as hostId,
+        <choose>
+            <when test="cycle!=null and cycle=='hour'">
+                formatDateTime(toDateTime(TIME), '%Y-%m-%d %H') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='week'">
+                formatDateTime(toDateTime(TIME), '%Y %V') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='month'">
+                formatDateTime(toDateTime(TIME), '%Y-%m') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='year'">
+                formatDateTime(toDateTime(TIME), '%Y') as timeStr,
+            </when>
+            <otherwise>
+                formatDateTime(toDateTime(TIME), '%Y-%m-%d') as timeStr,
+            </otherwise>
+        </choose>
+        any(DEV_NAME) as devName,
+        ROUND(sum(IO_STAT_AVG * if((${endTime} - toUnixTimestamp(TIME)) > 1800, 1800, ${endTime} - toUnixTimestamp(TIME))),2) as ioStatSum
+        FROM (SELECT HOST_ID, DEV_NAME, TIME, avgMerge(IO_STAT_AVG) as IO_STAT_AVG FROM AGG_HOST_IO_STAT_30M detail
+        WHERE TIME BETWEEN ${startTime} AND ${endTime}
+        <if test="hostId!=null and hostId!=''">
+            AND HOST_ID = ${hostId}
+        </if>
+        <if test="hostIds!=null and hostIds!=''">
+            AND HOST_ID in (${hostIds})
+        </if>
+        GROUP BY HOST_POOL_ID, CLUSTER_ID, HOST_ID, DEV_NAME, TIME) t
+        GROUP BY  HOST_ID, timeStr ORDER BY timeStr
+    </select>
+
+</mapper>

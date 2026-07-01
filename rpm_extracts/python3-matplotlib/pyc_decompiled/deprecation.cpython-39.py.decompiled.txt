@@ -1,0 +1,312 @@
+)"a 
+Helper functions for deprecating parts of the Matplotlib API.
+This documentation is only relevant for Matplotlib developers, not for users.
+.. warning::
+    This module is for internal use only.  Do not use it in your own code.
+    We may change the API at any time with no warning.
+MatplotlibDeprecationWarningz>A class for issuing deprecation warnings for Matplotlib users.N)
+__name__
+__module__
+__qualname__
+__doc__
+A/usr/lib64/python3.9/site-packages/matplotlib/_api/deprecation.pyr
+removalc
+Nz5A pending deprecation cannot have a scheduled removalz
+in z
+two minor releases laterz
+The %(name)s %(obj_type)sz
+%(name)sz' will be deprecated in a future versionz' was deprecated in Matplotlib %(since)sz  and will be removed %(removal)sr	
+ Use %(alternative)s instead.z
+ %(addendum)s)
+func
+name
+obj_type
+sincer
+alternative
+addendum)
+ValueError
+PendingDeprecationWarningr
+dict)	r
+messager
+pendingr
+warning_clsr
+_generate_deprecation_warning
+    Display a standardized deprecation.
+    Parameters
+    ----------
+    since : str
+        The release at which this API became deprecated.
+    message : str, optional
+        Override the default deprecation message.  The ``%(since)s``,
+        ``%(name)s``, ``%(alternative)s``, ``%(obj_type)s``, ``%(addendum)s``,
+        and ``%(removal)s`` format specifiers will be replaced by the values
+        of the respective arguments passed to this function.
+    name : str, optional
+        The name of the deprecated object.
+    alternative : str, optional
+        An alternative API that the user may use in place of the deprecated
+        API.  The deprecation warning will tell the user about this alternative
+        if provided.
+    pending : bool, optional
+        If True, uses a PendingDeprecationWarning instead of a
+        DeprecationWarning.  Cannot be used together with *removal*.
+    obj_type : str, optional
+        The object type being deprecated.
+    addendum : str, optional
+        Additional text appended directly to the final message.
+    removal : str, optional
+        The expected removal version.  With the default (an empty string), a
+        removal version is automatically computed from *since*.  Set to other
+        Falsy values to not schedule a removal date.  Cannot be used together
+        with *pending*.
+    Examples
+    --------
+    ::
+        # To warn of the deprecation of "matplotlib.name_of_module"
+        warn_deprecated('1.4.0', name='matplotlib.name_of_module',
+                        obj_type='module')
+    r
+warn_external)
+categoryN)
+warningr
+warn_deprecated2
+    Decorator to mark a function, a class, or a property as deprecated.
+    When deprecating a classmethod, a staticmethod, or a property, the
+    ``@deprecated`` decorator should go *under* ``@classmethod`` and
+    ``@staticmethod`` (i.e., `deprecated` should directly decorate the
+    underlying callable), but *over* ``@property``.
+    When deprecating a class ``C`` intended to be used as a base class in a
+    multiple inheritance hierarchy, ``C`` *must* define an ``__init__`` method
+    (if ``C`` instead inherited its ``__init__`` from its own base class, then
+    ``@deprecated`` would mess up ``__init__`` inheritance when installing its
+    own (deprecation-emitting) ``C.__init__``).
+    Parameters are the same as for `warn_deprecated`, except that *obj_type*
+    defaults to 'class' if decorating a class, 'attribute' if decorating a
+    property, and 'function' otherwise.
+    Examples
+    --------
+    ::
+        @deprecated('1.4.0')
+        def the_function_to_deprecate():
+            pass
+    c
+}	t	
+classproperty
+classc
+AttributeError
+	functools
+wraps
+__init__
+wrapper
+new_doc)
+objr
+finalize
+z/deprecated.<locals>.deprecate.<locals>.finalizeZ	attributec
+z;deprecated.<locals>.deprecate.<locals>._deprecated_propertyNc
+isinstance
+super
+__get__)
+self
+instance
+owner)
+	__class__r
+emit_warningr
+zCdeprecated.<locals>.deprecate.<locals>._deprecated_property.__get__c
+__set__)
+value
+zCdeprecated.<locals>.deprecate.<locals>._deprecated_property.__set__c
+__delete__)
+zFdeprecated.<locals>.deprecate.<locals>._deprecated_property.__delete__c
+<lambda>r
+set_name
+__set_name__
+zHdeprecated.<locals>.deprecate.<locals>._deprecated_property.__set_name__)
+__classcell__r
+_deprecated_property
+fget
+fset
+fdel
+doc)
+functionc
+z3deprecated.<locals>.deprecate.<locals>.emit_warningc
+args
+kwargs)
+z.deprecated.<locals>.deprecate.<locals>.wrapperr	
+Notes
+-----
+strip)
+<listcomp>
+z1deprecated.<locals>.deprecate.<locals>.<listcomp>z
+Use z	 instead.z
+[*Deprecated*] z
+.. deprecated:: z
+   z
+matplotlib._apir
+typer$
+propertyr:
+inspectZ
+cleandocrD
+join)
+old_docr)
+notes_headerZ
+second_argr'
+	deprecate
+deprecated.<locals>.deprecater
+deprecatedc
+deprecate_privatize_attributeaT
+    Helper to deprecate public access to an attribute (or method).
+    This helper should only be used at class scope, as follows::
+        class Foo:
+            attr = _deprecate_privatize_attribute(*args, **kwargs)
+    where *all* parameters are forwarded to `deprecated`.  This form makes
+    ``attr`` a property which forwards read and write access to ``self._attr``
+    (same name but with a leading underscore), with a deprecation warning.
+    Note that the attribute name is derived from *the name this helper is
+    assigned to*.  This helper also works for deprecating methods.
+    c
+deprecator)
+z&deprecate_privatize_attribute.__init__c
+getattr
+<lambda>
+z<deprecate_privatize_attribute.__set_name__.<locals>.<lambda>c
+setattr)
+z*deprecate_privatize_attribute.__set_name__N)
+    Decorator indicating that parameter *old* of *func* is renamed to *new*.
+    The actual implementation of *func* should use *new*, not *old*.  If *old*
+    is passed to *func*, a DeprecationWarning is emitted, and its value is
+    used, even if *new* is also passed by keyword (this is to simplify pyplot
+    wrapper functions, which always pass *new* explicitly to the Axes method).
+    If *new* is also passed but positionally, a TypeError will be raised by the
+    underlying function during argument binding.
+    Examples
+    --------
+    ::
+        @_api.rename_parameter("3.1", "bad_name", "good_name")
+        def func(good_name): ...
+    N
+Matplotlib internal error: z
+ cannot be a parameter for 
+ must be a parameter for c
+The z
+ parameter of z
+() has been renamed z
+ since Matplotlib z7; support for the old name will be dropped %(removal)s.
+popr?
+oldr
+z!rename_parameter.<locals>.wrapper)	r"
+partial
+rename_parameterrJ
+	signature
+parametersr
+DECORATORS)
+	decoratorra
+_deprecated_parameter_classc
+<deprecated parameter>r
+__repr__5
+z$_deprecated_parameter_class.__repr__N)
+    Decorator indicating that parameter *name* of *func* is being deprecated.
+    The actual implementation of *func* should keep the *name* parameter in its
+    signature, or accept a ``**kwargs`` argument (through which *name* would be
+    passed).
+    Parameters that come after the deprecated parameter effectively become
+    keyword-only (as they cannot be passed positionally without triggering the
+    DeprecationWarning on the deprecated parameter), and should be marked as
+    such after the deprecation period has passed and the deprecated parameter
+    is removed.
+    Parameters other than *since*, *name*, and *func* are keyword-only and
+    forwarded to `.warn_deprecated`.
+    Examples
+    --------
+    ::
+        @_api.delete_parameter("3.1", "unused")
+        def func(used_arg, other_arg, unused, more_args): ...
+    Nc
+kindrJ
+	Parameter
+VAR_KEYWORDr
+paramr
+	<genexpr>^
+z#delete_parameter.<locals>.<genexpr>c
+default)
+replace
+_deprecated_parameterrj
+z$delete_parameter.<locals>.<listcomp>
+Nz#Additional positional arguments to zS() are deprecated since %(since)s and support for them will be removed %(removal)s.rZ
+z Additional keyword arguments to c
+z4delete_parameter.<locals>.wrapper.<locals>.<genexpr>z
+If any parameter follows z5, they should be passed as keyword, not positionally.
+parameter of rX
+lenZ
+bind
+	arguments
+getr
+repr)
+inner_argsZ
+inner_kwargsrt
+deprecation_addendum
+is_varargsZ
+is_varkwargsrA
+kwargs_namer
+name_idxra
+z!delete_parameter.<locals>.wrapper)
+delete_parameterrJ
+nextrb
+valuesrg
+VAR_POSITIONALri
+KEYWORD_ONLY
+math
+indexrm
+__signature__r
+    Decorator indicating that passing parameter *name* (or any of the following
+    ones) positionally to *func* is being deprecated.
+    When used on a method that has a pyplot wrapper, this should be the
+    outermost decorator, so that :file:`boilerplate.py` can access the original
+    signature.
+    NrW
+z/ must be a positional-or-keyword parameter for rX
+POKra
+z%make_keyword_only.<locals>.<listcomp>c
+Passing the %(name)s %(obj_type)s positionally is deprecated since Matplotlib %(since)s; the parameter will become keyword-only %(removal)s.rr
+z"make_keyword_only.<locals>.wrapperc
+kwonlyr
+make_keyword_onlyrJ
+POSITIONAL_OR_KEYWORDr}
+namesr&
+allow_emptyc
+    Return ``obj.method`` with a deprecation if it was overridden, else None.
+    Parameters
+    ----------
+    method
+        An unbound method, i.e. an expression of the form
+        ``Class.method_name``.  Remember that within the body of a method, one
+        can always use ``__class__`` to refer to the class that is currently
+        being defined.
+    obj
+        Either an object of the class where *method* is defined, or a subclass
+        of that class.
+    allow_empty : bool, default: False
+        Whether to allow overrides by "empty" methods without emitting a
+        warning.
+    **kwargs
+        Additional parameters passed to `warn_deprecated` to generate the
+        deprecation warning; must at least include the "since" key.
+    c
+empty
+z(deprecate_method_override.<locals>.emptyc
+empty_with_docstring
+z7deprecate_method_override.<locals>.empty_with_docstring
+__code__N
+co_code
+method)
+bound_childZ
+bound_baser
+deprecate_method_override
+ignore)
+warnings
+catch_warnings
+simplefilterr
+'suppress_matplotlib_deprecation_warning
+contextlibr"
+DeprecationWarningr
+contextmanagerr
+<module>

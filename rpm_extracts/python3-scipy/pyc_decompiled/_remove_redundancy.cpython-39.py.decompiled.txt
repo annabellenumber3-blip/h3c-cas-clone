@@ -1,0 +1,249 @@
+m	Z	
+Routines for removing redundant (linearly dependent) equations from linear
+programming equality constraints.
+svd)
+interp_decomp
+dtrsmc
+    Counts the number of nonzeros in each row of input array A.
+    Nonzeros are defined as any element with absolute value greater than
+    tol = 1e-13. This value should probably be an input to the function.
+    Parameters
+    ----------
+    A : 2-D array
+        An array representing a matrix
+    Returns
+    -------
+    rowcount : 1-D array
+        Number of nonzeros in each row of A
+    g
+axis)
+array
+sumZ
+flatten)
+G/usr/lib64/python3.9/site-packages/scipy/optimize/_remove_redundancy.py
+_row_count
+    Returns the index of the densest row of A. Ignores rows that are not
+    eligible for consideration.
+    Parameters
+    ----------
+    A : 2-D array
+        An array representing a matrix
+    eligibleRows : 1-D logical array
+        Values indicate whether the corresponding row of A is eligible
+        to be considered
+    Returns
+    -------
+    i_densest : int
+        Index of the densest row in A eligible for consideration
+    )
+argmax)
+eligibleRowsZ	rowCountsr
+_get_densest#
+    Eliminates trivial equations from system of equations defined by Ax = b
+   and identifies trivial infeasibilities
+    Parameters
+    ----------
+    A : 2-D array
+        An array representing the left-hand side of a system of equations
+    b : 1-D array
+        An array representing the right-hand side of a system of equations
+    Returns
+    -------
+    A : 2-D array
+        An array representing the left-hand side of a system of equations
+    b : 1-D array
+        An array representing the right-hand side of a system of equations
+    status: int
+        An integer indicating the status of the removal operation
+        0: No infeasibility identified
+        2: Trivially infeasible
+    message : str
+        A string descriptor of the exit status of the optimization.
+    r
+zbThere is a zero row in A_eq with a nonzero corresponding entry in b_eq. The problem is infeasible.)
+logical_not
+allclose)
+status
+messageZ
+i_zeror
+_remove_zero_rows:
+lowerZ
+diagr
+perm_r
+vperm
+pivr
+bg_update_dense`
+    Eliminates redundant equations from system of equations defined by Ax = b
+    and identifies infeasibilities.
+    Parameters
+    ----------
+    A : 2-D sparse matrix
+        An matrix representing the left-hand side of a system of equations
+    rhs : 1-D array
+        An array representing the right-hand side of a system of equations
+    Returns
+    ----------
+    A : 2-D sparse matrix
+        A matrix representing the left-hand side of a system of equations
+    rhs : 1-D array
+        An array representing the right-hand side of a system of equations
+    status: int
+        An integer indicating the status of the system
+        0: No infeasibility identified
+        2: Trivially infeasible
+    message : str
+        A string descriptor of the exit status of the optimization.
+    References
+    ----------
+    .. [2] Andersen, Erling D. "Finding all linearly dependent rows in
+           large-scale linear programming." Optimization Methods and Software
+           6.3 (1995): 219-227.
+    
+yE>r
+There is a linear combination of rows of A_eq that results in zero, suggesting a redundant constraint. However the same linear combination of b_eq is nonzero, suggesting that the constraints conflict and the problem is infeasible.N
+orderr
+dtype)
+trans
+shape
+list
+ranger
+zerosZ
+fill_diagonalZ
+arange
+intZ
+ones
+bool
+eyer"
+	Exception
+scipy
+linalgZ	lu_factor
+	enumerateZ
+lu_solve
+minr	
+	transpose
+anyr
+reshape
+norm
+append
+set)"r
+rhsZ	true_rank
+tolapiv
+	tolprimalr
+inconsistent
+A_orig
+js_candidatesZ
+js_maskZ
+batchZ
+j_indexZ	j_indices
+bibar
+bnorm
+keepr
+_remove_redundancy_pivot_densel
+    Eliminates redundant equations from system of equations defined by Ax = b
+    and identifies infeasibilities.
+    Parameters
+    ----------
+    A : 2-D sparse matrix
+        An matrix representing the left-hand side of a system of equations
+    rhs : 1-D array
+        An array representing the right-hand side of a system of equations
+    Returns
+    -------
+    A : 2-D sparse matrix
+        A matrix representing the left-hand side of a system of equations
+    rhs : 1-D array
+        An array representing the right-hand side of a system of equations
+    status: int
+        An integer indicating the status of the system
+        0: No infeasibility identified
+        2: Trivially infeasible
+    message : str
+        A string descriptor of the exit status of the optimization.
+    References
+    ----------
+    .. [2] Andersen, Erling D. "Finding all linearly dependent rows in
+           large-scale linear programming." Optimization Methods and Software
+           6.3 (1995): 219-227.
+    r#
+sparseZ
+hstackr/
+tocscr
+spsolver6
+nonzeror4
+_remove_redundancy_pivot_sparse
+    Eliminates redundant equations from system of equations defined by Ax = b
+    and identifies infeasibilities.
+    Parameters
+    ----------
+    A : 2-D array
+        An array representing the left-hand side of a system of equations
+    b : 1-D array
+        An array representing the right-hand side of a system of equations
+    Returns
+    -------
+    A : 2-D array
+        An array representing the left-hand side of a system of equations
+    b : 1-D array
+        An array representing the right-hand side of a system of equations
+    status: int
+        An integer indicating the status of the system
+        0: No infeasibility identified
+        2: Trivially infeasible
+    message : str
+        A string descriptor of the exit status of the optimization.
+    References
+    ----------
+    .. [2] Andersen, Erling D. "Finding all linearly dependent rows in
+           large-scale linear programming." Optimization Methods and Software
+           6.3 (1995): 219-227.
+    r
+Due to numerical issues, redundant equality constraints could not be removed automatically. Try providing your constraint matrices as sparse matrices to activate sparse presolve, try turning off redundancy removal, or try turning off presolve altogether.
+finfo
+float
+maxr)
+delete)
+VhrU
+s_minr
+i_remover
+_remove_redundancy_svdj
+Eliminates redundant equations from a system of equations.
+    Eliminates redundant equations from system of equations defined by Ax = b
+    and identifies infeasibilities.
+    Parameters
+    ----------
+    A : 2-D array
+        An array representing the left-hand side of a system of equations
+    rhs : 1-D array
+        An array representing the right-hand side of a system of equations
+    rank : int, optional
+        The rank of A
+    randomized: bool, optional
+        True for randomized interpolative decomposition
+    Returns
+    -------
+    A : 2-D array
+        An array representing the left-hand side of a system of equations
+    rhs : 1-D array
+        An array representing the right-hand side of a system of equations
+    status: int
+        An integer indicating the status of the system
+        0: No infeasibility identified
+        2: Trivially infeasible
+    message : str
+        A string descriptor of the exit status of the optimization.
+    r
+randr
+matrix_rankr
+sorted)
+rankZ
+randomizedr
+idxZ
+projZ
+rhs2r
+_remove_redundancy_id
+__doc__Z
+numpyr
+scipy.linalgr
+scipy.linalg.interpolativer
+scipy.linalg.blasr
+<module>

@@ -1,0 +1,263 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.h3c.h3cloud.performance.monitor.service.mapper.clickhouse.VSwitchPortFlowAggregation1dMapper">
+    <delete id ="deleteBeforeTime">
+        ALTER TABLE TBL_VSWITCH_PORT_FLOW_1D DELETE WHERE TIME &lt; #{time}
+    </delete>
+    <select id="readDomainPortFlow" resultType="com.h3c.h3cloud.common.model.performance.VSwitchPortFlowData">
+        SELECT MAC as mac, TIME, ROUND(avgMerge(RX_FLOW_AVG),2) as rxFlow, ROUND(avgMerge(TX_FLOW_AVG),2) as txFlow
+        FROM AGG_VSWITCH_PORT_FLOW_1D  WHERE TIME BETWEEN ${startTime} AND ${endTime} AND DOMAIN_ID=${domainId}
+        <if test="mac!=null and mac!=''">
+            AND MAC like #{mac}
+        </if>
+        GROUP BY MAC, TIME
+        ORDER BY TIME ASC
+    </select>
+    <select id="readNetFlowTopN" resultType="com.h3c.h3cloud.common.model.performance.VswitchPortFlowStatisticsData">
+        SELECT DOMAIN_ID as domainId, TD.title as title,
+        <choose>
+            <when test='type!=null and type=="0"'>
+                ROUND(sum(RX_FLOW_AVG * if((${endTime} - toUnixTimestamp(TIME)) > 86400, 86400, ${endTime} - toUnixTimestamp(TIME))),2) +
+                ROUND(sum(TX_FLOW_AVG * if((${endTime} - toUnixTimestamp(TIME)) > 86400, 86400, ${endTime} - toUnixTimestamp(TIME))),2) as allFlow
+            </when>
+            <when test='type!=null and type=="1"'>
+                ROUND(sum(RX_FLOW_AVG * if((${endTime} - toUnixTimestamp(TIME)) > 86400, 86400, ${endTime} - toUnixTimestamp(TIME))),2) allFlow
+            </when>
+            <otherwise>
+                ROUND(sum(TX_FLOW_AVG * if((${endTime} - toUnixTimestamp(TIME)) > 86400, 86400, ${endTime} - toUnixTimestamp(TIME))),2) allFlow
+            </otherwise>
+        </choose>
+        FROM (SELECT DOMAIN_ID, TIME, MAC,
+        <choose>
+            <when test='type!=null and type=="0"'>
+                avgMerge(RX_FLOW_AVG) AS RX_FLOW_AVG, avgMerge(TX_FLOW_AVG) AS TX_FLOW_AVG
+            </when>
+            <when test='type!=null and type=="1"'>
+                avgMerge(RX_FLOW_AVG) AS RX_FLOW_AVG
+            </when>
+            <otherwise>
+                avgMerge(TX_FLOW_AVG) AS TX_FLOW_AVG
+            </otherwise>
+        </choose>
+        FROM AGG_VSWITCH_PORT_FLOW_1D
+        WHERE TIME BETWEEN ${startTime} AND ${endTime}
+        <if test="hostPoolId!=null and hostPoolId!=''">
+            AND HOST_POOL_ID =${hostPoolId}
+        </if>
+        <if test="clusterId!=null and clusterId!=''">
+            AND CLUSTER_ID =${clusterId}
+        </if>
+        <if test="hostId!=null and hostId!=''">
+            AND HOST_ID =${hostId}
+        </if>
+        <if test="operatorGroupCode!=null and operatorGroupCode!=''">
+            AND OP_GROUP_CODE LIKE #{operatorGroupCode}
+        </if>
+        GROUP BY HOST_POOL_ID, CLUSTER_ID, HOST_ID, DOMAIN_ID, MAC, TIME) FLOW,
+        ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_DOMAIN} TD
+        WHERE TD.id = FLOW.DOMAIN_ID
+        GROUP BY FLOW.DOMAIN_ID,TD.title  ORDER BY allFlow DESC
+        <if test="limit!=null and limit!=''">
+            LIMIT ${limit}
+        </if>
+    </select>
+    <select id="readNetPerfDataByCondition" resultType="com.h3c.h3cloud.common.model.performance.VswitchPortFlowStatisticsData">
+        SELECT MAC as mac, DOMAIN_ID as domainId, ROUND(avgMerge(RX_FLOW_AVG),2) as avgRxFlow , maxMerge(RX_FLOW_MAX) as maxRxFlow, minMerge(RX_FLOW_MIN) as minRxFlow,
+        ROUND(avgMerge(TX_FLOW_AVG),2) as avgTxFlow , maxMerge(TX_FLOW_MAX) as maxTxFlow, minMerge(TX_FLOW_MIN) as minTxFlow
+        FROM AGG_VSWITCH_PORT_FLOW_1D detail  WHERE TIME BETWEEN ${startTime} AND ${endTime}
+        <if test="domainId!=null and domainId!=''">
+            AND DOMAIN_ID = ${domainId}
+        </if>
+        <if test="vmIds!=null and vmIds!=''">
+            AND DOMAIN_ID in (${vmIds})
+        </if>
+        GROUP BY  DOMAIN_ID, MAC;
+    </select>
+    <select id="readNetTrendByCondition" resultType="com.h3c.h3cloud.common.model.performance.VswitchPortFlowStatisticsData">
+        SELECT MAC as mac,DOMAIN_ID as domainId,
+        <choose>
+            <when test="cycle!=null and cycle=='hour'">
+                formatDateTime(toDateTime(TIME), '%Y-%m-%d %H') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='week'">
+                formatDateTime(toDateTime(TIME), '%Y %V') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='month'">
+                formatDateTime(toDateTime(TIME), '%Y-%m') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='year'">
+                formatDateTime(toDateTime(TIME), '%Y') as timeStr,
+            </when>
+            <otherwise>
+                formatDateTime(toDateTime(TIME), '%Y-%m-%d') as timeStr,
+            </otherwise>
+        </choose>
+        <choose>
+            <when test='type!=null and type=="0"'>
+                ROUND(sum(RX_FLOW_AVG * if((${endTime} - toUnixTimestamp(TIME)) > 86400, 86400, ${endTime} - toUnixTimestamp(TIME))),2) +
+                ROUND(sum(TX_FLOW_AVG * if((${endTime} - toUnixTimestamp(TIME)) > 86400, 86400, ${endTime} - toUnixTimestamp(TIME))),2) as allFlow
+            </when>
+            <when test='type!=null and type=="1"'>
+                ROUND(sum(RX_FLOW_AVG * if((${endTime} - toUnixTimestamp(TIME)) > 86400, 86400, ${endTime} - toUnixTimestamp(TIME))),2) allFlow
+            </when>
+            <otherwise>
+                ROUND(sum(TX_FLOW_AVG * if((${endTime} - toUnixTimestamp(TIME)) > 86400, 86400, ${endTime} - toUnixTimestamp(TIME))),2) allFlow
+            </otherwise>
+        </choose>
+        FROM (SELECT DOMAIN_ID, TIME, MAC,
+        <choose>
+            <when test='type!=null and type=="0"'>
+                avgMerge(RX_FLOW_AVG) AS RX_FLOW_AVG,  avgMerge(TX_FLOW_AVG) AS TX_FLOW_AVG
+            </when>
+            <when test='type!=null and type=="1"'>
+                avgMerge(RX_FLOW_AVG) AS RX_FLOW_AVG
+            </when>
+            <otherwise>
+                avgMerge(TX_FLOW_AVG) AS TX_FLOW_AVG
+            </otherwise>
+        </choose>
+        FROM AGG_VSWITCH_PORT_FLOW_1D
+        WHERE TIME BETWEEN ${startTime} AND ${endTime}
+        <if test="domainId!=null and domainId!=''">
+            AND DOMAIN_ID = ${domainId}
+        </if>
+        <if test="vmIds!=null and vmIds!=''">
+            AND DOMAIN_ID in (${vmIds})
+        </if>
+        GROUP BY HOST_POOL_ID, CLUSTER_ID, HOST_ID, DOMAIN_ID, MAC, TIME) FLOW
+        GROUP BY DOMAIN_ID, MAC, timeStr ORDER BY timeStr
+    </select>
+    <select id="readNetRateByCondition" resultType="com.h3c.h3cloud.common.model.performance.VswitchPortFlowStatisticsData">
+        SELECT MAC as mac,DOMAIN_ID as domainId,
+        <choose>
+            <when test="cycle!=null and cycle=='hour'">
+                formatDateTime(toDateTime(TIME), '%Y-%m-%d %H') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='week'">
+                formatDateTime(toDateTime(TIME), '%Y %V') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='month'">
+                formatDateTime(toDateTime(TIME), '%Y-%m') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='year'">
+                formatDateTime(toDateTime(TIME), '%Y') as timeStr,
+            </when>
+            <otherwise>
+                formatDateTime(toDateTime(TIME), '%Y-%m-%d') as timeStr,
+            </otherwise>
+        </choose>
+        <choose>
+            <when test='type!=null and type=="0"'>
+                ROUND(avgMerge(RX_FLOW_AVG),2) as avgRxFlow , maxMerge(RX_FLOW_MAX) as maxRxFlow, minMerge(RX_FLOW_MIN) as minRxFlow
+            </when>
+            <otherwise>
+                ROUND(avgMerge(TX_FLOW_AVG),2) as avgTxFlow , maxMerge(TX_FLOW_MAX) as maxTxFlow, minMerge(TX_FLOW_MIN) as minTxFlow
+            </otherwise>
+        </choose>
+        FROM AGG_VSWITCH_PORT_FLOW_1D detail  WHERE TIME BETWEEN ${startTime} AND ${endTime}
+        <if test="domainId!=null and domainId!=''">
+            AND DOMAIN_ID = ${domainId}
+        </if>
+        <if test="vmIds!=null and vmIds!=''">
+            AND DOMAIN_ID in (${vmIds})
+        </if>
+        <if test="mac!=null and mac!=''">
+            AND MAC =#{mac}
+        </if>
+        GROUP BY  DOMAIN_ID, MAC, timeStr ORDER BY timeStr
+    </select>
+    <select id="readVmsNetRateByCondition" resultType="com.h3c.h3cloud.common.model.performance.VswitchPortFlowStatisticsData">
+        SELECT any(MAC) as mac,DOMAIN_ID as domainId,
+        <choose>
+            <when test="cycle!=null and cycle=='hour'">
+                formatDateTime(toDateTime(TIME), '%Y-%m-%d %H') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='week'">
+                formatDateTime(toDateTime(TIME), '%Y %V') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='month'">
+                formatDateTime(toDateTime(TIME), '%Y-%m') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='year'">
+                formatDateTime(toDateTime(TIME), '%Y') as timeStr,
+            </when>
+            <otherwise>
+                formatDateTime(toDateTime(TIME), '%Y-%m-%d') as timeStr,
+            </otherwise>
+        </choose>
+        <choose>
+            <when test='type!=null and type=="0"'>
+                ROUND(avgMerge(RX_FLOW_AVG),2) as avgRxFlow
+            </when>
+            <otherwise>
+                ROUND(avgMerge(TX_FLOW_AVG),2) as avgTxFlow
+            </otherwise>
+        </choose>
+        FROM AGG_VSWITCH_PORT_FLOW_1D detail  WHERE TIME BETWEEN ${startTime} AND ${endTime}
+        <if test="vmIds!=null and vmIds!=''">
+            AND DOMAIN_ID in (${vmIds})
+        </if>
+        <if test="mac!=null and mac!=''">
+            AND MAC =#{mac}
+        </if>
+        GROUP BY  DOMAIN_ID, timeStr ORDER BY timeStr
+    </select>
+    <select id="readVmsNetTrendByCondition" resultType="com.h3c.h3cloud.common.model.performance.VswitchPortFlowStatisticsData">
+        SELECT any(MAC) as mac,DOMAIN_ID as domainId,
+        <choose>
+            <when test="cycle!=null and cycle=='hour'">
+                formatDateTime(toDateTime(TIME), '%Y-%m-%d %H') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='week'">
+                formatDateTime(toDateTime(TIME), '%Y %V') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='month'">
+                formatDateTime(toDateTime(TIME), '%Y-%m') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='year'">
+                formatDateTime(toDateTime(TIME), '%Y') as timeStr,
+            </when>
+            <otherwise>
+                formatDateTime(toDateTime(TIME), '%Y-%m-%d') as timeStr,
+            </otherwise>
+        </choose>
+        <choose>
+            <when test='type!=null and type=="0"'>
+                ROUND(sum(RX_FLOW_AVG * if((${endTime} - toUnixTimestamp(TIME)) > 86400, 86400, ${endTime} - toUnixTimestamp(TIME))),2) +
+                ROUND(sum(TX_FLOW_AVG * if((${endTime} - toUnixTimestamp(TIME)) > 86400, 86400, ${endTime} - toUnixTimestamp(TIME))),2) as allFlow
+            </when>
+            <when test='type!=null and type=="1"'>
+                ROUND(sum(RX_FLOW_AVG * if((${endTime} - toUnixTimestamp(TIME)) > 86400, 86400, ${endTime} - toUnixTimestamp(TIME))),2) allFlow
+            </when>
+            <otherwise>
+                ROUND(sum(TX_FLOW_AVG * if((${endTime} - toUnixTimestamp(TIME)) > 86400, 86400, ${endTime} - toUnixTimestamp(TIME))),2) allFlow
+            </otherwise>
+        </choose>
+        FROM (SELECT DOMAIN_ID, TIME, MAC,
+        <choose>
+            <when test='type!=null and type=="0"'>
+                avgMerge(RX_FLOW_AVG) AS RX_FLOW_AVG, avgMerge(TX_FLOW_AVG) AS TX_FLOW_AVG
+            </when>
+            <when test='type!=null and type=="1"'>
+                avgMerge(RX_FLOW_AVG) AS RX_FLOW_AVG
+            </when>
+            <otherwise>
+                avgMerge(TX_FLOW_AVG) AS TX_FLOW_AVG
+            </otherwise>
+        </choose>
+        FROM AGG_VSWITCH_PORT_FLOW_1D
+        WHERE TIME BETWEEN ${startTime} AND ${endTime}
+        <if test="vmIds!=null and vmIds!=''">
+            AND DOMAIN_ID in (${vmIds})
+        </if>
+        GROUP BY HOST_POOL_ID, CLUSTER_ID, HOST_ID, DOMAIN_ID, MAC, TIME) FLOW
+        GROUP BY DOMAIN_ID, timeStr ORDER BY timeStr
+    </select>
+    <select id="readNetDataByCluster" resultType="com.h3c.h3cloud.common.model.performance.VSwitchPortFlowData">
+        select b.uuid as uuid, a.MAC as mac, a.TIME as time, a.RX_FLOW as rxFlow, a.TX_FLOW as txFlow
+        from (select TIME, MAC, round(avgMerge(RX_FLOW_AVG),2) as RX_FLOW, round(avgMerge(TX_FLOW_AVG),2) as TX_FLOW,DOMAIN_ID from AGG_VSWITCH_PORT_FLOW_1D
+        where TIME between ${startTime} and ${endTime} and CLUSTER_ID = ${clusterId} GROUP BY TIME, MAC, DOMAIN_ID) as a
+        join  ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_DOMAIN} as b on a.DOMAIN_ID=b.id
+        order by uuid, mac, time
+    </select>
+</mapper>

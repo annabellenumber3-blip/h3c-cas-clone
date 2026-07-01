@@ -1,0 +1,336 @@
+m	Z	
+z"List of Lists sparse matrix class
+restructuredtext en
+lil_matrix
+isspmatrix_lil
+bisect_leftN
+spmatrix
+isspmatrix)
+IndexMixin
+	INT_TYPES
+_broadcast_arrays)
+getdtype
+isshape
+isscalarlike
+upcast_scalar
+get_index_dtype
+check_shape
+check_reshape_kwargs
+asmatrix)
+_csparsetoolsc
+Z	dNd
+d!d"
+d#d$
+d%d&
+d'd(
+d)d*
+d+d,
+d-d.
+d/d0
+d1d2
+d3d4
+d5d6
+d7d8
+d9d:
+Z d;d<
+Z!d=d>
+Z"d?d@
+dAdB
+dCdD
+dOdEdF
+dPdGdH
+dQdIdJ
+dRdKdL
+Row-based list of lists sparse matrix
+    This is a structure for constructing sparse matrices incrementally.
+    Note that inserting a single item can take linear time in the worst case;
+    to construct a matrix efficiently, make sure the items are pre-sorted by
+    index, per row.
+    This can be instantiated in several ways:
+        lil_matrix(D)
+            with a dense matrix or rank-2 ndarray D
+        lil_matrix(S)
+            with another sparse matrix S (equivalent to S.tolil())
+        lil_matrix((M, N), [dtype])
+            to construct an empty matrix with shape (M, N)
+            dtype is optional, defaulting to dtype='d'.
+    Attributes
+    ----------
+    dtype : dtype
+        Data type of the matrix
+    shape : 2-tuple
+        Shape of the matrix
+    ndim : int
+        Number of dimensions (this is always 2)
+    nnz
+        Number of stored values, including explicit zeros
+    data
+        LIL format data array of the matrix
+    rows
+        LIL format row index array of the matrix
+    Notes
+    -----
+    Sparse matrices can be used in arithmetic operations: they support
+    addition, subtraction, multiplication, division, and matrix power.
+    Advantages of the LIL format
+        - supports flexible slicing
+        - changes to the matrix sparsity structure are efficient
+    Disadvantages of the LIL format
+        - arithmetic operations LIL + LIL are slow (consider CSR or CSC)
+        - slow column slicing (consider CSC)
+        - slow matrix vector products (consider CSR or CSC)
+    Intended Usage
+        - LIL is a convenient format for constructing sparse matrices
+        - once a matrix has been constructed, convert to CSR or
+          CSC format for fast arithmetic and matrix vector operations
+        - consider using the COO format when constructing large matrices
+    Data Structure
+        - An array (``self.rows``) of rows, each of which is a sorted
+          list of column indices of non-zero elements.
+        - The corresponding nonzero values are stored in similar
+          fashion in ``self.data``.
+    Z
+lilNFc
+}	~	nJd
+}	~	0
+defaultF
+copyz
+invalid use of shape parameter
+dtypez)unrecognized lil_matrix constructor usagez
+unsupported matrix typer
+csr_matrix)
+__init__r
+floatr
+tolil
+astyper
+shape
+_shape
+rows
+data
+isinstance
+tupler
+ValueError
+empty
+object
+range
+	TypeErrorr
+csrr
+selfZ
+arg1r
+6/usr/lib64/python3.9/site-packages/scipy/sparse/lil.pyr
+lil_matrix.__init__c
+otherr2
+__iadd__
+lil_matrix.__iadd__c
+__isub__
+lil_matrix.__isub__c
+NotImplementedr5
+__imul__
+lil_matrix.__imul__c
+__itruediv__
+lil_matrix.__itruediv__c
+)	Nc
+rowvalsr2
+<listcomp>
+z%lil_matrix.getnnz.<locals>.<listcomp>r
+axis out of bounds)	
+sumr"
+zerosr
+intpr!
+arrayr%
+axis
+rowr2
+getnnz
+lil_matrix.getnnzc
+count_nonzeror?
+	<genexpr>
+z+lil_matrix.count_nonzero.<locals>.<genexpr>)
+lil_matrix.count_nonzeroc
+  %s	%s
+	enumerater!
+strr"
+valr0
+__str__
+lil_matrix.__str__c
+z;Returns a view of the 'i'th row (without copying).
+        r
+newr2
+getrowview
+lil_matrix.getrowviewc
+z)Returns a copy of the 'i'th row.
+        r
+row index out of boundsr
+IndexErrorr
+getrow
+lil_matrix.getrowc
+_get_intXintr
+__getitem__)
+keyr2
+lil_matrix.__getitem__c
+invalid index)
+Index dimension must be <= 2)
+asarrayr%
+MemoryErrorrW
+ndim)
+idxr/
+_asindices
+lil_matrix._asindicesc
+lil_get1r
+type)
+lil_matrix._get_intXintc
+indicesr
+_get_row_ranges
+slice
+_get_sliceXint
+lil_matrix._get_sliceXintc
+_get_arrayXint
+lil_matrix._get_arrayXintc
+_get_intXslice
+lil_matrix._get_intXslicec
+_get_sliceXslice
+lil_matrix._get_sliceXslicec
+_get_arrayXslice
+lil_matrix._get_arrayXslicec
+ndmin)
+_get_columnXarrayri
+_get_intXarray
+lil_matrix._get_intXarrayc
+arangerf
+_get_sliceXarray
+lil_matrix._get_sliceXarrayc
+_get_arrayXarrayri
+lil_matrix._get_columnXarrayc
+mapr&
+atleast_2d
+_prepare_index_for_memoryviewr
+lil_fancy_getr!
+lil_matrix._get_arrayXarrayc
+        Fast path for indexing in the case where column index is slice.
+        This gains performance improvement over brute force by more
+        efficient skipping of zeros, by accessing the elements
+        column-wise in order.
+        Parameters
+        ----------
+        rows : sequence or range
+            Rows indexed. If range, must be within valid bounds.
+        col_slice : slice
+            Columns indexed
+        r
+lil_get_row_rangesr!
+)	r,
+Z	col_sliceZ
+j_startZ
+j_stopZ
+j_strideZ	col_rangeZ
+njrU
+lil_matrix._get_row_rangesc
+lil_insertr
+_set_intXint+
+lil_matrix._set_intXintc
+)	rv
+lil_fancy_setr
+_set_arrayXarray/
+lil_matrix._set_arrayXarrayc
+toarrayr
+_set_arrayXarray_sparse5
+z"lil_matrix._set_arrayXarray_sparsec
+z&Trying to assign a sequence to an item)
+sizer%
+__setitem__)
+lil_matrix.__setitem__c
+z*lil_matrix._mul_scalar.<locals>.<listcomp>)
+Z	res_dtyperS
+_mul_scalarO
+lil_matrix._mul_scalarc
+z*lil_matrix.__truediv__.<locals>.<listcomp>)
+tocsr)
+__truediv__]
+lil_matrix.__truediv__c
+lil_matrix.copyc
+qlq\nr|
+'order' must be 'C' or 'F')
+unravel_indexr%
+args
+kwargsr
+orderr
+ncolsr0
+new_rZ
+new_cZ
+nrowsr2
+reshaper
+lil_matrix.reshapec
+resizer)
+zipr
+new_MZ
+new_Nr.
+truncr2
+lil_matrix.resizec
+_process_toarray_argsrO
+lil_matrix.toarrayc
+axesr
+	transposer
+lil_matrix.transposec
+lil_matrix.tolilc
+maxval)
+iinfo
+int32
+maxr'
+lil_get_lengthsr!
+cumsumr
+int64Z
+lil_flatten_to_arrayr"
+Z	idx_dtypeZ
+indptrZ
+nnzZ
+lengthsrf
+lil_matrix.tocsr)
+NNF)
+__name__
+__module__
+__qualname__
+__doc__
+formatr
+    Convert index and data arrays to form suitable for passing to the
+    Cython fancy getset routines.
+    The conversions are necessary since to (i) ensure the integer
+    index arrays are in one of the accepted types, and (ii) to ensure
+    the arrays are writable so that Cython memoryview support doesn't
+    choke on them.
+    Parameters
+    ----------
+    i, j
+        Index arrays
+    x : optional
+        Data arrays
+    Returns
+    -------
+    i, j, x
+        Re-formatted arrays (x is omitted, if input was None)
+    N)	r
+flagsZ	writeabler&
+Is x of lil_matrix type?
+    Parameters
+    ----------
+    x
+        object to check for being a lil matrix
+    Returns
+    -------
+    bool
+        True if x is a lil matrix, False otherwise
+    Examples
+    --------
+    >>> from scipy.sparse import lil_matrix, isspmatrix_lil
+    >>> isspmatrix_lil(lil_matrix([[5]]))
+    True
+    >>> from scipy.sparse import lil_matrix, csr_matrix, isspmatrix_lil
+    >>> isspmatrix_lil(csr_matrix([[5]]))
+    False
+    )
+__docformat__
+__all__Z
+bisectr
+numpyr&
+baser
+_indexr
+sputilsr
+<module>

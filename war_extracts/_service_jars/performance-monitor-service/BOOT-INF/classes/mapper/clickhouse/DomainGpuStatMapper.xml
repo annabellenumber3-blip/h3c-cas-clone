@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.h3c.h3cloud.performance.monitor.service.mapper.clickhouse.DomainGpuStatMapper">
+    <delete id ="deleteBeforeTime">
+        ALTER TABLE TBL_DOMAIN_GPU_STAT DELETE WHERE TIME &lt; #{time}
+    </delete>
+    <select id="queryPerfByResPoolId" resultType="com.h3c.h3cloud.common.model.performance.DomainGpuStatData">
+        SELECT rs.UUID_PCI as uuidPci, rs.UTILIZATION as utilization,rs.MEMORY_USE as memoryUse,rs.CODE_RATE as codeRate,rs.DECODE_RATE as decodeRate,
+        rs.TIME as time, DOMAIN_ID as domainId
+        FROM TBL_DOMAIN_GPU_STAT AS rs,
+        (SELECT d.bus, d.uuid, d.cluster_id, d.host_id, d.host_name FROM
+        ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_RES_POOL_DEVICE} AS d
+        WHERE d.res_pool_id = ${resPoolId}) AS dev
+        WHERE (((dev.uuid IS NOT NULL AND dev.uuid = rs.UUID_PCI) OR (lowerUTF8(dev.bus) = lowerUTF8(rs.UUID_PCI)))
+        AND dev.cluster_id = rs.CLUSTER_ID AND dev.host_id = rs.HOST_ID)
+        AND rs.TIME BETWEEN ${startTime} AND ${endTime}
+        ORDER BY TIME ASC
+    </select>
+    <select id="readDomainGpuStatById" resultType="com.h3c.h3cloud.common.model.performance.DomainGpuStatData">
+        SELECT UUID_PCI as uuidPci, UTILIZATION as utilization,MEMORY_USE as memoryUse,CODE_RATE as codeRate,DECODE_RATE as decodeRate,TIME as time FROM TBL_DOMAIN_GPU_STAT
+        WHERE DOMAIN_ID =${domainId} AND TIME = (SELECT MAX(TIME)-${duration} FROM TBL_DOMAIN_GPU_STAT)
+    </select>
+    <select id="readPerfByDomainId" resultType="com.h3c.h3cloud.common.model.performance.DomainGpuStatData">
+        SELECT
+          UUID_PCI as uuidPci,
+          UTILIZATION as utilization,
+          MEMORY_USE as memoryUse,
+          CODE_RATE as codeRate,
+          DECODE_RATE as decodeRateme,
+          TIME as time,
+          DOMAIN_ID as domainId,
+          HOST_ID as hostId
+        FROM TBL_DOMAIN_GPU_STAT
+        WHERE DOMAIN_ID =${domainId}
+          AND TIME BETWEEN ${startTime} AND ${endTime}
+    </select>
+    <select id="readRecentDurationDomainGpuStat" resultType="com.h3c.h3cloud.common.model.performance.DomainGpuStatData">
+       SELECT DOMAIN_ID as domainId,ROUND(AVG(UTILIZATION),2) as utilization,ROUND(AVG(MEMORY_USE),2) as memoryUse,ROUND(AVG(CODE_RATE),2) as codeRate,
+       ROUND(AVG(DECODE_RATE),2) as decodeRate,UUID_PCI as uuidPci FROM
+       TBL_DOMAIN_GPU_STAT WHERE DOMAIN_ID=${domainId}  AND TIME >= (SELECT MAX(TIME) FROM TBL_DOMAIN_GPU_STAT) -${duration}
+        GROUP BY DOMAIN_ID,UUID_PCI
+    </select>
+</mapper>

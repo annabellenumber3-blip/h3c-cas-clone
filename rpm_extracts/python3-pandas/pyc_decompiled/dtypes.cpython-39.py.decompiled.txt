@@ -1,0 +1,741 @@
+m Z m!Z!
+l"m#Z#m$Z$
+l%m&Z&m'Z'
+l(m)Z)
+l*Z*d
+l+m,Z,m-Z-
+l.m/Z/m0Z0m1Z1m2Z2
+e3Z4G
+Z7e!G
+e5e 
+Z8e!G
+Z9e!G
+j:e5
+Z;e!G
+Define extension dtypes.
+annotationsN)
+TYPE_CHECKING
+MutableMapping
+cast
+Interval)
+cache_readonly)
+BaseOffset
+Period
+	Timestamp
+dtypes
+	timezones
+	to_offset
+tz_compare)
+Dtype
+DtypeObj
+NpDtype
+Ordered
+type_t)
+ExtensionDtype
+register_extension_dtype)
+ABCCategoricalIndex
+ABCIndex)
+is_bool
+is_list_like)
+tzinfo)
+Categorical
+Index)
+DatetimeArray
+IntervalArray
+PandasArray
+PeriodArrayc
+PandasExtensionDtypezo
+    A np.dtype duck-typed class, suitable for holding a custom dtype.
+    THIS IS NOT A REAL NUMPY DTYPE
+    r
+type
+kindN
+str_type
+tuple[int, ...]
+shape
+DtypeObj | None
+baser
+$dict[str_type, PandasExtensionDtype]
+_cache_dtypes
+returnc
+        Return a string representation for a particular object.
+        
+selfr*
+?/usr/lib64/python3.9/site-packages/pandas/core/dtypes/dtypes.py
+__repr__\
+PandasExtensionDtype.__repr__
+intc
+Nz/sub-classes should implement an __hash__ method)
+NotImplementedErrorr4
+__hash__b
+PandasExtensionDtype.__hash__z
+dict[str_type, Any]c
+getattr)
+<dictcomp>g
+z5PandasExtensionDtype.__getstate__.<locals>.<dictcomp>)
+	_metadatar4
+__getstate__e
+z!PandasExtensionDtype.__getstate__
+Nonec
+clear the cacheN)
+clsr*
+reset_cachei
+z PandasExtensionDtype.reset_cache)
+__name__
+__module__
+__qualname__
+__doc__
+__annotations__Z
+subdtype
+numr+
+itemsizer.
+Z	isbuiltinZ
+isnativer0
+classmethodrE
+CategoricalDtypeTypezR
+    the type of CategoricalDtype, this metaclass determines subclass ability
+    N)
+d d!d"
+d#d$
+d%d!d&
+d'd(
+d)d*
+d+d,
+d-d d.
+d/d0
+d1d2
+d)d*
+d3d4
+d5d*
+d6d7
+d8d9
+dRd d:d;
+d<d=
+d@dA
+Z e!d:d*
+dBdC
+Z"e!d
+dDdE
+Z#e!d d*
+dFdG
+Z$dHdIdJ
+dKdL
+CategoricalDtypea
+    Type for categorical data with the categories and orderedness.
+    Parameters
+    ----------
+    categories : sequence, optional
+        Must be unique, and must not contain any nulls.
+        The categories are stored in an Index,
+        and if an index is provided the dtype of that index will be used.
+    ordered : bool or None, default False
+        Whether or not this categorical is treated as a ordered categorical.
+        None can be used to maintain the ordered value of existing categoricals when
+        used in operations that combine categoricals, e.g. astype, and will resolve to
+        False if there is no existing ordered to maintain.
+    Attributes
+    ----------
+    categories
+    ordered
+    Methods
+    -------
+    None
+    See Also
+    --------
+    Categorical : Represent a categorical variable in classic R / S-plus fashion.
+    Notes
+    -----
+    This class is useful for specifying the type of a ``Categorical``
+    independent of the values. See :ref:`categorical.categoricaldtype`
+    for more.
+    Examples
+    --------
+    >>> t = pd.CategoricalDtype(categories=['b', 'a'], ordered=True)
+    >>> pd.Series(['a', 'b', 'a', 'c'], dtype=t)
+    0      a
+    1      b
+    2      a
+    3    NaN
+    dtype: category
+    Categories (2, object): ['b' < 'a']
+    An empty CategoricalDtype with a specific dtype can be created
+    by providing an empty index. As follows,
+    >>> pd.CategoricalDtype(pd.DatetimeIndex([])).categories.dtype
+    dtype('<M8[ns]')
+    
+categoryz
+type[CategoricalDtypeType]r%
+|O08
+categories
+orderedr/
+fastpath)
+	_finalize)
+__init__
+CategoricalDtype.__init__z
+bool | None)
+NTrW
+__new__rY
+_from_fastpath
+CategoricalDtype._from_fastpath)
+dtyperU
+_from_categorical_dtype
+z(CategoricalDtype._from_categorical_dtypez
+Dtype | None)
+        Construct dtype from the input parameters used in :class:`Categorical`.
+        This constructor method specifically does not do the factorization
+        step, if that is needed to find the categories. This constructor may
+        therefore return ``CategoricalDtype(categories=None, ordered=None)``,
+        which may not be useful. Additional steps may therefore have to be
+        taken to create the final dtype.
+        The return dtype is specified from the inputs in this prioritized
+        order:
+        1. if dtype is a CategoricalDtype, return dtype
+        2. if dtype is the string 'category', create a CategoricalDtype from
+           the supplied categories and ordered parameters, and return that.
+        3. if values is a categorical, use value.dtype, but override it with
+           categories and ordered if either/both of those are not None.
+        4. if dtype is None and values is not a categorical, construct the
+           dtype from categories and ordered, even if either of those is None.
+        Parameters
+        ----------
+        values : list-like, optional
+            The list-like must be 1-dimensional.
+        categories : list-like, optional
+            Categories for the CategoricalDtype.
+        ordered : bool, optional
+            Designating if the categories are ordered.
+        dtype : CategoricalDtype or the string "category", optional
+            If ``CategoricalDtype``, cannot be used together with
+            `categories` or `ordered`.
+        Returns
+        -------
+        CategoricalDtype
+        Examples
+        --------
+        >>> pd.CategoricalDtype._from_values_or_dtype()
+        CategoricalDtype(categories=None, ordered=None)
+        >>> pd.CategoricalDtype._from_values_or_dtype(
+        ...     categories=['a', 'b'], ordered=True
+        ... )
+        CategoricalDtype(categories=['a', 'b'], ordered=True)
+        >>> dtype1 = pd.CategoricalDtype(['a', 'b'], ordered=True)
+        >>> dtype2 = pd.CategoricalDtype(['x', 'y'], ordered=False)
+        >>> c = pd.Categorical([0, 1], dtype=dtype1, fastpath=True)
+        >>> pd.CategoricalDtype._from_values_or_dtype(
+        ...     c, ['x', 'y'], ordered=True, dtype=dtype2
+        ... )
+        Traceback (most recent call last):
+            ...
+        ValueError: Cannot specify `categories` or `ordered` together with
+        `dtype`.
+        The supplied dtype takes precedence over values' dtype:
+        >>> pd.CategoricalDtype._from_values_or_dtype(c, dtype=dtype2)
+        CategoricalDtype(categories=['x', 'y'], ordered=False)
+        NrP
+Unknown dtype z?Cannot specify `categories` or `ordered` together with `dtype`.z+Cannot not construct CategoricalDtype from )	
+isinstancer(
+ValueError
+repr
+is_dtyper]
+valuesrT
+_from_values_or_dtype
+z&CategoricalDtype._from_values_or_dtype
+stringr2
+        Construct a CategoricalDtype from a string.
+        Parameters
+        ----------
+        string : str
+            Must be the string "category" in order to be successfully constructed.
+        Returns
+        -------
+        CategoricalDtype
+            Instance of the dtype.
+        Raises
+        ------
+        TypeError
+            If a CategoricalDtype cannot be constructed from the input.
+        
+.'construct_from_string' expects a string, got z,Cannot construct a 'CategoricalDtype' from '
+'NrV
+	TypeErrorr%
+name)
+construct_from_string,
+z&CategoricalDtype.construct_from_string
+boolrC
+validate_ordered
+validate_categories
+_categories
+_ordered)
+CategoricalDtype._finalizez
+MutableMapping[str_type, Any])
+stater2
+popro
+__setstate__V
+CategoricalDtype.__setstate__r8
+_hash_categoriesr4
+CategoricalDtype.__hash__r
+otherr2
+        Rules for CDT equality:
+        1) Any CDT is equal to the string 'category'
+        2) Any CDT is equal to itself
+        3) Any CDT is equal to a CDT with categories=None regardless of ordered
+        4) A CDT with ordered=True is only equal to another CDT with
+           ordered=True and identical categories in the same order
+        5) A CDT with ordered={False, None} is only equal to another CDT with
+           ordered={False, None} and identical categories, but same order is
+           not required. There is no distinction between False/None.
+        6) Any other comparison returns False
+        TrU
+FNru
+hasattrrT
+equalsr]
+objectZ
+get_indexer
+hash)
+left
+rightZ
+indexerr*
+__eq__h
+CategoricalDtype.__eq__c
+CategoricalDtype(categories=z
+, ordered=
+_format_datar%
+_range
+rstriprU
+datar*
+CategoricalDtype.__repr__c
+rHt	|
+combine_hash_arrays
+hash_array
+hash_tuplesrQ
+	<setcomp>
+z4CategoricalDtype._hash_categories.<locals>.<setcomp>
+datetime64[ns]F)
+categorize
+Z	num_items)
+pandas.core.util.hashingr
+tuple
+listr]
+DatetimeTZDtyperb
+view
+asarrayZ
+vstackZ
+arange
+iterZ
+bitwise_xor
+reduce)	r5
+cat_listZ	cat_arrayZ
+hashedr*
+z!CategoricalDtype._hash_categoriesz
+type_t[Categorical]c
+        Return the array type associated with this dtype.
+        Returns
+        -------
+        type
+        r
+pandasr
+construct_array_type
+z%CategoricalDtype.construct_array_typec
+        Validates that we have a valid ordered parameter. If
+        it is not a boolean, a TypeError will be raised.
+        Parameters
+        ----------
+        ordered : object
+            The parameter to be verified.
+        Raises
+        ------
+        TypeError
+            If 'ordered' is not a boolean.
+        z*'ordered' must either be 'True' or 'False'N)
+z!CategoricalDtype.validate_orderedr
+j	sbt
+        Validates that we have good categories
+        Parameters
+        ----------
+        categories : array-like
+        fastpath : bool
+            Whether to skip nan and uniqueness checks
+        Returns
+        -------
+        categories : Index
+        r
+z.Parameter 'categories' must be list-like, was F)
+tupleize_colsz%Categorical categories cannot be nullz%Categorical categories must be unique)
+pandas.core.indexes.baser
+hasnansr`
+Z	is_uniquer
+z$CategoricalDtype.validate_categoriesz
+str_type | CategoricalDtype
+        Returns a CategoricalDtype with categories and ordered taken from dtype
+        if specified, otherwise falling back to self if unspecified
+        Parameters
+        ----------
+        dtype : CategoricalDtype
+        Returns
+        -------
+        new_dtype : CategoricalDtype
+        rP
+z<a CategoricalDtype must be passed to perform an update, got N)	r_
+new_categoriesZ
+new_orderedr*
+update_dtype#
+CategoricalDtype.update_dtypec
+        An ``Index`` containing the unique categories allowed.
+        )
+CategoricalDtype.categoriesc
+        Whether the categories have an ordered relationship.
+        )
+CategoricalDtype.orderedc
+is_bool_dtype)
+pandas.core.dtypes.commonr
+_is_booleanR
+CategoricalDtype._is_boolean
+list[DtypeObj]r-
+SparseDtypec
+	<genexpr>\
+z5CategoricalDtype._get_common_dtype.<locals>.<genexpr>c
+firstr*
+<listcomp>c
+z6CategoricalDtype._get_common_dtype.<locals>.<listcomp>c
+subtyper
+find_common_type)
+pandas.core.arrays.sparser
+pandas.core.dtypes.castr
+non_init_catsZ
+non_cat_dtypesr
+_get_common_dtypeX
+z"CategoricalDtype._get_common_dtype)
+NNNN)
+F)&rF
+staticmethodrm
+propertyrT
+d d!
+d"d#
+d%d&
+d'd(d)
+d*d+
+d-d.
+    An ExtensionDtype for timezone-aware datetime data.
+    **This is not an actual numpy dtype**, but a duck type.
+    Parameters
+    ----------
+    unit : str, default "ns"
+        The precision of the datetime data. Currently limited
+        to ``"ns"``.
+    tz : str, int, or datetime.tzinfo
+        The timezone.
+    Attributes
+    ----------
+    unit
+    tz
+    Methods
+    -------
+    None
+    Raises
+    ------
+    pytz.UnknownTimeZoneError
+        When the requested timezone cannot be found.
+    Examples
+    --------
+    >>> pd.DatetimeTZDtype(tz='UTC')
+    datetime64[ns, UTC]
+    >>> pd.DatetimeTZDtype(tz='dateutil/US/Central')
+    datetime64[ns, tzfile('/usr/share/zoneinfo/US/Central')]
+    z
+type[Timestamp]r%
+|M8[ns]
+M8[ns]
+unit
+tzz+(datetime64|M8)\[(?P<unit>.+), (?P<tz>.+)\]r/
+nsNz
+str_type | DatetimeTZDtype)
+z+Passing a dtype alias like 'datetime64[ns, zd]' to DatetimeTZDtype is no longer supported. Use 'DatetimeTZDtype.construct_from_string()' instead.z&DatetimeTZDtype only supports ns unitsz
+A 'tz' is required.)
+maybe_get_tzZ
+tz_standardize
+pytzZ
+UnknownTimeZoneErrorri
+_unit
+_tz)
+result
+msgr*
+DatetimeTZDtype.__init__r1
+        The precision of the datetime data.
+        )
+DatetimeTZDtype.unitr
+        The timezone.
+        )
+DatetimeTZDtype.tzz
+type_t[DatetimeArray]c
+pandas.core.arraysr 
+z$DatetimeTZDtype.construct_array_typere
+        Construct a DatetimeTZDtype from a string.
+        Parameters
+        ----------
+        string : str
+            The string alias for this DatetimeTZDtype.
+            Should be formatted like ``datetime64[ns, <tz>]``,
+            where ``<tz>`` is the timezone name.
+        Examples
+        --------
+        >>> DatetimeTZDtype.construct_from_string('datetime64[ns, UTC]')
+        datetime64[ns, UTC]
+        rg
+z+Cannot construct a 'DatetimeTZDtype' from 'rh
+N)	r_
+_match
+match
+	groupdict
+KeyErrorr`
+errr*
+z%DatetimeTZDtype.construct_from_stringc
+datetime64[r
+__str__
+DatetimeTZDtype.__str__c
+z%A string representation of the dtype.r3
+DatetimeTZDtype.namer8
+DatetimeTZDtype.__hash__r
+M8[r
+startswithrj
+DatetimeTZDtype.__eq__rC
+DatetimeTZDtype.__setstate__)
+N) rF
+na_valuerA
+compiler
+d d!
+d#d$
+d%d&d'
+d(d)
+d%d&d'
+d*d+
+d,d-
+d.d&d/
+d0d1
+d3d4
+Z!d5d6d7
+d8d9
+PeriodDtypea
+    An ExtensionDtype for Period data.
+    **This is not an actual numpy dtype**, but a duck type.
+    Parameters
+    ----------
+    freq : str or DateOffset
+        The frequency of this PeriodDtype.
+    Attributes
+    ----------
+    freq
+    Methods
+    -------
+    None
+    Examples
+    --------
+    >>> pd.PeriodDtype(freq='D')
+    period[D]
+    >>> pd.PeriodDtype(freq=pd.offsets.MonthEnd())
+    period[M]
+    z
+type[Period]r%
+freqz
+(P|p)eriod\[(?P<freq>.+)\]r/
+        Parameters
+        ----------
+        freq : frequency
+        Ni
+PeriodDtypeBaser[
+_freqr
+_parse_dtype_strictr0
+freqstrr
+_period_dtype_code)
+dtype_coder*
+PeriodDtype.__new__c
+__reduce__i
+PeriodDtype.__reduce__c
+        The frequency object of this PeriodDtype.
+        
+PeriodDtype.freqr
+period[
+Period[r
+could not construct PeriodDtype)
+search
+groupr
+PeriodDtype._parse_dtype_strictre
+        Strict construction from a string, raise a TypeError if not
+        possible
+        r
+z'Cannot construct a 'PeriodDtype' from 'rh
+z!PeriodDtype.construct_from_stringr1
+PeriodDtype.__str__c
+PeriodDtype.namec
+PeriodDtype.na_valuer8
+PeriodDtype.__hash__r
+titler
+PeriodDtype.__eq__c
+__ne__
+PeriodDtype.__ne__c
+PeriodDtype.__setstate__r|
+        Return a boolean if we if the passed type is an actual dtype that we
+        can match (via string or type)
+        r
+NTF)
+superrb
+	__class__r*
+PeriodDtype.is_dtypez
+type_t[PeriodArray]c
+z PeriodDtype.construct_array_type
+$pyarrow.Array | pyarrow.ChunkedArrayr#
+arrayr2
+)	zH
+        Construct PeriodArray from pyarrow Array/ChunkedArray.
+        r
+pyarrow_array_to_numpy_and_maskZ
+int64r
+copy)
+pyarrowr
+pandas.core.arrays._arrow_utilsr
+Array
+chunksr
+appendr
+_concat_same_type)
+results
+arrr
+maskZ
+parrr*
+__from_arrow__
+PeriodDtype.__from_arrow__)
+N)$rF
+__classcell__r*
+d!d"
+d#d$d%
+d&d'
+d(d)
+d*d$d+
+d,d-
+d.d/d0
+d1d2
+d3d4d5
+d6d7
+IntervalDtypea
+    An ExtensionDtype for Interval data.
+    **This is not an actual numpy dtype**, but a duck type.
+    Parameters
+    ----------
+    subtype : str, np.dtype
+        The dtype of the Interval bounds.
+    Attributes
+    ----------
+    subtype
+    Methods
+    -------
+    None
+    Examples
+    --------
+    >>> pd.IntervalDtype(subtype='int64', closed='both')
+    interval[int64, both]
+    
+intervalrQ
+closedzL(I|i)nterval\[(?P<subtype>[^,]+)(, (?P<closed>(right|left|both|neither)))?\]r/
+str_type | None
+is_string_dtype
+pandas_dtype>
+neitherr
+bothz8closed must be one of 'right', 'left', 'both', 'neither'zYdtype.closed and 'closed' do not match. Try IntervalDtype(dtype.subtype, closed) instead.r
+z?'closed' keyword does not match value specified in dtype stringz!could not construct IntervalDtypezIcategory, object, and string subtypes are not supported for IntervalDtype)
+_subtype
+_closedr(
+lowerr
+getri
+keyr*
+IntervalDtype.__new__c
+IntervalDtype.closedc
+        The dtype of the Interval bounds.
+        )
+IntervalDtype.subtypez
+type[IntervalArray]r1
+z"IntervalDtype.construct_array_typere
+        attempt to construct this type from a string, raise a TypeError
+        if its not possible
+        rg
+Nz)Cannot construct a 'IntervalDtype' from 'z
+Incorrectly formatted string passed to constructor. Valid formats include Interval or Interval[dtype] where dtype is numeric, datetime, or timedelta)
+z#IntervalDtype.construct_from_stringc
+IntervalDtype.typec
+z	interval[r
+IntervalDtype.__str__r8
+IntervalDtype.__hash__r
+NFTr
+is_dtype_equal)	r_
+IntervalDtype.__eq__c
+IntervalDtype.__setstate__r|
+NTF)	r_
+IntervalDtype.is_dtyper
+        Construct IntervalArray from pyarrow Array/ChunkedArray.
+        r
+storageZ
+fieldr
+from_arraysr%
+iarrr*
+IntervalDtype.__from_arrow__r
+z2IntervalDtype._get_common_dtype.<locals>.<genexpr>r
+z3IntervalDtype._get_common_dtype.<locals>.<listcomp>r
+)	r}
+commonr*
+IntervalDtype._get_common_dtype)
+NN)!rF
+d!d"
+PandasDtypea)
+    A Pandas ExtensionDtype for NumPy dtypes.
+    This is mostly for internal compatibility, and is not especially
+    useful on its own.
+    Parameters
+    ----------
+    dtype : object
+        Object to be converted to a NumPy data type object.
+    See Also
+    --------
+    numpy.dtype
+    
+_dtypez
+NpDtype | PandasDtype | Noner
+numpy_dtyper
+PandasDtype.__init__r(
+PandasDtype(r
+PandasDtype.__repr__z
+np.dtypec
+        The NumPy dtype this PandasDtype wraps.
+        r
+PandasDtype.numpy_dtypec
+        A bit-width name for this data-type.
+        )
+PandasDtype.namez
+type[np.generic]c
+        The type object used to instantiate a scalar of this NumPy data-type.
+        )
+PandasDtype.typerl
+biufc)
+setr4
+_is_numeric$
+PandasDtype._is_numericc
+PandasDtype._is_booleanre
+z'Cannot construct a 'PandasDtype' from 'rh
+z!PandasDtype.construct_from_stringz
+type_t[PandasArray]c
+z PandasDtype.construct_array_typec
+        A character code (one of 'biufcmMOSUV') identifying the general kind of data.
+        )
+PandasDtype.kindr8
+        The element size of this data-type object.
+        )
+PandasDtype.itemsizeN)
+)>rI
+__future__r
+typingr
+numpyr
+pandas._libs.intervalr
+pandas._libs.propertiesr	
+pandas._libs.tslibsr
+pandas._typingr
+pandas.core.dtypes.baser
+pandas.core.dtypes.genericr
+pandas.core.dtypes.inferencer
+datetimer
+<module>

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.h3c.h3cloud.performance.monitor.service.mapper.clickhouse.VswitchFlowMapper">
+    <delete id ="deleteBeforeTime">
+        ALTER TABLE TBL_VSWITCH_FLOW DELETE WHERE TIME &lt; #{time}
+    </delete>
+    <select id="readVswitchFlow" resultType="com.h3c.h3cloud.common.model.performance.VswitchFlowData">
+        SELECT TIME as time, RX_FLOW as rxFlow, RX_PACKETS as rxPackets, TX_PACKETS as txPackets, TX_FLOW as txFlow, NAME as name,
+        RX_DROP as rxDropCount, TX_DROP as txDropCount, HOST_ID as hostId, CLUSTER_ID as clusterId,
+        OP_GROUP_ID as operatorGroupId, OP_GROUP_CODE as operatorGroupCode, RX_ERR as rxErrCount, TX_ERR as txErrCount, BANDWIDTH as bandwidth
+        FROM TBL_VSWITCH_FLOW
+        <where>
+            <if test="name!=null and name!=''">
+                AND NAME =#{name}
+            </if>
+            <if test="hostId!=null and hostId!=''">
+                AND HOST_ID =${hostId}
+            </if>
+            <if test="startTime!=null and startTime!=''">
+                AND TIME BETWEEN ${startTime} AND ${endTime}
+            </if>
+        </where>
+        <if test='sort!=null and sort=="0"'>
+            ORDER BY ${sortField} ASC
+        </if>
+        <if test='sort!=null and sort=="1"'>
+            ORDER BY ${sortField} DESC
+        </if>
+    </select>
+    <select id="readRecentVswitchFlow" resultType="com.h3c.h3cloud.common.model.performance.VswitchFlowData">
+        SELECT TIME as time, RX_FLOW as rxFlow, RX_PACKETS as rxPackets, TX_PACKETS as txPackets, TX_FLOW as txFlow, NAME as name,
+        RX_DROP as rxDropCount, TX_DROP as txDropCount, HOST_ID as hostId, CLUSTER_ID as clusterId,
+        OP_GROUP_ID as operatorGroupId, OP_GROUP_CODE as operatorGroupCode, RX_ERR as rxErrCount, TX_ERR as txErrCount, BANDWIDTH as bandwidth
+        FROM TBL_VSWITCH_FLOW WHERE TIME=(SELECT MAX(TIME) FROM TBL_VSWITCH_FLOW)-${duration}
+        <if test="name!=null and name!=''">
+            AND NAME =#{name}
+        </if>
+        <if test="hostId!=null and hostId!=''">
+            AND HOST_ID =${hostId}
+        </if>
+        <if test="startTime!=null and startTime!=''">
+            AND TIME BETWEEN ${startTime} AND ${endTime}
+        </if>
+        <if test="operatorGroupCode!=null and operatorGroupCode!=''">
+            AND C.OP_GROUP_CODE LIKE #{operatorGroupCode}
+        </if>
+        <if test='sort!=null and sort=="0"'>
+            ORDER BY ${sortField} ASC
+        </if>
+        <if test='sort!=null and sort=="1"'>
+            ORDER BY ${sortField} DESC
+        </if>
+    </select>
+</mapper>

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.h3c.h3cloud.performance.monitor.service.mapper.clickhouse.DomainPartitionDetailMapper">
+    <delete id ="deleteBeforeTime">
+        ALTER TABLE TBL_DOMAIN_PARTITION_DETAIL DELETE WHERE TIME &lt; #{time}
+    </delete>
+    <select id="queryVmMonitorData" resultType="com.h3c.h3cloud.common.model.performance.DomainPartitionDetailData">
+        SELECT PARTITION_NAME as partitionName,USED as used,DOMAIN_ID as domainId, UTILIZATION as utilization, SIZE as size
+        FROM TBL_DOMAIN_PARTITION_DETAIL WHERE 1=1
+        <if test="domainId!=null and domainId!=''">
+            AND DOMAIN_ID=${domainId}
+        </if>
+        <if test="vmIds!=null and vmIds!=''">
+            AND DOMAIN_ID in (${vmIds})
+        </if>
+        <if test="hostPoolId!=null and hostPoolId!=''">
+            AND HOST_POOL_ID =${hostPoolId}
+        </if>
+        <if test="clusterId!=null and clusterId!=''">
+            AND CLUSTER_ID =${clusterId}
+        </if>
+        <if test="hostId!=null and hostId!=''">
+            AND HOST_ID =${hostId}
+        </if>
+        <if test="startTime!=null and startTime!=''">
+            AND TIME > ${startTime}
+        </if>
+        AND TIME = (SELECT MAX(TIME) FROM TBL_DOMAIN_PARTITION_DETAIL)
+    </select>
+    <select id="readVmPartitionByCondition" resultType="com.h3c.h3cloud.common.model.performance.DomainPartitionDetailData">
+        SELECT TIME as time,PARTITION_NAME as partitionName,USED as used,DOMAIN_ID as domainId, UTILIZATION as utilization, SIZE as size
+        FROM TBL_DOMAIN_PARTITION_DETAIL WHERE TIME BETWEEN ${startTime} AND ${endTime}
+        <if test="domainId!=null and domainId!=''">
+            AND DOMAIN_ID=${domainId}
+        </if>
+        ORDER BY TIME ASC
+    </select>
+    <select id="readAllVmDiskPartitions" resultType="com.h3c.h3cloud.common.model.performance.DomainPartitionDetailData">
+        SELECT PARTITION_NAME as partitionName,USED as used,DOMAIN_ID as domainId, UTILIZATION as utilization, SIZE as size, DOMAIN_ID as domainId,
+        TITLE as title,vm.status as status
+        FROM ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_DOMAIN} vm,
+        LEFT JOIN TBL_DOMAIN_PARTITION_DETAIL dpd ON vm.id = dpd.DOMAIN_ID
+        WHERE dpd.DOMAIN_ID IS NOT NULL AND TIME = (SELECT MAX(TIME) FROM TBL_DOMAIN_PARTITION_DETAIL)
+        <if test="title!=null and title!=''">
+            AND vm.title LIKE #{title}
+        </if>
+        <if test="operatorGroupCode!=null and operatorGroupCode!=''">
+            AND vm.op_group_code LIKE #{operatorGroupCode}
+        </if>
+        ORDER BY DOMAIN_ID
+    </select>
+</mapper>

@@ -1,0 +1,290 @@
+m	Z	
+m Z m!Z!m"Z"
+Z%e%d
+e&e&e'e(d
+Z)d e&e'd
+Z,e&e
+)!z\
+    This module provides classes and functions used to download and manage
+    debuginfos.
+abstractmethodN)
+run)	
+Callable
+Dict
+List
+Optional
+TextIO
+Tuple
+TypeVar
+Union)
+Package)	
+log1
+log2
+	RETURN_OK
+RETURN_FAILURE
+RETURN_CANCEL_BY_USER
+verbose
+ask_yes_no
+	error_msgi
+ReturnType.)
+returnc
+    Ensures that the function is called using abrt's gid
+    Returns:
+        Either an unchanged function object or a wrapper function object for
+        the function.
+    
+abrt
+        Wrapper function around the called function.
+        Sets up gid to match abrt's and after the function finishes
+        rolls its gid back.
+        Returns:
+            Return value of the wrapped function.
+        )
+setegid
+pw_gid)
+args
+kwargs
+retval
+current_gidr
+</usr/lib64/python3.9/site-packages/reportclient/debuginfo.py
+wrapped>
+z ensure_abrt_gid.<locals>.wrapped)
+getgid
+getpwnamr
+ensure_abrt_gid.
+package_full_path
+files
+tmp_dir
+destdir
+exact_filesr
+}	~	S
+}	~	0
+    Unpacks a single rpm located in tmp_dir into destdir.
+    Arguments:
+        package_full_path - full file system path to the rpm file
+        files - files to extract from the rpm
+        tmp_dir - temporary directory where the rpm file is located
+        destdir - destination directory for the rpm package extraction
+        exact_files - extract only specified files
+    Returns:
+        RETURN_FAILURE in case of a serious problem
+    z
+Extracting %s to %sz
+Extracting cpio from {0}z
+/unpacked.cpio
+rpm2cpio)
+stdoutr
+cpio written OKz
+Can't extract package '{0}'Nz!Can't open '{0}' for writing: {1}z$Caching files from {0} made from {1}z
+unpacked.cpio
+cpioz
+-idu
+.Nr$
+filenamer$
+	<genexpr>
+unpack_rpm.<locals>.<genexpr>
+abrt-unpacking-z
+/tmpF)
+prefix
+delete
+bufsize
+stdinr2
+stderrz
+files extracted OKz>Can't extract files from '{0}'. For more information see '{1}')
+printr
+format
+openr
+returncoder
+IOErrorr
+path
+basename
+join
+append
+tempfileZ
+NamedTemporaryFile
+name
+unlinkr
+unpacked_cpio_pathZ
+unpacked_cpior1
+retcode
+exZ	cpio_argsZ
+file_patternsZ
+log_fileZ
+log_file_namer3
+unpack_rpmW
+silentr
+    Removes the temporary directory.
+    z
+Can't remove '{0}': {1}N)	
+shutilZ
+rmtree
+OSError
+errno
+ENOENTr
+str)
+clean_up
+DownloadProgressz;
+    This class serves as a download progress handler.
+    )
+total_pkgsc
+        Sets up instance variables
+        Arguments:
+            total_pkgs - number of packages to download
+        r
+downloaded_pkgs
+last_pct
+	last_time)
+selfrY
+__init__
+DownloadProgress.__init__N)
+pctr
+        A method used to update the progress
+        Arguments:
+            name - filename
+            pct  - percent downloaded
+        z-percentage is the same, not updating progressNz$Downloading ({0} of {1}) {2}: {3:3}%
+[s%s
+flush
+sysr2
+isattyr
+timer\
+message
+update
+DownloadProgress.update)
+__name__
+__module__
+__qualname__
+__doc__
+intr^
+d!d"
+d#d$
+d)e	e
+d&d'
+DebugInfoDownloadz>
+    This class is used to manage download of debuginfos.
+    N
+*debug*FT)
+cache
+repo_pattern
+	keep_rpms
+noninteractivec
+old_stdout
+cachedir
+tmpdir
+keeprpmsrw
+package_files_dict
+	not_found
+todownload_size
+installed_size
+find_packages_run)
+DebugInfoDownload.__init__r
+get_download_size
+z#DebugInfoDownload.get_download_sizec
+get_install_size
+z"DebugInfoDownload.get_install_sizec
+lenr|
+get_package_count
+z#DebugInfoDownload.get_package_countc
+        Links sys.stdout with /dev/null and saves the old stdout
+        
+z	/dev/null
+mute_stdout
+DebugInfoDownload.mute_stdoutc
+        Replaces sys.stdout by stdout saved using mute
+        r
+Nz ERR: unmute called without mute?)
+unmute_stdout
+DebugInfoDownload.unmute_stdoutc
+Can't create tmpdir: %sz
+Can't create cachedir: %s)
+existsrz
+makedirsrS
+setup_tmp_dirs
+z DebugInfoDownload.setup_tmp_dirsc
+prepare
+DebugInfoDownload.prepare)
+updaterr
+initialize_progress#
+z%DebugInfoDownload.initialize_progressc
+initialize_repositories'
+z)DebugInfoDownload.initialize_repositories)
+triage+
+DebugInfoDownload.triage)
+pkgr
+download_package/
+z"DebugInfoDownload.download_packagec
+Initializing package managerz
+Setting up repositoriesz+Looking for needed packages in repositories)
+find_packages3
+DebugInfoDownload.find_packages)
+download_exact_filesr
+        Downloads rpms shipping given files into a temporary directory
+        Arguments:
+            file - a list of files to download
+            download_exact_files - extract only specified files
+        Returns:
+            RETURN_OK if all goes well.
+            RETURN_FAILURE in case it cannot set up either of the directories.
+        z+Can't find packages for {0} debuginfo filesz
+Packages to download: {0}z?Downloading {0:.2f} MiB, installed size: {1:.2f} MiB. Continue?z
+Download cancelled by userzMWarning: Not enough free space in tmp dir '{0}' ({1:.2f} MiB left). Continue?zOWarning: Not enough free space in cache dir '{0}' ({1:.2f} MiB left). Continue?Nz
+Downloading package {0} failed)
+z&Unpacking failed, aborting download...r
+zV'{0}' must be owned by group abrt. Please run '# chown -R :abrt {0}' to fix the issue.z
+keeprpms = False, removing %sr`
+Removing {0}z0Can't remove {0}, probably contains an error log)-r
+MiBr
+statvfsrz
+float
+f_bsize
+f_bavailry
+itemsr
+statr(
+st_gidr
+rmdirr
+question
+resZ	tmp_spaceZ
+cache_spaceZ
+progress_observerr
+errZ
+unpack_result
+downloadI
+DebugInfoDownload.download)
+F) rl
+DownloadResultr
+TriageResult
+boolr^
+	build_idsr
+    Returns the list of posible locations of debug files
+    for the supplied build-ids.
+    c
+z){0}/usr/lib/debug/.build-id/{1}/{2}.debugNr
+b_id
+<listcomp>
+z&build_ids_to_paths.<locals>.<listcomp>c
+z#{0}/usr/lib/.build-id/{1}/{2}.debugNr
+pathsr$
+build_ids_to_paths
+cache_dirsr
+    Find debuginfo files corresponding to the given build IDs that are
+    missing on the system and need to be installed.
+    Arguments:
+        build_ids - string containing build ids
+        cache_dirs - list of cache directories
+    Returns:
+        List of missing debuginfo files.
+    ra
+z	found: %sz
+not found: %sz
+looking in %s)
+missingZ
+debuginfo_pathZ	cache_dirZ
+cache_debuginfo_pathr$
+filter_installed_debuginfos
+F)/ro
+abcr
+subprocessr
+typingr
+hawkeyr
+reportclientr
+<module>

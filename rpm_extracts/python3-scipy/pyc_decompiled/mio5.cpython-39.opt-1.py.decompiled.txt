@@ -1,0 +1,528 @@
+m Z m!Z!m"Z"m#Z#m$Z$m%Z%m&Z&m'Z'm(Z(m)Z)m*Z*m+Z+m,Z,m-Z-m.Z.m/Z/m0Z0
+l1m2Z2
+Z;e!e
+Z<e!e
+Z=e!e
+Z>e!e
+d d!
+d!e9
+d"d#
+d#e9
+ Classes for read / write of matlab (TM) 5 files
+The matfile specification last found here:
+https://www.mathworks.com/access/helpdesk/help/pdf_doc/matlab/matfile_format.pdf
+(as of December 5 2008)
+BytesIO)
+asbytes
+asstr
+native_code
+swapped_code)	
+MatFileReader
+	docfiller
+matdims
+read_dtype
+arr_to_chars
+arr_dtype_number
+MatWriteError
+MatReadError
+MatReadWarning)
+VarReader5)
+MatlabObject
+MatlabFunction
+MDTYPES
+NP_TO_MTYPES
+NP_TO_MXTYPES
+miCOMPRESSED
+miMATRIX
+miINT8
+miUTF8
+miUINT32
+mxCELL_CLASS
+mxSTRUCT_CLASS
+mxOBJECT_CLASS
+mxCHAR_CLASS
+mxSPARSE_CLASS
+mxDOUBLE_CLASS
+mclass_info
+mat_struct)
+ZlibInputStreamc
+zBDetermine if elem is an array and if first array item is a struct.r
+isinstance
+ndarray
+sizer#
+elem
+:/usr/lib64/python3.9/site-packages/scipy/io/matlab/mio5.py
+_has_structk
+zyConstruct lists from cell arrays (loaded as numpy ndarrays), recursing
+    into items if they contain mat_struct objects.)
+append
+_matstruct_to_dictr,
+_inspect_cell_array)
+Z	elem_listZ
+sub_elemr*
+z/Construct nested dicts from mat_struct objects.)
+_fieldnames
+__dict__r%
+matobj
+z,Convert mat objects in dict to nested dicts.)
+keyr*
+_simplify_cells
+MatFile5Readera
+ Reader for Mat 5 mat files
+    Adds the following attribute to base class
+    uint16_codec - char codec to use for uint16 char arrays
+        (defaults to system default codec)
+    Uses variable reader that has the following stardard interface (see
+    abstract class in ``miobase``::
+       __init__(self, file_reader)
+       read_header(self)
+       array_from_header(self)
+    and added interface::
+       set_stream(self, stream)
+       read_full_tag(self)
+    NFTc
+|	s,t
+}	|	|
+Initializer for matlab 5 file format reader
+    %(matstream_arg)s
+    %(load_args)s
+    %(struct_arg)s
+    uint16_codec : {None, string}
+        Set codec to use for uint16 char arrays (e.g., 'utf-8').
+        Use system default codec if None
+        N)
+superr5
+__init__
+getdefaultencoding
+uint16_codec
+_file_reader
+_matrix_reader)
+self
+mat_stream
+byte_orderZ	mat_dtypeZ
+squeeze_meZ
+chars_as_stringsZ
+matlab_compatibleZ
+struct_as_record
+ verify_compressed_data_integrityr:
+simplify_cells
+	__class__r*
+MatFile5Reader.__init__c
+z4 Guess byte order.
+        Sets stream pointer to 0 
+seek
+read)
+mir*
+guess_byte_order
+MatFile5Reader.guess_byte_orderc
+ Read in mat 5 file header 
+dtypes
+file_header
+descriptions
+__header__
+version
+%d.%d
+__version__)
+item
+strip)
+hdictZ	hdr_dtype
+hdrZ
+v_majorZ
+v_minorr*
+read_file_header
+MatFile5Reader.read_file_headerc
+za Run when beginning read of variables
+        Sets up readers from parameters in `self`
+        N)
+initialize_read
+MatFile5Reader.initialize_readc
+ Read header, return header, next position
+        Header has to define at least .name and .is_global
+        Parameters
+        ----------
+        None
+        Returns
+        -------
+        header : object
+           object that can be passed to self.read_var_array, and that
+           has attributes .name and .is_global
+        next_position : int
+           position in stream of next variable
+        r
+Did not read any bytesFz$Expecting miMATRIX type here, got %d)
+read_full_tag
+ValueErrorr>
+tellr
+set_streamr@
+	TypeErrorZ
+read_header)
+mdtype
+byte_countZ
+next_pos
+streamZ
+check_stream_limit
+headerr*
+read_var_header
+MatFile5Reader.read_var_headerc
+ Read array, given `header`
+        Parameters
+        ----------
+        header : header object
+           object with fields defining variable header
+        process : {True, False} bool, optional
+           If True, apply recursive post-processing during loading of
+           array.
+        Returns
+        -------
+        arr : array
+           array with post-processing applied or not according to
+           `process`.
+        )
+array_from_header)
+processr*
+read_var_array
+MatFile5Reader.read_var_arrayc
+q\qF|
+ get variables from stream as dictionary
+        variable_names   - optional list of variable names to get
+        If variable_names is None, then get all variables in file
+        Nr
+__globals__z
+Duplicate variable name "%s" in stream - replacing previous with new
+Consider mio5.varmats_from_mat to split file into single variable filesrE
+stacklevel
+__function_workspace__FTz&Unreadable variable "%s", because "%s"z
+Read error: %s)
+listr>
+end_of_streamr`
+name
+warnings
+warnr
+Warning
+	is_globalr-
+remove
+lenrA
+)	r=
+variable_names
+mdictrU
+next_positionrj
+errr*
+get_variables'
+MatFile5Reader.get_variablesc
+ list variables from stream r
+logical
+unknown)
+shape_from_header
+is_logicalr"
+mclassr-
+varsrU
+shape
+infor*
+list_variablesa
+MatFile5Reader.list_variables)	NFFTFTTNF)
+__name__
+__module__
+__qualname__
+__doc__r	
+__classcell__r*
+ Pull variables out of mat 5 file as a sequence of mat file objects
+    This can be useful with a difficult mat file, containing unreadable
+    variables. This routine pulls the variables out in raw form and puts them,
+    unread, back into a file stream for saving or reading. Another use is the
+    pathological case where there is more than one variable of the same name in
+    the file; this routine returns the duplicates, whereas the standard reader
+    will overwrite duplicates in the returned dictionary.
+    The file pointer in `file_obj` will be undefined. File pointers for the
+    returned file-like objects are set at 0.
+    Parameters
+    ----------
+    file_obj : file-like
+        file object containing mat file
+    Returns
+    -------
+    named_mats : list
+        list contains tuples of (name, BytesIO) where BytesIO is a file-like
+        object containing mat file contents as for a single variable. The
+        BytesIO contains a string with the original header and a single var. If
+        ``var_file_obj`` is an individual BytesIO instance, then save as a mat
+        file with something like ``open('test.mat',
+        'wb').write(var_file_obj.read())``
+    Examples
+    --------
+    >>> import scipy.io
+    BytesIO is from the ``io`` module in Python 3, and is ``cStringIO`` for
+    Python < 3.
+    >>> mat_fileobj = BytesIO()
+    >>> scipy.io.savemat(mat_fileobj, {'b': np.arange(10), 'a': 'a string'})
+    >>> varmats = varmats_from_mat(mat_fileobj)
+    >>> sorted([name for name, str_obj in varmats])
+    ['a', 'b']
+    r
+itemsizerI
+writer-
+file_objZ
+rdrZ
+hdr_lenZ
+raw_hdrrr
+named_matsZ
+start_positionrU
+var_strZ
+out_objr*
+varmats_from_matz
+EmptyStructMarkerz= Class to indicate presence of empty matlab struct on output N)
+rHn*|
+ Convert input object ``source`` to something we can write
+    Parameters
+    ----------
+    source : object
+    Returns
+    -------
+    arr : None or ndarray or EmptyStructMarker
+        If `source` cannot be converted to something we can write to a matfile,
+        return None.  If `source` is equivalent to an empty dictionary, return
+        ``EmptyStructMarker``.  Otherwise return `source` converted to an
+        ndarray with contents for writing to matfile.
+    N
+keys
+values
+itemsr0
+startswith)
+.0r3
+valuer*
+	<genexpr>
+to_writeable.<locals>.<genexpr>Tr
+_0123456789r*
+hasattrZ
+generic
+dictr0
+object
+array
+tupler
+asanyarray
+dtype
+typeZ
+object_r{
+sourceZ
+is_mappingr
+fieldr
+narrr*
+to_writeable
+tag_fullZ
+tag_smalldataZ
+array_flagsc
+d d!
+d"d#
+d$d%
+d&d'
+d(d)
+d*d+
+VarWriter5z% Generic matlab matrix writing class r*
+file_stream
+unicode_strings
+long_field_names
+oned_as
+	_var_name
+_var_is_global)
+file_writerr*
+VarWriter5.__init__c
+order)
+tobytes
+arrr*
+write_bytes
+VarWriter5.write_bytesc
+write_string
+VarWriter5.write_stringNc
+ write tag and data Nr
+	byteorderr
+byteswapZ
+newbyteorderr(
+write_smalldata_element
+write_regular_element)
+write_element
+VarWriter5.write_elementc
+byte_count_mdtyper
+data)
+zeros
+NDT_TAG_SMALLr
+tagr*
+z"VarWriter5.write_smalldata_elementc
+NDT_TAG_FULLr
+bc_mod_8r*
+z VarWriter5.write_regular_elementFr
+ Write header for given data options
+        shape : sequence
+           array shape
+        mclass      - mat5 matrix class
+        is_complex  - True if matrix is complex
+        is_logical  - True if matrix is logical
+        nzmax        - max non zero elements for sparse arrays
+        We get the name and the global flag from the object, and reset
+        them to defaults after we've used them
+        r*
+Z	data_typerP
+flags_class
+nzmax
+_mat_tag_posr
+mat_tagr&
+NDT_ARRAY_FLAGSr
+asarrayr
+is_complexrw
+flagsr*
+write_header2
+VarWriter5.write_headerc
+z-Matrix too large to save with Matlab 5 formatr]
+Z	start_posZ
+curr_posr]
+update_matrix_tag]
+VarWriter5.update_matrix_tagc
+ Write variable at top level of mat file
+        Parameters
+        ----------
+        arr : array_like
+            array-like object to create writer for
+        name : str, optional
+            name as it will appear in matlab workspace
+            default is empty string
+        is_global : {False, True}, optional
+            whether variable will be global on load into matlab
+        N)
+	write_toph
+VarWriter5.write_topc
+ Write `arr` to stream at top and sub levels
+        Parameters
+        ----------
+        arr : array_like
+            array-like object to create writer for
+        Nz'Could not convert %s (type %s) to arrayz
+Cannot write matlab functions)
+UTF8
+ascii)
+scipyZ
+sparseZ
+issparse
+write_sparser
+write_objectr
+write_empty_structr
+fields
+write_structZ	hasobject
+write_cells
+kindr
+write_char
+write_numeric)
+mat_tag_posr
+codecr*
+VarWriter5.writec
+c128Z
+KeyError
+astyper!
+real
+imag)
+imagfZ
+logifry
+VarWriter5.write_numericr
+z5 Write string array `arr` with given `codec`
+        r
+bufferZ
+ndimr
+prodr'
+copyrS
+encoderp
+n_charsZ
+st_arr
+str*
+VarWriter5.write_charc
+z  Sparse matrices are 2D
+        r
+tocscZ
+sort_indicesr
+nnzr
+indicesr
+indptrr
+nzr*
+VarWriter5.write_sparsec
+atleast_2d
+flattenr
+elr*
+VarWriter5.write_cellsc
+int32Z
+int8rW
+VarWriter5.write_empty_structc
+_write_itemsr
+VarWriter5.write_structc
+<listcomp>
+z+VarWriter5._write_items.<locals>.<listcomp>c
+Z	fieldnamer*
+z+Field names are restricted to %d charactersr
+S%dr
+descrr
+fieldnamesZ
+lengthZ
+max_lengthr
+VarWriter5._write_itemsc
+zmSame as writing structs, except different mx class, and extra
+        classname element after header
+        r
+Z	classnamer
+VarWriter5.write_object)
+MatFile5Writerz
+ Class for writing mat5 files FN
+rowc
+ Initialize writer for matlab 5 format files
+        Parameters
+        ----------
+        %(do_compression)s
+        %(unicode_strings)s
+        global_vars : None or sequence of strings, optional
+            Names of variables to be marked as global for matlab
+        %(long_fields)s
+        %(oned_as)s
+        N)
+do_compressionr
+global_varsr
+_matrix_writer)
+MatFile5Writer.__init__c
+z0MATLAB 5.0 MAT-file Platform: %s, Created on: %srN
+S2iIM
+endian_test)
+NDT_FILE_HDR
+osrj
+time
+asctimer'
+uint16r
+write_file_headerL
+z MatFile5Writer.write_file_headerc
+rJq4|
+ Write variables in `mdict` to stream
+        Parameters
+        ----------
+        mdict : mapping
+           mapping with method ``items`` returns name, contents pairs where
+           ``name`` which will appear in the matlab workspace in file load, and
+           ``contents`` is something writeable to a matlab file, such as a NumPy
+           array.
+        write_header : {None, True, False}, optional
+           If True, then write the matlab file header before writing the
+           variables. If None (the default) then write the file header
+           if we are at position 0 in the stream. By setting False
+           here, and setting the stream position to the end of the file,
+           you can append variables to a matlab file
+        Nr
+zlib
+compress
+getvaluer&
+emptyr
+)	r=
+varrn
+out_strr
+put_variablesW
+MatFile5Writer.put_variables)
+FFNFr
+numpyr&
+numpy.compatr
+scipy.sparser
+byteordercodesr
+miobaser
+mio5_utilsr
+mio5_paramsr
+streamsr$
+<module>

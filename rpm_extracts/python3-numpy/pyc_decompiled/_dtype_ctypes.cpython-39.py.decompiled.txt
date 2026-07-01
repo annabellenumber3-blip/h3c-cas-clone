@@ -1,0 +1,72 @@
+gH#_
+Conversion from ctypes to dtype.
+In an ideal world, we could achieve this through the PEP3118 buffer protocol,
+something like::
+    def dtype_from_ctypes_type(t):
+        # needed to ensure that the shape of `t` is within memoryview.format
+        class DummyStruct(ctypes.Structure):
+            _fields_ = [('a', t)]
+        # empty to avoid memory allocation
+        ctype_0 = (DummyStruct * 0)()
+        mv = memoryview(ctype_0)
+        # convert the struct, and slice back out the field
+        return _dtype_from_pep3118(mv.format)['a']
+Unfortunately, this fails because:
+* ctypes cannot handle length-0 arrays with PEP3118 (bpo-32782)
+* PEP3118 cannot represent unions, but both numpy and ctypes can
+* ctypes cannot handle big-endian structs with PEP3118 (bpo-32780)
+dtype
+dtype_from_ctypes_type
+_type_Z
+_length_
+>/usr/lib64/python3.9/site-packages/numpy/core/_dtype_ctypes.py
+_from_ctypes_array 
+z)ctypes bitfields have no dtype equivalent
+_pack_r
+formats
+offsets
+names
+itemsizeT)
+align)
+_fields_
+	TypeError
+hasattr
+ctypes
+appendr
+minr
+Z	alignment
+sizeofr
+dict)
+itemr
+current_offset
+fname
+ftypZ
+effective_pack
+fieldsr
+_from_ctypes_structure$
+    Return the dtype type with endianness included if it's the case
+    Z
+__ctype_be__N
+__ctype_le__
+getattrr
+_from_ctypes_scalarG
+_from_ctypes_unionS
+rZt	|
+    Construct a dtype object from a ctypes type
+    r
+Nz(ctypes pointers have no dtype equivalentr
+Unknown ctypes type {})
+_ctypes
+issubclassZ
+Arrayr
+_Pointerr
+Z	Structurer 
+Unionr%
+isinstancer#
+strr$
+NotImplementedError
+format
+__name__)
+__doc__Z
+numpyr
+<module>

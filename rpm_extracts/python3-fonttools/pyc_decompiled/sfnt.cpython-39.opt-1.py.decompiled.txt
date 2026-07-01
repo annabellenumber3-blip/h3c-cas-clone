@@ -1,0 +1,308 @@
+m	Z	
+d!d"
+d"e#
+d#d$
+d$e#
+d%d&
+Z&d'd(
+Z'd)d*
+Z(d+d,
+l*Z*d
+l+Z+e*
+ttLib/sfnt.py -- low-level module to deal with the sfnt file format.
+Defines two public classes:
+	SFNTReader
+	SFNTWriter
+(Normally you don't have to use these classes explicitly; they are
+used automatically by ttLib.TTFont.)
+The reading and writing of sfnt files is separated in two distinct
+classes, since whenever to number of tables changes or whenever
+a table's length chages you need to rewrite the whole file anyway.
+print_function
+division
+absolute_import)
+sstruct)
+TTLibErrorN)
+OrderedDictc
+SFNTReaderc
+zb Return an instance of the SFNTReader sub-class which is compatible
+		with the input file type.
+wOF2)
+WOFF2Reader)
+seek
+read
+fontTools.ttLib.woff2r
+object
+__new__)
+args
+kwargsZ
+infile
+sfntVersionr
+8/usr/lib/python3.9/site-packages/fontTools/ttLib/sfnt.pyr
+SFNTReader.__new__
+}	|	
+ttcfz2specify a font number between 0 and %d (inclusive)r
+'Not a Font Collection (not enough data)
+wOFF
+woffz!Not a WOFF font (not enough data)z1Not a TrueType or OpenType font (not enough data))
+OTTO
+truez1Not a TrueType or OpenType font (bad sfntVersion)c
+offset)
+<lambda>X
+z%SFNTReader.__init__.<locals>.<lambda>)
+key)
+file
+checkChecksums
+flavor
+flavorData
+SFNTDirectoryEntry
+DirectoryEntryr
+readTTCHeader
+numFontsr
+offsetTable
+sfntDirectorySize
+lenr
+unpack
+sfntDirectoryFormat
+WOFFDirectoryEntry
+woffDirectorySize
+woffDirectoryFormatr
+range
+	numTables
+fromFile
+tagr
+sorted
+items
+tables
+WOFFFlavorData)
+selfr$
+fontNumber
+headerr+
+datar:
+entryr7
+__init__-
+SFNTReader.__init__c
+has_key^
+SFNTReader.has_keyc
+keys
+SFNTReader.keysc
+Fetch the raw table data.
+headN
+bad checksum for '%s' table)	r:
+loadDatar$
+calcChecksum
+checkSum
+logZ
+warning)
+checksumr
+__getitem__f
+SFNTReader.__getitem__c
+__delitem__x
+SFNTReader.__delitem__c
+closerF
+SFNTReader.closeN)
+__name__
+__module__
+__qualname__r
+__contains__rE
+ Compress 'data' to Zlib format. If 'USE_ZOPFLI' variable is True,
+	zopfli is used instead of the zlib module.
+	The compression 'level' must be between 0 and 9. 1 gives best speed,
+	9 gives best compression (0 gives no compression at all).
+	The default value is a compromise between speed and compression (6).
+Bad compression level: %s)
+compress)
+numiterationsN)
+ValueError
+USE_ZOPFLI
+zlibrb
+zopfli.zlib
+ZOPFLI_LEVELS)
+levelrb
+SFNTWriterc
+ze Return an instance of the SFNTWriter sub-class which is compatible
+		with the specified 'flavor'.
+		Nr&
+woff2r
+WOFF2Writer)
+SFNTWriter.__new__r
+wOFFr
+getSearchRange
+directoryFormatr2
+directorySizer1
+	signaturer-
+sfntDirectoryEntrySize
+origNextTableOffsetr0
+fontTools.ttLibrk
+searchRange
+entrySelector
+rangeShift
+tell
+directoryOffset
+formatSize
+nextTableOffsetr
+writer
+SFNTWriter.__init__c
+cannot rewrite '%s' table)
+setEntry
+SFNTWriter.setEntryc
+Write raw table data to disk.r|
+	headTable
+uncompressed
+saveDatar$
+origOffset
+origLength
+lengthr{
+__setitem__
+SFNTWriter.__setitem__c
+SFNTWriter.__getitem__c
+_	qj|
+zHAll tables must have been written to disk. Now write the
+		directory.
+		z-wrong number of tables; expected %d, found %dr
+>HHr
+)'r8
+reservedZ
+totalSfntSizer
+majorVersion
+minorVersion
+hasattr
+structr/
+metaDataZ
+metaOrigLengthr$
+metaOffsetrb
+metaLengthr{
+privData
+privOffset
+privLengthr
+packrn
+toString
+writeMasterChecksum)
+compressedMetaDataZ
+offZ	paddedOff
+	directoryZ
+seenHeadr
+SFNTWriter.closec
+listr:
+appendrM
+sum)
+tagsZ	checksumsr 
+Z	sfntEntryZ
+directory_endrO
+checksumadjustmentr
+_calcMasterChecksumE
+SFNTWriter._calcMasterChecksumc
+SFNTWriter.writeMasterChecksumc
+reordersTablesi
+SFNTWriter.reordersTables)
+		> # big endian
+		TTCTag:                  4s # "ttcf"
+		Version:                 L  # 0x00010000 or 0x00020000
+		numFonts:                L  # number of fonts
+		# OffsetTable[numFonts]: L  # array with offsets from beginning of file
+		# ulDsigTag:             L  # version 2.0 only
+		# ulDsigLength:          L  # version 2.0 only
+		# ulDsigOffset:          L  # version 2.0 only
+		> # big endian
+		sfntVersion:    4s
+		numTables:      H    # number of tables
+		searchRange:    H    # (max2 <= numTables)*16
+		entrySelector:  H    # log2(max2 <= numTables)
+		rangeShift:     H    # numTables*16-searchRange
+		> # big endian
+		tag:            4s
+		checkSum:       L
+		offset:         L
+		length:         L
+		> # big endian
+		signature:      4s   # "wOFF"
+		sfntVersion:    4s
+		length:         L    # total woff file size
+		numTables:      H    # number of tables
+		reserved:       H    # set to 0
+		totalSfntSize:  L    # uncompressed size
+		majorVersion:   H    # major version of WOFF file
+		minorVersion:   H    # minor version of WOFF file
+		metaOffset:     L    # offset to metadata block
+		metaLength:     L    # length of compressed metadata
+		metaOrigLength: L    # length of uncompressed metadata
+		privOffset:     L    # offset to private data block
+		privLength:     L    # length of private data block
+		> # big endian
+		tag:            4s
+		offset:         L
+		length:         L    # compressed length
+		origLength:     L    # original length
+		checkSum:       L    # original checksum
+DirectoryEntry.__init__c
+formatr
+DirectoryEntry.fromFilec
+strr
+fromString
+DirectoryEntry.fromStringc
+DirectoryEntry.toStringc
+<%s '%s' at %x>z
+<%s at %x>)
+	__class__rS
+idrF
+__repr__
+DirectoryEntry.__repr__c
+decodeData)
+DirectoryEntry.loadDatac
+encodeData)
+DirectoryEntry.saveDatac
+rawDatar
+DirectoryEntry.decodeDatac
+DirectoryEntry.encodeDataN)
+sfntDirectoryEntryFormatr
+zlibCompressionLevel)
+superr1
+ZLIB_COMPRESSION_LEVELr
+WOFFDirectoryEntry.__init__c
+decompress)
+WOFFDirectoryEntry.decodeDatac
+compressedDatar
+WOFFDirectoryEntry.encodeData)
+woffDirectoryEntryFormatr
+woffDirectoryEntrySizery
+__classcell__r
+readerr
+WOFFFlavorData.__init__)
+Flavorr@
+Calculate the checksum for an arbitrary block of data.
+	Optionally takes a 'start' argument, which allows you to
+	calculate a checksum in chunks by feeding it a previous
+	result.
+	If the data length is not a multiple of four, it assumes
+	it is to be padded with null byte.
+		>>> print(calcChecksum(b"abcd"))
+		1633837924
+		>>> print(calcChecksum(b"abcdxyz"))
+		3655064932
+>%dLr
+Z	remainder
+valueZ	blockSizer 
+blockZ
+longsr
+ttcfz
+Not a Font Collectionr
+ttcHeaderSizer.
+SimpleNamespacer
+ttcHeaderFormat
+TTCTagr
+Version)
+writeTTCHeaderI
+__main__)/
+__doc__Z
+__future__r
+fontTools.misc.py23Z
+fontTools.miscr
+collectionsr
+loggingZ	getLoggerrS
+calcsizer
+sysZ
+doctest
+exitZ
+testmodZ
+failedr
+<module>

@@ -1,0 +1,704 @@
+d!d"
+d#d$
+d%d&
+d'd(
+d)d*
+d+d,
+d-d.
+d/d0
+d1d2
+d3d4
+d5d6
+d7d8
+d9d:
+Z/d;d<
+d=d>
+d?d@
+dAdB
+dCdD
+dEdF
+dGdH
+dIdJ
+dKdL
+dMdN
+dOdP
+dQdR
+dSdT
+dUdV
+Z=z@e
+l@Z@W
+jBjCeA
+dXdY
+dZd[
+d\d]
+d^d_
+d`da
+dbdc
+ddde
+dfdg
+Tests related to deprecation warnings. Also a convenient place
+to document how deprecations should eventually be turned into errors.
+assert_raises
+assert_warns
+assert_
+assert_array_equal
+SkipTest
+KnownFailureException
+fromstring_null_term_c_apiTFc
+_DeprecationTestCase
+record
+always)
+category
+messager
+warnings
+catch_warnings
+warn_ctx
+	__enter__
+filterwarnings
+warning_clsr
+self
+H/usr/lib64/python3.9/site-packages/numpy/core/tests/test_deprecations.py
+setup"
+_DeprecationTestCase.setupc
+__exit__r
+teardown0
+_DeprecationTestCase.teardown
+rx|	d
+}	q^|
+Test if DeprecationWarnings are given and raised.
+        This first checks if the function when called gives `num`
+        DeprecationWarnings, after that it tries to raise these
+        DeprecationWarnings and compares them with `exceptions`.
+        The exceptions can be different for cases where this code path
+        is simply not anticipated and the exception is replaced.
+        Parameters
+        ----------
+        function : callable
+            The function to test
+        num : int
+            Number of DeprecationWarnings to expect. This should normally be 1.
+        ignore_others : bool
+            Whether warnings of the wrong type should be ignored (note that
+            the message is not checked)
+        function_fails : bool
+            If the function would normally fail, setting this will check for
+            warnings inside a try/except block.
+        exceptions : Exception or tuple of Exceptions
+            Exception to expect when turning the warnings into an error.
+            The default checks for DeprecationWarnings. If exceptions is
+            empty the function is expected to run successfully.
+        args : tuple
+            Arguments for `function`
+        kwargs : dict
+            Keyword arguments for `function`
+        TNr
+expected %s but got: %sz"%i warnings found but %i expected.c
+str)
+<listcomp>l
+z:_DeprecationTestCase.assert_deprecated.<locals>.<listcomp>
+errorr
+z$No error raised during function callz!Error raised during function call)
+_NoValuer
+	Exception
+tupler
+AssertionError
+__name__
+joinr
+function
+ignore_othersZ
+function_fails
+exceptions
+args
+kwargsZ
+__tracebackhide__Z	num_foundZ
+warning
+msgZ
+lstr
+assert_deprecated3
+z&_DeprecationTestCase.assert_deprecatedc
+Test that warnings are not raised.
+        This is just a shorthand for:
+        self.assert_deprecated(function, num=0, ignore_others=True,
+                        exceptions=tuple(), args=args, kwargs=kwargs)
+        r
+assert_not_deprecated|
+z*_DeprecationTestCase.assert_not_deprecatedN)
+__module__
+__qualname__r
+DeprecationWarningr
+_VisibleDeprecationTestCaseN)
+VisibleDeprecationWarningr
+TestNonTupleNDIndexDeprecationc
+zerosr
+FutureWarning
+__getitem__
+slicer
+test_basic
+z)TestNonTupleNDIndexDeprecation.test_basicN)
+TestComparisonDeprecationsaP
+This tests the deprecation, for non-element-wise comparison logic.
+    This used to mean that when an error occurred during element-wise comparison
+    (i.e. broadcasting) NotImplemented was returned, but also in the comparison
+    itself, False was given instead of the error.
+    Also test FutureWarning for the None comparison.
+    z#elementwise.* comparison failed; .*c
+dtype
+operator
+ner8
+array
+object)
+oprF
+test_normal_types
+z,TestComparisonDeprecations.test_normal_typesc
+<lambda>
+z8TestComparisonDeprecations.test_string.<locals>.<lambda>c
+ValueErrorr
+test_string
+z&TestComparisonDeprecations.test_stringc
+zNTestComparisonDeprecations.test_void_dtype_equality_failures.<locals>.NotArrayc
+	TypeErrorr
+	__array__
+zXTestComparisonDeprecations.test_void_dtype_equality_failures.<locals>.NotArray.__array__c
+NotImplemented)
+otherr
+__ne__
+zUTestComparisonDeprecations.test_void_dtype_equality_failures.<locals>.NotArray.__ne__N)
+NotArray
+aranger
+zNTestComparisonDeprecations.test_void_dtype_equality_failures.<locals>.<lambda>c
+i4,i4rK
+i4,i4,i4c
+struct1r
+struct2r
+!test_void_dtype_equality_failures
+z<TestComparisonDeprecations.test_void_dtype_equality_failuresc
+zTTestComparisonDeprecations.test_array_richcompare_legacy_weirdness.<locals>.<lambda>c
+int16Z
+asarrayrA
+arg1
+structZ
+arg2
+'test_array_richcompare_legacy_weirdness
+zBTestComparisonDeprecations.test_array_richcompare_legacy_weirdnessN)	r.
+__doc__r
+TestDatetime64Timezonea{
+Parsing of datetime64 with timezones deprecated in 1.11.0, because
+    datetime64 is now timezone naive rather than UTC only.
+    It will be quite a while before we can remove this, because, at the very
+    least, a lot of existing code uses the 'Z' modifier to avoid conversion
+    from local time to UTC, even if otherwise it handles time in a timezone
+    naive fashion.
+    c
+2000-01-01T00+01rJ
+2000-01-01T00Z)
+datetime64r
+z"TestDatetime64Timezone.test_stringz!The pytz module is not available.
+reasonc
+US/Easterni
+tzinforJ
+pytz
+timezone
+datetimer8
+test_datetime
+z$TestDatetime64Timezone.test_datetimeN)
+pytest
+mark
+skipif
+	_has_pytzr
+!TestNonCContiguousViewDeprecationaI
+View of non-C-contiguous arrays deprecated in 1.11.0.
+    The deprecation will not be raised for arrays that are both C and F
+    contiguous, as C contiguous is dominant. There are more such arrays
+    with relaxed stride checking than without so the deprecation is not
+    as visible with relaxed stride checking in force.
+    c
+ones
+view
+complex
+int8r
+test_fortran_contiguous
+z9TestNonCContiguousViewDeprecation.test_fortran_contiguousN)
++TestArrayDataAttributeAssignmentDeprecationaS
+Assigning the 'data' attribute of an ndarray is unsafe as pointed
+     out in gh-7093. Eventually, such assignment should NOT be allowed, but
+     in the interests of maintaining backwards compatibility, only a Deprecation-
+     Warning will be raised instead for the time being to give developers time to
+     refactor relevant code.
+    c
+zcAssigning the 'data' attribute is an inherently unsafe operation and will be removed in the future.
+datarJ
+linspacer
+__setattr__r
+test_data_attr_assignment
+zETestArrayDataAttributeAssignmentDeprecation.test_data_attr_assignmentN)
+9TestBinaryReprInsufficientWidthParameterForRepresentationa
+    If a 'width' parameter is passed into ``binary_repr`` that is insufficient to
+    represent the number in base 2 (positive) or 2's complement (negative) form,
+    the function used to silently ignore the parameter and return a representation
+    using the minimal number of bits needed for the form in question. Such behavior
+    is now considered unsafe from a user perspective and will raise an error in the future.
+    c
+widthrP
+QInsufficient bit width provided. This behavior will raise an error in the future.
+binary_repr
+ test_insufficient_width_positive,
+zZTestBinaryReprInsufficientWidthParameterForRepresentation.test_insufficient_width_positivec
+ test_insufficient_width_negative4
+zZTestBinaryReprInsufficientWidthParameterForRepresentation.test_insufficient_width_negativeN)
+$TestDTypeAttributeIsDTypeDeprecationz
+.*`.dtype` attributec
+zZTestDTypeAttributeIsDTypeDeprecation.test_deprecation_dtype_attribute_is_dtype.<locals>.dtZ
+z[TestDTypeAttributeIsDTypeDeprecation.test_deprecation_dtype_attribute_is_dtype.<locals>.vdtz
+f,fNr
+vdtE
+z`TestDTypeAttributeIsDTypeDeprecation.test_deprecation_dtype_attribute_is_dtype.<locals>.<lambda>c
+voidr8
+)test_deprecation_dtype_attribute_is_dtypeA
+zNTestDTypeAttributeIsDTypeDeprecation.test_deprecation_dtype_attribute_is_dtypeN)
+TestTestDeprecatedc
+z;TestTestDeprecated.test_assert_deprecated.<locals>.<lambda>c
+foorP
+stacklevel
+warnr<
+z6TestTestDeprecated.test_assert_deprecated.<locals>.foo)
+test_case_instancer
+test_assert_deprecatedO
+z)TestTestDeprecated.test_assert_deprecatedN)
+TestNonNumericConjugatez
+    Deprecate no-op behavior of ndarray.conjugate on non-numeric dtypes,
+    which conflicts with the error behavior of np.conjugate.
+    c
+)	Nr@
+2016
+	conjugate
+intr8
+test_conjugateb
+z&TestNonNumericConjugate.test_conjugateN)
+TestNPY_CHARc
+npy_char_deprecationZ
+numpy.core._multiarray_testsr
+test_npy_char_deprecationl
+z&TestNPY_CHAR.test_npy_char_deprecationN)
+TestPyArray_AS1Dc
+npy_pyarrayas1d_deprecation)
+NotImplementedError)
+ test_npy_pyarrayas1d_deprecations
+z1TestPyArray_AS1D.test_npy_pyarrayas1d_deprecationN)
+TestPyArray_AS2Dc
+npy_pyarrayas2d_deprecation)
+ test_npy_pyarrayas2d_deprecationy
+z1TestPyArray_AS2D.test_npy_pyarrayas2d_deprecationN)
+Test_UPDATEIFCOPYzh
+    v1.14 deprecates creating an array with the UPDATEIFCOPY flag, use
+    WRITEBACKIFCOPY instead
+    c
+npy_updateifcopy_deprecation
+reshaper
+!test_npy_updateifcopy_deprecation
+z3Test_UPDATEIFCOPY.test_npy_updateifcopy_deprecationN)
+TestDatetimeEventc
+msrP
+event)
+timedelta64r9
+clsr
+test_3_tuple
+TestDatetimeEvent.test_3_tupleN)
+TestTruthTestingEmptyArraysz..*truth value of an empty array is ambiguous.*c
+boolr)
+test_1d
+z#TestTruthTestingEmptyArrays.test_1dc
+test_2d
+z#TestTruthTestingEmptyArrays.test_2dN)
+TestBincountc
+Z	minlength)
+bincountr
+z6TestBincount.test_bincount_minlength.<locals>.<lambda>
+test_bincount_minlength
+z$TestBincount.test_bincount_minlengthN)
+TestAlenc
+alenrT
+z$TestAlen.test_alen.<locals>.<lambda>r
+	test_alen
+TestAlen.test_alenN)
+TestGeneratorSumc
+	<genexpr>
+z6TestGeneratorSum.test_generator_sum.<locals>.<genexpr>r@
+ranger
+test_generator_sum
+z#TestGeneratorSum.test_generator_sumN)
+TestPositiveOnNonNumericalc
+posr)
+test_positive_on_non_number
+z6TestPositiveOnNonNumerical.test_positive_on_non_numberN)
+TestFromstringc
+fromstringr
+test_fromstring
+TestFromstring.test_fromstringN)
+ TestFromStringAndFileInvalidDataz+string or file could not be read to its end
+invalid_strz
+,invalid_dataZ
+invalid_sepc
+mode
+%.2f)
+formatr
+fromfiler
+zVTestFromStringAndFileInvalidData.test_deprecate_unparsable_data_file.<locals>.<lambda>c
+countr
+float
+tempfileZ
+TemporaryFileZ
+tofile
+write
+seekr8
+simplefilterr<
+resr
+#test_deprecate_unparsable_data_file
+zDTestFromStringAndFileInvalidData.test_deprecate_unparsable_data_filec
+1.51,2,3.51,4{}c
+x_strr
+zSTestFromStringAndFileInvalidData.test_deprecate_unparsable_string.<locals>.<lambda>c
+asciic
+bytestrr
+encoder
+ test_deprecate_unparsable_string
+zATestFromStringAndFileInvalidData.test_deprecate_unparsable_stringN)	r.
+parametrizer
+Test_GetSet_NumericOpsc
+getset_numericopsrP
+abc)
+add)
+set_numeric_opsr
+test_get_numeric_ops
+z+Test_GetSet_NumericOps.test_get_numeric_opsN)
+TestShape1Fieldsc
+test_shape_1_fields	
+z$TestShape1Fields.test_shape_1_fieldsN)
+TestNonZeroc
+nonzerorT
+z(TestNonZero.test_zerod.<locals>.<lambda>c
+test_zerod
+TestNonZero.test_zerodN)
+argr
+test_deprecate_ragged_arrays
+TestTooDeepDeprecationz3Creating an ndarray from nested sequences exceedingc
+MAXDIMSr9
+dictrU
+nestedr
+test_deprecation%
+z'TestTooDeepDeprecation.test_deprecationN)
+escaper
+TestToStringz0tostring() is deprecated. Use tobytes() instead.c
+test
+list
+uint8r8
+tostring)
+test_tostring4
+TestToString.test_tostringc
+tobytesr
+test_tostring_matches_tobytes8
+z*TestToString.test_tostring_matches_tobytesN)
+TestDTypeCoercionz(Converting .* to a dtype .*is deprecatedc
+deprecated_typesr8
+scalar_typer
+test_dtype_coercionL
+z%TestDTypeCoercion.test_dtype_coercionc
+test_array_constructionP
+z)TestDTypeCoercion.test_array_constructionc
+)	r)
+sctypes
+valuesr9
+typer
+groupr
+test_not_deprecatedT
+z%TestDTypeCoercion.test_not_deprecatedN)
+genericZ
+flexibleZ
+numberZ
+inexactZ
+floatingZ
+complexfloatingZ
+integerZ
+unsignedintegerZ
+signedinteger
+	characterr
+BuiltInRoundComplexDTypec
+ndigitsr
+round
+scalarr
+test_deprecatedh
+z(BuiltInRoundComplexDType.test_deprecatedc
+not_deprecated_typesr9
+z,BuiltInRoundComplexDType.test_not_deprecatedN)
+csingleZ
+cdoubleZ
+clongdoubler
+int32
+int64r
+uint16Z
+uint32Z
+uint64Z
+float16Z
+float32
+float64r-
+)TestIncorrectAdvancedIndexWithEmptyResultz7Out of bound index found. This was previously ignored.*
+indexrI
+__setitem__rD
+arr2
+index2r
+test_empty_subspace{
+z=TestIncorrectAdvancedIndexWithEmptyResult.test_empty_subspacec
+empty)
+)test_empty_index_broadcast_not_deprecated
+zSTestIncorrectAdvancedIndexWithEmptyResult.test_empty_index_broadcast_not_deprecatedN)	r.
+TestNonExactMatchDeprecationc
+Cilpr
+ravel_multi_indexr
+zCTestNonExactMatchDeprecation.test_non_exact_match.<locals>.<lambda>c
+Random)
+side)
+searchsortedr
+test_non_exact_match
+z1TestNonExactMatchDeprecation.test_non_exact_matchN)
+TestDeprecatedGlobals)
+z&module-level __getattr__ not supportedr~
+z9TestDeprecatedGlobals.test_type_aliases.<locals>.<lambda>c
+longr
+unicoder
+typeDictr
+test_type_aliases
+z'TestDeprecatedGlobals.test_type_aliasesN)	r.
+version_infor?
+TestMatrixInOuterzCadd.outer\(\) was passed a numpy matrix as (first|second) argument.c
+matrixr8
+outerr9
+z!TestMatrixInOuter.test_deprecatedN
+TestRaggedArrayz(setting an array element with a sequencec
+z1TestRaggedArray.test_deprecated.<locals>.<lambda>c
+TestRaggedArray.test_deprecatedNrD
+FlatteningConcatenateUnsafeCastz7concatenate with `axis=None` will use same-kind castingc
+axis
+outr
+concatenater
+z/FlatteningConcatenateUnsafeCast.test_deprecatedc
+unsafe)
+castingr
+Z	same_kind)
+z3FlatteningConcatenateUnsafeCast.test_not_deprecatedN
+-TestDeprecateSubarrayDTypeDuringArrayCoercionz6(creating|casting) an array (with|to) a subarray dtypec
+(2)i,)
+astyper
+zUTestDeprecateSubarrayDTypeDuringArrayCoercion.test_deprecated_array.<locals>.<lambda>rQ
+warnsrB
+test_deprecated_array
+zCTestDeprecateSubarrayDTypeDuringArrayCoercion.test_deprecated_arrayc
+(2,2)f)
+raisesr^
+check
+zVTestDeprecateSubarrayDTypeDuringArrayCoercion.test_deprecated_and_error.<locals>.checkc
+test_deprecated_and_error
+zGTestDeprecateSubarrayDTypeDuringArrayCoercion.test_deprecated_and_errorN)
+%TestFutureWarningArrayLikeNotIterablez,The input object of type.*but not a sequence
+protocol)
+__array_interface__Z
+__array_struct__c
+Test that these objects give a warning since they are not 0-D,
+        not coerced at the top level `np.array(obj)`, but nested, and do
+        *not* define the sequence protocol.
+        NOTE: Tests for the versions including __len__ and __getitem__ exist
+              in `test_array_coercion.py` and they can be modified or ammended
+              when this deprecation expired.
+        r
+MyArrr
+zGTestFutureWarningArrayLikeNotIterable.test_deprecated.<locals>.<lambda>N)
+getattrr8
+	blueprintr
+z5TestFutureWarningArrayLikeNotIterable.test_deprecatedc
+)	NrI
+myarrr
+zNTestFutureWarningArrayLikeNotIterable.test_0d_not_deprecated.<locals>.<lambda>rK
+expectedr
+test_0d_not_deprecated!
+z<TestFutureWarningArrayLikeNotIterable.test_0d_not_deprecatedc
+zTTestFutureWarningArrayLikeNotIterable.test_unnested_not_deprecated.<locals>.<lambda>)
+test_unnested_not_deprecated0
+zBTestFutureWarningArrayLikeNotIterable.test_unnested_not_deprecatedc
+The old code would actually use the dtype from the array, but
+        then end up not using the array (for dimension discovery)
+        r
+f4r]
+	__float__c
+zSTestFutureWarningArrayLikeNotIterable.test_strange_dtype_handling.<locals>.<lambda>
+matchN)
+test_strange_dtype_handling;
+zATestFutureWarningArrayLikeNotIterable.test_strange_dtype_handlingc
+zVTestFutureWarningArrayLikeNotIterable.test_assignment_not_deprecated.<locals>.<lambda>rI
+set[
+zQTestFutureWarningArrayLikeNotIterable.test_assignment_not_deprecated.<locals>.set)
+test_assignment_not_deprecatedN
+zDTestFutureWarningArrayLikeNotIterable.test_assignment_not_deprecatedN)
+"TestDeprecatedUnpickleObjectScalarz
+    Technically, it should be impossible to create numpy object scalars,
+    but there was an unpickle path that would in theory allow it. That
+    path is invalid and must lead to the warning.
+    z4Unpickling a scalar with object dtype is deprecated.c
+ctorr
+zDTestDeprecatedUnpickleObjectScalar.test_deprecated.<locals>.<lambda>)
+coreZ
+multiarrayr+
+z2TestDeprecatedUnpickleObjectScalar.test_deprecatedN)
+Needs noser~
+TestNoseDecoratorsDeprecatedc
+z/TestNoseDecoratorsDeprecated.DidntSkipExceptionN)
+DidntSkipException|
+	slow_func
+zMTestNoseDecoratorsDeprecated.test_slow.<locals>._test_slow.<locals>.slow_func)
+testing
+decZ
+slowr
+_test_slow
+z:TestNoseDecoratorsDeprecated.test_slow.<locals>._test_slowr
+	test_slow
+z&TestNoseDecoratorsDeprecated.test_slowc
+)	Nc
+	f_default
+zWTestNoseDecoratorsDeprecated.test_setastest.<locals>._test_setastest.<locals>.f_defaultTc
+f_istest
+zVTestNoseDecoratorsDeprecated.test_setastest.<locals>._test_setastest.<locals>.f_istestFc
+f_isnottest
+zYTestNoseDecoratorsDeprecated.test_setastest.<locals>._test_setastest.<locals>.f_isnottest)
+Z	setastestr
+__test__)
+_test_setastest
+zDTestNoseDecoratorsDeprecated.test_setastest.<locals>._test_setastestrI
+test_setastest
+z+TestNoseDecoratorsDeprecated.test_setastestc
+znTestNoseDecoratorsDeprecated.test_skip_functions_hardcoded.<locals>._test_skip_functions_hardcoded.<locals>.f1rF
+Failed to skipFc
+znTestNoseDecoratorsDeprecated.test_skip_functions_hardcoded.<locals>._test_skip_functions_hardcoded.<locals>.f2
+Skipped when not expected to
+	__class__)
+_test_skip_functions_hardcoded
+zbTestNoseDecoratorsDeprecated.test_skip_functions_hardcoded.<locals>._test_skip_functions_hardcodedrP
+test_skip_functions_hardcoded
+z:TestNoseDecoratorsDeprecated.test_skip_functions_hardcodedc
+skip me!r
+Z	skip_flagr
+skip_tester
+zuTestNoseDecoratorsDeprecated.test_skip_functions_callable.<locals>._test_skip_functions_callable.<locals>.skip_testerc
+zlTestNoseDecoratorsDeprecated.test_skip_functions_callable.<locals>._test_skip_functions_callable.<locals>.f1r
+zlTestNoseDecoratorsDeprecated.test_skip_functions_callable.<locals>._test_skip_functions_callable.<locals>.f2z
+five is right out!r
+_test_skip_functions_callable
+z`TestNoseDecoratorsDeprecated.test_skip_functions_callable.<locals>._test_skip_functions_callablerP
+test_skip_functions_callable
+z9TestNoseDecoratorsDeprecated.test_skip_functions_callablec
+This test is known to failc
+zpTestNoseDecoratorsDeprecated.test_skip_generators_hardcoded.<locals>._test_skip_generators_hardcoded.<locals>.g1r
+Failed to mark as known failureF
+This test is NOT known to failc
+FAIL
+zpTestNoseDecoratorsDeprecated.test_skip_generators_hardcoded.<locals>._test_skip_generators_hardcoded.<locals>.g2
+#Marked incorrectly as known failure
+knownfailureifr
+_test_skip_generators_hardcoded
+zdTestNoseDecoratorsDeprecated.test_skip_generators_hardcoded.<locals>._test_skip_generators_hardcodedrP
+test_skip_generators_hardcoded
+z;TestNoseDecoratorsDeprecated.test_skip_generators_hardcodedc
+zwTestNoseDecoratorsDeprecated.test_skip_generators_callable.<locals>._test_skip_generators_callable.<locals>.skip_testerr
+znTestNoseDecoratorsDeprecated.test_skip_generators_callable.<locals>._test_skip_generators_callable.<locals>.g1r
+znTestNoseDecoratorsDeprecated.test_skip_generators_callable.<locals>._test_skip_generators_callable.<locals>.g2z
+do not skipr
+_test_skip_generators_callable
+zbTestNoseDecoratorsDeprecated.test_skip_generators_callable.<locals>._test_skip_generators_callablerP
+test_skip_generators_callable
+z:TestNoseDecoratorsDeprecated.test_skip_generators_callablec
+non_deprecated_func
+zcTestNoseDecoratorsDeprecated.test_deprecated.<locals>._test_deprecated.<locals>.non_deprecated_funcc
+TEST: deprecated funcr!
+deprecated_func
+z_TestNoseDecoratorsDeprecated.test_deprecated.<locals>._test_deprecated.<locals>.deprecated_funcc
+AHHHHr!
+deprecated_func2
+z`TestNoseDecoratorsDeprecated.test_deprecated.<locals>._test_deprecated.<locals>.deprecated_func2c
+deprecated_func3 
+z`TestNoseDecoratorsDeprecated.test_deprecated.<locals>._test_deprecated.<locals>.deprecated_func3r
+deprecatedr
+_test_deprecated
+zFTestNoseDecoratorsDeprecated.test_deprecated.<locals>._test_deprecatedr
+z,TestNoseDecoratorsDeprecated.test_deprecatedc
+base, power, expected)
+baseZ
+powerre
+check_parametrize6
+zcTestNoseDecoratorsDeprecated.test_parametrize.<locals>._test_parametrize.<locals>.check_parametrizer
+testr
+_test_parametrize2
+zHTestNoseDecoratorsDeprecated.test_parametrize.<locals>._test_parametrizer
+test_parametrize1
+z-TestNoseDecoratorsDeprecated.test_parametrizeN)
+TestSingleElementSignaturez
+The use of a length 1c
+Z	signature
+z<TestSingleElementSignature.test_deprecated.<locals>.<lambda>c
+sig)
+z*TestSingleElementSignature.test_deprecatedNrD
+TestComparisonBadDTypez0using `dtype=` in comparisons is only useful forc
+equalr.
+z8TestComparisonBadDType.test_deprecated.<locals>.<lambda>c
+NNry
+z&TestComparisonBadDType.test_deprecatedc
+)	NTFrK
+z*TestComparisonBadDType.test_not_deprecatedNrO
+TestComparisonBadObjectDTypez5using `dtype=object` \(or equivalent signature\) willc
+z>TestComparisonBadObjectDType.test_deprecated.<locals>.<lambda>c
+z,TestComparisonBadObjectDType.test_deprecatedN)
+!TestSpecialAttributeLookupFailurez5An exception was ignored while fetching the attributec
+z0TestSpecialAttributeLookupFailure.WeirdArrayLikec
+oops!
+RuntimeErrorr
+z:TestSpecialAttributeLookupFailure.WeirdArrayLike.__array__N)
+propertyra
+WeirdArrayLikej
+z5TestSpecialAttributeLookupFailure.WeirdArrayInterfacec
+zITestSpecialAttributeLookupFailure.WeirdArrayInterface.__array_interface__N)
+WeirdArrayInterfaceo
+zCTestSpecialAttributeLookupFailure.test_deprecated.<locals>.<lambda>c
+z1TestSpecialAttributeLookupFailure.test_deprecatedN)
+TestCtypesGetterr!
+name)
+get_dataZ	get_shapeZ
+get_stridesZ
+get_as_parameterN)
+returnc
+funcr
+z2TestCtypesGetter.test_deprecated.<locals>.<lambda>)
+ctypesr8
+z TestCtypesGetter.test_deprecated)
+shape
+stridesZ
+_as_parameter_c
+z6TestCtypesGetter.test_not_deprecated.<locals>.<lambda>)
+z$TestCtypesGetter.test_not_deprecated)
+TestUFuncForcedDTypeWarningz?The `dtype` and `signature` arguments to ufuncs only select thec
+int64_2r
+zATestUFuncForcedDTypeWarning.test_not_deprecated.<locals>.<lambda>)
+pickler)
+loads
+dumpsr9
+z/TestUFuncForcedDTypeWarning.test_not_deprecatedc
+newbyteorderr
+z>TestUFuncForcedDTypeWarning.test_deprecation.<locals>.<lambda>c
+m8[ns]rK
+z,TestUFuncForcedDTypeWarning.test_deprecationc
+)	Nr.
+m8[s]rK
+maximum
+reduce)
+test_behaviour
+z*TestUFuncForcedDTypeWarning.test_behaviourN)
+)Kr{
+numpyr)
+numpy.testingr
+ImportErrorr
+noseZ	HAVE_NOSEr
+<module>

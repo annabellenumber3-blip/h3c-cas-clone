@@ -1,0 +1,473 @@
+d!d"
+d#d$
+d$e!
+Z"d%d&
+Z#d'd(
+Z$d)d*
+Z%d+d,
+Z&d-d.
+Z'd/d0
+d1d2
+d3d4
+d4e)
+d5d6
+d6e)
+Z+djd8d9
+Z,dkd:d;
+.d<e
+.d=e
+.d>e
+Z3d?d@
+Z5dBdC
+Z6dDdE
+Z7dFZ8dGZ9dHZ:dldIdJ
+.dKe
+Z=dLdM
+Z?dOdP
+Z@dQdR
+ZAdSdT
+ZBdUdV
+ZCdWdX
+ZDdYdZ
+ZEdmd[d\
+ZFd]d^
+ZGd_d`
+ZHdadb
+ZIdcdd
+dedf
+ZLeMdgk
+mNZN
+absolute_importN)
+etree)
+fragment_fromstring
+html_annotate
+htmldiff)
+escapec
+<span title="%s">%s</span>
+html_escape
+_unicode)
+text
+version
+4/usr/lib64/python3.9/site-packages/lxml/html/diff.py
+default_markup
+    doclist should be ordered from oldest to newest, like::
+        >>> version1 = 'Hello World'
+        >>> version2 = 'Goodbye World'
+        >>> print(html_annotate([(version1, 'version 1'),
+        ...                      (version2, 'version 2')]))
+        <span title="version 2">Goodbye</span> <span title="version 1">World</span>
+    The documents must be *fragments* (str/UTF8 or unicode), not
+    complete documents
+    The markup argument is a function to markup the spans of words.
+    This function is called like markup('Hello', 'version 2'), and
+    returns HTML.  The first argument is text and never includes any
+    markup.  The default uses a span with a title:
+        >>> print(default_markup('Some Text', 'by Joe'))
+        <span title="by Joe">Some Text</span>
+    c
+tokenize_annotated)
+docr
+<listcomp>=
+z!html_annotate.<locals>.<listcomp>r
+html_annotate_merge_annotations
+compress_tokens
+markup_serialize_tokens
+join
+strip)
+doclistZ
+markupZ	tokenlistZ
+cur_tokens
+tokens
+resultr
+zFTokenize a document and add an annotation attribute to each token
+    F
+include_hrefs)
+tokenize
+annotation)
+tokr
+Merge the annotations from tokens_old into tokens_new, when the
+    tokens in the new document already existed in the old document.
+    
+equalN)
+InsensitiveSequenceMatcher
+get_opcodes
+copy_annotations)
+tokens_oldZ
+tokens_new
+commands
+command
+eq_oldZ
+eq_newr
+    Copy annotations from the tokens listed in src to the tokens in dest
+    N)
+zipr
+destZ
+src_tokZ
+dest_tokr
+    Combine adjacent tokens when there is no HTML between the tokens, 
+    and they share an annotation
+    r
+	post_tags
+pre_tagsr
+compress_merge_back
+append)
+zY Merge tok into the last element of tokens (modifying the list of
+    tokens in-place).  r3
+trailing_whitespaceN)
+type
+tokenr7
+lastr
+mergedr
+    Serialize the list of tokens into a list of text chunks, calling
+    markup_func around text to add annotations.
+    N)
+htmlr
+markup_funcr;
+prer<
+postr
+ Do a diff of the old and new document.  The documents are HTML
+    *fragments* (str/UTF8 or unicode), they are not complete documents
+    (i.e., no <html> tag).
+    Returns HTML with <ins> and <del> tags added around the
+    appropriate text.  
+    Markup is generally ignored, with the markup from new_html
+    preserved, and possibly some markup from old_html (though it is
+    considered acceptable to lose some of the old markup).  Only the
+    words in the HTML are diffed.  The exception is <img> tags, which
+    are treated like words, and the href attribute of <a> tags, which
+    are noted inside the tag itself when there are changes.
+    r
+htmldiff_tokensr
+fixup_ins_del_tags)
+old_htmlZ
+new_htmlZ
+old_html_tokensZ
+new_html_tokensr
+z] Does a diff on the tokens themselves, returning a list of text
+    chunks (not tokens).
+    r!
+insert
+replace
+delete)
+extend
+expand_tokens
+merge_insert
+merge_delete
+cleanup_delete)
+html1_tokensZ
+html2_tokensr(
+ins_tokensZ
+del_tokensr
+zeGiven a list of tokens, return a generator of the chunks of
+    text for the data in the tokens.
+    N)
+hide_when_equalr9
+z| doc is the already-handled document (as a list of text chunks);
+    here we add <ins>ins_chunks</ins> to the end of that.  r3
+<ins>Nz
+</ins> )
+split_unbalancedrD
+endswithr7
+ins_chunksr
+unbalanced_start
+balanced
+unbalanced_endr
+	DEL_STARTN
+__name__
+__module__
+__qualname__r
+DEL_ENDNrQ
+	NoDeleteszY Raised when the document no longer contains any pending deletes
+    (DEL_START/DEL_END) N)
+__doc__r
+ Adds the text chunks in del_chunks to the document doc (another
+    list of text chunks) with marker to show it is a delete.
+    cleanup_delete later resolves these markers into <del> tags.N)
+del_chunksr
+ Cleans up any DEL_START/DEL_END markers in the document, replacing
+    them with <del></del>.  To do this while keeping the document
+    valid, it may need to drop some tags (either start or end tags).
+    It may also move the del into adjacent tags to try to move it to a
+    similar location where it was originally located (e.g., moving a
+    delete into preceding <div> tag, if the del looks like (DEL_START,
+    'Text</div>', DEL_END)r3
+<del>Nz
+</del> )
+split_deleterV
+locate_unbalanced_start
+locate_unbalanced_endrL
+chunks
+pre_deleterC
+post_deleterM
+}	|	|
+Return (unbalanced_start, balanced, unbalanced_end), where each is
+    a list of text and tag chunks.
+    unbalanced_start is a list of all the tags that are opened, but
+    not closed in this span.  Similarly, unbalanced_end is a list of
+    tags that are closed but were not opened.  Extracting these might
+    mean some reordering of the chunks.
+<>/r3
+name
+tagr
+z$split_unbalanced.<locals>.<listcomp>Nc
+chunkr
+startswithr7
+splitr
+empty_tags
+poprD
+start
+endZ	tag_stackrN
+endtagra
+ Returns (stuff_before_DEL_START, stuff_inside_DEL_START_END,
+    stuff_after_DEL_END).  Returns the first case found (there may be
+    more DEL_STARTs in stuff_after_DEL_END).  Raises NoDeletes if
+    there's no DEL_START found. Nr
+indexrP
+ValueErrorrV
+pos2r
+ pre_delete and post_delete implicitly point to a place in the
+    document (where the two were split).  This moves that point (by
+    popping items from one and pushing them onto the other).  It moves
+    the point to try to find a place where unbalanced_start applies.
+    As an example::
+        >>> unbalanced_start = ['<div>']
+        >>> doc = ['<p>', 'Text', '</p>', '<div>', 'More Text', '</div>']
+        >>> pre, post = doc[:3], doc[3:]
+        >>> pre, post
+        (['<p>', 'Text', '</p>'], ['<div>', 'More Text', '</div>'])
+        >>> locate_unbalanced_start(unbalanced_start, pre, post)
+        >>> pre, post
+        (['<p>', 'Text', '</p>', '<div>'], ['More Text', '</div>'])
+    As you can see, we moved the point so that the dangling <div> that
+    we found will be effectively replaced by the div in the original
+    document.  If this doesn't work out, we just throw away
+    unbalanced_start without doing anything.
+    r
+<>r^
+delz
+Unexpected delete tag: %rN)
+finding
+finding_name
+nextra
+zt like locate_unbalanced_start, except handling end tags and
+    possibly moving the point earlier in the document.  r3
+</ro
+ Represents a diffable token, generally a word that is displayed to
+    the user.  Opening tags are attached to this token when they are
+    adjacent (pre_tags) and closing tags that follow the word
+    (post_tags).  Some exceptions occur when there are empty tags
+    adjacent to a word, so there may be close tags in pre_tags, or
+    open tags in post_tags.
+    We also keep track of whether the word was originally followed by
+    whitespace, even though we do not want to treat the word as
+    equivalent to a similar word that does not have a trailing
+    space.FNr
+__new__r5
+clsr
+objr
+token.__new__c
+token(%s, %r, %r, %r))
+__repr__r5
+selfr
+token.__repr__c
+token.html)
+	tag_tokenz
+ Represents a token that is actually a tag.  Currently this is just
+    the <img> tag, which takes up visible space just like a word but
+    is only represented in a document by a tag.  Nr
+%s: %sr8
+data
+	html_repr)
+tag_token.__new__c
+NzRtag_token(%s, %s, html_repr=%s, post_tags=%r, pre_tags=%r, trailing_whitespace=%r))
+tag_token.__repr__c
+tag_token.html)
+href_tokenzh Represents the href in an anchor tag.  Unlike other words, we only
+    show the href when it changes.  Tc
+Nz	 Link: %sr
+href_token.htmlN)
+    Parse the given HTML and returns token objects (words with attached tags).
+    This parses only the content of a page; anything in the head is
+    ignored, and the <head> and <body> elements are themselves
+    optional.  The content is then parsed by lxml, which ensures the
+    validity of the resulting parsed document (though lxml may make
+    incorrect guesses when the markup is particular bad).
+    <ins> and <del> tags are also eliminated from the document, as
+    that gets confusing.
+    If include_hrefs is true, then the href attribute of <a> tags is
+    included as a special kind of diffable token.T
+cleanup)
+skip_tagr
+Z	iselement
+parse_html
+flatten_el
+fixup_chunks)
+body_elr[
+    Parses an HTML fragment, returning an lxml element.  Note that the HTML will be
+    wrapped in a <div> tag that was not in the original document.
+    If cleanup is true, make sure there's no <head> or <body>, and get
+    rid of any <ins> and <del> tags.
+    T)
+create_parent)
+cleanup_htmlr
+z	<body.*?>z
+</body.*?>z
+</?(ins|del).*?>c
+ This 'cleans' the HTML, meaning that any page structure is removed
+    (only the contents of <body> are used, if there is any <body).
+    Also <ins> and <del> tags are removed.  Nr
+_body_re
+searchrl
+_end_body_rerk
+_ins_del_re
+sub)
+matchr
+[ \t\n\r]$c
+    This function takes a word, such as 'test
+' and returns ('test','
+    r
+rstrip)
+wordZ
+stripped_lengthr
+split_trailing_whitespaceA
+    This function takes a list of chunks and produces a list of tokens.
+    Nr
+imgr
+hrefrJ
+z4Weird state, cur_word=%r, result=%r, chunks=%r of %rFr
+isinstance
+tupler
+is_wordr;
+is_start_tag
+is_end_tagr4
+)	r[
+Z	tag_accumZ
+cur_wordr
+paramr
+area
+basefont
+input
+base
+meta
+link
+col)
+addressZ
+blockquote
+center
+dirZ
+divZ
+fieldsetZ
+formZ
+isindexZ
+menuZ
+noframesZ
+noscriptZ
+tableZ
+framesetZ
+tbodyZ
+tfootZ
+theadZ
+ Takes an lxml element el, and generates all the text chunks for
+    that tag.  Each start tag is a chunk, each word is a chunk, and each
+    end tag is a chunk.
+    If skip_tag is true, then the outermost container tag is
+    not returned (just its contents).r
+	start_tagri
+tail
+split_wordsr	
+end_tag)
+start_wordsr
+child
+itemZ	end_wordsr
+\S+(?:\s+|$)c
+z_ Splits some text into words. Includes trailing whitespace
+    on each word when appropriate.  )
+split_words_re
+findall)
+wordsr
+^[ \t\n\r]c
+    The text representation of the start tag for a tag.
+    z
+<%s%s>r
+ %s="%s"T)
+valuer
+start_tag.<locals>.<listcomp>)
+attrib
+items)
+zg The text representation of an end tag for a tag.  Includes
+    trailing whitespace when appropriate.  rJ
+</%s>%s)
+start_whitespace_rer
+extrar
+ Given an html string, move any <ins> or <del> tags inside of any
+    block-level elements, e.g. transform <ins><p>word</p></ins> to
+    <p><ins>word</ins></p> Fr
+skip_outer)
+_fixup_ins_del_tags
+serialize_html_fragment)
+ Serialize a single lxml element as HTML.  The serialized form
+    includes the elements tail.  
+    If skip_outer is true, then don't serialize the outermost tag
+    z3You should pass in an element, not a string like %rr<
+method
+encoding
+basestringr
+tostringr
+find
+rfindr
+z?fixup_ins_del_tags that works on an lxml document in-place
+    )
+descendant-or-self::%s)
+xpath
+_contains_block_level_tag
+_move_el_inside_blockZ
+drop_tag)
+zPTrue if the element contains any block-level elements, like <p>, <td>, etc.
+    TF)
+block_level_tags
+block_level_container_tagsr
+zt helper for _fixup_ins_del_tags; actually takes the <ins> etc tags
+    and moves them inside any block-level tags.  Nr
+Elementr
+listr
+children_tagZ
+tail_tagZ	child_tagZ
+text_tagr
+    Removes an element, but merges its contents into its place, e.g.,
+    given <p>Hi <i>there!</i></p>, if you remove the <i> element you get
+    <p>Hi there!</p>
+    r
+Z	getparentr
+getchildren)
+parentr
+previousr
+_merge_element_contents?
+    Acts like SequenceMatcher, but tries not to find very small equal
+    blocks amidst large spans of changes
+    r
+	thresholdr
+zBInsensitiveSequenceMatcher.get_matching_blocks.<locals>.<listcomp>)
+minr/
+difflib
+SequenceMatcher
+get_matching_blocks)
+size
+actualr
+z.InsensitiveSequenceMatcher.get_matching_blocksN)
+__main__)
+_diffcommand)
+F)PZ
+__future__r
+lxmlr
+Z	lxml.htmlr
+__all__r<
+ImportErrorZ
+cgiZ
+unicoder
+	NameError
+strr
+	ExceptionrV
+compile
+end_whitespace_rer
+mainr
+<module>

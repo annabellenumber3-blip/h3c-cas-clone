@@ -1,0 +1,509 @@
+m Z m!Z!m"Z"m#Z#m$Z$m%Z%m&Z&
+l'm(Z)
+m+Z+
+e,Z+d
+j1Z2W
+j8Z7e7e7e7e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e5e4e.e-e6e:e9e9e9e9e9e5d
+!Z;e<d
+ZAd'd d!
+d#d$
+d%d&
+divisionN)
+	LOG_EMERG
+	LOG_ALERT
+LOG_CRIT
+LOG_ERR
+LOG_WARNING
+LOG_NOTICE
+LOG_INFO
+	LOG_DEBUG
+__version__
+sendv
+	stream_fd)
+_Reader
+APPEND
+INVALIDATE
+LOCAL_ONLY
+RUNTIME_ONLY
+SYSTEM
+SYSTEM_ONLY
+CURRENT_USER
+OS_ROOT
+_get_catalog)
+id128
+	Monotonicc
+microsecondsr
+bytes)
+	_datetime
+	timedelta
+_uuid
+UUID)
+5/usr/lib64/python3.9/site-packages/systemd/journal.py
+_convert_monotonic.
+_convert_source_monotonic3
+datetime
+fromtimestamp
+_LOCAL_TIMEZONE)
+_convert_realtime;
+_convert_timestamp>
+_convert_trivialB
+decoder)
+_convert_uuidF
+MESSAGE_ID
+_MACHINE_ID
+_BOOT_ID
+PRIORITYZ
+LEADERZ
+SESSION_IDZ
+USERSPACE_USECZ
+INITRD_USECZ
+KERNEL_USECZ
+_UIDZ
+_GIDZ
+_PIDZ
+SYSLOG_FACILITYZ
+SYSLOG_PIDZ
+_AUDIT_SESSIONZ
+_AUDIT_LOGINUIDZ
+_SYSTEMD_SESSIONZ
+_SYSTEMD_OWNER_UID
+	CODE_LINEZ
+ERRNOZ
+EXIT_STATUSZ
+_SOURCE_REALTIME_TIMESTAMP
+__REALTIME_TIMESTAMPZ
+_SOURCE_MONOTONIC_TIMESTAMP
+__MONOTONIC_TIMESTAMP
+__CURSORZ
+COREDUMPZ
+COREDUMP_PIDZ
+COREDUMP_UIDZ
+COREDUMP_GIDZ
+COREDUMP_SESSIONZ
+COREDUMP_SIGNALZ
+COREDUMP_TIMESTAMPZ%ABCDEFGHIJKLMNOPQRTSUVWXYZ_0123456789c
+_IDENT_CHARACTERr)
+_valid_field_namer
+d!d"
+d#d$
+d.d%d&
+d/d'd(
+Readera
+Access systemd journal entries.
+    Entries are subject to filtering and limits, see `add_match`, `this_boot`,
+    `this_machine` functions and the `data_treshold` attribute.
+    Note that in order to access the system journal, a non-root user must have
+    the necessary privileges, see journalctl(1) for details.  Unprivileged users
+    can access only their own journal.
+    Example usage to print out all informational or higher level messages for
+    systemd-udevd for this boot:
+    >>> from systemd import journal
+    >>> j = journal.Reader()
+    >>> j.this_boot()
+    >>> j.log_level(journal.LOG_INFO)
+    >>> j.add_match(_SYSTEMD_UNIT="systemd-udevd.service")
+    >>> for entry in j:                                 # doctest: +SKIP
+    ...    print(entry['MESSAGE'])
+    starting version ...
+    See systemd.journal-fields(7) for more info on typical fields found in the
+    journal.
+    Nc
+Create a new Reader.
+        Argument `flags` defines the open flags of the journal, which can be one
+        of, or ORed combination of constants: LOCAL_ONLY (default) opens journal
+        on local machine only; RUNTIME_ONLY opens only volatile journal files;
+        and SYSTEM_ONLY opens only journal files of system services and the kernel.
+        Argument `path` is the directory of journal files, either a file system
+        path or a file descriptor. Specify `namespace` to read from specific journal
+        namespace. Note that `flags`, `path`, `files` and `namespace` are exclusive.
+        Argument `converters` is a dictionary which updates the
+        DEFAULT_CONVERTERS to convert journal field values. Field names are used
+        as keys into this dictionary. The values must be single argument
+        functions, which take a `bytes` object and return a converted
+        value. When there's no entry for a field name, then the default UTF-8
+        decoding will be attempted. If the conversion fails with a ValueError,
+        unconverted bytes object will be returned. (Note that ValueEror is a
+        superclass of UnicodeDecodeError).
+        Reader implements the context manager protocol: the journal will be
+        closed when exiting the block.
+        Nr
+superrD
+__init__
+DEFAULT_CONVERTERS
+copy
+converters
+update)
+self
+flags
+path
+filesrI
+	namespace
+	__class__r%
+Reader.__init__c
+Convert value using self.converters[key].
+        If `key` is not present in self.converters, a standard unicode decoding
+        will be attempted.  If the conversion (either key-specific or the
+        default one) fails with a ValueError, the original bytes object will be
+        returned.
+        N)
+getr
+ValueError)
+valueZ
+convertr%
+_convert_field
+Reader._convert_fieldc
+z6Convert entire journal entry utilising _convert_field.c
+<listcomp>
+z)Reader._convert_entry.<locals>.<listcomp>)
+items
+isinstance
+listrV
+entry
+resultrU
+_convert_entry
+Reader._convert_entryc
+z=Return self.
+        Part of the iterator protocol.
+        r%
+__iter__
+Reader.__iter__c
+Return the next entry in the journal.
+        Returns self.get_next() or raises StopIteration.
+        Part of the iterator protocol.
+        N)
+get_next
+StopIteration)
+ansr%
+__next__
+Reader.__next__r
+Add one or more matches to the filter journal log entries.
+        All matches of different field are combined with logical AND, and
+        matches of the same field are automatically combined with logical OR.
+        Matches can be passed as strings of form "FIELD=value", or keyword
+        arguments FIELD="value".
+        c
+_make_line
+	<genexpr>
+z#Reader.add_match.<locals>.<genexpr>N)
+extendr]
+	add_match)
+args
+kwargs
+argrP
+Reader.add_matchr
+Return the next log entry as a dictionary.
+        Entries will be processed with converters specified during Reader
+        creation.
+        Optional `skip` value will return the `skip`-th log entry.
+        Currently a standard dictionary of fields is returned, but in the
+        future this might be changed to a different mapping type, so the
+        calling code should not make assumptions about a specific type.
+        r>
+)	rE
+_nextZ
+_get_allZ
+_get_realtimeZ
+_get_monotonicZ
+_get_cursorrb
+dict)
+skipr`
+Reader.get_nextc
+Return the previous log entry.
+        Equivalent to get_next(-skip).
+        Optional `skip` value will return the -`skip`-th log entry.
+        Entries will be processed with converters specified during Reader
+        creation.
+        Currently a standard dictionary of fields is returned, but in the
+        future this might be changed to a different mapping type, so the
+        calling code should not make assumptions about a specific type.
+        )
+get_previous
+Reader.get_previousc
+Return a list of unique values appearing in the journal for the given
+        `field`.
+        Note this does not respect any journal matches.
+        Entries will be processed with converters specified during
+        Reader creation.
+        c
+fieldrK
+z&Reader.query_unique.<locals>.<genexpr>)
+query_unique)
+Reader.query_uniquec
+Wait for a change in the journal.
+        `timeout` is the maximum time in seconds to wait, or None which
+        means to wait forever.
+        Returns one of NOP (no change), APPEND (new entries have been added to
+        the end of the journal), or INVALIDATE (journal files have been added or
+        removed).
+        N
+wait)
+timeout
+usrP
+Reader.waitc
+Seek to a matching journal entry nearest to `timestamp` time.
+        Argument `realtime` must be either an integer UNIX timestamp (in
+        microseconds since the beginning of the UNIX epoch), or an float UNIX
+        timestamp (in seconds since the beginning of the UNIX epoch), or a
+        datetime.datetime instance. The integer form is deprecated.
+        >>> import time
+        >>> from systemd import journal
+        >>> yesterday = time.time() - 24 * 60**2
+        >>> j = journal.Reader()
+        >>> j.seek_realtime(yesterday)
+        z
+%s.%fr-
+astimezone
+	TypeErrorr(
+float
+strftimerE
+seek_realtime)
+realtimerP
+Reader.seek_realtimec
+_get_startr2
+startrP
+	get_startJ
+Reader.get_startc
+_get_endr2
+endrP
+get_endN
+Reader.get_endc
+Seek to a matching journal entry nearest to `monotonic` time.
+        Argument `monotonic` is a timestamp from boot in either seconds or a
+        datetime.timedelta instance. Argument `bootid` is a string or UUID
+        representing which boot the monotonic time is reference to. Defaults to
+        current bootid.
+        r-
+total_secondsr(
+hexrE
+seek_monotonic)
+	monotonic
+bootidrP
+Reader.seek_monotonicc
+zASet maximum log `level` by setting matches for PRIORITY.
+        r
+z!Log level must be 0 <= level <= 7N)
+rangerl
+level
+	log_levela
+Reader.log_levelc
+Add match for log entries with specified `messageid`.
+        `messageid` can be string of hexadicimal digits or a UUID
+        instance. Standard message IDs can be found in systemd.id128.
+        Equivalent to add_match(MESSAGE_ID=`messageid`).
+        )
+Z	messageidr%
+messageid_matchj
+Reader.messageid_matchc
+Add match for _BOOT_ID for current boot or the specified boot ID.
+        If specified, bootid should be either a UUID or a 32 digit hex number.
+        Equivalent to add_match(_BOOT_ID='bootid').
+        Nr
+_id128Z
+get_bootr
+getattrrl
+	this_bootv
+Reader.this_bootc
+Add match for _MACHINE_ID equal to the ID of this machine.
+        If specified, machineid should be either a UUID or a 32 digit hex
+        number.
+        Equivalent to add_match(_MACHINE_ID='machineid').
+        Nr
+get_machiner
+Z	machineidr%
+this_machine
+Reader.this_machine)
+NNNNN)
+__name__
+__module__
+__qualname__
+__doc__rF
+_sys
+version_info
+nextrl
+__classcell__r%
+zlReturn catalog entry for the specified ID.
+    `mid` should be either a UUID or a 32 digit hex number.
+    )
+midr%
+get_catalog
+utf-8
+encode
+str)
+Send a message to the journal.
+    >>> from systemd import journal
+    >>> journal.send('Hello world')
+    >>> journal.send('Hello, again, world', FIELD2='Greetings!')
+    >>> journal.send('Binary message', BINARY=b'\xde\xad\xbe\xef')
+    Value of the MESSAGE argument will be used for the MESSAGE= field. MESSAGE
+    must be a string and will be sent as UTF-8 to the journal.
+    MESSAGE_ID can be given to uniquely identify the type of message. It must be
+    a string or a uuid.UUID object.
+    CODE_LINE, CODE_FILE, and CODE_FUNC can be specified to identify the caller.
+    Unless at least on of the three is given, values are extracted from the
+    stack frame of the caller of send(). CODE_FILE and CODE_FUNC must be
+    strings, CODE_LINE must be an integer.
+    Additional fields for the journal entry can only be specified as keyword
+    arguments. The payload can be either a string or bytes. A string will be
+    sent as UTF-8, and bytes will be sent as-is to the journal.
+    Other useful fields include PRIORITY, SYSLOG_FACILITY, SYSLOG_IDENTIFIER,
+    SYSLOG_PID.
+    z
+MESSAGE=Nr
+MESSAGE_ID=
+limitr
+CODE_FILE=z
+CODE_LINE={:d}z
+CODE_FUNC=c
+send.<locals>.<genexpr>)
+append
+_traceback
+extract_stack
+formatrk
+MESSAGEr9
+	CODE_FILEr=
+	CODE_FUNCrn
+idr%
+send
+Return a file object wrapping a stream to journal.
+    Log messages written to this file as simple newline sepearted text strings
+    are written to the journal.
+    The file will be line buffered, so messages are actually sent after a
+    newline character is written.
+    >>> from systemd import journal
+    >>> stream = journal.stream('myapp')                       # doctest: +SKIP
+    >>> res = stream.write('message...\n')                     # doctest: +SKIP
+    will produce the following message in the journal::
+      PRIORITY=7
+      SYSLOG_IDENTIFIER=myapp
+      MESSAGE=message...
+    If identifier is None, a suitable default based on sys.argv[0] will be used.
+    This interface can be used conveniently with the print function:
+    >>> from __future__ import print_function
+    >>> stream = journal.stream()                              # doctest: +SKIP
+    >>> print('message...', file=stream)                       # doctest: +SKIP
+    priority is the syslog priority, one of `LOG_EMERG`, `LOG_ALERT`,
+    `LOG_CRIT`, `LOG_ERR`, `LOG_WARNING`, `LOG_NOTICE`, `LOG_INFO`, `LOG_DEBUG`.
+    level_prefix is a boolean. If true, kernel-style log priority level prefixes
+    (such as '<1>') are interpreted. See sd-daemon(3) for more information.
+    Nr
+python
+argvr
+fdopen)
+identifierZ
+priorityZ
+level_prefix
+fdr%
+stream
+JournalHandlera
+Journal handler class for the Python logging framework.
+    Please see the Python logging module documentation for an overview:
+    http://docs.python.org/library/logging.html.
+    To create a custom logger whose messages go only to journal:
+    >>> import logging
+    >>> log = logging.getLogger('custom_logger_name')
+    >>> log.propagate = False
+    >>> log.addHandler(JournalHandler())
+    >>> log.warning("Some message: %s", 'detail')
+    Note that by default, message levels `INFO` and `DEBUG` are ignored by the
+    logging framework. To enable those log levels:
+    >>> log.setLevel(logging.DEBUG)
+    To redirect all logging messages to journal regardless of where they come
+    from, attach it to the root logger:
+    >>> logging.root.addHandler(JournalHandler())
+    For more complex configurations when using `dictConfig` or `fileConfig`,
+    specify `systemd.journal.JournalHandler` as the handler class.  Only
+    standard handler configuration options are supported: `level`, `formatter`,
+    `filters`.
+    To attach journal MESSAGE_ID, an extra field is supported:
+    >>> import uuid
+    >>> mid = uuid.UUID('0123456789ABCDEF0123456789ABCDEF')
+    >>> log.warning("Message with ID", extra={'MESSAGE_ID': mid})
+    Fields to be attached to all messages sent through this handler can be
+    specified as keyword arguments. This probably makes sense only for
+    SYSLOG_IDENTIFIER and similar fields which are constant for the whole
+    program:
+    >>> JournalHandler(SYSLOG_IDENTIFIER='my-cool-app')
+    <...JournalHandler ...>
+    The following journal fields will be sent: `MESSAGE`, `PRIORITY`,
+    `THREAD_NAME`, `CODE_FILE`, `CODE_LINE`, `CODE_FUNC`, `LOGGER` (name as
+    supplied to getLogger call), `MESSAGE_ID` (optional, see above),
+    `SYSLOG_IDENTIFIER` (defaults to sys.argv[0]).
+    The function used to actually send messages can be overridden using
+    the `sender_function` parameter.
+    c
+Invalid field name: Z
+SYSLOG_IDENTIFIERr
+)	rE
+_extra)
+sender_functionrn
+namerP
+JournalHandler.__init__Nc
+Create a JournalHandler with a configuration dictionary
+        This creates a JournalHandler instance, but accepts the parameters through
+        a dictionary that can be specified as a positional argument. This is useful
+        in contexts like logging.config.fileConfig, where the syntax does not allow
+        for positional arguments.
+        >>> JournalHandler.with_args({'SYSLOG_IDENTIFIER':'my-cool-app'})
+        <...JournalHandler ...>
+        r%
+clsZ
+configr%
+	with_argsA
+JournalHandler.with_argsc
+Write `record` as a journal event.
+        MESSAGE is taken from the message provided by the user, and PRIORITY,
+        LOGGER, THREAD_NAME, CODE_{FILE,LINE,FUNC} fields are appended
+        automatically. In addition, record.MESSAGE_ID will be used if present.
+        Z
+EXCEPTION_TEXTZ
+EXCEPTION_INFOZ	CODE_ARGS)
+LOGGERZ
+THREAD_NAMEZ
+PROCESS_NAMEr
+map_priority
+levelnor
+exc_text
+exc_inform
+__dict__r
+threadNameZ
+processName
+pathname
+linenoZ
+funcName
+	ExceptionZ
+handleError)
+record
+msgZ
+priZ
+extrasr%
+emitO
+JournalHandler.emitc
+Map logging levels to journald priorities.
+        Since Python log level numbers are "sparse", we have to map numbers in
+        between the standard levels too.
+        N)
+_logging
+DEBUGr
+INFOr	
+WARNINGr
+ERRORr
+CRITICALr
+JournalHandler.map_priority)
+NOTSETr
+classmethodr
+staticmethodr
+mapPriorityr
+NNNN)FZ
+__future__r
+sysr
+uuidr"
+	tracebackr
+loggingr
+syslogr
+_journalr
+_readerr
+tupler'
+nowry
+tzinfor0
+Handlerr
+<module>

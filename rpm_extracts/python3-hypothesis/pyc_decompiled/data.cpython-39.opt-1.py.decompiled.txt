@@ -1,0 +1,617 @@
+m	Z	m
+m Z 
+d	l!m"Z"
+l#m$Z$
+l%m&Z&
+Z$e"d
+Z'e"d
+e*e+e
+e+e-f
+Z0e$
+e+e2f
+e+e2d
+e	d!
+d"d#
+Z9d$Z:d%Z;d&Z<G
+d'd(
+d)d*
+Z>e$
+d,d-
+d.d/
+d0d1
+ZAeA
+aCd2ZDG
+d3d4
+ZEe$
+d6d7
+ZFd8d9
+eGd:
+ZHd;eHd
+d<d=
+ZIe+e+d>
+d?d@
+defaultdict)
+IntEnum)
+Random)
+TYPE_CHECKING
+Dict
+	FrozenSet
+Hashable
+Iterable
+Iterator
+List
+Optional
+Sequence
+Tuple
+Type
+Union)
+Frozen
+InvalidArgument
+StopTest)
+int_from_bytes
+int_to_bytes)
+IntList
+uniform)
+calc_label_from_name)
+dataclass_transform)
+SearchStrategyc
+G/usr/lib/python3.9/site-packages/hypothesis/internal/conjecture/data.py
+wrapper.
+z$dataclass_transform.<locals>.wrapperr
+topz
+draw_bytes() in ConjectureData.c
+ExtraInformationztA class for holding shared state on a ``ConjectureData`` that should
+    be added to the final ``ConjectureResult``.
+returnc
+ExtraInformation({})
+	<genexpr>D
+z,ExtraInformation.__repr__.<locals>.<genexpr>)
+format
+join
+__dict__
+items
+selfr
+__repr__B
+ExtraInformation.__repr__c
+boolr/
+has_informationG
+z ExtraInformation.has_informationN)
+__name__
+__module__
+__qualname__
+__doc__
+strr3
+Statusr
+Status.)
+namer1
+Status.__repr__N)	r6
+OVERRUN
+INVALID
+VALID
+INTERESTINGr:
+frozen
+slotsZ
+auto_attribsc
+StructuralCoverageTag
+labelN)
+__annotations__r
+STRUCTURAL_COVERAGE_CACHE
+KeyError
+setdefaultrF
+structural_coverage^
+d!d"
+Examplea
+Examples track the hierarchical structure of draws from the byte stream,
+    within a single test run.
+    Examples are created to mark regions of the byte stream that might be
+    useful to the shrinker, such as:
+    - The bytes used by a single draw from a strategy.
+    - Useful groupings within a strategy, such as individual list elements.
+    - Strategy-like helper functions that aren't first-class strategies.
+    - Each lowest-level draw of bits or bytes from the byte stream.
+    - A single top-level example that spans the entire input.
+    Example-tracking allows the shrinker to try "high-level" transformations,
+    such as rearranging or deleting the elements of a list, without having
+    to understand their exact representation in the byte stream.
+    Rather than store each ``Example`` as a rich object, it is actually
+    just an index into the ``Examples`` class defined below. This has two
+    purposes: Firstly, for most properties of examples we will never need
+    to allocate storage at all, because most properties are not used on
+    most examples. Secondly, by storing the properties as compact lists
+    of integers, we save a considerable amount of space compared to
+    Python's normal object size.
+    This does have the downside that it increases the amount of allocation
+    we do, and slows things down as a result, in some usage patterns because
+    we repeatedly allocate the same Example or int objects, but it will
+    often dramatically reduce our memory usage, so is worth it.
+    
+owner
+index
+ExamplesN)
+__init__
+Example.__init__)
+otherr%
+isinstancerP
+NotImplementedrR
+__eq__
+Example.__eq__c
+NFrW
+__ne__
+Example.__ne__r$
+Nz	examples[
+Example.__repr__c
+A label is an opaque value that associates each example with its
+        approximate origin, such as a particular strategy class or a particular
+        kind of draw.)
+labels
+label_indicesrS
+Example.labelc
+zAThe index of the example that this one is nested directly within.r
+	parentager1
+parent
+Example.parentc
+z=The position of the start of this example in the byte stream.)
+startsrS
+start
+Example.startc
+The position directly after the last byte in this byte stream.
+        i.e. the example corresponds to the half open region [start, end).
+        )
+endsrS
+Example.endc
+zZDepth of this example in the example tree. The top-level example has a
+        depth of 0.)
+depthsrS
+depth
+Example.depthc
+An example is "trivial" if it only contains forced bytes and zero bytes.
+        All examples start out as trivial, and then get marked non-trivial when
+        we see a byte that is neither forced nor zero.)
+trivialr1
+Example.trivialc
+True if this is example's ``stop_example`` call had ``discard`` set to
+        ``True``. This means we believe that the shrinker should be able to delete
+        this example completely, without affecting the value produced by its enclosing
+        strategy. Typically set when a rejection sampler decides to reject a
+        generated value and try again.)
+	discardedr1
+Example.discardedc
+z$The number of bytes in this example.
+length
+Example.lengthz
+List[Example]c
+zRThe list of all examples with this as a parent, in increasing index
+        order.c
+<listcomp>
+z$Example.children.<locals>.<listcomp>)
+childrenrS
+Example.children)
+	__slots__rH
+objectr4
+propertyrG
+e	d	d
+e	d	d
+ExamplePropertya
+There are many properties of examples that we calculate by
+    essentially rerunning the test case multiple times based on the
+    calls which we record in ExampleRecord.
+    This class defines a visitor, subclasses of which can be used
+    to calculate these properties.
+    rT
+examplesc
+example_stackrs
+bytes_read
+example_count
+block_count)
+ExampleProperty.__init__r$
+zZRerun the test case with this visitor and return the
+        results of ``self.finish()``.r
+beginrs
+blocks
+trail
+DRAW_BITS_RECORD
+_ExampleProperty__push
+	endpointsrx
+block
+_ExampleProperty__pop
+START_EXAMPLE_RECORD
+STOP_EXAMPLE_DISCARD_RECORD
+finish)
+recordr
+ExampleProperty.runN)
+label_indexr%
+start_exampleru
+append)
+__push
+ExampleProperty.__push)
+stop_example)
+__pop
+ExampleProperty.__popc
+zLCalled at the beginning of the run to initialise any
+        relevant state.N
+	of_length
+lenrs
+resultr1
+ExampleProperty.begin
+Called at the start of each example, with ``i`` the
+        index of the example and ``label_index`` the index of
+        its label in ``self.examples.labels``.Nr
+ExampleProperty.start_example
+zxCalled with each ``draw_bits`` call, with ``i`` the index of the
+        corresponding block in ``self.examples.blocks``Nr
+ExampleProperty.block
+Called at the end of each example, with ``i`` the
+        index of the example and ``discarded`` being ``True`` if ``stop_example``
+        was called with ``discard=True``.Nr
+ExampleProperty.stop_examplec
+ExampleProperty.finish)
+clsr%
+Given an ``ExampleProperty`` as above we use this decorator
+    to transform it into a lazy property on the ``Examples`` class,
+    which has as its value the result of calling ``cls.run()``,
+    computed the first time the property is accessed.
+    This has the slightly weird result that we are defining nested
+    classes which get turned into properties.
+__rT
+getattrr
+setattr)
+cache_namer
+lazy_calculate)
+z3calculated_example_property.<locals>.lazy_calculate)
+calculated_example_property
+ExampleRecorda
+Records the series of ``start_example``, ``stop_example``, and
+    ``draw_bits`` calls so that these may be stored in ``Examples`` and
+    replayed when we need to know about the structure of individual
+    ``Example`` objects.
+    Note that there is significant similarity between this class and
+    ``DataObserver``, and the plan is to eventually unify them, but
+    they currently have slightly different functions and implementations.
+    Nr$
+DRAW_BYTES_LABELr^
+_ExampleRecord__index_of_labelsr
+ExampleRecord.__init__c
+freezeK
+ExampleRecord.freezerK
+ExampleRecord.start_example
+discardr%
+STOP_EXAMPLE_NO_DISCARD_RECORD)
+ExampleRecord.stop_example
+forcedr%
+	draw_bits]
+ExampleRecord.draw_bits)
+Z	d	e
+d"d#
+d$d%
+e!d&
+d'd(
+))rT
+A lazy collection of ``Example`` objects, derived from
+    the record of recorded behaviour in ``ExampleRecord``.
+    Behaves logically as if it were a list of ``Example`` objects,
+    but actually mostly exists as a compact store of information
+    for them to reference into. All properties on here are best
+    understood as the backing storage for ``Example`` and are
+    described there.
+    
+BlocksN)
+)	r{
+countr
+_Examples__lengthrz
+_Examples__children)
+Examples.__init__c
+e	e	f
+Examples._starts_and_endsc
+Examples._starts_and_ends.beginNr
+z'Examples._starts_and_ends.start_exampler
+z&Examples._starts_and_ends.stop_exampler$
+z Examples._starts_and_ends.finish)
+_starts_and_endsw
+Tuple[IntList, IntList]
+starts_and_endsr$
+Examples.startsc
+Examples.endsc
+Examples._discardedc
+setr
+Examples._discarded.beginc
+	frozensetr
+Examples._discarded.finishNr
+addr
+z Examples._discarded.stop_example)
+_discarded
+Examples._trivialc
+nontrivialr
+Examples._trivial.beginNr
+Examples._trivial.blockr
+Examples._trivial.stop_examplec
+Examples._trivial.finish)	r6
+_trivial
+Examples._parentageNr
+z Examples._parentage.stop_example)
+_parentage
+Examples._depthsc
+Examples._depths.beginNr
+Examples._depths.start_example)
+_depths
+Examples._label_indicesNr
+z%Examples._label_indices.start_example)
+_label_indices
+Examples._mutator_groupsc
+list
+groupsr1
+Examples._mutator_groups.beginNr
+z&Examples._mutator_groups.start_exampler$
+z3Examples._mutator_groups.finish.<locals>.<listcomp>)
+valuesr1
+Examples._mutator_groups.finish)
+_mutator_groups
+mutator_groupsc
+z%Examples.children.<locals>.<listcomp>r
+ranger
+	enumerater`
+Examples.childrenc
+__len__
+Examples.__len__r
+Index z
+ out of range [-r&
+IndexErrorrP
+__getitem__
+Examples.__getitem__)#r6
+Blocka
+Blocks track the flat list of lowest-level draws from the byte stream,
+    within a single test run.
+    Block-tracking allows the shrinker to try "low-level"
+    transformations, such as minimizing the numeric value of an
+    individual call to ``draw_bits``.
+    rc
+reprr
+all_zeror$
+bounds
+Block.boundsc
+Block.lengthc
+Block.trivialN)
+attr
+ibrc
+d d!
+d"d#
+d$d%
+d&d'
+d(d)
+d*d+
+d,d-
+A lazily calculated list of blocks for a particular ``ConjectureResult``
+    or ``ConjectureData`` object.
+    Pretends to be a list containing ``Block`` objects but actually only
+    contains their endpoints right up until the point where you want to
+    access the actual block, at which point it is constructed.
+    This is designed to be as space efficient as possible, so will at
+    various points silently transform its representation into one
+    that is better suited for the current access pattern.
+    In addition, it has a number of convenience methods for accessing
+    properties of the block object at index ``i`` that should generally
+    be preferred to using the Block objects directly, as it will not
+    have to allocate the actual object.)
+__blocksZ
+__countZ
+__sparsez-Union[ConjectureData, ConjectureResult, None]rR
+_Blocks__blocks
+ConjectureDataN)
+_Blocks__count
+_Blocks__sparse)
+Blocks.__init__
+Add n to the list of endpoints.N)
+add_endpoint7
+Blocks.add_endpoint
+ConjectureResult)
+	new_ownerr%
+Used to move ``Blocks`` over to a ``ConjectureResult`` object
+        when that is read to be used and we no longer want to keep the
+        whole ``ConjectureData`` around.N)
+_Blocks__check_completion)
+transfer_ownership<
+Blocks.transfer_ownershipr
+Equivalent to self[i].start.r
+_check_indexre
+Blocks.startc
+Equivalent to self[i].end.
+Blocks.endc
+Equivalent to self[i].bounds.r
+Blocks.boundsr$
+z/Equivalent to [(b.start, b.end) for b in self].r
+prev
+all_boundsU
+Blocks.all_boundsc
+last_block_length\
+Blocks.last_block_lengthc
+Blocks.__len__c
+__known_blockc
+Blocks.__known_blockc
+z%Equivalent to self.blocks[i].trivial.N)
+forced_indices
+bufferre
+Blocks.trivialc
+Blocks._check_indexc
+_Blocks__known_blockr
+extendr
+new_blocksr)
+Blocks.__getitem__c
+The list of blocks is complete if we have created every ``Block``
+        object that we currently good and know that no more will be created.
+        If this happens then we don't need to keep the reference to the
+        owner around, and delete it so that there is no circular reference.
+        The main benefit of this is that the gc doesn't need to run to collect
+        this because normal reference counting is enough.
+        N)
+__check_completion
+Blocks.__check_completionc
+__iter__
+Blocks.__iter__c
+...z
+Block([{}])r&
+partsrl
+Blocks.__repr__)"r6
+_Overrunc
+Overrunr
+_Overrun.__repr__r$
+	as_result
+_Overrun.as_resultN)
+statusr3
+DataObserverz
+Observer class for recording the behaviour of a
+    ConjectureData object, primarily used for tracking
+    the behaviour in the tree cache.N
+interesting_originr%
+Called when ``conclude_test`` is called on the
+        observed ``ConjectureData``, with the same arguments.
+        Note that this is called after ``freeze`` has completed.
+        Nr
+conclude_test
+DataObserver.conclude_test)
+n_bitsr
+valuer%
+Called when ``draw_bits`` is called on on the
+        observed ``ConjectureData``.
+        * ``n_bits`` is the number of bits drawn.
+        *  ``forced`` is True if the corresponding
+           draw was forced or ``False`` otherwise.
+        * ``value`` is the result that ``draw_bits`` returned.
+        Nr
+DataObserver.draw_bitsr$
+z5Mark this part of the tree as not worth re-exploring.Nr
+kill_branch
+DataObserver.kill_branch)
+InterestingOriginr
+Result class storing the parts of ConjectureData that we
+    will care about after the original ConjectureData has outlived its
+    usefulness.r
+output
+extra_information
+has_discards
+target_observations
+tagsFr
+initrS
+__attrs_post_init__
+z$ConjectureResult.__attrs_post_init__c
+ConjectureResult.as_result)"r6
+bytesrz
+TargetObservationsr
+d!d"
+d#d$
+d'd(
+d*d+
+d-d.
+d/d0
+Z#d?e$e
+d2d3
+Z&d@e
+d5d6
+Z'd7d8
+Z(d9d:
+observerr%
+randomr	
+for_buffer
+ConjectureData.for_buffer)
+max_length
+prefixr
+_#t$
+_%t&
+_ConjectureData__bytes_drawnr	
+is_findZ
+overdraw
+_ConjectureData__prefix
+_ConjectureData__randomr
+	bytearrayr
+global_test_counter
+testcounter
+time
+perf_counter
+start_timer
+eventsr
+draw_times
+	max_depthr
+_ConjectureData__resultr
+labels_for_structure_stack
+_ConjectureData__examplesrg
+_ConjectureData__example_recordr#
+	TOP_LABEL)
+ConjectureData.__init__c
+ConjectureData(%s, %d bytes%s)z
+, frozenr
+ConjectureData.__repr__r$
+zdConvert the result of running this test into
+        either an Overrun object or a ConjectureResult.N)
+ConjectureData.as_result)
+Cannot call z
+ on frozen ConjectureData)
+__assert_not_frozen
+z"ConjectureData.__assert_not_frozen)
+note)
+"_ConjectureData__assert_not_frozenrX
+ConjectureData.notez
+SearchStrategy[Any])
+strategyrG
+Cannot use strategy zY within a call to find (presumably because it would be invalid after the call had ended).r
+supports_findr
+validateZ
+is_empty
+mark_invalid
+	MAX_DEPTHrG
+do_drawr
+at_top_levelr
+draw
+ConjectureData.drawrK
+ConjectureData.start_exampleFr
+NTr<
+z/ConjectureData.stop_example.<locals>.<listcomp>)
+updater
+labels_for_structurer
+ConjectureData.stop_example)
+eventr%
+note_event
+ConjectureData.note_eventc
+ConjectureData.examplesc
+finish_timerg
+ConjectureData.freeze
+Return an ``n``-bit integer from the underlying source of
+        bytes. If ``forced`` is set to an integer will instead
+        ignore the underlying source and simulate a draw as if it had
+        returned that integer.r
+bits_to_bytes
+_ConjectureData__check_capacityr
+BYTE_MASKSr
+n_bytesZ
+bufrS
+initialr
+ConjectureData.draw_bitsr
+z(Draw n bytes from the underlying source.r
+draw_bytesC
+ConjectureData.draw_bytes)
+stringr%
+z&Write ``string`` to the output buffer.
+writeNr
+ConjectureData.writec
+mark_overrunr
+__check_capacityP
+ConjectureData.__check_capacityr
+ConjectureData.conclude_test)
+mark_interesting`
+ConjectureData.mark_interestingc
+ConjectureData.mark_invalidc
+ConjectureData.mark_overrun)
+N)*r6
+classmethodr
+The number of bytes required to represent an n-bit number.
+    Equivalent to (n + 7) // 8, but slightly faster. This really is
+    called enough times that that matters.
+collectionsr
+enumr
+typingr
+hypothesis.errorsr
+hypothesis.internal.compatr
+Z)hypothesis.internal.conjecture.junkdrawerr
+Z$hypothesis.internal.conjecture.utilsr
+typing_extensionsr
+hypothesis.strategiesr
+BaseExceptionr:
+floatr
+<module>

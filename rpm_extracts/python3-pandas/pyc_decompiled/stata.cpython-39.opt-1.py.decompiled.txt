@@ -1,0 +1,1800 @@
+l	Z	d
+m Z m!Z!
+l"m#Z#m$Z$m%Z%
+l&m'Z'm(Z(m)Z)m*Z*m+Z+m,Z,m-Z-m.Z.
+l/m0Z0
+l1m2Z2
+l3m4Z4
+l5m6Z6
+l7m8Z8
+e0j=d
+ZBd!e:
+d"e@
+d$d%d%
+ZEd&d'
+d(d)
+ZFd&d*d&d+
+d,d-
+ZGd.ZHG
+d/d0
+d0eI
+ZJd1ZKG
+d2d3
+d3eI
+ZLd4ZMG
+d5d6
+d6eI
+ZNd7ZOG
+d8d9
+d9eI
+ZPd:ZQd;d;d<
+d=d>
+d?d@
+dAdB
+dCdD
+dEdF
+dFeUe
+ZWe eA
+d}dJdKdKdLdKdKdMdKdNdKdOdPdQdR
+dSdT
+ZXd*d*dU
+dVdW
+ZYdXdYdXdZ
+d[d\
+ZZd*d]d^
+d_d`
+Z[dadbdadc
+ddde
+Z\d]d&dYdf
+dgdh
+Z]d~d&dYdKd*dj
+dkdl
+Z^e!e0j=d
+dndo
+doeU
+Z_d]d&dKdYdp
+dqdr
+Z`dsdYdtdZ
+dudv
+dwdx
+dydz
+dze_
+d{d|
+d|ec
+Module contains tools for processing Stata files into DataFrames
+The StataReader below was originally written by Joe Presbrey as part of PyDTA.
+It has been extended and improved by Skipper Seabold from the Statsmodels
+project who also developed the StataWriter and was finally added to pandas in
+a once again improved version.
+You can find more information on http://presbrey.mit.edu/PyDTA and
+https://www.statsmodels.org/devel/
+annotations)
+abcN)
+BytesIO)
+AnyStr
+Hashable
+Sequence
+cast)
+relativedelta)
+infer_dtype)
+max_len_string_array)
+Buffer
+CompressionOptions
+FilePathOrBuffer
+StorageOptions)
+Appender
+doc)
+ensure_object
+is_categorical_dtype
+is_datetime64_dtype)
+Categorical
+DatetimeIndex
+	Timestamp
+concat
+isna
+to_datetime
+to_timedelta)
+generic)
+	DataFrame)
+Index)
+Series)
+get_handlez
+Version of given Stata file is {version}. pandas supports importing versions 105, 108, 111 (Stata 7SE), 113 (Stata 8/9), 114 (Stata 10/11), 115 (Stata 12), 117 (Stata 13), 118 (Stata 14/15/16),and 119 (Stata 15/16, over 32,767 variables).z
+convert_dates : bool, default True
+    Convert date variables to DataFrame time values.
+convert_categoricals : bool, default True
+    Read value labels and convert columns to Categorical/Factor variables.a
+index_col : str, optional
+    Column to set as index.
+convert_missing : bool, default False
+    Flag indicating whether to convert missing values to their Stata
+    representations.  If False, missing values are replaced with nan.
+    If True, columns containing missing values are returned with
+    object data types and missing values are represented by
+    StataMissingValue objects.
+preserve_dtypes : bool, default True
+    Preserve Stata datatypes. If False, numeric data are upcast to pandas
+    default types for foreign data (float64 or int64).
+columns : list or None
+    Columns to retain.  Columns will be returned in the given order.  None
+    returns all columns.
+order_categoricals : bool, default True
+    Flag indicating whether converted categorical data are ordered.zzchunksize : int, default None
+    Return StataReader object for iterations, returns chunks with
+    given number of lines.aH
+compression : str or dict, default None
+    If string, specifies compression mode. If dict, value at key 'method'
+    specifies compression mode. Compression mode must be one of {'infer',
+    'gzip', 'bz2', 'zip', 'xz', None}. If compression mode is 'infer'
+    and `filepath_or_buffer` is path-like, then detect compression from
+    the following extensions: '.gz', '.bz2', '.zip', or '.xz' (otherwise
+    no compression). If dict and compression mode is one of
+    {'zip', 'gzip', 'bz2'}, or inferred as one of the above,
+    other entries passed as additional compression options.
+storage_optionsz=iterator : bool, default False
+    Return StataReader object.z
+Notes
+-----
+Categorical variables read through an iterator may not have the same
+categories and dtype. This occurs when  a variable stored in a DTA
+file is associated to an incomplete set of value labels that only
+label a strict subset of the values.a>
+Read Stata file into DataFrame.
+Parameters
+----------
+filepath_or_buffer : str, path object or file-like object
+    Any valid string path is acceptable. The string could be a URL. Valid
+    URL schemes include http, ftp, s3, and file. For file URLs, a host is
+    expected. A local file could be: ``file://localhost/path/to/table.dta``.
+    If you want to pass in a path object, pandas accepts any ``os.PathLike``.
+    By file-like object, we refer to objects with a ``read()`` method,
+    such as a file handle (e.g. via builtin ``open`` function)
+    or ``StringIO``.
+Returns
+-------
+DataFrame or StataReader
+See Also
+--------
+io.stata.StataReader : Low-level reader for Stata data files.
+DataFrame.to_stata: Export Stata data files.
+Examples
+--------
+Read a Stata dta file:
+>>> df = pd.read_stata('filename.dta')
+Read a Stata dta file in 10,000 line chunks:
+>>> itr = pd.read_stata('filename.dta', chunksize=10000)
+>>> for chunk in itr:
+...     do_something(chunk)
+Reads observations from Stata file, converting them into a dataframe
+Parameters
+----------
+nrows : int
+    Number of lines to read from data file, if None read whole file.
+Returns
+-------
+DataFrame
+Class for reading Stata dta files.
+Parameters
+----------
+path_or_buf : path (string), buffer or path object
+    string, path object (pathlib.Path or py._path.local.LocalPath) or object
+    implementing a binary read() functions.
+returnc
+    Convert from SIF to datetime. https://www.stata.com/help.cgi?datetime
+    Parameters
+    ----------
+    dates : Series
+        The Stata Internal Format date to convert to datetime according to fmt
+    fmt : str
+        The format to convert to. Can be, tc, td, tw, tm, tq, th, ty
+        Returns
+    Returns
+    -------
+    converted : Series
+        The converted dates
+    Examples
+    --------
+    >>> dates = pd.Series([52])
+    >>> _stata_elapsed_date_to_datetime_vec(dates , "%tw")
+    0   1961-01-01
+    dtype: datetime64[ns]
+    Notes
+    -----
+    datetime/c - tc
+        milliseconds since 01jan1960 00:00:00.000, assuming 86,400 s/day
+    datetime/C - tC - NOT IMPLEMENTED
+        milliseconds since 01jan1960 00:00:00.000, adjusted for leap seconds
+    date - td
+        days since 01jan1960 (01jan1960 = 0)
+    weekly date - tw
+        weeks since 1960w1
+        This assumes 52 weeks in a year, then adds 7 * remainder of the weeks.
+        The datetime value is the start of the week in terms of days in the
+        year, not ISO calendar weeks.
+    monthly date - tm
+        months since 1960m1
+    quarterly date - tq
+        quarters since 1960q1
+    half-yearly date - th
+        half-years since 1960h1 yearly
+    date - ty
+        years since 0000
+    r.
+        Convert year and month to datetimes, using pandas vectorized versions
+        when the date range falls within the range supported by pandas.
+        Otherwise it falls back to a slower but more robust method
+        using datetime.
+        
+%Y%m
+format
+indexNc
+datetime)
+5/usr/lib64/python3.9/site-packages/pandas/io/stata.py
+<listcomp>
+zX_stata_elapsed_date_to_datetime_vec.<locals>.convert_year_month_safe.<locals>.<listcomp>
+minr
+getattrr!
+zip)
+year
+monthr7
+MAX_YEAR
+MIN_YEARr=
+convert_year_month_safe
+zD_stata_elapsed_date_to_datetime_vec.<locals>.convert_year_month_safec
+        Converts year (e.g. 1999) and days since the start of the year to a
+        datetime or datetime64 Series
+        r/
+%Yr5
+unitr7
+days)
+int)
+zW_stata_elapsed_date_to_datetime_vec.<locals>.convert_year_days_safe.<locals>.<listcomp>rA
+valuerH
+convert_year_days_safe
+zC_stata_elapsed_date_to_datetime_vec.<locals>.convert_year_days_safec
+        Convert base dates and deltas to datetimes, using pandas vectorized
+        versions if the deltas satisfy restrictions required to be expressed
+        as dates in pandas.
+        r7
+baser=
+zS_stata_elapsed_date_to_datetime_vec.<locals>.convert_delta_safe.<locals>.<listcomp>rA
+microsecondsrU
+format not understoodrN
+ValueErrorr
+deltasrO
+values)
+MAX_DAY_DELTA
+MAX_MS_DELTA
+MIN_DAY_DELTA
+MIN_MS_DELTArW
+convert_delta_safe)
+z?_stata_elapsed_date_to_datetime_vec.<locals>.convert_delta_safeFTg
+tcrY
+tCz9Encountered %tC format. Leaving in Stata Internal Format.
+dtype)
+tdr(
+tyz	Date fmt 
+ not understood)
+isnan
+anyr!
+astype
+int64
+startswith
+stata_epoch
+warnings
+warn
+objectr
+Z	ones_liker[
+dates
+fmtrK
+bad_locsZ
+has_bad_valuesZ
+data_colrX
+conv_datesrQ
+quarter_monthZ
+first_monthr=
+#_stata_elapsed_date_to_datetime_vec
+str)
+)#aX
+    Convert from datetime to SIF. https://www.stata.com/help.cgi?datetime
+    Parameters
+    ----------
+    dates : Series
+        Series or array containing datetime.datetime or datetime64[ns] to
+        convert to the Stata Internal Format given by fmt
+    fmt : str
+        The format to convert to. Can be, tc, td, tw, tm, tq, th, ty
+    l
+}	|	|
+}	|	|
+deltarF
+skipnar9
+datetime.timedelta
+float
+Ni@B
+secondsrZ
+US_PER_DAYr=
+zC_datetime_to_stata_elapsed_vec.<locals>.parse_dates_safe.<locals>.fc
+<lambda>
+zJ_datetime_to_stata_elapsed_vec.<locals>.parse_dates_safe.<locals>.<lambda>r4
+datetime.datetimerR
+zC_datetime_to_stata_elapsed_vec.<locals>.parse_dates_safe.<locals>.gzZColumns containing dates must contain either datetime64, datetime.datetime or null values.rA
+_values
+viewrz
+_datarF
+Z	vectorize
+applyr[
+time_deltaZ
+date_indexZ
+days_in_nsr
+year_monthr
+NS_PER_DAYr
+parse_dates_safe
+z8_datetime_to_stata_elapsed_vec.<locals>.parse_dates_saferb
+z'Stata Internal Format tC not supported.)
+Format z! is not a known Stata date formatre
+FFF)
+float64
+struct
+unpack)
+bad_locrM
+missing_valuer=
+_datetime_to_stata_elapsed_vecy
+Fixed width strings in Stata .dta files are limited to 244 (or fewer)
+characters.  Column '{0}' does not satisfy this restriction. Use the
+'version=117' parameter to write the newer (Stata 13 and later) format.
+PossiblePrecisionLossN
+__name__
+__module__
+__qualname__r=
+Column converted from {0} to {1}, and some data are outside of the lossless
+conversion range. This may result in a loss of precision in the saved data.
+ValueLabelTypeMismatchNr
+Stata value labels (pandas categories) must be strings. Column {0} contains
+non-string labels which will be converted to strings.  Please check that the
+Stata data file created has not lost information due to duplicate labels.
+InvalidColumnNameNr
+Not all pandas column names were valid Stata variable names.
+The following replacements have been made:
+    {0}
+If this is not what you expect, please make sure you have Stata-compliant
+column names in your DataFrame (strings only, max 32 characters, only
+alphanumerics and underscores, no Stata reserved words)
+CategoricalConversionWarningNr
+One or more series with value labels are not fully labeled. Reading this
+dataset with an iterator results in categorical variable with different
+categories. This occurs since it is not possible to know all possible values
+until the entire dataset has been read. To avoid this warning, you can either
+read dataset without an iterator, or manually convert categorical data by
+``convert_categoricals`` to False and then accessing the variable labels
+through the value_labels method of the reader.
+datar1
+    Checks the dtypes of the columns of a pandas DataFrame for
+    compatibility with the data types and ranges supported by Stata, and
+    converts if necessary.
+    Parameters
+    ----------
+    data : DataFrame
+        The DataFrame to check and convert
+    Notes
+    -----
+    Numeric columns in Stata must be one of int8, int16, int32, float32 or
+    float64, with some additional value restrictions.  int8 and int16 columns
+    are checked for violations of the value restrictions and upcast if needed.
+    int64 data is not usable in Stata, and so it is downcast to int32 whenever
+    the value are in the int32 range, and sidecast to float64 when larger than
+    this range.  If the int64 values are outside of the range of those
+    perfectly representable as float64 values, a warning is raised.
+    bool columns are cast to int8.  uint columns are converted to int of the
+    same size if there is no loss in precision, otherwise are upcast to a
+    larger type.  uint64 is currently not supported since it is concerted to
+    object in a DataFrame.
+    
+uint64r
+Column zO has a maximum value of infinity which is outside the range supported by Stata.z
+ has a maximum value (z() outside the range supported by Stata (
+bool_
+int8
+uint8
+int16Z
+uint16
+int32Z
+uint32r}
+iinfo
+precision_loss_docr6
+float32Z
+isinfr[
+conversion_data
+float32_max
+float64_max
+colrf
+c_datarS
+_cast_to_stata_types
+StataValueLabelz
+    Parse a categorical column and prepare formatted output
+    Parameters
+    ----------
+    catarray : Series
+        Categorical Series to encode
+    encoding : {"latin-1", "utf-8"}
+        Encoding to use for value labels.
+    
+latin-1r!
+catarray
+encodingc
+utf-8z%Only latin-1 and utf-8 are supported.c
+z*StataValueLabel.__init__.<locals>.<lambda>)
+keyr
+zaStata value labels for a single variable must have a combined length less than 32,000 characters.re
+name
+labname
+	_encoding
+categories
+listrE
+arange
+value_labels
+sort
+text_len
+isinstancer
+value_label_mismatch_docr6
+encode
+append
+arrayr
+val)
+selfr
+offsetsr\
+categoryr=
+__init__
+StataValueLabel.__init__
+bytes)
+	byteorderr1
+        Generate the binary representation of the value labels.
+        Parameters
+        ----------
+        byteorder : str
+            Byte order of the output
+        Returns
+        -------
+        value_label : bytes
+            Bytes containing the formatted value label
+        
+utf8
+writer
+packr
+_pad_bytes
+ranger
+getvalue)
+bioZ	null_byter
+lab_lenr
+offsetrS
+textr=
+generate_value_label
+z$StataValueLabel.generate_value_labelN)
+__doc__r
+q8q"d	Z
+]dZ	e
+]fZ	e
+d d!
+d"d#
+d$d%d&
+d'd(
+d+d,
+StataMissingValuea
+    An observation's missing value.
+    Parameters
+    ----------
+    value : {int, float}
+        The Stata missing value code
+    Notes
+    -----
+    More information: <https://www.stata.com/help.cgi?missing>
+    Integer missing values make the code '.', '.a', ..., '.z' to the ranges
+    101 ... 127 (for int8), 32741 ... 32767  (for int16) and 2147483621 ...
+    2147483647 (for int32).  Missing values for floating point data types are
+    more complex but the pattern is simple to discern from the following table.
+    np.float32 missing values (float in Stata)
+    0000007f    .
+    0008007f    .a
+    0010007f    .b
+    ...
+    00c0007f    .x
+    00c8007f    .y
+    00d0007f    .z
+    np.float64 missing values (double in Stata)
+    000000000000e07f    .
+    000000000001e07f    .a
+    000000000002e07f    .b
+    ...
+    000000000018e07f    .x
+    000000000019e07f    .y
+    00000000001ae07f    .z
+    z
+dict[float, str]
+MISSING_VALUES)
+int | float)
+_valuerR
+_str
+StataMissingValue.__init__r
+        The Stata representation of the missing value: '.', '.a'..'.z'
+        Returns
+        -------
+        str
+            The representation of the missing value.
+        )
+string1
+StataMissingValue.stringc
+        The binary representation of the missing value.
+        Returns
+        -------
+        {int, float}
+            The binary representation of the missing value.
+        )
+StataMissingValue.valuec
+__str__I
+StataMissingValue.__str__c
+typer
+__repr__L
+StataMissingValue.__repr__r
+bool)
+otherr1
+__eq__O
+StataMissingValue.__eq__
+np.dtype)
+Unsupported dtype)
+BASE_MISSING_VALUESr
+clsrf
+get_base_missing_valueV
+z(StataMissingValue.get_base_missing_valueN)
+__annotations__
+bases
+chrZ
+float32_baser
+Z	incrementr
+Z	int_valueZ
+float64_baser
+propertyr
+classmethodr
+StataParserc
+d#d$d%d&d'd(d)
+)+Nr/
+z(StataParser.__init__.<locals>.<listcomp>
+bhlfd
+)<Z	aggregater
+boolean
+breakZ
+byteZ
+caseZ
+catch
+classZ	colvector
+complex
+const
+continue
+defaultZ
+delegate
+deleteZ
+double
+elseZ	eltypedef
+enumZ
+explicitZ
+exportZ
+externalr
+forZ
+friendZ
+function
+globalZ
+goto
+inlinerR
+localZ
+longZ
+NULLZ
+pragmaZ	protectedZ
+quadZ	rowvectorZ
+shortZ
+typedef
+typenameZ
+virtualZ
+_allZ
+_skipZ
+_piz
+str#
+_predZ
+strLZ
+_coefZ
+_rcZ
+usingZ
+_consZ
+withZ
+dictr
+	DTYPE_MAPr
+DTYPE_MAP_XML
+TYPE_MAP
+TYPE_MAP_XMLr
+VALID_RANGE
+OLD_TYPE_MAPPINGr
+NUMPY_TYPE_MAP
+RESERVED_WORDS)
+float32_minr
+float64_minr
+StataParser.__init__N)
+d d!
+d#d$
+d%d&
+d'd(
+d)d*
+d+d,
+d.d/
+d0d1
+d2d3
+d6d7
+d9d:
+d=d>
+d4d-d?
+d@dA
+dBdC
+dDdE
+dGdH
+dfd	dFdI
+dJdK
+dgd	dLdLd
+dLdLd
+dLdFdM
+	dNdO
+dFdP
+dQdR
+Z dFdFdS
+dTdU
+Z!dFdVdFdW
+dXdY
+Z"dFdZdVd
+dFd[
+d\d]
+Z#e$d-d
+d^d_
+Z%d`d
+dadb
+Z&dZd
+dcdd
+StataReaderTNF
+inferr
+str | None
+Sequence[str] | None
+int | Noner
+path_or_buf
+convert_dates
+convert_categoricals
+	index_col
+convert_missing
+preserve_dtypes
+columns
+order_categoricals
+	chunksize
+compressionr#
+rp|	d
+z.chunksize must be a positive integer when set.
+is_textrQ
+superr
+	col_sizes
+_convert_dates
+_convert_categoricals
+_index_col
+_convert_missing
+_preserve_dtypes
+_columns
+_order_categoricalsr
+_chunksize
+_using_iteratorr
+_has_string_dataZ
+_missing_values
+_can_read_value_labels
+_column_selector_set
+_value_labels_read
+_data_read
+_dtype
+_lines_read
+_set_endianness
+sysr
+_native_byteorderr"
+handle
+readrH
+_read_header
+_setup_dtype)
+handles
+	__class__r=
+StataReader.__init__r0
+enter context managerr=
+	__enter__S
+StataReader.__enter__
+Nonec
+exit context managerN)
+close)
+exc_type
+	exc_value
+	tracebackr=
+__exit__W
+StataReader.__exit__c
+close the handle if its openN)
+StataReader.closec
+        Set string encoding which depends on file version
+        
+format_versionr
+_set_encoding_
+StataReader._set_encodingc
+z,StataReader._read_header.<locals>.<listcomp>c
+	_calcsize
+typr
+_read_new_header
+_read_old_headerr
+typlistZ
+has_string_datarU
+first_charr=
+StataReader._read_headerc
+version
+))rH
+_version_errorr6
+nvar
+	_get_nobs
+nobs
+_get_data_label
+_data_label
+_get_time_stamp
+time_stampZ
+_seek_vartypesZ
+_seek_varnamesZ
+_seek_sortlistZ
+_seek_formats
+_seek_value_label_names
+_get_seek_variable_labelsZ
+_seek_variable_labels
+data_location
+seek_strls
+seek_value_labels
+_get_dtypesr
+dtyplist
+seek
+_get_varlist
+varlist
+srtlist
+_get_fmtlist
+fmtlist
+_get_lbllist
+lbllist
+_get_variable_labels
+_variable_labels)
+	nvar_typeZ	nvar_sizer=
+StataReader._read_new_headerrR
+z,tuple[list[int | str], list[str | np.dtype]])
+seek_vartypesr1
+z+StataReader._get_dtypes.<locals>.<listcomp>rR
+	int | str)
+cannot convert stata types [
+KeyErrorr[
+errr
+z"StataReader._get_dtypes.<locals>.fc
+str | np.dtypec
+cannot convert stata dtype [r
+z"StataReader._get_dtypes.<locals>.gc
+raw_typlistr
+StataReader._get_dtypesz	list[str]c
+_decoderH
+z,StataReader._get_varlist.<locals>.<listcomp>
+StataReader._get_varlistc
+z,StataReader._get_fmtlist.<locals>.<listcomp>r
+StataReader._get_fmtlistc
+z,StataReader._get_lbllist.<locals>.<listcomp>r
+StataReader._get_lbllistc
+z4StataReader._get_variable_labels.<locals>.<listcomp>r%
+vlblistr=
+z StataReader._get_variable_labelsc
+StataReader._get_nobsr
+strlenr=
+StataReader._get_data_labelc
+)	Nrv
+decoder
+StataReader._get_time_stampc
+)	Nr
+)	rw
+z%StataReader._get_seek_variable_labelsr
+ordrH
+z0StataReader._read_old_header.<locals>.<listcomp>re
+	<genexpr>Z
+z/StataReader._read_old_header.<locals>.<genexpr>r
+cannot convert stata dtypes [c
+filetyper
+frombufferr
+joinr
+tellr
+bufZ
+typlistb
+invalid_typesZ
+invalid_dtypesZ	data_typeZ
+data_lenr=
+StataReader._read_old_headerr	
+z"Map between numpy and state dtypesN
+	enumerater
+dtypesr
+StataReader._setup_dtyper
+calcsizer
+StataReader._calcsize
+One or more strings in the dta file could not be decoded using z
+, and
+so the fallback encoding of latin-1 is being used.  This can happen when a file
+has been incorrectly encoded by Stata or some other software. You should verify
+the string values returned are correct.r
+	partitionr
+UnicodeDecodeErrorr
+UnicodeWarning)
+msgr=
+StataReader._decodec
+</valrq
+countr/
+value_label_dictrH
+itemsizer
+argsortr
+slengthr
+txtlenr
+_read_value_labels
+StataReader._read_value_labelsc
+GSOr
+GSOri
+v_or
+v_sizer}
+length
+decoded_var=
+_read_strls
+StataReader._read_strlsr
+nrows)
+__next__	
+StataReader.__next__)
+sizer1
+        Reads lines from Stata file and returns as dataframe
+        Parameters
+        ----------
+        size : int, defaults to None
+            Number of lines to read.  If None, reads whole file.
+        Returns
+        -------
+        DataFrame
+        Nr
+	get_chunk
+StataReader.get_chunkz
+bool | None)	r
+j1}	|	t
+5t6|
+j1}	|	t
+n8|	t
+5t6|
+convert_dtypec
+dtypr=
+z$StataReader.read.<locals>.<listcomp>Fr
+z;StataReader.read.<locals>.any_startswith.<locals>.<genexpr>)
+_date_formatsr
+any_startswith
+z(StataReader.read.<locals>.any_startswithc
+StopIterationrH
+byteswap
+newbyteorderr
+from_recordsrN
+Z	set_index
+_do_select_columnsr[
+_insert_strls
+wherer
+	from_dictr:
+_do_convert_missingr
+_do_convert_categoricalsr
+float16r
+pop)
+max_read_lenZ
+read_lenr
+read_linesr
+cols_Z
+requires_type_conversion
+data_formattedr
+colsZ
+retyped_dataZ
+convertr=
+StataReader.read)
+n2|	j
+return_inversere
+axis)
+logical_orr{
+nonzeroZ
+asarray
+uniquer!
+ilocrf
+nanrN
+drop)
+replacementsr
+colnamer
+nminZ
+nmaxZ
+seriesZ
+missingZ
+missing_locZ
+umissingZ
+umissing_loc
+replacement
+locrf
+replacement_dfZ
+replacedr=
+StataReader._do_convert_missingr
+r8q&
+z-StataReader._insert_strls.<locals>.<listcomp>)
+hasattrr
+StataReader._insert_strls
+Sequence[str])
+Nz"columns contains duplicate entriesz
+, z<The following columns were not found in the Stata data set: T)
+setr
+differencerN
+get_locr
+column_setZ	unmatchedZ
+joinedr
+StataReader._do_select_columnsz!dict[str, dict[float | int, str]])
+)	zC
+        Converts categorical columns to Categorical type.
+        N)
+orderedr/
+zQ--------------------------------------------------------------------------------
+Value labels for column a
+ are not unique. These cannot be converted to
+pandas categoricals.
+Either read the file with `convert_categoricals` set to False or use the
+low level interface in `StataReader` to separately read the values and the
+value_labels.
+The repeated labels are:
+keysrE
+isinr^
+allr
+categorical_conversion_warningr
+value_countsr7
+cat_converted_datar
+labelr
+columnZ
+key_matchesZ
+initial_categoriesZ
+cat_datar
+repeated_catsZ
+repeatsr
+cat_seriesr=
+z$StataReader._do_convert_categoricalsc
+        Return data label of Stata file.
+        )
+data_labeld
+StataReader.data_labelz
+dict[str, str]c
+        Return variable labels as a dict, associating each variable name
+        with corresponding label.
+        Returns
+        -------
+        dict
+        )
+variable_labelsk
+StataReader.variable_labelsc
+        Return a dict, associating each variable name a dict, associating
+        each value its corresponding label.
+        Returns
+        -------
+        dict
+        )
+StataReader.value_labels)
+TTNFTNTNrD
+NNNNNNNN))r
+_stata_reader_docr
+_read_method_docri
+__classcell__r=
+TFrD
+DataFrame | StataReader)
+filepath_or_bufferrI
+iteratorrQ
+|	s&|
+readerr=
+read_stata
+endiannessr1
+littler
+bigr
+Endianness ry
+lowerr[
+    Take a char string and pads it with null bytes until it's length chars.
+    r
+    Convert from one of the stata date formats to a type in TYPE_MAP.
+    )
+ not implementedN)
+NotImplementedError)
+_convert_datetime_to_stata_type
+list[Hashable])
+%z0convert_dates key must be a column or an integer)
+updater7
+new_dictr
+_maybe_convert_to_int_keys
+    Convert dtype types to stata types. Returns the byte of the given ordinal.
+    See TYPE_MAP and comments for an explanation. This is also explained in
+    the dta spec.
+    1 - 244 are strings of this length
+                         Pandas    Stata
+    251 - for int8      byte
+    252 - for int16     int
+    253 - for int32     long
+    254 - for float32   float
+    255 - for double    double
+    If there are dates to convert, then dtype will already have the correct
+    type inserted.
+    r/
+Data type 
+ not supported.N
+object_r
+_dtype_to_stata_type
+dta_version
+force_strlr1
+    Map numpy dtype to stata's default format for this type. Not terribly
+    important since users can change this in Stata. Semantics are
+    object  -> "%DDs" where DD is the length of the string.  If not a string,
+                raise ValueError
+    float64 -> "%10.0g"
+    float32 -> "%9.0g"
+    int64   -> "%9.0g"
+    int32   -> "%12.0g"
+    int16   -> "%8.0g"
+    int8    -> "%8.0g"
+    strl    -> "%9s"
+    r
+%9sr!
+%10.0gz
+%9.0gz
+%12.0gz
+%8.0gr$
+excessive_string_length_errorr6
+max_str_lenr
+_dtype_to_default_stata_fmt
+d!d"
+d$d%
+d&d'
+d*d+
+d,d-
+d.d/
+d0d1
+d2d3
+d4d5
+d6d7
+d8d9
+d:d;
+d<d=
+d>d?
+dAdB
+dCdD
+dEdF
+dGdH
+dIdJ
+dKdL
+dMdN
+dOdP
+Z dQd 
+dRdS
+Z!dQd
+dUdV
+Z"e#d
+dXdY
+dZd[
+StataWritera
+    A class for writing Stata binary dta files
+    Parameters
+    ----------
+    fname : path (string), buffer or path object
+        string, path object (pathlib.Path or py._path.local.LocalPath) or
+        object implementing a binary write() functions. If using a buffer
+        then the buffer will not be automatically closed after the file
+        is written.
+    data : DataFrame
+        Input to save
+    convert_dates : dict
+        Dictionary mapping columns containing datetime types to stata internal
+        format to use when writing the dates. Options are 'tc', 'td', 'tm',
+        'tw', 'th', 'tq', 'ty'. Column can be either an integer or a name.
+        Datetime columns that do not have a conversion type specified will be
+        converted to 'tc'. Raises NotImplementedError if a datetime column has
+        timezone information
+    write_index : bool
+        Write the index to Stata dataset.
+    byteorder : str
+        Can be ">", "<", "little", or "big". default is `sys.byteorder`
+    time_stamp : datetime
+        A datetime to use as file creation date.  Default is the current time
+    data_label : str
+        A label for the data set.  Must be 80 characters or smaller.
+    variable_labels : dict
+        Dictionary containing columns as keys and variable labels as values.
+        Each label must be 80 characters or smaller.
+    compression : str or dict, default 'infer'
+        For on-the-fly compression of the output dta. If string, specifies
+        compression mode. If dict, value at key 'method' specifies compression
+        mode. Compression mode must be one of {{'infer', 'gzip', 'bz2', 'zip',
+        'xz', None}}. If compression mode is 'infer' and `fname` is path-like,
+        then detect compression from the following extensions: '.gz', '.bz2',
+        '.zip', or '.xz' (otherwise no compression). If dict and compression
+        mode is one of {{'zip', 'gzip', 'bz2'}}, or inferred as one of the above,
+        other entries passed as additional compression options.
+        .. versionadded:: 1.1.0
+    {storage_options}
+        .. versionadded:: 1.2.0
+    Returns
+    -------
+    writer : StataWriter instance
+        The StataWriter instance has a write_file method, which will
+        write the file to the given `fname`.
+    Raises
+    ------
+    NotImplementedError
+        * If datetimes contain timezone information
+    ValueError
+        * Columns listed in convert_dates are neither datetime64[ns]
+          or datetime.datetime
+        * Column dtype is not representable in Stata
+        * Column listed in convert_dates is not in DataFrame
+        * Categorical label contains more than 32,000 characters
+    Examples
+    --------
+    >>> data = pd.DataFrame([[1.0, 1]], columns=['a', 'b'])
+    >>> writer = StataWriter('./data_file.dta', data)
+    >>> writer.write_file()
+    Directly write a zip file
+    >>> compression = {{"method": "zip", "archive_name": "data_file.dta"}}
+    >>> writer = StataWriter('./data_file.zip', data, compression=compression)
+    >>> writer.write_file()
+    Save a DataFrame with dates
+    >>> from datetime import datetime
+    >>> data = pd.DataFrame([[datetime(2000,1,1)]], columns=['date'])
+    >>> writer = StataWriter('./date_data_file.dta', data, {{'date' : 'tw'}})
+    >>> writer.write_file()
+    r+
+NTrD
+dict[Hashable, str] | Noner
+datetime.datetime | Noner
+fnamer
+write_indexr
+_write_index
+_time_stampr
+_compression
+_output_file
+_prepare_pandasr#
+_byteorder
+_fnamerz
+type_converters
+_converted_names)
+StataWriter.__init__r
+to_writer1
+        Helper to call encode before writing to file for Python 3 compat.
+        N)
+_write
+StataWriter._writer
+        Helper to assert file is open before writing.
+        N)
+_write_bytes
+StataWriter._write_bytesr
+}	|	
+|	|	d
+        Check for categorical columns, retain categorical information for
+        Stata file and convert categorical data to int
+        c
+z5StataWriter._prepare_categoricals.<locals>.<listcomp>)
+zCIt is not possible to export int64-based categorical data to Stata.re
+_is_col_cat
+_value_labelsr{
+codesrf
+copyrB
+is_catr
+col_is_catZ
+svlrf
+_prepare_categoricals
+z!StataWriter._prepare_categoricalsc
+        Checks floating point data columns for nans, and replaces these with
+        the generic Stata for missing value (.)
+        r
+fillna)
+_replace_nans
+StataWriter._replace_nansr0
+No-op, forward compatibilityNr=
+_update_strl_names
+StataWriter._update_strl_names
+        Validate variable names for Stata export.
+        Parameters
+        ----------
+        name : str
+            Variable name
+        Returns
+        -------
+        str
+            The validated name with invalid characters replaced with
+            underscores.
+        Notes
+        -----
+        Stata 114 and 117 support ascii characters in a-z, A-Z, 0-9
+        and _.
+        
+replace
+_validate_variable_name
+z#StataWriter._validate_variable_namec
+        Checks column names to ensure that they are valid Stata column names.
+        This includes checks for:
+            * Non-string names
+            * Stata keywords
+            * Variables that start with numbers
+            * Variables with names that are too long
+        When an illegal variable name is detected, it is converted, and if
+        dates are exported, the variable name is propagated to the date
+        conversion dictionary
+        Nr
+   ->   z
+    )
+itemsr
+invalid_name_docr6
+converted_namesrN
+original_columnsZ
+duplicate_var_idr
+Z	orig_namer
+conversion_warningr
+_check_column_names
+StataWriter._check_column_namesr!
+_set_formats_and_typesd	
+z"StataWriter._set_formats_and_typesc
+reset_indexr
+shaper
+tolistr
+_encode_stringsrT
+tempr
+new_typer=
+StataWriter._prepare_pandasc
+        Encode strings in dta-specific encoding
+        Do not encode columns marked for date conversion or for strL
+        conversion. The strL converter independently handles conversion and
+        also accepts empty string arrays.
+        
+_convert_strlTr
+Column `a
+` cannot be exported.
+Only string-like object arrays
+containing all strings or a mix of strings and None can be exported.
+Object arrays containing only null values are prohibited. Other object
+types cannot be exported and must first be converted to one of the
+supported types.N)
+_max_string_length)	r
+convert_strlr
+inferred_dtype
+encodedr=
+StataWriter._encode_stringsc
+t t!j"f
+rjt!j#
+wbF)
+method)
+z!This save was not successful but z. could not be deleted. This file is not valid.)*r"
+created_handlesr
+_write_headerr
+_write_map
+_write_variable_types
+_write_varnames
+_write_sortlist
+_write_formats
+_write_value_label_names
+_write_variable_labels
+_write_expansion_fields
+_write_characteristics
+_prepare_data
+_write_data
+_write_strls
+_write_value_labels
+_write_file_close_tag
+_close
+	Exceptionrq
+PathLike
+path
+isfile
+unlink
+OSErrorr
+ResourceWarning)
+records
+excr=
+write_file
+StataWriter.write_filec
+        Close the file if it was created by the writer.
+        If a buffer or file-like object was passed in, for example a GzipFile,
+        then leave this file open for the caller to close.
+        N)
+StataWriter._closec
+No-op, future compatibilityNr=
+StataWriter._write_mapc
+z!StataWriter._write_file_close_tagc
+z"StataWriter._write_characteristicsc
+StataWriter._write_strlsc
+z"Write 5 zeros for expansion fieldsr
+z#StataWriter._write_expansion_fieldsc
+StataWriter._write_value_labels
+t	j	
+t	j	
+"time_stamp should be datetime type
+JanZ
+FebZ
+MarZ
+AprZ
+MayZ
+JunZ
+JulZ
+AugZ
+SepZ
+OctZ
+NovZ
+Decc
+<dictcomp>M
+z-StataWriter._write_header.<locals>.<dictcomp>
+	 %Y %H:%M)
+_null_terminate_bytesr
+nowr
+strftimerG
+months
+month_lookup
+tsr=
+StataWriter._write_headerc
+z!StataWriter._write_variable_typesc
+_null_terminate_strr
+StataWriter._write_varnamesc
+StataWriter._write_sortlistc
+StataWriter._write_formatsc
+z$StataWriter._write_value_label_namesc
+.Variable labels must be 80 characters or fewerc
+z5StataWriter._write_variable_labels.<locals>.<genexpr>zKVariable labels must contain only characters that can be encoded in Latin-1)	r
+blankr
+Z	is_latin1r=
+z"StataWriter._write_variable_labelsc
+_convert_strls
+StataWriter._convert_strlsz
+np.recarrayc
+}	|	|
+argsr
+column_dtypes)
+to_records)
+native_byteorderr}
+styperf
+StataWriter._prepare_data)
+tobytes
+StataWriter._write_datar
+StataWriter._null_terminate_strc
+z!StataWriter._null_terminate_bytes)
+NTNNNNrD
+NN)'r
+staticmethodr
+    Converts dtype types to stata types. Returns the byte of the given ordinal.
+    See TYPE_MAP and comments for an explanation. This is also explained in
+    the dta spec.
+    1 - 2045 are strings of this length
+                Pandas    Stata
+    32768 - for object    strL
+    65526 - for int8      byte
+    65527 - for int16     int
+    65528 - for int32     long
+    65529 - for float32   float
+    65530 - for double    double
+    If there are dates to convert, then dtype will already have the correct
+    type inserted.
+    r
+_dtype_to_stata_type_117
+str | bytesr
+    Takes a bytes instance and pads it with null bytes until it's length chars.
+    r
+_pad_bytes_new
+StataStrLWritera
+    Converter for Stata StrLs
+    Stata StrLs map 8 byte values to strings which are stored using a
+    dictionary-like format where strings are keyed to two values.
+    Parameters
+    ----------
+    df : DataFrame
+        DataFrame to convert
+    columns : Sequence[str]
+        List of columns names to convert to StrL
+    version : int, optional
+        dta version.  Currently supports 117, 118 and 119
+    byteorder : str, optional
+        Can be ">", "<", "little", or "big". default is `sys.byteorder`
+    Notes
+    -----
+    Supports creation of the StrL block of a dta file for dta versions
+    117, 118 and 119.  These differ in how the GSO is stored.  118 and
+    119 store the GSO lookup value as a uint32 and a uint64, while 117
+    uses two uint32s. 118 and 119 also encode all strings as unicode
+    which is required by the format.  117 uses 'latin-1' a fixed width
+    encoding that extends the 7-bit ascii table with an additional 128
+    characters.
+    r
+dfrN
+rjd	}
+z,Only dta versions 117, 118 and 119 supportedr
+_dta_verr
+_gso_tablerf
+_o_offet
+_gso_o_type
+_gso_v_type)
+gso_v_typeZ
+gso_o_typeZ
+o_sizer=
+StataStrLWriter.__init__z
+tuple[int, int])
+_convert_key:
+StataStrLWriter._convert_keyz,tuple[dict[str, tuple[int, int]], DataFrame]r0
+qfqRt
+        Generates the GSO lookup table for the DataFrame
+        Returns
+        -------
+        gso_table : dict
+            Ordered dictionary using the string found as keys
+            and their lookup position (v,o) as values
+        gso_df : DataFrame
+            DataFrame where strl columns have been converted to
+            (v,o) values
+        Notes
+        -----
+        Modifies the DataFrame in-place.
+        The DataFrame returned encodes the (v,o) values as uint64s. The
+        encoding depends on the dta version, and can be expressed as
+        enc = v + o * 2 ** (o_size * 8)
+        so that v is stored in the lower bits and o is in the upper
+        bits. o_size is
+          * 117: 4
+          * 118: 6
+          * 119: 5
+        c
+z2StataStrLWriter.generate_table.<locals>.<listcomp>re
+emptyrU
+iterrows
+getr
+	gso_tableZ
+gso_dfZ
+selectedZ	col_indexr
+rowr
+generate_table>
+StataStrLWriter.generate_tablez
+dict[str, tuple[int, int]]r
+rpq^|
+        Generates the binary blob of GSOs that is written to the dta file.
+        Parameters
+        ----------
+        gso_table : dict
+            Ordered dictionary (str, vo)
+        Returns
+        -------
+        gso : bytes
+            Binary content of dta file to be placed between strl tags
+        Notes
+        -----
+        Output format depends on dta version.  117 uses two uint32s to
+        express v and o while 118+ uses a uint32 for v and a uint64 for o.
+        r
+asciir
+gsoZ
+gso_typeZ
+nullZ
+v_typeZ
+o_typeZ
+len_typeZ
+strlZ
+utf8_stringr=
+generate_blobq
+StataStrLWriter.generate_blob)
+Z	dEd
+d!d"
+d#d$
+d%d&
+d'd(
+d)d*
+d+d,
+d-d.
+d/d0
+d1d2
+d3d4
+d5d6
+d7d8
+d9d:
+d;d<
+d>d?
+dBdC
+StataWriter117a
+    A class for writing Stata binary dta files in Stata 13 format (117)
+    Parameters
+    ----------
+    fname : path (string), buffer or path object
+        string, path object (pathlib.Path or py._path.local.LocalPath) or
+        object implementing a binary write() functions. If using a buffer
+        then the buffer will not be automatically closed after the file
+        is written.
+    data : DataFrame
+        Input to save
+    convert_dates : dict
+        Dictionary mapping columns containing datetime types to stata internal
+        format to use when writing the dates. Options are 'tc', 'td', 'tm',
+        'tw', 'th', 'tq', 'ty'. Column can be either an integer or a name.
+        Datetime columns that do not have a conversion type specified will be
+        converted to 'tc'. Raises NotImplementedError if a datetime column has
+        timezone information
+    write_index : bool
+        Write the index to Stata dataset.
+    byteorder : str
+        Can be ">", "<", "little", or "big". default is `sys.byteorder`
+    time_stamp : datetime
+        A datetime to use as file creation date.  Default is the current time
+    data_label : str
+        A label for the data set.  Must be 80 characters or smaller.
+    variable_labels : dict
+        Dictionary containing columns as keys and variable labels as values.
+        Each label must be 80 characters or smaller.
+    convert_strl : list
+        List of columns names to convert to Stata StrL format.  Columns with
+        more than 2045 characters are automatically written as StrL.
+        Smaller columns can be converted by including the column name.  Using
+        StrLs can reduce output file size when strings are longer than 8
+        characters, and either frequently repeated or sparse.
+    compression : str or dict, default 'infer'
+        For on-the-fly compression of the output dta. If string, specifies
+        compression mode. If dict, value at key 'method' specifies compression
+        mode. Compression mode must be one of {'infer', 'gzip', 'bz2', 'zip',
+        'xz', None}. If compression mode is 'infer' and `fname` is path-like,
+        then detect compression from the following extensions: '.gz', '.bz2',
+        '.zip', or '.xz' (otherwise no compression). If dict and compression
+        mode is one of {'zip', 'gzip', 'bz2'}, or inferred as one of the above,
+        other entries passed as additional compression options.
+        .. versionadded:: 1.1.0
+    Returns
+    -------
+    writer : StataWriter117 instance
+        The StataWriter117 instance has a write_file method, which will
+        write the file to the given `fname`.
+    Raises
+    ------
+    NotImplementedError
+        * If datetimes contain timezone information
+    ValueError
+        * Columns listed in convert_dates are neither datetime64[ns]
+          or datetime.datetime
+        * Column dtype is not representable in Stata
+        * Column listed in convert_dates is not in DataFrame
+        * Categorical label contains more than 32,000 characters
+    Examples
+    --------
+    >>> from pandas.io.stata import StataWriter117
+    >>> data = pd.DataFrame([[1.0, 1, 'a']], columns=['a', 'b', 'c'])
+    >>> writer = StataWriter117('./data_file.dta', data)
+    >>> writer.write_file()
+    Directly write a zip file
+    >>> compression = {"method": "zip", "archive_name": "data_file.dta"}
+    >>> writer = StataWriter117('./data_file.zip', data, compression=compression)
+    >>> writer.write_file()
+    Or with long strings stored in strl format
+    >>> data = pd.DataFrame([['A relatively long string'], [''], ['']],
+    ...                     columns=['strls'])
+    >>> writer = StataWriter117('./data_file_with_long_strings.dta', data,
+    ...                         convert_strl=['strls'])
+    >>> writer.write_file()
+    r
+NTrD
+Sequence[Hashable] | Noner
+extendrT
+_map
+_strl_blob)
+StataWriter117.__init__r
+tagr1
+Surround val with <tag></tag>r
+_tag,
+StataWriter117._tagrp
+z.Update map location for tag with file positionN)
+_update_map3
+StataWriter117._update_mapr|
+rfd	n
+d	}	t
+Write the file headerz
+<stata_dta>r
+releaser
+MSFZ
+LSFr
+z0StataWriter117._write_header.<locals>.<dictcomp>r
+Z	timestamp
+header)
+_dta_versionr
+Z	nobs_sizer
+encoded_labelZ
+label_sizeZ	label_lenr
+stata_tsr=
+StataWriter117._write_headerr0
+        Called twice during file write. The first populates the values in
+        the map with 0s.  The second call writes the final map locations when
+        all blocks have been written.
+        r
+stata_data
+variable_types
+varnames
+sortlist
+formats
+value_label_namesr
+characteristicsr
+strlsr
+stata_data_close
+end-of-filer
+StataWriter117._write_mapc
+z$StataWriter117._write_variable_typesc
+vn_lenr
+StataWriter117._write_varnamesc
+Z	sort_sizer=
+StataWriter117._write_sortlistc
+fmt_lenr
+StataWriter117._write_formatsc
+vl_lenr
+encoded_namer=
+z'StataWriter117._write_value_label_namesc
+)	Nr
+zDVariable labels must contain only characters that can be encoded in )
+UnicodeEncodeError)	r
+z%StataWriter117._write_variable_labelsc
+z%StataWriter117._write_characteristicsc
+<data>s
+</data>)
+StataWriter117._write_datac
+StataWriter117._write_strlsc
+No-op in dta 117+Nr=
+z&StataWriter117._write_expansion_fieldsc
+lbl)	r
+labr=
+z"StataWriter117._write_value_labelsc
+</stata_dta>r
+z$StataWriter117._write_file_close_tagc
+        Update column names for conversion to strl if they might have been
+        changed to comply with Stata naming rules
+        N)
+orig
+newr
+z!StataWriter117._update_strl_namesr
+        Convert columns to StrLs if either very large or in the
+        convert_strl variable
+        c
+z1StataWriter117._convert_strls.<locals>.<listcomp>r
+convert_colsZ
+sswZ
+tabZ
+new_datar=
+StataWriter117._convert_strlsr!
+z%StataWriter117._set_formats_and_types)	NTNNNNNrD
+StataWriterUTF8ub
+    Stata binary dta file writing in Stata 15 (118) and 16 (119) formats
+    DTA 118 and 119 format files support unicode string data (both fixed
+    and strL) format. Unicode is also supported in value labels, variable
+    labels and the dataset label. Format 119 is automatically used if the
+    file contains more than 32,767 variables.
+    .. versionadded:: 1.0.0
+    Parameters
+    ----------
+    fname : path (string), buffer or path object
+        string, path object (pathlib.Path or py._path.local.LocalPath) or
+        object implementing a binary write() functions. If using a buffer
+        then the buffer will not be automatically closed after the file
+        is written.
+    data : DataFrame
+        Input to save
+    convert_dates : dict, default None
+        Dictionary mapping columns containing datetime types to stata internal
+        format to use when writing the dates. Options are 'tc', 'td', 'tm',
+        'tw', 'th', 'tq', 'ty'. Column can be either an integer or a name.
+        Datetime columns that do not have a conversion type specified will be
+        converted to 'tc'. Raises NotImplementedError if a datetime column has
+        timezone information
+    write_index : bool, default True
+        Write the index to Stata dataset.
+    byteorder : str, default None
+        Can be ">", "<", "little", or "big". default is `sys.byteorder`
+    time_stamp : datetime, default None
+        A datetime to use as file creation date.  Default is the current time
+    data_label : str, default None
+        A label for the data set.  Must be 80 characters or smaller.
+    variable_labels : dict, default None
+        Dictionary containing columns as keys and variable labels as values.
+        Each label must be 80 characters or smaller.
+    convert_strl : list, default None
+        List of columns names to convert to Stata StrL format.  Columns with
+        more than 2045 characters are automatically written as StrL.
+        Smaller columns can be converted by including the column name.  Using
+        StrLs can reduce output file size when strings are longer than 8
+        characters, and either frequently repeated or sparse.
+    version : int, default None
+        The dta version to use. By default, uses the size of data to determine
+        the version. 118 is used if data.shape[1] <= 32767, and 119 is used
+        for storing larger DataFrames.
+    compression : str or dict, default 'infer'
+        For on-the-fly compression of the output dta. If string, specifies
+        compression mode. If dict, value at key 'method' specifies compression
+        mode. Compression mode must be one of {'infer', 'gzip', 'bz2', 'zip',
+        'xz', None}. If compression mode is 'infer' and `fname` is path-like,
+        then detect compression from the following extensions: '.gz', '.bz2',
+        '.zip', or '.xz' (otherwise no compression). If dict and compression
+        mode is one of {'zip', 'gzip', 'bz2'}, or inferred as one of the above,
+        other entries passed as additional compression options.
+        .. versionadded:: 1.1.0
+    Returns
+    -------
+    StataWriterUTF8
+        The instance has a write_file method, which will write the file to the
+        given `fname`.
+    Raises
+    ------
+    NotImplementedError
+        * If datetimes contain timezone information
+    ValueError
+        * Columns listed in convert_dates are neither datetime64[ns]
+          or datetime.datetime
+        * Column dtype is not representable in Stata
+        * Column listed in convert_dates is not in DataFrame
+        * Categorical label contains more than 32,000 characters
+    Examples
+    --------
+    Using Unicode data and column names
+    >>> from pandas.io.stata import StataWriterUTF8
+    >>> data = pd.DataFrame([[1.0, 1, '
+']], columns=['a', '
+', '
+    >>> writer = StataWriterUTF8('./data_file.dta', data)
+    >>> writer.write_file()
+    Directly write a zip file
+    >>> compression = {"method": "zip", "archive_name": "data_file.dta"}
+    >>> writer = StataWriterUTF8('./data_file.zip', data, compression=compression)
+    >>> writer.write_file()
+    Or with long strings stored in strl format
+    >>> data = pd.DataFrame([['
+ relatively long 
+tring'], [''], ['']],
+    ...                     columns=['strls'])
+    >>> writer = StataWriterUTF8('./data_file_with_long_strings.dta', data,
+    ...                          convert_strl=['strls'])
+    >>> writer.write_file()
+    r
+NTrD
+)	Nr/
+z"version must be either 118 or 119.zKYou must use version 119 for data sets containing more than32,767 variables)	rI
+StataWriterUTF8.__init__r
+rdd	k
+        Validate variable names for Stata export.
+        Parameters
+        ----------
+        name : str
+            Variable name
+        Returns
+        -------
+        str
+            The validated name with invalid characters replaced with
+            underscores.
+        Notes
+        -----
+        Stata 118+ support most unicode characters. The only limitation is in
+        the ascii range where the characters supported are a-z, A-Z, 0-9 and _.
+        r
+z'StataWriterUTF8._validate_variable_name)
+NTNNNNNNrD
+TTNFTNTNFrD
+F)er
+__future__r
+collectionsr
+typingr
+dateutil.relativedeltar
+numpyrz
+pandas._libs.libr
+pandas._libs.writersr
+pandas._typingr
+pandas.util._decoratorsr
+pandas.core.dtypes.commonr
+pandasr
+pandas.corer
+pandas.core.framer
+pandas.core.indexes.baser 
+pandas.core.seriesr!
+pandas.io.commonr"
+_statafile_processing_params1Z
+_statafile_processing_params2Z
+_chunksize_paramsZ
+_shared_docsZ
+_compression_paramsZ
+_iterator_paramsZ
+_reader_notesZ
+_read_stata_docr
+Warningr
+IteratorrC
+<module>

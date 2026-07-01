@@ -1,0 +1,322 @@
+m	Z	
+d e%
+)!z,
+Backends for embarrassingly parallel code.
+ABCMeta
+abstractmethod
+WorkerInterrupt)
+MemmappingPool)
+ThreadPool)
+get_memmapping_executor)
+TimeoutError)
+process_executor
+	cpu_countc
+d d!
+d"d#
+d$d%
+ParallelBackendBasezEHelper abc which defines all methods a ParallelBackend must implementFNc
+super
+__init__
+nesting_level
+inner_max_num_threads)
+selfr
+kwargs
+	__class__
+=/usr/lib/python3.9/site-packages/joblib/_parallel_backends.pyr
+ParallelBackendBase.__init__)
+OMP_NUM_THREADSZ
+OPENBLAS_NUM_THREADSZ
+MKL_NUM_THREADSZ
+BLIS_NUM_THREADSZ
+VECLIB_MAXIMUM_THREADSZ
+NUMBA_NUM_THREADSZ
+NUMEXPR_NUM_THREADSZ
+ENABLE_IPCc
+Determine the number of jobs that can actually run in parallel
+        n_jobs is the number of workers requested by the callers. Passing
+        n_jobs=-1 means requesting all available workers for instance matching
+        the number of CPU cores on the worker host(s).
+        This method should return a guesstimate of the number of workers that
+        can actually perform work concurrently. The primary use case is to make
+        it possible for the caller to know in how many chunks to slice the
+        work.
+        In general working on larger data chunks is more efficient (less
+        scheduling overhead and better use of CPU cache prefetching heuristics)
+        as long as all the workers have enough work to do.
+        Nr
+n_jobsr
+effective_n_jobs0
+z$ParallelBackendBase.effective_n_jobsc
+Schedule a func to be runNr
+func
+callbackr
+apply_asyncB
+ParallelBackendBase.apply_asyncr
+Reconfigure the backend and return the number of workers.
+        This makes it possible to reuse an existing backend instance for
+        successive independent calls to Parallel with different parameters.
+        )
+parallelr
+prefer
+require
+backend_argsr
+	configureF
+ParallelBackendBase.configurec
+z;Call-back method called at the beginning of a Parallel callNr
+start_callP
+ParallelBackendBase.start_callc
+z5Call-back method called at the end of a Parallel callNr
+	stop_callS
+ParallelBackendBase.stop_callc
+z0Shutdown the workers and free the shared memory.Nr
+	terminateV
+ParallelBackendBase.terminatec
+ Determine the optimal batch sizer
+compute_batch_sizeY
+z&ParallelBackendBase.compute_batch_sizec
+1Callback indicate how long it took to run a batchNr
+batch_size
+durationr
+batch_completed]
+z#ParallelBackendBase.batch_completedc
+z'List of exception types to be captured.r
+get_exceptions`
+z"ParallelBackendBase.get_exceptionsTc
+Abort any running tasks
+        This is called when an exception has been raised when executing a tasks
+        and all the remaining tasks will be ignored and can therefore be
+        aborted to spare computation resources.
+        If ensure_ready is True, the backend should be left in an operating
+        state as future tasks might be re-submitted via that same backend
+        instance.
+        If ensure_ready is False, the implementer of this method can decide
+        to leave the backend in a closed / terminated state as no new task
+        are expected to be submitted to this backend.
+        Setting ensure_ready to False is an optimization that can be leveraged
+        when aborting tasks via killing processes from a local process pool
+        managed by the backend it-self: if we expect no new tasks, there is no
+        point in re-creating new workers.
+        Nr
+ensure_readyr
+abort_everythingd
+z$ParallelBackendBase.abort_everythingc
+Backend instance to be used by nested Parallel calls.
+        By default a thread-based backend is used for the first level of
+        nesting. Beyond, switch to sequential backend to avoid spawning too
+        many threads on the host.
+        r
+getattr
+SequentialBackend
+ThreadingBackend)
+get_nested_backend|
+z&ParallelBackendBase.get_nested_backendc
+Context manager to manage an execution context.
+        Calls to Parallel.retrieve will be made inside this context.
+        By default, this does nothing. It may be useful for subclasses to
+        handle nested parallelism. In particular, it may be required to avoid
+        deadlocks if a backend manages a fixed number of workers, when those
+        workers may be asked to do nested Parallel calls. Without
+        'retrieval_context' this could lead to deadlock, as all the workers
+        managed by the backend may be "busy" waiting for the nested parallel
+        calls to finish, but the backend has no free workers to execute those
+        tasks.
+        Nr
+retrieval_context
+z%ParallelBackendBase.retrieval_contextc
+Return environment variables limiting threadpools in external libs.
+        This function return a dict containing environment variables to pass
+        when creating a pool of process. These environment variables limit the
+        number of threads to `n_threads` for OpenMP, MKL, Accelerated and
+        OpenBLAS libraries in the child processes.
+        r
+1)	r
+maxr
+MAX_NUM_THREADS_VARS
+environ
+TBB_ENABLE_IPC_VAR)
+explicit_n_threadsZ
+default_n_threads
+varZ	var_valuer
+_prepare_worker_env
+z'ParallelBackendBase._prepare_worker_envc
+isinstance
+	threadingZ
+current_threadZ
+_MainThreadr
+in_main_thread
+z"ParallelBackendBase.in_main_thread)
+NNN)
+__name__
+__module__
+__qualname__
+__doc__
+supports_timeout
+supports_inner_max_num_threadsr
+contextlib
+contextmanagerr9
+staticmethodrG
+__classcell__r
+	metaclassc
+A ParallelBackend which will execute all batches sequentially.
+    Does not use/create any threading objects, and hence has minimal
+    overhead. Used when n_jobs == 1.
+    Tc
+?Determine the number of jobs which are going to run in parallelr
+&n_jobs == 0 in Parallel has no meaningr
+ValueErrorr
+z"SequentialBackend.effective_n_jobsNc
+ImmediateResult)
+resultr
+SequentialBackend.apply_asyncc
+get_active_backend)
+z$SequentialBackend.get_nested_backend)
+N)	rH
+uses_threads
+supports_sharedmemr
+PoolManagerMixinz,A helper class for managing pool of workers.Nc
+z!PoolManagerMixin.effective_n_jobsc
+z#Shutdown the process or thread poolN)
+_pool
+closer*
+PoolManagerMixin.terminatec
+z>Used by apply_async to make it possible to implement lazy init)
+	_get_pool
+PoolManagerMixin._get_poolc
+SafeFunctionr
+PoolManagerMixin.apply_asyncTc
+z@Shutdown the pool and restart a new one with the same parameters
+_backend_argsr2
+z!PoolManagerMixin.abort_everything)
+AutoBatchingMixinz/A helper class for automagically batching jobs.
+_DEFAULT_EFFECTIVE_BATCH_SIZE
+_effective_batch_size
+ _DEFAULT_SMOOTHED_BATCH_DURATION
+_smoothed_batch_duration)
+AutoBatchingMixin.__init__c
+z:Batch computation too fast (%.4fs.) Setting batch_size=%d.z:Batch computation too slow (%.4fs.) Setting batch_size=%d.)
+MIN_IDEAL_BATCH_DURATION
+minr<
+verboseZ
+_print
+MAX_IDEAL_BATCH_DURATIONrg
+old_batch_sizeZ
+batch_durationZ
+ideal_batch_sizer.
+z$AutoBatchingMixin.compute_batch_sizec
+old_durationZ
+new_durationr
+z!AutoBatchingMixin.batch_completedc
+zgReset batch statistics to default values.
+        This avoids interferences with future jobs.
+        N)
+reset_batch_statsi
+z#AutoBatchingMixin.reset_batch_stats)
+A ParallelBackend which will use a thread pool to execute batches in.
+    This is a low-overhead backend but it suffers from the Python Global
+    Interpreter Lock if the called function relies a lot on Python objects.
+    Mostly useful when the execution bottleneck is a compiled extension that
+    explicitly releases the GIL (for instance a Cython loop wrapped in a "with
+    nogil" block or an expensive call to a library such as NumPy).
+    The actual thread pool is lazily initialized: the actual thread pool
+    construction is delayed to the first call to apply_async.
+    ThreadingBackend is used as the default backend for nested calls.
+    Tr
+z?Build a process or thread pool and return the number of workersr
+FallbackToBackendr6
+_n_jobs)
+ThreadingBackend.configurec
+Lazily initialize the thread pool
+        The actual pool of worker threads is only initialized at the first
+        call to apply_async.
+        N)
+ThreadingBackend._get_pool)
+N)	rH
+MultiprocessingBackenda
+A ParallelBackend which will use a multiprocessing.Pool.
+    Will introduce some communication and memory overhead when exchanging
+    input and output data with the with the worker Python processes.
+    However, does not suffer from the Python Global Interpreter Lock.
+    Tc
+Determine the number of jobs which are going to run in parallel.
+        This also checks if we are attempting to create a nested parallel
+        loop.
+        Nr
+zHMultiprocessing-backed parallel loops cannot be nested, setting n_jobs=1
+stacklevelr
+zTMultiprocessing-backed parallel loops cannot be nested, below loky, setting n_jobs=1zVMultiprocessing-backed parallel loops cannot be nested below threads, setting n_jobs=1)
+current_process
+daemon
+warnings
+warnr
+_CURRENT_DEPTHrG
+z'MultiprocessingBackend.effective_n_jobsr
+collectr
+memmappingpool_argsr
+z MultiprocessingBackend.configurec
+z MultiprocessingBackend.terminate)
+NNN)	rH
+LokyBackendz>Managing pool of workers with loky instead of multiprocessing.Tr
+z9Build a process executor and return the number of workersr
+timeoutrB
+context_id)	r
+_workersr"
+idle_worker_timeoutZ
+memmappingexecutor_argsr
+LokyBackend.configurec
+)	rS
+zRLoky-backed parallel loops cannot be called in a multiprocessing, setting n_jobs=1rt
+zKLoky-backed parallel loops cannot be nested below threads, setting n_jobs=1)
+LokyBackend.effective_n_jobsc
+submitr`
+	functools
+partial
+wrap_future_resultr@
+add_done_callback)
+futurer
+LokyBackend.apply_asyncc
+zkWrapper for Future.result to implement the same behaviour as
+        AsyncResults.get from multiprocessing.)
+CfTimeoutErrorr
+LokyBackend.wrap_future_resultc
+_temp_folder_managerZ
+_unlink_temporary_resourcesr"
+LokyBackend.terminatec
+zLShutdown the workers and restart a new one with the same parameters
+        T)
+kill_workersNra
+LokyBackend.abort_everything)
+NNNr}
+results)
+batchr
+ImmediateResult.__init__c
+ImmediateResult.getN)
+Wrapper that handles the serialization of exception tracebacks.
+    TODO python2_drop: check whether SafeFunction is still needed since we
+    dropped support for Python 2. If not needed anymore it should be
+    deprecated.
+    If an exception is triggered when calling the inner function, a copy of
+    the full traceback is captured to make it possible to serialize
+    it so that it can be rendered in a different Python process.
+    c
+SafeFunction.__init__c
+KeyboardInterruptr
+BaseException)
+argsr
+__call__Q
+SafeFunction.__call__N)
+z<Raised when configuration should fallback to another backendc
+backend)
+FallbackToBackend.__init__N)
+)'rK
+abcr
+my_exceptionsr
+_multiprocessing_helpersr
+poolr
+multiprocessing.poolr
+executorr	
+multiprocessingr
+concurrent.futures._baser
+externals.lokyr
+objectr[
+	Exceptionrq
+<module>

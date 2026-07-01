@@ -1,0 +1,371 @@
+m	Z	m
+requests.cookies
+~~~~~~~~~~~~~~~~
+Compatibility code to be able to use `cookielib.CookieJar` with requests.
+requests.utils imports from here, so be careful with imports.
+to_native_string)
+	cookielib
+urlparse
+urlunparse
+Morsel
+MutableMappingc
+MockRequesta
+Wraps a `requests.Request` to mimic a `urllib2.Request`.
+    The code in `cookielib.CookieJar` expects this interface in order to correctly
+    manage cookie policies, i.e., determine whether a cookie can be set, given the
+    domains of the request and the cookie.
+    The original request object is read-only. The client is responsible for collecting
+    the new headers via `get_new_headers()` and interpreting them appropriately. You
+    probably want `get_cookie_header`, defined below.
+    c
+_new_headersr
+scheme
+type)
+self
+request
+@/usr/lib/python3.9/site-packages/pip/_vendor/requests/cookies.py
+__init__%
+MockRequest.__init__c
+get_type*
+MockRequest.get_typec
+netlocr
+get_host-
+MockRequest.get_hostc
+get_origin_req_host0
+MockRequest.get_origin_req_hostc
+Hostz
+utf-8)
+encoding)
+headers
+getr
+path
+params
+query
+fragment)
+host
+parsedr
+get_full_url3
+MockRequest.get_full_urlc
+is_unverifiableA
+MockRequest.is_unverifiablec
+namer
+has_headerD
+MockRequest.has_headerNc
+defaultr
+get_headerG
+MockRequest.get_headerc
+zMcookielib has no legitimate use for this method; add it back if you find one.z=Cookie headers should be added with add_unredirected_header()N)
+NotImplementedError)
+valr
+add_headerJ
+MockRequest.add_headerc
+valuer
+add_unredirected_headerN
+z#MockRequest.add_unredirected_headerc
+get_new_headersQ
+MockRequest.get_new_headersc
+unverifiableT
+MockRequest.unverifiablec
+origin_req_hostX
+MockRequest.origin_req_hostc
+MockRequest.host)
+__name__
+__module__
+__qualname__
+__doc__r
+propertyr5
+MockResponsez
+Wraps a `httplib.HTTPMessage` to mimic a `urllib.addinfourl`.
+    ...what? Basically, expose the parsed HTTP headers from the server response
+    the way `cookielib` expects to see them.
+    c
+Make a MockResponse for `cookielib` to read.
+        :param headers: a httplib.HTTPMessage or analogous carrying the headers
+        N
+_headers)
+MockResponse.__init__c
+infoo
+MockResponse.infoc
+getheadersr'
+MockResponse.getheadersN)
+Extract the cookies from the response into a CookieJar.
+    :param jar: cookielib.CookieJar (not necessarily a RequestsCookieJar)
+    :param request: our own requests.Request object
+    :param response: urllib3.HTTPResponse object
+    
+_original_responseN)
+hasattrrA
+msgZ
+extract_cookies)
+jarr
+responseZ
+resr
+extract_cookies_to_jarv
+    Produce an appropriate Cookie header string to be sent with `request`, or None.
+    :rtype: str
+    
+Cookie)
+add_cookie_headerr4
+get_cookie_header
+zkUnsets a cookie by name, by default over all domains and paths.
+    Wraps CookieJar.clear(), is O(n).
+    N)
+domainr
+append
+clear)
+	cookiejarr(
+clearables
+cookier
+remove_cookie_by_name
+CookieConflictErrorz
+There are two cookies that meet the criteria specified in the cookie jar.
+    Use .get and .set and include domain and path args in order to be more specific.
+    N)
+d!d"
+d#d$
+d%d&
+d5d'd(
+d6d)d*
+d+d,
+d-d.
+d/d0
+d1d2
+RequestsCookieJara
+Compatibility class; is a cookielib.CookieJar, but exposes a dict
+    interface.
+    This is the CookieJar we create by default for requests and sessions that
+    don't specify one, since some clients may expect response.cookies and
+    session.cookies to support dict operations.
+    Requests does not use the dict interface internally; it's just for
+    compatibility with external client code. All requests code should work
+    out of the box with externally provided instances of ``CookieJar``, e.g.
+    ``LWPCookieJar`` and ``FileCookieJar``.
+    Unlike a regular CookieJar, this class is pickleable.
+    .. warning:: dictionary operations that are normally O(1) may be O(n).
+    Nc
+Dict-like get() that also supports optional domain and path args in
+        order to resolve naming collisions from using one cookie jar over
+        multiple domains.
+        .. warning:: operation is O(n), not O(1).
+        N)
+_find_no_duplicates
+KeyError)
+RequestsCookieJar.getc
+Dict-like set() that also supports optional domain and path args in
+        order to resolve naming collisions from using one cookie jar over
+        multiple domains.
+        NrJ
+isinstancer
+morsel_to_cookie
+create_cookie
+set_cookie)
+kwargs
+RequestsCookieJar.setc
+Dict-like iterkeys() that returns an iterator of names of cookies
+        from the jar.
+        .. seealso:: itervalues() and iteritems().
+        N)
+iterr(
+iterkeys
+RequestsCookieJar.iterkeysc
+Dict-like keys() that returns a list of names of cookies from the
+        jar.
+        .. seealso:: values() and items().
+        )
+listr]
+keys
+RequestsCookieJar.keysc
+Dict-like itervalues() that returns an iterator of values of cookies
+        from the jar.
+        .. seealso:: iterkeys() and iteritems().
+        N)
+itervalues
+RequestsCookieJar.itervaluesc
+Dict-like values() that returns a list of values of cookies from the
+        jar.
+        .. seealso:: keys() and items().
+        )
+values
+RequestsCookieJar.valuesc
+Dict-like iteritems() that returns an iterator of name-value tuples
+        from the jar.
+        .. seealso:: iterkeys() and itervalues().
+        N)
+	iteritems
+RequestsCookieJar.iteritemsc
+Dict-like items() that returns a list of name-value tuples from the
+        jar. Allows client-code to call ``dict(RequestsCookieJar)`` and get a
+        vanilla python dict of key value pairs.
+        .. seealso:: keys() and values().
+        )
+items
+RequestsCookieJar.itemsc
+z2Utility method to list all the domains in the jar.
+domainsrN
+list_domains
+RequestsCookieJar.list_domainsc
+z0Utility method to list all the paths in the jar.)
+pathsrN
+list_paths
+RequestsCookieJar.list_pathsc
+zvReturns True if there are multiple domains in the jar.
+        Returns False otherwise.
+        :rtype: bool
+        NTFrd
+multiple_domains
+z"RequestsCookieJar.multiple_domainsc
+Takes as an argument an optional domain and path and returns a plain
+        old Python dict of name-value pairs of cookies that meet the
+        requirements.
+        :rtype: dict
+        N)
+dictionaryrN
+get_dict+
+RequestsCookieJar.get_dictc
+superrQ
+__contains__rP
+	__class__r
+RequestsCookieJar.__contains__c
+Dict-like __getitem__() for compatibility with client code. Throws
+        exception if there are more than one cookie with name. In that case,
+        use the more explicit get() method instead.
+        .. warning:: operation is O(n), not O(1).
+        )
+__getitem__A
+RequestsCookieJar.__getitem__c
+Dict-like __setitem__ for compatibility with client code. Throws
+        exception if there is already a cookie of that name in the jar. In that
+        case, use the more explicit set() method instead.
+        N)
+__setitem__J
+RequestsCookieJar.__setitem__c
+zlDeletes a cookie given a name. Wraps ``cookielib.CookieJar``'s
+        ``remove_cookie_by_name()``.
+        N)
+__delitem__Q
+RequestsCookieJar.__delitem__c
+startswith
+endswith
+replacerk
+argsrX
+RequestsCookieJar.set_cookiec
+zAUpdates this jar with cookies from another CookieJar or dict-likeN)
+	CookieJarrW
+copyrk
+update)
+otherrN
+RequestsCookieJar.updatec
+Requests uses this method internally to get cookie values.
+        If there are conflicting cookies, _find arbitrarily chooses one.
+        See _find_no_duplicates if you want an exception thrown if there are
+        conflicting cookies.
+        :param name: a string containing name of cookie
+        :param domain: (optional) string containing domain of cookie
+        :param path: (optional) string containing path of cookie
+        :return: cookie.value
+        N
+name=%r, domain=%r, path=%r)
+_findd
+RequestsCookieJar._findc
+Both ``__get_item__`` and ``get`` call this function: it's never
+        used elsewhere in Requests.
+        :param name: a string containing name of cookie
+        :param domain: (optional) string containing domain of cookie
+        :param path: (optional) string containing path of cookie
+        :raises KeyError: if cookie is not found
+        :raises CookieConflictError: if there are multiple cookies
+            that match name and optionally domain and path
+        :return: cookie.value
+        Nz(There are multiple cookies with name, %rr|
+toReturnrN
+z%RequestsCookieJar._find_no_duplicatesc
+4Unlike a normal CookieJar, this class is pickleable.
+_cookies_lock)
+__dict__ry
+stater
+__getstate__
+RequestsCookieJar.__getstate__c
+	threading
+RLockr
+__setstate__
+RequestsCookieJar.__setstate__c
+z(Return a copy of this RequestsCookieJar.)
+set_policy
+get_policyrz
+new_cjr
+RequestsCookieJar.copyc
+z&Return the CookiePolicy instance used.)
+_policyr
+RequestsCookieJar.get_policy)
+NNN)
+__classcell__r
+new_jarrN
+_copy_cookie_jar
+rLd	}
+Make a cookie from underspecified parameters.
+    By default, the pair of `name` and `value` will be set for the domain ''
+    and sent on every request (this is sometimes called a "supercookie").
+    r
+HttpOnly)
+versionr(
+portrJ
+secure
+expires
+discard
+comment
+comment_url
+rest
+rfc2109z4create_cookie() got unexpected keyword arguments: %sr
+port_specifiedrJ
+domain_specified
+domain_initial_dotr
+path_specified)
+	TypeErrorr^
+boolrr
+resultZ
+badargs
+errr
+zBConvert a Morsel object into a Cookie containing the one k/v pair.Nz
+max-agez
+max-age: %s must be integerr
+%a, %d-%b-%Y %H:%M:%S GMTr
+httponlyr
+time
+ValueErrorr
+calendarZ
+timegm
+strptimerV
+morselr
+time_templater
+Returns a CookieJar from a key/value dictionary.
+    :param cookie_dict: Dict of key/values to insert into CookieJar.
+    :param cookiejar: (optional) A cookiejar to add the cookies to.
+    :param overwrite: (optional) If False, will not replace cookies
+        already in the jar with new ones.
+    :rtype: CookieJar
+    Nc
+.0rN
+<listcomp>	
+z'cookiejar_from_dict.<locals>.<listcomp>)
+cookie_dictrM
+	overwriteZ
+names_from_jarr(
+cookiejar_from_dict
+Add cookies to cookiejar and returns a merged CookieJar.
+    :param cookiejar: CookieJar object to add the cookies to.
+    :param cookies: Dictionary or CookieJar object to be added.
+    :rtype: CookieJar
+    z!You can only merge into CookieJarF)
+)	rT
+dictr
+AttributeErrorrW
+cookiesZ
+cookie_in_jarr
+merge_cookies
+_internal_utilsr
+compatr
+ImportErrorZ
+dummy_threading
+objectr	
+RuntimeErrorrP
+<module>

@@ -1,0 +1,443 @@
+d!d"
+d#d$
+Z d%d&
+Z!d'd(
+Z"z*d
+l#Z#e$e#d)d
+Z%e$e#d*d
+Z&e#j'Z(W
+d+d,
+Z*d-d.
+Z+d/d0
+Z,d1d2
+Z.nFe
+Z.n.e
+j/d5k
+j/d6k
+e.Z0d
+a1d7d8
+a3dEd9d:
+Z4d;d<
+Z5d=d>
+Z6d?d@
+)FaQ
+UUID objects (universally unique identifiers) according to RFC 4122.
+This module provides immutable UUID objects (class UUID) and the functions
+uuid1(), uuid3(), uuid4(), uuid5() for generating version 1, 3, 4, and 5
+UUIDs as specified in RFC 4122.
+If all you want is a unique ID, you should probably call uuid1() or uuid4().
+Note that uuid1() may compromise privacy since it creates a UUID containing
+the computer's network address.  uuid4() creates a random UUID.
+Typical usage:
+    >>> import uuid
+    # make a UUID based on the host ID and current time
+    >>> uuid.uuid1()    # doctest: +SKIP
+    UUID('a8098c1a-f86e-11da-bd1a-00112444be1e')
+    # make a UUID using an MD5 hash of a namespace UUID and a name
+    >>> uuid.uuid3(uuid.NAMESPACE_DNS, 'python.org')
+    UUID('6fa459ea-ee8a-3ca4-894e-db77e160355e')
+    # make a random UUID
+    >>> uuid.uuid4()    # doctest: +SKIP
+    UUID('16fd2706-8baf-433b-82eb-8c7fada847da')
+    # make a UUID using a SHA-1 hash of a namespace UUID and a name
+    >>> uuid.uuid5(uuid.NAMESPACE_DNS, 'python.org')
+    UUID('886313e1-3b8a-5372-9b90-0c9aee199e5d')
+    # make a UUID from a string of hex digits (braces and hyphens ignored)
+    >>> x = uuid.UUID('{00010203-0405-0607-0809-0a0b0c0d0e0f}')
+    # convert a UUID to a string of hex digits in standard form
+    >>> str(x)
+    '00010203-0405-0607-0809-0a0b0c0d0e0f'
+    # get the raw 16 bytes of the UUID
+    >>> x.bytes
+    b'\x00\x01\x02\x03\x04\x05\x06\x07\x08\t\n\x0b\x0c\r\x0e\x0f'
+    # make a UUID from a 16-byte string
+    >>> uuid.UUID(bytes=x.bytes)
+    UUID('00010203-0405-0607-0809-0a0b0c0d0e0f')
+Enumz
+Ka-Ping Yee <ping@zesty.ca>)
+win32
+darwinFZ
+AIXZ
+Linux
+reserved for NCS compatibilityz
+specified in RFC 4122z$reserved for Microsoft compatibilityz
+reserved for future definitionc
+SafeUUIDr
+__name__
+__module__
+__qualname__Z
+safeZ
+unsafe
+unknown
+/usr/lib64/python3.9/uuid.pyr
+d!d"
+d#d$
+d%d&
+d'd(
+d)d*
+d+d,
+d-d.
+d/d0
+d1d2
+d3d4
+d5d6
+d7d8
+d9d:
+d;d<
+UUIDa
+Instances of the UUID class represent UUIDs as specified in RFC 4122.
+    UUID objects are immutable, hashable, and usable as dictionary keys.
+    Converting a UUID to a string with str() yields something in the form
+    '12345678-1234-1234-1234-123456789abc'.  The UUID constructor accepts
+    five possible forms: a similar string of hexadecimal digits, or a tuple
+    of six integer fields (with 32-bit, 16-bit, 16-bit, 8-bit, 8-bit, and
+    48-bit values respectively) as an argument named 'fields', or a string
+    of 16 bytes (with all the integer fields in big-endian order) as an
+    argument named 'bytes', or a string of 16 bytes (with the first three
+    fields in little-endian order) as an argument named 'bytes_le', or a
+    single 128-bit integer as an argument named 'int'.
+    UUIDs have these read-only attributes:
+        bytes       the UUID as a 16-byte string (containing the six
+                    integer fields in big-endian byte order)
+        bytes_le    the UUID as a 16-byte string (with time_low, time_mid,
+                    and time_hi_version in little-endian byte order)
+        fields      a tuple of the six integer fields of the UUID,
+                    which are also available as six individual attributes
+                    and two derived attributes:
+            time_low                the first 32 bits of the UUID
+            time_mid                the next 16 bits of the UUID
+            time_hi_version         the next 16 bits of the UUID
+            clock_seq_hi_variant    the next 8 bits of the UUID
+            clock_seq_low           the next 8 bits of the UUID
+            node                    the last 48 bits of the UUID
+            time                    the 60-bit timestamp
+            clock_seq               the 14-bit sequence number
+        hex         the UUID as a 32-character hexadecimal string
+        int         the UUID as a 128-bit integer
+        urn         the UUID as a URN as specified in RFC 4122
+        variant     the UUID variant (one of the constants RESERVED_NCS,
+                    RFC_4122, RESERVED_MICROSOFT, or RESERVED_FUTURE)
+        version     the UUID version number (1 through 5, meaningful only
+                    when the variant is RFC_4122)
+        is_safe     An enum indicating whether the UUID has been generated in
+                    a way that is safe for multiprocessing applications, via
+                    uuid_generate_time_safe(3).
+    )
+is_safe
+__weakref__N)
+|	d#>
+rPd&d'>
+)0aL
+Create a UUID from either a string of 32 hexadecimal digits,
+        a string of 16 bytes as the 'bytes' argument, a string of 16 bytes
+        in little-endian order as the 'bytes_le' argument, a tuple of six
+        integers (32-bit time_low, 16-bit time_mid, 16-bit time_hi_version,
+        8-bit clock_seq_hi_variant, 8-bit clock_seq_low, 48-bit node) as
+        the 'fields' argument, or a single 128-bit integer as the 'int'
+        argument.  When a string of hex digits is given, curly braces,
+        hyphens, and a URN prefix are all optional.  For example, these
+        expressions all yield the same UUID:
+        UUID('{12345678-1234-5678-1234-567812345678}')
+        UUID('12345678123456781234567812345678')
+        UUID('urn:uuid:12345678-1234-5678-1234-567812345678')
+        UUID(bytes='\x12\x34\x56\x78'*4)
+        UUID(bytes_le='\x78\x56\x34\x12\x34\x12\x78\x56' +
+                      '\x12\x34\x56\x78\x12\x34\x56\x78')
+        UUID(fields=(0x12345678, 0x1234, 0x5678, 0x12, 0x34, 0x567812345678))
+        UUID(int=0x12345678123456781234567812345678)
+        Exactly one of 'hex', 'bytes', 'bytes_le', 'fields', or 'int' must
+        be given.  The 'version' argument is optional; if given, the resulting
+        UUID will have its variant and version set according to RFC 4122,
+        overriding the given 'hex', 'bytes', 'bytes_le', 'fields', or 'int'.
+        is_safe is an enum exposed as an attribute on the instance.  It
+        indicates whether the UUID has been generated in a way that is safe
+        for multiprocessing applications, via uuid_generate_time_safe(3).
+        N
+zGone of the hex, bytes, bytes_le, fields, or int arguments must be givenz
+urn:
+uuid:z
+z$badly formed hexadecimal UUID string
+z bytes_le is not a 16-char string
+bytes is not a 16-char string
+big)
+	byteorder
+fields is not a 6-tupler
+z*field 1 out of range (need a 32-bit value)i
+z*field 2 out of range (need a 16-bit value)z*field 3 out of range (need a 16-bit value)
+z*field 4 out of range (need an 8-bit value)z*field 5 out of range (need an 8-bit value)
+z*field 6 out of range (need a 48-bit value)
+z*int is out of range (need a 128-bit value)z
+illegal version numberl
+count
+	TypeError
+replace
+strip
+ValueError
+int_
+isinstance
+bytes_
+repr
+from_bytes
+object
+__setattr__)
+self
+bytes
+bytes_le
+fieldsr
+versionr
+time_low
+time_mid
+time_hi_version
+clock_seq_hi_variant
+clock_seq_low
+node
+	clock_seqr
+__init__
+UUID.__init__c
+value)
+__getstate__
+UUID.__getstate__c
+stater
+__setstate__
+UUID.__setstate__c
+NotImplemented
+otherr
+__eq__
+UUID.__eq__c
+__lt__
+UUID.__lt__c
+__gt__
+UUID.__gt__c
+__le__
+UUID.__le__c
+__ge__
+UUID.__ge__c
+hashr
+__hash__
+UUID.__hash__c
+__int__
+UUID.__int__c
+%s(%r))
+	__class__r	
+strrU
+__repr__
+UUID.__repr__c
+UUID objects are immutable)
+namerE
+UUID.__setattr__c
+%032xz
+%s-%s-%s-%s-%sr
+__str__
+UUID.__str__c
+to_bytesrU
+UUID.bytesc
+UUID.bytes_lec
+UUID.fieldsc
+UUID.time_lowc
+UUID.time_midc
+UUID.time_hi_versionc
+UUID.clock_seq_hi_variantc
+UUID.clock_seq_lowc
+time?
+z	UUID.timec
+UUID.clock_seqc
+z	UUID.nodec
+UUID.hexc
+Nz	urn:uuid:)
+urnQ
+UUID.urnc
+RESERVED_NCS
+RFC_4122
+RESERVED_MICROSOFT
+RESERVED_FUTURErU
+variantU
+UUID.variantc
+UUID.version)
+NNNNNN)$r	
+__doc__
+	__slots__r
+propertyr8
+}	|	s
+)	Nr
+PATHz
+/sbinz	/usr/sbin)
+path
+LC_ALL)
+stdout
+stderr
+env)
+shutil
+subprocess
+environ
+defpath
+split
+pathsep
+extendZ
+which
+join
+dict
+Popen
+PIPEZ
+DEVNULLZ
+communicate
+BytesIO
+OSErrorZ
+SubprocessError)
+command
+argsrz
+Z	path_dirs
+executablery
+procrw
+_get_command_stdoutg
+macr
+_is_universal
+r>z"|
+Searches a command's output for a MAC address near a keyword.
+    Each line of words in the output is case-insensitively searched for
+    any of the given keywords.  Upon a match, get_word_index is invoked
+    to pick a word from the line, given the index of the match.  For
+    example, lambda i: 0 would get the first word on the line, while
+    lambda i: i - 1 would get the word preceding the keyword.
+    N
+lower
+rstripr
+ranger-
+_MAC_DELIMr.
+IndexErrorr
+keywordsZ
+get_word_indexrw
+first_local_mac
+line
+words
+wordr
+_find_mac_near_keyword
+partr
+	<genexpr>
+_parse_mac.<locals>.<genexpr>r
+rjustr
+_MAC_OMITS_LEADING_ZEROES
+allr
+partsZ
+hexstrr
+_parse_mac
+Looks for a MAC address under a heading in a command's output.
+    The first line of words in the output is searched for the given
+    heading. Words at the same word index as the heading in subsequent
+    lines are then examined to see if they look like MAC addresses.
+    N)	r
+readliner
+indexr.
+headingrw
+column_indexr
+_find_mac_under_heading
+z5Get the hardware address on Unix by running ifconfig.)
+hwaddrs
+ethers
+address:s
+lladdr)
+-avZ
+ifconfigc
+<lambda>
+z#_ifconfig_getnode.<locals>.<lambda>N
+_ifconfig_getnode
+z/Get the hardware address on Unix by running ip.Z
+links
+link/etherc
+_ip_getnode.<locals>.<lambda>Nr
+_ip_getnode
+z0Get the hardware address on Unix by running arp.r
+arpz
+-anc
+_arp_getnode.<locals>.<lambda>c
+(%s)c
+socketZ
+gethostbynameZ
+gethostnamer
+fsencode)
+ip_addrr
+_arp_getnode
+z4Get the hardware address on Unix by running lanscan.Z
+lanscanz
+-ais
+lan0c
+z"_lanscan_getnode.<locals>.<lambda>r
+_lanscan_getnode%
+z4Get the hardware address on Unix by running netstat.Z
+netstatz
+-ians
+Address)
+_netstat_getnode*
+z1[DEPRECATED] Get the hardware address on Windows.
+_windll_getnoder
+_ipconfig_getnode/
+_netbios_getnode4
+generate_time_safeZ
+UuidCreatec
+z>[DEPRECATED] Platform-specific functions loaded at import timeNr
+_load_system_functionsG
+zBGet the hardware address on Unix using the _uuid extension module.rb
+_generate_time_safer
+	uuid_time
+_unix_getnodeK
+zEGet the hardware address on Windows using the _uuid extension module.)
+_UuidCreater
+uuid_bytesr
+Get a random node ID.r
+random
+getrandbits)
+_random_getnodeW
+posix
+Get the hardware address as a 48-bit positive integer.
+    The first time this runs, it may launch a separate program, which could
+    be quite slow.  If all attempts to obtain the hardware address fail, we
+    choose a random 48-bit number with its eighth bit set to 1 as recommended
+    in RFC 4122.
+    Nr
+Fz,_random_getnode() returned invalid value: {})
+_node
+_GETTERSr
+format)
+getterr
+getnode
+Generate a UUID from a host ID, sequence number, and the current time.
+    If 'node' is not given, getnode() is used to obtain the hardware
+    address.  If 'clock_seq' is given, it is used as the sequence number;
+    otherwise a random 14-bit sequence number is chosen.N)
+time_ns
+_last_timestampr
+safely_generatedr
+nanosecondsZ	timestampr
+uuid1
+zAGenerate a UUID from the MD5 hash of a namespace UUID and a name.r
+utf-8F)
+usedforsecurityNr
+hashlibr
+digestr
+	namespacer\
+uuid3
+Generate a random UUID.r
+urandomr
+uuid4
+zCGenerate a UUID from the SHA-1 hash of a namespace UUID and a name.r
+sha1r
+uuid5
+z$6ba7b810-9dad-11d1-80b4-00c04fd430c8z$6ba7b811-9dad-11d1-80b4-00c04fd430c8z$6ba7b812-9dad-11d1-80b4-00c04fd430c8z$6ba7b814-9dad-11d1-80b4-00c04fd430c8)
+NN)<rp
+enumr
+__author__
+platformZ
+_AIXZ
+_LINUX
+systemZ
+_platform_systemr
+_uuid
+getattrr
+has_uuid_generate_time_safeZ
+_has_uuid_generate_time_safe
+ImportErrorr
+_OS_GETTERSr\
+NAMESPACE_DNSZ
+NAMESPACE_URLZ
+NAMESPACE_OIDZ
+NAMESPACE_X500r
+<module>

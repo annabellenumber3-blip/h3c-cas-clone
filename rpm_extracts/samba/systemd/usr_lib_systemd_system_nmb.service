@@ -1,0 +1,17 @@
+[Unit]
+Description=Samba NMB Daemon
+Documentation=man:nmbd(8) man:samba(7) man:smb.conf(5)
+Wants=network-online.target
+After=network.target network-online.target
+
+[Service]
+Type=notify
+PIDFile=/run/nmbd.pid
+EnvironmentFile=-/etc/sysconfig/samba
+ExecStart=/usr/sbin/nmbd --foreground --no-process-group $NMBDOPTIONS
+ExecReload=/bin/kill -HUP $MAINPID
+LimitCORE=infinity
+Environment=KRB5CCNAME=FILE:/run/samba/krb5cc_samba
+
+[Install]
+WantedBy=multi-user.target

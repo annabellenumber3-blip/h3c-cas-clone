@@ -1,0 +1,521 @@
+m!Z!
+l"m#Z#
+l$m%Z%
+l&m'Z'm(Z(m)Z)m*Z*m+Z+m,Z,m-Z-m.Z.m/Z/
+l0m1Z1m2Z2m3Z3
+l4m5Z5
+l6m7Z7m8Z8
+l9m:Z:m;Z;
+d e;e>
+d!d"
+d"e>
+annotationsN)
+partial)
+dedent)
+	Timedelta)
+Axis
+FrameOrSeries
+FrameOrSeriesUnion
+TimedeltaConvertibleTypes)
+function)
+doc)
+is_datetime64_ns_dtype)
+isna)
+maybe_use_numba)
+zsqrt)	
+_shared_docs
+args_compat
+create_section_header
+kwargs_compat
+numba_notes
+template_header
+template_returns
+template_see_also
+window_agg_numba_parameters)
+BaseIndexer
+ExponentialMovingWindowIndexer
+GroupbyIndexer)
+generate_numba_ewma_func)
+EWMMeanState
+generate_online_numba_ewma_func)
+BaseWindow
+BaseWindowGroupby
+float | None
+float)
+comass
+span
+halflife
+alpha
+returnc
+z8comass, span, halflife, and alpha are mutually exclusiver
+z comass must satisfy: comass >= 0z
+span must satisfy: span >= 1
+z#halflife must satisfy: halflife > 0g
+?z"alpha must satisfy: 0 < alpha <= 1z1Must pass one of comass, span, halflife, or alpha)
+common
+count_not_none
+ValueError
+logr"
+valid_countZ
+decay
+</usr/lib64/python3.9/site-packages/pandas/core/window/ewm.py
+get_center_of_mass6
+'str | np.ndarray | FrameOrSeries | None
+(float | TimedeltaConvertibleTypes | Nonez
+np.ndarray)
+timesr%
+    Return the diff of the times divided by the half-life. These values are used in
+    the calculation of the ewm mean.
+    Parameters
+    ----------
+    times : str, np.ndarray, Series, default None
+        Times corresponding to the observations. Must be monotonically increasing
+        and ``datetime64[ns]`` dtype.
+    halflife : float, str, timedelta, optional
+        Half-life specifying the decay
+    Returns
+    -------
+    np.ndarray
+        Diff of the times divided by the half-life
+    
+dtype)	r-
+asarray
+viewZ
+int64
+float64r"
+value
+diff)
+_timesZ	_halflifer/
+_calculate_deltasW
+d	d	d
+d'd(d)d*
+d,d-
+d'd0d1d*
+d3d4
+d5d6
+d'd7d8d*
+d9d:
+d'd<d=d*
+dNd>d?d
+dAdB
+d'dDdEd*
+dOd>d?dF
+dGdH
+ExponentialMovingWindowa
+    Provide exponential weighted (EW) functions.
+    Available EW functions: ``mean()``, ``var()``, ``std()``, ``corr()``, ``cov()``.
+    Exactly one parameter: ``com``, ``span``, ``halflife``, or ``alpha`` must be
+    provided.
+    Parameters
+    ----------
+    com : float, optional
+        Specify decay in terms of center of mass,
+        :math:`\alpha = 1 / (1 + com)`, for :math:`com \geq 0`.
+    span : float, optional
+        Specify decay in terms of span,
+        :math:`\alpha = 2 / (span + 1)`, for :math:`span \geq 1`.
+    halflife : float, str, timedelta, optional
+        Specify decay in terms of half-life,
+        :math:`\alpha = 1 - \exp\left(-\ln(2) / halflife\right)`, for
+        :math:`halflife > 0`.
+        If ``times`` is specified, the time unit (str or timedelta) over which an
+        observation decays to half its value. Only applicable to ``mean()``
+        and halflife value will not apply to the other functions.
+        .. versionadded:: 1.1.0
+    alpha : float, optional
+        Specify smoothing factor :math:`\alpha` directly,
+        :math:`0 < \alpha \leq 1`.
+    min_periods : int, default 0
+        Minimum number of observations in window required to have a value
+        (otherwise result is NA).
+    adjust : bool, default True
+        Divide by decaying adjustment factor in beginning periods to account
+        for imbalance in relative weightings (viewing EWMA as a moving average).
+        - When ``adjust=True`` (default), the EW function is calculated using weights
+          :math:`w_i = (1 - \alpha)^i`. For example, the EW moving average of the series
+          [:math:`x_0, x_1, ..., x_t`] would be:
+        .. math::
+            y_t = \frac{x_t + (1 - \alpha)x_{t-1} + (1 - \alpha)^2 x_{t-2} + ... + (1 -
+            \alpha)^t x_0}{1 + (1 - \alpha) + (1 - \alpha)^2 + ... + (1 - \alpha)^t}
+        - When ``adjust=False``, the exponentially weighted function is calculated
+          recursively:
+        .. math::
+            \begin{split}
+                y_0 &= x_0\\
+                y_t &= (1 - \alpha) y_{t-1} + \alpha x_t,
+            \end{split}
+    ignore_na : bool, default False
+        Ignore missing values when calculating weights; specify ``True`` to reproduce
+        pre-0.15.0 behavior.
+        - When ``ignore_na=False`` (default), weights are based on absolute positions.
+          For example, the weights of :math:`x_0` and :math:`x_2` used in calculating
+          the final weighted average of [:math:`x_0`, None, :math:`x_2`] are
+          :math:`(1-\alpha)^2` and :math:`1` if ``adjust=True``, and
+          :math:`(1-\alpha)^2` and :math:`\alpha` if ``adjust=False``.
+        - When ``ignore_na=True`` (reproducing pre-0.15.0 behavior), weights are based
+          on relative positions. For example, the weights of :math:`x_0` and :math:`x_2`
+          used in calculating the final weighted average of
+          [:math:`x_0`, None, :math:`x_2`] are :math:`1-\alpha` and :math:`1` if
+          ``adjust=True``, and :math:`1-\alpha` and :math:`\alpha` if ``adjust=False``.
+    axis : {0, 1}, default 0
+        The axis to use. The value 0 identifies the rows, and 1
+        identifies the columns.
+    times : str, np.ndarray, Series, default None
+        .. versionadded:: 1.1.0
+        Times corresponding to the observations. Must be monotonically increasing and
+        ``datetime64[ns]`` dtype.
+        If str, the name of the column in the DataFrame representing the times.
+        If 1-D array like, a sequence with the same shape as the observations.
+        Only applicable to ``mean()``.
+    Returns
+    -------
+    DataFrame
+        A Window sub-classed for the particular operation.
+    See Also
+    --------
+    rolling : Provides rolling window calculations.
+    expanding : Provides expanding transformations.
+    Notes
+    -----
+    More details can be found at:
+    :ref:`Exponentially weighted windows <window.exponentially_weighted>`.
+    Examples
+    --------
+    >>> df = pd.DataFrame({'B': [0, 1, 2, np.nan, 4]})
+    >>> df
+         B
+    0  0.0
+    1  1.0
+    2  2.0
+    3  NaN
+    4  4.0
+    >>> df.ewm(com=0.5).mean()
+              B
+    0  0.000000
+    1  0.750000
+    2  1.615385
+    3  1.615385
+    4  3.670213
+    Specifying ``times`` with a timedelta ``halflife`` when computing mean.
+    >>> times = ['2020-01-01', '2020-01-03', '2020-01-10', '2020-01-15', '2020-01-17']
+    >>> df.ewm(halflife='4 days', times=pd.DatetimeIndex(times)).mean()
+              B
+    0  0.000000
+    1  0.585786
+    2  1.523889
+    3  1.523889
+    4  3.233686
+    )	
+comr$
+min_periods
+adjust
+	ignore_na
+axisr4
+	selectionr
+int | None
+boolr
+objr<
+single)
+center
+closed
+methodr@
+z)times is not supported with adjust=False.z#times must be datetime64[ns] dtype.z,times must be the same length as the object.z6halflife must be a string or datetime.timedelta objectz$Cannot convert NaT values to integerr
+?zKhalflife can only be a timedelta convertible argument if times is not None.r5
+super
+__init__
+intr<
+NotImplementedError
+isinstance
+_selected_objr
+datetimeZ	timedeltar
+anyr:
+_deltasr*
+_comr-
+onesrE
+selfrE
+	__class__r/
+z ExponentialMovingWindow.__init__r
+        Return an indexer class that will compute the window start and end bounds
+        )
+_get_window_indexerS
+z+ExponentialMovingWindow._get_window_indexer
+numbac
+        Return an ``OnlineExponentialMovingWindow`` object to calculate
+        exponentially moving window aggregations in an online method.
+        .. versionadded:: 1.3.0
+        Parameters
+        ----------
+        engine: str, default ``'numba'``
+            Execution engine to calculate online aggregations.
+            Applies to all supported aggregation methods.
+        engine_kwargs : dict, default None
+            Applies to all supported aggregation methods.
+            * For ``'numba'`` engine, the engine can accept ``nopython``, ``nogil``
+              and ``parallel`` dictionary keys. The values must either be ``True`` or
+              ``False``. The default ``engine_kwargs`` for the ``'numba'`` engine is
+              ``{{'nopython': True, 'nogil': False, 'parallel': False}}`` and will be
+              applied to the function
+        Returns
+        -------
+        OnlineExponentialMovingWindow
+        )
+engine
+engine_kwargsrB
+OnlineExponentialMovingWindowrE
+_selection)
+onlineY
+ExponentialMovingWindow.online
+	aggregatezV
+        See Also
+        --------
+        pandas.DataFrame.rolling.aggregate
+        a
+        Examples
+        --------
+        >>> df = pd.DataFrame({"A": [1, 2, 3], "B": [4, 5, 6], "C": [7, 8, 9]})
+        >>> df
+           A  B  C
+        0  1  4  7
+        1  2  5  8
+        2  3  6  9
+        >>> df.ewm(alpha=0.5).mean()
+                  A         B         C
+        0  1.000000  4.000000  7.000000
+        1  1.666667  4.666667  7.666667
+        2  2.428571  5.428571  8.428571
+        z
+Series/Dataframe
+see_alsoZ
+examples
+klassr@
+func
+args
+kwargsrX
+z!ExponentialMovingWindow.aggregateZ
+ParametersZ
+Returnsz
+See AlsoZ
+Notes
+ewmz"(exponential weighted moment) mean
+mean)
+window_methodZ
+aggregation_descriptionZ
+agg_method)
+<lambda>
+z.ExponentialMovingWindow.mean.<locals>.<lambda>
+ewma)
+numba_cache_key)
+cythonNz+cython engine does not accept engine_kwargsrk
+deltasz)engine must be either 'numba' or 'cython')
+_applyr,
+validate_window_funcr
+window_aggregationsro
+	ewma_func
+window_funcr/
+ExponentialMovingWindow.meanzc
+        bias : bool, default False
+            Use a standard estimation bias correction.
+        
+z0(exponential weighted moment) standard deviation
+biasc
+ExponentialMovingWindow.stdc
+NzGvol is deprecated will be removed in a future version. Use std instead.r)
+stacklevel)
+warnings
+warn
+FutureWarningrw
+ExponentialMovingWindow.volz&(exponential weighted moment) variancerz
+valuesZ
+begin
+endr=
+wfuncr/
+var_func
+z-ExponentialMovingWindow.var.<locals>.var_func)	rq
+ewmcovr
+ExponentialMovingWindow.vara
+        other : Series or DataFrame , optional
+            If not supplied then will default to self and produce pairwise
+            output.
+        pairwise : bool, default None
+            If False then only matching columns between self and other will be
+            used and the output will be a DataFrame.
+            If True then all pairwise combinations will be calculated and the
+            output will be a MultiIndex DataFrame in the case of DataFrame
+            inputs. In the case of missing elements, only complete pairwise
+            observations will be used.
+        bias : bool, default False
+            Use a standard estimation bias correction.
+        z/(exponential weighted moment) sample covariance
+FrameOrSeriesUnion | None
+bool | None
+other
+pairwisery
+Seriesc
+num_valuesr=
+index
+name)
+_prep_valuesr\
+window_size
+get_window_boundsrQ
+)	rl
+x_array
+y_array
+window_indexerr=
+startr
+result
+cov_func8
+z-ExponentialMovingWindow.cov.<locals>.cov_func
+pandasr
+_apply_pairwiserP
+ExponentialMovingWindow.covaL
+        other : Series or DataFrame, optional
+            If not supplied then will default to self and produce pairwise
+            output.
+        pairwise : bool, default None
+            If False then only matching columns between self and other will be
+            used and the output will be a DataFrame.
+            If True then all pairwise combinations will be calculated and the
+            output will be a MultiIndex DataFrame in the case of DataFrame
+            inputs. In the case of missing elements, only complete pairwise
+            observations will be used.
+        z0(exponential weighted moment) sample correlation
+corr
+_cov
+z<ExponentialMovingWindow.corr.<locals>.cov_func.<locals>._cov
+ignore)
+allr
+errstater
+x_varZ
+y_varr
+z.ExponentialMovingWindow.corr.<locals>.cov_funcr
+ExponentialMovingWindow.corr)	NNNNr
+NNF)
+__name__
+__module__
+__qualname__
+__doc__
+_attributesrJ
+aggr
+replacerk
+__classcell__r/
+ExponentialMovingWindowGroupbyzF
+    Provide an exponential moving window groupby implementation.
+    N)
+_grouperc
+emptyr4
+concatenate
+listr
+indicesr
+taker%
+groupby_orderrX
+z'ExponentialMovingWindowGroupby.__init__r
+        Return an indexer class that will compute the window start and end bounds
+        Returns
+        -------
+        GroupbyIndexer
+        )
+groupby_indiciesr
+z2ExponentialMovingWindowGroupby._get_window_indexer)
+d d!
+d"d#
+d%d&
+),r`
+TFr]
+dict[str, bool] | None)
+Nz0times is not implemented with online operations.)
+z$'numba' is the only supported engine)
+shape
+_meanr
+z&OnlineExponentialMovingWindow.__init__c
+        Reset the state captured by `update` calls.
+        N)
+resetr[
+z#OnlineExponentialMovingWindow.resetc
+z'OnlineExponentialMovingWindow.aggregaterx
+z!OnlineExponentialMovingWindow.stdr
+z"OnlineExponentialMovingWindow.corrr
+z!OnlineExponentialMovingWindow.covc
+z!OnlineExponentialMovingWindow.var)
+update
+update_timesc
+        Calculate an online exponentially weighted mean.
+        Parameters
+        ----------
+        update: DataFrame or Series, default None
+            New values to continue calculating the
+            exponentially weighted mean from the last values and weights.
+            Values should be float64 dtype.
+            ``update`` needs to be ``None`` the first time the
+            exponentially weighted mean is calculated.
+        update_times: Series or 1-D np.ndarray, default None
+            New times to continue calculating the
+            exponentially weighted mean from the last values and weights.
+            If ``None``, values are assumed to be evenly spaced
+            in time.
+            This feature is currently unsupported.
+        Returns
+        -------
+        DataFrame or Series
+        Examples
+        --------
+        >>> df = pd.DataFrame({"a": range(5), "b": range(5, 10)})
+        >>> online_ewm = df.head(2).ewm(0.5).online()
+        >>> online_ewm.mean()
+              a     b
+        0  0.00  5.00
+        1  0.75  5.75
+        >>> online_ewm.mean(update=df.tail(3))
+                  a         b
+        2  1.615385  6.615385
+        3  2.550000  7.550000
+        4  3.520661  8.520661
+        >>> online_ewm.reset()
+        >>> online_ewm.mean()
+              a     b
+        0  0.00  5.00
+        1  0.75  5.75
+        r)
+TFNz update_times is not implemented.r(
+z;Must call mean with update=None first before passing updater
+columnsr
+ndimrM
+last_ewmr,
+newaxisr
+to_numpyZ
+astyper
+run_ewmr=
+squeezeZ
+_constructor)
+result_kwargsZ
+is_frameZ
+update_deltasZ
+result_from
+last_valueZ
+np_arrayrt
+z"OnlineExponentialMovingWindow.mean)
+NNNNr
+NNF)
+__future__r
+	functoolsr
+textwrapr
+numpyr-
+pandas._libs.tslibsr
+Z pandas._libs.window.aggregationsZ
+_libsZ
+windowZ
+aggregationsrs
+pandas._typingr
+pandas.compat.numpyr
+pandas.util._decoratorsr
+pandas.core.dtypes.commonr
+pandas.core.dtypes.missingr
+pandas.core.commonZ
+corer*
+pandas.core.util.numba_r
+pandas.core.window.commonr
+pandas.core.window.docr
+pandas.core.window.indexersr
+pandas.core.window.numba_r
+pandas.core.window.onliner
+pandas.core.window.rollingr
+<module>

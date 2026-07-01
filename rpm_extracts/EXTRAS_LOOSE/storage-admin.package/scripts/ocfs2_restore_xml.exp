@@ -1,0 +1,46 @@
+#!/usr/bin/expect
+# Author : guozhonghua/02084
+# Date   : 2013-01-06
+# Des    : Add new node into ocfs2 fils system
+# Usage  : server node_name number ip port cluster_name
+# Params :
+#      $0: The host name
+
+# input parameter check
+if {$argc<1} {
+    send_user "usage: $argv0 host\n"
+    exit 11
+}
+
+# get the host name
+set node_name [lindex $argv 0]
+set ssh_user [lindex $argv 1]
+
+# execute the xml query
+spawn -noecho ssh -q $ssh_user\@$node_name sudo ocfs2_restore_xml.sh
+set timeout 200
+expect "*(yes/no)*" {
+    send "yes\r"
+    exp_continue
+} "Permission denied, please try again" {
+    # User name or password error
+    send_user "\n"
+    exit 51
+} "*assword:" {
+    send "password\r"
+    send_user "\n"
+    exit 51
+} "ssh:" {
+    send_user "\n"
+    exit 52
+} "open:" {
+    send_user "\n"
+    exit 52
+} timeout {
+    # send_user "time out, server address or port error"
+    send_user "\n"
+    exit 53
+} eof {
+    send_user "\n"
+    exit 0
+}

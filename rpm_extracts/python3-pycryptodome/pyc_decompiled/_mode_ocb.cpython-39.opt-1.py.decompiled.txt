@@ -1,0 +1,309 @@
+m	Z	
+Offset Codebook (OCB) mode.
+OCB is Authenticated Encryption with Associated Data (AEAD) cipher mode
+designed by Prof. Phillip Rogaway and specified in `RFC7253`_.
+The algorithm provides both authenticity and privacy, it is very efficient,
+it uses only one key and it can be used in online mode (so that encryption
+or decryption can start before the end of the message is available).
+This module implements the third and last variant of OCB (OCB3) and it only
+works in combination with a 128-bit block symmetric cipher, like AES.
+OCB is patented in US but `free licenses`_ exist for software implementations
+meant for non-military purposes.
+Example:
+    >>> from Crypto.Cipher import AES
+    >>> from Crypto.Random import get_random_bytes
+    >>>
+    >>> key = get_random_bytes(32)
+    >>> cipher = AES.new(key, AES.MODE_OCB)
+    >>> plaintext = b"Attack at dawn"
+    >>> ciphertext, mac = cipher.encrypt_and_digest(plaintext)
+    >>> # Deliver cipher.nonce, ciphertext and mac
+    ...
+    >>> cipher = AES.new(key, AES.MODE_OCB, nonce=nonce)
+    >>> try:
+    >>>     plaintext = cipher.decrypt_and_verify(ciphertext, mac)
+    >>> except ValueError:
+    >>>     print "Invalid message"
+    >>> else:
+    >>>     print plaintext
+:undocumented: __package__
+.. _RFC7253: http://www.rfc-editor.org/info/rfc7253
+.. _free licenses: http://web.cs.ucdavis.edu/~rogaway/ocb/license.htm
+	unhexlify)
+bord
+_copy_bytes)
+long_to_bytes
+bytes_to_long)
+strxor)
+BLAKE2s)
+get_random_bytes)
+load_pycryptodome_raw_lib
+VoidPointer
+create_string_buffer
+get_raw_buffer
+SmartPointer
+c_size_t
+c_uint8_ptr
+	is_bufferz
+Crypto.Cipher._raw_ocba
+                                    int OCB_start_operation(void *cipher,
+                                        const uint8_t *offset_0,
+                                        size_t offset_0_len,
+                                        void **pState);
+                                    int OCB_encrypt(void *state,
+                                        const uint8_t *in,
+                                        uint8_t *out,
+                                        size_t data_len);
+                                    int OCB_decrypt(void *state,
+                                        const uint8_t *in,
+                                        uint8_t *out,
+                                        size_t data_len);
+                                    int OCB_update(void *state,
+                                        const uint8_t *in,
+                                        size_t data_len);
+                                    int OCB_digest(void *state,
+                                        uint8_t *tag,
+                                        size_t tag_len);
+                                    int OCB_stop_operation(void *state);
+                                    c
+Z	d d
+OcbModez=Offset Codebook (OCB) mode.
+    :undocumented: __init__
+    c
+}	|	
+t j&
+zFOCB mode is only available for ciphers that operate on 128 bits blocks
+z#Nonce must be at most 15 bytes longz,Nonce must be bytes, bytearray or memoryview
+z+MAC tag must be between 8 and 16 bytes long
+15sB
+Unknown keywords: z)Error %d while instantiating the OCB mode)(Z
+block_size
+ValueErrorr
+nonce
+ranger
+	TypeError
+_mac_len
+_mac_tag
+_cache_A
+_cache_P
+update
+encrypt
+decrypt
+digest
+verify
+_next
+dict
+struct
+packr
+newZ
+MODE_ECBr
+_create_base_cipher
+strr
+_state
+_raw_ocb_libZ
+OCB_start_operation
+getr
+address_ofr
+OCB_stop_operation
+release)
+self
+factoryr%
+mac_lenZ
+cipher_paramsZ
+params_without_keyr
+bottom_bitsZ
+top_bitsZ
+ktop_cipherZ
+ktopZ
+stretchZ
+offset_0Z
+raw_cipher
+result
+=/usr/lib64/python3.9/site-packages/Crypto/Cipher/_mode_ocb.py
+__init__s
+OcbMode.__init__c
+Nz(Error %d while computing MAC in OCB mode)
+OCB_updater9
+assoc_dataZ
+assoc_data_lenr@
+_update
+OcbMode._updatec
+Process the associated data.
+        If there is any associated data, the caller has to invoke
+        this method one or more times, before using
+        ``decrypt`` or ``encrypt``.
+        By *associated data* it is meant any data (e.g. packet headers) that
+        will not be encrypted and will be transmitted in the clear.
+        However, the receiver shall still able to detect modifications.
+        If there is no associated data, this method must not be called.
+        The caller may split associated data in segments of any size, and
+        invoke this method multiple times, each time with the next segment.
+        :Parameters:
+          assoc_data : bytes/bytearray/memoryview
+            A piece of associated data.
+        z<update() can only be called immediately after initializationr
+minr
+filler
+segZ
+update_lenrA
+OcbMode.updatec
+Nz Error %d while %sing in OCB mode)
+in_dataZ
+in_data_len
+trans_func
+trans_desc
+out_datar@
+_transcrypt_aligned
+OcbMode._transcrypt_alignedc
+)	r=
+prefixrG
+Z	trans_lenr@
+_transcrypt
+OcbMode._transcryptNc
+Encrypt the next piece of plaintext.
+        After the entire plaintext has been passed (but before `digest`),
+        you **must** call this method one last time with no arguments to collect
+        the final piece of ciphertext.
+        If possible, use the method `encrypt_and_digest` instead.
+        :Parameters:
+          plaintext : bytes/bytearray/memoryview
+            The next piece of data to encrypt or ``None`` to signify
+            that encryption has finished and that any remaining ciphertext
+            has to be produced.
+        :Return:
+            the ciphertext, as a byte string.
+            Its length may not match the length of the *plaintext*.
+        z@encrypt() can only be called after initialization or an update()Nr.
+OCB_encrypt
+	plaintextrA
+OcbMode.encryptc
+Decrypt the next piece of ciphertext.
+        After the entire ciphertext has been passed (but before `verify`),
+        you **must** call this method one last time with no arguments to collect
+        the remaining piece of plaintext.
+        If possible, use the method `decrypt_and_verify` instead.
+        :Parameters:
+          ciphertext : bytes/bytearray/memoryview
+            The next piece of data to decrypt or ``None`` to signify
+            that decryption has finished and that any remaining plaintext
+            has to be produced.
+        :Return:
+            the plaintext, as a byte string.
+            Its length may not match the length of the *ciphertext*.
+        z@decrypt() can only be called after initialization or an update()Nr/
+OCB_decrypt)
+ciphertextrA
+OcbMode.decryptc
+z+Error %d while computing digest in OCB mode)
+OCB_digestr9
+mac_tagr@
+_compute_mac_tagh
+OcbMode._compute_mac_tagc
+Compute the *binary* MAC tag.
+        Call this method after the final `encrypt` (the one with no arguments)
+        to obtain the MAC tag.
+        The MAC tag is needed by the receiver to determine authenticity
+        of the message.
+        :Return: the MAC, as a byte string.
+        z-digest() cannot be called now for this cipherN)
+OcbMode.digestc
+Compute the *printable* MAC tag.
+        This method is like `digest`.
+        :Return: the MAC, as a hexadecimal string.
+        
+%02x)
+<listcomp>
+z%OcbMode.hexdigest.<locals>.<listcomp>)
+joinr0
+	hexdigest
+OcbMode.hexdigestc
+rrt	d
+Validate the *binary* MAC tag.
+        Call this method after the final `decrypt` (the one with no arguments)
+        to check if the message is authentic and valid.
+        :Parameters:
+          received_mac_tag : bytes/bytearray/memoryview
+            This is the *binary* MAC, as received from the sender.
+        :Raises ValueError:
+            if the MAC does not match. The message has been tampered with
+            or the key is incorrect.
+        z-verify() cannot be called now for this cipherNr
+digest_bitsr
+dataz
+MAC check failed)
+received_mac_tagZ
+secretZ
+mac1Z
+mac2rA
+OcbMode.verifyc
+Validate the *printable* MAC tag.
+        This method is like `verify`.
+        :Parameters:
+          hex_mac_tag : string
+            This is the *printable* MAC, as received from the sender.
+        :Raises ValueError:
+            if the MAC does not match. The message has been tampered with
+            or the key is incorrect.
+        N)
+hex_mac_tagrA
+	hexverify
+OcbMode.hexverifyc
+Encrypt the message and create the MAC tag in one step.
+        :Parameters:
+          plaintext : bytes/bytearray/memoryview
+            The entire message to encrypt.
+        :Return:
+            a tuple with two byte strings:
+            - the encrypted data
+            - the MAC
+        )
+encrypt_and_digest
+OcbMode.encrypt_and_digestc
+Decrypted the message and verify its authenticity in one step.
+        :Parameters:
+          ciphertext : bytes/bytearray/memoryview
+            The entire message to decrypt.
+          received_mac_tag : byte string
+            This is the *binary* MAC, as received from the sender.
+        :Return: the decrypted data (byte string).
+        :Raises ValueError:
+            if the MAC does not match. The message has been tampered with
+            or the key is incorrect.
+        )
+decrypt_and_verify
+OcbMode.decrypt_and_verify)
+__name__
+__module__
+__qualname__
+__doc__rC
+Create a new block cipher, configured in OCB mode.
+    :Parameters:
+      factory : module
+        A symmetric cipher module from `Crypto.Cipher`
+        (like `Crypto.Cipher.AES`).
+    :Keywords:
+      nonce : bytes/bytearray/memoryview
+        A  value that must never be reused for any other encryption.
+        Its length can vary from 1 to 15 bytes.
+        If not specified, a random 15 bytes long nonce is generated.
+      mac_len : integer
+        Length of the MAC, in bytes.
+        It must be in the range ``[8..16]``.
+        The default is 16 (128 bits).
+    Any other keyword will be passed to the underlying block cipher.
+    See the relevant documentation for details (at least ``key`` will need
+    to be present).
+    r%
+Keyword missing: )
+KeyErrorr(
+kwargsr%
+_create_ocb_cipher
+binasciir
+Crypto.Util.py3compatr
+Crypto.Util.numberr
+Crypto.Util.strxorr
+Crypto.Hashr
+Crypto.Randomr	
+Crypto.Util._raw_apir
+objectr
+<module>

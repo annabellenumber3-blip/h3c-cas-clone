@@ -1,0 +1,301 @@
+e	j#e
+e	j#e
+e	j#e
+d d!
+Z&d"Z'd#
+Z)d%
+Z*d&e*
+d'e)
+Z+d)
+d*d+
+Z-d8d-d.
+e	j#e
+d2d3
+d4d5
+d5e	j#
+d6d7
+d7e	j#
+NamedTuple
+Optional
+Tuple
+Union)
+assume
+strategies
+InvalidArgument)
+utils)
+check_function)
+check_type
+check_valid_interval)
+defines_strategy)
+UniqueIdentifier
+not_set)
+NDIM_MAX
+Shape
+BroadcastableShapes
+BasicIndex
+check_argument
+order_check
+check_valid_dims
+array_shapes
+valid_tuple_axes
+broadcastable_shapes
+mutually_broadcastable_shapes
+#MutuallyBroadcastableShapesStrategy
+BasicIndexStrategy.Z
+ellipsisc
+input_shapes
+result_shapeN
+__name__
+__module__
+__qualname__r
+__annotations__
+C/usr/lib/python3.9/site-packages/hypothesis/extra/_array_helpers.pyr
+format)
+Z	conditionZ
+fail_messageZ
+f_argsZ
+f_kwargsr%
+min_z
+ must be at least z	 but was 
+ is larger than max_r
+nameZ
+floorr)
+max_r%
+z8, but Hypothesis does not support arrays with more than z
+ dimensions)
+dimsr+
+min_dims
+max_dims
+min_side
+max_side)
+returnc
+Return a strategy for array shapes (tuples of int >= 1).
+    * ``min_dims`` is the smallest length that the generated shape can possess.
+    * ``max_dims`` is the largest length that the generated shape can possess,
+      defaulting to ``min_dims + 2``.
+    * ``min_side`` is the smallest size that a dimension can possess.
+    * ``max_side`` is the largest size that a dimension can possess,
+      defaulting to ``min_side + 5``.
+    r0
+side
+min_size
+max_size)
+intr
+minr
+lists
+integers
+tupler/
+ndimr9
+All tuples will have a length >= ``min_size`` and <= ``max_size``. The default
+    value for ``max_size`` is ``ndim``.
+    Examples from this strategy shrink towards an empty tuple, which render most
+    sequential functions as no-ops.
+    The following are some examples drawn from this strategy.
+    .. code-block:: pycon
+      >>> [valid_tuple_axes(3).example() for i in range(4)]
+      [(-3, 1), (0, 1, -1), (0, 2), (0, -2, 2)]
+    ``valid_tuple_axes`` can be joined with other strategies to generate
+    any type of valid axis object, i.e. integers, tuples, and ``None``:
+    .. code-block:: python
+      any_axis_strategy = none() | integers(-ndim, ndim - 1) | valid_tuple_axes(ndim)
+    rB
+sizer
+<lambda>
+z"valid_tuple_axes.<locals>.<lambda>c
+Z	unique_by)
+maxr@
+axesr%
+shaper0
+}	|	
+Return a strategy for shapes that are broadcast-compatible with the
+    provided shape.
+    Examples from this strategy shrink towards a shape with length ``min_dims``.
+    The size of an aligned dimension shrinks towards size ``1``. The size of an
+    unaligned dimension shrink towards ``min_side``.
+    * ``shape`` is a tuple of integers.
+    * ``min_dims`` is the smallest length that the generated shape can possess.
+    * ``max_dims`` is the largest length that the generated shape can possess,
+      defaulting to ``max(len(shape), min_dims) + 2``.
+    * ``min_side`` is the smallest size that an unaligned dimension can possess.
+    * ``max_side`` is the largest size that an unaligned dimension can possess,
+      defaulting to 2 plus the size of the largest aligned dimension.
+    The following are some examples drawn from this strategy.
+    .. code-block:: pycon
+        >>> [broadcastable_shapes(shape=(2, 3)).example() for i in range(5)]
+        [(1, 3), (), (2, 3), (2, 1), (4, 1, 3), (3, )]
+    rJ
+	<genexpr>
+z'broadcastable_shapes.<locals>.<genexpr>
+Given shape=
+9, there are no broadcast-compatible shapes that satisfy: r*
+ and min_side=r.
+Given base_shape=
+?, there are no broadcast-compatible shapes that satisfy all of 
+, min_side=
+, and max_side=)
+num_shapes
+base_shaper0
+z&broadcastable_shapes.<locals>.<lambda>)
+lenr
+allr	
+ranger
+strict_checkr-
+bound_name
+\w+\??z
+\((?:{0}(?:,{0})z
+{0,31})?\)z
+{0}(?:,{0})*
+^{0}->{0}$c
+_GUfuncSig.r
+]t}	|	D
+Hypothesis does not yet support generalised ufunc signatures with multiple output arrays - mostly because we don't know of anyone who uses them!  Please get in touch with us to fix that.
+ (signature=
+)zd^\((?:\w+(?:,\w+)*)?\)(?:,\((?:\w+(?:,\w+)*)?\))*->\((?:\w+(?:,\w+)*)?\)(?:,\((?:\w+(?:,\w+)*)?\))*$z
+signature=zQ matches Numpy's regex for gufunc signatures, but contains shapes with more than z  dimensions and is thus invalid.z  is not a valid gufunc signaturec
+findall
+_DIMENSION)
+z?_hypothesis_parse_gufunc_signature.<locals>.<genexpr>.<genexpr>N)
+_SHAPE)
+arg_listr%
+z5_hypothesis_parse_gufunc_signature.<locals>.<genexpr>rd
+Got dimension %r, but handling of frozen optional dimensions is ambiguous.  If you known how this should work, please contact us to get this fixed and documented (signature=%r).zsThe %r dimension only appears in the output shape, and is not frozen, so the size is not determined (signature=%r).c
+strip)
+shpra
+	<setcomp>M
+z5_hypothesis_parse_gufunc_signature.<locals>.<setcomp>c
+match
+_SIGNATURE
+_SIGNATURE_MULTIPLE_OUTPUTr	
+splitr[
+ValueErrorrf
+	signatureZ
+all_checksr
+output_shapesr
+frozen_optional_errZ
+only_out_errZ
+names_inZ	names_outrJ
+"_hypothesis_parse_gufunc_signature!
+}	n\t
+)"a]
+Return a strategy for a specified number of shapes N that are
+    mutually-broadcastable with one another and with the provided base shape.
+    * ``num_shapes`` is the number of mutually broadcast-compatible shapes to generate.
+    * ``base_shape`` is the shape against which all generated shapes can broadcast.
+      The default shape is empty, which corresponds to a scalar and thus does
+      not constrain broadcasting at all.
+    * ``min_dims`` is the smallest length that the generated shape can possess.
+    * ``max_dims`` is the largest length that the generated shape can possess,
+      defaulting to ``max(len(shape), min_dims) + 2``.
+    * ``min_side`` is the smallest size that an unaligned dimension can possess.
+    * ``max_side`` is the largest size that an unaligned dimension can possess,
+      defaulting to 2 plus the size of the largest aligned dimension.
+    The strategy will generate a :obj:`python:typing.NamedTuple` containing:
+    * ``input_shapes`` as a tuple of the N generated shapes.
+    * ``result_shape`` as the resulting shape produced by broadcasting the N shapes
+      with the base shape.
+    The following are some examples drawn from this strategy.
+    .. code-block:: pycon
+        >>> # Draw three shapes where each shape is broadcast-compatible with (2, 3)
+        ... strat = mutually_broadcastable_shapes(num_shapes=3, base_shape=(2, 3))
+        >>> for _ in range(5):
+        ...     print(strat.example())
+        BroadcastableShapes(input_shapes=((4, 1, 3), (4, 2, 3), ()), result_shape=(4, 2, 3))
+        BroadcastableShapes(input_shapes=((3,), (1, 3), (2, 3)), result_shape=(2, 3))
+        BroadcastableShapes(input_shapes=((), (), ()), result_shape=(2, 3))
+        BroadcastableShapes(input_shapes=((3,), (), (3,)), result_shape=(2, 3))
+        BroadcastableShapes(input_shapes=((1, 2, 3), (3,), ()), result_shape=(1, 2, 3))
+    zGPass either the `num_shapes` or the `signature` argument, but not both.rY
+zjExpected a string, but got invalid signature=None.  (maybe .signature attribute of an element-wise ufunc?)rz
+z0mutually_broadcastable_shapes.<locals>.<genexpr>r.
+num_shapes=z
+ must be at least 1rZ
+z	max_dims=z
+ would exceed the zD-dimensionlimit Hypothesis imposes on array shapes, given signature=c
+isinstancer	
+strr{
+arg_msgZ
+parsed_signatureZ
+sig_dimsZ
+all_shapesr_
+super
+__init__rZ
+side_stratrY
+size_one_allowed)
+selfrY
+	__class__r%
+z,MutuallyBroadcastableShapesStrategy.__init__c
+)	Nc
+<listcomp>
+z?MutuallyBroadcastableShapesStrategy.do_draw.<locals>.<listcomp>)
+usec
+zQMutuallyBroadcastableShapesStrategy.do_draw.<locals>.add_shape.<locals>.<genexpr>)
+loopZ
+corer%
+	add_shape
+z>MutuallyBroadcastableShapesStrategy.do_draw.<locals>.add_shapec
+l_in
+z>MutuallyBroadcastableShapesStrategy.do_draw.<locals>.<genexpr>rt
+_draw_loop_dimensions
+_draw_core_dimensionsr
+dataZ
+core_inZ
+core_resr
+loop_inZ
+loop_resr%
+do_draw
+z+MutuallyBroadcastableShapesStrategy.do_drawc
+zLMutuallyBroadcastableShapesStrategy._draw_core_dimensions.<locals>.<genexpr>)
+append
+isdigitr;
+drawr
+Z	draw_bitsrA
+shapesrJ
+dimr%
+z9MutuallyBroadcastableShapesStrategy._draw_core_dimensionsc
+zMMutuallyBroadcastableShapesStrategy._draw_loop_dimensions.<locals>.<listcomp>c
+boolr
+zLMutuallyBroadcastableShapesStrategy._draw_loop_dimensions.<locals>.<genexpr>r.
+reversed)
+listr^
+sorted
+	enumerater
+sampled_fromr0
+biased_coinr
+anyrI
+Z	dim_countr
+dim_sideZ
+allowed_sidesZ
+shape_idrJ
+z9MutuallyBroadcastableShapesStrategy._draw_loop_dimensions)
+__classcell__r%
+allow_ellipsis
+allow_newaxis
+allow_fewer_indices_than_dims)
+BasicIndexStrategy.__init__c
+slice)
+idxr%
+z-BasicIndexStrategy.do_draw.<locals>.<genexpr>rQ
+slicesr
+sumr
+booleansr[
+insertr
+Ellipsisr
+poprA
+resultZ
+dim_sizeZ
+strategyZ
+result_dims
+BasicIndexStrategy.do_drawN)
+T)3rh
+typingr
+hypothesisr
+hypothesis.errorsr	
+hypothesis.internal.conjecturer
+hypothesis.internal.coverager
+hypothesis.internal.validationr
+Z%hypothesis.strategies._internal.utilsr
+hypothesis.utils.conventionsr
+__all__r;
+SearchStrategyr
+_ARGUMENT_LISTrv
+<module>

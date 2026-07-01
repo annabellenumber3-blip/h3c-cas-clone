@@ -1,0 +1,382 @@
+Z$d.d d!
+Z%d"d#
+d$d%
+a*d&d'
+Z+d(d)
+d*d+
+d,d-
+)/a-	
+Implements ProcessPoolExecutor.
+The following diagram and text describe the data-flow through the system:
+|======================= In-process =====================|== Out-of-process ==|
++----------+     +----------+       +--------+     +-----------+    +---------+
+|          |  => | Work Ids |       |        |     | Call Q    |    | Process |
+|          |     +----------+       |        |     +-----------+    |  Pool   |
+|          |     | ...      |       |        |     | ...       |    +---------+
+|          |     | 6        |    => |        |  => | 5, call() | => |         |
+|          |     | 7        |       |        |     | ...       |    |         |
+| Process  |     | ...      |       | Local  |     +-----------+    | Process |
+|  Pool    |     +----------+       | Worker |                      |  #1..n  |
+| Executor |                        | Thread |                      |         |
+|          |     +----------- +     |        |     +-----------+    |         |
+|          | <=> | Work Items | <=> |        | <=  | Result Q  | <= |         |
+|          |     +------------+     |        |     +-----------+    |         |
+|          |     | 6: call()  |     |        |     | ...       |    |         |
+|          |     |    future  |     |        |     | 4, result |    |         |
+|          |     | ...        |     |        |     | 3, except |    |         |
++----------+     +------------+     +--------+     +-----------+    +---------+
+Executor.submit() called:
+- creates a uniquely numbered _WorkItem and adds it to the "Work Items" dict
+- adds the id of the _WorkItem to the "Work Ids" queue
+Local worker thread:
+- reads work ids from the "Work Ids" queue and looks up the corresponding
+  WorkItem from the "Work Items" dict: if the work item has been cancelled then
+  it is simply removed from the dict, otherwise it is repackaged as a
+  _CallItem and put in the "Call Q". New _CallItems are put in the "Call Q"
+  until "Call Q" is full. NOTE: the size of the "Call Q" is kept small because
+  calls placed in the "Call Q" can no longer be cancelled with Future.cancel().
+- reads _ResultItems from "Result Q", updates the future stored in the
+  "Work Items" dict and deletes the dict entry
+Process #1..n:
+- reads _CallItems from "Call Q", executes the calls, and puts the resulting
+  _ResultItems in "Result Q"
+z"Brian Quinlan (brian@sweetapp.com)
+_base)
+Queue)
+partialFc
+_ThreadWakeupc
+duplex)
+_closed
+Pipe
+_reader
+_writer
+self
+2/usr/lib64/python3.9/concurrent/futures/process.py
+__init__C
+_ThreadWakeup.__init__c
+closer
+_ThreadWakeup.closec
+send_bytesr
+wakeupM
+_ThreadWakeup.wakeupc
+pollZ
+recv_bytesr
+clearQ
+_ThreadWakeup.clearN)
+__name__
+__module__
+__qualname__r
+_global_shutdown
+list
+_threads_wakeups
+itemsr
+join)
+thread_wakeup
+_python_exitW
+_RemoteTracebackc
+_RemoteTraceback.__init__c
+__str__y
+_RemoteTraceback.__str__N)
+_ExceptionWithTracebackc
+%s""")
+	traceback
+format_exception
+typer
+excr%
+z _ExceptionWithTraceback.__init__c
+_rebuild_excr,
+__reduce__
+z"_ExceptionWithTraceback.__reduce__N)
+	__cause__)
+	_WorkItemc
+future
+args
+kwargs)
+_WorkItem.__init__N
+_ResultItemNc
+work_id
+	exception
+result)
+_ResultItem.__init__)
+NNr5
+	_CallItemc
+_CallItem.__init__Nr5
+_SafeQueuez=Safe Queue set exception to the future object linked to a jobr
+ctx)
+pending_work_items
+shutdown_lockr
+superr
+max_sizer<
+	__class__r
+_SafeQueue.__init__c
+{}"""r(
+isinstancer:
+__traceback__r#
+formatr
+popr7
+set_exceptionr?
+_on_queue_feeder_error)
+objr%
+	work_itemrA
+z!_SafeQueue._on_queue_feeder_error)
+__doc__r
+__classcell__r
+z, Iterates over zip()ed iterables in chunks. N)
+tuple
+	itertools
+islice)
+	chunksize
+	iterables
+chunkr
+_get_chunks
+ Processes a chunk of an iterable passed to map.
+    Runs the function passed to map() on a chunk of the
+    iterable passed to map.
+    This function is run in a separate process.
+    c
+.0r3
+<listcomp>
+z"_process_chunk.<locals>.<listcomp>r
+_process_chunk
+z.Safely send back the given result or exception)
+putr6
+BaseExceptionr'
+result_queuer7
+_sendback_result
+Evaluates calls from call_queue and places the results in result_queue.
+    This worker is run in a separate process.
+    Args:
+        call_queue: A ctx.Queue of _CallItems that will be read and
+            evaluated by the worker.
+        result_queue: A ctx.Queue of _ResultItems that will written
+            to by the worker.
+        initializer: A callable initializer, or None
+        initargs: A tuple of args for the initializer
+    Nz
+Exception in initializer:T)
+exc_info
+blockr[
+LOGGERZ
+critical
+getr\
+getpidr2
+call_queuer^
+initializer
+initargsZ	call_item
+_process_worker
+_ExecutorManagerThreadat
+Manages the communication between this process and the worker processes.
+    The manager is run in a local thread.
+    Args:
+        executor: A reference to the ProcessPoolExecutor that owns
+            this thread. A weakref will be own by the manager as well as
+            references to internal objects used to introspect the state of
+            the executor.
+    c
+Nz?Executor collected: triggering callback for QueueManager wakeup)
+util
+debugr
+weakref_cb
+z3_ExecutorManagerThread.__init__.<locals>.weakref_cb)
+_executor_manager_thread_wakeupr
+_shutdown_lockr>
+weakref
+executor_reference
+_processes
+	processes
+_call_queuerf
+_result_queuer^
+	_work_ids
+work_ids_queue
+_pending_work_itemsr=
+executorrn
+_ExecutorManagerThread.__init__c
+add_call_item_to_queue
+wait_result_broken_or_wakeup
+terminate_broken
+process_result_itemrs
+_idle_worker_semaphore
+release
+is_shutting_down
+flag_executor_shutting_downr=
+join_executor_internals)
+result_item
+	is_broken
+causer{
+run7
+_ExecutorManagerThread.runc
+NFra
+fullry
+queue
+Emptyr=
+set_running_or_notify_cancelr\
+z-_ExecutorManagerThread.add_call_item_to_queuec
+|	|	j
+}	~	q
+}	~	0
+sentinel
+zG_ExecutorManagerThread.wait_result_broken_or_wakeup.<locals>.<listcomp>TF)
+valuesr
+connection
+waitZ
+recvr]
+result_readerZ
+wakeup_readerZ
+readersZ
+worker_sentinelsZ
+readyr
+z3_ExecutorManagerThread.wait_result_broken_or_wakeupc
+j	rl|
+intr
+set_resultr9
+z*_ExecutorManagerThread.process_result_itemc
+_shutdown_thread)
+z'_ExecutorManagerThread.is_shutting_downc
+NzKA child process terminated abruptly, the process pool is not usable anymoreTz^A process in the process pool was terminated abruptly while the future was running or pending.z
+''')
+_brokenr
+BrokenProcessPoolr#
+Z	terminater
+bper7
+z'_ExecutorManagerThread.terminate_brokenc
+NTF)
+_cancel_pending_futuresr=
+cancelry
+get_nowaitr
+new_pending_work_itemsr7
+z2_ExecutorManagerThread.flag_executor_shutting_downc
+get_n_children_alive
+rangerf
+put_nowaitr
+Full)
+n_children_to_stopZ
+n_sentinels_sent
+shutdown_workers
+z'_ExecutorManagerThread.shutdown_workersc
+join_threadr>
+z._ExecutorManagerThread.join_executor_internalsc
+is_aliver
+	<genexpr>
+z>_ExecutorManagerThread.get_n_children_alive.<locals>.<genexpr>)
+sumru
+z+_ExecutorManagerThread.get_n_children_alive)
+SC_SEM_NSEMS_MAX
+z@system provides too few semaphores (%d available, 256 necessary))
+_system_limits_checked
+_system_limited
+NotImplementedErrorrd
+sysconf
+AttributeError
+ValueError)
+Z	nsems_maxr
+_check_system_limits
+    Specialized implementation of itertools.chain.from_iterable.
+    Each item in *iterable* should be a list.  This function is
+    careful not to keep references to yielded objects.
+    N)
+reverserF
+iterableZ
+elementr
+_chain_from_iterable_of_lists)
+    Raised when a process in a ProcessPoolExecutor terminated abruptly
+    while a future was in the running state.
+    N)
+ProcessPoolExecutorNr
+r~t	
+j _!|
+_#t$
+Initializes a new ProcessPoolExecutor instance.
+        Args:
+            max_workers: The maximum number of processes that can be used to
+                execute the given calls. If None or not given then as many
+                worker processes will be created as the machine has processors.
+            mp_context: A multiprocessing context to launch the workers. This
+                object should provide SimpleQueue, Queue and Process.
+            initializer: A callable used to initialize worker processes.
+            initargs: A tuple of arguments to pass to the initializer.
+        Nr!
+win32r
+z"max_workers must be greater than 0z
+max_workers must be <= z
+initializer must be a callableF)
+T)'r
+	cpu_count
+_max_workers
+platform
+_MAX_WINDOWS_WORKERSr
+get_context
+_mp_context
+callable
+	TypeError
+_initializer
+	_initargs
+_executor_manager_threadrt
+	threadingZ
+Lockrp
+Z	Semaphorer
+_queue_countrz
+EXTRA_QUEUED_CALLSr;
+_ignore_epipeZ
+SimpleQueuerw
+max_workersZ
+mp_contextrg
+queue_sizer
+ProcessPoolExecutor.__init__c
+startro
+_start_executor_manager_thread
+z2ProcessPoolExecutor._start_executor_manager_threadc
+blocking)
+targetr3
+acquire
+lenrt
+Processrj
+pid)
+process_countr
+_adjust_process_count
+z)ProcessPoolExecutor._adjust_process_countc
+Nz*cannot schedule new futures after shutdownz6cannot schedule new futures after interpreter shutdownr!
+RuntimeErrorr
+Futurer0
+submit
+ProcessPoolExecutor.submitr!
+timeoutrR
+Returns an iterator equivalent to map(fn, iter).
+        Args:
+            fn: A callable that will take as many arguments as there are
+                passed iterables.
+            timeout: The maximum number of seconds to wait. If None, then there
+                is no limit on the wait time.
+            chunksize: If greater than one, the iterables will be chopped into
+                chunks of size chunksize and submitted to the process pool.
+                If set to one, the items in the list will be sent one at a time.
+        Returns:
+            An iterator equivalent to: map(func, *iterables) but the calls may
+            be evaluated out-of-order.
+        Raises:
+            TimeoutError: If the entire result iterator could not be generated
+                before the given timeout.
+            Exception: If fn(*args) raises for any values.
+        r!
+chunksize must be >= 1.rR
+mapr
+resultsrA
+ProcessPoolExecutor.mapTF)
+cancel_futuresc
+shutdown
+ProcessPoolExecutor.shutdown)
+NNNr
+ExecutorrL
+NN)1rL
+__author__rd
+concurrent.futuresr
+multiprocessingr
+multiprocessing.connectionZ
+multiprocessing.queuesr
+	functoolsr
+WeakKeyDictionaryr
+_register_atexitr
+	Exceptionr#
+objectr0
+Threadrk
+BrokenExecutorr
+<module>

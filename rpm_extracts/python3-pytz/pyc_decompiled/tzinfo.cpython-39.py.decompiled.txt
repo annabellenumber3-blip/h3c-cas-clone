@@ -1,0 +1,309 @@
+zBBase classes and helpers for building zone specific tzinfo classes
+datetime
+	timedelta
+tzinfo)
+bisect_right)
+SetN)
+AmbiguousTimeError
+NonExistentTimeErrorc
+z3Create only one instance of each distinct timedelta
+secondsN)
+_timedelta_cache
+KeyErrorr
+delta
+//usr/lib/python3.9/site-packages/pytz/tzinfo.py
+memorized_timedelta
+z2Create only one instance of each distinct datetimer	
+_datetime_cacher
+_epochr
+memorized_datetime
+z/Create only one instance of each distinct tupler
+_ttinfo_cacher
+argsZ
+ttinfor
+memorized_ttinfo-
+Convert a timedelta to seconds
+days)
+_to_seconds=
+BaseTzInfoNc
+zone
+selfr
+__str__H
+BaseTzInfo.__str__)
+__name__
+__module__
+__qualname__
+_utcoffset
+_tznamer!
+StaticTzInfoz
+A timezone that has a constant offset from UTC
+    These timezones are rare, as most locations have changed their
+    offset at some point in their history
+    c
+See datetime.tzinfo.fromutcN
+fromutc: dt.tzinfo is not self
+ValueErrorr(
+replace)
+fromutcR
+StaticTzInfo.fromutcNc
+See datetime.tzinfo.utcoffset
+        is_dst is ignored for StaticTzInfo, and exists only to
+        retain compatibility with DstTzInfo.
+        )
+is_dstr
+	utcoffsetX
+StaticTzInfo.utcoffsetc
+See datetime.tzinfo.dst
+        is_dst is ignored for StaticTzInfo, and exists only to
+        retain compatibility with DstTzInfo.
+        )
+_notimer1
+dst`
+StaticTzInfo.dstc
+See datetime.tzinfo.tzname
+        is_dst is ignored for StaticTzInfo, and exists only to
+        retain compatibility with DstTzInfo.
+        )
+tznameh
+StaticTzInfo.tznameFc
+z Convert naive time to local timeN
+*Not naive datetime (tzinfo is already set)r-
+localizep
+StaticTzInfo.localizec
+Correct the timezone information on the given datetime.
+        This is normally a no-op, as StaticTzInfo timezones never have
+        ambiguous cases to correct:
+        >>> from pytz import timezone
+        >>> gmt = timezone('GMT')
+        >>> isinstance(gmt, StaticTzInfo)
+        True
+        >>> dt = datetime(2011, 5, 8, 1, 2, 3, tzinfo=gmt)
+        >>> gmt.normalize(dt) is dt
+        True
+        The supported method of converting between timezones is to use
+        datetime.astimezone(). Currently normalize() also works:
+        >>> la = timezone('America/Los_Angeles')
+        >>> dt = la.localize(datetime(2011, 5, 7, 1, 2, 3))
+        >>> fmt = '%Y-%m-%d %H:%M:%S %Z (%z)'
+        >>> gmt.normalize(dt).strftime(fmt)
+        '2011-05-07 08:02:03 GMT (+0000)'
+        N
+Naive time - no tzinfo set)
+astimezoner1
+	normalizev
+StaticTzInfo.normalizec
+<StaticTzInfo %r>r 
+__repr__
+StaticTzInfo.__repr__c
+pytz
+_pr!
+__reduce__
+StaticTzInfo.__reduce__)
+__doc__r0
+	DstTzInfoz
+A timezone that has a variable offset from UTC
+    The offset might change if daylight saving time comes into effect,
+    or at a point in history when the region decides to change their
+    timezone definition.
+    Nc
+_tzinfosr(
+_dstr)
+_transition_info
+	__class__)
+_infrA
+infr
+__init__
+DstTzInfo.__init__c
+getattrrA
+maxr
+_utc_transition_timesrC
+idxrE
+DstTzInfo.fromutcc
+Correct the timezone information on the given datetime
+        If date arithmetic crosses DST boundaries, the tzinfo
+        is not magically adjusted. This method normalizes the
+        tzinfo to the correct one.
+        To test, first we need to do some setup
+        >>> from pytz import timezone
+        >>> utc = timezone('UTC')
+        >>> eastern = timezone('US/Eastern')
+        >>> fmt = '%Y-%m-%d %H:%M:%S %Z (%z)'
+        We next create a datetime right on an end-of-DST transition point,
+        the instant when the wallclocks are wound back one hour.
+        >>> utc_dt = datetime(2002, 10, 27, 6, 0, 0, tzinfo=utc)
+        >>> loc_dt = utc_dt.astimezone(eastern)
+        >>> loc_dt.strftime(fmt)
+        '2002-10-27 01:00:00 EST (-0500)'
+        Now, if we subtract a few minutes from it, note that the timezone
+        information has not changed.
+        >>> before = loc_dt - timedelta(minutes=10)
+        >>> before.strftime(fmt)
+        '2002-10-27 00:50:00 EST (-0500)'
+        But we can fix that by calling the normalize method
+        >>> before = eastern.normalize(before)
+        >>> before.strftime(fmt)
+        '2002-10-27 01:50:00 EDT (-0400)'
+        The supported method of converting between timezones is to use
+        datetime.astimezone(). Currently, normalize() also works:
+        >>> th = timezone('Asia/Bangkok')
+        >>> am = timezone('Europe/Amsterdam')
+        >>> dt = th.localize(datetime(2011, 5, 7, 1, 2, 3))
+        >>> fmt = '%Y-%m-%d %H:%M:%S %Z (%z)'
+        >>> am.normalize(dt).strftime(fmt)
+        '2011-05-06 20:02:03 CEST (+0200)'
+        Nr9
+offsetr
+DstTzInfo.normalizeFc
+rF|	d
+Convert naive time to local time.
+        This method should be used to construct localtimes, rather
+        than passing a tzinfo argument to a datetime constructor.
+        is_dst is used to determine the correct timezone in the ambigous
+        period at the end of daylight saving time.
+        >>> from pytz import timezone
+        >>> fmt = '%Y-%m-%d %H:%M:%S %Z (%z)'
+        >>> amdam = timezone('Europe/Amsterdam')
+        >>> dt  = datetime(2004, 10, 31, 2, 0, 0)
+        >>> loc_dt1 = amdam.localize(dt, is_dst=True)
+        >>> loc_dt2 = amdam.localize(dt, is_dst=False)
+        >>> loc_dt1.strftime(fmt)
+        '2004-10-31 02:00:00 CEST (+0200)'
+        >>> loc_dt2.strftime(fmt)
+        '2004-10-31 02:00:00 CET (+0100)'
+        >>> str(loc_dt2 - loc_dt1)
+        '1:00:00'
+        Use is_dst=None to raise an AmbiguousTimeError for ambiguous
+        times at the end of daylight saving time
+        >>> try:
+        ...     loc_dt1 = amdam.localize(dt, is_dst=None)
+        ... except AmbiguousTimeError:
+        ...     print('Ambiguous')
+        Ambiguous
+        is_dst defaults to False
+        >>> amdam.localize(dt) == amdam.localize(dt, False)
+        True
+        is_dst is also used to determine the correct timezone in the
+        wallclock times jumped over at the start of daylight saving time.
+        >>> pacific = timezone('US/Pacific')
+        >>> dt = datetime(2008, 3, 9, 2, 0, 0)
+        >>> ploc_dt1 = pacific.localize(dt, is_dst=True)
+        >>> ploc_dt2 = pacific.localize(dt, is_dst=False)
+        >>> ploc_dt1.strftime(fmt)
+        '2008-03-09 02:00:00 PDT (-0700)'
+        >>> ploc_dt2.strftime(fmt)
+        '2008-03-09 02:00:00 PST (-0800)'
+        >>> str(ploc_dt2 - ploc_dt1)
+        '1:00:00'
+        Use is_dst=None to raise a NonExistentTimeError for these skipped
+        times.
+        >>> try:
+        ...     loc_dt1 = pacific.localize(dt, is_dst=None)
+        ... except NonExistentTimeError:
+        ...     print('Non-existent')
+        Non-existent
+        Nr7
+hoursT
+boolr
+<listcomp>o
+z&DstTzInfo.localize.<locals>.<listcomp>)
+setr
+popr
+listr(
+min)
+possible_loc_dtr
+loc_dtrJ
+filtered_possible_loc_dtZ
+datesZ
+local_dtZ
+utc_timer
+DstTzInfo.localizec
+See datetime.tzinfo.utcoffset
+        The is_dst parameter may be used to remove ambiguity during DST
+        transitions.
+        >>> from pytz import timezone
+        >>> tz = timezone('America/St_Johns')
+        >>> ambiguous = datetime(2009, 10, 31, 23, 30)
+        >>> str(tz.utcoffset(ambiguous, is_dst=False))
+        '-1 day, 20:30:00'
+        >>> str(tz.utcoffset(ambiguous, is_dst=True))
+        '-1 day, 21:30:00'
+        >>> try:
+        ...     tz.utcoffset(ambiguous)
+        ... except AmbiguousTimeError:
+        ...     print('Ambiguous')
+        Ambiguous
+        N)
+DstTzInfo.utcoffsetc
+See datetime.tzinfo.dst
+        The is_dst parameter may be used to remove ambiguity during DST
+        transitions.
+        >>> from pytz import timezone
+        >>> tz = timezone('America/St_Johns')
+        >>> normal = datetime(2009, 9, 1)
+        >>> str(tz.dst(normal))
+        '1:00:00'
+        >>> str(tz.dst(normal, is_dst=False))
+        '1:00:00'
+        >>> str(tz.dst(normal, is_dst=True))
+        '1:00:00'
+        >>> ambiguous = datetime(2009, 10, 31, 23, 30)
+        >>> str(tz.dst(ambiguous, is_dst=False))
+        '0:00:00'
+        >>> str(tz.dst(ambiguous, is_dst=True))
+        '1:00:00'
+        >>> try:
+        ...     tz.dst(ambiguous)
+        ... except AmbiguousTimeError:
+        ...     print('Ambiguous')
+        Ambiguous
+        N)
+DstTzInfo.dstc
+See datetime.tzinfo.tzname
+        The is_dst parameter may be used to remove ambiguity during DST
+        transitions.
+        >>> from pytz import timezone
+        >>> tz = timezone('America/St_Johns')
+        >>> normal = datetime(2009, 9, 1)
+        >>> tz.tzname(normal)
+        'NDT'
+        >>> tz.tzname(normal, is_dst=False)
+        'NDT'
+        >>> tz.tzname(normal, is_dst=True)
+        'NDT'
+        >>> ambiguous = datetime(2009, 10, 31, 23, 30)
+        >>> tz.tzname(ambiguous, is_dst=False)
+        'NST'
+        >>> tz.tzname(ambiguous, is_dst=True)
+        'NDT'
+        >>> try:
+        ...     tz.tzname(ambiguous)
+        ... except AmbiguousTimeError:
+        ...     print('Ambiguous')
+        Ambiguous
+        N)
+DstTzInfo.tznamec
+DSTZ
+STDz
+<DstTzInfo %r %s+%s %s>z
+<DstTzInfo %r %s%s %s>)
+DstTzInfo.__repr__c
+DstTzInfo.__reduce__)
+Factory function for unpickling pytz tzinfo instances.
+    This is shared for both StaticTzInfo and DstTzInfo instances, because
+    database changes could cause a zones implementation to switch between
+    these two base classes and we can't break pickles on a pytz version
+    upgrade.
+    N)	r<
+timezoner
+valuesr(
+Z	dstoffsetr6
+localized_tzrE
+	unpickler
+NNN)
+bisectr
+	NameErrorZ
+setsr
+pytz.exceptionsr
+__all__r
+utcfromtimestampr
+<module>

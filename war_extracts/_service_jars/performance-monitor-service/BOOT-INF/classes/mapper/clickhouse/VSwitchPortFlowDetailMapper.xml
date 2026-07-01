@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.h3c.h3cloud.performance.monitor.service.mapper.clickhouse.VSwitchPortFlowMapper">
+    <delete id ="deleteBeforeTime">
+        ALTER TABLE TBL_VSWITCH_PORT_FLOW DELETE WHERE TIME &lt; #{time}
+    </delete>
+    <select id="readByCondition" resultType="com.h3c.h3cloud.common.model.performance.VSwitchPortFlowData">
+        SELECT TIME as time, HOST_ID as hostId, CLUSTER_ID as clusterId, HOST_POOL_ID as hostPoolId,
+        OP_GROUP_ID as operatorGroupId, OP_GROUP_CODE as operatorGroupCode, DOMAIN_ID as domainId,
+        RX_FLOW as rxFlow, RX_PACKETS as rxPackets, TX_FLOW as txFlow, TX_PACKETS as txPackets,VSWITCH_ID as vswitchId,
+        VSWITCH_NAME as vswitchName, VPORT as vport, MAC as mac, TX_DROPPED_PACKETS as txDroppedPktsCount, RX_DROPPED_PACKETS as rxDroppedPktsCount,
+        RX_ERR as rxErrCount, TX_ERR as txErrCount, RX_BYTES as readBytes, TX_BYTES as writeBytes
+        FROM TBL_VSWITCH_PORT_FLOW  WHERE TIME BETWEEN ${startTime} AND ${endTime}
+        <if test="domainId!=null and domainId!=''">
+            AND DOMAIN_ID =${domainId}
+        </if>
+        <if test="vswitchName!=null and vswitchName!=''">
+            AND VSWITCH_NAME like #{vswitchName}
+        </if>
+        <if test="vswitchId!=null and vswitchId!=''">
+            AND VSWITCH_ID=${vswitchId}
+        </if>
+        <if test="vport!=null and vport!=''">
+            AND VPORT like #{vport}
+        </if>
+        <if test="mac!=null and mac!=''">
+            AND MAC like #{mac}
+        </if>
+        <if test='sort!=null and sort=="0"'>
+            ORDER BY ${sortField} ASC
+        </if>
+        <if test='sort!=null and sort=="1"'>
+            ORDER BY ${sortField} DESC
+        </if>
+    </select>
+    <select id="readDomainPortFlow" resultType="com.h3c.h3cloud.common.model.performance.VSwitchPortFlowData">
+        SELECT MAC as mac, TIME, RX_FLOW as rxFlow, TX_FLOW as txFlow
+        FROM TBL_VSWITCH_PORT_FLOW  WHERE TIME BETWEEN ${startTime} AND ${endTime} AND DOMAIN_ID=${domainId}
+        <if test="mac!=null and mac!=''">
+            AND MAC like #{mac}
+        </if>
+        ORDER BY TIME ASC
+    </select>
+    <select id="readNetTopNDomain" resultType="com.h3c.h3cloud.common.model.performance.VSwitchPortFlowData">
+        SELECT flow.DOMAIN_ID as domainId,  domain.uuid uuid, domain.title title, domain.host_id hostId,
+        <choose>
+            <when test="type!=null and type=='netRD'">
+                ROUND(AVG(flow.RX_FLOW),2) as rxFlow
+            </when>
+            <otherwise>
+                ROUND(AVG(flow.TX_FLOW),2) as txFlow
+            </otherwise>
+        </choose>
+        FROM TBL_VSWITCH_PORT_FLOW flow ,
+        ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_DOMAIN} domain
+        WHERE domain.id = flow.DOMAIN_ID
+        <if test="hostPoolId!=null and hostPoolId!=''">
+            AND flow.HOST_POOL_ID =${hostPoolId}
+        </if>
+        <if test="clusterId!=null and clusterId!=''">
+            AND flow.CLUSTER_ID =${clusterId}
+        </if>
+        <if test="hostId!=null and hostId!=''">
+            AND flow.HOST_ID =${hostId}
+        </if>
+        <if test="manageExistVm!=null and manageExistVm!=''">
+            AND LOCATE(#{manageExistVm}, domain.metadata)
+        </if>
+        <if test="operatorGroupCode!=null and operatorGroupCode!=''">
+            AND OP_GROUP_CODE LIKE #{operatorGroupCode}
+        </if>
+        <if test="vmIds!=null and vmIds!=''">
+            AND flow.DOMAIN_ID in (${vmIds})
+        </if>
+        AND flow.TIME BETWEEN ${startTime} AND ${endTime}
+        GROUP BY flow.DOMAIN_ID,domain.uuid,domain.title,domain.host_id HAVING MAX(flow.TIME) > ${endTime} - 241
+        <choose>
+            <when test="type!=null and type=='netRD'">
+                ORDER BY rxFlow DESC
+            </when>
+            <otherwise>
+                ORDER BY txFlow DESC
+            </otherwise>
+        </choose>
+        <if test="limit!=null and limit!=''">
+            LIMIT ${limit}
+        </if>
+    </select>
+    <select id="readDomainNetRwTopNByCondition" resultType="com.h3c.h3cloud.common.model.performance.VswitchPortFlowStatisticsData">
+        SELECT tv.DOMAIN_ID as domainId,
+        SUM(tv.rx_avg)+SUM(tv.tx_avg) allFlow,
+        td.uuid as uuid,td.title as title,td.host_id as hostId,td.cluster_id as clusterId,td.host_pool_id as hostPoolId
+        FROM (SELECT DOMAIN_ID,  ROUND(AVG(RX_FLOW),2) rx_avg,  ROUND(AVG(TX_FLOW),2) tx_avg from TBL_VSWITCH_PORT_FLOW
+        WHERE TIME BETWEEN ${startTime} AND ${endTime}
+        <if test="hostPoolId!=null and hostPoolId!=''">
+            AND HOST_POOL_ID =${hostPoolId}
+        </if>
+        <if test="clusterId!=null and clusterId!=''">
+            AND CLUSTER_ID =${clusterId}
+        </if>
+        <if test="hostId!=null and hostId!=''">
+            AND HOST_ID =${hostId}
+        </if>
+        <if test="clusterIds!=null and clusterIds!=''">
+            AND CLUSTER_ID in (${clusterIds})
+        </if>
+        <if test="hostIds!=null and hostIds!=''">
+            AND HOST_ID in (${hostIds})
+        </if>
+        <if test="vmIds!=null and vmIds!=''">
+            AND DOMAIN_ID in (${vmIds})
+        </if>
+        GROUP BY DOMAIN_ID, MAC
+        HAVING MAX(TIME) > ${endTime} -241
+        ) as tv  ,${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_DOMAIN} td WHERE tv.DOMAIN_ID = td.id AND td.enable = 1
+        <if test="manageExistVm!=null and manageExistVm!=''">
+            AND LOCATE(#{manageExistVm}, domain.METADATA)
+        </if>
+        <if test="operatorGroupCode!=null and operatorGroupCode!=''">
+            AND op_group_code LIKE #{operatorGroupCode}
+        </if>
+        GROUP BY tv.DOMAIN_ID,td.uuid,td.title,td.host_id,td.cluster_id,td.host_pool_id
+        ORDER BY allFlow DESC
+        <if test="limit!=null and limit!=''">
+            LIMIT ${limit}
+        </if>
+    </select>
+    <select id="readDomainNetStat" resultType="com.h3c.h3cloud.common.model.performance.VSwitchPortFlowData">
+        SELECT TIME as time, DOMAIN_ID as domainId, RX_FLOW as rxFlow, RX_PACKETS as rxPackets, TX_FLOW as txFlow, TX_PACKETS as txPackets,
+        VSWITCH_NAME as vswitchName, VPORT as vport, MAC as mac, TX_DROPPED_PACKETS as txDroppedPktsCount, RX_DROPPED_PACKETS as rxDroppedPktsCount,
+        RX_ERR as rxErrCount, TX_ERR as txErrCount, RX_BYTES as readBytes, TX_BYTES as writeBytes
+        FROM TBL_VSWITCH_PORT_FLOW tv  WHERE TIME=(SELECT MAX(TIME)-${duration} FROM TBL_VSWITCH_PORT_FLOW)
+        <if test="hostPoolId!=null and hostPoolId!=''">
+            AND tv.HOST_POOL_ID =${hostPoolId}
+        </if>
+        <if test="clusterId!=null and clusterId!=''">
+            AND tv.CLUSTER_ID =${clusterId}
+        </if>
+        <if test="hostId!=null and hostId!=''">
+            AND tv.HOST_ID =${hostId}
+        </if>
+        <if test="domainId!=null and domainId!=''">
+            AND tv.DOMAIN_ID =${domainId}
+        </if>
+        <if test="mac!=null and mac!=''">
+            AND tv.MAC = #{mac}
+        </if>
+    </select>
+    <select id="readDomainDurationNetStat" resultType="com.h3c.h3cloud.common.model.performance.VSwitchPortFlowData">
+        SELECT DOMAIN_ID as domainId,ROUND(AVG(RX_FLOW),2) as rxFlow,
+        ROUND(AVG(RX_PACKETS),2) as rxPackets,ROUND(AVG(TX_FLOW),2) as txFlow,ROUND(AVG(TX_PACKETS),2) as txPackets,MAC as mac
+        FROM TBL_VSWITCH_PORT_FLOW
+        WHERE DOMAIN_ID=${domainId}  AND TIME >= (SELECT MAX(TIME) FROM TBL_VSWITCH_PORT_FLOW) -${duration}
+        GROUP BY DOMAIN_ID,MAC
+    </select>
+    <select id="readCurrentNetIOStat" resultType="com.h3c.h3cloud.common.model.performance.VSwitchPortFlowData">
+        SELECT T1.DOMAIN_ID as domainId, ROUND(T1.RX_FLOW + T1.TX_FLOW,2) flow, T1.TIME as time
+        FROM TBL_VSWITCH_PORT_FLOW T1,${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_DOMAIN} D,
+        (SELECT DOMAIN_ID, MAX(TIME) TIME FROM TBL_VSWITCH_PORT_FLOW GROUP BY DOMAIN_ID) T2
+        WHERE D.host_id =${hostId} AND D.id = T1.DOMAIN_ID AND T1.DOMAIN_ID = T2.DOMAIN_ID AND T1.TIME = T2.TIME
+    </select>
+    <select id="readDrxVmFlowStat" resultType="com.h3c.h3cloud.common.model.performance.VSwitchPortFlowData">
+        SELECT ROUND(AVG(tts.rate),2) as flow, tts.TIME as time from(
+        SELECT SUM(flow.RX_FLOW)+SUM(flow.TX_FLOW) rate,flow.TIME
+        FROM TBL_VSWITCH_PORT_FLOW flow,${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_DRX_VM}  drxVm
+        WHERE flow.DOMAIN_ID=drxVm.domain_id AND drxVm.drx_business_id=${drxId}
+        AND flow.TIME BETWEEN ${startTime} AND ${endTime}
+        GROUP BY flow.TIME,flow.DOMAIN_ID)tts GROUP BY tts.TIME ORDER BY tts.TIME ASC
+    </select>
+    <select id="getVMNetIOTrend" resultType="com.h3c.h3cloud.common.model.performance.VSwitchPortFlowData">
+        SELECT SUM(tvpf.RX_FLOW) + SUM(tvpf.TX_FLOW) as flow, tvpf.TIME as time, domain.title as title
+        FROM TBL_VSWITCH_PORT_FLOW tvpf INNER JOIN ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_DOMAIN}
+         domain ON tvpf.DOMAIN_ID=domain.id
+        WHERE tvpf.DOMAIN_ID = ${domainId} AND tvpf.TIME BETWEEN ${startTime} AND ${endTime}
+        AND has(splitByChar(',', #{macs}), tvpf.MAC)
+        <if test="operatorGroupCode!=null and operatorGroupCode!=''">
+            AND tvpf.OP_GROUP_CODE LIKE #{operatorGroupCode}
+        </if>
+        GROUP BY tvpf.DOMAIN_ID, tvpf.TIME,domain.title  ORDER BY tvpf.TIME ASC
+    </select>
+    <select id="queryDomainFlowTop5" resultType="com.h3c.h3cloud.common.model.performance.VSwitchPortFlowData">
+        select DOMAIN_ID as domainId, title, any(MAC) as mac, max(avg_rate) flow from (
+        select tb1.DOMAIN_ID, tb2.title, tb1.MAC, round(avg(tb1.RX_FLOW + tb1.TX_FLOW),2) as avg_rate from
+        TBL_VSWITCH_PORT_FLOW tb1 join ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_DOMAIN} tb2 on tb1.DOMAIN_ID=tb2.id
+        WHERE tb1.TIME BETWEEN ${startTime} AND ${endTime}
+        and tb2.enable=1
+        <if test="operatorGroupCode!=null and operatorGroupCode!=''">
+            and tb2.op_group_code like #{operatorGroupCode}
+        </if>
+        group by tb1.DOMAIN_ID, tb1.MAC,tb2.title) tb3
+        group by DOMAIN_ID,title
+        order by flow desc
+        limit 5
+    </select>
+    <select id="queryVmFlowTop5WithTrend" resultType="com.h3c.h3cloud.common.model.performance.VSwitchPortFlowData">
+        SELECT (tb1.RX_FLOW + tb1.TX_FLOW) as flow, tb1.DOMAIN_ID as domainId, tb2.title as title, tb1.MAC as mac, tb1.TIME as time
+        FROM TBL_VSWITCH_PORT_FLOW tb1 join ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_DOMAIN}  tb2 on tb1.DOMAIN_ID=tb2.id
+        WHERE TIME BETWEEN ${startTime} AND ${endTime}
+        order by tb1.DOMAIN_ID, tb1.TIME asc
+    </select>
+    <select id="readNetPerfDataByCondition" resultType="com.h3c.h3cloud.common.model.performance.VswitchPortFlowStatisticsData">
+        SELECT MAC as mac,DOMAIN_ID as domainId, ROUND(AVG(RX_FLOW),2) as avgRxFlow , MAX(RX_FLOW) as maxRxFlow, MIN(RX_FLOW) as minRxFlow,
+        ROUND(AVG(TX_FLOW),2) as avgTxFlow , MAX(TX_FLOW) as maxTxFlow, MIN(TX_FLOW) as minTxFlow
+        FROM TBL_VSWITCH_PORT_FLOW detail  WHERE TIME BETWEEN ${startTime} AND ${endTime}
+        <if test="domainId!=null and domainId!=''">
+            AND DOMAIN_ID = ${domainId}
+        </if>
+        <if test="vmIds!=null and vmIds!=''">
+            AND DOMAIN_ID in (${vmIds})
+        </if>
+        GROUP BY DOMAIN_ID, MAC;
+    </select>
+    <select id="readNetDataByCluster" resultType="com.h3c.h3cloud.common.model.performance.VSwitchPortFlowData">
+        select b.uuid as uuid, a.MAC as mac, a.TIME as time, a.RX_FLOW as rxFlow, a.TX_FLOW as txFlow
+        from (select TIME,MAC,RX_FLOW,TX_FLOW,DOMAIN_ID from TBL_VSWITCH_PORT_FLOW
+        where TIME between ${startTime} and ${endTime} and CLUSTER_ID = ${clusterId}) as a
+        join  ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_DOMAIN} as b on a.DOMAIN_ID=b.id
+        order by uuid, mac, time
+    </select>
+</mapper>

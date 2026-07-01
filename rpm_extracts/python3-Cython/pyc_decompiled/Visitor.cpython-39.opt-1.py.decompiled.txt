@@ -1,0 +1,505 @@
+m	Z	
+d d!d"d#d$d%d&d'd(d)d*d+d,
+Z d-d.d/d0d1
+d2d3
+d4d5
+Z#d6d7
+d8d9
+Z%d:d;
+Z&d<d=
+d>d?
+Z(e)d@k
+l*Z*e*
+absolute_import
+print_functionN
+	TypeSlots)
+Builtin)
+Nodes)
+	ExprNodes)
+Errors)
+DebugFlags)
+Future)
+_PRINTABLE
+TreeVisitora
+    Base class for writing visitors for a Cython tree, contains utilities for
+    recursing such trees using visitors. Each node is
+    expected to have a child_attrs iterable containing the names of attributes
+    containing child nodes or lists of child nodes. Lists are not considered
+    part of the tree structure (i.e. contained nodes are considered direct
+    children of the parent node).
+    visit_children visits each of the children of a given node (see the visit_children
+    documentation). When recursing the tree using visit_children, an attribute
+    access_path is maintained which gives information about the current location
+    in the tree as a stack of tuples: (parent_node, attrname, index), representing
+    the node, attribute and optional list index that was taken in each step in the path to
+    the current node.
+    Example:
+    >>> class SampleNode(object):
+    ...     child_attrs = ["head", "body"]
+    ...     def __init__(self, value, head=None, body=None):
+    ...         self.value = value
+    ...         self.head = head
+    ...         self.body = body
+    ...     def __repr__(self): return "SampleNode(%s)" % self.value
+    ...
+    >>> tree = SampleNode(0, SampleNode(1), [SampleNode(2), SampleNode(3)])
+    >>> class MyVisitor(TreeVisitor):
+    ...     def visit_SampleNode(self, node):
+    ...         print("in %s %s" % (node.value, self.access_path))
+    ...         self.visitchildren(node)
+    ...         print("out %s" % node.value)
+    ...
+    >>> MyVisitor().visit(tree)
+    in 0 []
+    in 1 [(SampleNode(0), 'head', None)]
+    out 1
+    in 2 [(SampleNode(0), 'body', 0)]
+    out 2
+    in 3 [(SampleNode(0), 'body', 1)]
+    out 3
+    out 0
+    c
+superr
+__init__
+dispatch_table
+access_path
+self
+	__class__
+=/usr/lib64/python3.9/site-packages/Cython/Compiler/Visitor.pyr
+TreeVisitor.__init__c
+sv|	d
+qvn.t
+child_attrs
+posZ
+gil_messageZ
+cpp_messageZ
+subexprsr
+%s:%s:%sr
+[...]/%dz
+%s = %sz
+%s(%s)z
+    )
+listr
+getattr
+os.path
+path
+basename
+get_description
+append
+startswith
+endswith
+AttributeError
+isinstance
+lenr
+reprr
+__name__
+join)
+nodeZ
+ignored
+valuesr
+source
+attribute_names
+attr
+valuer
+	dump_nodeQ
+TreeVisitor.dump_nodec
+tb_framer
+hasattrr5
+f_locals
+getr)
+Node
+f_code
+co_namer!
+co_filename
+f_linenor$
+tb_next)
+stacktracer1
+last_tracebackZ
+nodes
+framer.
+code
+method_namer
+_find_node_pathq
+TreeVisitor._find_node_pathc
+q~t	
+[%d]z
+%s.%s%s = %sr
+File '%s', line %d, in %s: %sr
+exc_infor	
+CompilerCrashr-
+child
+trace
+parent
+	attribute
+indexr.
+called_nodesZ	last_noderB
+_raise_compiler_error
+z!TreeVisitor._raise_compiler_errorc
+visit_%s
+z%Visitor %r does not accept object: %s)
+type
+inspectZ
+getmror
+printr
+__dict__
+RuntimeError)
+pattern
+mroZ
+mro_cls
+handler_methodr
+find_handler
+TreeVisitor.find_handlerc
+_visit)
+visit
+TreeVisitor.visitc
+KeyErrorrY
+CompileErrorZ
+AbortError
+	Exceptionr
+debug_no_exception_interceptrM
+TreeVisitor._visitc
+pop)
+attrname
+resultr
+_visitchild
+TreeVisitor._visitchildNc
+_visitchildren)
+attrsr
+visitchildren
+TreeVisitor.visitchildren)
+        Visits the children of the given parent. If parent is None, returns
+        immediately (returning None).
+        The return value is a dictionary giving the results for each
+        child (mapping the attribute name to either the return value
+        or a list of return values (in the case of multiple children
+        in an attribute)).
+        Nc
+.0ra
+<listcomp>
+z.TreeVisitor._visitchildren.<locals>.<listcomp>)
+	enumeraterc
+childretvalr
+TreeVisitor._visitchildren)
+__module__
+__qualname__
+__doc__r
+cython
+finalrY
+locals
+intrd
+__classcell__r
+VisitorTransforma
+    A tree transform is a base class for visitors that wants to do stream
+    processing of the structure (rather than attributes etc.) of a tree.
+    It implements __call__ to simply visit the argument node.
+    It requires the visitor methods to return the nodes which should take
+    the place of the visited node in the result tree (which can be the same
+    or one or more replacement). Specifically, if the return value from
+    a visitor method is:
+    - [] or None; the visited node will be removed (set to None if an attribute and
+    removed if in a list)
+    - A single node; the visited node will be replaced by the returned node.
+    - A list of nodes; the visited nodes will be replaced by all the nodes in the
+    list. This will only work if the node was already a member of a list; if it
+    was not, an exception will be raised. (Typically you want to ensure that you
+    are within a StatListNode or similar before doing this.)
+    Nc
+_select_attrsr
+_process_children)
+excluder
+VisitorTransform.visitchildrenc
+name
+z2VisitorTransform._select_attrs.<locals>.<listcomp>r
+VisitorTransform._select_attrsc
+itemsrO
+_flatten_list
+setattr)
+newnoder
+z"VisitorTransform._process_childrenc
+extendr$
+Z	orig_listZ
+newlistrh
+VisitorTransform._flatten_listc
+recurse_to_children
+z$VisitorTransform.recurse_to_childrenc
+rootr
+__call__
+VisitorTransform.__call__)
+CythonTransformz
+    Certain common conventions and utilities for Cython transforms.
+     - Sets up the context of the pipeline in self.context
+     - Tracks directives in effect in self.current_directives
+    c
+context)
+CythonTransform.__init__c
+ModuleNode)
+directives
+current_directivesr
+CythonTransform.__call__c
+oldr
+visit_CompilerDirectivesNode0
+z,CythonTransform.visit_CompilerDirectivesNodec
+visit_Node7
+CythonTransform.visit_Node)	r,
+ScopeTrackingTransformc
+module
+scope_typeZ
+scope_noderw
+visit_ModuleNodeA
+z'ScopeTrackingTransform.visit_ModuleNodec
+prevr
+visit_scopeG
+z"ScopeTrackingTransform.visit_scopec
+cclass
+visit_CClassDefNodeO
+z*ScopeTrackingTransform.visit_CClassDefNodec
+pyclassr
+visit_PyClassDefNodeR
+z+ScopeTrackingTransform.visit_PyClassDefNodec
+functionr
+visit_FuncDefNodeU
+z(ScopeTrackingTransform.visit_FuncDefNodec
+structr
+visit_CStructOrUnionDefNodeX
+z2ScopeTrackingTransform.visit_CStructOrUnionDefNodeN)	r,
+EnvTransformz@
+    This transformation keeps a stack of the environments.
+    c
+	env_stack
+enter_scope
+scoper
+EnvTransform.__call__c
+current_enve
+EnvTransform.current_envc
+current_scope_nodeh
+EnvTransform.current_scope_nodec
+global_scoper
+EnvTransform.global_scopec
+EnvTransform.enter_scopec
+exit_scopeq
+EnvTransform.exit_scopec
+local_scoperw
+EnvTransform.visit_FuncDefNodec
+visit_GeneratorBodyDefNodez
+z'EnvTransform.visit_GeneratorBodyDefNodec
+visit_ClassDefNode~
+EnvTransform.visit_ClassDefNodec
+z(EnvTransform.visit_CStructOrUnionDefNodec
+expr_scoper
+visit_ScopedExprNode
+z!EnvTransform.visit_ScopedExprNodec
+defaultr
+z3EnvTransform.visit_CArgDeclNode.<locals>.<listcomp>r
+outer_scoperf
+visit_CArgDeclNode
+EnvTransform.visit_CArgDeclNode)
+NodeRefCleanupMixinas
+    Clean up references to nodes that were replaced.
+    NOTE: this implementation assumes that the replacement is
+    done first, before hitting any further references during
+    normal tree traversal.  This needs to be arranged by calling
+    "self.visitchildren()" at a proper place in the transform
+    and by ordering the "child_attrs" of nodes appropriately.
+    c
+_replacements)
+argsr
+NodeRefCleanupMixin.__init__c
+argr
+visit_CloneNode
+z#NodeRefCleanupMixin.visit_CloneNodec
+expressionr
+exprr
+visit_ResultRefNode
+z'NodeRefCleanupMixin.visit_ResultRefNodec
+replacementr
+replace
+NodeRefCleanupMixin.replace)	r,
+__lt__
+__le__
+__eq__
+__ne__
+__ge__
+__gt__
+__add__
+__and__
+__div__
+__floordiv__
+__lshift__
+__mod__
+__mul__
+__or__
+__pow__
+__rshift__
+__sub__
+__xor__
+__contains__)
+__not__
+__inv__
+__neg__
+__pos__)
+MethodDispatcherTransforma
+    Base class for transformations that want to intercept on specific
+    builtin functions or methods of builtin types, including special
+    methods triggered by Python operators.  Must run after declaration
+    analysis when entries were assigned.
+    Naming pattern for handler methods is as follows:
+    * builtin functions: _handle_(general|simple|any)_function_NAME
+    * builtin methods: _handle_(general|simple|any)_method_TYPENAME_METHODNAME
+    c
+is_pyobjectZ
+positional_argsr)
+	TupleNode
+keyword_argsZ
+DictNoder
+_dispatch_to_handler)
+	arg_tupler
+visit_GeneralCallNode
+z/MethodDispatcherTransform.visit_GeneralCallNodec
+visit_SimpleCallNode
+z.MethodDispatcherTransform.visit_SimpleCallNodec
+cascaderw
+_visit_binop_noder
+visit_PrimaryCmpNode
+z.MethodDispatcherTransform.visit_PrimaryCmpNodec
+visit_BinopNode
+z)MethodDispatcherTransform.visit_BinopNodec
+__truediv__
+objectF)
+'find_special_method_for_binary_operator
+operator
+operand1
+operand2r
+divisionr
+future_directivesrO
+is_builtin_typery
+_dispatch_to_method_handler)
+special_method_namer
+obj_type
+	type_namer
+z+MethodDispatcherTransform._visit_binop_nodec
+&find_special_method_for_unary_operatorr
+operandrO
+visit_UnopNode*
+z(MethodDispatcherTransform.visit_UnopNodec
+general
+simplez
+_handle_%s_%sz
+_handle_any_%s)
+match_nameZ
+has_kwargsZ	call_typeZ
+handlerr
+_find_handler;
+z'MethodDispatcherTransform._find_handlerc
+cf_stateZ
+is_name
+entryr*
+cf_assignments
+is_attributerT
+arg_list
+kwargsZ
+assignmentr3
+_delegate_to_assigned_valueB
+z5MethodDispatcherTransform._delegate_to_assigned_valuec
+}	nB|
+self_arg
+is_unbound_methodr
+function_%sr
+is_builtinr
+builtin_scopeZ
+lookup_herery
+Z	is_singler
+is_cmethodr
+parent_typer
+_handle_functionr
+as_variabler
+Z	type_type)
+function_handler
+	attr_namer
+z.MethodDispatcherTransform._dispatch_to_handlerc	
+}	|	d
+}	|	d
+method_%s_%s
+__new__z
+slot%s)
+method_name_to_slot
+_handle_methodr
+method_handlerrb
+z5MethodDispatcherTransform._dispatch_to_method_handlerc
+Fallback handlerr
+function_namer
+z*MethodDispatcherTransform._handle_functionc
+z(MethodDispatcherTransform._handle_methodN)
+RecursiveNodeReplacerzY
+    Recursively replace all occurrences of a node in a subtree by
+    another node.
+    c
+	orig_node
+new_node)
+RecursiveNodeReplacer.__init__c
+z%RecursiveNodeReplacer.visit_CloneNodec
+z RecursiveNodeReplacer.visit_Node)
+treeZ
+old_noder
+replace_inr
+recursively_replace_node
+NodeFinderz2
+    Find out if a node appears in a subtree.
+    c
+foundr
+NodeFinder.__init__c
+NodeFinder.visit_Node)
+finderr
+tree_contains
+zkReplaces a node. ptr is of the form used on the access path stack
+    (parent, attrname, listidx|None)
+    N)
+ptrr3
+listidxr
+replace_node
+	PrintTreez
+Prints a representation of the tree to standard output.
+    Subclass and override repr_of to provide more information
+    about nodes. Nc
+_indent
+_line_range)
+start
+endr
+PrintTree.__init__c
+indent
+PrintTree.indentc
+unindent
+PrintTree.unindentc
+Parse tree dump at phase '%s')
+phaser
+PrintTree.__call__c
+_print_noder
+PrintTree.visit_Nodec
+%s- %s: %sr
+repr_ofr
+liner
+PrintTree.visit_CloneNodec
+(root)rN
+%s[%d]r
+PrintTree._print_nodec
+(none)z
+(type=%s, name="%s")z
+(name="%s")z	(type=%s)r
+(pos=(%s:%s:%s))r
+NameNoder+
+DefNodeZ
+ExprNoder
+split)
+PrintTree.repr_of)
+__main__),Z
+__future__r
+declare
+tuple
+version_info
+bytes
+strrs
+floatr
+unicodeZ
+longr
+doctestZ
+testmodr
+<module>	

@@ -1,0 +1,203 @@
+	Stopwatcha
+    A simple stopwatch which starts automatically.
+    >>> w = Stopwatch()
+    >>> _1_sec = datetime.timedelta(seconds=1)
+    >>> w.split() < _1_sec
+    True
+    >>> import time
+    >>> time.sleep(1.0)
+    >>> w.split() >= _1_sec
+    True
+    >>> w.stop() >= _1_sec
+    True
+    >>> w.reset()
+    >>> w.start()
+    >>> w.split() < _1_sec
+    True
+    It should be possible to launch the Stopwatch in a context:
+    >>> with Stopwatch() as watch:
+    ...     assert isinstance(watch.split(), datetime.timedelta)
+    In that case, the watch is stopped when the context is exited,
+    so to read the elapsed time:
+    >>> watch.elapsed
+    datetime.timedelta(...)
+    >>> watch.elapsed.seconds
+    0
+    c
+reset
+start
+self
+2/usr/lib/python3.9/site-packages/tempora/timing.py
+__init__,
+Stopwatch.__init__c
+datetime
+	timedelta
+elapsed
+contextlib
+suppress
+AttributeError
+start_timer
+Stopwatch.resetc
+utcnowr
+Stopwatch.startc
+Z	stop_timer
+stop8
+Stopwatch.stopc
+local_durationr
+split>
+Stopwatch.splitc
+	__enter__C
+Stopwatch.__enter__c
+exc_type
+	exc_value
+	tracebackr
+__exit__G
+Stopwatch.__exit__N)
+__name__
+__module__
+__qualname__
+__doc__r
+IntervalGovernorz
+    Decorate a function to only allow it to be called once per
+    min_interval. Otherwise, it returns None.
+    >>> gov = IntervalGovernor(30)
+    >>> gov.min_interval.total_seconds()
+    30.0
+    c
+seconds)
+isinstance
+numbers
+Numberr
+min_interval
+	last_call)
+IntervalGovernor.__init__c
+args
+kwargsZ
+allow
+funcr
+wrapper\
+z*IntervalGovernor.decorate.<locals>.wrapper)
+	functools
+wraps)
+decorate[
+IntervalGovernor.decorateN)
+__call__r
+Timerz
+    Watch for a target elapsed time.
+    >>> t = Timer(0.1)
+    >>> t.expired()
+    False
+    >>> __import__('time').sleep(0.15)
+    >>> t.expired()
+    True
+    
+Infc
+_accept
+target
+superr.
+	__class__r
+Timer.__init__c
+        Accept None or 
+ or datetime or numeric for target
+        >>> Timer._accept(datetime.timedelta(seconds=30))
+        30.0
+        >>> Timer._accept(None)
+        inf
+        Nr/
+total_seconds
+float)
+Timer._acceptc
+expired
+Timer.expired)
+staticmethodr0
+__classcell__r
+BackoffDelaya
+    Exponential backoff delay.
+    Useful for defining delays between retries. Consider for use
+    with ``jaraco.functools.retry_call`` as the cleanup.
+    Default behavior has no effect; a delay or jitter must
+    be supplied for the call to be non-degenerate.
+    >>> bd = BackoffDelay()
+    >>> bd()
+    >>> bd()
+    The following instance will delay 10ms for the first call,
+    20ms for the second, etc.
+    >>> bd = BackoffDelay(delay=0.01, factor=2)
+    >>> bd()
+    >>> bd()
+    Inspect and adjust the state of the delay anytime.
+    >>> bd.delay
+    0.04
+    >>> bd.delay = 0.01
+    Set limit to prevent the delay from exceeding bounds.
+    >>> bd = BackoffDelay(delay=0.01, factor=2, limit=0.015)
+    >>> bd()
+    >>> bd.delay
+    0.015
+    To reset the backoff, simply call ``.reset()``:
+    >>> bd.reset()
+    >>> bd.delay
+    0.01
+    Iterate on the object to retrieve/advance the delay values.
+    >>> next(bd)
+    0.01
+    >>> next(bd)
+    0.015
+    >>> import itertools
+    >>> tuple(itertools.islice(bd, 3))
+    (0.015, 0.015, 0.015)
+    Limit may be a callable taking a number and returning
+    the limited number.
+    >>> at_least_one = lambda n: max(n, 1)
+    >>> bd = BackoffDelay(delay=0.01, factor=2, limit=at_least_one)
+    >>> next(bd)
+    0.01
+    >>> next(bd)
+    1
+    Pass a jitter to add or subtract seconds to the delay.
+    >>> bd = BackoffDelay(jitter=0.01)
+    >>> next(bd)
+    0
+    >>> next(bd)
+    0.01
+    Jitter may be a callable. To supply a non-deterministic jitter
+    between -0.5 and 0.5, consider:
+    >>> import random
+    >>> jitter=functools.partial(random.uniform, -0.5, 0.5)
+    >>> bd = BackoffDelay(jitter=jitter)
+    >>> next(bd)
+    0
+    >>> 0 <= next(bd) <= 0.5
+    True
+    r
+infc
+min)
+limit_r
+limit
+z$BackoffDelay.__init__.<locals>.limitc
+jitter_r
+jitter
+z%BackoffDelay.__init__.<locals>.jitter)
+delay
+factorr 
+BackoffDelay.__init__c
+time
+sleep
+nextr
+BackoffDelay.__call__c
+bump)
+__next__
+BackoffDelay.__next__c
+__iter__
+BackoffDelay.__iter__c
+BackoffDelay.bumpc
+_saved___init__r
+savedr
+BackoffDelay.resetN)
+jaracor*
+save_method_argsr6
+collections.abc
+collectionsr
+jaraco.functoolsrL
+Iteratorr:
+<module>

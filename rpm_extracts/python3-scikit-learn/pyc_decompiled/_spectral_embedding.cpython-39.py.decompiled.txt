@@ -1,0 +1,400 @@
+m	Z	
+Spectral Embedding.
+sparse)
+eigh)
+eigsh)
+connected_components)
+	laplacian
+BaseEstimator)
+check_array
+check_random_state
+check_symmetric)
+_init_arpack_v0)
+_deterministic_vector_sign_flip)
+lobpcg)
+rbf_kernel)
+kneighbors_graph
+NearestNeighborsc
+Find the largest graph connected components that contains one
+    given node.
+    Parameters
+    ----------
+    graph : array-like of shape (n_samples, n_samples)
+        Adjacency matrix of the graph, non-zero weight means an edge
+        between the nodes.
+    node_id : int
+        The index of the query node of the graph.
+    Returns
+    -------
+    connected_components_matrix : array-like of shape (n_samples,)
+        An array of bool value indicating the indexes of the nodes
+        belonging to the largest connected components of the given query
+        node.
+    r
+dtypeT)
+outF)
+shaper
+issparse
+tocsr
+zeros
+bool
+range
+sumZ
+logical_or
+whereZ
+fill
+toarray
+ravel)
+graphZ
+node_idZ
+n_nodeZ
+connected_nodesZ
+nodes_to_explore
+last_num_component
+indices
+	neighbors
+J/usr/lib64/python3.9/site-packages/sklearn/manifold/_spectral_embedding.py
+_graph_connected_component
+Return whether the graph is connected (True) or Not (False).
+    Parameters
+    ----------
+    graph : {array-like, sparse matrix} of shape (n_samples, n_samples)
+        Adjacency matrix of the graph, non-zero weight means an edge
+        between the nodes.
+    Returns
+    -------
+    is_connected : bool
+        True means the graph is fully connected and False means not.
+    
+isspmatrixr
+n_connected_componentsr
+_graph_is_connectedI
+Set the diagonal of the laplacian matrix and convert it to a
+    sparse format well suited for eigenvalue decomposition.
+    Parameters
+    ----------
+    laplacian : {ndarray, sparse matrix}
+        The graph laplacian.
+    value : float
+        The value of the diagonal.
+    norm_laplacian : bool
+        Whether the value of the diagonal should be changed or not.
+    Returns
+    -------
+    laplacian : {array, sparse matrix}
+        An array of matrix in a form that is well suited to fast
+        eigenvalue decomposition, depending on the band width of the
+        matrix.
+    r
+flatZ
+tocoo
+datar
+unique
+sizeZ
+todiar
+value
+norm_laplacian
+n_nodesZ
+diag_idxZ
+n_diagsr#
+	_set_diag`
+n_components
+eigen_solver
+random_state
+	eigen_tolr0
+drop_firstc
+Project the sample on the first eigenvectors of the graph Laplacian.
+    The adjacency matrix is used to compute a normalized graph Laplacian
+    whose spectrum (especially the eigenvectors associated to the
+    smallest eigenvalues) has an interpretation in terms of minimal
+    number of cuts necessary to split the graph into comparably sized
+    components.
+    This embedding can also 'work' even if the ``adjacency`` variable is
+    not strictly the adjacency matrix of a graph but more generally
+    an affinity or similarity matrix between samples (for instance the
+    heat kernel of a euclidean distance matrix or a k-NN matrix).
+    However care must taken to always make the affinity matrix symmetric
+    so that the eigenvector decomposition works as expected.
+    Note : Laplacian Eigenmaps is the actual algorithm implemented here.
+    Read more in the :ref:`User Guide <spectral_embedding>`.
+    Parameters
+    ----------
+    adjacency : {array-like, sparse graph} of shape (n_samples, n_samples)
+        The adjacency matrix of the graph to embed.
+    n_components : int, default=8
+        The dimension of the projection subspace.
+    eigen_solver : {'arpack', 'lobpcg', 'amg'}, default=None
+        The eigenvalue decomposition strategy to use. AMG requires pyamg
+        to be installed. It can be faster on very large, sparse problems,
+        but may also lead to instabilities. If None, then ``'arpack'`` is
+        used.
+    random_state : int, RandomState instance or None, default=None
+        A pseudo random number generator used for the initialization
+        of the lobpcg eigen vectors decomposition when `eigen_solver ==
+        'amg'`, and for the K-Means initialization. Use an int to make
+        the results deterministic across calls (See
+        :term:`Glossary <random_state>`).
+        .. note::
+            When using `eigen_solver == 'amg'`,
+            it is necessary to also fix the global numpy seed with
+            `np.random.seed(int)` to get deterministic results. See
+            https://github.com/pyamg/pyamg/issues/139 for further
+            information.
+    eigen_tol : float, default=0.0
+        Stopping criterion for eigendecomposition of the Laplacian matrix
+        when using arpack eigen_solver.
+    norm_laplacian : bool, default=True
+        If True, then compute symmetric normalized Laplacian.
+    drop_first : bool, default=True
+        Whether to drop the first eigenvector. For spectral embedding, this
+        should be True as the first eigenvector should be constant vector for
+        connected graph, but for spectral clustering, this should be kept as
+        False to retain the first eigenvector.
+    Returns
+    -------
+    embedding : ndarray of shape (n_samples, n_components)
+        The reduced samples.
+    Notes
+    -----
+    Spectral Embedding (Laplacian Eigenmaps) is most useful when the graph
+    has one connected component. If there graph has many components, the first
+    few eigenvectors will simply uncover the connected components of the graph.
+    References
+    ----------
+    * https://en.wikipedia.org/wiki/LOBPCG
+    * :doi:`"Toward the Optimal Preconditioned Eigensolver: Locally Optimal
+      Block Preconditioned Conjugate Gradient Method",
+      Andrew V. Knyazev
+      <10.1137/S1064827500366124>`
+    r
+smoothed_aggregation_solver
+amgz>The eigen_solver was set to 'amg', but pyamg is not available.N
+arpack)
+zKUnknown value for eigen_solver: '%s'.Should be 'amg', 'arpack', or 'lobpcg'r&
+zJGraph is not fully connected, spectral embedding may not work as expected.T)
+normedZ
+return_diagr
+sigmaZ
+which
+v0z$AMG works better for sparse matrices)
+accept_sparseg
+csr)
+largest)
+check_finitei
+maxiter)!r
+pyamgr9
+ImportError
+ValueErrorr
+warnings
+warn
+csgraph_laplacianr
+RuntimeErrorr
+float64Z
+float32Z
+eyeZ
+aspreconditionerZ
+standard_normalr
+astyper
+Z	adjacencyr4
+ddrB
+diffusion_mapZ	embeddingZ
+diag_shiftZ
+mlrE
+spectral_embedding
+SpectralEmbeddinga
+Spectral embedding for non-linear dimensionality reduction.
+    Forms an affinity matrix given by the specified function and
+    applies spectral decomposition to the corresponding graph laplacian.
+    The resulting transformation is given by the value of the
+    eigenvectors for each data point.
+    Note : Laplacian Eigenmaps is the actual algorithm implemented here.
+    Read more in the :ref:`User Guide <spectral_embedding>`.
+    Parameters
+    ----------
+    n_components : int, default=2
+        The dimension of the projected subspace.
+    affinity : {'nearest_neighbors', 'rbf', 'precomputed',                 'precomputed_nearest_neighbors'} or callable,                 default='nearest_neighbors'
+        How to construct the affinity matrix.
+         - 'nearest_neighbors' : construct the affinity matrix by computing a
+           graph of nearest neighbors.
+         - 'rbf' : construct the affinity matrix by computing a radial basis
+           function (RBF) kernel.
+         - 'precomputed' : interpret ``X`` as a precomputed affinity matrix.
+         - 'precomputed_nearest_neighbors' : interpret ``X`` as a sparse graph
+           of precomputed nearest neighbors, and constructs the affinity matrix
+           by selecting the ``n_neighbors`` nearest neighbors.
+         - callable : use passed in function as affinity
+           the function takes in data matrix (n_samples, n_features)
+           and return affinity matrix (n_samples, n_samples).
+    gamma : float, default=None
+        Kernel coefficient for rbf kernel. If None, gamma will be set to
+        1/n_features.
+    random_state : int, RandomState instance or None, default=None
+        A pseudo random number generator used for the initialization
+        of the lobpcg eigen vectors decomposition when `eigen_solver ==
+        'amg'`, and for the K-Means initialization. Use an int to make
+        the results deterministic across calls (See
+        :term:`Glossary <random_state>`).
+        .. note::
+            When using `eigen_solver == 'amg'`,
+            it is necessary to also fix the global numpy seed with
+            `np.random.seed(int)` to get deterministic results. See
+            https://github.com/pyamg/pyamg/issues/139 for further
+            information.
+    eigen_solver : {'arpack', 'lobpcg', 'amg'}, default=None
+        The eigenvalue decomposition strategy to use. AMG requires pyamg
+        to be installed. It can be faster on very large, sparse problems.
+        If None, then ``'arpack'`` is used.
+    n_neighbors : int, default=None
+        Number of nearest neighbors for nearest_neighbors graph building.
+        If None, n_neighbors will be set to max(n_samples/10, 1).
+    n_jobs : int, default=None
+        The number of parallel jobs to run.
+        ``None`` means 1 unless in a :obj:`joblib.parallel_backend` context.
+        ``-1`` means using all processors. See :term:`Glossary <n_jobs>`
+        for more details.
+    Attributes
+    ----------
+    embedding_ : ndarray of shape (n_samples, n_components)
+        Spectral embedding of the training matrix.
+    affinity_matrix_ : ndarray of shape (n_samples, n_samples)
+        Affinity_matrix constructed from samples or precomputed.
+    n_features_in_ : int
+        Number of features seen during :term:`fit`.
+        .. versionadded:: 0.24
+    feature_names_in_ : ndarray of shape (`n_features_in_`,)
+        Names of features seen during :term:`fit`. Defined only when `X`
+        has feature names that are all strings.
+        .. versionadded:: 1.0
+    n_neighbors_ : int
+        Number of nearest neighbors effectively used.
+    See Also
+    --------
+    Isomap : Non-linear dimensionality reduction through Isometric Mapping.
+    References
+    ----------
+    - :doi:`A Tutorial on Spectral Clustering, 2007
+      Ulrike von Luxburg
+      <10.1007/s11222-007-9033-z>`
+    - On Spectral Clustering: Analysis and an algorithm, 2001
+      Andrew Y. Ng, Michael I. Jordan, Yair Weiss
+      http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.19.8100
+    - :doi:`Normalized cuts and image segmentation, 2000
+      Jianbo Shi, Jitendra Malik
+      <10.1109/34.868688>`
+    Examples
+    --------
+    >>> from sklearn.datasets import load_digits
+    >>> from sklearn.manifold import SpectralEmbedding
+    >>> X, _ = load_digits(return_X_y=True)
+    >>> X.shape
+    (1797, 64)
+    >>> embedding = SpectralEmbedding(n_components=2)
+    >>> X_transformed = embedding.fit_transform(X[:100])
+    >>> X_transformed.shape
+    (100, 2)
+    r
+nearest_neighborsN)
+affinity
+gammar6
+n_neighbors
+n_jobsc
+selfr4
+__init__
+SpectralEmbedding.__init__c
+pairwise)
+precomputed
+precomputed_nearest_neighbors)
+_more_tags
+SpectralEmbedding._more_tagsc
+Calculate the affinity matrix from data
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            Training vector, where `n_samples` is the number of samples
+            and `n_features` is the number of features.
+            If affinity is "precomputed"
+            X : array-like of shape (n_samples, n_samples),
+            Interpret X as precomputed adjacency graph computed from
+            samples.
+        Y: Ignored
+        Returns
+        -------
+        affinity_matrix of shape (n_samples, n_samples)
+        r[
+metric
+connectivity)
+modeg
+z`Nearest neighbors affinity currently does not support sparse input, falling back to rbf affinity
+rbfNr
+include_selfrX
+affinity_matrix_r
+fitr
+intr
+n_neighbors_rV
+gamma_r
+YZ	estimatorr^
+_get_affinity_matrix
+z&SpectralEmbedding._get_affinity_matrixc
+Fit the model from data in X.
+        Parameters
+        ----------
+        X : {array-like, sparse matrix} of shape (n_samples, n_features)
+            Training vector, where `n_samples` is the number of samples
+            and `n_features` is the number of features.
+            If affinity is "precomputed"
+            X : {array-like, sparse matrix}, shape (n_samples, n_samples),
+            Interpret X as precomputed adjacency graph computed from
+            samples.
+        y : Ignored
+            Not used, present for API consistency by convention.
+        Returns
+        -------
+        self : object
+            Returns the instance itself.
+        rD
+ensure_min_samples>
+z]%s is not a valid affinity. Expected 'precomputed', 'rbf', 'nearest_neighbors' or a callable.zD'affinity' is expected to be an affinity name or a callable. Got: %s)
+_validate_datar
+isinstancerU
+strrI
+callablerf
+embedding_)
+affinity_matrixr#
+SpectralEmbedding.fitc
+Fit the model from data in X and transform X.
+        Parameters
+        ----------
+        X : {array-like, sparse matrix} of shape (n_samples, n_features)
+            Training vector, where `n_samples` is the number of samples
+            and `n_features` is the number of features.
+            If affinity is "precomputed"
+            X : {array-like, sparse matrix} of shape (n_samples, n_samples),
+            Interpret X as precomputed adjacency graph computed from
+            samples.
+        y : Ignored
+            Not used, present for API consistency by convention.
+        Returns
+        -------
+        X_new : array-like of shape (n_samples, n_components)
+            Spectral embedding of the training matrix.
+        )
+fit_transform
+SpectralEmbedding.fit_transform)
+__name__
+__module__
+__qualname__
+__doc__rZ
+)$rp
+numpyr
+scipyr
+scipy.linalgr
+scipy.sparse.linalgr
+scipy.sparse.csgraphr
+baser
+utilsr	
+utils._arpackr
+utils.extmathr
+utils.fixesr
+metrics.pairwiser
+<module>

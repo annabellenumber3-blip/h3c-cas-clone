@@ -1,0 +1,345 @@
+j!d d!
+j'd$d!
+j*d&d!
+j-d(d!
+j/d)d!
+j4d*
+j8d+d!
+j<d d!
+j=d d!
+j>d,d!
+j?d,d!
+j@d-d!
+CherryPy tools. A "tool" is any helper, adapted to CP.
+Tools are usually designed to be used in a variety of ways (although some
+may only offer one if they choose):
+    Library calls
+        All tools are callables that can be used wherever needed.
+        The arguments are straightforward and should be detailed within the
+        docstring.
+    Function decorators
+        All tools, when called, may be used as decorators which configure
+        individual CherryPy page handlers (methods on the CherryPy tree).
+        That is, "@tools.anytool()" should "turn on" the tool via the
+        decorated function's _cp_config attribute.
+    CherryPy config
+        If a tool exposes a "_setup" callable, it will be called
+        once per Request (if the feature is "turned on" via config).
+Tools may be implemented as any object with a namespace. The builtins
+are generally either modules or instances of the tools.Tool class.
+expose)
+cptools
+encoding
+static
+	jsontools)
+sessions
+xmlrpcutil)
+caching)
+auth_basic
+auth_digestc
+z?Return the names of all static arguments to the given function.r
+types
+isinstance
+MethodType
+__func__
+__code__
+co_varnames
+co_argcount)
+funcr
+5/usr/lib/python3.9/site-packages/cherrypy/_cptools.py
+_getargs"
+CherryPy Tools cannot be turned on directly. Instead, turn them on via config, or use them as decorators on your page handlers.c
+Toolz
+A registered function for use with CherryPy request-processing hooks.
+    help(tool.callable) should give you more information about this Tool.
+    
+toolsN
+_point
+callable
+_name
+	_priority
+__doc__
+_setargs)
+self
+pointr
+name
+priorityr
+__init__;
+Tool.__init__c
+AttributeError
+_attr_error
+Tool.onc
+valuer
+z,Copy func parameter names to obj attributes.N
+__call__)	r
+setattr
+	TypeErrorr)
+hasattrr.
+NotImplementedError
+IndexError)
+argr
+Tool._setargsc
+z5Return a dict of configuration entries for this Tool.r,
+copy
+cherrypy
+serving
+request
+toolmaps
+	namespacer
+update)
+confZ
+_merged_args^
+Tool._merged_argsc
+Compile-time decorator (turn on the tool in config).
+        For example::
+            @expose
+            @tools.proxy()
+            def whats_my_base(self):
+                return cherrypy.request.base
+        zQThe %r Tool does not accept positional arguments; you must use keyword arguments.c
+_cp_config
+.Tr,
+items)
+subspace
+kwargsr#
+tool_decorator}
+z%Tool.__call__.<locals>.tool_decorator)
+argsrF
+Tool.__call__c
+Hook this tool into cherrypy.request.
+        The standard CherryPy request object will automatically call this
+        method when the tool is "turned on" in config.
+        r&
+getattrr
+hooks
+attachr
+_setup
+Tool._setup)
+__name__
+__module__
+__qualname__r!
+propertyr,
+setterr"
+HandlerToola
+Tool which is called 'before main', that may skip normal handlers.
+    If the tool successfully handles the request (by setting response.body),
+    if should return True. This will cause CherryPy to skip any 'normal' page
+    handler. If the tool did not handle the request, it should return False
+    to tell CherryPy to continue on and call the normal page handler. If the
+    tool is declared AS a page handler (see the 'handler' method), returning
+    False will raise NotFound.
+    Nc
+before_handler
+HandlerTool.__init__c
+Use this tool as a CherryPy page handler.
+        For example::
+            class Root:
+                nav = tools.staticdir.handler(section="/nav", dir="nav",
+                                              root=absDir)
+        c
+NotFoundr7
+response
+body)
+handled
+handle_func
+z(HandlerTool.handler.<locals>.handle_funcr
+handler
+HandlerTool.handlerc
+_wrapper
+HandlerTool._wrapperc
+HandlerTool._setup)
+HandlerWrapperToola)
+Tool which wraps request.handler in a provided wrapper function.
+    The 'newhandler' arg must be a handler wrapper function that takes a
+    'next_handler' argument, plus ``*args`` and ``**kwargs``. Like all
+    page handler
+    functions, it must return an iterable for use as cherrypy.response.body.
+    For example, to allow your 'inner' page handlers to return dicts
+    which then get interpolated into a template::
+        def interpolator(next_handler, *args, **kwargs):
+            filename = cherrypy.request.config.get('template')
+            cherrypy.response.template = env.get_template(filename)
+            response_dict = next_handler(*args, **kwargs)
+            return cherrypy.response.template.render(**response_dict)
+        cherrypy.tools.jinja = HandlerWrapperTool(interpolator)
+    rX
+newhandlerr
+HandlerWrapperTool.__init__c
+Z	innerfuncr#
+wrap
+z)HandlerWrapperTool.callable.<locals>.wrap)
+HandlerWrapperTool.callable)
+	ErrorToolzATool which is used to replace the default request.error_response.Nc
+ErrorTool.__init__c
+ErrorTool._wrapperc
+error_responser+
+ErrorTool._setup)
+SessionToolar
+Session Tool for CherryPy.
+    sessions.locking
+        When 'implicit' (the default), the session will be locked for you,
+        just before running the page handler.
+        When 'early', the session will be locked before reading the request
+        body. This is off by default for safety reasons; for example,
+        a large upload would block the session, denying an AJAX
+        progress meter
+        (`issue <https://github.com/cherrypy/cherrypy/issues/630>`_).
+        When 'explicit' (or any other value), you need to call
+        cherrypy.session.acquire_lock() yourself before using
+        session data.
+    c
+before_request_body)
+	_sessions
+initr+
+SessionTool.__init__c
+session
+acquire_lockr+
+_lock_session
+SessionTool._lock_sessionc
+lockingZ
+implicitrX
+earlyri
+before_finalize
+on_end_request)
+save
+close)
+SessionTool._setupc
+z<Drop the current session and make a new one (with a new id).)
+pathZ
+path_headerr%
+timeoutZ
+domainZ
+securec
+.0rC
+relevantr
+	<genexpr>?
+z)SessionTool.regenerate.<locals>.<genexpr>N)	r6
+regenerate
+dictr>
+set_response_cookie)
+sessr=
+SessionTool.regenerateN)
+XMLRPCControllera]
+A Controller (page handler collection) for XML-RPC.
+    To use it, have your controllers subclass this base class (it will
+    turn on the tool for you).
+    You can also supply the following optional config entries::
+        tools.xmlrpc.encoding: 'utf-8'
+        tools.xmlrpc.allow_none: 0
+    XML-RPC is a rather discontinuous layer over HTTP; dispatching to the
+    appropriate handler must first be performed according to the URL, and
+    then a second dispatch step must take place according to the RPC method
+    specified in the request body. It also allows a superfluous "/RPC2"
+    prefix in the URL, supplies its own handler args in the body, and
+    requires a 200 OK "Fault" response instead of 404 when the desired
+    method is not found.
+    Therefore, XML-RPC cannot be implemented for CherryPy via a Tool alone.
+    This Controller acts as the dispatch target for the first half (based
+    on the URL); it then reads the RPC method from the request body and
+    does its own second dispatch step based on that method. It also reads
+    body params, and returns a Fault on error.
+    The XMLRPCDispatcher strips any /RPC2 prefix; if you aren't using /RPC2
+    in your URL's, you can safely skip turning on the XMLRPCDispatcher.
+    Otherwise, you need to use declare it in config::
+        request.dispatch: cherrypy.dispatch.XMLRPCDispatcher()
+    z
+tools.xmlrpc.onTc
+exposedFz
+method "%s" is not supportedr
+xmlrpcr
+utf-8Z
+allow_noner
+_xmlrpcZ
+process_body
+splitrL
+	Exceptionr6
+getZ
+respondr[
+)	r#
+vpath
+paramsZ	rpcparamsZ	rpcmethodZ
+subhandler
+attrr\
+defaultm
+XMLRPCController.defaultN)
+SessionAuthToolN)
+CachingToolz
+Caching Tool for CherryPy.c
+_cachingr
+Z	cacheablerM
+tee_output)
+CachingTool._wrapper
+z#Hook caching into cherrypy.request.r&
+CachingTool._setupN)
+Toolboxz
+A collection of Tools.
+    This object also functions as a config namespace handler for itself.
+    Custom toolboxes should be added to each Application's toolboxes dict.
+    c
+Toolbox.__init__c
+object
+__setattr__)
+Toolbox.__setattr__c
+z9Populate request.toolmaps from tools specified in config.c
+setdefault)
+toolnamer4
+bucket
+mapr
+populate
+z#Toolbox.__enter__.<locals>.populate)
+	__enter__
+Toolbox.__enter__c
+z/Run tool._setup() for each tool in our toolmap.r,
+FN)	r6
+exc_typeZ
+exc_valZ
+exc_tbr
+settings
+toolr
+__exit__
+Toolbox.__exit__c
+        Return a decorator which registers the function
+        at the given hook point.
+        c
+Z	attr_namer
+	decorator
+z#Toolbox.register.<locals>.decoratorr
+register
+Toolbox.registerN)	rR
+on_start_resourceri
+before_error_responsers
+)Br!
+cherrypy._helperr
+cherrypy.libr
+default_toolboxZ
+session_authZ
+allow
+proxyZ
+response_headersZ
+log_tracebackZ
+log_tracebacksZ
+log_request_headersZ
+log_headersZ	log_hooksZ
+redirectZ
+err_redirectZ
+validate_etagsZ
+etags
+decodeZ
+ResponseEncoder
+encodeZ
+gzipZ	staticdirZ
+staticfileZ
+on_errorr|
+expiresZ
+ignore_headersZ
+refererZ
+trailing_slashZ
+flattenZ
+acceptZ
+autovaryZ
+json_inZ
+json_outZ
+basic_authZ
+digest_authZ
+convert_paramsr
+<module>

@@ -1,0 +1,480 @@
+Debugger basics
+CO_GENERATOR
+CO_COROUTINE
+CO_ASYNC_GENERATOR)
+BdbQuit
+Breakpointc
+z Exception to give up completely.N)
+__name__
+__module__
+__qualname__
+__doc__
+/usr/lib64/python3.9/bdb.pyr
+d!d"
+d#d$
+d[d&d'
+d\d(d)
+d*d+
+d,d-
+d.d/
+d]d0d1
+d2d3
+d4d5
+d^d7d8
+d9d:
+d;d<
+d=d>
+Z d?d@
+Z!dAdB
+Z"dCdD
+Z#dEdF
+Z$dGdH
+Z%dIdJ
+Z&dKdL
+Z'dMdN
+Z(d_dPdQ
+Z)d`dRdS
+Z*dadTdU
+Z+dVdW
+Z,dXdY
+Generic Python debugger base class.
+    This class takes care of details of the trace facility;
+    a derived class should implement user interaction.
+    The standard debugger class (pdb.Pdb) is an example.
+    The optional skip argument must be an iterable of glob-style
+    module name patterns.  The debugger will not step into frames
+    that originate in a module that matches one of these patterns.
+    Whether a frame is considered to originate in a certain module
+    is determined by the __name__ in the frame globals.
+    Nc
+skip
+breaks
+fncache
+frame_returning)
+selfr
+__init__
+Bdb.__init__c
+Return canonical form of filename.
+        For real filenames, the canonical form is a case-normalized (on
+        case insensitive filesystems) absolute path.  'Filenames' with
+        angle brackets, such as "<stdin>", generated in interactive
+        mode, are returned unchanged.
+        
+path
+abspath
+normcase)
+filename
+canonicr
+Bdb.canonicc
+z5Set values of attributes as ready to start debugging.r
+	linecache
+checkcache
+botframe
+_set_stopinfo)
+reset6
+z	Bdb.resetc
+Dispatch a trace function for debugged frames based on the event.
+        This function is installed as the trace function for debugged
+        frames. Its return value is the new trace function, which is
+        usually itself. The default implementation decides how to
+        dispatch a frame, depending on the type of event (passed in as a
+        string) that is about to be executed.
+        The event can be one of the following:
+            line: A new line of code is going to be executed.
+            call: A function is about to be called or another code block
+                  is entered.
+            return: A function or other code block is about to return.
+            exception: An exception has occurred.
+            c_call: A C function is about to be called.
+            c_return: A C function has returned.
+            c_exception: A C function has raised an exception.
+        For the Python events, specialized functions (see the dispatch_*()
+        methods) are called.  For the C events, no action is taken.
+        The arg parameter depends on the previous event.
+        N
+lineZ
+call
+returnZ	exceptionZ
+c_callZ
+c_exceptionZ
+c_returnz*bdb.Bdb.dispatch: unknown debugging event:)
+quitting
+dispatch_line
+dispatch_call
+dispatch_return
+dispatch_exception
+trace_dispatch
+print
+repr)
+frameZ
+event
+argr
+Bdb.trace_dispatchc
+Invoke user function and return trace function for line event.
+        If the debugger stops on the current line, invoke
+        self.user_line(). Raise BdbQuit if self.quitting is set.
+        Return self.trace_dispatch to continue tracing in this scope.
+        )
+	stop_here
+break_here
+	user_liner'
+Bdb.dispatch_linec
+Invoke user function and return trace function for call event.
+        If the debugger stops on this function call, invoke
+        self.user_call(). Raise BdbQuit if self.quitting is set.
+        Return self.trace_dispatch to continue tracing in this scope.
+        N)
+f_backr,
+break_anywhere
+	stopframe
+f_code
+co_flags
+GENERATOR_AND_COROUTINE_FLAGS
+	user_callr'
+Bdb.dispatch_callc
+j	r\t
+Invoke user function and return trace function for return event.
+        If the debugger stops on this function return, invoke
+        self.user_return(). Raise BdbQuit if self.quitting is set.
+        Return self.trace_dispatch to continue tracing in this scope.
+        Nr
+returnframer7
+user_returnr'
+stoplinenor#
+Bdb.dispatch_returnc
+Invoke user function and return trace function for exception event.
+        If the debugger stops on this exception, invoke
+        self.user_exception(). Raise BdbQuit if self.quitting is set.
+        Return self.trace_dispatch to continue tracing in this scope.
+        r
+StopIteration
+user_exceptionr'
+GeneratorExitr,
+Bdb.dispatch_exceptionc
+z4Return True if module_name matches any skip pattern.NFT)
+fnmatch)
+module_name
+patternr
+is_skipped_module
+Bdb.is_skipped_modulec
+z>Return True if frame is below the starting frame in the stack.r
+	f_globalsr
+f_linenor4
+Bdb.stop_herec
+Return True if there is an effective breakpoint for this line.
+        Check for line or function breakpoint and if in effect.
+        Delete temporary breakpoints if effective() says to.
+        FTN)
+co_filenamer
+co_firstlineno
+	effective
+numberZ	currentbp
+	temporary
+do_clear
+str)
+lineno
+flagr
+Bdb.break_herec
+zlRemove temporary breakpoint.
+        Must implement in derived classes or get NotImplementedError.
+        z)subclass of bdb must implement do_clear()N)
+NotImplementedError)
+Bdb.do_clearc
+zEReturn True if there is any breakpoint for frame's filename.
+        )
+Bdb.break_anywherec
+z&Called if we might stop in a function.Nr
+argument_listr
+Bdb.user_callc
+z'Called when we stop or break at a line.Nr
+Bdb.user_linec
+z&Called when a return trap is set here.Nr
+return_valuer
+Bdb.user_returnc
+z$Called when we stop on an exception.Nr
+exc_infor
+Bdb.user_exceptionr
+Set the attributes for stopping.
+        If stoplineno is greater than or equal to 0, then stop at line
+        greater than or equal to the stopline.  If stoplineno is -1, then
+        don't stop at all.
+        FN)
+Bdb._set_stopinfoc
+zxStop when the line with the lineno greater than the current one is
+        reached or when returning from current frame.Nr
+	set_until"
+Bdb.set_untilc
+Stop after one line of code.N)
+f_tracer,
+caller_framer
+set_step*
+Bdb.set_stepc
+z2Stop on the next line in or below the given frame.N)
+set_next6
+Bdb.set_nextc
+z)Stop when returning from the given frame.Nr
+set_return:
+Bdb.set_returnc
+znStart debugging from frame.
+        If frame is not specified, debugging starts from caller's frame.
+        N)	
+	_getframer5
+settracer4
+	set_traceA
+Bdb.set_tracec
+Stop only at breakpoints or when finished.
+        If there are no breakpoints, set the system trace function to None.
+        Nr
+set_continueP
+Bdb.set_continuec
+zuSet quitting attribute to True.
+        Raises BdbQuit exception in the next call to a dispatch_*() method.
+        NT)
+set_quit_
+Bdb.set_quitFc
+Set a new breakpoint for filename:lineno.
+        If lineno doesn't exist for the filename, return an error message.
+        The filename should be in canonical form.
+        r
+Line %s:%d does not exist)
+getliner
+setdefault
+appendr
+cond
+funcnamer 
+listrQ
+	set_breakp
+Bdb.set_breakc
+Prune breakpoints for filename:lineno.
+        A list of breakpoints is maintained in the Bdb instance and in
+        the Breakpoint class.  If a breakpoint in the Bdb instance no
+        longer exists in the Breakpoint class, then it's removed from the
+        Bdb instance.
+        N)
+bplistr
+remove
+_prune_breaks
+Bdb._prune_breaksc
+znDelete breakpoints for filename:lineno.
+        If no breakpoints were set, return an error message.
+        
+There are no breakpoints in %sz
+There is no breakpoint at %s:%dN)
+deleteMerk
+clear_break
+Bdb.clear_breakc
+zxDelete a breakpoint by its index in Breakpoint.bpbynumber.
+        If arg is invalid, return an error message.
+        N)
+get_bpbynumber
+ValueErrorrO
+filer%
+errr
+clear_bpbynumber
+Bdb.clear_bpbynumberc
+q<q&|
+z`Delete all breakpoints in filename.
+        If none were set, return an error message.
+        rl
+blistrQ
+clear_all_file_breaks
+Bdb.clear_all_file_breaksc
+z]Delete all existing breakpoints.
+        If none were set, return an error message.
+        z
+There are no breakpointsN)
+bpbynumberrm
+clear_all_breaks
+Bdb.clear_all_breaksc
+Return a breakpoint by its index in Breakpoint.bybpnumber.
+        For invalid arg values or if the breakpoint doesn't exist,
+        raise a ValueError.
+        z
+Breakpoint number expectedz Non-numeric breakpoint number %sNz!Breakpoint number %d out of rangez
+Breakpoint %d already deleted)
+intr
+IndexError)
+Bdb.get_bpbynumberc
+z9Return True if there is a breakpoint for filename:lineno.
+	get_break
+Bdb.get_breakc
+znReturn all breakpoints for filename:lineno.
+        If no breakpoints are set, return an empty list.
+        )
+get_breaks
+Bdb.get_breaksc
+zrReturn all lines with breakpoints for filename.
+        If no breakpoints are set, return an empty list.
+        Nry
+get_file_breaks
+Bdb.get_file_breaksc
+z$Return all breakpoints that are set.)
+get_all_breaks
+Bdb.get_all_breaksc
+r<qD|
+Return a list of (frame, lineno) in a stack trace and a size.
+        List starts with original calling frame, if there is one.
+        Size may be number of frames above or below f.
+        Nr
+tb_frame
+tb_nextrc
+reverse
+	tb_lineno)
+stack
+	get_stack
+Bdb.get_stack
+Return a string with information about a stack entry.
+        The stack entry frame_lineno is a (frame, lineno) tuple.  The
+        return string contains the canonical filename, the function name
+        or '<lambda>', the input arguments, the return value, and the
+        line of code (if it exists).
+        r
+%s(%r)z
+<lambda>z
+__return__z
+reprlibr
+co_name
+f_localsr.
+strip)
+frame_linenoZ
+lprefixr 
+rvr%
+format_stack_entry
+Bdb.format_stack_entryc
+Debug a statement executed via the exec() function.
+        globals defaults to __main__.dict; locals defaults to globals.
+        Nr
+<string>
+execT)
+__main__
+__dict__r$
+isinstancerO
+compilerZ
+globals
+localsr
+run5
+Bdb.runc
+zHz t
+Debug an expression executed via the eval() function.
+        globals defaults to __main__.dict; locals defaults to globals.
+        Nr
+T)	r
+evalr'
+exprr
+runevalK
+Bdb.runevalc
+z.For backwards-compatibility.  Defers to run().N)
+runctx_
+Bdb.runctxc
+zWDebug a single function call.
+        Return the result of the function call.
+        NT)
+func
+args
+kwds
+resr
+runcallf
+Bdb.runcall)
+FNN)
+NN).r
+z<Start debugging with a Bdb instance from the caller's frame.N)
+Breakpoint class.
+    Implements temporary breakpoints, ignore counts, disabling and
+    (re)-enabling, and conditionals.
+    Breakpoints are indexed by number through bpbynumber and by
+    the (file, line) tuple using bplist.  The former points to a
+    single instance of class Breakpoint.  The latter points to a
+    list of such instances since there may be more than one
+    breakpoint per line.
+    When creating a breakpoint, its associated filename should be
+    in canonical form.  If funcname is defined, a breakpoint hit will be
+    counted when the first line of that function is executed.  A
+    conditional breakpoint always counts a hit.
+    r
+func_first_executable_linerq
+enabled
+ignore
+hitsr
+nextrL
+Breakpoint.__init__c
+Delete the breakpoint from the list associated to a file:line.
+        If it is the last breakpoint in that position, it also deletes
+        the entry for the file:line.
+        N)
+indexr
+Breakpoint.deleteMec
+Mark the breakpoint as enabled.TN
+enable
+Breakpoint.enablec
+z Mark the breakpoint as disabled.FNr
+disable
+Breakpoint.disablec
+Print the output of bpformat().
+        The optional out argument directs where the output is sent
+        and defaults to standard output.
+        N)
+stdoutr-
+bpformat)
+outr
+bpprint
+Breakpoint.bpprintc
+Return a string with information about the breakpoint.
+        The information includes the breakpoint number, temporary
+        status, file:line position, break condition, number of times to
+        ignore, and number of times hit.
+        z
+del  z
+keep z
+yes  z
+no   z
+%-4dbreakpoint   %s at %s:%dz
+	stop only if %sz
+	ignore next %d hitsr
+	breakpoint already hit %d time%s)
+dispZ
+retZ
+Breakpoint.bpformatc
+z1Return a condensed description of the breakpoint.z
+breakpoint %s at %s:%s)
+__str__
+Breakpoint.__str__)
+FNN)
+Return True if break should happen here.
+    Whether a break should happen depends on the way that b (the breakpoint)
+    was set.  If it was set via line number, check if b.line is the same as
+    the one in the frame.  If it was set via function name, check if this is
+    the right function and if it is on the first executable line.
+    FT)
+checkfuncname
+Determine which breakpoint for this file:line is to be acted upon.
+    Called only if we know there is a breakpoint at this location.  Return
+    the breakpoint that was triggered and a boolean that indicates if it is
+    ok to delete a temporary breakpoint.  Return (None, None) if there is no
+    matching breakpoint.
+    r
+Z	possiblesr
+valr
+Tdbc
+???z
++++ call)
+namer
+Tdb.user_callc
+fnr%
+Tdb.user_linec
++++ return
+retvalr
+Tdb.user_returnc
++++ exception)
+Z	exc_stuffr
+Tdb.user_exceptionN)
+foo(
+bar returned)
+bar)
+fooU
+bar(r
+import bdb; bdb.foo(10))
+test^
+inspectr
+__all__r:
+	Exceptionr
+<module>

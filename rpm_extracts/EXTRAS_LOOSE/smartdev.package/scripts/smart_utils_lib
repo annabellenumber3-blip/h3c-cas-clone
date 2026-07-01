@@ -1,0 +1,801 @@
+#!/bin/bash
+#
+# common shell funs definition
+#
+#  注意：
+#   *本文件的变量声明名要避免和环境变量冲突；
+#   *引用本文件的脚本中注意避免使用本文件已经使用的变量名;
+#
+
+
+# ---------- Global Varables -------------
+
+UTIL_FILENAME=`basename $0 2> /dev/null` || UTIL_FILENAME="smart"
+UTIL_VERSION="1.0.0" #
+UTIL_INSTALL_DIR="/usr/local/include"
+UTIL_MODE=${UTIL_FILENAME}
+
+KEEPLOG=false
+LOG_FILE=${UTIL_FILENAME}.log
+LOG_SET_TIME=true
+# default params
+LOG_DIR="/var/log/smartdev"
+
+COLOR_DFT='\033[0m'
+COLOR_BRT='\033[0;1m'
+COLOR_RED='\033[0;31m'
+COLOR_GREEN='\033[0;32m'
+COLOR_YELLOW='\033[1;33m'
+COLOR_BLUE='\033[1;34m'
+
+#  --------- Common Functions -------------
+
+WRITE_LOG(){
+    # Log writer, append '[YYYY-mm-dd HH:MM:SS]$1$2$3,...' to  ${LOG_FILE}
+    # $1,$2,... strings to be append
+    if ${LOG_SET_TIME}; then
+        echo "["$(date +"%Y-%m-%d %H:%M:%S")"][${UTIL_MODE}] "$@"" >> ${LOG_FILE}
+    else
+        echo "[${UTIL_MODE}]  "$@"" >> ${LOG_FILE}
+    fi
+}
+
+# Format print and log record
+PRINT(){
+    #  Print to stdout and log file, started by '[$UTIL_MODE]'
+    #  $1 $2 $3,... strings to be printed.
+    echo -e "[${UTIL_MODE}]" "$@"
+    if  ${KEEPLOG} ; then
+        WRITE_LOG "$*"
+    fi;
+}
+
+PERROR(){
+    #  Print to stdout and log file with RED font, started by '[$UTIL_MODE]ERROR:'
+    #  $1 $2 $3,... strings to be printed.
+    echo -e "[${UTIL_MODE}]${COLOR_RED}" "ERROR:" "$@" "${COLOR_DFT}" 1>&2
+    if ${KEEPLOG} ; then
+        WRITE_LOG "ERROR: $*"
+    fi;
+}
+
+PWARN(){
+    #  Print to stdout and log file with YELLOW font, started by '[$UTIL_MODE]WARNING:'
+    #  $1 $2 $3,... strings to be printed.
+    echo -e "[${UTIL_MODE}]${COLOR_YELLOW}" "WARNING:" "$@" "${COLOR_DFT}"  1>&2
+    if ${KEEPLOG} ; then
+        WRITE_LOG "WARNING: $*"
+    fi;
+}
+
+PSUCCESS(){
+    # Print to stdout and log file with 'brighter' effect, started by '[$UTIL_MODE]'
+    # $1 $2 $3,... strings to be printed.
+    echo -e "[${UTIL_MODE}]${COLOR_BRT}" "$@" "${COLOR_DFT}"
+    if ${KEEPLOG} ; then
+        WRITE_LOG "$*"
+    fi;
+}
+
+PINFO(){
+    # Print to stdout and log file with 'brighter' effect, started by '[$UTIL_MODE]'
+    # $1 $2 $3,... strings to be printed.
+    echo -e "[${UTIL_MODE}]${COLOR_BRT}" "$@" "${COLOR_DFT}"
+    if ${KEEPLOG} ; then
+        WRITE_LOG "$*"
+    fi;
+}
+
+PINFO2(){
+    # Print to stderr(fd=2) with 'brighter' effect, started by '[$UTIL_MODE]'
+    # $1 $2 $3,... strings to be printed.
+    echo -e "[${UTIL_MODE}]${COLOR_BRT}" "$@" "${COLOR_DFT}"  1>&2
+    if ${KEEPLOG} ; then
+        WRITE_LOG "$*"
+    fi;
+}
+
+PBLUE(){
+    # Print to stdout and log file with BLUE font, started by '[$UTIL_MODE]'
+    # $1 $2 $3,... strings to be printed.
+    echo -e "[${UTIL_MODE}]${COLOR_BLUE}" "$@" "${COLOR_DFT}"
+    if ${KEEPLOG} ; then
+        WRITE_LOG "$*"
+    fi;
+}
+
+PRED(){
+    # Print to stdout and log file with RED font, started by '[$UTIL_MODE]'
+    # $1 $2 $3,... strings to be printed.
+    echo -e "[${UTIL_MODE}]${COLOR_RED}" "$@" "${COLOR_DFT}"
+    if ${KEEPLOG} ; then
+        WRITE_LOG "$*"
+    fi;
+}
+
+PYELLOW()
+{
+    # Print to stdout and log file with YELLOW font, started by '[$UTIL_MODE]'
+    # $1 $2 $3,... strings to be printed.
+    echo -e "[${UTIL_MODE}]${COLOR_YELLOW}" "$@" "${COLOR_DFT}"
+    if ${KEEPLOG} ; then
+        WRITE_LOG "$*"
+    fi;
+}
+
+PGREEN(){
+    # Print to stdout and log file with GREEN font, started by '[$UTIL_MODE]'
+    # $1 $2 $3,... strings to be printed.
+    echo -e "[${UTIL_MODE}]${COLOR_GREEN}" "$@" "${COLOR_DFT}"
+    if ${KEEPLOG} ; then
+        WRITE_LOG "$*"
+    fi;
+}
+
+
+DEBUG_MODE_CHECK()
+{
+    # Check if debug mode on by test env DEBUG_MODE
+    # by default, DEBUG_MODE( is not defined ) is on,
+    # output of 'set -x' is redirected to /var/log/h3c/xtrace.log
+    if [ -n "$DEBUG_MODE" ]; then
+        # DEBUG_MODE on
+        BASH_XTRACEFD="2"
+    else
+        # DEBUG_MODE off
+        mkdir -p ${LOG_DIR}
+        exec 99>> ${LOG_DIR}/xtrace.log
+        echo "" >> ${LOG_DIR}/xtrace.log
+        BASH_XTRACEFD="99"
+    fi
+}
+
+GET_LOG_PATH()
+{
+    # Get the full path of log file
+    if [ -n "${LOG_FILE}" ]; then
+        echo "${LOG_FILE}"
+    else
+        echo "${UTIL_FILENAME}.log"
+    fi
+}
+
+MD5_CALC()
+{
+    # $1 filename
+    # return md5 of a file
+    md5sum $1 | awk -F " " '{print $1}'
+}
+
+DECOMPRESS(){
+    # Decompress a tar/tar.gz/tar.bz2 package.
+    # $1 package (.tar.bz2 | .tar.gz)
+    # $2 dest_dir,(optional)
+    # $3 "--verbose",show precess,(optional)
+    # return:   0 on success
+    #           1 on error
+    local ret=0;
+    local package="$1";
+    local dest_dir="."
+    local para="-xmhf" #
+    local is_show_process=false
+    local format=".tar.gz|.tar.bz2|.tar|.tgz"
+    if [[ ! ( $package =~ (${format})$ ) ]]; then
+        PERROR "[tar decompress] unknown package: \"$package\",\npackage must be \".tar|.tar.gz|.tar.bz2\" format."
+        return 1;
+    fi;
+    if [ ! -f "$package" ]; then
+        PERROR "[tar decompress] file \"$package\" not exist!"
+        return 1;
+    fi;
+    if [ "$2" != "" ] && [ -d "$2" ]; then
+        dest_dir="$2";
+    fi
+    if [[  "$*" =~ (-v)|(--verbose) ]]; then
+        para="-xmvhf";
+    fi
+    PRINT "decompress ${package} ..."
+    mkdir -p $dest_dir
+    PRINT "tar $para  $package -C $dest_dir"
+    tar $para  $package -C $dest_dir 2> /dev/null # -C ${PREFIX}/
+    ret=$?
+    if [ "$ret" = "0" ] ; then
+        PRINT "decompress complete."
+        return 0
+    else
+        PERROR "[tar decompress] Package Decompress failed! status code = $ret"
+        return 1;
+    fi
+}
+
+TRIM_HEAD_SPACE()
+{
+    # trim字符串头部的 white space
+    echo $1 | sed -r s/"^[[:space:]]+"/""/
+}
+
+TRIM_PATH()
+{
+    # trim 路径字符串尾部多余的'/'
+    echo $1 | sed -r s/"\/+$"/""/g
+}
+
+TO_TITLE_CASE()
+{
+    # 转换为首字母大写格式字符串
+    echo `echo $* | sed 's/^\w\|\s\w/\U&/g'`
+}
+
+TO_ESCAPE_PATH_STR()
+{
+    # 转换为带转义符的路径字符串
+    # $1 str_origin
+    # e.g: test/me/now --> test\/me\/now
+    echo $(echo "$*" | sed -e 's/\//\\\//g')
+}
+
+TIME_NOW()
+{
+    # 获取系统当前时间，如"2018-04-10 19:15:23"
+    echo `date +"%Y-%m-%d %H:%M:%S"`
+}
+
+STR_REPLACE()
+{
+    # 对指目标文件进行内容替换
+    # $1 str_old，
+    # $2 str_new，
+    # $3 dest_file/dest_dir，如 "xx.txt", "dir1/", "dir1/*",  ...等，必须用引号保护
+    #   '!'等特殊符号需要转义：
+    # e.g:
+    #   STR_REPLACE "/usr/lib" "/opt/h3c/libexec"  "/etc/init"
+    #   STR_REPLACE "\!/usr/bin/python" "\!/usr/bin/env python"  "/opt/h3c/bin/ceph"
+    if [ "$1" = "" ]; then
+        PERROR "str_old is \"\""
+        return 1
+    fi
+    if [ ! -e $3 ]; then
+        PERROR "file/dir \"$3\" not found!"
+        return 1
+    fi
+    local str_old=$(TO_ESCAPE_PATH_STR "$1")
+    local str_new=$(TO_ESCAPE_PATH_STR "$2")
+    local files=`grep "$1" "$3" -rl`
+    if [ "$files" = ""  ]; then
+        PRINT "no files in \"$3\" contain \"$1\""
+        return 0
+    fi
+    # echo $files
+    sed -i "s/$str_old/$str_new/g" $files
+    # sed -i "s/\/usr\/opt/\/etc\/bin/g" `grep /usr/opt -rl /root/c`
+}
+
+COMPILE_PYTHON()
+{
+    #编译完成，生成pyc文件
+    # $1 filename
+    local script=$1
+    python -m py_compile $script 2>/dev/null 1>&2
+    if [ $? -ne 0 ]; then
+        PERROR "<$FUNCNAME>: Failed to compile python scripts [$script]! [line:$LINENO]"
+        return 1
+    fi
+}
+
+COMPILE_SHELL()
+{
+    #编译完成，生成.sh.x文件
+    # $1 filename
+    local script=$1
+    shc -rf $script 2>/dev/null 1>&2
+    if [ $? -ne 0 ]; then
+        PERROR "<$FUNCNAME>: Failed to compile shell scripts [$script]! [line:$LINENO]"
+        return 1
+    fi
+    rm -rf $script ${script}.x.c
+    #echo "/opt/bin/${script##*/} \"\$@\"" > $script
+    chmod 755 ${script}.x
+}
+
+VERSION_COMPARE()
+{
+    # 版本大小判断函数
+    # $1 VER1
+    # $2 VER2
+    # VER格式： x.x.x.x 或 x.x.x 或 x.x 或 x (其中分隔符'.'可以为'-'，'x'为0-9999)
+    # ret VER1 >= VER2，true
+    # ret VER1 < VER2，false
+    local delimiter='.-' #版本号分隔符
+    local ver1=$1
+    local ver2=$2
+    local number1=`echo -n $ver2 | sed "s/[^${delimiter}]*//g"|wc -c`
+    local number2=`echo -n $ver2 | sed "s/[^${delimiter}]*//g"|wc -c`
+    local num1=$[3-$number1]
+    local num2=$[3-$number2]
+    for((i=1;i<=$num1;i++)); do
+        ver1="${ver1}.0"
+    done
+    for((i=1;i<=$num2;i++)); do
+        ver2="${ver2}.0"
+    done
+    if [ -n "${DEBUG_MODE}" ]; then
+        echo "ver1=$ver1"
+        echo "ver2=$ver2"
+    fi
+    # 获取每一位版本号
+    local ver1_val1=$(echo ${ver1} | awk -F "[${delimiter}]" '{print $1}')
+    local ver1_val2=$(echo ${ver1} | awk -F "[${delimiter}]" '{print $2}')
+    local ver1_val3=$(echo ${ver1} | awk -F "[${delimiter}]" '{print $3}')
+    local ver1_val4=$(echo ${ver1} | awk -F "[${delimiter}]" '{print $4}')
+    local ver2_val1=$(echo ${ver2} | awk -F "[${delimiter}]" '{print $1}')
+    local ver2_val2=$(echo ${ver2} | awk -F "[${delimiter}]" '{print $2}')
+    local ver2_val3=$(echo ${ver2} | awk -F "[${delimiter}]" '{print $3}')
+    local ver2_val4=$(echo ${ver2} | awk -F "[${delimiter}]" '{print $4}')
+    # 版本号比较，从高版本号到低版本号
+    if [ ${ver1_val1} -lt ${ver2_val1} ]; then
+        return 1
+    elif [ ${ver1_val1} -gt ${ver2_val1} ]; then
+        return 0
+    fi
+    if [ ${ver1_val2} -lt ${ver2_val2} ]; then
+        return 1
+    elif [ ${ver1_val2} -gt ${ver2_val2} ]; then
+        return 0
+    fi
+    if [ ${ver1_val3} -lt ${ver2_val3} ]; then
+        return 1
+    elif [ ${ver1_val3} -gt ${ver2_val3} ]; then
+        return 0
+    fi
+    if [ ${ver1_val4} -lt ${ver2_val4} ]; then
+        return 1
+    else
+        return 0
+    fi
+}
+
+GET_CONF_ITEM()
+{
+    # linux配置文件读取函数
+    # $1 filename
+    # $2 key
+    # return value
+    local file="$1"
+    local key="$2"
+    if [ ! -f "${file}" ]; then
+        PERROR "<$FUNCNAME> file '$file' not exist"
+        return 1
+    fi
+    local value=$(cat ${file} |grep -P -m 1 "^${key}[ ]*=" |awk -F "[=]" '{print $2}')
+    echo $(TRIM_HEAD_SPACE "${value}")
+    # modified by n16111 2018-11-14 17:48:47： support "key = value" (allow spaces around '=')
+}
+
+SET_CONF_ITEM()
+{
+    # linux配置文件修改函数
+    # $1 filename
+    # $2 key
+    # $3 value
+    file="$1"
+    key="$2"
+    value="$3"
+    if [ ! -f "${file}" ]; then
+        touch ${file}
+    fi
+    # PINFO "key:[$key]";
+    # PINFO "value:[$value]";
+    local item_val=$(sed -n "/^${key}=/p" ${file} | head -n 1)
+    # PRED [${item_val}]
+    if [ x"${item_val}" != x"" ]; then
+        if [[ "${value}" =~ (\/)|(\\)  ]];  then
+            # PWARN "contain \/ or \\"
+            sed -i "s#${item_val}#${key}=${value}#g" ${file}
+        else
+            # PINFO "not contain special strings"
+            sed -i "s/${item_val}/${key}=${value}/g" ${file}
+        fi
+    else
+        echo "${key}=${value}" >> ${file}
+    fi
+}
+
+SET_PATH()
+{
+    #设置PATH环境变量
+    # $1 prefix
+    # $2 shell file
+    local prefix="/opt/h3c"
+    local path_script="unistor.sh"
+    if [ -n "$1" ]; then
+        prefix=$(TRIM_PATH $1)
+    fi
+    if [ -n "$2" ]; then
+        path_script=$2
+    fi
+    # touch /etc/profile.d/$path_script
+    # if ! (echo $PATH| grep "$prefix/bin") || ! (echo $PATH| grep "$prefix/sbin"); then
+    if [ -e /etc/profile.d/$path_script ] \
+        && (cat /etc/profile.d/$path_script | grep "${prefix}/bin"  >/dev/null) \
+        && (cat /etc/profile.d/$path_script | grep "${prefix}/sbin" >/dev/null); then
+        PGREEN "PATH '\${prefix}/bin','\${prefix}/sbin'is already in \$path_script."
+        # PGREEN "PATH '${prefix}/bin','${prefix}/sbin'is already in $path_script." # 屏蔽h3c字段
+        if ! ( (echo $PATH|grep "$prefix/bin">/dev/null) && (echo $PATH|grep "$prefix/sbin">/dev/null) ); then
+            PRINT "source /etc/profile.d/$path_script ..."
+            source /etc/profile.d/$path_script
+            # PRINT "PATH=$(echo $PATH)" # 屏蔽h3c字段
+        else
+            PGREEN "PATH '\${prefix}/bin','\${prefix}/sbin'is already in \$PATH."
+            # PGREEN "PATH '${prefix}/bin','${prefix}/sbin'is already in \$PATH." # 屏蔽h3c字段
+        fi
+    else
+        PINFO "path not found in \$PATH, set \$PATH ..."
+        echo "export PATH=\$PATH:${prefix}/bin:${prefix}/sbin" > /etc/profile.d/$path_script
+        source /etc/profile.d/$path_script
+        #PRINT `cat /etc/profile.d/$path_script` # 屏蔽h3c字段
+        PRINT "set PATH done."
+    fi
+}
+
+UNSET_PATH(){
+    #取消设置PATH环境变量
+    local path_script=/etc/profile.d/"unistor.sh"
+    PINFO "unset env PATH ..."
+    rm -f $path_script && PRINT "$path_script' is deleted."
+    PRINT "done"
+}
+
+SET_SYS_PATH()
+{
+    #设置系统环境PATH变量,修改/etc/vironment，设置备份文件
+    # $1 prefix
+    local prefix="/opt/h3c"
+    if [ -n "$1" ]; then
+        prefix=$(TRIM_PATH $1)
+    fi
+    local sys_path_conf="/etc/environment"
+    local sys_path_conf_bak="/etc/environment.bak"
+    # 读取原有PATH,判断是否包含 PREFIX/bin|sbin
+    local path_read=`GET_CONF_ITEM "${sys_path_conf}" "PATH"`
+    path_read=${path_read//\"/} #去掉结果中的引号"
+    PINFO "PATH in ${sys_path_conf}:"
+    PRINT "[${path_read}]"
+    # environmt 中PATH不包含 /opt/h3c/bin|sbin ?
+    if ! echo ${path_read} | grep "/opt/h3c/bin" >/dev/null \
+        || ! echo ${path_read} | grep "/opt/h3c/sbin" >/dev/null; then
+        # 备份/etc/evironment
+        if  [ ! -e ${sys_path_conf_bak} ]; then
+            PINFO "backup ${sys_path_conf}."
+            cp -f ${sys_path_conf} ${sys_path_conf_bak}
+        else
+            PINFO "${sys_path_conf_bak} already exist."
+            PRINT "continue..."
+        fi
+        # environment中PATH未定义，则直接从环境变量读取PATH
+        if [ -z "${path_read}" ]; then
+            PWARN "path_read is [${path_read}], read env PATH instead..."
+            path_read=${PATH}
+        fi
+        # 追加PATH内容，写入/etc/vironment
+        PINFO "set ${prefix} in ${sys_path_conf}..."
+        local new_path="${path_read}:${prefix}/bin:${prefix}/sbin:" #末尾冒号少ceph-deploy会有osd prepare问题
+        # PRINT "new_path:[${new_path}]"
+        SET_CONF_ITEM "${sys_path_conf}" "PATH" "${new_path}"
+        PRINT "done."
+        PINFO "PATH in ${sys_path_conf}:"
+        PGREEN "[`GET_CONF_ITEM ${sys_path_conf} "PATH"`]"
+    else
+        PINFO "${prefix} already exist in ${sys_path_conf}."
+    fi
+}
+
+UNSET_SYS_PATH()
+{
+    #恢复基于/etc/environment设置的PATH环境变量
+    local sys_path_conf="/etc/environment"
+    local sys_path_conf_bak="/etc/environment.bak"
+    if [ -e $sys_path_conf_bak ]; then
+        PINFO "restor $sys_path_conf ..."
+        cp -f $sys_path_conf_bak $sys_path_conf
+        cat $sys_path_conf
+        PRINT "rm $sys_path_conf_bak ..."
+        rm -f $sys_path_conf_bak
+        PINFO "done."
+    else
+        PINFO "$sys_path_conf_bak does not exist, nothing will be done."
+    fi
+}
+
+SET_JAVA_PATH()
+{
+    #设置JAVA PATH环境变量
+    # $1 prefix
+    # $2 shell file
+    local prefix="/opt/h3c"
+    local path_script="unistor_java.sh"
+    if [ -n "$1" ]; then
+        prefix=$(TRIM_PATH $1)
+    fi
+    if [ -n "$2" ]; then
+        path_script=$2
+    fi
+    if [ -e /etc/profile.d/$path_script ] \
+        && (cat /etc/profile.d/$path_script | grep "JAVA_HOME=${prefix}" >& /dev/null ) \
+        && (cat /etc/profile.d/$path_script | grep "JAVA_HOME/share/java" >& /dev/null ) \
+        && (cat /etc/profile.d/$path_script | grep "JAVA_HOME/lib" >& /dev/null  ) \
+        && (echo $CLASSPATH| grep "${prefix}/lib" >& /dev/null ) \
+        && (echo $CLASSPATH| grep "${prefix}/share/java" >& /dev/null ); then
+        PGREEN "JAVA_HOME '${prefix}' is alreasdfdy set."
+        PGREEN "CLASSPATH '$prefix/lib','${prefix}/share/java' is already set."
+    else
+        PINFO "JAVA env not set, set \$JAVA_HOME, \$CLASSPATH, \$PATH ..."
+        echo "export JAVA_HOME=${prefix}" > /etc/profile.d/$path_script
+        echo "export CLASSPATH=\$CLASSPATH:\$JAVA_HOME/lib:\$JAVA_HOME/share/java" >> /etc/profile.d/$path_script
+        echo "export PATH=\$PATH:\$JAVA_HOME/bin" >> /etc/profile.d/$path_script
+        source /etc/profile.d/$path_script
+        PRINT "JAVA_HOME=$(echo $JAVA_HOME)"
+        PRINT "CLASSPATH=$(echo $CLASSPATH)"
+        # PRINT "PATH=$(echo $PATH)"
+        PRINT "set PATH done."
+    fi
+}
+
+UNSET_JAVA_PATH(){
+    #取消设置PATH环境变量
+    local path_script=/etc/profile.d/"unistor_java.sh"
+    PINFO "rm $path_script ..."
+    rm -f $path_script && PRINT "$path_script' is deleted."
+    PRINT "done"
+}
+
+SET_PERL_PATH()
+{
+    #设置PERL PATH环境变量
+    # $1 prefix
+    # $2 shell file
+    local prefix="/opt/h3c"
+    local path_script="unistor_perl.sh"
+    if [ -n "$1" ]; then
+        prefix=$(TRIM_PATH $1)
+    fi
+    if [ -n "$2" ]; then
+        path_script=$2
+    fi
+    if [ -e /etc/profile.d/$path_script ] \
+        && (cat /etc/profile.d/$path_script | grep "PERL_HOME=${prefix}" >& /dev/null ) \
+        && (cat /etc/profile.d/$path_script | grep "PERL_HOME/share/perl5" >& /dev/null ) \
+        && (cat /etc/profile.d/$path_script | grep "PERL_HOME/lib" >& /dev/null ) \
+        && (echo $PERL5LIB| grep "${prefix}/lib" >& /dev/null ); then
+        PGREEN "PERL_HOME '${prefix}' is already set."
+        PGREEN "PERL5LIB '${prefix}/lib','${prefix}/share/perl5' is already set."
+    else
+        PINFO "perl env not set , set \$PERL_HOME, \$PERL5LIB, \$PATH ..."
+        echo "export PERL_HOME=${prefix}" > /etc/profile.d/$path_script
+        echo "export PERLLIB=\$PERLLIB:\$PERL_HOME/lib:\$PERL_HOME/share/perl5" >> /etc/profile.d/$path_script
+        echo "export PERL5LIB=\$PERL5LIB:\$PERL_HOME/lib:\$PERL_HOME/share/perl5" >> /etc/profile.d/$path_script
+        echo "export PATH=\$PATH:\$PERL_HOME/bin" >> /etc/profile.d/$path_script
+        source /etc/profile.d/$path_script
+        # PRINT "PERLLIB=$(echo $PERLLIB)"
+        PRINT "PERL_HOME=$(echo $PERL_HOME)"
+        PRINT "PERL5LIB=$(echo $PERL5LIB)"
+        PRINT "set PATH done."
+    fi
+}
+
+UNSET_PERL_PATH(){
+    #取消设置PATH环境变量
+    local path_script=/etc/profile.d/"unistor_perl.sh"
+    PINFO "rm $path_script ..."
+    rm -f $path_script && PRINT "$path_script' is deleted."
+    PRINT "done"
+}
+
+SET_PYTHON_PTH_PATH()
+{
+    #设置PYTHPATH环境变量
+    # $1 prefix
+    # $2 shell file
+
+    ### TODO:
+    :
+}
+
+GET_OS_TYPE()
+{
+    # 获取linux系统类型
+    # ret:  "ubuntu-trusty"   # Ubuntu 14.04 LTS
+    #       "ubuntu-precise"  # Ubuntu 12.04 LTS
+    #       "centos"          # CentOS Linux release 7.4.1708 (Core)
+    local os="unknown_os";
+    if [ -e /etc/lsb-release ] ; then
+        os="ubuntu"
+        sub_version=$(/opt/bin/os_lsb_release -c | grep -oP '(?<=:).+' |grep -oP "[[:alnum:]]+")
+        os="${os}-${sub_version}"
+    elif [ -e /etc/centos-release ]; then
+        os="centos"
+    fi
+    echo ${os}
+}
+
+GET_ISSUE()
+{
+    # 获取linux系统的发行版本
+    # ret:  Ubuntu 14.04 LTS
+    #       Ubuntu 12.04 LTS
+    #       CentOS Linux release 7.4.1708 (Core)
+    local issue="";
+    if cat /etc/issue | egrep "(Ubuntu)|(ubuntu)" > /dev/null ; then
+        #ubuntu
+        issue=$( /opt/bin/os_lsb_release -d|grep -oP '(?<=Description:).+' )
+    else
+        issue=$(cat /etc/redhat-release)
+    fi
+    echo ${issue}
+}
+
+
+GET_KERNEL_VER()
+{
+    # 获取linux系统的内核版本
+    # echo `uname -r | sed -r s/"[(n)(l)(\)]"/""/g`
+    echo `uname -r`
+}
+
+CHECK_SSH()
+{
+    ssh $1 -o ConnectTimeout=5 -o PreferredAuthentications=publickey date 1>&2
+    return $?
+}
+#  --------- Specific Functions -------------
+
+service_register()
+{
+    # 统一服务注册 —— 提供与操作系统无关的服务注册方式
+    # $1 Module/Service Name
+    # $2, defaults (optional)，按照默认方式注册服务
+
+    # *目前Ubuntu 12/14下，用法同 update-rc.d
+    # *目前CentOS7.x下，基于chkconfig和systemctl的相互兼容性，
+    #   实现了兼容处理systemd和systemV服务脚本的注册，但：
+    #       对CentOS的systemV服务, 只能处理defaults情况(根据服务脚本配置设置启动和停止)
+    #       对CentOS的systemD服务，只能够处理 ".service" 类型脚本
+    # TODO: 改成基于systemctl的方式，解决上述问题
+    if [ -z "$1" ]; then
+        PERROR "<$FUNCNAME>: no module/service specifed! [line:$LINENO]"
+        return 2;
+    fi
+    if which chkconfig &> /dev/null; then
+        # CentOS
+        if [[ "$@" =~ defaults ]]; then
+            if [ -f "/etc/init.d/$1" ]; then
+                chkconfig --add $1 || return $?
+            fi
+            chkconfig $1 on || return $?
+        else
+            # TODO：特殊参数情况暂按照默认参数处理
+            if [ -f "/etc/init.d/$1" ]; then
+                chkconfig --add $1 || return $?
+            fi
+            chkconfig $1 on || return $?
+        fi
+    elif  which update-rc.d &> /dev/null; then
+        # Ubuntu
+        update-rc.d $@  || return $?
+    else
+        PERROR "<$FUNCNAME>: no service tool available! [line:$LINENO]"
+        return 1
+    fi
+}
+
+service_unregister()
+{
+    # 统一服务注销
+    # $1 Module/Service Name
+    if [ -z "$1" ]; then
+        PERROR "<$FUNCNAME>: no module/service specifed! [line:$LINENO]"
+        return 2;
+    fi
+    if which chkconfig &> /dev/null; then
+        # CentOS
+        chkconfig $1 off || return $?
+        if [ -f "/etc/init.d/$1" ]; then
+            chkconfig --del $1 || return $?
+        fi
+    elif  which update-rc.d &> /dev/null; then
+        # Ubuntu
+        update-rc.d -f $1 remove || return $?
+    else
+        PERROR "<$FUNCNAME>: no service tool available! [line:$LINENO]"
+        return 1
+    fi
+}
+
+
+#  --------- Internal Functions -------------
+
+_install_self()
+{
+    # Install this shell script to /usr/local/include/
+    cd `dirname $0`
+    cp `basename $0` $UTIL_INSTALL_DIR
+    PINFO "install `basename $0` to $UTIL_INSTALL_DIR"
+    PRINT "utils version:${UTIL_VERSION}"
+}
+
+_uninstall_self()
+{
+    # Remove this shell script to /usr/local/include/
+    cd `dirname $0`/
+    cp `basename $0` $UTIL_INSTALL_DIR
+    rm $UTIL_INSTALL_DIR/`basename $0` -f
+    PINFO "rm $UTIL_INSTALL_DIR/`basename $0` -f"
+}
+
+_usage(){
+    # Help information
+    echo "Usage:"
+    echo -e "  Install: "
+    echo -e "\t$0 --install"
+    echo -e "\t\tcp `basename $0` to '$UTIL_INSTALL_DIR'"
+    echo -e "  Unstall: "
+    echo -e "\t$0 --uninstall"
+    echo -e "\t\trm `basename $0` in '$UTIL_INSTALL_DIR'"
+    echo -e "  Include: "
+    echo -e "\t . $0 <MODULE>, <LOG_FILE>"
+    echo -e "\t\tinclude `basename $0`, and keep log in /var/log/h3c/LOG_FILE"
+    echo -e ""
+}
+
+
+main()
+{
+    # main process
+    if [[ "$0" =~ ^(-bash|-dash|-kash)$ ]] ; then
+        PRINT "Shell Utils v${UTIL_VERSION}"
+        PINFO "Test mode on."
+        PRINT "now, you can test any FUN or VAR..."
+        LOG_FILE="$LOG_DIR/$LOG_FILE"
+        KEEPLOG=true
+        return 0;
+    fi
+    if [ $# = 0 ] || [ $1 = "-h" ]; then
+        _usage
+    fi
+    if [ "$1" = "--install" ]; then
+        UTIL_MODE="install"
+        _install_self $@
+        exit 0;
+    elif [ "$1" = "--uninstall" ]; then
+        UTIL_MODE="uninstall"
+        _uninstall_self $@
+        exit 0;
+    fi
+    # -设置print标题-
+    if [ -n "$1" ]; then
+        UTIL_MODE="$1"
+    fi
+    #-是否记录日志-
+    if [ -n "$2" ]; then
+        KEEPLOG=true
+        LOG_FILE="$2" #日志文件名
+        if [ -n "$3"  ]; then
+            LOG_DIR="$3"
+            # echo "LOG_DIR $LOG_DIR"
+        fi
+        if [ -n "$4"  ]; then
+            LOG_SET_TIME=false
+            # echo "LOG_DIR $LOG_DIR"
+        fi
+        LOG_FILE="$LOG_DIR/$LOG_FILE"
+        if [ ! -d $LOG_DIR ]; then
+            mkdir -p $LOG_DIR
+        fi
+        echo "" >> $LOG_FILE
+    fi
+    # -是否开启调试模式-
+    DEBUG_MODE_CHECK
+}
+
+
+main $@
+

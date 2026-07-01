@@ -1,0 +1,255 @@
+EDNS Options
+OptionType
+clsr
+,/usr/lib/python3.9/site-packages/dns/edns.py
+_maximum5
+OptionType._maximumN)
+__name__
+__module__
+__qualname__
+NSID
+EXPIRE
+COOKIE
+	KEEPALIVE
+PADDING
+CHAIN
+classmethodr
+Optionz%Base class for all EDNS option types.c
+zPInitialize an option.
+        *otype*, an ``int``, is the option type.
+        N)
+make
+otype)
+selfr%
+__init__>
+Option.__init__Nc
+zUConvert an option to wire format.
+        Returns a ``bytes`` or ``None``.
+        N
+NotImplementedError
+filer
+to_wireE
+Option.to_wirec
+Build an EDNS option object from wire format.
+        *otype*, an ``int``, is the option type.
+        *parser*, a ``dns.wire.Parser``, the parser, which should be
+        restructed to the option length.
+        Returns a ``dns.edns.Option``.
+        Nr(
+parserr
+from_wire_parserM
+Option.from_wire_parserc
+Compare an EDNS option with another option of the same type.
+        Returns < 0 if < *other*, 0 if == *other*, and > 0 if > *other*.
+        r
+other
+wireZ
+owirer
+_cmpZ
+Option._cmpc
+isinstancer#
+__eq__g
+Option.__eq__c
+__ne__n
+Option.__ne__c
+NotImplementedr4
+__lt__u
+Option.__lt__c
+__le__{
+Option.__le__c
+__ge__
+Option.__ge__c
+__gt__
+Option.__gt__c
+to_text
+__str__
+Option.__str__)
+__doc__r'
+GenericOptionzwGeneric Option Class
+    This class is used for EDNS option types for which we have no better
+    implementation.
+    c
+superr'
+rdata
+RdataZ	_as_bytes
+data)
+	__class__r
+GenericOption.__init__Nc
+writerK
+GenericOption.to_wirec
+Generic %d)
+GenericOption.to_textc
+get_remainingr-
+GenericOption.from_wire_parser)
+__classcell__r
+	ECSOptionz!EDNS Client Subnet (ECS, RFC7871)Nr
+*address*, a ``str``, is the client address information.
+        *srclen*, an ``int``, the source prefix length, which is the
+        leftmost number of bits of the address to be used for the
+        lookup.  The default is 24 for IPv4 and 56 for IPv6.
+        *scopelen*, an ``int``, the scope prefix length.  This value
+        must be 0 in queries, and should be set in responses.
+        
+Bad address family
+inetZ
+af_for_address
+socketZ
+AF_INET6
+familyrI
+_as_ipv6_addressZ
+_as_intZ
+AF_INETZ
+_as_ipv4_address
+ValueError
+address
+srclen
+scopelenZ	inet_pton
+math
+ceil
+addrdata
+struct
+pack
+ord)	r&
+afrc
+nbytesZ
+nbitsZ
+lastrL
+ECSOption.__init__c
+ECS {}/{} scope/{})
+formatr]
+ECSOption.to_textc
+Convert a string into a `dns.edns.ECSOption`
+        *text*, a `str`, the text form of the option.
+        Returns a `dns.edns.ECSOption`.
+        Examples:
+        >>> import dns.edns
+        >>>
+        >>> # basic example
+        >>> dns.edns.ECSOption.from_text('1.2.3.4/24')
+        >>>
+        >>> # also understands scope
+        >>> dns.edns.ECSOption.from_text('1.2.3.4/24/32')
+        >>>
+        >>> # IPv6
+        >>> dns.edns.ECSOption.from_text('2001:4b98::1/64/64')
+        >>>
+        >>> # it understands results from `dns.edns.ECSOption.to_text()`
+        >>> dns.edns.ECSOption.from_text('ECS 1.2.3.4/24/32')
+        r
+could not parse ECS from "{}"
+invalid scope z
+"{}": scope must be an integerz
+invalid srclen z
+"{}": srclen must be an integer)
+split
+lenr\
+countr`
+textZ
+optional_prefix
+tokensZ
+ecs_textZ	n_slashesr]
+scoper
+	from_text
+ECSOption.from_textc
+!HBB)
+valuer
+ECSOption.to_wirec
+}	n.|
+)	Nrq
+unsupported family)
+get_structr`
+Z	get_bytesrH
+ipv4Z	inet_ntoaZ
+ipv6r\
+srcro
+addrlen
+prefixZ
+padZ
+addrr
+ECSOption.from_wire_parser)
+staticmethodrp
+EDECoder
+EDECode._maximumN)
+OTHERZ
+UNSUPPORTED_DNSKEY_ALGORITHMZ
+UNSUPPORTED_DS_DIGEST_TYPEZ
+STALE_ANSWERZ
+FORGED_ANSWERZ
+DNSSEC_INDETERMINATEZ
+DNSSEC_BOGUSZ
+SIGNATURE_EXPIREDZ
+SIGNATURE_NOT_YET_VALIDZ
+DNSKEY_MISSINGZ
+RRSIGS_MISSINGZ
+NO_ZONE_KEY_BIT_SETZ
+NSEC_MISSINGZ
+CACHED_ERRORZ	NOT_READYZ
+BLOCKEDZ
+CENSOREDZ
+FILTEREDZ
+PROHIBITEDZ
+STALE_NXDOMAIN_ANSWERZ
+NOT_AUTHORITATIVEZ
+NOT_SUPPORTEDZ
+NO_REACHABLE_AUTHORITYZ
+NETWORK_ERRORZ
+INVALID_DATAr"
+	EDEOptionz!Extended DNS Error (EDE, RFC8914)Nc
+s4t	d
+*code*, a ``dns.edns.EDECode`` or ``str``, the info code of the
+        extended error.
+        *text*, a ``str`` or ``None``, specifying additional information about
+        the error.
+        Nz
+text must be string or None)
+coder6
+strr\
+EDEOption.__init__c
+EDE z
+outputr
+EDEOption.to_textc
+utf8)
+encoderN
+EDEOption.to_wirec
+get_uint16rO
+decode)
+EDEOption.from_wire_parser)
+Return the class for the specified option type.
+    The GenericOption class is used if a more specific class is not
+    known.
+    N)
+_type_to_class
+getrF
+get_option_class
+Build an EDNS option object from wire format.
+    *otype*, an ``int``, is the option type.
+    *parser*, a ``dns.wire.Parser``, the parser, which should be
+    restricted to the option length.
+    Returns an instance of a subclass of ``dns.edns.Option``.
+    )
+option_from_wire_parser
+Build an EDNS option object from wire format.
+    *otype*, an ``int``, is the option type.
+    *wire*, a ``bytes``, is the wire-format message.
+    *current*, an ``int``, is the offset in *wire* of the beginning
+    of the rdata.
+    *olen*, an ``int``, is the length of the wire-format option data
+    Returns an instance of a subclass of ``dns.edns.Option``.
+    N)
+ParserZ
+restrict_tor
+currentZ
+olenr.
+option_from_wire
+Register the implementation of an option type.
+    *implementation*, a ``class``, is a subclass of ``dns.edns.Option``.
+    *otype*, an ``int``, is the option type.
+    N)
+implementationr%
+register_type
+) rE
+dns.enumrH
+dns.inetZ	dns.rdata
+enum
+IntEnumr
+<module>

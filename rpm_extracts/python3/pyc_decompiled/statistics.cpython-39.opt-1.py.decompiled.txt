@@ -1,0 +1,600 @@
+Z"dHd
+Z$d d!
+Z%d"d#
+Z&d$d%
+Z'd&d'
+Z(d(d)
+Z)d*d+
+Z*dId-d.
+Z+d/d0
+Z,d1d2
+Z-d3d4d5
+d6d7
+Z.dJd8d9
+Z/dKd:d;
+Z0dLd<d=
+Z1dMd>d?
+Z2dNd@dA
+Z3dBdC
+dDl5m4Z4
+dEdF
+)Oam
+Basic statistics module.
+This module provides functions for calculating statistics of data, including
+averages, variance, and standard deviation.
+Calculating averages
+--------------------
+==================  ==================================================
+Function            Description
+==================  ==================================================
+mean                Arithmetic mean (average) of data.
+fmean               Fast, floating point arithmetic mean.
+geometric_mean      Geometric mean of data.
+harmonic_mean       Harmonic mean of data.
+median              Median (middle value) of data.
+median_low          Low median of data.
+median_high         High median of data.
+median_grouped      Median, or 50th percentile, of grouped data.
+mode                Mode (most common value) of data.
+multimode           List of modes (most common values of data).
+quantiles           Divide data into intervals with equal probability.
+==================  ==================================================
+Calculate the arithmetic mean ("the average") of data:
+>>> mean([-1.0, 2.5, 3.25, 5.75])
+2.625
+Calculate the standard median of discrete data:
+>>> median([2, 3, 4, 5])
+Calculate the median, or 50th percentile, of data grouped into class intervals
+centred on the data values provided. E.g. if your data points are rounded to
+the nearest whole number:
+>>> median_grouped([2, 2, 3, 3, 3, 4])  #doctest: +ELLIPSIS
+2.8333333333...
+This should be interpreted in this way: you have two data points in the class
+interval 1.5-2.5, three data points in the class interval 2.5-3.5, and one in
+the class interval 3.5-4.5. The median of these data points is 2.8333...
+Calculating variability or spread
+---------------------------------
+==================  =============================================
+Function            Description
+==================  =============================================
+pvariance           Population variance of data.
+variance            Sample variance of data.
+pstdev              Population standard deviation of data.
+stdev               Sample standard deviation of data.
+==================  =============================================
+Calculate the standard deviation of sample data:
+>>> stdev([2.5, 3.25, 5.5, 11.25, 11.75])  #doctest: +ELLIPSIS
+4.38961843444...
+If you have previously calculated the mean, you can pass it as the optional
+second argument to the four "spread" functions to avoid recalculating it:
+>>> data = [1, 2, 2, 4, 4, 4, 5, 6]
+>>> mu = mean(data)
+>>> pvariance(data, mu)
+Exceptions
+----------
+A single exception is defined: StatisticsError is a subclass of ValueError.
+NormalDist
+StatisticsError
+fmean
+geometric_mean
+harmonic_mean
+mean
+median
+median_grouped
+median_high
+median_low
+mode
+	multimode
+pstdev
+	pvariance
+	quantiles
+stdev
+variance
+Fraction)
+Decimal)
+groupby)
+bisect_left
+bisect_right)
+hypot
+sqrt
+fabs
+fsum)
+itemgetter)
+Counterc
+__name__
+__module__
+__qualname__
+"/usr/lib64/python3.9/statistics.pyr
+qRq6d
+_sum(data [, start]) -> (type, sum, count)
+    Return a high-precision sum of the given numeric data as a fraction,
+    together with the type to be converted to and the count of items.
+    If optional argument ``start`` is given, it is added to the total.
+    If ``data`` is empty, ``start`` (defaulting to 0) is returned.
+    Examples
+    --------
+    >>> _sum([3, 2.25, 4.5, -0.5, 1.0], 0.75)
+    (<class 'float'>, Fraction(11, 1), 5)
+    Some sources of round-off error will be avoided:
+    # Built-in sum returns zero.
+    >>> _sum([1e50, 1, -1e50] * 1000)
+    (<class 'float'>, Fraction(1000, 1), 3000)
+    Fractions and Decimals are also supported:
+    >>> from fractions import Fraction as F
+    >>> _sum([F(2, 3), F(7, 5), F(1, 4), F(5, 6)])
+    (<class 'fractions.Fraction'>, Fraction(63, 20), 4)
+    >>> from decimal import Decimal as D
+    >>> data = [D("0.1375"), D("0.2108"), D("0.3061"), D("0.0419")]
+    >>> _sum(data)
+    (<class 'decimal.Decimal'>, Fraction(6963, 10000), 4)
+    Mixed types are currently treated as an error, except that int is
+    allowed.
+    r
+	<genexpr>
+_sum.<locals>.<genexpr>)
+_exact_ratio
+_coerce
+typer
+sorted
+items)
+data
+start
+countr,
+partialsZ
+partials_get
+values
+totalr&
+_sum{
+Z	is_finite
+AttributeError
+mathZ
+isfinite)
+	_isfinite
+Coerce types T and S to a common type, or raise TypeError.
+    Coercion rules are currently an implementation detail. See the CoerceTest
+    test class in test_statistics for details.
+    z"don't know how to coerce %s and %sN)
+bool
+issubclassr
+float
+	TypeErrorr#
+msgr&
+Return Real number x to exact (numerator, denominator) pair.
+    >>> _exact_ratio(0.25)
+    (1, 4)
+    x is expected to be an int, Fraction, Decimal or float.
+    Nz0can't convert type '{}' to numerator/denominator)
+as_integer_ratio
+	numerator
+denominatorr@
+OverflowError
+ValueErrorrG
+formatr#
+z&Convert value to given numeric type T.r(
+valuer;
+_convert
+z,Locate the leftmost value exactly equal to xN)
+lenrN
+_find_lteq
+z-Locate the rightmost value exactly equal to x)
+lor(
+_find_rteq
+negative valuec
+z7Iterate over values, failing if any are less than zero.r
+errmsgrB
+	_fail_neg
+Return the sample arithmetic mean of data.
+    >>> mean([1, 2, 3, 4, 4])
+    2.8
+    >>> from fractions import Fraction as F
+    >>> mean([F(3, 7), F(1, 21), F(5, 3), F(1, 3)])
+    Fraction(13, 21)
+    >>> from decimal import Decimal as D
+    >>> mean([D("0.5"), D("0.75"), D("0.625"), D("0.375")])
+    Decimal('0.5625')
+    If ``data`` is empty, StatisticsError will be raised.
+    r(
+z%mean requires at least one data point)
+iter
+listrR
+Convert data to floats and compute the arithmetic mean.
+    This runs faster than the mean() function and it always returns a float.
+    If the input dataset is empty, it raises a StatisticsError.
+    >>> fmean([3.5, 4.0, 5.25])
+    4.25
+    r
+	enumerate)
+iterablerB
+fmean.<locals>.countz&fmean requires at least one data pointN)
+ZeroDivisionErrorr
+Convert data to floats and compute the geometric mean.
+    Raises a StatisticsError if the input dataset is empty,
+    if it contains a zero, or if it contains a negative value.
+    No special efforts are made to achieve exact results.
+    (However, this may change in the future.)
+    >>> round(geometric_mean([54, 24, 36]), 9)
+    36.0
+    zHgeometric mean requires a non-empty dataset  containing positive numbersN)
+z"t	d
+Return the harmonic mean of data.
+    The harmonic mean, sometimes called the subcontrary mean, is the
+    reciprocal of the arithmetic mean of the reciprocals of the data,
+    and is often appropriate when averaging quantities which are rates
+    or ratios, for example speeds. Example:
+    Suppose an investor purchases an equal value of shares in each of
+    three companies, with P/E (price/earning) ratios of 2.5, 3 and 10.
+    What is the average P/E ratio for the investor's portfolio?
+    >>> harmonic_mean([2.5, 3, 10])  # For an equal investment portfolio.
+    3.6
+    Using the arithmetic mean would give an average of about 5.167, which
+    is too high.
+    If ``data`` is empty, or any element is less than zero,
+    ``harmonic_mean`` will raise ``StatisticsError``.
+    z.harmonic mean does not support negative valuesr(
+z.harmonic_mean requires at least one data pointr
+unsupported typec
+z harmonic_mean.<locals>.<genexpr>)
+isinstance
+numbersZ
+Realr
+Return the median (middle value) of numeric data.
+    When the number of data points is odd, return the middle data point.
+    When the number of data points is even, the median is interpolated by
+    taking the average of the two middle values:
+    >>> median([1, 3, 5])
+    3
+    >>> median([1, 3, 5, 7])
+    4.0
+    r
+no median for empty data
+Return the low median of numeric data.
+    When the number of data points is odd, the middle value is returned.
+    When it is even, the smaller of the two middle values is returned.
+    >>> median_low([1, 3, 5])
+    3
+    >>> median_low([1, 3, 5, 7])
+    3
+    r
+Return the high median of data.
+    When the number of data points is odd, the middle value is returned.
+    When it is even, the larger of the two middle values is returned.
+    >>> median_high([1, 3, 5])
+    3
+    >>> median_high([1, 3, 5, 7])
+    5
+    r
+Return the 50th percentile (median) of grouped continuous data.
+    >>> median_grouped([1, 2, 2, 3, 4, 4, 4, 4, 4, 5])
+    3.7
+    >>> median_grouped([52, 52, 53, 54])
+    52.5
+    This calculates the median as the 50th percentile, and should be
+    used when your data is continuous and grouped. In the above example,
+    the values 1, 2, 3, etc. actually represent the midpoint of classes
+    0.5-1.5, 1.5-2.5, 2.5-3.5, etc. The middle value falls somewhere in
+    class 3.5-4.5, and interpolation is used to estimate it.
+    Optional argument ``interval`` represents the class interval, and
+    defaults to 1. Changing the class interval naturally will change the
+    interpolated 50th percentile value:
+    >>> median_grouped([1, 3, 3, 5, 7], interval=1)
+    3.25
+    >>> median_grouped([1, 3, 3, 5, 7], interval=2)
+    3.5
+    This function does not check whether the data points are at least
+    ``interval`` apart.
+    r
+expected number but got %r)
+bytesrG
+intervalr,
+Return the most common data point from discrete or nominal data.
+    ``mode`` assumes discrete data, and returns a single value. This is the
+    standard treatment of the mode as commonly taught in schools:
+        >>> mode([1, 1, 2, 3, 3, 3, 3, 4])
+        3
+    This also works with nominal (non-numeric) data:
+        >>> mode(["red", "blue", "blue", "red", "green", "red", "red"])
+        'red'
+    If there are multiple modes with same frequency, return the first one
+    encountered:
+        >>> mode(['red', 'red', 'green', 'blue', 'blue'])
+        'red'
+    If *data* is empty, ``mode``, raises StatisticsError.
+    r(
+no mode for empty dataN)
+most_common
+IndexErrorr
+pairsr&
+Return a list of the most frequently occurring values.
+    Will return more than one result if there are multiple modes
+    or an empty list if *data* is empty.
+    >>> multimode('aabbbbbbbbcc')
+    ['b']
+    >>> multimode('aabbbbccddddeeffffgg')
+    ['b', 'd', 'f']
+    >>> multimode('')
+    []
+    r(
+keyr
+nextr
+countsZ
+maxcountZ
+mode_itemsr&
+	exclusive)
+methodc
+Divide *data* into *n* continuous intervals with equal probability.
+    Returns a list of (n - 1) cut points separating the intervals.
+    Set *n* to 4 for quartiles (the default).  Set *n* to 10 for deciles.
+    Set *n* to 100 for percentiles which gives the 99 cuts points that
+    separate *data* in to 100 equal sized groups.
+    The *data* can be any iterable containing sample.
+    The cut points are linearly interpolated between data points.
+    If *method* is set to *inclusive*, *data* is treated as population
+    data.  The minimum value is treated as the 0th percentile and the
+    maximum value is treated as the 100th percentile.
+    r(
+n must be at least 1rf
+z"must have at least two data pointsZ	inclusiveru
+Unknown method: N)
+range
+divmod
+appendrN
+resultrT
+deltaZ
+interpolatedr&
+Return sum of square deviations of sequence data.
+    If ``c`` is None, the mean is calculated in one pass, and the deviations
+    from the mean are calculated in a second pass. Otherwise, deviations are
+    calculated from ``c`` as given. Use the second case with care, as it can
+    lead to garbage results.
+    Nc
+_ss.<locals>.<genexpr>c
+total2Z
+count2r&
+Return the sample variance of data.
+    data should be an iterable of Real-valued numbers, with at least two
+    values. The optional argument xbar, if given, should be the mean of
+    the data. If it is missing or None, the mean is automatically calculated.
+    Use this function when your data is a sample from a population. To
+    calculate the variance from the entire population, see ``pvariance``.
+    Examples:
+    >>> data = [2.75, 1.75, 1.25, 0.25, 0.5, 1.25, 3.5]
+    >>> variance(data)
+    1.3720238095238095
+    If you have already calculated the mean of your data, you can pass it as
+    the optional second argument ``xbar`` to avoid recalculating it:
+    >>> m = mean(data)
+    >>> variance(data, m)
+    1.3720238095238095
+    This function does not check that ``xbar`` is actually the mean of
+    ``data``. Giving arbitrary values for ``xbar`` may lead to invalid or
+    impossible results.
+    Decimals and Fractions are supported:
+    >>> from decimal import Decimal as D
+    >>> variance([D("27.5"), D("30.25"), D("30.25"), D("34.5"), D("41.75")])
+    Decimal('31.01875')
+    >>> from fractions import Fraction as F
+    >>> variance([F(1, 6), F(1, 2), F(5, 3)])
+    Fraction(67, 108)
+    rf
+z*variance requires at least two data pointsr(
+xbarr,
+ssr&
+Return the population variance of ``data``.
+    data should be a sequence or iterable of Real-valued numbers, with at least one
+    value. The optional argument mu, if given, should be the mean of
+    the data. If it is missing or None, the mean is automatically calculated.
+    Use this function to calculate the variance from the entire population.
+    To estimate the variance from a sample, the ``variance`` function is
+    usually a better choice.
+    Examples:
+    >>> data = [0.0, 0.25, 0.25, 1.25, 1.5, 1.75, 2.75, 3.25]
+    >>> pvariance(data)
+    1.25
+    If you have already calculated the mean of the data, you can pass it as
+    the optional second argument to avoid recalculating it:
+    >>> mu = mean(data)
+    >>> pvariance(data, mu)
+    1.25
+    Decimals and Fractions are supported:
+    >>> from decimal import Decimal as D
+    >>> pvariance([D("27.5"), D("30.25"), D("30.25"), D("34.5"), D("41.75")])
+    Decimal('24.815')
+    >>> from fractions import Fraction as F
+    >>> pvariance([F(1, 4), F(5, 4), F(1, 2)])
+    Fraction(13, 72)
+    r(
+z*pvariance requires at least one data pointr
+mur,
+Return the square root of the sample variance.
+    See ``variance`` for arguments and other details.
+    >>> stdev([1.5, 2.5, 2.5, 2.75, 3.25, 4.75])
+    1.0810874155219827
+    N)
+varr&
+Return the square root of the population variance.
+    See ``pvariance`` for arguments and other details.
+    >>> pstdev([1.5, 2.5, 2.5, 2.75, 3.25, 4.75])
+    0.986893273527251
+    N)
+?g333333
+@g*u
+@gnC
+`@gu
+@giK
+@gfR
+ZaI?gg
+?g7\
+@gj%b
+@gjR
+9dh?
+>g('
+?g3fR
+>gESB
+\T?g
+tcI,\
+I?g*F
+sigma
+numZ
+denrB
+_normal_dist_inv_cdf7
+d d!
+d"d#
+d$d%
+d&d'
+d(d)
+d*d+
+d,d-
+d.d/
+d0d1
+d2d3
+d4d5
+d6d7
+d8d9
+z(Normal distribution of a random variablez(Arithmetic mean of a normal distributionz+Standard deviation of a normal distribution)
+_sigmar
+zDNormalDist where mu is the mean and sigma is the standard deviation.r
+sigma must be non-negativeN)
+selfr
+__init__
+NormalDist.__init__c
+z5Make a normal distribution instance from sample data.)
+tupler
+clsr8
+from_samples
+NormalDist.from_samplesN)
+seedc
+z=Generate *n* samples for a given mean and standard deviation.Nc
+gaussr
+<listcomp>
+z&NormalDist.samples.<locals>.<listcomp>)
+randomr
+Randomr
+samples
+NormalDist.samplesc
+z4Probability density function.  P(x <= X < x+dx) / dx
+@z$pdf() not defined when sigma is zerog
+NormalDist.pdfc
+z,Cumulative distribution function.  P(X <= x)z$cdf() not defined when sigma is zeror
+NormalDist.cdfc
+Inverse cumulative distribution function.  x : P(X <= x) = p
+        Finds the value of the random variable such that the probability of
+        the variable being less than or equal to that value equals the given
+        probability.
+        This function is also called the percent point function or quantile
+        function.
+        r
+z$p must be in the range 0.0 < p < 1.0z-cdf() not defined when sigma at or below zero)
+inv_cdf
+NormalDist.inv_cdfrt
+Divide into *n* continuous intervals with equal probability.
+        Returns a list of (n - 1) cut points separating the intervals.
+        Set *n* to 4 for quartiles (the default).  Set *n* to 10 for deciles.
+        Set *n* to 100 for percentiles which gives the 99 cuts points that
+        separate the normal distribution in to 100 equal sized groups.
+        c
+z(NormalDist.quantiles.<locals>.<listcomp>r(
+NormalDist.quantilesc
+Compute the overlapping coefficient (OVL) between two normal distributions.
+        Measures the agreement between two normal probability distributions.
+        Returns a value between 0.0 and 1.0 giving the overlapping area in
+        the two underlying probability density functions.
+            >>> N1 = NormalDist(2.4, 1.6)
+            >>> N2 = NormalDist(3.2, 2.0)
+            >>> N1.overlap(N2)
+            0.8035050657330205
+        z$Expected another NormalDist instancez(overlap() not defined when sigma is zeror
+other
+X_varZ
+Y_varZ
+dmrS
+x2r&
+overlap
+NormalDist.overlapc
+Compute the Standard Score.  (x - mean) / stdev
+        Describes *x* in terms of the number of standard deviations
+        above or below the mean of the normal distribution.
+        z'zscore() not defined when sigma is zero)
+zscore
+NormalDist.zscorec
+z+Arithmetic mean of the normal distribution.
+NormalDist.meanc
+z,Return the median of the normal distributionr
+NormalDist.medianc
+Return the mode of the normal distribution
+        The mode is the value x where which the probability density
+        function (pdf) takes its maximum value.
+        r
+NormalDist.modec
+z.Standard deviation of the normal distribution.
+NormalDist.stdevc
+z!Square of the standard deviation.r
+NormalDist.variancec
+Add a constant or another NormalDist instance.
+        If *other* is a constant, translate mu by the constant,
+        leaving sigma unchanged.
+        If *other* is a NormalDist, add both the means and the variances.
+        Mathematically, this works only if the two distributions are
+        independent or if they are jointly normally distributed.
+        
+__add__
+NormalDist.__add__c
+Subtract a constant or another NormalDist instance.
+        If *other* is a constant, translate by the constant mu,
+        leaving sigma unchanged.
+        If *other* is a NormalDist, subtract the means and add the variances.
+        Mathematically, this works only if the two distributions are
+        independent or if they are jointly normally distributed.
+        r
+__sub__'
+NormalDist.__sub__c
+Multiply both mu and sigma by a constant.
+        Used for rescaling, perhaps to change measurement units.
+        Sigma is scaled with the absolute value of the constant.
+        
+__mul__5
+NormalDist.__mul__c
+Divide both mu and sigma by a constant.
+        Used for rescaling, perhaps to change measurement units.
+        Sigma is scaled with the absolute value of the constant.
+        r
+__truediv__=
+NormalDist.__truediv__c
+Return a copy of the instance.
+__pos__E
+NormalDist.__pos__c
+z(Negates mu while keeping sigma the same.r
+__neg__I
+NormalDist.__neg__c
+z<Subtract a NormalDist from a constant or another NormalDist.r&
+__rsub__O
+NormalDist.__rsub__c
+zFTwo NormalDist objects are equal if their mu and sigma are both equal.)
+NotImplementedr
+__eq__U
+NormalDist.__eq__c
+zCNormalDist objects hash equal if their mu and sigma are both equal.)
+hashr
+__hash__[
+NormalDist.__hash__c
+(mu=z
+, sigma=
+__repr___
+NormalDist.__repr__)
+)!r#
+__doc__
+	__slots__r
+classmethodr
+propertyr
+__radd__r
+__rmul__r
+N)8r
+__all__rA
+Z	fractionsr
+decimalr
+	itertoolsr
+bisectr
+operatorr!
+collectionsr"
+_statistics
+ImportErrorr
+<module>

@@ -1,0 +1,289 @@
+m	Z	
+Support for embedded TeX expressions in Matplotlib.
+Requirements:
+* LaTeX.
+* \*Agg backends: dvipng>=1.6.
+* PS backend: PSfrag, dvips, and Ghostscript>=9.0.
+* PDF and SVG backends: if LuaTeX is present, it will be used to speed up some
+  post-processing steps, but note that it is not used to parse the TeX string
+  itself (only LaTeX is supported).
+To enable TeX rendering of all text in your Matplotlib figure, set
+:rc:`text.usetex` to True.
+TeX and dvipng/dvips processing results are cached
+in ~/.matplotlib/tex.cache for reuse between sessions.
+`TexManager.get_rgba` can also be used to directly obtain raster output as RGBA
+NumPy arrays.
+Path)
+TemporaryDirectory)
+_api
+cbook
+dviread
+optionc
+    Output LaTeX code that loads a package (possibly with an option) if it
+    hasn't been loaded yet.
+    LaTeX cannot load twice a package with different options, so this helper
+    can be used to protect against users loading arbitrary packages/options in
+    their custom preamble.
+    N
+z]\makeatletter\@ifpackageloaded{%(package)s}{}{\usepackage%(option)s{%(package)s}}\makeatother
+packager
+;/usr/lib64/python3.9/site-packages/matplotlib/texmanager.py
+_usepackage_if_not_loaded'
+d8d d!
+d"d#
+d$d%
+d&d'
+d(d)
+d+d,
+d-d.
+d/d0
+d9d1d2
+d:d4d5
+d;d6d7
+TexManagerz
+    Convert strings to dvi files using TeX, caching the results to a directory.
+    Repeated calls to this constructor always return the same instance.
+    z	tex.cache)
+serif
+sans-serif
+cursive
+	monospacez
+\renewcommand{\rmdefault}{pnc}z
+\renewcommand{\rmdefault}{pbk}z
+\usepackage{mathptmx}z
+\usepackage{mathpazo}z
+\usepackage{chancery}z
+\usepackage{charter}r
+\usepackage{helvet}z
+\usepackage{avant}z
+\usepackage{courier}z
+\usepackage{type1ec})
+new century schoolbook
+bookman
+times
+palatino
+zapf chanceryr
+charterr
+	helvetica
+avant garde
+courierr
+computer modern roman
+computer modern sans serif
+computer modern typewriterr
+3.5c
+parents
+exist_ok)
+texcache
+mkdir
+object
+__new__
+clsr
+TexManager.__new__z
+3.6c
+utf-8)
+_get_font_preamble_and_command
+get_custom_preamble
+hashlib
+encode
+	hexdigest)
+self
+preambleZ
+font_cmd
+	preamblesr
+get_font_configq
+TexManager.get_font_configc
+z<Return the font family name and whether the font is reduced.
+font.family
+NFTzXfont.family must be one of (%s) when text.usetex is True. serif will be used by default.z
+rcParams
+lower
+_font_families
+_font_preambles
+_font_types
+_log
+info
+join)
+ff_valr
+_get_font_family_and_reducedz
+z'TexManager._get_font_family_and_reducedc
+font.z
+family: %s, font: %s, info: %sz&%s font is not compatible with usetex.zPNo LaTeX-compatible font found for the %s fontfamily in rcParams. Using default.c
+family
+	<setcomp>
+z<TexManager._get_font_preamble_and_command.<locals>.<setcomp>)
+\usepackage{type1cm}
+z	\sffamilyr
+z	\ttfamilyz	\rmfamily)
+debugr?
+addr@
+sorted)
+requested_familyZ
+is_reduced_font
+font_familyZ
+font
+cmdr2
+fontcmdr
+z)TexManager._get_font_preamble_and_commandNc
+        Return a filename based on a hash of the string, fontsize, and dpi.
+        r*
+_get_tex_source
+pathr@
+fontsize
+srcr
+get_basefile
+TexManager.get_basefilec
+        Return a string containing font configuration for the tex preamble.
+        )
+font_preamble
+commandr
+get_font_preamble
+TexManager.get_font_preamblec
+z>Return a string containing user additions to the tex preamble.z
+text.latex.preamble)
+TexManager.get_custom_preamblec
+)#z;Return the complete TeX source for processing a TeX string.g
+\documentclass{article}z=% Pass-through \mathdefault, which is used in non-usetex modez>% to use the default text font but was historically suppressedz
+% in usetex mode.z \newcommand{\mathdefault}[1]{#1}z
+\usepackage[utf8]{inputenc}z.\DeclareUnicodeCharacter{2212}{\ensuremath{-}}z3% geometry is loaded before the custom preamble as z<% convert_psfrags relies on a custom preamble to change the z
+% geometry.z1\usepackage[papersize=72in, margin=1in]{geometry}z?% Use `underscore` package to take care of underscores in text.z?% The [strings] option allows to use underscores in file names.Z
+underscoreZ
+stringsr
+z;% Custom packages (e.g. newtxtext) may already have loaded z"% textcomp with different options.Z
+textcompz
+\pagestyle{empty}z
+\begin{document}z>% The empty hbox ensures that a page is printed even for emptyz=% inputs, except when using psfrag which gets confused by it.z;% matplotlibbaselinemarker is used by dviread to detect thez
+% last line's baseline.z
+\fontsize{z
+}%z!\ifdefined\psfrag\else\hbox{}\fi%
+\end{document})
+baselineskipr
+TexManager._get_tex_sourcec
+        Generate a tex file to render the tex string at a specific font size.
+        Return the file name.
+        z
+.texr*
+encoding)
+write_textrL
+texfiler
+make_tex
+TexManager.make_tex
+cwdc
+z t	d
+z>t	d
+)	N)
+stderrz?Failed to process string with tex because {} could not be foundr
+{prog} was not able to process the following string:
+{tex!r}
+Here is the full command invocation and its output:
+{format_command}
+{exc}
+unicode_escaper*
+backslashreplace)
+progZ
+format_commandrP
+exc)
+_pformat_subprocess
+subprocessZ
+check_outputr$
+STDOUT
+FileNotFoundError
+RuntimeError
+formatZ
+CalledProcessErrorr/
+output
+decode)
+reportrc
+_run_checked_subprocess
+z"TexManager._run_checked_subprocessc
+)	zm
+        Generate a dvi file containing latex's layout of tex string.
+        Return the file name.
+        z
+%s.dvi)
+dirZ
+latexz
+-interaction=nonstopmodez
+--halt-on-errorz
+../r^
+existsr
+parentrk
+name
+replace)
+basefile
+dvifiler\
+tmpdirr
+make_dvi
+TexManager.make_dvic
+        Generate a png file containing latex's rendering of tex string.
+        Return the file name.
+        z
+%s.pngZ
+dvipngz
+-bgZ
+Transparentz
+tightz
+_called_from_pytestFz
+1.16r6
+--freetype0)
+getattrr7
+_get_executable_infoZ
+raw_version
+insertrk
+pngfilerr
+make_png-
+TexManager.make_pngc
+Return the alpha channel.z	font.sizez
+savefig.dpiN
+_grey_arrayd
+getrw
+imageZ
+imreadrN
+alpharv
+rgbar
+get_greyE
+TexManager.get_grey
+        Return latex's rendering of the tex string as an rgba array.
+        Examples
+        --------
+        >>> texmanager = TexManager()
+        >>> s = r"\TeX\ is $\displaystyle\sum_n\frac{-e^{i\pi}}{2^n}$!"
+        >>> Z = texmanager.get_rgba(s, fontsize=12, dpi=80, rgb=(1, 0, 0))
+        
+empty
+shaper7
+colorsZ
+to_rgb)
+rgbr|
+get_rgbaT
+TexManager.get_rgbac
+z-Return width, height and descent of the text.r
+striprs
+points_to_pixelsr
+widthZ
+heightZ
+descent)
+rendererrr
+dpi_fractionZ
+dviZ
+pager
+get_text_width_height_descente
+z(TexManager.get_text_width_height_descent)
+__name__
+__module__
+__qualname__
+__doc__rN
+get_cachedirr$
+deprecate_privatize_attributeZ
+grey_arraydrI
+font_familiesZ	font_info
+	functools
+	lru_cacher'
+deprecatedr4
+classmethodrA
+loggingrN
+pathlibr
+tempfiler
+numpyr
+matplotlibr7
+Z	getLoggerr
+<module>

@@ -1,0 +1,230 @@
+assert_
+assert_equal
+IS_PYPY
+utilc
+TestF77Callbacka
+       subroutine t(fun,a)
+       integer a
+cf2py  intent(out) a
+       external fun
+       call fun(a)
+       end
+       subroutine func(a)
+cf2py  intent(in,out) a
+       integer a
+       a = a + 11
+       end
+       subroutine func0(a)
+cf2py  intent(out) a
+       integer a
+       a = 11
+       end
+       subroutine t2(a)
+cf2py  intent(callback) fun
+       integer a
+cf2py  intent(out) a
+       external fun
+       call fun(a)
+       end
+       subroutine string_callback(callback, a)
+       external callback
+       double precision callback
+       double precision a
+       character*1 r
+cf2py  intent(out) a
+       r = 'r'
+       a = callback(r)
+       end
+       subroutine string_callback_array(callback, cu, lencu, a)
+       external callback
+       integer callback
+       integer lencu
+       character*8 cu(lencu)
+       integer a
+cf2py  intent(out) a
+       a = callback(cu, lencu)
+       end
+       subroutine hidden_callback(a, r)
+       external global_f
+cf2py  intent(callback, hide) global_f
+       integer a, r, global_f
+cf2py  intent(out) r
+       r = global_f(a)
+       end
+       subroutine hidden_callback2(a, r)
+       external global_f
+       integer a, r, global_f
+cf2py  intent(out) r
+       r = global_f(a)
+       end
+    
+namez
+t,t2
+check_function)
+selfr
+D/usr/lib64/python3.9/site-packages/numpy/f2py/tests/test_callback.py
+test_allQ
+TestF77Callback.test_allz,PyPy cannot modify tp_doc after PyType_Ready)
+reasonc
+        a = t(fun,[fun_extra_args])
+        Wrapper for ``t``.
+        Parameters
+        ----------
+        fun : call-back function
+        Other Parameters
+        ----------------
+        fun_extra_args : input tuple, optional
+            Default: ()
+        Returns
+        -------
+        a : int
+        Notes
+        -----
+        Call-back functions::
+          def fun(): return a
+          Return objects:
+            a : int
+        )
+textwrap
+dedentr
+module
+__doc__)
+expectedr
+test_docstringU
+TestF77Callback.test_docstringc
+<lambda>v
+z0TestF77Callback.check_function.<locals>.<lambda>r
+fun_extra_argsr
+math
+degreesr
+z)TestF77Callback.check_function.<locals>.Ac
+__call__
+z2TestF77Callback.check_function.<locals>.A.__call__c
+z-TestF77Callback.check_function.<locals>.A.mthN)
+__name__
+__module__
+__qualname__r'
+getattrr
+reprr!
+pir"
+funcZ
+func0Z	_cpointerr)
+TestF77Callback.check_functionZ
+win32z)Fails with MinGW64 Gfortran (Issue #9673)c
+coder
+callback
+z6TestF77Callback.test_string_callback.<locals>.callbackZ
+string_callbackr
+test_string_callback
+z$TestF77Callback.test_string_callbackc
+shape
+dtype
+all)
+lencur
+z<TestF77Callback.test_string_callback_array.<locals>.callbackZ
+string_callback_arrayr
+zerosr.
+lenr
+resr
+test_string_callback_array
+z*TestF77Callback.test_string_callback_arrayc
+)	Nc
+MbP?c
+z?TestF77Callback.test_threadsafety.<locals>.cb.<locals>.<lambda>rC
+time
+sleepr
+z-TestF77Callback.test_threadsafety.<locals>.cbc
+ranger
+	Exception
+append
+	traceback
+format_exc)
+errorsr
+runner
+z1TestF77Callback.test_threadsafety.<locals>.runnerc
+target
+args)
+	threadingZ
+Thread)
+<listcomp>
+z5TestF77Callback.test_threadsafety.<locals>.<listcomp>)
+start
+join
+AssertionError)
+threadsr
+test_threadsafety
+z!TestF77Callback.test_threadsafetyc
+Callback global_f not definedz!cb: Callback global_f not definedc
+z6TestF77Callback.test_hidden_callback.<locals>.<lambda>r9
+hidden_callbackrJ
+startswithZ
+hidden_callback2Z
+global_f)
+msgr1
+test_hidden_callback
+z$TestF77Callback.test_hidden_callbackN)
+pytestZ
+markZ
+parametrize
+splitr
+xfailr
+skipif
+platformr5
+TestF77CallbackPythonTLSz[
+    Callback tests using Python thread-local storage instead of
+    compiler-provided
+    z
+-DF2PY_USE_PYTHON_TLSN)
+optionsr
+TestF90Callback
+.f90z
+        function gh17797(f, y) result(r)
+          external f
+          integer(8) :: r, f
+          integer(8), dimension(:) :: y
+          r = f(0)
+          r = r + sum(y)
+        end function gh17797
+        c
+incr
+z*TestF90Callback.test_gh17797.<locals>.incr
+arrayZ
+int64r
+gh17797)
+test_gh17797
+TestF90Callback.test_gh17797N)
+suffixr
+TestGH18335z
+The reproduction of the reported issue requires specific input that
+    extensions may break the issue conditions, so the reproducer is
+    implemented as a separate test class. Do not extend this test with
+    other tests!
+    rk
+        ! When gh18335_workaround is defined as an extension,
+        ! the issue cannot be reproduced.
+        !subroutine gh18335_workaround(f, y)
+        !  implicit none
+        !  external f
+        !  integer(kind=1) :: y(1)
+        !  call f(y)
+        !end subroutine gh18335_workaround
+        function gh18335(f) result (r)
+          implicit none
+          external f
+          integer(kind=1) :: y(1), r
+          y(1) = 123
+          call f(y)
+          r = y(1)
+        end function gh18335
+        c
+fooA
+z%TestGH18335.test_gh18335.<locals>.foorm
+int8r
+gh18335)
+test_gh18335?
+TestGH18335.test_gh18335N)	r*
+randomZ
+numpyr<
+numpy.testingr
+F2PyTestr
+<module>

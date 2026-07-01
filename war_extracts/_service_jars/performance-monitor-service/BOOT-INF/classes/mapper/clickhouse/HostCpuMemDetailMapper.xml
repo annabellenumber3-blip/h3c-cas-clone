@@ -1,0 +1,455 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.h3c.h3cloud.performance.monitor.service.mapper.clickhouse.HostCpuMemDetailMapper">
+    <delete id ="deleteBeforeTime">
+        ALTER TABLE metrics.TBL_HOST_CPU_MEM_DETAIL DELETE WHERE TIME &lt; #{time}
+    </delete>
+    <select id="readByCondition" resultType="com.h3c.h3cloud.common.model.performance.HostCpuMemDetailData">
+        SELECT TIME as time, CPU_RATE as cpuRate, CPU_USAGE_MHZ as cpuUsage, MEMORY_RATE as memoryRate, HUGEPAGE_MEM_RATE as hugepageMemRate, VM_GROUP_MEM_RATE as vmGroupMemRate, OVS_GROUP_MEM_RATE as ovsGroupMemRate, HOST_ID as hostId, HOST_POOL_ID as hostpoolId,
+        CLUSTER_ID as clusterId, OP_GROUP_CODE as operatorGroupCode, OP_GROUP_ID as operatorGroupId, FLOW_STAT as  flowStat, BUFFER_RATE as bufferRate,
+        CACHED_RATE as cachedRate, SWAP_RATE as swapRate,HUGEPAGE_MEMORY_TOTAL as hugepageMemoryTotal,FLEXIBLE_HUGEPAGE_MEM_RATE as flexibleHugepageMemoryRate, HUGEPAGE_STATUS as hugepageStatus, OVS_ISOLATED_MEM as ovsIsolatedMem, VM_ISOLATED_MEM as vmIsolatedMem, FLEXIBLE_HUGEPAGE_MEMORY_TOTAL as flexibleHugepageMemoryTotal FROM TBL_HOST_CPU_MEM_DETAIL  WHERE TIME BETWEEN ${startTime} AND ${endTime} AND HOST_ID=${hostId}
+        <if test="hostIds!=null and hostIds!=''">
+            AND HOST_ID in (${hostIds})
+        </if>
+        <if test="clusterIds!=null and clusterIds!=''">
+            AND CLUSTER_ID in (${clusterIds})
+        </if>
+        <if test='sort!=null and sort=="0"'>
+            ORDER BY ${sortField} ASC
+        </if>
+        <if test='sort!=null and sort=="1"'>
+            ORDER BY ${sortField} DESC
+        </if>
+    </select>
+    <select id="getHostTrend" resultType="com.h3c.h3cloud.common.model.performance.HostCpuMemDetailData">
+        SELECT tdio.TIME as time, tdio.CPU_RATE as cpuRate, tdio.MEMORY_RATE as memoryRate, tdio.HUGEPAGE_MEM_RATE as hugepageMemRate, tdio.VM_GROUP_MEM_RATE as vmGroupMemRate, tdio.OVS_GROUP_MEM_RATE as ovsGroupMemRate, tdio.HOST_ID as hostId, TT.name as hostName FROM  TBL_HOST_CPU_MEM_DETAIL
+        tdio INNER JOIN ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_HOST} TT ON tdio.HOST_ID=TT.id
+        WHERE tdio.TIME BETWEEN ${startTime} AND ${endTime}
+        <if test="hostIds!=null and hostIds!=''">
+            AND tdio.HOST_ID in (${hostIds})
+        </if>
+        <if test="operatorGroupCode!=null and operatorGroupCode!=''">
+            AND tdio.OP_GROUP_CODE LIKE #{operatorGroupCode}
+        </if>
+        ORDER BY tdio.TIME ASC
+    </select>
+    <select id="readSumTopnByCondition" resultType="com.h3c.h3cloud.common.model.performance.HostCpuMemDetailData">
+        SELECT  detail.HOST_ID,
+        <choose>
+            <when test="type!=null and type=='cpu'">
+                SUM(detail.CPU_RATE) as cpuRate,
+            </when>
+            <otherwise>
+                SUM(detail.MEMORY_RATE) as memoryRate,
+            </otherwise>
+        </choose>
+        MIN(TIME) as time FROM TBL_HOST_CPU_MEM_DETAIL detail INNER JOIN ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_HOST}
+        host ON host.id = detail.HOST_ID WHERE TIME BETWEEN ${startTime} AND ${endTime}
+        <if test="operatorGroupCode!=null and operatorGroupCode!=''">
+            AND detail.OP_GROUP_CODE LIKE #{operatorGroupCode}
+        </if>
+        <if test="hostPoolId!=null and hostPoolId!=''">
+            AND detail.HOST_POOL_ID =${hostPoolId}
+        </if>
+        <if test="clusterId!=null and clusterId!=''">
+            AND detail.CLUSTER_ID =${clusterId}
+        </if>
+        <if test="hostIds!=null and hostIds!=''">
+            AND detail.HOST_ID in (${hostIds})
+        </if>
+        GROUP BY detail.HOST_ID
+        <choose>
+            <when test="type!=null and type=='cpu'">
+                ORDER BY cpuRate DESC
+            </when>
+            <otherwise>
+                ORDER BY memoryRate DESC
+            </otherwise>
+        </choose>
+
+        <if test="limit!=null and limit!=''">
+            LIMIT ${limit}
+        </if>
+    </select>
+    <select id="readAvgTopnByCondition" resultType="com.h3c.h3cloud.common.model.performance.HostCpuMemDetailData">
+        SELECT  detail.HOST_ID,
+        <choose>
+            <when test="type!=null and type=='cpu'">
+                ROUND(AVG(detail.CPU_RATE),2) as cpuRate
+            </when>
+            <otherwise>
+                ROUND(AVG(detail.MEMORY_RATE),2) as memoryRate
+            </otherwise>
+        </choose>
+        FROM TBL_HOST_CPU_MEM_DETAIL detail INNER JOIN ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_HOST}
+        host ON host.id = detail.HOST_ID
+        WHERE TIME BETWEEN ${startTime} AND ${endTime}
+        <if test="operatorGroupCode!=null and operatorGroupCode!=''">
+            AND detail.OP_GROUP_CODE LIKE #{operatorGroupCode}
+        </if>
+        <if test="hostPoolId!=null and hostPoolId!=''">
+            AND detail.HOST_POOL_ID =${hostPoolId}
+        </if>
+        <if test="clusterId!=null and clusterId!=''">
+            AND detail.CLUSTER_ID =${clusterId}
+        </if>
+        <if test="hostIds!=null and hostIds!=''">
+            AND detail.HOST_ID in (${hostIds})
+        </if>
+        <if test="clusterIds!=null and clusterIds!=''">
+            AND detail.CLUSTER_ID in (${clusterIds})
+        </if>
+        GROUP BY detail.HOST_ID
+        <choose>
+            <when test="type!=null and type=='cpu'">
+                ORDER BY cpuRate DESC
+            </when>
+            <otherwise>
+                ORDER BY memoryRate DESC
+            </otherwise>
+        </choose>
+
+        <if test="limit!=null and limit!=''">
+            LIMIT ${limit}
+        </if>
+    </select>
+    <select id="readAvgByCondition" resultType="com.h3c.h3cloud.common.model.performance.HostCpuMemDetailData">
+        SELECT ROUND(avg(CPU_RATE),2) as cpuRate,ROUND(avg(MEMORY_RATE),2) as memoryRate,HOST_ID as hostId  FROM TBL_HOST_CPU_MEM_DETAIL  WHERE TIME BETWEEN ${startTime} AND ${endTime}
+        <if test="operatorGroupCode!=null and operatorGroupCode!=''">
+            AND OP_GROUP_CODE LIKE #{operatorGroupCode}
+        </if>
+        <if test="hostPoolId!=null and hostPoolId!=''">
+            AND HOST_POOL_ID =${hostPoolId}
+        </if>
+        <if test="clusterId!=null and clusterId!=''">
+            AND CLUSTER_ID =${clusterId}
+        </if>
+        <if test="hostIds!=null and hostIds!=''">
+            AND HOST_ID in (${hostIds})
+        </if>
+        <if test="hostId!=null and hostId!=''">
+            AND HOST_ID =${hostId}
+        </if>
+        GROUP BY HOST_ID
+    </select>
+    <select id="readHostTopCpuMemoryDetail" resultType="com.h3c.h3cloud.common.model.performance.HostCpuMemDetailData">
+        SELECT MAX(CPU_RATE) as cpuRate,MAX(MEMORY_RATE) as memoryRate,HOST_ID as hostId  FROM TBL_HOST_CPU_MEM_DETAIL  WHERE TIME BETWEEN ${startTime} AND ${endTime}
+        <if test="operatorGroupCode!=null and operatorGroupCode!=''">
+            AND OP_GROUP_CODE LIKE #{operatorGroupCode}
+        </if>
+        <if test="hostPoolId!=null and hostPoolId!=''">
+            AND HOST_POOL_ID =${hostPoolId}
+        </if>
+        <if test="clusterId!=null and clusterId!=''">
+            AND CLUSTER_ID =${clusterId}
+        </if>
+        GROUP BY HOST_ID
+    </select>
+    <select id="readHostAdapterRule" resultType="java.lang.Long">
+        SELECT HOST_ID as hostId FROM TBL_HOST_CPU_MEM_DETAIL B INNER JOIN ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_HOST}
+        host ON host.id = B.HOST_ID WHERE host.maintain = 0 AND host.status = 1
+        <if test="clusterId!=null and clusterId!=''">
+            AND B.CLUSTER_ID =${clusterId}
+        </if>
+        AND (
+        <if test="cpuComparison!=null and cpuComparison!=''">
+            B.CPU_RATE ${cpuComparison} ${cpuThreshold}
+        </if>
+        <if test="cpuComparison!=null and memComparison!=null">
+            ${conditionRelation}
+        </if>
+        <if test="memComparison!=null and memComparison!=''">
+            B.MEMORY_RATE ${memComparison} ${memThreshold}
+        </if>
+        <if test="(cpuComparison!=null or memComparison!=null) and (flowComparison!=null and flowComparison!='')">
+            ${conditionRelation}
+        </if>
+        <if test="flowComparison!=null and flowComparison!=''">
+            B.FLOW_STAT ${flowComparison} ${flowThreshold}
+        </if>
+        ) AND TIME BETWEEN ${startTime} AND ${endTime}  GROUP BY HOST_ID HAVING
+        <if test="cpuComparison!=null and cpuComparison!='' and cpuGtComparison == 1">
+            MIN(B.CPU_RATE) ${cpuComparison} ${cpuThreshold}
+        </if>
+        <if test="cpuComparison!=null and cpuComparison!='' and cpuGtComparison == 0">
+            MAX(B.CPU_RATE) ${cpuComparison} ${cpuThreshold}
+        </if>
+        <if test="cpuComparison!=null and memComparison!=null">
+            ${conditionRelation}
+        </if>
+        <if test="memComparison!=null and memComparison!='' and memGtComparison == 1">
+             MIN(B.MEMORY_RATE) ${memComparison} ${memThreshold}
+        </if>
+        <if test="memComparison!=null and memComparison!='' and memGtComparison == 0 ">
+            MAX(B.MEMORY_RATE) ${memComparison} ${memThreshold}
+        </if>
+        <if test="(cpuComparison!=null or memComparison!=null) and (flowComparison!=null and flowComparison!='')">
+            ${conditionRelation}
+        </if>
+        <if test="flowComparison!=null and flowComparison!='' and flowGtComparison == 1">
+            MIN(B.FLOW_STAT) ${flowComparison} ${flowThreshold}
+        </if>
+        <if test="flowComparison!=null and flowComparison!='' and flowGtComparison == 0 ">
+            MAX(B.FLOW_STAT) ${flowComparison} ${flowThreshold}
+        </if>
+    </select>
+    <select id="readAvgHostCpuMemByClusterId" resultType="com.h3c.h3cloud.common.model.performance.HostCpuMemDetailData">
+        SELECT ROUND(AVG(CPU_RATE),2) as cpuRate, ROUND(AVG(MEMORY_RATE),2) as memoryRate, CLUSTER_ID as clusterId FROM  TBL_HOST_CPU_MEM_DETAIL
+        WHERE TIME = (SELECT MAX(TIME)-${duration} FROM TBL_HOST_CPU_MEM_DETAIL)
+        <if test="clusterId!=null and clusterId!=''">
+            AND CLUSTER_ID=${clusterId}
+        </if>
+        group by CLUSTER_ID
+    </select>
+    <select id="readTopnByCondition" resultType="com.h3c.h3cloud.common.model.performance.HostCpuMemDetailData">
+        select
+        <choose>
+            <when test="type!=null and type=='cpu'">
+                tdio.CPU_RATE as cpuRate,
+            </when>
+            <otherwise>
+                tdio.MEMORY_RATE as memoryRate,
+            </otherwise>
+        </choose>
+        t.name as hostName, t.minTime as minTime, tdio.HOST_ID as hostId, tdio.TIME as time from (SELECT
+        <choose>
+            <when test="type!=null and type=='cpu'">
+                SUM(CPU_RATE) sumcpu,
+            </when>
+            <otherwise>
+                SUM(MEMORY_RATE) sumcpu,
+            </otherwise>
+        </choose>
+        HOST_ID, H.name, MIN(TIME) minTime FROM TBL_HOST_CPU_MEM_DETAIL C ,
+        ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_HOST} H WHERE C.HOST_ID = H.id
+        <if test="operatorGroupCode!=null and operatorGroupCode!=''">
+            AND C.OP_GROUP_CODE LIKE #{operatorGroupCode}
+        </if>
+        <if test="hostPoolId!=null and hostPoolId!=''">
+            AND C.HOST_POOL_ID =${hostPoolId}
+        </if>
+        <if test="clusterId!=null and clusterId!=''">
+            AND C.CLUSTER_ID =${clusterId}
+        </if>
+        AND C.TIME BETWEEN ${startTime} AND ${endTime}
+        GROUP BY C.HOST_ID,H.name ORDER BY sumcpu DESC LIMIT ${limit}) t
+        left join TBL_HOST_CPU_MEM_DETAIL tdio on t.HOST_ID=tdio.HOST_ID
+        WHERE tdio.TIME BETWEEN ${startTime} AND ${endTime}  ORDER BY t.name, tdio.TIME
+    </select>
+    <select id="readRecentHostCpuMemRate" resultType="com.h3c.h3cloud.common.model.performance.HostCpuMemDetailData">
+        SELECT TIME as time, CPU_RATE as cpuRate, CPU_USAGE_MHZ as cpuUsage, MEMORY_RATE as memoryRate, HOST_ID as hostId, HOST_POOL_ID as hostpoolId,
+        CLUSTER_ID as clusterId, OP_GROUP_CODE as operatorGroupCode, OP_GROUP_ID as operatorGroupId, FLOW_STAT as  flowStat, BUFFER_RATE as bufferRate,
+        HUGEPAGE_MEM_RATE as hugepageMemRate,VM_GROUP_MEM_RATE as vmGroupMemRate,OVS_GROUP_MEM_RATE as ovsGroupMemRate,
+        CACHED_RATE as cachedRate, SWAP_RATE as swapRate FROM TBL_HOST_CPU_MEM_DETAIL C
+        WHERE C.TIME=( SELECT MAX(TIME) FROM TBL_HOST_CPU_MEM_DETAIL)-${duration}
+        <if test="operatorGroupCode!=null and operatorGroupCode!=''">
+            AND C.OP_GROUP_CODE LIKE #{operatorGroupCode}
+        </if>
+        <if test="hostPoolId!=null and hostPoolId!=''">
+            AND C.HOST_POOL_ID =${hostPoolId}
+        </if>
+        <if test="clusterId!=null and clusterId!=''">
+            AND C.CLUSTER_ID =${clusterId}
+        </if>
+        <if test="hostId!=null and hostId!=''">
+            AND C.HOST_ID =${hostId}
+        </if>
+        <if test="hostIds!=null and hostIds!=''">
+            AND HOST_ID in (${hostIds})
+        </if>
+    </select>
+    <select id="readRecentDurationHostCpuMemRate" resultType="com.h3c.h3cloud.common.model.performance.HostCpuMemDetailData">
+        SELECT ROUND(AVG(CPU_RATE),2) as cpuRate,ROUND(AVG(MEMORY_RATE),2) as memoryRate FROM TBL_HOST_CPU_MEM_DETAIL  WHERE HOST_ID = ${hostId}
+        AND TIME >= (SELECT MAX(TIME) FROM TBL_HOST_CPU_MEM_DETAIL  WHERE HOST_ID = ${hostId}) -${duration}
+        GROUP BY HOST_ID
+    </select>
+    <select id="queryClusterAvgTrendByCondition" resultType="com.h3c.h3cloud.common.model.performance.HostCpuMemDetailData">
+        select d.TIME as time,
+        <choose>
+            <when test="type!=null and type=='cpu'">
+                ROUND(SUM(d.cpuUSED)/SUM(d.cpuWHOLE),2) as cpuRate
+            </when>
+            <when test="type!=null and type=='reservedHugepageMemory'">
+                if (SUM(d.hugepageMemoryWHOLE) == 0, 0, ROUND(SUM(d.hugepageMemoryUSED) / SUM(d.hugepageMemoryWHOLE), 2)) AS hugepageMemRate, SUM(d.hugepageMemoryWHOLE) as hugepageMemoryTotal
+            </when>
+            <when test="type!=null and type=='flexibleHugepageMemory'">
+                if (SUM(d.flexibleHugepageMemoryWHOLE) == 0, 0, ROUND(SUM(d.flexibleHugepageMemoryUSED) / SUM(d.flexibleHugepageMemoryWHOLE), 2)) AS flexibleHugepageMemoryRate, SUM(d.flexibleHugepageMemoryWHOLE) as flexibleHugepageMemoryTotal
+            </when>
+            <otherwise>
+                ROUND(SUM(d.memoryUSED)/SUM(d.memoryWHOLE),2) as memoryRate
+            </otherwise>
+        </choose>
+        FROM  (select detail.TIME as TIME,
+        <choose>
+            <when test="type!=null and type=='cpu'">
+                detail.CPU_RATE* host.cpu cpuUSED, host.cpu cpuWHOLE,
+            </when>
+            <when test="type!=null and type=='reservedHugepageMemory'">
+                detail.HUGEPAGE_MEM_RATE* detail.HUGEPAGE_MEMORY_TOTAL hugepageMemoryUSED, detail.HUGEPAGE_MEMORY_TOTAL hugepageMemoryWHOLE,
+            </when>
+            <when test="type!=null and type=='flexibleHugepageMemory'">
+                detail.FLEXIBLE_HUGEPAGE_MEM_RATE* detail.FLEXIBLE_HUGEPAGE_MEMORY_TOTAL flexibleHugepageMemoryUSED, detail.FLEXIBLE_HUGEPAGE_MEMORY_TOTAL flexibleHugepageMemoryWHOLE,
+            </when>
+            <otherwise>
+                detail.MEMORY_RATE* host.memory memoryUSED, host.memory memoryWHOLE,
+            </otherwise>
+        </choose>
+        cluster.id AS CLUSTER_ID  FROM
+        <choose>
+            <when test="hostPoolId!=null and hostPoolId!=''">
+                ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_HOSTPOOL}
+            </when>
+            <otherwise>
+                ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_CLUSTER}
+            </otherwise>
+        </choose>
+        cluster, (SELECT TIME, HOST_ID,
+        <choose>
+            <when test="type!=null and type=='cpu'">
+                AVG(CPU_RATE) as CPU_RATE
+            </when>
+            <when test="type!=null and type=='reservedHugepageMemory'">
+                AVG(HUGEPAGE_MEM_RATE) as HUGEPAGE_MEM_RATE, AVG(HUGEPAGE_MEMORY_TOTAL) as HUGEPAGE_MEMORY_TOTAL
+            </when>
+            <when test="type!=null and type=='flexibleHugepageMemory'">
+                AVG(FLEXIBLE_HUGEPAGE_MEM_RATE) as FLEXIBLE_HUGEPAGE_MEM_RATE, AVG(FLEXIBLE_HUGEPAGE_MEMORY_TOTAL) as FLEXIBLE_HUGEPAGE_MEMORY_TOTAL
+            </when>
+            <otherwise>
+                AVG(MEMORY_RATE) as MEMORY_RATE
+            </otherwise>
+        </choose>
+        FROM TBL_HOST_CPU_MEM_DETAIL
+        WHERE TIME BETWEEN ${startTime} AND ${endTime}
+        <choose>
+            <when test="hostPoolId!=null and hostPoolId!=''">
+                AND HOST_POOL_ID=${hostPoolId}
+            </when>
+            <otherwise>
+                AND CLUSTER_ID =${clusterId}
+            </otherwise>
+        </choose>
+        group by HOST_ID,TIME
+        ) detail inner join
+        ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_HOST} host on detail.HOST_ID=host.id ) d
+        WHERE
+        <choose>
+            <when test="hostPoolId!=null and hostPoolId!=''">
+                 d.CLUSTER_ID=${hostPoolId}
+            </when>
+            <otherwise>
+                 d.CLUSTER_ID =${clusterId}
+            </otherwise>
+        </choose>
+        group by d.CLUSTER_ID, d.TIME ORDER BY TIME ASC
+    </select>
+    <select id="readCpuAndMemorySumOfAllHosts" resultType="com.h3c.h3cloud.common.model.performance.HostCpuMemDetailData">
+        SELECT SUM(HOST.cpu) AS wholeCpu, SUM(HOST.memory) AS wholeMemory, SUM(detail.CPU_RATE * HOST.cpu)/100 AS cpuUsed,
+        SUM(detail.MEMORY_RATE * HOST.memory)/100 AS memUsed
+        FROM TBL_HOST_CPU_MEM_DETAIL AS detail LEFT JOIN  ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_HOST} AS HOST ON detail.HOST_ID = HOST.id
+        GROUP BY TIME ORDER BY TIME DESC LIMIT 1;
+    </select>
+    <select id="queryMaxTimeFromRemote" resultType="long">
+        SELECT MAX(TIME) FROM remote(#{remoteIp}, 'metrics.TBL_HOST_CPU_MEM_DETAIL', #{user}, #{pwd})
+    </select>
+
+    <select id="queryMinTime" resultType="long">
+        SELECT MIN (TIME) FROM TBL_HOST_CPU_MEM_DETAIL
+    </select>
+
+    <select id="querySecondMaxTime" resultType="long">
+        SELECT distinct TIME FROM TBL_HOST_CPU_MEM_DETAIL GROUP BY TIME ORDER BY TIME DESC LIMIT 1,1
+    </select>
+
+    <select id="readClusterCpuMemUtilization" resultType="com.h3c.h3cloud.common.model.performance.ClusterCpuMemDetailData">
+        select
+            d.CLUSTER_ID AS id,
+            any(cluster.name) AS name,
+            <choose>
+                <when test="type!=null and type=='cpu'">
+                    SUM(d.USED)/ SUM(d.WHOLE) AS cpuRate
+                </when>
+                <when test="type!=null and type=='reservedHugepageMemory'">
+                    SUM(d.USED)/ SUM(d.WHOLE) AS reservedHugepageMemoryRate
+                </when>
+                <otherwise>
+                    SUM(d.USED)/ SUM(d.WHOLE) AS memoryRate
+                </otherwise>
+            </choose>
+        from
+            (
+                select
+                    detail.HOST_ID AS HOST_ID,
+                    any(host.cluster_id) AS CLUSTER_ID,
+                    <choose>
+                        <when test="type!=null and type=='cpu'">
+                            AVG(detail.CPU_RATE) * any(host.cpu) AS USED,
+                            any(host.cpu) AS WHOLE
+                        </when>
+                        <when test="type!=null and type=='reservedHugepageMemory'">
+                            AVG(detail.HUGEPAGE_MEM_RATE) * any(detail.HUGEPAGE_MEMORY_TOTAL) AS USED ,
+                            any(detail.HUGEPAGE_MEMORY_TOTAL) AS WHOLE
+                        </when>
+                        <otherwise>
+                            AVG(detail.MEMORY_RATE) * any(host.memory) AS USED ,
+                            any(host.memory) AS WHOLE
+                        </otherwise>
+                    </choose>
+                from
+                    TBL_HOST_CPU_MEM_DETAIL detail,
+                    ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_HOST} host
+                where
+                    detail.HOST_ID = host.id
+                    <if test="type!=null and type=='reservedHugepageMemory'">
+                        AND detail.HUGEPAGE_STATUS = 1
+                    </if>
+                    AND detail.TIME BETWEEN ${startTime} AND ${endTime}
+                group by
+                    detail.HOST_ID
+            ) d,
+             ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_CLUSTER} cluster
+        WHERE
+            d.CLUSTER_ID = cluster.id
+            <if test="clusterNames!=null and clusterNames!=''">
+                AND cluster.name in (${clusterNames})
+            </if>
+        group by
+            d.CLUSTER_ID
+    </select>
+
+    <select id="readHAResourceReservation" resultType="com.h3c.h3cloud.common.model.performance.ClusterCpuMemDetailData">
+        select
+            any(cluster.name) AS name,
+            d.CLUSTER_ID AS id,
+            SUM(d.CPUUSED)/ SUM(d.CPU) AS cpuRate,
+            SUM(d.MEMUSED)/ SUM(d.MEMORY) AS memoryRate,
+            IFNULL(any(cluster.ha_cpu_retain), 0) AS haCpuRetain,
+            IFNULL(any(cluster.ha_mem_retain), 0) AS haMemRetain
+        from
+            (
+                select
+                    detail.HOST_ID AS HOST_ID,
+                    any(host.cluster_id) AS CLUSTER_ID,
+                    AVG(detail.MEMORY_RATE) * any(host.memory) AS MEMUSED,
+                    any(host.memory) AS MEMORY,
+                    AVG(detail.CPU_RATE) * any(host.cpu) AS CPUUSED,
+                    any(host.cpu) AS CPU
+                from
+                    TBL_HOST_CPU_MEM_DETAIL detail,
+                    ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_HOST} host
+                where
+                    detail.HOST_ID = host.id
+                    AND detail.TIME BETWEEN ${startTime} AND ${endTime}
+                group by
+                    detail.HOST_ID
+            ) d,
+            ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_CLUSTER} cluster
+        WHERE
+            d.CLUSTER_ID = cluster.id
+            AND cluster.enable_ha = 1
+            <if test="clusterNames!=null and clusterNames!=''">
+                AND cluster.name in (${clusterNames})
+            </if>
+        group by
+            d.CLUSTER_ID
+    </select>
+</mapper>

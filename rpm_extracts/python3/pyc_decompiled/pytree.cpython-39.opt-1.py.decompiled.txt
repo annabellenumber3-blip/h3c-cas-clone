@@ -1,0 +1,388 @@
+Python parse tree definitions.
+This is a very concrete parse tree; we need to keep every token and
+even the comments and whitespace between tokens.
+There's also a pattern matching implementation here.
+z#Guido van Rossum <guido@python.org>
+StringIOi
+python_symbols)
+_type_reprsZ
+pygramr
+__dict__
+items
+type
+setdefault)
+type_numr
+name
+&/usr/lib64/python3.9/lib2to3/pytree.py
+	type_repr
+d!d"
+d$d%
+Basez
+    Abstract base class for Node and Leaf.
+    This provides some default functionality and boilerplate using the
+    template pattern.
+    A node may be a subnode of at most one parent.
+    Nr
+z7Constructor that prevents Base from being instantiated.
+object
+__new__
+args
+kwdsr
+Base.__new__c
+        Compare two nodes for equality.
+        This calls the method _eq().
+        )
+	__class__
+NotImplemented
+self
+otherr
+__eq__6
+Base.__eq__c
+        Compare two nodes for equality.
+        This is called by __eq__ and __ne__.  It is only called if the two nodes
+        have the same type.  This must be implemented by the concrete subclass.
+        Nodes should be considered equal if they have the same structure,
+        ignoring the prefix string and other context information.
+        N
+NotImplementedErrorr
+Base._eqc
+        Return a cloned (deep) copy of self.
+        This must be implemented by the concrete subclass.
+        Nr
+cloneM
+Base.clonec
+        Return a post-order iterator for the tree.
+        This must be implemented by the concrete subclass.
+        Nr
+post_orderU
+Base.post_orderc
+        Return a pre-order iterator for the tree.
+        This must be implemented by the concrete subclass.
+        Nr
+	pre_order]
+Base.pre_orderc
+z/Replace this node with a new one in the parent.FNT)
+isinstance
+list
+parent
+children
+extend
+append
+changed)
+newZ
+l_children
+found
+replacee
+Base.replacec
+z9Return the line number which generated the invocant node.Nr
+Leafr(
+lineno
+noder
+get_lineno|
+Base.get_linenoc
+was_changedr!
+Base.changedc
+        Remove the node from the tree. Returns the position of the node in its
+        parent's children before it was removed.
+        N)
+	enumerater(
+remove
+Base.removec
+        The node immediately following the invocant in their parent's children
+        list. If the invocant does not have a next sibling, it is None
+        Nr
+IndexError
+childr
+next_sibling
+Base.next_siblingc
+        The node immediately preceding the invocant in their parent's children
+        list. If the invocant does not have a previous sibling, it is None.
+        Nr
+prev_sibling
+Base.prev_siblingc
+leaves
+Base.leavesc
+depthr!
+Base.depthc
+        Return the string immediately following the invocant node. This is
+        effectively equivalent to node.next_sibling.prefix
+        N
+prefix)
+next_sibr
+get_suffix
+Base.get_suffix
+ascii)
+encoder!
+__str__
+Base.__str__)
+__name__
+__module__
+__qualname__
+__doc__r
+was_checkedr
+__hash__r
+propertyr=
+version_inforK
+Nodez+Concrete implementation for interior nodes.Nc
+        Initializer.
+        Takes a type constant (a symbol number >= 256), a sequence of
+        child nodes, and an optional context keyword argument.
+        As a side effect, the parent pointers of the children are updated.
+        N)
+fixers_applied)
+contextrD
+__init__
+Node.__init__c
+)Return a canonical string representation.z
+%s(%s, %r))
+__repr__
+Node.__repr__c
+        Return a pretty string representation.
+        This reproduces the input source exactly.
+        rC
+join
+maprI
+__unicode__
+Node.__unicode__rF
+Compare two nodes for equality.)
+Node._eqc
+$Return a cloned (deep) copy of self.c
+.0r.
+<listcomp>
+Node.clone.<locals>.<listcomp>
+Node.clonec
+z*Return a post-order iterator for the tree.N)
+Node.post_orderc
+z)Return a pre-order iterator for the tree.N)
+Node.pre_orderc
+        The whitespace and comments preceding this node in the input.
+        rC
+Node.prefixc
+        Equivalent to 'node.children[i] = child'. This method also sets the
+        child's parent attribute appropriately.
+        N)
+	set_child 
+Node.set_childc
+        Equivalent to 'node.children.insert(i, child)'. This method also sets
+        the child's parent attribute appropriately.
+        N)
+insertr+
+insert_child*
+Node.insert_childc
+        Equivalent to 'node.children.append(child)'. This method also sets the
+        child's parent attribute appropriately.
+        N)
+append_child3
+Node.append_child)
+NNN)
+setterri
+rFe	Z
+z'Concrete implementation for leaf nodes.rC
+        Initializer.
+        Takes a type constant (a token number < 256), a string value, and an
+        optional context keyword argument.
+        N)
+_prefixr2
+columnr
+valuerU
+Leaf.__init__c
+%s(%r, %r))
+Leaf.__repr__c
+Leaf.__unicode__rF
+Leaf._eqc
+Leaf.clonec
+Leaf.leavesc
+Leaf.post_orderc
+Leaf.pre_orderc
+        The whitespace and comments preceding this token in the input.
+        )
+Leaf.prefixc
+    Convert raw node information to a Node or Leaf instance.
+    This is passed to the parser driver which calls it whenever a reduction of a
+    grammar rule produces a new complete node, so that the tree is build
+    strictly bottom-up.
+    r
+number2symbol
+lenrT
+raw_noder
+convert
+BasePatterna
+    A pattern is a tree matching pattern.
+    It looks for a specific node type (token or symbol), and
+    optionally for a specific content.
+    This is an abstract base class.  There are three concrete
+    subclasses:
+    - LeafPattern matches a single leaf node;
+    - NodePattern matches a single node (usually non-leaf);
+    - WildcardPattern matches a sequence of nodes of variable length.
+    Nc
+z>Constructor that prevents BasePattern from being instantiated.r
+BasePattern.__new__c
+%s(%s)z
+, )	r
+contentr
+repr)
+BasePattern.__repr__c
+        A subclass can define this as a hook for optimizations.
+        Returns either self or another node with the same effect.
+        r
+optimize
+BasePattern.optimizec
+        Does this pattern exactly match a node?
+        Returns True if it matches, False if not.
+        If results is not None, it must be a dict which will be
+        updated with the nodes matching named subpatterns.
+        Default implementation for non-wildcard patterns.
+        NFT)
+	_submatch
+updater
+results
+match
+BasePattern.matchc
+        Does this pattern exactly match a sequence of nodes?
+        Default implementation for non-wildcard patterns.
+        r
+nodesrz
+	match_seq
+BasePattern.match_seqc
+        Generator yielding all matches for this pattern.
+        Default implementation for non-wildcard patterns.
+        r
+generate_matches
+BasePattern.generate_matches)
+LeafPatternNc
+        Initializer.  Takes optional type, content, and name.
+        The type, if given must be a token type (< 256).  If not given,
+        this matches any *leaf* node; the content may still be required.
+        The content, if given, must be a string.
+        If a name is given, the matching node is stored in the results
+        dict under that key.
+        N)
+LeafPattern.__init__c
+z*Override match() to insist on a leaf node.F)
+LeafPattern.matchc
+        Match the pattern's content to the node's children.
+        This assumes the node type matches and self.content is not None.
+        Returns True if it matches, False if not.
+        If results is not None, it must be a dict which will be
+        updated with the nodes matching named subpatterns.
+        When returning False, the results dict may still be updated.
+        )
+LeafPattern._submatch)
+NNN)
+NodePatternFNc
+        Initializer.  Takes optional type, content, and name.
+        The type, if given, must be a symbol type (>= 256).  If the
+        type is None this matches *any* single node (leaf or not),
+        except if content is not None, in which it only matches
+        non-leaf nodes that also match the content pattern.
+        The content, if not None, must be a sequence of Patterns that
+        must match the node's children exactly.  If the content is
+        given, the type must not be None.
+        If a name is given, the matching node is stored in the results
+        dict under that key.
+        NT)
+WildcardPattern
+	wildcardsr
+itemr
+NodePattern.__init__c
+NTF)
+zipr|
+subpatternr<
+NodePattern._submatch)
+NNN)
+    A wildcard pattern can match zero or more nodes.
+    This has all the flexibility needed to implement patterns like:
+    .*      .+      .?      .{m,n}
+    (a b c | d e | f)
+    (...)*  (...)+  (...)?  (...){m,n}
+    except it always uses non-greedy matching.
+    Nr
+        Initializer.
+        Args:
+            content: optional sequence of subsequences of patterns;
+                     if absent, matches one node;
+                     if present, each subsequence is an alternative [*]
+            min: optional minimum number of times to match, default 0
+            max: optional maximum number of times to match, default HUGE
+            name: optional name assigned to this match
+        [*] Thus, if content is [[a, b, c], [d, e], [f, g, h]] this is
+            equivalent to (a b c | d e | f g h); if content is None,
+            this is equivalent to '.' in regular expression terms.
+            The min and max parameters work as follows:
+                min=0, max=maxint: .*
+                min=1, max=maxint: .+
+                min=0, max=1: .?
+                min=1, max=1: .
+            If content is not None, replace the dot with the parenthesized
+            list of alternatives, e.g. (a b c | d e | f g h)*
+        N)
+tupler\
+maxr
+altr
+WildcardPattern.__init__c
+z+Optimize certain stacked wildcard patterns.Nr
+)	ru
+WildcardPattern.optimizec
+z'Does this pattern exactly match a node?)
+WildcardPattern.matchc
+z4Does this pattern exactly match a sequence of nodes?NTF)
+WildcardPattern.match_seqc
+        Generator yielding matches for a sequence of nodes.
+        Args:
+            nodes: sequence of nodes
+        Yields:
+            (count, results) tuples where:
+            count: the match comprises nodes[:count];
+            results: dict containing named submatches.
+        Nr
+Z	bare_name
+getrefcountr
+ranger
+_bare_name_matches
+hasattrrR
+stderrr
+_recursive_matches
+RuntimeError
+_iterative_matches)
+countr{
+save_stderrr
+z WildcardPattern.generate_matchesc
+q4q&|
+z(Helper to iteratively yield the matches.r
+nodelenrz
+new_results
+z"WildcardPattern._iterative_matchesc
+z(Special optimized matcher for bare_name.r
+doner
+leafr
+z"WildcardPattern._bare_name_matchesc
+qRq2q$d
+z(Helper to recursively yield the matches.r
+z"WildcardPattern._recursive_matches)
+HUGErW
+NegatedPatternNc
+        Initializer.
+        The argument is either a pattern or None.  If it is None, this
+        only matches an empty sequence (effectively '$' in regex
+        lingo).  If it is not None, this matches whenever the argument
+        pattern doesn't have any matches.
+        N)
+NegatedPattern.__init__c
+NegatedPattern.matchc
+NegatedPattern.match_seqc
+NegatedPattern.generate_matches)
+qZq0d
+    Generator yielding matches for a sequence of patterns and nodes.
+    Args:
+        patterns: a sequence of patterns
+        nodes: a sequence of nodes
+    Yields:
+        (count, results) tuples where:
+        count: the entire sequence of patterns matches nodes[:count];
+        results: dict containing named submatches.
+        r
+patternsr}
+restr
+__author__rR
+<module>

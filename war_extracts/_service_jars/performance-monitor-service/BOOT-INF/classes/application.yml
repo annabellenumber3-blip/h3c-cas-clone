@@ -1,0 +1,135 @@
+server:
+  servlet:
+    context-path: /performance
+  encoding:
+    enabled: true
+    charset: UTF-8
+    force: true
+  port: ${performance_monitor_port:9202}
+  ssl:
+    enabled: true
+    key-store: classpath:performace_monitor_service_https.p12
+    key-store-type: PKCS12
+    key-store-password : ENC(gzrU3jTdJhhPSn8mLY1jsIzMBeZaoE1D)
+    enabled-protocols: TLSv1.2,TLSv1.3
+    ciphers:
+      - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+      - TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
+      - TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+      - TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
+      - TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384
+      - TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384
+      - TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256
+      - TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256
+      - TLS_RSA_WITH_AES_256_GCM_SHA384
+      - TLS_RSA_WITH_AES_128_GCM_SHA256
+spring:
+  task:
+    scheduling:
+      pool:
+        size: 10
+  profiles:
+    active: prod
+  application:
+    name: performance
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+    dynamic:
+      primary: postgresql  # 配置默认数据库
+      strict: false #严格匹配数据源,默认false. true未匹配到指定数据源时抛异常,false使用默认数据源
+  jpa:
+    hibernate:
+      naming:
+#        implicit-strategy: org.hibernate.boot.model.naming.ImplicitNamingStrategyJpaCompliantImpl
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+    show-sql: false
+    cache:
+      use_second_level_cache: false
+      use_query_cache: false
+    open-in-view: false
+    database-platform: org.hibernate.dialect.PostgreSQL95Dialect
+    properties:
+      hibernate:
+        query:
+          plan_cache_max_size: 64
+          plan_parameter_metadata_max_size: 32
+          in_clause_parameter_padding: true
+        jdbc:
+          batch_size: 10000
+          batch_versioned_data: true
+        order_inserts: true
+        order_updates: true
+  rabbitmq:
+    host: 127.0.0.1
+    port: 5672
+    connection-timeout: 15000
+    username: cloud
+    password: ENC(m2ALeo7V5QKE4UGcs9Da80UbHvp0ObFT)
+    virtual-host: cloudMsgHost
+    # template:
+    #   exchange: domain-server-task-notify
+    ssl:
+      # Whether to enable SSL support. Determined automatically if an address is
+      # provided with the protocol (amqp:// vs. amqps://).
+      enabled: true
+      # Path to the key store that holds the SSL certificate.
+      key-store: file:/etc/rabbitmq/client/keycert.p12
+      # Key store type
+      key-store-type: PKCS12
+      # Password used to access the key store.
+      key-store-password: ENC(XCJBYdL+xbVKdWnVV3wuRQ0/bSArXlN+)
+      # Trust store that holds SSL certificates.
+      trust-store: file:/etc/rabbitmq/trustStore
+      # Trust store type.
+      trust-store-type: JKS
+      # Password used to access the trust store.
+      trust-store-password: ENC(5YpLs8FZSkVOLnaLxZa4SrSERy//rTXF)
+      # SSL algorithm to use. By default, configured by the Rabbit client library.
+      algorithm: TLSv1.2
+      # Whether to enable server side certificate validation.
+      validate-server-certificate: true
+      # Whether to enable hostname verification.
+      verify-hostname: false
+mybatis-plus:
+  global-config:
+    db-config:
+      insert-strategy: ignored
+  configuration:
+    auto-mapping-behavior: full
+    call-setters-on-nulls: true
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+#    log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
+#logging:
+#    level:
+#      com.baomidou.mybatisplus: debug
+#      com.h3c.h3cloud.performance.monitor.service.mapper: debug
+tcp:
+  port: 20041
+#项目mapper目录
+#  mapper-locations: classpath:mapper/*Mapper.xml
+#server:
+#  servlet:
+#    context-path: /performance-monitor-service
+#  port: ${performance-monitor-service:6065}
+#  tomcat:
+#    basedir: /var/log/performance-monitor-service/tomcat
+#    accesslog:
+#      enabled: true
+#      pattern: "%h %l %u %t \"%r\" %s %b \"%{Req-Id}i\" %F"
+#    host-task-worker: 10
+#log:
+#  path: /var/log/performance-monitor-service/
+clickhouse:
+  database: metrics
+  config:
+    file:
+      path: /etc/clickhouse-server/config.d/config.xml
+
+cvk:
+  agent:
+    port: ${cvk_agent_port:26165}
+  tcp:
+    port: 20044
+
+

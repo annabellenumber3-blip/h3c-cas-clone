@@ -1,0 +1,138 @@
+##############################################################################
+# funcion   : get current datetime
+##############################################################################
+fcsandate() {
+    date "+${__FC_SAN_DATEFMT}"
+}
+
+##############################################################################
+# funcion   : get current month, eg. 201106
+##############################################################################
+fcsanCurrentMonth() {
+    date "+%Y%m"
+}
+
+##############################################################################
+#    Func Name: fc_san_printlog
+# Date Created: 2012-12-12 
+#       Author:  
+#  Description: print log to a log file; if debug and we're connected to a tty,
+#               then output to stderr,otherwise, to logfile.
+#        usage: $0 $1 $2 $3  
+#               $1 : the caller's name, usually, it is the shell name; must 
+#               $2 : the log level, it must be one of {crit|err|warn|info|debug}; must
+#               $3 : the message string; must
+#       Output: None
+#       Return: 0
+#      Caution: 
+#-----------------------------------------------------------------------------
+#  Modification History 
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+fc_san_printlog() {
+    # check the invalidity of the params.
+    if [ $# -lt 3 ]; then
+        fc_san_printlog fc_san_shell_log err "Not enough arguments [$#] to ocfs2_printlog."
+        return 0
+    fi
+    
+    #save the parameters
+    __FC_SAN_LOG_FROM="$1"
+    shift    
+    __FC_SAN_LOG_PRIO="$1"
+    shift
+    __FC_SAN_LOG_MSG="$*"
+
+    #format the log/debug level.
+    case "${__FC_SAN_LOG_PRIO}" in
+          crit)     __FC_SAN_LOG_PRIO="CRIT";;
+          err)      __FC_SAN_LOG_PRIO="ERROR";;
+          warn)     __FC_SAN_LOG_PRIO="WARNING";;
+          info)     __FC_SAN_LOG_PRIO="INFO";;
+          debug)    __FC_SAN_LOG_PRIO="DEBUG";;
+          *)        __FC_SAN_LOG_PRIO=`echo ${__FC_SAN_LOG_PRIO}| tr '[a-z]' '[A-Z]'`;;
+    esac
+    
+    #make up the full message
+    __FC_SAN_HOSTNAME=`hostname`
+    __FC_SAN_LOG_MSG=`fcsandate`" ["${__FC_SAN_HOSTNAME}"] ["$$"] ("${__FC_SAN_LOG_FROM}"): "${__FC_SAN_LOG_PRIO}":"${__FC_SAN_LOG_MSG}
+
+    #buildup the log file name
+    LOG_DIR="/var/log/caslog/storage-admin/"
+    if [ ! -d ${LOG_DIR} ];then
+        mkdir -p ${LOG_DIR}
+    fi
+    __FC_SAN_LOGFILE="${LOG_DIR}cas_fc_san.log"
+    #echo ${__FC_SAN_LOGFILE}
+
+    #
+    #if [ "${__FC_SAN_LOG_PRIO}" = "DEBUG" -a tty >/dev/null ]; then
+    #    echo ${__FC_SAN_LOG_MSG}
+    #else
+        echo -e ${__FC_SAN_LOG_MSG} >> ${__FC_SAN_LOGFILE}
+    #fi
+}
+
+##############################################################################
+#    Func Name: reload_multipath_map
+# Date Created: 2019-6-13
+#       Author:
+#  Description: Reload multipath map.
+#        usage: $0 $1
+#               $1 : device's naa
+#       Output: None
+#       Return: 0
+#      Caution:
+#-----------------------------------------------------------------------------
+#  Modification History
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+function reload_multipath_map()
+{
+    local naa=$1
+
+    multipath -f $naa
+    fc_san_printlog $MODULE_NAME debug "multipath -f $naa"
+    multipath -r $naa
+    fc_san_printlog $MODULE_NAME debug "multipath -r $naa"
+
+    return 0
+}
+
+##############################################################################
+#    Func Name: check_multipath_symlink
+# Date Created: 2019-6-13
+#       Author:
+#  Description: Check multipath dm symlink if exist or not.
+#        usage: $0 $1
+#               $1 : max loop times to check symlink
+#       Output: None
+#       Return: If symlink exist return none null string, or return null
+#      Caution:
+#-----------------------------------------------------------------------------
+#  Modification History
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+function check_multipath_symlink()
+{
+    local looptime=0
+    local loopmax=$1
+    local naa_dm_info=''
+
+    while [ $looptime -lt $loopmax ]; do
+        naa_dm_info=`ls /dev/disk/by-id/ | grep $naa | egrep "dm-name-$naa$"`
+        if [ "X$naa_dm_info" != "X" ];then
+            fc_san_printlog $MODULE_NAME debug "get dm path, total use $looptime seconds."
+            break
+        fi
+        sleep 1
+        looptime=`expr $looptime + 1`
+    done
+
+    echo $naa_dm_info
+}
+
+###############################################################################
+## end of file
+###############################################################################
+

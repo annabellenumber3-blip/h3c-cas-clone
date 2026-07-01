@@ -1,0 +1,265 @@
+m	Z	m
+m Z 
+d!d"
+Z%d#d#d$
+d%d&
+Z&d'd(d)d*d+d,
+d-d.
+d0d1
+aggregation.py contains utility functions to handle multiple named and lambda
+kwarg aggregations in groupby and DataFrame/Series aggregation
+annotations)
+defaultdict)
+partial)
+TYPE_CHECKING
+Callable
+DefaultDict
+Hashable
+Iterable
+Sequence)
+AggFuncType
+FrameOrSeries)
+is_dict_like
+is_list_like)
+	ABCSeries)
+SpecificationErrorN)
+Index)
+Seriesz
+AggFuncType | NonezCtuple[bool, AggFuncType | None, list[str] | None, list[int] | None])
+func
+returnc
+    This is the internal function to reconstruct func given if there is relabeling
+    or not and also normalize the keyword to get new order of columns.
+    If named aggregation is applied, `func` will be None, and kwargs contains the
+    column and aggregation function information to be parsed;
+    If named aggregation is not applied, `func` is either string (e.g. 'min') or
+    Callable, or list of them (e.g. ['min', np.max]), or the dictionary of column name
+    and str/Callable/list of them (e.g. {'A': 'min'}, or {'A': [np.min, lambda x: x]})
+    If relabeling is True, will return relabeling, reconstructed func, column
+    names, and the reconstructed order of columns.
+    If relabeling is False, the columns and order will be None.
+    Parameters
+    ----------
+    func: agg function (e.g. 'min' or Callable) or list of agg functions
+        (e.g. ['min', np.max]) or dictionary (e.g. {'A': ['min', np.max]}).
+    **kwargs: dict, kwargs used in is_multi_agg_with_relabel and
+        normalize_keyword_aggregation function for relabelling
+    Returns
+    -------
+    relabelling: bool, if there is relabelling or not
+    func: normalized and mangled func
+    columns: list of column names
+    order: list of columns indices
+    Examples
+    --------
+    >>> reconstruct_func(None, **{"foo": ("col", "min")})
+    (True, defaultdict(<class 'list'>, {'col': ['min']}), ('foo',), array([0]))
+    >>> reconstruct_func("min")
+    (False, 'min', None, None)
+    NzFFunction names must be unique if there is no new column names assignedz4Must provide 'func' or tuples of '(column, aggfunc).)
+is_multi_agg_with_relabel
+isinstance
+list
+setr
+	TypeError
+normalize_keyword_aggregation)
+kwargsZ
+relabeling
+columns
+order
+=/usr/lib64/python3.9/site-packages/pandas/core/aggregation.py
+reconstruct_func'
+bool)
+    Check whether kwargs passed to .agg look like multi-agg with relabeling.
+    Parameters
+    ----------
+    **kwargs : dict
+    Returns
+    -------
+    bool
+    Examples
+    --------
+    >>> is_multi_agg_with_relabel(a="max")
+    False
+    >>> is_multi_agg_with_relabel(a_max=("a", "max"), a_min=("a", "min"))
+    True
+    >>> is_multi_agg_with_relabel()
+    False
+    c
+tupler
+	<genexpr>z
+z,is_multi_agg_with_relabel.<locals>.<genexpr>r
+valuesr
+dictz!tuple[dict, list[str], list[int]])
+    Normalize user-provided "named aggregation" kwargs.
+    Transforms from the new ``Mapping[str, NamedAgg]`` style kwargs
+    to the old Dict[str, List[scalar]]].
+    Parameters
+    ----------
+    kwargs : dict
+    Returns
+    -------
+    aggspec : dict
+        The transformed kwargs.
+    columns : List[str]
+        The user-provided keys.
+    col_idx_order : List[int]
+        List of columns indices.
+    Examples
+    --------
+    >>> normalize_keyword_aggregation({"output": ("input", "sum")})
+    (defaultdict(<class 'list'>, {'input': ['sum']}), ('output',), array([0]))
+    c
+get_callable_name)
+column
+aggfuncs
+aggfuncr 
+<listcomp>
+z1normalize_keyword_aggregation.<locals>.<listcomp>)
+items
+appendr-
+_make_unique_kwarg_listr
+get_indexer)
+aggspecr
+pairsr/
+uniquified_orderZ
+aggspec_orderZ
+uniquified_aggspec
+col_idx_orderr 
+Sequence[tuple[Any, Any]])
+seqr
+    Uniquify aggfunc name of the pairs in the order list
+    Examples:
+    --------
+    >>> kwarg_list = [('a', '<lambda>'), ('a', '<lambda>'), ('b', '<lambda>')]
+    >>> _make_unique_kwarg_list(kwarg_list)
+    [('a', '<lambda>_0'), ('a', '<lambda>_1'), ('b', '<lambda>')]
+    c
+count
+join
+str)
+pair
+z+_make_unique_kwarg_list.<locals>.<listcomp>)
+	enumeraterB
+Sequence[Any])
+    Possibly mangle a list of aggfuncs.
+    Parameters
+    ----------
+    aggfuncs : Sequence
+    Returns
+    -------
+    mangled: list-like
+        A new AggSpec sequence, where lambdas have been converted
+        to have unique names.
+    Notes
+    -----
+    If just one aggfunc is passed, the name will not be mangled.
+    r;
+<lambda>z
+<lambda_
+__name__r5
+mangled_aggfuncsr1
+_managle_lambda_list
+agg_specr
+    Make new lambdas with unique names.
+    Parameters
+    ----------
+    agg_spec : Any
+        An argument to GroupBy.agg.
+        Non-dict-like `agg_spec` are pass through as is.
+        For dict-like `agg_spec` a new spec is returned
+        with name-mangled lambdas.
+    Returns
+    -------
+    mangled : Any
+        Same type as the input.
+    Examples
+    --------
+    >>> maybe_mangle_lambdas('sum')
+    'sum'
+    >>> maybe_mangle_lambdas([lambda: 1, lambda: 2])  # doctest: +SKIP
+    [<function __main__.<lambda_0>,
+     <function pandas...._make_lambda.<locals>.f(*args, **kwargs)>]
+    )
+typer4
+is_dictZ
+mangled_aggspec
+keyr0
+maybe_mangle_lambdas
+dict[str, list[Callable | str]]z
+Iterable[Hashable]z
+Iterable[int]z
+dict[Hashable, Series])
+resultr
+    Internal function to reorder result if relabelling is True for
+    dataframe.agg, and return the reordered result in dict.
+    Parameters:
+    ----------
+    result: Result from aggregation
+    func: Dict of (column name, funcs)
+    columns: New columns name for relabelling
+    order: New order for relabelling
+    Examples:
+    ---------
+    >>> result = DataFrame({"A": [np.nan, 2, np.nan],
+    ...       "C": [6, np.nan, np.nan], "B": [np.nan, 4, 2.5]})  # doctest: +SKIP
+    >>> funcs = {"A": ["max"], "C": ["max"], "B": ["mean", "min"]}
+    >>> columns = ("foo", "aab", "bar", "dat")
+    >>> order = [0, 1, 2, 3]
+    >>> _relabel_result(result, func, columns, order)  # doctest: +SKIP
+    dict(A=Series([2.0, NaN, NaN, NaN], index=["foo", "aab", "bar", "dat"]),
+         C=Series([NaN, 6.0, NaN, NaN], index=["foo", "aab", "bar", "dat"]),
+         B=Series([NaN, NaN, 2.5, 4.0], index=["foo", "aab", "bar", "dat"]))
+    c
+z"relabel_result.<locals>.<listcomp>c
+<lambda>>
+z relabel_result.<locals>.<lambda>)
+copy)
+sortedr3
+dropnar
+indexr7
+reindex)
+reordered_indexesZ
+reordered_result_in_dict
+idxZ
+reorder_mask
+colZ
+relabel_result 
+z0tuple[list[str], list[str | Callable[..., Any]]]c
+    Validates types of user-provided "named aggregation" kwargs.
+    `TypeError` is raised if aggfunc is not `str` or callable.
+    Parameters
+    ----------
+    kwargs : dict
+    Returns
+    -------
+    columns : List[str]
+        List of user-provied keys.
+    func : List[Union[str, callable[...,Any]]]
+        List of user-provided aggfuncs
+    Examples
+    --------
+    >>> validate_func_kwargs({'one': 'min', 'two': 'max'})
+    (['one', 'two'], ['min', 'max'])
+    z-func is expected but received {} in **kwargs.z2Must provide 'func' or named aggregation **kwargs.)
+callabler
+formatrI
+tuple_given_messager
+col_funcZ
+no_arg_messager 
+validate_func_kwargsj
+__doc__Z
+__future__r
+collectionsr
+	functoolsr
+typingr
+pandas._typingr
+pandas.core.dtypes.commonr
+pandas.core.dtypes.genericr
+pandas.core.baser
+pandas.core.commonZ
+core
+commonr-
+pandas.core.indexes.apir
+pandas.core.seriesr
+<module>

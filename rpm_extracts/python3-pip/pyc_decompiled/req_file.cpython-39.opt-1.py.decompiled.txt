@@ -1,0 +1,313 @@
+m	Z	m
+m Z 
+m!Z!
+l"m#Z#
+e%e&f
+ZEdBe&e
+ZGe&e'd
+d d!
+ZHdCeEe
+eDd"
+d#d$
+ZIdDe
+e&e%e
+d&d'
+ZJdEeEe
+d)d*
+d+d,
+e(d-
+d.d/
+ZMe&e
+e&e&f
+d1d2
+d3d4
+d4eO
+jQd5
+d6d7
+ZRe'e'd8
+d9d:
+ZSe'e'd8
+d;d<
+ZTe'e'd8
+d=d>
+ZUe&e
+e&e&f
+d@dA
+Requirements file parsing
+Values)	
+TYPE_CHECKING
+Callable
+Dict
+Iterable
+Iterator
+List
+Optional
+Tuple)
+cmdoptions)
+InstallationError
+RequirementsFileParseError)
+SearchScope)
+PipSession)
+raise_for_status)
+auto_decode)
+get_url_scheme)
+NoReturn)
+PackageFinder
+parse_requirementsz
+^(http|https|file):z
+(^|\s+)#.*$z#(?P<var>\$\{(?P<name>[A-Z0-9_]+)\}).
+SUPPORTED_OPTIONS
+SUPPORTED_OPTIONS_REQc
+dest)
+>/usr/lib/python3.9/site-packages/pip/_internal/req/req_file.py
+<listcomp>N
+ParsedRequirementN)
+requirement
+is_editable
+comes_from
+constraint
+options
+line_source
+returnc
+selfr"
+__init__R
+ParsedRequirement.__init__)
+NN)	
+__name__
+__module__
+__qualname__r
+boolr
+ParsedLineN)
+filename
+lineno
+args
+optsr%
+NTFr
+is_requirementr#
+Z	editables)
+ParsedLine.__init__)
+intr
+session
+finderr&
+Parse a requirements file and yield ParsedRequirement instances.
+    :param filename:    Path or url of requirements file.
+    :param session:     PipSession instance.
+    :param finder:      Instance of pip.index.PackageFinder.
+    :param options:     cli options.
+    :param constraint:  If true, parsing a constraint file rather than
+        requirements file.
+    )
+get_line_parser
+RequirementsFileParser
+parse
+handle_line)	r1
+line_parser
+parserZ
+parsed_line
+parsed_reqr
+contentr(
+zxSplit, filter, and join lines, and return a line iterator
+    :param content: the content of the requirements file
+    
+start)
+	enumerate
+splitlines
+join_lines
+ignore_comments
+expand_env_variables)
+lines_enumr
+preprocess
+liner&
+{} {} (line {})z
+line 
+ of )
+formatr%
+check_install_build_globalr4
+SUPPORTED_OPTIONS_REQ_DEST
+__dict__)
+line_comes_fromZ
+req_optionsr
+handle_requirement_line
+)	Nc
+features_enabled)
+	<genexpr>
+z%handle_option_line.<locals>.<genexpr>Tr
+find_links
+index_urlsrK
+source)
+require_hashesrQ
+extendrU
+	index_url
+no_indexZ
+extra_index_urls
+path
+dirname
+abspath
+join
+exists
+appendZ
+update_index_urlsr
+search_scope
+preZ
+set_allow_all_prereleases
+prefer_binaryZ
+set_prefer_binaryZ
+trusted_hostsZ
+add_trusted_host)
+valueZ
+req_dirZ
+relative_to_reqs_filerc
+hostrW
+handle_option_line
+Handle a single parsed requirements line; This can result in
+    creating/yielding requirements, or updating the finder.
+    :param line:        The parsed line to be processed.
+    :param options:     CLI options.
+    :param finder:      The finder - updated by non-requirement lines.
+    :param session:     The session - updated by non-requirement lines.
+    Returns a ParsedRequirement object if the line is a requirement line,
+    otherwise returns None.
+    For lines that contain requirements, the only options that have an effect
+    are from SUPPORTED_OPTIONS_REQ, and they are scoped to the
+    requirement. Other options from SUPPORTED_OPTIONS may be present, but are
+    ignored.
+    For lines that do not contain requirements, the only options that have an
+    effect are from SUPPORTED_OPTIONS. Options from SUPPORTED_OPTIONS_REQ may
+    be present, but are ignored. These lines may contain multiple options
+    (although our docs imply only one is supported), and all our parsed and
+    affect the finder.
+    N)
+_session
+_line_parser)
+RequirementsFileParser.__init__)
+z*Parse a given file, yielding parsed lines.N)
+_parse_and_recurse)
+RequirementsFileParser.parsec
+_parse_filer5
+requirements
+constraints
+	SCHEME_RE
+search
+urllibr;
+urljoinr\
+req_pathZ
+nested_constraintr
+z)RequirementsFileParser._parse_and_recursec
+Invalid requirement: 
+get_file_contentri
+OptionParsingError
+msgr
+line_numberrJ
+args_strr4
+z"RequirementsFileParser._parse_file)
+LineParserr+
+build_parserZ
+get_default_valuesrZ
+format_control
+break_args_options
+parse_args
+shlex
+split)
+defaultsry
+options_strr4
+parse_line~
+z#get_line_parser.<locals>.parse_line)
+Break up the line into an args and options string.  We only want to shlex
+    (and then optparse) the options, not the args.  args can contain markers
+    which are corrupted by shlex.
+    
+startswithrb
+popr`
+tokensr3
+tokenr
+OptionParsingError.__init__)
+    Return a parser for parsing requirement lines
+    F)
+add_help_optionr
+parser_exit
+z!build_parser.<locals>.parser_exit)
+optparse
+OptionParserr
+add_optionr
+exit)
+option_factoriesZ
+option_factoryZ
+optionr
+Joins a line ending in '' with the previous line (except when following
+    comments).  The joined line takes on the index of the first line.
+    N
+endswith
+COMMENT_RE
+matchrb
+strip)
+primary_line_numberZ
+new_linerx
+    Strips comments and filter empty lines.
+    r
+subr
+Replace all environment variables that can be retrieved via `os.getenv`.
+    The only allowed format for environment variables defined in the
+    requirement file is `${MY_VARIABLE_1}` to ensure two things:
+    1. Strings that contain a `$` aren't accidentally (partially) expanded.
+    2. Ensure consistency across platforms for requirement files.
+    These points are the result of a discussion on the `github pull
+    request #3514 <https://github.com/pypa/pip/pull/3514>`_.
+    Valid characters in variable names follow the `POSIX standard
+    <http://pubs.opengroup.org/onlinepubs/9699919799/>`_ and are limited
+    to uppercase letter, digits and the `_` (underscore).
+    N)
+ENV_VAR_RE
+findallr\
+getenv
+replace)
+env_varZ
+var_namerf
+urlr7
+Gets the content of a file; it may be a filename, file: URL, or
+    http: URL.  Returns (location, content).  Content is unicode.
+    Respects # -*- coding: declarations on the retrieved files.
+    :param url:         File path or url.
+    :param session:     PipSession instance.
+    )
+http
+https
+file
+rbNz"Could not open requirements file: )
+getr
+text
+openr
+read
+OSErrorr
+schemeZ
+resprR
+excr
+NNF)
+NNN)
+NNN)W
+__doc__r
+urllib.parserq
+typingr
+pip._internal.clir
+pip._internal.exceptionsr
+Z!pip._internal.models.search_scoper
+pip._internal.network.sessionr
+pip._internal.network.utilsr
+pip._internal.utils.encodingr
+pip._internal.utils.urlsr
+Z"pip._internal.index.package_finderr
+__all__r6
+ReqFileLinesr{
+compile
+extra_index_urlr[
+editablerU
+Z	no_binaryZ
+only_binaryre
+trusted_hostZ
+use_new_featurer
+Option
+__annotations__Z
+install_optionsZ
+global_options
+hashr
+	Exceptionru
+<module>

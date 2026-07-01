@@ -1,0 +1,364 @@
+l	Z	d
+This module contains the TreeGrower class.
+TreeGrower builds a regression tree fitting a Newton-Raphson step, based on
+the gradients and hessians of the training data.
+heappush
+heappopN)
+default_timer
+Splitter)
+HistogramBuilder)
+TreePredictor)
+sum_parallel)
+PREDICTOR_RECORD_DTYPE)
+X_BITSET_INNER_DTYPE)
+Y_DTYPE)
+MonotonicConstraint)
+!set_raw_bitset_from_binned_bitset)
+_openmp_effective_n_threadsc
+TreeNodea
+Tree Node class used in TreeGrower.
+    This isn't used for prediction purposes, only for training (see
+    TreePredictor).
+    Parameters
+    ----------
+    depth : int
+        The depth of the node, i.e. its distance from the root.
+    sample_indices : ndarray of shape (n_samples_at_node,), dtype=np.uint
+        The indices of the samples at the node.
+    sum_gradients : float
+        The sum of the gradients of the samples at the node.
+    sum_hessians : float
+        The sum of the hessians of the samples at the node.
+    Attributes
+    ----------
+    depth : int
+        The depth of the node, i.e. its distance from the root.
+    sample_indices : ndarray of shape (n_samples_at_node,), dtype=np.uint
+        The indices of the samples at the node.
+    sum_gradients : float
+        The sum of the gradients of the samples at the node.
+    sum_hessians : float
+        The sum of the hessians of the samples at the node.
+    split_info : SplitInfo or None
+        The result of the split evaluation.
+    left_child : TreeNode or None
+        The left child of the node. None for leaves.
+    right_child : TreeNode or None
+        The right child of the node. None for leaves.
+    value : float or None
+        The value of the leaf, as computed in finalize_leaf(). None for
+        non-leaf nodes.
+    partition_start : int
+        start position of the node's sample_indices in splitter.partition.
+    partition_stop : int
+        stop position of the node's sample_indices in splitter.partition.
+    Nr
+-infz
++inf)
+depth
+sample_indices
+shape
+	n_samples
+sum_gradients
+sum_hessians
+value
+is_leaf
+set_children_bounds
+float)
+selfr
+U/usr/lib64/python3.9/site-packages/sklearn/ensemble/_hist_gradient_boosting/grower.py
+__init__W
+TreeNode.__init__c
+z<Set children values bounds to respect monotonic constraints.N)
+children_lower_bound
+children_upper_bound)
+lower
+upperr
+TreeNode.set_children_boundsc
+Comparison for priority queue.
+        Nodes with high gain are higher priority than nodes with low gain.
+        heapq.heappush only need the '<' operator.
+        heapq.heappop take the smallest item first (smaller is higher
+        priority).
+        Parameters
+        ----------
+        other_node : TreeNode
+            The node to compare with.
+        )
+split_info
+gain)
+other_noder
+__lt__j
+TreeNode.__lt__)
+__name__
+__module__
+__qualname__
+__doc__r#
+left_child
+right_child
+histograms
+partition_start
+partition_stopr
+TreeGrowera
+Tree grower class used to build a tree.
+    The tree is fitted to predict the values of a Newton-Raphson step. The
+    splits are considered in a best-first fashion, and the quality of a
+    split is defined in splitting._split_gain.
+    Parameters
+    ----------
+    X_binned : ndarray of shape (n_samples, n_features), dtype=np.uint8
+        The binned input samples. Must be Fortran-aligned.
+    gradients : ndarray of shape (n_samples,)
+        The gradients of each training sample. Those are the gradients of the
+        loss w.r.t the predictions, evaluated at iteration ``i - 1``.
+    hessians : ndarray of shape (n_samples,)
+        The hessians of each training sample. Those are the hessians of the
+        loss w.r.t the predictions, evaluated at iteration ``i - 1``.
+    max_leaf_nodes : int, default=None
+        The maximum number of leaves for each tree. If None, there is no
+        maximum limit.
+    max_depth : int, default=None
+        The maximum depth of each tree. The depth of a tree is the number of
+        edges to go from the root to the deepest leaf.
+        Depth isn't constrained by default.
+    min_samples_leaf : int, default=20
+        The minimum number of samples per leaf.
+    min_gain_to_split : float, default=0.
+        The minimum gain needed to split a node. Splits with lower gain will
+        be ignored.
+    n_bins : int, default=256
+        The total number of bins, including the bin for missing values. Used
+        to define the shape of the histograms.
+    n_bins_non_missing : ndarray, dtype=np.uint32, default=None
+        For each feature, gives the number of bins actually used for
+        non-missing values. For features with a lot of unique values, this
+        is equal to ``n_bins - 1``. If it's an int, all features are
+        considered to have the same number of bins. If None, all features
+        are considered to have ``n_bins - 1`` bins.
+    has_missing_values : bool or ndarray, dtype=bool, default=False
+        Whether each feature contains missing values (in the training data).
+        If it's a bool, the same value is used for all features.
+    is_categorical : ndarray of bool of shape (n_features,), default=None
+        Indicates categorical features.
+    monotonic_cst : array-like of shape (n_features,), dtype=int, default=None
+        Indicates the monotonic constraint to enforce on each feature. -1, 1
+        and 0 respectively correspond to a positive constraint, negative
+        constraint and no constraint. Read more in the :ref:`User Guide
+        <monotonic_cst_gbdt>`.
+    l2_regularization : float, default=0.
+        The L2 regularization parameter.
+    min_hessian_to_split : float, default=1e-3
+        The minimum sum of hessians needed in each node. Splits that result in
+        at least one child having a sum of hessians less than
+        ``min_hessian_to_split`` are discarded.
+    shrinkage : float, default=1.
+        The shrinkage parameter to apply to the leaves values, also known as
+        learning rate.
+    n_threads : int, default=None
+        Number of OpenMP threads to use. `_openmp_effective_n_threads` is called
+        to determine the effective number of threads use, which takes cgroups CPU
+        quotes into account. See the docstring of `_openmp_effective_n_threads`
+        for details.
+    N
+MbP?
+j	|	t
+dtypeF)
+fill_valuer6
+z@monotonic_cst has shape {} but the input data X has {} features.
+z:monotonic_cst must be None or an array-like of -1, 0 or 1.)
+z7Categorical features cannot have monotonic constraints.r1
+_validate_parametersr
+isinstance
+numbersZ
+Integral
+arrayr
+uint32Z
+asarray
+bool
+uint8
+with_monotonic_cstZ
+fullr
+NO_CSTZ
+int8
+ValueError
+format
+zerosZ
+logical_andr
+histogram_builderr
+splitter
+n_bins_non_missing
+missing_values_bin_idx
+max_leaf_nodes
+has_missing_values
+monotonic_cst
+is_categorical
+l2_regularizationZ
+n_features
+	max_depth
+min_samples_leaf
+X_binned
+min_gain_to_split
+	shrinkage
+	n_threads
+splittable_nodes
+finalized_leaves
+total_find_split_time
+total_compute_hist_time
+total_apply_split_time
+n_categorical_splits
+_intilialize_root
+n_nodes)
+	gradients
+hessiansrH
+n_binsrF
+min_hessian_to_splitrQ
+hessians_are_constantrG
+TreeGrower.__init__c
+zfValidate parameters passed to __init__.
+        Also validate parameters passed to splitter.
+        z
+X_binned must be of type uint8.zMX_binned should be passed as Fortran contiguous array for maximum efficiency.Nr
+z.max_leaf_nodes={} should not be smaller than 2z)max_depth={} should not be smaller than 1z0min_samples_leaf={} should not be smaller than 1r
+z&min_gain_to_split={} must be positive.z&l2_regularization={} must be positive.z)min_hessian_to_split={} must be positive.)
+NotImplementedError
+flags
+f_contiguousr@
+TreeGrower._validate_parametersc
+z#Grow the tree, from root to leaves.N)
+split_next
+_apply_shrinkage)
+growe
+TreeGrower.growc
+Multiply leaves values by shrinkage parameter.
+        This must be done at the very end of the growing process. If this were
+        done during the growing process e.g. in finalize_leaf(), then a leaf
+        would be shrunk but its sibling would potentially not be (if it's a
+        non-leaf), which would lead to a wrong computation of the 'middle'
+        value needed to enforce the monotonic constraints.
+        N)
+leafr
+TreeGrower._apply_shrinkagec
+z/Initialize root node and finalize it if needed.r
+	partition
+rootr-
+_finalize_leafr]
+compute_histograms_bruter
+_compute_best_split_and_push)
+TreeGrower._intilialize_rootc
+Compute the best possible split (SplitInfo) of a given node.
+        Also push it in the heap of splittable nodes if gain isn't zero.
+        The gain of a node is 0 if either all the leaves are pure
+        (best gain = 0), or if no split would satisfy the constraints,
+        (min_hessians_to_split, min_gain_to_split, min_samples_leaf)
+        r
+find_node_splitr
+noder
+z'TreeGrower._compute_best_split_and_pushc
+}	|	|
+t$j%k
+j(|	j(
+t$j)k
+|	j+
+Split the node with highest potential gain.
+        Returns
+        -------
+        left : TreeNode
+            The resulting left child.
+        right : TreeNode
+            The resulting right child.
+        r
+timerE
+split_indicesr#
+lenrT
+sum_gradient_leftZ
+sum_hessian_leftZ
+value_leftZ
+sum_gradient_rightZ
+sum_hessian_rightZ
+value_rightr+
+feature_idxr
+missing_go_to_leftrZ
+_finalize_splittable_nodesrM
+POSr
+compute_histograms_subtractionrV
+ticZ
+sample_indices_leftZ
+sample_indices_rightZ
+right_child_posr
+n_leaf_nodesZ
+left_child_nodeZ
+right_child_nodeZ
+lower_leftZ
+lower_rightZ
+upper_leftZ
+upper_rightZ
+midZ
+should_split_leftZ
+should_split_rightZ
+n_samples_leftZ
+n_samples_rightZ
+smallest_childZ
+largest_child
+childr
+TreeGrower.split_nextc
+z)Make node a leaf of the tree being grown.TN)
+appendrk
+TreeGrower._finalize_leafc
+Transform all splittable nodes into leaves.
+        Used when some constraint is met e.g. maximum number of leaves or
+        maximum depth.r
+poprh
+z%TreeGrower._finalize_splittable_nodesc
+Make a TreePredictor object out of the current tree.
+        Parameters
+        ----------
+        binning_thresholds : array-like of floats
+            Corresponds to the bin_thresholds_ attribute of the BinMapper.
+            For each feature, this stores:
+            - the bin frontiers for continuous features
+            - the unique raw category values for categorical features
+        Returns
+        -------
+        A TreePredictor object.
+        r5
+_fill_predictor_arraysrg
+binning_thresholds
+predictor_nodes
+binned_left_cat_bitsets
+raw_left_cat_bitsetsr
+make_predictorV
+TreeGrower.make_predictor)
+NNr0
+NFNNr1
+}	|	j
+|	j	|
+nL|	j	r
+z>Helper used in make_predictor to set the TreePredictor fields.
+countr
+bin_thresholdrp
+num_thresholdZ
+bitset_idx
+left)
+next_free_node_idx
+next_free_bitset_idx
+right)
+bin_idxrp
+infZ
+left_cat_bitsetr
+grower_noderw
+categoriesr
+)!r)
+heapqr
+numpyr;
+timeitr
+Z	splittingr
+Z	histogramr
+Z	predictorr
+utilsr	
+commonr
+_bitsetr
+sklearn.utils._openmp_helpersr
+finfoZ
+epsZ
+EPSr
+<module>

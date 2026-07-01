@@ -1,0 +1,340 @@
+m	Z	
+Bisecting K-means clustering.
+_BaseKMeans)
+_kmeans_single_elkan)
+_kmeans_single_lloyd)
+ _labels_inertia_threadpool_limit)
+_inertia_dense)
+_inertia_sparse
+	row_norms)
+_openmp_effective_n_threads)
+check_is_fitted)
+_check_sample_weight)
+check_random_state)
+_is_arraylike_not_scalarc
+_BisectingTreezITree structure representing the hierarchical clusters of BisectingKMeans.c
+Create a new cluster node in the tree.
+        The node holds the center of this cluster and the indices of the data points
+        that belong to it.
+        N)
+center
+indices
+score
+left
+right)
+selfr
+E/usr/lib64/python3.9/site-packages/sklearn/cluster/_bisect_k_means.py
+__init__
+_BisectingTree.__init__c
+z,Split the cluster node into two subclusters.r
+labels
+centers
+scoresr
+split'
+_BisectingTree.splitc
+Return the cluster node to bisect next.
+        It's based on the score of the cluster, which can be either the number of
+        data points assigned to that cluster or the inertia of that cluster
+        (see `bisecting_strategy` for details).
+        N)
+iter_leavesr
+Z	max_scoreZ
+cluster_leafZ
+best_cluster_leafr
+get_cluster_to_bisect3
+z$_BisectingTree.get_cluster_to_bisectc
+z0Iterate over all the cluster leaves in the tree.N)
+_BisectingTree.iter_leavesN)
+__name__
+__module__
+__qualname__
+__doc__r
+BisectingKMeansa~
+Bisecting K-Means clustering.
+    Read more in the :ref:`User Guide <bisect_k_means>`.
+    .. versionadded:: 1.1
+    Parameters
+    ----------
+    n_clusters : int, default=8
+        The number of clusters to form as well as the number of
+        centroids to generate.
+    init : {'k-means++', 'random'} or callable, default='random'
+        Method for initialization:
+        'k-means++' : selects initial cluster centers for k-mean
+        clustering in a smart way to speed up convergence. See section
+        Notes in k_init for more details.
+        'random': choose `n_clusters` observations (rows) at random from data
+        for the initial centroids.
+        If a callable is passed, it should take arguments X, n_clusters and a
+        random state and return an initialization.
+    n_init : int, default=1
+        Number of time the inner k-means algorithm will be run with different
+        centroid seeds in each bisection.
+        That will result producing for each bisection best output of n_init
+        consecutive runs in terms of inertia.
+    random_state : int, RandomState instance or None, default=None
+        Determines random number generation for centroid initialization
+        in inner K-Means. Use an int to make the randomness deterministic.
+        See :term:`Glossary <random_state>`.
+    max_iter : int, default=300
+        Maximum number of iterations of the inner k-means algorithm at each
+        bisection.
+    verbose : int, default=0
+        Verbosity mode.
+    tol : float, default=1e-4
+        Relative tolerance with regards to Frobenius norm of the difference
+        in the cluster centers of two consecutive iterations  to declare
+        convergence. Used in inner k-means algorithm at each bisection to pick
+        best possible clusters.
+    copy_x : bool, default=True
+        When pre-computing distances it is more numerically accurate to center
+        the data first. If copy_x is True (default), then the original data is
+        not modified. If False, the original data is modified, and put back
+        before the function returns, but small numerical differences may be
+        introduced by subtracting and then adding the data mean. Note that if
+        the original data is not C-contiguous, a copy will be made even if
+        copy_x is False. If the original data is sparse, but not in CSR format,
+        a copy will be made even if copy_x is False.
+    algorithm : {"lloyd", "elkan"}, default="lloyd"
+        Inner K-means algorithm used in bisection.
+        The classical EM-style algorithm is `"lloyd"`.
+        The `"elkan"` variation can be more efficient on some datasets with
+        well-defined clusters, by using the triangle inequality. However it's
+        more memory intensive due to the allocation of an extra array of shape
+        `(n_samples, n_clusters)`.
+    bisecting_strategy : {"biggest_inertia", "largest_cluster"},            default="biggest_inertia"
+        Defines how bisection should be performed:
+         - "biggest_inertia" means that BisectingKMeans will always check
+            all calculated cluster for cluster with biggest SSE
+            (Sum of squared errors) and bisect it. This approach concentrates on
+            precision, but may be costly in terms of execution time (especially for
+            larger amount of data points).
+         - "largest_cluster" - BisectingKMeans will always split cluster with
+            largest amount of points assigned to it from all clusters
+            previously calculated. That should work faster than picking by SSE
+            ('biggest_inertia') and may produce similar results in most cases.
+    Attributes
+    ----------
+    cluster_centers_ : ndarray of shape (n_clusters, n_features)
+        Coordinates of cluster centers. If the algorithm stops before fully
+        converging (see ``tol`` and ``max_iter``), these will not be
+        consistent with ``labels_``.
+    labels_ : ndarray of shape (n_samples,)
+        Labels of each point.
+    inertia_ : float
+        Sum of squared distances of samples to their closest cluster center,
+        weighted by the sample weights if provided.
+    n_features_in_ : int
+        Number of features seen during :term:`fit`.
+    feature_names_in_ : ndarray of shape (`n_features_in_`,)
+        Names of features seen during :term:`fit`. Defined only when `X`
+        has feature names that are all strings.
+    See Also
+    --------
+    KMeans : Original implementation of K-Means algorithm.
+    Notes
+    -----
+    It might be inefficient when n_cluster is less than 3, due to unnecassary
+    calculations for that case.
+    Examples
+    --------
+    >>> from sklearn.cluster import BisectingKMeans
+    >>> import numpy as np
+    >>> X = np.array([[1, 2], [1, 4], [1, 0],
+    ...               [10, 2], [10, 4], [10, 0],
+    ...               [10, 6], [10, 8], [10, 10]])
+    >>> bisect_means = BisectingKMeans(n_clusters=3, random_state=0).fit(X)
+    >>> bisect_means.labels_
+    array([2, 2, 2, 0, 0, 0, 1, 1, 1], dtype=int32)
+    >>> bisect_means.predict([[0, 0], [12, 3]])
+    array([2, 0], dtype=int32)
+    >>> bisect_means.cluster_centers_
+    array([[10.,  2.],
+           [10.,  8.],
+           [ 1., 2.]])
+    
+randomr
+lloyd
+biggest_inertia)	
+init
+n_init
+random_state
+max_iter
+verbose
+copy_x
+	algorithm
+bisecting_strategyc
+n_clustersr*
+superr
+	__class__r
+BisectingKMeans.__init__c
+elkanz1Algorithm must be either 'lloyd' or 'elkan', got z	 instead.)
+largest_clusterzDBisect Strategy must be 'biggest_inertia' or 'largest_cluster'. Got z/BisectingKMeans does not support init as array.)
+_check_paramsr1
+ValueErrorr2
+BisectingKMeans._check_paramsc
+z(Warn when vcomp and mkl are both presentz
+BisectingKMeans is known to have a memory leak on Windows with MKL, when there are less chunks than available threads. You can avoid it by setting the environment variable OMP_NUM_THREADS=
+warnings
+warn)
+n_active_threadsr
+_warn_mkl_vcomp
+BisectingKMeans._warn_mkl_vcompc
+Calculate the sum of squared errors (inertia) per cluster.
+        Parameters
+        ----------
+        X : {ndarray, csr_matrix} of shape (n_samples, n_features)
+            The input samples.
+        centers : ndarray of shape (n_clusters, n_features)
+            The cluster centers.
+        labels : ndarray of shape (n_samples,)
+            Index of the cluster each sample belongs to.
+        sample_weight : ndarray of shape (n_samples,)
+            The weights for each observation in X.
+        Returns
+        -------
+        inertia_per_cluster : ndarray of shape (n_clusters,)
+            Sum of squared errors (inertia) for each cluster.
+        r
+single_label)	
+issparser
+empty
+shape
+range
+_n_threads)
+sample_weight
+_inertiaZ
+inertia_per_cluster
+labelr
+_inertia_per_cluster
+z$BisectingKMeans._inertia_per_clusterc
+Split a cluster into 2 subsclusters.
+        Parameters
+        ----------
+        X : {ndarray, csr_matrix} of shape (n_samples, n_features)
+            Training instances to cluster.
+        x_squared_norms : ndarray of shape (n_samples,)
+            Squared euclidean norm of each data point.
+        sample_weight : ndarray of shape (n_samples,)
+            The weights for each observation in X.
+        cluster_to_bisect : _BisectingTree node object
+            The cluster node to split.
+        Nr	
+n_centroids)
+x_squared_normsZ	n_threadsg
+New centroids from bisection: r)
+_init_centroidsr*
+_random_state
+_kmeans_singler-
+printr2
+bincountr
+cluster_to_bisectZ
+best_inertia
+centers_initr
+inertiar
+best_labelsZ
+best_centersr
+_bisect*
+BisectingKMeans._bisectc
+_#t$|
+t*}	|	|
+Compute bisecting k-means clustering.
+        Parameters
+        ----------
+        X : {array-like, sparse matrix} of shape (n_samples, n_features)
+            Training instances to cluster.
+            .. note:: The data will be converted to C ordering,
+                which will cause a memory copy
+                if the given data is not C-contiguous.
+        y : Ignored
+            Not used, present here for API consistency by convention.
+        sample_weight : array-like of shape (n_samples,), default=None
+            The weights for each observation in X. If None, all observations
+            are assigned equal weight.
+        Returns
+        -------
+        self
+            Fitted estimator.
+        Z
+accept_sparse
+dtype
+order
+copyZ
+accept_large_sparse
+axisr
+squared
+N)-Z
+_validate_datar@
+float64
+float32r0
+_check_mkl_vcomprB
+mean
+_X_meanr
+arange
+_bisecting_treer
+full
+int32Z
+labels_rA
+cluster_centers_
+	enumerater
+inertia_Z
+_n_features_out)
+cluster_noderF
+fitf
+BisectingKMeans.fitc
+Predict which cluster each sample in X belongs to.
+        Prediction is made by going down the hierarchical tree
+        in searching of closest leaf cluster.
+        In the vector quantization literature, `cluster_centers_` is called
+        the code book and each value returned by `predict` is the index of
+        the closest code in the code book.
+        Parameters
+        ----------
+        X : {array-like, sparse matrix} of shape (n_samples, n_features)
+            New data to predict.
+        Returns
+        -------
+        labels : ndarray of shape (n_samples,)
+            Index of the cluster each sample belongs to.
+        TrU
+_check_test_datar
+Z	ones_like
+_predict_recursiverZ
+predict
+BisectingKMeans.predictc
+Predict recursively by going down the hierarchical tree.
+        Parameters
+        ----------
+        X : {ndarray, csr_matrix} of shape (n_samples, n_features)
+            The data points, currently assigned to `cluster_node`, to predict between
+            the subclusters of this node.
+        x_squared_norms : ndarray of shape (n_samples,)
+            Squared euclidean norm of each data point.
+        sample_weight : ndarray of shape (n_samples,)
+            The weights for each observation in X.
+        cluster_node : _BisectingTree node object
+            The cluster node of the hierarchical tree.
+        Returns
+        -------
+        labels : ndarray of shape (n_samples,)
+            Index of the cluster each sample belongs to.
+        Nr
+return_inertiarV
+vstackr
+hasattrrY
+cluster_labels
+maskr
+z"BisectingKMeans._predict_recursivec
+preserves_dtype)
+_more_tags
+BisectingKMeans._more_tags)
+__classcell__r
+numpyr@
+scipy.sparseZ
+sparser>
+_kmeansr
+_k_means_commonr
+utils.extmathr
+utils._openmp_helpersr
+utils.validationr
+<module>

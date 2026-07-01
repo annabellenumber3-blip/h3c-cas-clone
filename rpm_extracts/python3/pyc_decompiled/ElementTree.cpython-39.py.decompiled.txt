@@ -1,0 +1,939 @@
+l	Z	d
+d d!
+d#d$
+Z d%d&d'd(d)d*d+d,
+Z!e!e _!d-d.
+Z"d/d0
+Z#d1d2
+Z$d3d4
+Z%dad
+d5d6
+d7d8
+d9d:
+Z(dbd
+d5d6
+d;d<
+Z)d=d>
+Z*dcd@dA
+Z+dddBdC
+Z,dedDdE
+dFdG
+Z.dfdHdI
+Z/dgdJdK
+Z0e/Z1dhdLdM
+dNdO
+dPdQ
+Z4did
+dSdT
+6dUe
+j8Z9G
+dVdW
+Z:dXdY
+Z;dZd[
+d\l>T
+d]l>m?Z?
+Lightweight XML support for Python.
+ XML is an inherently hierarchical data format, and the most natural way to
+ represent it is with a tree.  This module has two classes for this purpose:
+    1. ElementTree represents the whole XML document as a tree and
+    2. Element represents a single node in this tree.
+ Interactions with the whole document (reading and writing to/from files) are
+ usually done on the ElementTree level.  Interactions with a single XML element
+ and its sub-elements are done on the Element level.
+ Element is a flexible container object designed to store hierarchical data
+ structures in memory. It can be described as a cross between a list and a
+ dictionary.  Each Element has a number of properties associated with it:
+    'tag' - a string containing the element's name.
+    'attributes' - a Python dictionary storing the element's attributes.
+    'text' - a string containing the element's text content.
+    'tail' - an optional string containing text after the element's end tag.
+    And a number of child elements stored in a Python sequence.
+ To create an element instance, use the Element constructor,
+ or the SubElement factory function.
+ You can also use the ElementTree class to wrap an element structure
+ and convert it to and from XML.
+Comment
+dump
+Element
+ElementTree
+fromstring
+fromstringlist
+indent
+	iselement
+	iterparse
+parse
+ParseError
+ProcessingInstruction
+QName
+SubElement
+tostring
+tostringlist
+TreeBuilder
+VERSION
+XMLID
+	XMLParser
+XMLPullParser
+register_namespace
+canonicalize
+C14NWriterTargetz
+1.3.0
+ElementPathc
+An error when parsing an XML document.
+    In addition to its exception value, a ParseError contains
+    two extra attributes:
+        'code'     - the specific exception code
+        'position' - the line and column of the error
+    N)
+__name__
+__module__
+__qualname__
+__doc__
+-/usr/lib64/python3.9/xml/etree/ElementTree.pyr
+z2Return True if *element* appears to be an Element.
+tag)
+hasattr)
+elementr"
+d7d!d"
+d8d#d$
+d9d%d&
+d:d'd(
+d)d*
+d;d+d,
+d-d.
+d/d0
+d1d2
+d<d3d4
+Z d5d6
+An XML element.
+    This class is the reference implementation of the Element interface.
+    An element's length is its number of subelements.  That means if you
+    want to check if an element is truly empty, you should check BOTH
+    its length AND its text attribute.
+    The element tag, attribute names, and attribute values can be either
+    bytes or strings.
+    *tag* is the element name.  *attrib* is an optional dictionary containing
+    element attributes. *extra* are additional element attributes given as
+    keyword arguments.
+    Example form:
+        <tag attrib>text<child/>...</tag>tail
+    Nc
+attrib must be dict, not %s)
+isinstance
+dict
+	TypeError
+	__class__r
+attrib
+	_children)
+selfr$
+extrar"
+__init__
+Element.__init__c
+<%s %r at %#x>)
+__repr__
+Element.__repr__c
+Create a new element with the same type.
+        *tag* is a string containing the element name.
+        *attrib* is a dictionary containing the element attributes.
+        Do not call this method, use the SubElement factory function instead.
+        )
+makeelement
+Element.makeelementc
+Return copy of current element.
+        This creates a shallow copy. Subelements will be shared with the
+        original tree.
+        z7elem.copy() is deprecated. Use copy.copy(elem) instead.)
+warnings
+warn
+DeprecationWarning
+__copy__r1
+copy
+Element.copyc
+text
+tail)
+elemr"
+Element.__copy__c
+lenr,
+__len__
+Element.__len__c
+NzyThe behavior of this method will change in future versions.  Use specific 'len(elem)' or 'elem is not None' test instead.
+stacklevelr
+FutureWarningr=
+__bool__
+Element.__bool__c
+indexr"
+__getitem__
+Element.__getitem__c
+slice
+_assert_is_elementr,
+eltr"
+__setitem__
+Element.__setitem__c
+__delitem__
+Element.__delitem__c
+Add *subelement* to the end of this element.
+        The new element will appear in document order after the last existing
+        subelement (or directly after the text, if it's the first subelement),
+        but before the end tag for this element.
+        N
+append
+subelementr"
+Element.appendc
+zkAppend subelements from a sequence.
+        *elements* is a sequence with zero or more elements.
+        NrM
+elementsr&
+extend
+Element.extendc
+z(Insert *subelement* at position *index*.N)
+insert)
+Element.insertc
+expected an Element, not %s)
+_Element_Pyr)
+typer
+Element._assert_is_elementc
+Remove matching subelement.
+        Unlike the find methods, this method compares elements based on
+        identity, NOT ON tag value or contents.  To remove subelements by
+        other means, the easiest way is to use a list comprehension to
+        select what elements to keep, and then use slice assignment to update
+        the parent element.
+        ValueError is raised if a matching element could not be found.
+        N)
+removerO
+Element.removec
+Find first matching element by tag name or path.
+        *path* is a string having either an element tag or an XPath,
+        *namespaces* is an optional mapping from namespace prefix to full name.
+        Return the first matching element, or None if no element was found.
+        )
+find
+path
+namespacesr"
+Element.findc
+Find text for first matching element by tag name or path.
+        *path* is a string having either an element tag or an XPath,
+        *default* is the value to return if the element was not found,
+        *namespaces* is an optional mapping from namespace prefix to full name.
+        Return text content of first matching element, or default value if
+        none was found.  Note that if an element is found having no text
+        content, the empty string is returned.
+        )
+findtext
+defaultr[
+Element.findtextc
+Find all matching subelements by tag name or path.
+        *path* is a string having either an element tag or an XPath,
+        *namespaces* is an optional mapping from namespace prefix to full name.
+        Returns list containing all matching elements in document order.
+        )
+findallrY
+Element.findallc
+Find all matching subelements by tag name or path.
+        *path* is a string having either an element tag or an XPath,
+        *namespaces* is an optional mapping from namespace prefix to full name.
+        Return an iterable yielding all matching elements in document order.
+        )
+iterfindrY
+Element.iterfindc
+Reset element.
+        This function removes all subelements, clears all attributes, and sets
+        the text and tail attributes to None.
+        N)
+clearr,
+Element.clearc
+Get element attribute.
+        Equivalent to attrib.get, but some implementations may handle this a
+        bit more efficiently.  *key* is what attribute to look for, and
+        *default* is what to return if the attribute was not found.
+        Returns a string containing the attribute value, or the default if
+        attribute was not found.
+        )
+get)
+keyr^
+Element.getc
+Set element attribute.
+        Equivalent to attrib[key] = value, but some implementations may handle
+        this a bit more efficiently.  *key* is what attribute to set, and
+        *value* is the attribute value to set it to.
+        N)
+valuer"
+setb
+Element.setc
+Get list of attribute names.
+        Names are returned in an arbitrary order, just like an ordinary
+        Python dict.  Equivalent to attrib.keys()
+        )
+keysr1
+Element.keysc
+Get element attributes as a sequence.
+        The attributes are returned in arbitrary order.  Equivalent to
+        attrib.items().
+        Return a list of (name, value) tuples.
+        )
+itemsr1
+Element.itemsc
+Create tree iterator.
+        The iterator loops over the element and all subelements in document
+        order, returning all elements with a matching tag.
+        If the tree structure is modified during iteration, new or removed
+        elements may or may not be included.  To get a stable set, use the
+        list() function on the iterator, and loop over the resulting list.
+        *tag* is what tags to look for (default is to return all elements)
+        Return an iterator containing all the matching elements.
+        
+iter)
+Element.iterc
+Create text iterator.
+        The iterator loops over the element and all subelements in document
+        order, returning all inner text.
+        N)
+strr:
+itertextr;
+Element.itertext)
+N)"r
+Subelement factory which creates an element instance, and appends it
+    to an existing parent.
+    The element tag, attribute names, and attribute values can be either
+    bytes or Unicode strings.
+    *parent* is the parent element, *tag* is the subelements name, *attrib* is
+    an optional directory containing element attributes, *extra* are
+    additional attributes given as keyword arguments.
+    )
+parentr$
+Comment element factory.
+    This function creates a special element which the standard serializer
+    serializes as an XML comment.
+    *text* is a string containing the comment string.
+    )
+Processing Instruction element factory.
+    This function creates a special element which the standard serializer
+    serializes as an XML comment.
+    *target* is a string containing the processing instruction, *text* is a
+    string containing the processing instruction contents, if any.
+    
+targetr:
+Qualified name wrapper.
+    This class can be used to wrap a QName attribute value in order to get
+    proper namespace handing on output.
+    *text_or_uri* is a string containing the QName value either in the form
+    {uri}local, or if the tag argument is given, the URI part of a QName.
+    *tag* is an optional argument which if given, will make the first
+    argument (text_or_uri) be interpreted as a URI, and this argument (tag)
+    be interpreted as a local name.
+    Nc
+{%s}%s
+text_or_urir$
+QName.__init__c
+__str__
+QName.__str__c
+<%s %r>)
+QName.__repr__c
+hashr:
+__hash__
+QName.__hash__c
+otherr"
+__le__
+QName.__le__c
+__lt__
+QName.__lt__c
+__ge__
+QName.__ge__c
+__gt__
+QName.__gt__c
+__eq__
+QName.__eq__)
+An XML element hierarchy.
+    This class also provides support for serialization to and from
+    standard XML.
+    *element* is an optional root element node,
+    *file* is an optional file handle or file name of an XML file whose
+    contents will be used to initialize the tree with.
+    Nc
+_rootr
+filer"
+ElementTree.__init__c
+z!Return root element of this tree.
+getroot
+ElementTree.getrootc
+Replace root element of this tree.
+        This will discard the current contents of the tree and replace it
+        with the given element.  Use with care!
+        Nr~
+_setroot"
+ElementTree._setrootc
+sfqr|
+Load external XML document into element tree.
+        *source* is a file name or file object, *parser* is an optional parser
+        instance that defaults to XMLParser.
+        ParseError is raised if the parser fails to parse the document.
+        Returns the root element of the given source document.
+        F
+read
+rbTN
+_parse_wholei
+openr
+closer
+feed)
+source
+parser
+close_source
+datar"
+ElementTree.parsec
+Create and return tree iterator for the root element.
+        The iterator loops over all elements in this tree, in document order.
+        *tag* is a string with the tag name to iterate over
+        (default is to return all elements).
+        )
+ElementTree.iterc
+Find first matching element by tag name or path.
+        Same as getroot().find(path), which is Element.find()
+        *path* is a string having either an element tag or an XPath,
+        *namespaces* is an optional mapping from namespace prefix to full name.
+        Return the first matching element, or None if no element was found.
+        Nr
+This search is broken in 1.3 and earlier, and will be fixed in a future version.  If you rely on the current behaviour, change it to %rr?
+ElementTree.findc
+Find first matching element by tag name or path.
+        Same as getroot().findtext(path),  which is Element.findtext()
+        *path* is a string having either an element tag or an XPath,
+        *namespaces* is an optional mapping from namespace prefix to full name.
+        Return the first matching element, or None if no element was found.
+        Nr
+ElementTree.findtextc
+Find all matching subelements by tag name or path.
+        Same as getroot().findall(path), which is Element.findall().
+        *path* is a string having either an element tag or an XPath,
+        *namespaces* is an optional mapping from namespace prefix to full name.
+        Return list containing all matching elements in document order.
+        Nr
+ElementTree.findallc
+Find all matching subelements by tag name or path.
+        Same as getroot().iterfind(path), which is element.iterfind()
+        *path* is a string having either an element tag or an XPath,
+        *namespaces* is an optional mapping from namespace prefix to full name.
+        Return an iterable yielding all matching elements in document order.
+        Nr
+ElementTree.iterfindT
+short_empty_elementsc
+Write element tree to a file as XML.
+        Arguments:
+          *file_or_filename* -- file name or a file object opened for writing
+          *encoding* -- the output encoding (default: US-ASCII)
+          *xml_declaration* -- bool indicating if an XML declaration should be
+                               added to the output. If None, an XML declaration
+                               is added if encoding IS NOT either of:
+                               US-ASCII, UTF-8, or Unicode
+          *default_namespace* -- sets the default XML namespace (for "xmlns")
+          *method* -- either "xml" (default), "html, "text", or "c14n"
+          *short_empty_elements* -- controls the formatting of elements
+                                    that contain no content. If True (default)
+                                    they are emitted as a single self-closed
+                                    tag, otherwise they are emitted as a pair
+                                    of start/end tags
+        
+xmlz
+unknown method %r
+c14n
+utf-8
+us-asciiN)
+unicoder
+z$<?xml version='1.0' encoding='%s'?>
+_serialize
+ValueError
+lower
+_get_writer
+localeZ
+getpreferredencoding
+_serialize_textr|
+_namespaces)
+file_or_filename
+encoding
+xml_declaration
+default_namespace
+methodr
+Z	enc_lower
+writeZ
+declared_encodingr
+qnamesr[
+Z	serializer"
+ElementTree.writec
+write_c14n
+ElementTree.write_c14n)
+NNNN)
+)	Nr
+xmlcharrefreplace)
+errorsc
+NTr"
+<lambda>
+_get_writer.<locals>.<lambda>
+newline)
+AttributeErrorr
+contextlib
+	ExitStackr'
+BufferedIOBase
+	RawIOBase
+BufferedWriter
+callback
+detach
+writable
+seekable
+tell
+TextIOWrapper)
+stackr"
+ns%dr
+%s:%sz<cannot use non-qualified names with default_namespace option)
+rsplitrb
+_namespace_mapr=
+_raise_serialization_error)
+qname
+urir$
+prefix
+	add_qname5
+_namespaces.<locals>.add_qname)
+}	|	s
+	<!--%s-->
+<?%s?>r
+z _serialize_xml.<locals>.<lambda>
+ xmlns%s="%s"
+ %s="%s"
+ />)
+_escape_cdata
+_serialize_xml
+listrg
+sorted
+_escape_attribr'
+kwargsr$
+area
+baseZ
+basefont
+frameZ
+inputZ
+isindex
+link
+metaZ
+paramc
+t	|	
+z!_serialize_html.<locals>.<lambda>r
+scriptZ
+styler
+_serialize_htmlr
+_escape_attrib_htmlr
+HTML_EMPTYr;
+ltagr"
+partr"
+htmlr:
+Register a namespace prefix.
+    The registry is global, and any existing mapping for either the
+    given prefix or the namespace URI will be removed.
+    *prefix* is the namespace prefix, *uri* is a namespace uri. Tags and
+    attributes in this namespace will be serialized with prefix if possible.
+    ValueError is raised if prefix is reserved or is invalid.
+    z
+ns\d+$z'Prefix format reserved for internal useN)
+matchr
+rdfZ
+wsdlZ
+xsiZ
+$http://www.w3.org/XML/1998/namespacez
+http://www.w3.org/1999/xhtmlz+http://www.w3.org/1999/02/22-rdf-syntax-ns#z http://schemas.xmlsoap.org/wsdl/z http://www.w3.org/2001/XMLSchemaz)http://www.w3.org/2001/XMLSchema-instancez http://purl.org/dc/elements/1.1/c
+cannot serialize %r (type %s))
+&amp;r
+&lt;r
+&gt;
+replacer)
+&quot;
+&#13;r
+&#10;
+&#09;r
+Generate string representation of XML element.
+    All subelements are included.  If encoding is "unicode", a string
+    is returned. Otherwise a bytestring is returned.
+    *element* is an Element instance, *encoding* is an optional output
+    encoding defaulting to US-ASCII, *method* is an optional output which can
+    be one of "xml" (default), "html", "text" or "c14n", *default_namespace*
+    sets the default XML namespace (for "xmlns").
+    Returns an (optionally) encoded string containing the XML data.
+    r
+StringIO
+BytesIOr
+getvalue)
+streamr"
+_ListDataStreamz7An auxiliary stream accumulating into a list reference.c
+lst)
+_ListDataStream.__init__c
+_ListDataStream.writablec
+_ListDataStream.seekablec
+_ListDataStream.writec
+_ListDataStream.tellN)	r
+Write element tree or element structure to sys.stdout.
+    This function should be used for debugging only.
+    *elem* is either an ElementTree, or a single Element.  The exact output
+    format is implementation dependent.  In this version, it's written as an
+    ordinary XML file.
+    r
+stdoutr
+Indent an XML document by inserting newlines and indentation space
+    after elements.
+    *tree* is the ElementTree or Element to modify.  The (root) element
+    itself will not be changed, but the tail text of all elements in its
+    subtree will be adapted.
+    *space* is the whitespace to insert for each indentation level, two
+    space characters by default.
+    *level* is the initial indentation level. Setting this to a higher
+    value than 0 can be used for indenting subtrees that are more deeply
+    nested inside of a document.
+    r
+z,Initial indentation level must be >= 0, got Nr
+IndexErrorrN
+stripr=
+levelZ
+child_levelZ
+child_indentation
+child
+_indent_childrenZ
+indentations
+spacer"
+z indent.<locals>._indent_children)
+treer
+Parse XML document into element tree.
+    *source* is a filename or file object containing XML data,
+    *parser* is an optional parser instance defaulting to XMLParser.
+    Return an ElementTree instance.
+    )
+Incrementally parse XML document into ElementTree.
+    This class also reports what's going on to the user based on the
+    *events* it is initialized with.  The supported events are the strings
+    "start", "end", "start-ns" and "end-ns" (the "ns" events are used to get
+    detailed namespace information).  If *events* is omitted, only
+    "end" events are reported.
+    *source* is a filename or file object containing XML data, *events* is
+    a list of events to report back, *parser* is an optional parser instance.
+    Returns an iterator providing (event, elem) pairs.
+    )
+events
+_parserc
+s q,
+read_eventsr
+_close_and_return_root
+rootr
+pullparserr
+iterator
+iterparse.<locals>.iteratorc
+z$iterparse.<locals>.IterParseIteratorN)
+__next__r"
+IterParseIterator
+collections
+Iteratorr
+end)
+deque
+_events_queuer
+_setevents)
+XMLPullParser.__init__c
+Feed encoded data to parser.Nz!feed() called after end of stream)
+SyntaxErrorr
+excr"
+XMLPullParser.feedc
+z$XMLPullParser._close_and_return_rootc
+Finish feeding data to parser.
+        Unlike XMLParser, does not return the root element. Use
+        read_events() to consume elements from XMLPullParser.
+        N)
+XMLPullParser.closec
+Return an iterator over currently available (event, elem) pairs.
+        Events are consumed from the internal event queue as they are
+        retrieved from the iterator.
+        N)
+popleftr'
+	Exception)
+eventr"
+XMLPullParser.read_events)
+Parse XML document from string constant.
+    This function can be used to embed "XML Literals" in Python code.
+    *text* is a string containing XML data, *parser* is an
+    optional parser instance, defaulting to the standard XMLParser.
+    Returns an Element instance.
+    r
+Parse XML document from string constant for its IDs.
+    *text* is a string containing XML data, *parser* is an
+    optional parser instance, defaulting to the standard XMLParser.
+    Returns an (Element, dict) tuple, in which the
+    dict maps element id:s to elements.
+    r
+idsr<
+Parse XML document from sequence of string fragments.
+    *sequence* is a list of other sequence, *parser* is an optional parser
+    instance, defaulting to the standard XMLParser.
+    Returns an Element instance.
+    r
+sequencer
+Generic element structure builder.
+    This builder converts a sequence of start, data, and end method
+    calls to a well-formed element structure.
+    You can use this class to build an element structure using a custom XML
+    parser, or a parser for some other XML-like format.
+    *element_factory* is an optional element factory which is called
+    to create new Element instances, as necessary.
+    *comment_factory* is a factory to create comments to be used instead of
+    the standard factory.  If *insert_comments* is false (the default),
+    comments will not be inserted into the tree.
+    *pi_factory* is a factory to create processing instructions to be used
+    instead of the standard factory.  If *insert_pis* is false (the default),
+    processing instructions will not be inserted into the tree.
+    NF)
+comment_factory
+pi_factory
+insert_comments
+insert_pisc
+_data
+_elem
+_lastr|
+_tailr
+_comment_factoryr"
+_pi_factoryr#
+_factory)
+element_factoryr 
+TreeBuilder.__init__c
+z;Flush builder buffers and return toplevel document Element.r
+missing end tagsNz
+missing toplevel element)
+TreeBuilder.closec
+internal error (tail)z
+internal error (text))
+joinr'
+_flush
+TreeBuilder._flushc
+Add text to current element.N)
+TreeBuilder.datac
+Open new element and return it.
+        *tag* is the element name, *attrs* is a dict containing element
+        attributes.
+        r
+attrsr<
+start
+TreeBuilder.startc
+zOClose and return current Element.
+        *tag* is the element name.
+        z&end tag mismatch (expected %s, got %s)r
+popr&
+TreeBuilder.endc
+z`Create a comment using the comment_factory.
+        *text* is the text of the comment.
+        )
+_handle_singler(
+comment
+TreeBuilder.commentc
+Create a processing instruction using the pi_factory.
+        *target* is the target name of the processing instruction.
+        *text* is the data of the processing instruction, or ''.
+        )
+TreeBuilder.pic
+factoryrS
+argsr<
+TreeBuilder._handle_single)
+Element structure builder for XML source data based on the expat parser.
+    *target* is an optional target object which defaults to an instance of the
+    standard TreeBuilder class, *encoding* is an optional encoding string
+    which if given, overrides the encoding specified in the XML file:
+    http://www.iana.org/assignments/character-sets
+    N)
+expatz7No module named expat; use SimpleXMLTreeBuilder insteadr
+start_ns
+end_nsr
+Expat %d.%d.%d)&
+xml.parsersr8
+ImportErrorZ
+pyexpatZ
+ParserCreater
+_target
+error
+_error
+_names
+_defaultZ
+DefaultHandlerExpandr%
+_start
+StartElementHandler
+_end
+EndElementHandler
+	_start_ns
+StartNamespaceDeclHandler
+_end_ns
+EndNamespaceDeclHandlerr
+CharacterDataHandlerr3
+CommentHandlerr4
+ProcessingInstructionHandlerZ
+buffer_text
+ordered_attributes
+specified_attributes
+_doctype
+entity
+version_info
+versionr
+XMLParser.__init__c
+Z	attrib_inr
+handler0
+z%XMLParser._setevents.<locals>.handlerr
+start-nsr9
+end-nsr:
+Z	pi_targetr
+unknown event %r)
+events_queueZ
+events_to_reportr
+event_namerR
+XMLParser._seteventsc
+code
+lineno
+offsetZ
+position)
+errr"
+_raiseerrorY
+XMLParser._raiseerrorc
+KeyError)
+namer"
+_fixname_
+XMLParser._fixnamec
+XMLParser._start_nsc
+XMLParser._end_nsc
+ranger=
+	attr_listZ
+fixnamer+
+XMLParser._startc
+XMLParser._endc
+}	n*|
+z'undefined entity %s: line %d, column %d
+z	<!DOCTYPEr
+PUBLIC
+SYSTEM
+doctypezaThe doctype() method of XMLParser is ignored.  Define doctype() method on the TreeBuilder target.)
+ErrorLineNumberZ
+ErrorColumnNumberrT
+RuntimeWarning)
+data_handlerr8
+pubid
+systemr"
+XMLParser._defaultc
+Parser?
+XMLParser.feedc
+z;Finish feeding data to parser and return element structure.r
+TN)	r
+close_handlerr"
+XMLParser.close)
+	from_filec
+Convert XML to its C14N 2.0 serialised form.
+    If *out* is provided, it must be a file or file-like object that receives
+    the serialised canonical XML output (text, not bytes) through its ``.write()``
+    method.  To write to a file, open it in text mode with encoding "utf-8".
+    If *out* is not provided, this function returns the output as text string.
+    Either *xml_data* (an XML string) or *from_file* (a file path or
+    file-like object) must be provided as input.
+    The configuration options are the same as for the ``C14NWriterTarget``.
+    Nz:Either 'xml_data' or 'from_file' must be provided as inputr
+xml_datari
+optionsZ
+sior
+z	^\w+:\w+$c
+    Canonicalization writer target for the XMLParser.
+    Serialises parse events to XML C14N 2.0.
+    The *write* function is used for writing out the resulting data stream
+    as text (not bytes).  To write to a file, open it in text mode with encoding
+    "utf-8" and pass its ``.write`` method.
+    Configuration options:
+    - *with_comments*: set to true to include comments
+    - *strip_text*: set to true to strip whitespace before and after text content
+    - *rewrite_prefixes*: set to true to replace namespace prefixes by "n{number}"
+    - *qname_aware_tags*: a set of qname aware tag names in which prefixes
+                          should be replaced in text content
+    - *qname_aware_attrs*: a set of qname aware attribute names in which prefixes
+                           should be replaced in text content
+    - *exclude_attrs*: a set of attribute names that should not be serialised
+    - *exclude_tags*: a set of tag names that should not be serialised
+    FN)
+with_comments
+strip_text
+rewrite_prefixes
+qname_aware_tags
+qname_aware_attrs
+exclude_attrs
+exclude_tagsc
+_writer$
+_with_comments
+_strip_textre
+_exclude_attrs
+_exclude_tags
+_rewrite_prefixes
+_qname_aware_tags
+intersection
+_find_qname_aware_attrs
+_declared_ns_stack
+	_ns_stackrN
+_prefix_map
+_preserve_space
+_pending_start
+_root_seen
+_root_done
+_ignored_depth)	r-
+C14NWriterTarget.__init__c
+ns_stackZ	_reversedr[
+_iter_namespaces-
+z!C14NWriterTarget._iter_namespacesc
+Prefix z
+ of QName "
+" is not declared in scope)
+splitr
+prefixed_namer
+_resolve_prefix_name2
+z%C14NWriterTarget._resolve_prefix_namec
+Namespace "r
+addrw
+prefixes_seen
+_qname9
+C14NWriterTarget._qnamec
+C14NWriterTarget.datar
+_looks_like_prefix_namerB
+_escape_cdata_c14n)
+_join_textr
+qname_textr"
+C14NWriterTarget._flushc
+C14NWriterTarget.start_nsc
+)	rv
+new_namespacesr"
+C14NWriterTarget.startc
+]0}	|
+<dictcomp>
+z+C14NWriterTarget._start.<locals>.<dictcomp>c
+parse_qnamer"
+z)C14NWriterTarget._start.<locals>.<lambda>r
+xmlns:Z
+xmlnsr"
+<listcomp>
+z+C14NWriterTarget._start.<locals>.<listcomp>r
+z+{http://www.w3.org/XML/1998/namespace}spaceZ
+preserver
+_escape_attrib_c14nr
+sortrN
+resolved_namesr
+qattrsZ	attr_namerd
+parsed_qnamesr^
+attr_qnamer
+space_behaviourr
+C14NWriterTarget._startc
+C14NWriterTarget.endc
+<!--z
+-->)
+C14NWriterTarget.commentc
+<?rn
+C14NWriterTarget.pi)
+reversedr
+)	Nr
+&#xD;r
+&#x9;r
+&#xA;r
+_set_factories)
+N)Ar!
+__all__r
+collections.abcr
+contextmanagerr
+	NameErrorr
+compile
+UNICODEr
+_elementtreer
+<module>

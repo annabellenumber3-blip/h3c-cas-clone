@@ -1,0 +1,392 @@
+m	Z	
+d d!d"d#d$d%d&d'd(d)d*d+d,d-d.d/d0d1d2d3d4d5d6d7d8d9d:d;d<d=d>d?d@dAdBdCdDdEdFdGdHdIdJdKdLdMdNdOdPdQdRdSdTdUdVdWdXdYdZd[d\d]d^d_d`dadbdcdddedfdgdhdidjdkdldmdndodpdqdrdsdtdudvdwdxdydzd{d|d}d~d
+dTd\dddwdEd
+dldyd
+dYdhdod
+d:dDdtd
+d{d,d
+d*dbd
+d1d+djd
+d/d7d
+d5drd
+did-d
+wZ#d
+print_function
+division
+absolute_import)
+unicode_literals)
+sstruct)
+safeEval
+getEncoding)
+newTable
+DefaultTableNze
+		>	# big endian
+		platformID:	H
+		platEncID:	H
+		langID:		H
+		nameID:		H
+		length:		H
+		offset:		H
+table__n_a_m_e
+ltagc
+>HHH
+z='name' table stringOffset incorrect. Expected: %s; Actual: %s
+z"skipping malformed name record #%d)
+struct
+unpack
+nameRecordSize
+error
+names
+range
+lenr
+unpack2
+nameRecordFormat
+NameRecord
+offset
+length
+string
+append)
+self
+data
+ttFont
+format
+stringOffsetZ
+expectedStringOffset
+stringData
+name
+C/usr/lib/python3.9/site-packages/fontTools/ttLib/tables/_n_a_m_e.py
+	decompile 
+table__n_a_m_e.decompilec
+hasattrr
+sortr
+calcsizer
+pack
+toBytesr
+	bytesjoin)
+lastoffsetZ
+doner)
+compile;
+table__n_a_m_e.compilec
+toXML)
+writerr#
+table__n_a_m_e.toXMLc
+namerecordr
+fromXML)
+attrs
+contentr#
+table__n_a_m_e.fromXMLNc
+nameID
+platformID
+	platEncID
+langID)
+getName`
+table__n_a_m_e.getNamec
+	toUnicode
+UnicodeDecodeErrorr=
+englishNameZ
+someNamer)
+unistrr*
+getDebugNamei
+table__n_a_m_e.getDebugNamec
+ Set the 'string' for the name record identified by 'nameID', 'platformID',
+		'platEncID' and 'langID'. If a record with that nameID doesn't exist, create it
+		and append to the name table.
+		'string' can be of type `str` (`unicode` in PY2) or `bytes`. In the latter case,
+		it is assumed to be already encoded with the correct plaform-specific encoding
+		identified by the (platformID, platEncID, langID) triplet. A warning is issued
+		to prevent unexpected results.
+z7name string is bytes, ensure it's correctly encoded: %rz'expected unicode or bytes, found %s: %rN)
+isinstance
+unicode
+bytesr
+warning
+	TypeError
+type
+__name__r@
+makeName)
+setName~
+table__n_a_m_e.setName
+Finds an unused name id.
+		The nameID is assigned in the range between 'minNameID' and 32767 (inclusive),
+		following the last nameID in the name table.
+.0r%
+<listcomp>
+z4table__n_a_m_e._findUnusedNameID.<locals>.<listcomp>i
+nameID must be less than 32768)
+getattr
+ValueError)
+	minNameIDr
+_findUnusedNameID
+z table__n_a_m_e._findUnusedNameIDc
+Add a multilingual name, returning its name ID
+		'names' is a dictionary with the name in multiple languages,
+		such as {'en': 'Pale', 'de': 'Bla
+', 'de-CH': 'Blass'}.
+		The keys can be arbitrary IETF BCP 47 language codes;
+		the values are Unicode strings.
+		'ttFont' is the TTFont to which the names are added, or None.
+		If present, the font's 'ltag' table can get populated
+		to store exotic language codes, which allows encoding
+		names that otherwise cannot get encoded at all.
+		'nameID' is the name ID to be used, or None to let the library
+		pick an unused name ID.
+sorted
+items
+_makeWindowsNamer 
+_makeMacName)
+langr)
+windowsNameZ
+macNamer*
+addMultilingualName
+z"table__n_a_m_e.addMultilingualName
+ Add a new name record containing 'string' for each (platformID, platEncID,
+		langID) tuple specified in the 'platforms' list.
+		The nameID is assigned in the range between 'minNameID'+1 and 32767 (inclusive),
+		following the last nameID in the name table.
+		If no 'platforms' are specified, two English name records are added, one for the
+		Macintosh (platformID=0), and one for the Windows platform (3).
+		The 'string' must be a Unicode string, so it can be encoded with different,
+		platform-specific encodings.
+		Return the new nameID.
+zK'platforms' must contain at least one (platformID, platEncID, langID) tupler
+expected %s, found %s: %rr
+Z	platformsrV
+addName
+table__n_a_m_e.addName)
+__module__
+__qualname__Z
+dependenciesr,
+Create a NameRecord for the Microsoft Windows platform
+	'language' is an arbitrary IETF BCP 47 language identifier such
+	as 'en', 'de-CH', 'de-AT-1901', or 'fa-Latn'. If Microsoft Windows
+	does not support the desired language, the result will be None.
+	Future versions of fonttools might return a NameRecord for the
+	OpenType 'name' table format 1, but this is not implemented yet.
+	NrA
+zacannot add Windows name in language %s because fonttools does not yet support name table format 1)
+_WINDOWS_LANGUAGE_CODES
+lowerrN
+languager?
+Create a NameRecord for Apple platforms
+	'language' is an arbitrary IETF BCP 47 language identifier such
+	as 'en', 'de-CH', 'de-AT-1901', or 'fa-Latn'. When possible, we
+	create a Macintosh NameRecord that is understood by old applications
+	(platform ID 1 and an old-style Macintosh language enum). If this
+	is not possible, we create a Unicode NameRecord (platform ID 0)
+	whose language points to the font
+s 'ltag' table. The latter
+	can encode any string in any language, but legacy applications
+	might not recognize the format (in which case they will ignore
+	those names).
+	'font' should be the TTFont for which you want to create a name.
+	If 'font' is None, we only return NameRecords for legacy Macintosh;
+	in that case, the result will be None for names that need to
+	be encoded with an 'ltag' table.
+	See the section 
+The language identifier
+ in Apple
+s specification:
+	https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6name.html
+ascii)
+default
+strict
+errorsr
+zUcannot store language %s into 'ltag' table without having access to the TTFont object)
+_MAC_LANGUAGE_CODESrd
+_MAC_LANGUAGE_TO_SCRIPTr
+tobytesrN
+UnicodeEncodeErrorZ
+tablesr
+addTagr
+)	r)
+fontZ
+macLangZ	macScript
+encoding
+Returns the Python encoding name for this name entry based on its platformID,
+		platEncID, and langID.  If encoding for these values is not known, by default
+		'ascii' is returned.  That can be overriden by passing a value to the default
+		argument.
+NameRecord.getEncodingc
+	utf_16_beZ
+ucs2berg
+latin1r	
+encodingIsUnicodeCompatible<
+z&NameRecord.encodingIsUnicodeCompatiblec
+backslashreplacerj
+toStrru
+__str__?
+NameRecord.__str__c
+	isUnicodeB
+NameRecord.isUnicoderi
+		If self.string is a Unicode string, return it; otherwise try decoding the
+		bytes in self.string to a Unicode string using the encoding of this
+		entry as returned by self.getEncoding(); Note that  self.getEncoding()
+		returns 'ascii' if the encoding is unknown to the library.
+		Certain heuristics are performed to recover data from bytes that are
+		ill-formed in the chosen encoding, or that otherwise look misencoded
+		(mostly around bad UTF-16BE encoded bytes, or bytes that look like UTF-16BE
+		but marked otherwise).  If the bytes are ill-formed and the heuristics fail,
+		the error is handled according to the errors parameter to this function, which is
+		passed to the underlying decode() function; by default it throws a
+		UnicodeDecodeError exception.
+		Note: The mentioned heuristics mean that roundtripping a font to XML and back
+		to binary might recover some misencoded data whereas just loading the font
+		and saving it back will not change them.
+isasciiY
+z%NameRecord.toUnicode.<locals>.isasciirs
+byteord)
+	<genexpr>i
+z'NameRecord.toUnicode.<locals>.<genexpr>
+bytechrr
+ord)
+	enumerater3
+Z	tounicode
+join)
+NameRecord.toUnicodec
+ If self.string is a bytes object, return it; otherwise try encoding
+		the Unicode string in self.string to bytes using the encoding of this
+		entry as returned by self.getEncoding(); Note that self.getEncoding()
+		returns 'ascii' if the encoding is unknown to the library.
+		If the Unicode string cannot be encoded to bytes in the chosen encoding,
+		the error is handled according to the errors parameter to this function,
+		which is passed to the underlying encode() function; by default it throws a
+		UnicodeEncodeError exception.
+NameRecord.toBytesc
+strrI
+NameRecord.toStrc
+hexr?
+begintag
+newline
+writeZ	write8bitr
+endtag)
+NameRecord.toXMLc
+Falsert
+strjoin
+stripr
+encoder
+NameRecord.fromXMLc
+NotImplementedrS
+otherZ	selfTupleZ
+otherTupler*
+__lt__
+NameRecord.__lt__c
+Nz4<NameRecord NameID=%d; PlatformID=%d; LanguageID=%d>)
+__repr__
+NameRecord.__repr__N)
+gswZ
+ar-DZz
+ar-BHZ
+ar-IQz
+ar-JOz
+ar-KWz
+ar-LBz
+ar-LYZ
+aryz
+ar-OMz
+ar-QAz
+ar-SAz
+ar-SYZ
+aebz
+ar-AEz
+ar-YEZ
+az-CyrlZ
+bn-INz
+bs-Cyrl
+zh-HKz
+zh-MOZ
+zh-SGz
+zh-TW
+hr-BAZ
+prsZ
+nl-BE
+en-AUz
+en-BZz
+en-CAz
+en-029z
+en-INz
+en-IEz
+en-JMz
+en-MYz
+en-NZz
+en-PHz
+en-SGz
+en-ZAz
+en-TTz
+en-GBZ
+en-ZWZ
+filZ
+fr-BEz
+fr-CA
+fr-LUz
+fr-MCz
+fr-CHZ
+de-ATZ
+de-LIz
+de-LUz
+de-CHZ
+iu-Latn
+it-CHZ
+qucZ
+kokZ
+dsbZ
+ms-BNZ
+arnZ
+mohZ
+mn-CN
+pt-PTZ
+qu-BOz
+qu-ECZ
+smnz
+smj-NOZ
+smjz
+se-FIZ
+se-SEZ
+smsz
+sma-NOZ
+sr-Cyrl-BA
+sr-Latn-BAz
+sr-LatnZ
+nsoZ
+es-ARz
+es-BOz
+es-CLz
+es-COz
+es-CRz
+es-DOz
+es-ECz
+es-SVz
+es-GTz
+es-HNz
+es-MXz
+es-NIz
+es-PAz
+es-PYz
+es-PEz
+es-PRZ
+es-USz
+es-UYz
+es-VEz
+sv-FIZ
+syrZ
+tzmZ
+hsbZ
+uz-CyrlZ
+sahZ
+zh-HantZ
+az-Arab
+ms-ArabZ
+el-polyton)wr
+coder\
+<dictcomp>-
+N)$Z
+__future__r
+fontTools.misc.py23Z
+fontTools.miscr
+fontTools.misc.textToolsr
+fontTools.misc.encodingToolsr
+fontTools.ttLibr
+loggingZ	getLoggerrM
+objectr
+_WINDOWS_LANGUAGESZ
+_MAC_LANGUAGESrY
+<module>

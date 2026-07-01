@@ -1,0 +1,310 @@
+Axislines includes modified implementation of the Axes class. The
+biggest difference is that the artists responsible for drawing the axis spine,
+ticks, ticklabels and axis labels are separated out from Matplotlib's Axis
+class. Originally, this change was motivated to support curvilinear
+grid. Here are a few reasons that I came up with a new axes class:
+* "top" and "bottom" x-axis (or "left" and "right" y-axis) can have
+  different ticks (tick locations and labels). This is not possible
+  with the current Matplotlib, although some twin axes trick can help.
+* Curvilinear grid.
+* angled ticks.
+In the new axes class, xaxis and yaxis is set to not visible by
+default, and new set of artist (AxisArtist) are defined to draw axis
+line, ticks, ticklabels and axis label. Axes.axis attribute serves as
+a dictionary of these artists, i.e., ax.axis["left"] is a AxisArtist
+instance responsible to draw left y-axis. The default Axes.axis contains
+"bottom", "left", "top" and "right".
+AxisArtist can be considered as a container artist and
+has following children artists which will draw ticks, labels, etc.
+* line
+* major_ticks, major_ticklabels
+* minor_ticks, minor_ticklabels
+* offsetText
+* label
+Note that these are separate artists from `matplotlib.axis.Axis`, thus most
+tick-related functions in Matplotlib won't work. For example, color and
+markerwidth of the ``ax.axis["bottom"].major_ticks`` will follow those of
+Axes.xaxis unless explicitly specified.
+In addition to AxisArtist, the Axes will have *gridlines* attribute,
+which obviously draws grid lines. The gridlines needs to be separated
+from the axis as some gridlines can never pass any axis.
+_api)
+Path)
+mpl_axes
+AxislineStyle)
+AxisArtist
+GridlinesCollectionc
+AxisArtistHelperac
+    AxisArtistHelper should define
+    following method with given APIs. Note that the first axes argument
+    will be axes attribute of the caller artist.::
+        # LINE (spinal line?)
+        def get_line(self, axes):
+            # path : Path
+            return path
+        def get_line_transform(self, axes):
+            # ...
+            # trans : transform
+            return trans
+        # LABEL
+        def get_label_pos(self, axes):
+            # x, y : position
+            return (x, y), trans
+        def get_label_offset_transform(self,
+                axes,
+                pad_points, fontprops, renderer,
+                bboxes,
+                ):
+            # va : vertical alignment
+            # ha : horizontal alignment
+            # a : angle
+            return trans, va, ha, a
+        # TICK
+        def get_tick_transform(self, axes):
+            return trans
+        def get_tick_iterators(self, axes):
+            # iter : iterable object that yields (c, angle, l) where
+            # c, angle, l is position, tick angle, and label
+            return iter_major, iter_minor
+    c
+AxisArtistHelper._Basez
+Base class for axis helper.c
+self
+axesr
+G/usr/lib64/python3.9/site-packages/mpl_toolkits/axisartist/axislines.py
+update_limg
+z!AxisArtistHelper._Base.update_lim
+3.6c
+<lambda>k
+AxisArtistHelper._Base.<lambda>c
+valuer
+__name__
+__module__
+__qualname__
+__doc__r
+deprecated
+propertyZ
+delta1Z
+delta2r
+_Based
+AxisArtistHelper.Fixedz7Helper class for a fixed (in the axes coordinate) axis.)
+left
+right
+bottom
+topNc
+d	d	g
+            nth_coord = along which coordinate value varies
+            in 2D, nth_coord = 0 ->  x axis, nth_coord = 1 -> y axis
+            r 
+locN)
+check_in_list
+_loc
+	nth_coord
+super
+__init__
+_default_passthru_pt
+passthru_pt
+arrayr
+_path)
+_verts
+fixed_coord
+	__class__r
+AxisArtistHelper.Fixed.__init__c
+get_nth_coord
+z$AxisArtistHelper.Fixed.get_nth_coordc
+get_line
+AxisArtistHelper.Fixed.get_linec
+	transAxesr
+get_line_transform
+z)AxisArtistHelper.Fixed.get_line_transformc
+get_axislabel_transform
+z.AxisArtistHelper.Fixed.get_axislabel_transformc
+            Return the label reference position in transAxes.
+            get_label_transform() returns a transform of (transAxes+offset)
+            )
+dictr*
+get_axislabel_pos_angle
+z.AxisArtistHelper.Fixed.get_axislabel_pos_anglec
+get_xaxis_transformZ
+get_yaxis_transformr+
+get_tick_transform
+z)AxisArtistHelper.Fixed.get_tick_transform)
+__classcell__r
+Fixedo
+AxisArtistHelper.Floatingc
+_valuer,
+z"AxisArtistHelper.Floating.__init__c
+z'AxisArtistHelper.Floating.get_nth_coordc
+Nz6get_line method should be defined by the derived class)
+RuntimeErrorr
+z"AxisArtistHelper.Floating.get_line)
+Floating
+AxisArtistHelperRectlinearc
+z AxisArtistHelperRectlinear.FixedNc
+xaxis
+yaxisr+
+axis)
+z)AxisArtistHelperRectlinear.Fixed.__init__c
+ tick_loc, tick_angle, tick_labelr'
+listr/
+	transform
+mplZ
+transformsZ
+_interval_contains_close)
+locs
+labels
+angle_normal
+angle_tangentr
+tick_to_axesr
+z?AxisArtistHelperRectlinear.Fixed.get_tick_iterators.<locals>._f)	r*
+major
+locator
+	formatter
+format_ticks
+minorrC
+major_locsZ
+major_labelsrb
+minor_locsZ
+minor_labelsr]
+get_tick_iterators
+z3AxisArtistHelperRectlinear.Fixed.get_tick_iterators)
+z#AxisArtistHelperRectlinear.Floatingr#
+_axis_directionrJ
+passingthrough_point
+axis_directionr5
+z,AxisArtistHelperRectlinear.Floating.__init__c
+	transDatar;
+data_to_axes
+z,AxisArtistHelperRectlinear.Floating.get_linec
+z6AxisArtistHelperRectlinear.Floating.get_line_transformc
+z;AxisArtistHelperRectlinear.Floating.get_axislabel_transformc
+NNN)
+angler3
+z;AxisArtistHelperRectlinear.Floating.get_axislabel_pos_anglec
+z6AxisArtistHelperRectlinear.Floating.get_tick_transformc
+c1rY
+zBAxisArtistHelperRectlinear.Floating.get_tick_iterators.<locals>._f)	r+
+z6AxisArtistHelperRectlinear.Floating.get_tick_iterators)
+GridHelperBasec
+_old_limitsr,
+GridHelperBase.__init__c
+get_xlim
+get_ylimrk
+_update_grid)
+GridHelperBase.update_limc
+z>Cache relevant computations when the axes limits have changed.Nr
+GridHelperBase._update_gridc
+        Return list of grid lines as a list of paths (list of points).
+        *which* : "major" or "minor"
+        *axis* : "both", "x" or "y"
+        r
+whichrL
+get_gridlinesF
+GridHelperBase.get_gridlinesr
+        Create and return a new GridlineCollection instance.
+        *which* : "major" or "minor"
+        *axis* : "both", "x" or "y"
+        N
+grid.color
+grid.linestyle
+grid.linewidth
+colorsZ
+linestylesZ
+linewidths)
+rcParams
+_set_artist_props
+set_grid_helperr
+	gridlinesr
+new_gridlinesO
+GridHelperBase.new_gridlines)
+GridHelperRectlinearc
+GridHelperRectlinear.__init__Nc
+Nz6'new_fixed_axis' explicitly requires the axes keyword.)
+offsetre
+warn_externalr
+_helper
+axisliner
+new_fixed_axism
+z#GridHelperRectlinear.new_fixed_axisr#
+Nz9'new_floating_axis' explicitly requires the axes keyword.)
+lineZ
+set_clip_onZ
+set_clip_boxZ
+bbox)
+new_floating_axis
+z&GridHelperRectlinear.new_floating_axisr^
+bothc
+        Return list of gridline coordinates in data coordinates.
+        *which* : "major" or "minor"
+        *axis* : "both", "x" or "y"
+        )
+gridOn)
+extendrJ
+appendrl
+_major_tick_kw
+_minor_tick_kw)
+z"GridHelperRectlinear.get_gridlines)
+NNNN)
+Axesc
+maxesr
+args
+kwargsr
+__call__
+Axes.__call__N)
+grid_helperc
+_axisline_onr
+_grid_helperr,
+toggle_axisline)
+Axes.__init__c
+NTF)
+spines
+set_visiblerJ
+Axes.toggle_axislinec
+_axislinesr
+z	Axes.axisr
+get_grid_helperr
+Axes.new_gridlinesc
+.0r&
+<dictcomp>
+Axes.clear.<locals>.<dictcomp>)
+clear
+set_clip_pathr
+patchr
+AxisDictr
+updateZ
+labelr
+major_ticklabelsZ
+minor_ticklabels)
+Axes.clearc
+Axes.get_grid_helperz
+3.5r
+visibler^
+        Toggle the gridlines, and optionally set the properties of the lines.
+        )
+gridr
+set)
+z	Axes.gridc
+valuesr~
+get_children)
+childrenr5
+Axes.get_childrenc
+ghrL
+Axes.new_fixed_axisr#
+Axes.new_floating_axis)
+rename_parameterr
+AxesZeroc
+)	Nr
+xzeroZ
+yzeroF)
+AxesZero.clear)
+numpyr0
+matplotlibrS
+matplotlib.axesr
+matplotlib.pathr
+mpl_toolkits.axes_grid1r
+axisline_styler
+axis_artistr
+subplot_class_factoryZ
+Subplotr
+SubplotZeror
+<module>

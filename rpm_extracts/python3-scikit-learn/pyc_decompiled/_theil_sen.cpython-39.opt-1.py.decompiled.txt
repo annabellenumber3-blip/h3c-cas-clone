@@ -1,0 +1,323 @@
+A Theil-Sen Estimator for Multiple Linear Regression Model
+combinations)
+linalg)
+binom)
+get_lapack_funcs)
+Parallel
+effective_n_jobs
+LinearModel
+RegressorMixin)
+check_random_state)
+check_scalar)
+delayed)
+ConvergenceWarningc
+Modified Weiszfeld step.
+    This function defines one iteration step in order to approximate the
+    spatial median (L1 median). It is a form of an iteratively re-weighted
+    least squares method.
+    Parameters
+    ----------
+    X : array-like of shape (n_samples, n_features)
+        Training vector, where `n_samples` is the number of samples and
+        `n_features` is the number of features.
+    x_old : ndarray of shape = (n_features,)
+        Current start vector.
+    Returns
+    -------
+    x_new : ndarray of shape (n_features,)
+        New iteration step.
+    References
+    ----------
+    - On Computation of Spatial Median for Robust Data Mining, 2005
+      T. K
+inen and S. 
+      http://users.jyu.fi/~samiayr/pdf/ayramo_eurogen05.pdf
+    r
+axisr
+sqrt
+_EPSILON
+shapeZ
+newaxisr
+norm
+min)
+x_old
+diffZ	diff_norm
+maskZ
+is_x_old_in_XZ
+quotient_normZ
+new_direction
+E/usr/lib64/python3.9/site-packages/sklearn/linear_model/_theil_sen.py
+_modified_weiszfeld_step
+MbP?c
+)	u	
+Spatial median (L1 median).
+    The spatial median is member of a class of so-called M-estimators which
+    are defined by an optimization problem. Given a number of p points in an
+    n-dimensional space, the point x minimizing the sum of all distances to the
+    p other points is called spatial median.
+    Parameters
+    ----------
+    X : array-like of shape (n_samples, n_features)
+        Training vector, where `n_samples` is the number of samples and
+        `n_features` is the number of features.
+    max_iter : int, default=300
+        Maximum number of iterations.
+    tol : float, default=1.e-3
+        Stop the algorithm if spatial_median has converged.
+    Returns
+    -------
+    spatial_median : ndarray of shape = (n_features,)
+        Spatial median.
+    n_iter : int
+        Number of iterations needed.
+    References
+    ----------
+    - On Computation of Spatial Median for Robust Data Mining, 2005
+      T. K
+inen and S. 
+      http://users.jyu.fi/~samiayr/pdf/ayramo_eurogen05.pdf
+    r
+keepdimsr
+zYMaximum number of iterations {max_iter} reached in spatial median for TheilSen regressor.)
+max_iter)
+medianZ
+ravelZ
+mean
+ranger
+warnings
+warn
+formatr
+tolZ
+spatial_median_oldZ
+n_iterZ
+spatial_medianr
+_spatial_medianQ
+Approximation of the breakdown point.
+    Parameters
+    ----------
+    n_samples : int
+        Number of samples.
+    n_subsamples : int
+        Number of subsamples to consider.
+    Returns
+    -------
+    breakdown_point : float
+        Approximation of breakdown point.
+    r
+	n_samples
+n_subsamplesr
+_breakdown_point
+Least Squares Estimator for TheilSenRegressor class.
+    This function calculates the least squares method on a subset of rows of X
+    and y defined by the indices array. Optionally, an intercept column is
+    added if intercept is set to true.
+    Parameters
+    ----------
+    X : array-like of shape (n_samples, n_features)
+        Design matrix, where `n_samples` is the number of samples and
+        `n_features` is the number of features.
+    y : ndarray of shape (n_samples,)
+        Target vector, where `n_samples` is the number of samples.
+    indices : ndarray of shape (n_subpopulation, n_subsamples)
+        Indices of all subsamples with respect to the chosen subpopulation.
+    fit_intercept : bool
+        Fit intercept or not.
+    Returns
+    -------
+    weights : ndarray of shape (n_subpopulation, n_features + intercept)
+        Solution matrix of n_subpopulation solved least square problems.
+    r
+gelssN)	r
+emptyZ
+onesZ
+zerosr
+	enumerate)
+indices
+fit_intercept
+n_featuresr)
+weightsZ
+X_subpopulationZ
+y_subpopulationZ
+lstsq
+indexZ
+subsetr
+_lstsq
+	d	d
+TheilSenRegressoraR
+Theil-Sen Estimator: robust multivariate regression model.
+    The algorithm calculates least square solutions on subsets with size
+    n_subsamples of the samples in X. Any value of n_subsamples between the
+    number of features and samples leads to an estimator with a compromise
+    between robustness and efficiency. Since the number of least square
+    solutions is "n_samples choose n_subsamples", it can be extremely large
+    and can therefore be limited with max_subpopulation. If this limit is
+    reached, the subsets are chosen randomly. In a final step, the spatial
+    median (or L1 median) is calculated of all least square solutions.
+    Read more in the :ref:`User Guide <theil_sen_regression>`.
+    Parameters
+    ----------
+    fit_intercept : bool, default=True
+        Whether to calculate the intercept for this model. If set
+        to false, no intercept will be used in calculations.
+    copy_X : bool, default=True
+        If True, X will be copied; else, it may be overwritten.
+    max_subpopulation : int, default=1e4
+        Instead of computing with a set of cardinality 'n choose k', where n is
+        the number of samples and k is the number of subsamples (at least
+        number of features), consider only a stochastic subpopulation of a
+        given maximal size if 'n choose k' is larger than max_subpopulation.
+        For other than small problem sizes this parameter will determine
+        memory usage and runtime if n_subsamples is not changed. Note that the
+        data type should be int but floats such as 1e4 can be accepted too.
+    n_subsamples : int, default=None
+        Number of samples to calculate the parameters. This is at least the
+        number of features (plus 1 if fit_intercept=True) and the number of
+        samples as a maximum. A lower number leads to a higher breakdown
+        point and a low efficiency while a high number leads to a low
+        breakdown point and a high efficiency. If None, take the
+        minimum number of subsamples leading to maximal robustness.
+        If n_subsamples is set to n_samples, Theil-Sen is identical to least
+        squares.
+    max_iter : int, default=300
+        Maximum number of iterations for the calculation of spatial median.
+    tol : float, default=1e-3
+        Tolerance when calculating spatial median.
+    random_state : int, RandomState instance or None, default=None
+        A random number generator instance to define the state of the random
+        permutations generator. Pass an int for reproducible output across
+        multiple function calls.
+        See :term:`Glossary <random_state>`.
+    n_jobs : int, default=None
+        Number of CPUs to use during the cross validation.
+        ``None`` means 1 unless in a :obj:`joblib.parallel_backend` context.
+        ``-1`` means using all processors. See :term:`Glossary <n_jobs>`
+        for more details.
+    verbose : bool, default=False
+        Verbose mode when fitting the model.
+    Attributes
+    ----------
+    coef_ : ndarray of shape (n_features,)
+        Coefficients of the regression model (median of distribution).
+    intercept_ : float
+        Estimated intercept of regression model.
+    breakdown_ : float
+        Approximated breakdown point.
+    n_iter_ : int
+        Number of iterations needed for the spatial median.
+    n_subpopulation_ : int
+        Number of combinations taken into account from 'n choose k', where n is
+        the number of samples and k is the number of subsamples.
+    n_features_in_ : int
+        Number of features seen during :term:`fit`.
+        .. versionadded:: 0.24
+    feature_names_in_ : ndarray of shape (`n_features_in_`,)
+        Names of features seen during :term:`fit`. Defined only when `X`
+        has feature names that are all strings.
+        .. versionadded:: 1.0
+    See Also
+    --------
+    HuberRegressor : Linear regression model that is robust to outliers.
+    RANSACRegressor : RANSAC (RANdom SAmple Consensus) algorithm.
+    SGDRegressor : Fitted by minimizing a regularized empirical loss with SGD.
+    References
+    ----------
+    - Theil-Sen Estimators in a Multiple Linear Regression Model, 2009
+      Xin Dang, Hanxiang Peng, Xueqin Wang and Heping Zhang
+      http://home.olemiss.edu/~xdang/papers/MTSE.pdf
+    Examples
+    --------
+    >>> from sklearn.linear_model import TheilSenRegressor
+    >>> from sklearn.datasets import make_regression
+    >>> X, y = make_regression(
+    ...     n_samples=200, n_features=2, noise=4.0, random_state=0)
+    >>> reg = TheilSenRegressor(random_state=0).fit(X, y)
+    >>> reg.score(X, y)
+    0.9884...
+    >>> reg.predict(X[:1,])
+    array([-31.5871...])
+    Tg
+copy_X
+max_subpopulationr)
+random_state
+n_jobs
+verbosec
+selfr/
+__init__E
+TheilSenRegressor.__init__c
+)	Nr
+z=Invalid parameter since n_subsamples > n_samples ({0} > {1}).z
+zAInvalid parameter since n_features{0} > n_subsamples ({1} > {2}).z\Invalid parameter since n_subsamples != n_samples ({0} != {1}) while n_samples < n_features.r7
+target_typeZ
+min_val)
+ValueErrorr%
+numbersZ
+RealZ
+Integral
+_max_subpopulationr
+rintr
+n_dimZ
+plus_1Z
+all_combinationsZ
+n_subpopulationr
+_check_subparams\
+z"TheilSenRegressor._check_subparamsc
+Fit linear model.
+        Parameters
+        ----------
+        X : ndarray of shape (n_samples, n_features)
+            Training data.
+        y : ndarray of shape (n_samples,)
+            Target values.
+        Returns
+        -------
+        self : returns an instance of self.
+            Fitted `TheilSenRegressor` estimator.
+        T)
+Z	y_numericz
+Breakdown point: {0}z
+Number of samples: {0}z
+Tolerable outliers: {0}z
+Number of subpopulations: {0}c
+size
+replace)
+choice)
+<listcomp>
+z)TheilSenRegressor.fit.<locals>.<listcomp>)
+job)
+index_listr<
+	<genexpr>
+z(TheilSenRegressor.fit.<locals>.<genexpr>)
+_validate_datar
+n_subpopulation_r*
+breakdown_r:
+printr%
+listr
+array_splitr
+vstackr'
+n_iter_r/
+intercept_Z
+coef_)	r<
+tol_outliersr.
+coefsr
+TheilSenRegressor.fit)
+__name__
+__module__
+__qualname__
+__doc__r=
+)%rQ
+	itertoolsr
+numpyr
+scipyr
+scipy.specialr
+scipy.linalg.lapackr
+joblibr
+_baser	
+baser
+utilsr
+utils.validationr
+utils.fixesr
+exceptionsr
+finfoZ
+doubleZ
+epsr
+<module>

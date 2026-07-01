@@ -1,0 +1,252 @@
+d!d"
+d#d$
+d%d&
+d'd(
+l Z e 
+Module to build FeatureVariation tables:
+https://docs.microsoft.com/en-us/typography/opentype/spec/chapter2#featurevariations-table
+NOTE: The API is experimental and subject to change.
+print_function
+absolute_import
+division)
+newTable)
+otTables)
+buildLookup
+buildSingleSubstSubtableNc
+}	|	rx|
+Add conditional substitutions to a Variable Font.
+    The `conditionalSubstitutions` argument is a list of (Region, Substitutions)
+    tuples.
+    A Region is a list of Spaces. A Space is a dict mapping axisTags to
+    (minValue, maxValue) tuples. Irrelevant axes may be omitted.
+    A Space represents a 'rectangular' subset of an N-dimensional design space.
+    A Region represents a more complex subset of an N-dimensional design space,
+    ie. the union of all the Spaces in the Region.
+    For efficiency, Spaces within a Region should ideally not overlap, but
+    functionality is not compromised if they do.
+    The minimum and maximum values are expressed in normalized coordinates.
+    A Substitution is a dict mapping source glyph names to substitute glyph names.
+    r
+iterAllCombinations
+append
+intersectRegions
+cleanupSpace
+addFeatureVariationsRaw)
+font
+conditionalSubstitutionsZ explodedConditionalSubstitutionsZ
+combinationZ
+regionsZ
+lookups
+index
+intersection
+region
+space
+@/usr/lib/python3.9/site-packages/fontTools/varLib/featureVars.py
+addFeatureVariations
+Given a number of rules, yield all the combinations of indices, sorted
+    by decreasing length, so we get the most specialized rules first.
+        >>> list(iterAllCombinations(0))
+        []
+        >>> list(iterAllCombinations(1))
+        [(0,)]
+        >>> list(iterAllCombinations(2))
+        [(0, 1), (0,), (1,)]
+        >>> list(iterAllCombinations(3))
+        [(0, 1, 2), (0, 1), (0, 2), (1, 2), (0,), (1,), (2,)]
+    r
+range
+	itertools
+combinations)
+numRules
+indicesZ
+lengthr
+Return the region intersecting `region1` and `region2`.
+        >>> intersectRegions([], [])
+        []
+        >>> intersectRegions([{'wdth': (0.0, 1.0)}], [])
+        []
+        >>> expected = [{'wdth': (0.0, 1.0), 'wght': (-1.0, 0.0)}]
+        >>> expected == intersectRegions([{'wdth': (0.0, 1.0)}], [{'wght': (-1.0, 0.0)}])
+        True
+        >>> expected = [{'wdth': (0.0, 1.0), 'wght': (-0.5, 0.0)}]
+        >>> expected == intersectRegions([{'wdth': (0.0, 1.0), 'wght': (-0.5, 0.5)}], [{'wght': (-1.0, 0.0)}])
+        True
+        >>> intersectRegions(
+        ...     [{'wdth': (0.0, 1.0), 'wght': (-0.5, 0.5)}],
+        ...     [{'wdth': (-1.0, 0.0), 'wght': (-1.0, 0.0)}])
+        []
+    N)
+intersectSpacesr
+region1Z
+region2r
+space1
+space2r
+Return the space intersected by `space1` and `space2`, or None if there
+    is no intersection.
+        >>> intersectSpaces({}, {})
+        {}
+        >>> intersectSpaces({'wdth': (-0.5, 0.5)}, {})
+        {'wdth': (-0.5, 0.5)}
+        >>> intersectSpaces({'wdth': (-0.5, 0.5)}, {'wdth': (0.0, 1.0)})
+        {'wdth': (0.0, 0.5)}
+        >>> expected = {'wdth': (0.0, 0.5), 'wght': (0.25, 0.5)}
+        >>> expected == intersectSpaces({'wdth': (-0.5, 0.5), 'wght': (0.0, 0.5)}, {'wdth': (0.0, 1.0), 'wght': (0.25, 0.75)})
+        True
+        >>> expected = {'wdth': (-0.5, 0.5), 'wght': (0.0, 1.0)}
+        >>> expected == intersectSpaces({'wdth': (-0.5, 0.5)}, {'wght': (0.0, 1.0)})
+        True
+        >>> intersectSpaces({'wdth': (-0.5, 0)}, {'wdth': (0.1, 0.5)})
+    N)
+update
+min)
+axisTagZ
+min1Z
+max1Z
+min2Z
+max2Z
+minimumZ
+maximumr
+Return a sparse copy of `space`, without redundant (default) values.
+        >>> cleanupSpace({})
+        {}
+        >>> cleanupSpace({'wdth': (0.0, 1.0)})
+        {'wdth': (0.0, 1.0)}
+        >>> cleanupSpace({'wdth': (-1.0, 1.0)})
+        {}
+    c
+limitr
+<dictcomp>
+z cleanupSpace.<locals>.<dictcomp>)
+items)
+z{Low level implementation of addFeatureVariations that directly
+    models the possibilities of the FeatureVariations table.
+GSUB
+rvrnc
+	axisIndexZ
+axisr
+z+addFeatureVariationsRaw.<locals>.<dictcomp>Z
+fvarc
+subst
+	lookupMapr
+<listcomp>
+z+addFeatureVariationsRaw.<locals>.<listcomp>)
+	buildGSUB
+table
+Version
+FeatureVariations
+FeatureList
+FeatureRecord
+FeatureTag
+buildFeatureRecordr
+sortFeatureListr
+ScriptList
+ScriptRecord
+Script
+DefaultLangSys
+LangSysRecord
+FeatureIndex
+makeSubstitutionsHashable
+buildSubstitutionLookups
+	enumerateZ
+axes
+sortedr+
+buildConditionTable
+#buildFeatureTableSubstitutionRecord
+buildFeatureVariationRecord
+buildFeatureVariations)
+gsubZ
+featureZ
+rvrnFeatureZ
+rvrnFeatureIndexZ
+scriptRecord
+langSys
+allSubstitutionsZ
+axisIndices
+featureVariationRecords
+conditionSet
+substitutions
+conditionTabler%
+minValueZ
+maxValue
+lookupIndices
+recordr
+z Build a GSUB table from scratch.r,
+DFLTN
+otr,
+LookupList
+LookupZ	ScriptTagr>
+LangSys
+ReqFeatureIndexrA
+Z	fontTablerJ
+srecZ
+langrecr
+Turn all the substitution dictionaries in sorted tuples of tuples so
+    they are hashable, to detect duplicates so we don't write out redundant
+    data.)
+tuplerE
+add)
+Z	condSubstrN
+substitutionMapsrO
+substitutionMapr/
+zlBuild the lookups for the glyph substitutions, return a dict mapping
+    the substitution to lookup indices.)
+dictr
+)	rJ
+firstIndexr1
+substMap
+lookupr
+z%Build the FeatureVariations subtable.i
+FeatureVariationRecord)
+Build a FeatureRecord.)
+Feature
+LookupListIndex)
+featureTag
+lookupListIndices
+Build a FeatureVariationRecord.r-
+ConditionSet
+ConditionTable
+FeatureTableSubstitutionr5
+SubstitutionRecord)
+substitutionRecords
+fvrr
+z'Build a FeatureTableSubstitutionRecord.)
+FeatureTableSubstitutionRecordrA
+featureIndexrb
+ftsrr
+Build a ConditionTable.r	
+FormatZ	AxisIndexZ
+FilterRangeMinValueZ
+FilterRangeMaxValue)
+filterRangeMinValueZ
+filterRangeMaxValuerQ
+Sort the feature list by feature tag, and remap the feature indices
+    elsewhere. This is needed after the feature list has been modified.
+    c
+fear
+z#sortFeatureList.<locals>.<listcomp>c
+N)	rD
+sortr\
+zipr
+remapFeatures)
+tagIndexFea
+featureRemapr
+q~qrd
+z7Go through the scripts list, and remap feature indices.Nr6
+_remapLangSysr@
+hasattrr6
+scriptIndexZ
+scriptZ
+defaultLangSysZ
+langSysRecordIndexZ
+langSysRecrK
+z!_remapLangSys.<locals>.<listcomp>)
+__main__)"
+__doc__Z
+__future__r
+fontTools.ttLibr
+fontTools.ttLib.tablesr
+fontTools.otlLib.builderr
+__name__Z
+doctestZ
+testmodr
+<module>

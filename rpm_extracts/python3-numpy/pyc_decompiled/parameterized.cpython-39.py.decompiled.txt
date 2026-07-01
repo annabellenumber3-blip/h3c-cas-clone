@@ -1,0 +1,308 @@
+;g+6
+m	Z	
+tl;dr: all code code is licensed under simplified BSD, unless stated otherwise.
+Unless stated otherwise in the source files, all code is copyright 2010 David
+Wolever <david@wolever.net>. All rights reserved.
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+   1. Redistributions of source code must retain the above copyright notice,
+   this list of conditions and the following disclaimer.
+   2. Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
+THIS SOFTWARE IS PROVIDED BY <COPYRIGHT HOLDER> ``AS IS'' AND ANY EXPRESS OR
+IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
+EVENT SHALL <COPYRIGHT HOLDER> OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
+OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+The views and conclusions contained in the software and documentation are those
+of the authors and should not be interpreted as representing official policies,
+either expressed or implied, of David Wolever.
+wraps)
+MethodType)
+namedtuple)
+TestCase
+paramz
+args kwargsc
+ Represents a single parameter to a test case.
+        For example::
+            >>> p = param("foo", bar=16)
+            >>> p
+            param("foo", bar=16)
+            >>> p.args
+            ('foo', )
+            >>> p.kwargs
+            {'bar': 16}
+        Intended to be used as an argument to ``@parameterized``::
+            @parameterized([
+                param("foo", bar=16),
+            ])
+            def test_stuff(foo, bar=16):
+                pass
+        c
+_param
+__new__
+args
+kwargs
+J/usr/lib64/python3.9/site-packages/numpy/testing/_private/parameterized.pyr	
+param.__new__Nc
+ Creates a ``param`` by explicitly specifying ``args`` and
+            ``kwargs``::
+                >>> param.explicit([1,2,3])
+                param(*(1, 2, 3))
+                >>> param.explicit(kwargs={"foo": 42})
+                param(*(), **{"foo": "42"})
+            r
+explicitE
+param.explicitc
+ Returns an instance of ``param()`` for ``@parameterized`` argument
+            ``args``::
+                >>> param.from_decorator((42, ))
+                param(args=(42, ), kwargs={})
+                >>> param.from_decorator("foo")
+                param(args=("foo", ), kwargs={})
+            z
+after * must bez=Parameters must be tuples, but %r is not (hint: use '(%r, )')N)
+isinstancer
+	TypeError)
+from_decoratorS
+param.from_decoratorc
+param(*%r, **%r)r
+selfr
+__repr__k
+param.__repr__)
+NN)	
+__name__
+__module__
+__qualname__
+__doc__r	
+classmethodr
+Return tuples of parameterized arguments and their values.
+        This is useful if you are writing your own doc_func
+        function and need to know the values for each parameter name::
+            >>> def func(a, foo=None, bar=42, **kwargs): pass
+            >>> p = param(1, foo=7, extra=99)
+            >>> parameterized_argument_value_pairs(func, p)
+            [("a", 1), ("foo", 7), ("bar", 42), ("**kwargs", {"extra": 99})]
+        If the function's first argument is named ``self`` then it will be
+        ignored::
+            >>> def func(self, a): pass
+            >>> p = param(1)
+            >>> parameterized_argument_value_pairs(func, p)
+            [("a", 1)]
+        Additionally, empty ``*args`` or ``**kwargs`` will be ignored::
+            >>> def func(foo, *args): pass
+            >>> p = param(1)
+            >>> parameterized_argument_value_pairs(func, p)
+            [("foo", 1)]
+            >>> p = param(1, 16)
+            >>> parameterized_argument_value_pairs(func, p)
+            [("foo", 1), ("*args", (16, ))]
+    N
+get)
+name
+default)
+<listcomp>
+z6parameterized_argument_value_pairs.<locals>.<listcomp>c
+	<setcomp>
+z5parameterized_argument_value_pairs.<locals>.<setcomp>c
+seen_arg_namesr
+*%sz
+**%s)
+inspectZ
+getargspecr
+list
+extend
+defaults
+dict
+sortedr
+append
+varargs
+tuple
+keywords)
+funcr"
+argspecZ
+arg_offsetZ
+named_args
+resultr2
+"parameterized_argument_value_pairso
+ A shortened repr of ``x`` which is guaranteed to be ``unicode``::
+            >>> short_repr("foo")
+            u"foo"
+            >>> short_repr("123456789", n=4)
+            u"12...89"
+    z
+utf-8
+latin1N
+...)
+reprr
+bytesr
+UnicodeDecodeErrorr,
+x_reprr
+short_repr
+z$default_doc_func.<locals>.<listcomp>
+%s[with %s]
+lstrip
+	partition
+endswithr,
+join
+rstrip)
+numr"
+all_args_with_valuesZ
+descs
+first
+rest
+suffixr
+default_doc_func
+_%sr
+parameterized
+to_safe_name)
+Z	base_nameZ
+name_suffixr
+default_name_func
+noseF)
+unittestZ	unittest2rV
+nose2
+pytestZ
+_pytestrX
+Nz,Invalid test runner: %r (must be one of: %s)rG
+_test_runnersr
+_test_runner_override)
+set_test_runner
+qlq$d
+ Guess which test runner we're using by traversing the stack and looking
+        for the first matching module. This *should* be reasonably safe, as
+        it's done during test discovery where the test runner should be the
+        stack frame immediately outside. NFr
+_test_runner_guessr)
+stack
+reversed
+	f_globalsr
+_test_runner_aliasesrY
+record
+frame
+moduler
+detect_runner
+ Parameterize a test case::
+            class TestInt:
+                @parameterized([
+                    ("A", 10),
+                    ("F", 15),
+                    param("10", 42, base=42)
+                ])
+                def test_int(self, input, expected, base=16):
+                    actual = int(input, base=base)
+                    assert_equal(actual, expected)
+            @parameterized([
+                (2, 3, 5)
+                (3, 5, 8),
+            ])
+            def test_add(a, b, expected):
+                assert_equal(a + b, expected)
+        Nc
+input_as_callable
+	get_inputrR
+doc_func)
+inputrg
+__init__
+parameterized.__init__c
+typer
+	enumerate
+parameterized_inputr
+param_as_nose_tuple
+setattrr
+delattr)
+	test_selfZ
+test_clsZ
+original_docrM
+unbound_funcZ
+nose_tuple
+	test_func
+wrapperr
+z'parameterized.__call__.<locals>.wrapperz
+_parameterized_original_%s)
+assert_not_in_testcase_subclassr
+parameterized_funcr
+__call__
+parameterized.__call__c
+<lambda>8
+z3parameterized.param_as_nose_tuple.<locals>.<lambda>)
+Z	nose_funcrq
+z!parameterized.param_as_nose_tuplec
+issubclassr
+	<genexpr>D
+z@parameterized.assert_not_in_testcase_subclass.<locals>.<genexpr>zqWarning: '@parameterized' tests won't work inside subclasses of 'TestCase' - use '@parameterized.expand' instead.)
+$_terrible_magic_get_defining_classes
+	Exception)
+parent_classesr
+z-parameterized.assert_not_in_testcase_subclassc
+ Returns the list of parent classes of the class currently being defined.
+            Will likely only work if called from the ``parameterized`` decorator.
+            This function is entirely @brandon_rhodes's fault, as he suggested
+            the implementation: http://stackoverflow.com/a/8793684/71522
+            
+class 
+])	r)
+strip
+startswithrI
+evalr_
+f_locals)
+code_contextr%
+parentsr
+z2parameterized._terrible_magic_get_defining_classesc
+check_input_valuesr
+z1parameterized.input_as_callable.<locals>.<lambda>c
+input_valuesr
+callabler
+parameterized.input_as_callablec
+z4parameterized.check_input_values.<locals>.<listcomp>)
+z parameterized.check_input_valuesc
+ A "brute force" method of parameterizing test cases. Creates new
+            test cases and injects them into the namespace that the wrapped
+            function is being defined in. Useful for parameterizing tests in
+            subclasses of 'UnitTest', where Nose test generators don't work.
+            >>> @parameterized.expand([("foo", 1, 2)])
+            ... def test_add1(name, input, expected):
+            ...     actual = add1(input)
+            ...     assert_equal(actual, expected)
+            ...
+            >>> locals()
+            ... 'test_add1_foo_0': <function ...> ...
+            >>>
+            Z
+testcase_func_namez1testcase_func_name= is deprecated; use name_func=r:
+stacklevelZ
+testcase_func_docz/testcase_func_doc= is deprecated; use doc_func=Nc
+param_as_standalone_funcr
+__test__)	
+instancer]
+frame_locals
+parametersrM
+	name_funcr
+parameterized_expand_wrapper
+z:parameterized.expand.<locals>.parameterized_expand_wrapper)
+warnings
+warn
+DeprecationWarningrR
+legacyr
+expandl
+parameterized.expandc
+standalone_func
+z?parameterized.param_as_standalone_func.<locals>.standalone_func)
+place_as
+__wrapped__
+AttributeError)
+z&parameterized.param_as_standalone_funcc
+[^a-zA-Z0-9_]+r%
+sub)
+parameterized.to_safe_name)
+	functoolsr
+typesr
+collectionsr
+setrY
+<module>

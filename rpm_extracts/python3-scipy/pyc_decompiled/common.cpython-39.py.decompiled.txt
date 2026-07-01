@@ -1,0 +1,417 @@
+m	Z	m
+d!d"
+d#d$
+Z d%d&
+Z!d'd(
+Z"d)d*
+Z#d+d,
+Z$d-d.
+Z%dFd/d0
+Z&d1d2
+Z'd3d4
+Z(d5d6
+Z)dGd8d9
+Z*dHd:d;
+Z+d<d=
+Z,d>d?
+)Iz+Functions used by least-squares algorithms.
+copysignN)
+norm)
+cho_factor
+	cho_solve
+LinAlgError)
+issparse)
+LinearOperator
+aslinearoperatorc
+Find the intersection of a line with the boundary of a trust region.
+    This function solves the quadratic equation with respect to t
+    ||(x + s*t)||**2 = Delta**2.
+    Returns
+    -------
+    t_neg, t_pos : tuple of float
+        Negative and positive roots.
+    Raises
+    ------
+    ValueError
+        If `s` is zero or `x` is not within the trust region.
+    r
+`s` is zero.
+z#`x` is not within the trust region.N)
+ValueErrorZ
+sqrtr
+Delta
+@/usr/lib64/python3.9/site-packages/scipy/optimize/_lsq/common.py
+intersect_trust_region
+Solve a trust-region problem arising in least-squares minimization.
+    This function implements a method described by J. J. More [1]_ and used
+    in MINPACK, but it relies on a single SVD of Jacobian instead of series
+    of Cholesky decompositions. Before running this function, compute:
+    ``U, s, VT = svd(J, full_matrices=False)``.
+    Parameters
+    ----------
+    n : int
+        Number of variables.
+    m : int
+        Number of residuals.
+    uf : ndarray
+        Computed as U.T.dot(f).
+    s : ndarray
+        Singular values of J.
+    V : ndarray
+        Transpose of VT.
+    Delta : float
+        Radius of a trust region.
+    initial_alpha : float, optional
+        Initial guess for alpha, which might be available from a previous
+        iteration. If None, determined automatically.
+    rtol : float, optional
+        Stopping tolerance for the root-finding procedure. Namely, the
+        solution ``p`` will satisfy ``abs(norm(p) - Delta) < rtol * Delta``.
+    max_iter : int, optional
+        Maximum allowed number of iterations for the root-finding procedure.
+    Returns
+    -------
+    p : ndarray, shape (n,)
+        Found solution of a trust-region problem.
+    alpha : float
+        Positive value such that (J.T*J + alpha*I)*p = -J.T*f.
+        Sometimes called Levenberg-Marquardt parameter.
+    n_iter : int
+        Number of iterations made by root-finding procedure. Zero means
+        that Gauss-Newton step was selected as the solution.
+    References
+    ----------
+    .. [1] More, J. J., "The Levenberg-Marquardt Algorithm: Implementation
+           and Theory," Numerical Analysis, ed. G. A. Watson, Lecture Notes
+           in Mathematics 630, Springer Verlag, pp. 105-116, 1977.
+    c
+Function of which to find zero.
+        It is defined as "norm of regularized (by alpha) least-squares
+        solution minus `Delta`". Refer to [1]_.
+        r
+sum)
+alpha
+sufr
+denomZ
+p_norm
+	phi_primer
+phi_and_derivativej
+z2solve_lsq_trust_region.<locals>.phi_and_derivativer
+MbP?
+EPSr
+ranger
+abs)
+initial_alpha
+rtolZ
+max_iterr#
+Z	thresholdZ	full_rank
+alpha_upperr!
+alpha_lowerr
+ratior
+solve_lsq_trust_region9
+Solve a general trust-region problem in 2 dimensions.
+    The problem is reformulated as a 4th order algebraic equation,
+    the solution of which is found by numpy.roots.
+    Parameters
+    ----------
+    B : ndarray, shape (2, 2)
+        Symmetric matrix, defines a quadratic term of the function.
+    g : ndarray, shape (2,)
+        Defines a linear term of the function.
+    Delta : float
+        Radius of a trust region.
+    Returns
+    -------
+    p : ndarray, shape (2,)
+        Found solution.
+    newton_step : bool
+        Whether the returned solution is the Newton step which lies within
+        the trust region.
+    r
+axisNF)
+array
+roots
+realZ
+isrealZ
+vstackr
+argmin)
+lowerr/
+coeffs
+value
+solve_trust_region_2d
+Update the radius of a trust region based on the cost reduction.
+    Returns
+    -------
+    Delta : float
+        New radius.
+    ratio : float
+        Ratio between actual and predicted reductions.
+    r
+actual_reductionZ
+predicted_reduction
+	step_normZ	bound_hitr1
+update_tr_radius
+Parameterize a multivariate quadratic function along a line.
+    The resulting univariate quadratic function is given as follows:
+    ::
+        f(t) = 0.5 * (s0 + s*t).T * (J.T*J + diag) * (s0 + s*t) +
+               g.T * (s0 + s*t)
+    Parameters
+    ----------
+    J : ndarray, sparse matrix or LinearOperator shape (m, n)
+        Jacobian matrix, affects the quadratic term.
+    g : ndarray, shape (n,)
+        Gradient, defines the linear term.
+    s : ndarray, shape (n,)
+        Direction vector of a line.
+    diag : None or ndarray with shape (n,), optional
+        Addition diagonal part, affects the quadratic term.
+        If None, assumed to be 0.
+    s0 : None or ndarray with shape (n,), optional
+        Initial point. If None, assumed to be 0.
+    Returns
+    -------
+    a : float
+        Coefficient for t**2.
+    b : float
+        Coefficient for t.
+    c : float
+        Free term. Returned only if `s0` is provided.
+    Nr%
+diagZ
+build_quadratic_1d
+Minimize a 1-D quadratic function subject to bounds.
+    The free term `c` is 0 by default. Bounds must be finite.
+    Returns
+    -------
+    t : float
+        Minimum point.
+    y : float
+        Minimum value.
+    r
+appendr
+asarrayr7
+extremum
+yZ	min_indexr
+minimize_quadratic_1d.
+Compute values of a quadratic function arising in least squares.
+    The function is 0.5 * s.T * (J.T * J + diag) * s + g.T * s.
+    Parameters
+    ----------
+    J : ndarray, sparse matrix or LinearOperator, shape (m, n)
+        Jacobian matrix, affects the quadratic term.
+    g : ndarray, shape (n,)
+        Gradient, defines the linear term.
+    s : ndarray, shape (k, n) or (n,)
+        Array containing steps as rows.
+    diag : ndarray, shape (n,), optional
+        Addition diagonal part, affects the quadratic term.
+        If None, assumed to be 0.
+    Returns
+    -------
+    values : ndarray with shape (k,) or float
+        Values of the function. If `s` was 2-D, then ndarray is
+        returned, otherwise, float is returned.
+    r&
+ndimr
+evaluate_quadraticE
+z$Check if a point lies within bounds.)
+all)
+	in_boundso
+Compute a min_step size required to reach a bound.
+    The function computes a positive scalar t, such that x + s * t is on
+    the bound.
+    Returns
+    -------
+    step : float
+        Computed step. Non-negative value.
+    hits : ndarray of int with shape of x
+        Each element indicates whether a corresponding variable reaches the
+        bound:
+             *  0 - the bound was not hit.
+             * -1 - the lower bound was hit.
+             *  1 - the upper bound was hit.
+    
+ignore)
+overN)
+nonzeroZ
+empty_likeZ
+fill
+infZ
+errstate
+maximum
+equalZ
+signZ
+astype
+int)
+non_zeroZ
+s_non_zeroZ
+stepsZ
+min_stepr
+step_size_to_boundt
+Determine which constraints are active in a given point.
+    The threshold is computed using `rtol` and the absolute value of the
+    closest bound.
+    Returns
+    -------
+    active : ndarray of int with shape of x
+        Each component shows whether the corresponding constraint is active:
+             *  0 - a constraint is not active.
+             * -1 - a lower bound is active.
+             *  1 - a upper bound is active.
+    
+dtyper
+zeros_likerZ
+isfinite
+minimum)
+activeZ
+lower_distZ
+upper_distZ
+lower_thresholdZ
+upper_thresholdZ
+lower_activeZ
+upper_activer
+find_active_constraints
+Shift a point to the interior of a feasible region.
+    Each element of the returned vector is at least at a relative distance
+    `rstep` from the closest bound. If ``rstep=0`` then `np.nextafter` is used.
+    r$
+copyrb
+Z	nextafterrW
+rstepZ
+x_newra
+lower_maskZ
+upper_maskZ
+tight_boundsr
+make_strictly_feasible
+Compute Coleman-Li scaling vector and its derivatives.
+    Components of a vector v are defined as follows:
+    ::
+               | ub[i] - x[i], if g[i] < 0 and ub[i] < np.inf
+        v[i] = | x[i] - lb[i], if g[i] > 0 and lb[i] > -np.inf
+               | 1,           otherwise
+    According to this definition v[i] >= 0 for all i. It differs from the
+    definition in paper [1]_ (eq. (2.2)), where the absolute value of v is
+    used. Both definitions are equivalent down the line.
+    Derivatives of v with respect to x take value 1, -1 or 0 depending on a
+    case.
+    Returns
+    -------
+    v : ndarray with shape of x
+        Scaling vector.
+    dv : ndarray with shape of x
+        Derivatives of v[i] with respect to x[i], diagonal elements of v's
+        Jacobian.
+    References
+    ----------
+    .. [1] M.A. Branch, T.F. Coleman, and Y. Li, "A Subspace, Interior,
+           and Conjugate Gradient Method for Large-Scale Bound-Constrained
+           Minimization Problems," SIAM Journal on Scientific Computing,
+           Vol. 21, Number 1, pp 1-23, 1999.
+    r
+	ones_liker^
+maskr
+CL_scaling_vector
+z3Compute reflective transformation and its gradient.r]
+boolrW
+Z	remainder)
+Z	lb_finiteZ	ub_finiter
+g_negativerf
+reflective_transformation
+Nz*{0:^15}{1:^15}{2:^15}{3:^15}{4:^15}{5:^15}
+	Iterationz
+Total nfev
+Cost
+Cost reduction
+	Step norm
+Optimality
+print
+formatr
+print_header_nonlinear!
+               
+{0:^15.2e}z({0:^15}{1:^15}{2:^15.4e}{3}{4}{5:^15.2e}
+	iterationZ
+nfev
+cost
+cost_reductionrB
+optimalityr
+print_iteration_nonlinear'
+Nz#{0:^15}{1:^15}{2:^15}{3:^15}{4:^15}rj
+print_header_linear8
+z!{0:^15}{1:^15.4e}{2}{3}{4:^15.2e}ru
+print_iteration_linear>
+z4Compute gradient of the least-squares cost function.N)
+isinstancer
+rmatvecrP
+compute_gradQ
+z5Compute variables scale based on the Jacobian matrix.r
+powerr
+ravelrW
+scale_inv_oldZ	scale_invr
+compute_jac_scaleY
+z#Return diag(d) J as LinearOperator.c
+matvec
+z(left_multiplied_operator.<locals>.matvecc
+newaxis
+matmat
+z(left_multiplied_operator.<locals>.matmatc
+z)left_multiplied_operator.<locals>.rmatvec
+shape
+left_multiplied_operatorh
+z#Return J diag(d) as LinearOperator.c
+z)right_multiplied_operator.<locals>.matvecc
+z)right_multiplied_operator.<locals>.matmatc
+z*right_multiplied_operator.<locals>.rmatvecr
+right_multiplied_operatory
+Return a matrix arising in regularized least squares as LinearOperator.
+    The matrix is
+        [ J ]
+        [ D ]
+    where D is diagonal matrix with elements from `diag`.
+    c
+hstackr
+z(regularized_lsq_operator.<locals>.matvecc
+z)regularized_lsq_operator.<locals>.rmatvec)
+regularized_lsq_operator
+zhCompute J diag(d).
+    If `copy` is False, `J` is modified in place (unless being LinearOperator).
+    Z
+clip)
+mode)
+dataZ
+take
+indicesr
+right_multiply
+rTt	|
+zhCompute diag(d) J.
+    If `copy` is False, `J` is modified in place (unless being LinearOperator).
+    N)
+repeat
+diffZ
+indptrr
+left_multiply
+z8Check termination condition for nonlinear least squares.rA
+dx_normZ
+x_normr1
+ftolZ
+xtolZ
+ftol_satisfiedZ
+xtol_satisfiedr
+check_termination
+z`Scale Jacobian and residuals for a robust loss function.
+    Arrays are modified in place.
+    r&
+rhoZ
+J_scaler
+scale_for_robust_loss_function
+__doc__Z
+mathr
+numpyr
+numpy.linalgr
+scipy.linalgr
+scipy.sparser
+scipy.sparse.linalgr
+finfo
+floatZ
+epsr'
+<module>

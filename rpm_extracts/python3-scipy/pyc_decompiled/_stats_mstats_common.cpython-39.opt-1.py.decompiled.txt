@@ -1,0 +1,308 @@
+distributions
+_make_tuple_bunch)
+_find_repeats
+linregress
+theilslopes
+siegelslopes
+LinregressResult)
+slope
+	intercept
+rvalue
+pvalue
+stderr
+intercept_stderr)
+extra_field_namesc
+    Calculate a linear least-squares regression for two sets of measurements.
+    Parameters
+    ----------
+    x, y : array_like
+        Two sets of measurements.  Both arrays should have the same length.  If
+        only `x` is given (and ``y=None``), then it must be a two-dimensional
+        array where one dimension has length 2.  The two sets of measurements
+        are then found by splitting the array along the length-2 dimension. In
+        the case where ``y=None`` and `x` is a 2x2 array, ``linregress(x)`` is
+        equivalent to ``linregress(x[0], x[1])``.
+    Returns
+    -------
+    result : ``LinregressResult`` instance
+        The return value is an object with the following attributes:
+        slope : float
+            Slope of the regression line.
+        intercept : float
+            Intercept of the regression line.
+        rvalue : float
+            Correlation coefficient.
+        pvalue : float
+            Two-sided p-value for a hypothesis test whose null hypothesis is
+            that the slope is zero, using Wald Test with t-distribution of
+            the test statistic.
+        stderr : float
+            Standard error of the estimated slope (gradient), under the
+            assumption of residual normality.
+        intercept_stderr : float
+            Standard error of the estimated intercept, under the assumption
+            of residual normality.
+    See Also
+    --------
+    scipy.optimize.curve_fit :
+        Use non-linear least squares to fit a function to data.
+    scipy.optimize.leastsq :
+        Minimize the sum of squares of a set of equations.
+    Notes
+    -----
+    Missing values are considered pair-wise: if a value is missing in `x`,
+    the corresponding value in `y` is masked.
+    For compatibility with older versions of SciPy, the return value acts
+    like a ``namedtuple`` of length 5, with fields ``slope``, ``intercept``,
+    ``rvalue``, ``pvalue`` and ``stderr``, so one can continue to write::
+        slope, intercept, r, p, se = linregress(x, y)
+    With that style, however, the standard error of the intercept is not
+    available.  To have access to all the computed values, including the
+    standard error of the intercept, use the return value as an object
+    with attributes, e.g.::
+        result = linregress(x, y)
+        print(result.intercept, result.intercept_stderr)
+    Examples
+    --------
+    >>> import matplotlib.pyplot as plt
+    >>> from scipy import stats
+    Generate some data:
+    >>> np.random.seed(12345678)
+    >>> x = np.random.random(10)
+    >>> y = 1.6*x + np.random.random(10)
+    Perform the linear regression:
+    >>> res = stats.linregress(x, y)
+    Coefficient of determination (R-squared):
+    >>> print(f"R-squared: {res.rvalue**2:.6f}")
+    R-squared: 0.735498
+    Plot the data along with the fitted line:
+    >>> plt.plot(x, y, 'o', label='original data')
+    >>> plt.plot(x, res.intercept + res.slope*x, 'r', label='fitted line')
+    >>> plt.legend()
+    >>> plt.show()
+    Calculate 95% confidence interval on slope and intercept:
+    >>> # Two-sided inverse Students t-distribution
+    >>> # p - probability, df - degrees of freedom
+    >>> from scipy.stats import t
+    >>> tinv = lambda p, df: abs(t.ppf(p/2, df))
+    >>> ts = tinv(0.05, len(x)-2)
+    >>> print(f"slope (95%): {res.slope:.6f} +/- {ts*res.stderr:.6f}")
+    slope (95%): 1.944864 +/- 0.950885
+    >>> print(f"intercept (95%): {res.intercept:.6f}"
+    ...       f" +/- {ts*res.intercept_stderr:.6f}")
+    intercept (95%): 0.268578 +/- 0.488822
+    g#B
+zZIf only `x` is given as input, it has to be of shape (2, N) or (N, 2); provided shape was 
+Inputs must not be empty.)
+biasg
+asarray
+shape
+ValueError
+size
+lenZ
+meanZ
+covZ
+flat
+sqrtr
+absr
+TINY
+xmeanZ
+ymeanZ
+ssxmZ
+ssxym
+ssym
+probZ
+slope_stderrr
+F/usr/lib64/python3.9/site-packages/scipy/stats/_stats_mstats_common.pyr
+ffffff
+    Computes the Theil-Sen estimator for a set of points (x, y).
+    `theilslopes` implements a method for robust linear regression.  It
+    computes the slope as the median of all slopes between paired values.
+    Parameters
+    ----------
+    y : array_like
+        Dependent variable.
+    x : array_like or None, optional
+        Independent variable. If None, use ``arange(len(y))`` instead.
+    alpha : float, optional
+        Confidence degree between 0 and 1. Default is 95% confidence.
+        Note that `alpha` is symmetric around 0.5, i.e. both 0.1 and 0.9 are
+        interpreted as "find the 90% confidence interval".
+    Returns
+    -------
+    medslope : float
+        Theil slope.
+    medintercept : float
+        Intercept of the Theil line, as ``median(y) - medslope*median(x)``.
+    lo_slope : float
+        Lower bound of the confidence interval on `medslope`.
+    up_slope : float
+        Upper bound of the confidence interval on `medslope`.
+    See also
+    --------
+    siegelslopes : a similar technique using repeated medians
+    Notes
+    -----
+    The implementation of `theilslopes` follows [1]_. The intercept is
+    not defined in [1]_, and here it is defined as ``median(y) -
+    medslope*median(x)``, which is given in [3]_. Other definitions of
+    the intercept exist in the literature. A confidence interval for
+    the intercept is not given as this question is not addressed in
+    [1]_.
+    References
+    ----------
+    .. [1] P.K. Sen, "Estimates of the regression coefficient based on
+           Kendall's tau", J. Am. Stat. Assoc., Vol. 63, pp. 1379-1389, 1968.
+    .. [2] H. Theil, "A rank-invariant method of linear and polynomial
+           regression analysis I, II and III",  Nederl. Akad. Wetensch., Proc.
+           53:, pp. 386-392, pp. 521-525, pp. 1397-1412, 1950.
+    .. [3] W.L. Conover, "Practical nonparametric statistics", 2nd ed.,
+           John Wiley and Sons, New York, pp. 493.
+    Examples
+    --------
+    >>> from scipy import stats
+    >>> import matplotlib.pyplot as plt
+    >>> x = np.linspace(-5, 5, num=150)
+    >>> y = x + np.random.normal(size=x.size)
+    >>> y[11:15] += 10  # add outliers
+    >>> y[-5:] -= 7
+    Compute the slope, intercept and 90% confidence interval.  For comparison,
+    also compute the least-squares fit with `linregress`:
+    >>> res = stats.theilslopes(y, x, 0.90)
+    >>> lsq_res = stats.linregress(x, y)
+    Plot the results. The Theil-Sen regression line is shown in red, with the
+    dashed red lines illustrating the confidence interval of the slope (note
+    that the dashed red lines are not the confidence interval of the regression
+    as the confidence interval of the intercept is not included). The green
+    line shows the least-squares fit for comparison.
+    >>> fig = plt.figure()
+    >>> ax = fig.add_subplot(111)
+    >>> ax.plot(x, y, 'b.')
+    >>> ax.plot(x, res[1] + res[0] * x, 'r-')
+    >>> ax.plot(x, res[1] + res[2] * x, 'r--')
+    >>> ax.plot(x, res[1] + res[3] * x, 'r--')
+    >>> ax.plot(x, lsq_res[1] + lsq_res[0] * x, 'g-')
+    >>> plt.show()
+    N
+dtype
+Incompatible lengths ! (%s<>%s)r
+	<genexpr>/
+theilslopes.<locals>.<genexpr>c
+arrayZ
+flatten
+aranger
+floatr
+newaxis
+sort
+medianr
+normZ
+ppfr
+sumr
+round
+max)
+alpha
+deltax
+deltay
+slopes
+medslope
+medinter
+nxrepsZ
+nyreps
+sigsqZ
+sigmaZ
+deltar"
+float64Z
+intpr
+ravelr2
+concatenateZ
+nonzeror
+diff)
+arrZ
+change
+uniqueZ
+change_idxZ
+freqZ
+atleast2r"
+hierarchicalc
+    Computes the Siegel estimator for a set of points (x, y).
+    `siegelslopes` implements a method for robust linear regression
+    using repeated medians (see [1]_) to fit a line to the points (x, y).
+    The method is robust to outliers with an asymptotic breakdown point
+    of 50%.
+    Parameters
+    ----------
+    y : array_like
+        Dependent variable.
+    x : array_like or None, optional
+        Independent variable. If None, use ``arange(len(y))`` instead.
+    method : {'hierarchical', 'separate'}
+        If 'hierarchical', estimate the intercept using the estimated
+        slope ``medslope`` (default option).
+        If 'separate', estimate the intercept independent of the estimated
+        slope. See Notes for details.
+    Returns
+    -------
+    medslope : float
+        Estimate of the slope of the regression line.
+    medintercept : float
+        Estimate of the intercept of the regression line.
+    See also
+    --------
+    theilslopes : a similar technique without repeated medians
+    Notes
+    -----
+    With ``n = len(y)``, compute ``m_j`` as the median of
+    the slopes from the point ``(x[j], y[j])`` to all other `n-1` points.
+    ``medslope`` is then the median of all slopes ``m_j``.
+    Two ways are given to estimate the intercept in [1]_ which can be chosen
+    via the parameter ``method``.
+    The hierarchical approach uses the estimated slope ``medslope``
+    and computes ``medintercept`` as the median of ``y - medslope*x``.
+    The other approach estimates the intercept separately as follows: for
+    each point ``(x[j], y[j])``, compute the intercepts of all the `n-1`
+    lines through the remaining points and take the median ``i_j``.
+    ``medintercept`` is the median of the ``i_j``.
+    The implementation computes `n` times the median of a vector of size `n`
+    which can be slow for large vectors. There are more efficient algorithms
+    (see [2]_) which are not implemented here.
+    References
+    ----------
+    .. [1] A. Siegel, "Robust Regression Using Repeated Medians",
+           Biometrika, Vol. 69, pp. 242-244, 1982.
+    .. [2] A. Stein and M. Werman, "Finding the repeated median regression
+           line", Proceedings of the Third Annual ACM-SIAM Symposium on
+           Discrete Algorithms, pp. 409-413, 1992.
+    Examples
+    --------
+    >>> from scipy import stats
+    >>> import matplotlib.pyplot as plt
+    >>> x = np.linspace(-5, 5, num=150)
+    >>> y = x + np.random.normal(size=x.size)
+    >>> y[11:15] += 10  # add outliers
+    >>> y[-5:] -= 7
+    Compute the slope and intercept.  For comparison, also compute the
+    least-squares fit with `linregress`:
+    >>> res = stats.siegelslopes(y, x)
+    >>> lsq_res = stats.linregress(x, y)
+    Plot the results. The Siegel regression line is shown in red. The green
+    line shows the least-squares fit for comparison.
+    >>> fig = plt.figure()
+    >>> ax = fig.add_subplot(111)
+    >>> ax.plot(x, y, 'b.')
+    >>> ax.plot(x, res[1] + res[0] * x, 'r-')
+    >>> ax.plot(x, lsq_res[1] + lsq_res[0] * x, 'g-')
+    >>> plt.show()
+    )
+separatez/method can only be 'hierarchical' or 'separate'Nr%
+ranger3
+append)
+methodr9
+intercepts
+id_nonzeroZ
+slopes_jZ
+medslope_jr>
+medintercept_jr<
+numpyr
+_lib._bunchr
+__all__r
+<module>

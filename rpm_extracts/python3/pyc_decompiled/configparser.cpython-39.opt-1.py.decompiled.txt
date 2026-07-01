@@ -1,0 +1,757 @@
+l	Z	d
+d d!
+d!e 
+d"d#
+d#e 
+d$d%
+d%e 
+d&d'
+d(d)
+d)e$
+d*d+
+d+e%
+d,d-
+d.d/
+Configuration file parser.
+A configuration file consists of sections, lead by a "[section]" header,
+and followed by "name: value" entries, with continuations and such in
+the style of RFC 822.
+Intrinsic defaults can be specified by passing them into the
+ConfigParser constructor as a dictionary.
+class:
+ConfigParser -- responsible for parsing a list of
+                    configuration files, and managing the parsed database.
+    methods:
+    __init__(defaults=None, dict_type=_default_dict, allow_no_value=False,
+             delimiters=('=', ':'), comment_prefixes=('#', ';'),
+             inline_comment_prefixes=None, strict=True,
+             empty_lines_in_values=True, default_section='DEFAULT',
+             interpolation=<unset>, converters=<unset>):
+        Create the parser. When `defaults' is given, it is initialized into the
+        dictionary or intrinsic defaults. The keys must be strings, the values
+        must be appropriate for %()s string interpolation.
+        When `dict_type' is given, it will be used to create the dictionary
+        objects for the list of sections, for the options within a section, and
+        for the default values.
+        When `delimiters' is given, it will be used as the set of substrings
+        that divide keys from values.
+        When `comment_prefixes' is given, it will be used as the set of
+        substrings that prefix comments in empty lines. Comments can be
+        indented.
+        When `inline_comment_prefixes' is given, it will be used as the set of
+        substrings that prefix comments in non-empty lines.
+        When `strict` is True, the parser won't allow for any section or option
+        duplicates while reading from a single source (file, string or
+        dictionary). Default is True.
+        When `empty_lines_in_values' is False (default: True), each empty line
+        marks the end of an option. Otherwise, internal empty lines of
+        a multiline option are kept as part of the value.
+        When `allow_no_value' is True (default: False), options without
+        values are accepted; the value presented for these is None.
+        When `default_section' is given, the name of the special section is
+        named accordingly. By default it is called ``"DEFAULT"`` but this can
+        be customized to point to any other valid section name. Its current
+        value can be retrieved using the ``parser_instance.default_section``
+        attribute and may be modified at runtime.
+        When `interpolation` is given, it should be an Interpolation subclass
+        instance. It will be used as the handler for option value
+        pre-processing when using getters. RawConfigParser objects don't do
+        any sort of interpolation, whereas ConfigParser uses an instance of
+        BasicInterpolation. The library also provides a ``zc.buildbot``
+        inspired ExtendedInterpolation implementation.
+        When `converters` is given, it should be a dictionary where each key
+        represents the name of a type converter and each value is a callable
+        implementing the conversion from string to the desired datatype. Every
+        converter gets its corresponding get*() method on the parser object and
+        section proxies.
+    sections()
+        Return all the configuration section names, sans DEFAULT.
+    has_section(section)
+        Return whether the given section exists.
+    has_option(section, option)
+        Return whether the given option exists in the given section.
+    options(section)
+        Return list of configuration options for the named section.
+    read(filenames, encoding=None)
+        Read and parse the iterable of named configuration files, given by
+        name.  A single filename is also allowed.  Non-existing files
+        are ignored.  Return list of successfully read files.
+    read_file(f, filename=None)
+        Read and parse one configuration file, given as a file object.
+        The filename defaults to f.name; it is only used in error
+        messages (if f has no `name' attribute, the string `<???>' is used).
+    read_string(string)
+        Read configuration from a given string.
+    read_dict(dictionary)
+        Read configuration from a dictionary. Keys are section names,
+        values are dictionaries with keys and values that should be present
+        in the section. If the used dictionary type preserves order, sections
+        and their keys will be added in order. Values are automatically
+        converted to strings.
+    get(section, option, raw=False, vars=None, fallback=_UNSET)
+        Return a string value for the named option.  All % interpolations are
+        expanded in the return values, based on the defaults passed into the
+        constructor and the DEFAULT section.  Additional substitutions may be
+        provided using the `vars' argument, which must be a dictionary whose
+        contents override any pre-existing defaults. If `option' is a key in
+        `vars', the value from `vars' is used.
+    getint(section, options, raw=False, vars=None, fallback=_UNSET)
+        Like get(), but convert value to an integer.
+    getfloat(section, options, raw=False, vars=None, fallback=_UNSET)
+        Like get(), but convert value to a float.
+    getboolean(section, options, raw=False, vars=None, fallback=_UNSET)
+        Like get(), but convert value to a boolean (currently case
+        insensitively defined as 0, false, no, off for False, and 1, true,
+        yes, on for True).  Returns False or True.
+    items(section=_UNSET, raw=False, vars=None)
+        If section is given, return a list of tuples with (name, value) for
+        each option in the section. Otherwise, return a list of tuples with
+        (section_name, section_proxy) for each section, including DEFAULTSECT.
+    remove_section(section)
+        Remove the given file section and all its options.
+    remove_option(section, option)
+        Remove the given option from the given section.
+    set(section, option, value)
+        Set the given option.
+    write(fp, space_around_delimiters=True)
+        Write the configuration state in .ini format. If
+        `space_around_delimiters' is True (the default), delimiters
+        between keys and values are surrounded by spaces.
+MutableMapping)
+ChainMapN)
+NoSectionError
+DuplicateOptionError
+DuplicateSectionError
+NoOptionError
+InterpolationError
+InterpolationDepthError
+InterpolationMissingOptionError
+InterpolationSyntaxError
+ParsingError
+MissingSectionHeaderError
+ConfigParser
+SafeConfigParser
+RawConfigParser
+Interpolation
+BasicInterpolation
+ExtendedInterpolation
+LegacyInterpolation
+SectionProxy
+ConverterMapping
+DEFAULTSECT
+MAX_INTERPOLATION_DEPTHZ
+DEFAULT
+Errorz'Base class for ConfigParser exceptions.
+message
+	Exception
+__init__)
+self
+$/usr/lib64/python3.9/configparser.pyr
+Error.__init__c
+__repr__
+Error.__repr__N)
+__name__
+__module__
+__qualname__
+__doc__r
+__str__r"
+z2Raised when no section matches a requested option.c
+No section: %r)
+section
+args
+NoSectionError.__init__N
+Raised when a section is repeated in an input source.
+    Possible repetitions that raise this exception are: multiple creation
+    using the API or in strict parsers when a section is found more than once
+    in a single input file, string or dictionary.
+    Nc
+ already exists
+While reading from 
+ [line {0:2d}]z
+: section r
+Section r
+repr
+append
+format
+extend
+insertr
+joinr+
+source
+linenor,
+DuplicateSectionError.__init__)
+NNr.
+Raised by strict parsers when an option is repeated in an input source.
+    Current implementation raises this exception only when an option is found
+    more than once in a single file, string or dictionary.
+    Nc
+)	Nz
+ in section r/
+z	: option r
+Option r
+optionr8
+DuplicateOptionError.__init__)
+NNr.
+z!A requested option was not found.c
+No option %r in section: %r
+NoOptionError.__init__Nr.
+z0Base class for interpolation-related exceptions.c
+InterpolationError.__init__Nr.
+zAA string substitution required a setting which was not available.c
+Bad value substitution: option {!r} in section {!r} contains an interpolation key {!r} which is not a valid option name. Raw value: {!r})
+	referencer,
+rawvalr<
+z(InterpolationMissingOptionError.__init__Nr.
+Raised when the source text contains invalid syntax.
+    Current implementation raises this exception when the source text into
+    which substitutions are made does not conform to the required syntax.
+    N)
+z0Raised when substitutions are nested too deeply.c
+Recursion limit exceeded in value substitution: option {!r} in section {!r} contains an interpolation key which cannot be substituted in {} steps. Raw value: {!r})
+z InterpolationDepthError.__init__Nr.
+z>Raised when a configuration file does not follow legal syntax.Nc
+Nz:Cannot specify both `filename' and `source'. Use `source'.z%Required argument `source' not given.z"Source contains parsing errors: %r)
+ValueErrorr
+errorsr,
+filenamer"
+ParsingError.__init__c
+Deprecated, use `source'.
+SThe 'filename' attribute will be removed in future versions.  Use 'source' instead.
+stacklevel
+warnings
+warn
+DeprecationWarningr8
+ParsingError.filenamec
+Deprecated, user `source'.rA
+valuer"
+	[line %2d]: %s)
+liner"
+ParsingError.append)
+NN)	r&
+propertyr@
+setterr3
+z@Raised when a key-value pair is found before any section header.c
+Nz7File contains no section headers.
+file: %r, line: %d
+z"MissingSectionHeaderError.__init__Nr.
+zBDummy interpolation that passes the value through with no changes.c
+parserr+
+defaultsr"
+before_getk
+Interpolation.before_getc
+before_setn
+Interpolation.before_setc
+before_readq
+Interpolation.before_readc
+before_writet
+Interpolation.before_writeN)
+Z	d	S
+Interpolation as implemented in the classic ConfigParser.
+    The option values can contain format strings which refer to other values in
+    the same section, or values in the special default section.
+    For example:
+        something: %(dir)s/whatever
+    would resolve the "%(dir)s" to the value of dir.  All reference
+    expansions are done late, on demand. If a user needs to use a bare % in
+    a configuration file, she can escape it by writing %%. Other % usage
+    is considered a user error and raises `InterpolationSyntaxError'.z
+%\(([^)]+)\)sc
+_interpolate_somer7
+BasicInterpolation.before_getc
+1invalid interpolation syntax in %r at position %d
+replace
+_KEYCRE
+subr>
+find
+Z	tmp_valuer"
+BasicInterpolation.before_setc
+}	|	d
+fallbackr[
+'bad interpolation variable reference %rz/'%%' must be followed by '%%' or '(', found: %r)
+getr
+matchr
+optionxform
+group
+KeyErrorr
+accum
+restr+
+depthr=
+z$BasicInterpolation._interpolate_someN
+compiler_
+Z	d	S
+zyAdvanced variant of interpolation, supports the syntax used by
+    `zc.buildout'. Enables interpolation between sections.z
+\$\{([^}]+)\}c
+z ExtendedInterpolation.before_getc
+z ExtendedInterpolation.before_setc
+}	|	d
+NTrc
+More than one ':' found: %rz-'$' must be followed by '$' or '{', found: %r)
+splitrl
+lenrj
+dict
+items)
+pathZ
+sect
+optrv
+z'ExtendedInterpolation._interpolate_someNrw
+z{Deprecated interpolation used in old versions of ConfigParser.
+    Use BasicInterpolation or ExtendedInterpolation instead.z
+%\(([^)]*)\)s|.c
+}	~	q
+}	~	0
+	functools
+partial
+_interpolation_replacer_
+varsr=
+LegacyInterpolation.before_getc
+LegacyInterpolation.before_setc
+%%(%s)s)
+z*LegacyInterpolation._interpolation_replaceN)
+staticmethodr
+d	d	d	d	d
+dfd d!
+dgd#d$
+dhd%d&
+d(d)
+Z d*d+
+Z!d	d
+d,d-
+Z"d	d
+d.d/
+Z#d	d
+d0d1
+Z$d	d
+d2d3
+d4d5
+	Z&d6d7
+Z'd8d9
+Z(d:d;
+Z)did<d=
+Z*djd>d?
+Z+d@dA
+Z,dBdC
+Z-dDdE
+Z.dFdG
+Z/dHdI
+Z0dJdK
+Z1dLdM
+Z2dNdO
+Z3dPdQ
+Z4dRdS
+Z5dTdU
+Z6dVdW
+Z7dXdY
+Z8dZd[
+Z9d\d]
+Z:d^d^d^d_
+d`da
+Z;e<dbdc
+z,ConfigParser that does not do interpolation.z
+        \[                                 # [
+        (?P<header>[^]]+)                  # very permissive!
+        \]                                 # ]
+        a
+        (?P<option>.*?)                    # very permissive!
+        \s*(?P<vi>{delim})\s*              # any number of space/tab,
+                                           # followed by any of the
+                                           # allowed delimiters,
+                                           # followed by any space/tab
+        (?P<value>.*)$                     # everything up to eol
+        a
+        (?P<option>.*?)                    # very permissive!
+        \s*(?:                             # any number of space/tab,
+        (?P<vi>{delim})\s*                 # optionally followed by
+                                           # any of the allowed
+                                           # delimiters, followed by any
+                                           # space/tab
+        (?P<value>.*))?$                   # everything up to eol
+        z
+delimz
+\STF)
+trueZ
+falseZ
+offN
+delimiters
+comment_prefixes
+inline_comment_prefixes
+strict
+empty_lines_in_values
+default_section
+interpolation
+convertersc
+escape)
+	<genexpr>j
+z+RawConfigParser.__init__.<locals>.<genexpr>r
+_dict
+	_sections
+	_defaultsr
+_converters
+_proxiesr
+tuple
+_delimiters
+	OPTCRE_NV
+OPTCRE
+_optcrer7
+_OPT_NV_TMPLr4
+VERBOSE
+	_OPT_TMPL
+_comment_prefixes
+_inline_comment_prefixes
+_strict
+_allow_no_value
+_empty_lines_in_valuesr
+_interpolation
+_UNSET
+_DEFAULT_INTERPOLATIONr
+update
+_read_defaults)
+Z	dict_typeZ
+allow_no_valuer
+RawConfigParser.__init__c
+RawConfigParser.defaultsc
+z3Return a list of section names, excluding [DEFAULT])
+listr
+keysr$
+sections
+RawConfigParser.sectionsc
+Create a new section in the configuration.
+        Raise DuplicateSectionError if a section by the specified name
+        already exists. Raise ValueError if name is DEFAULT.
+        z
+Invalid section name: %rN)
+add_section
+RawConfigParser.add_sectionc
+z~Indicate whether the named section is present in the configuration.
+        The DEFAULT section is not acknowledged.
+        )
+has_section
+RawConfigParser.has_sectionc
+z9Return a list of option names for the given section name.N)
+copyrm
+optsr"
+options
+RawConfigParser.optionsc
+Read and parse a filename or an iterable of filenames.
+        Files that cannot be opened are silently ignored; this is
+        designed so that you can specify an iterable of potential
+        configuration file locations (e.g. current directory, user's
+        home directory, systemwide directory), and all existing
+        configuration files in the iterable will be read.  A single
+        filename may also be given.
+        Return list of successfully read files.
+        )
+encodingN)
+isinstance
+bytes
+PathLike
+open
+_read
+OSError
+fspathr3
+	filenamesr
+read_okr@
+fpr"
+read
+RawConfigParser.readc
+Like read() but the argument must be a file-like object.
+        The `f' argument must be iterable, returning one line at a time.
+        Optional second argument is the `source' specifying the name of the
+        file being read. If not given, it is taken from f.name. If `f' has no
+        `name' attribute, `<???>' is used.
+        Nz
+<???>)
+name
+AttributeErrorr
+	read_file
+RawConfigParser.read_file
+<string>c
+z'Read configuration from a given string.N)
+StringIOr
+stringr8
+sfiler"
+read_string
+RawConfigParser.read_string
+<dict>c
+Read configuration from a dictionary.
+        Keys are section names, values are dictionaries with keys and values
+        that should be present in the section. If the used dictionary type
+        preserves order, sections and their keys will be added in order.
+        All types held in the dictionary are converted to strings during
+        reading, including section names, option names and keys.
+        Optional second argument is the `source' specifying the name of the
+        dictionary being read.
+        N)
+setr
+addrj
+dictionaryr8
+elements_addedr+
+keyrJ
+	read_dict
+RawConfigParser.read_dictc
+z"Deprecated, use read_file instead.zRThis method will be removed in future versions.  Use 'parser.read_file()' instead.rB
+readfp
+RawConfigParser.readfp
+Get an option value for a given section.
+        If `vars' is provided, it must be a dictionary. The option is looked up
+        in `vars' (if provided), `section', and in `DEFAULTSECT' in that order.
+        If the key is not found and `fallback' is provided, it is used as
+        a fallback value. `None' can be provided as a `fallback' value.
+        If interpolation is enabled and the optional argument `raw' is False,
+        all interpolations are expanded in the return values.
+        Arguments `raw', `vars', and `fallback' are keyword only.
+        The section DEFAULT is special.
+        N)
+_unify_valuesr
+RawConfigParser.getc
+convr:
+kwargsr"
+_get"
+RawConfigParser._getc
+	_get_conv%
+RawConfigParser._get_convc
+getint0
+RawConfigParser.getintc
+floatr
+getfloat5
+RawConfigParser.getfloatc
+_convert_to_booleanr
+getboolean:
+RawConfigParser.getbooleanc
+rPt	
+Return a list of (name, value) tuples for each option in a section.
+        All % interpolations are expanded in the return values, based on the
+        defaults passed into the constructor, unless the optional argument
+        `raw' is true.  Additional substitutions may be provided using the
+        `vars' argument, which must be a dictionary whose contents overrides
+        any pre-existing defaults.
+        The section DEFAULT is special.
+        c
+<lambda>W
+z'RawConfigParser.items.<locals>.<lambda>c
+value_getterr"
+<listcomp>[
+z)RawConfigParser.items.<locals>.<listcomp>)
+superr
+Z	orig_keysr
+	__class__)
+RawConfigParser.itemsc
+Remove a section from the parser and return it as
+        a (section_name, section_proxy) tuple. If no section is present, raise
+        KeyError.
+        The section DEFAULT is never returned because it cannot be removed.
+        N)
+popitem]
+RawConfigParser.popitemc
+lower)
+Z	optionstrr"
+RawConfigParser.optionxformc
+Check for the existence of a given option in a given section.
+        If the specified `section' is None or an empty string, DEFAULT is
+        assumed. If the specified `section' does not exist, returns False.FN)
+has_optionm
+RawConfigParser.has_optionc
+Set an option.N)
+sectdictr"
+RawConfigParser.setc
+Write an .ini-format representation of the configuration state.
+        If `space_around_delimiters' is True (the default), delimiters
+        between keys and values are surrounded by spaces.
+        Please note that comments in the original configuration file are not
+        preserved when writing the configuration back.
+        z
+ {} r
+_write_sectionr
+space_around_delimitersr
+write
+RawConfigParser.writec
+z-Write a single section to the specified `fp'.z
+[{}]
+{}{}
+section_nameZ
+section_itemsZ	delimiterr
+RawConfigParser._write_sectionc
+Remove an option.N)
+existedr"
+remove_option
+RawConfigParser.remove_optionc
+Remove a file section.)
+remove_section
+RawConfigParser.remove_sectionc
+__getitem__
+RawConfigParser.__getitem__c
+clearr
+__setitem__
+RawConfigParser.__setitem__c
+Nz"Cannot remove the default section.)
+__delitem__
+RawConfigParser.__delitem__c
+__contains__
+RawConfigParser.__contains__c
+__len__
+RawConfigParser.__len__c
+	itertools
+chainr
+__iter__
+RawConfigParser.__iter__c
+}	q*|
+Parse a sectioned configuration file.
+        Each section in a configuration file contains a header, indicated by
+        a name in square brackets (`[]'), plus key/value options, indicated by
+        `name' and `value' delimited with a specific substring (`=' or `:' by
+        default).
+        Values can span multiple lines, as long as they are indented deeper
+        than the first line of the value. Depending on the parser's mode, blank
+        lines may be treated as parts of multiline values or ignored.
+        Configuration files may include comments, prefixed by specific
+        characters (`#' and `;' by default). Comments may appear on their own
+        in an otherwise empty line or may be entered in lines holding values or
+        section names. Please note that comments get stripped off when reading configuration files.
+        Nr
+startc
+<dictcomp>
+z)RawConfigParser._read.<locals>.<dictcomp>r
+headerr:
+virJ
+	enumerate
+maxsizer
+isspace
+minr
+strip
+startswithr
+NONSPACECRE
+searchr
+SECTCREri
+_handle_errorrj
+rstripr
+_join_multiline_values)
+fpnamer
+cursectZ
+sectnameZ
+optnamer9
+indent_levelr
+comment_startZ
+inline_prefixesZ
+next_prefixes
+prefix
+indexrJ
+first_nonspaceZ
+cur_indent_levelZ
+mor	
+optvalr"
+RawConfigParser._readc
+q4q$d
+all_sectionsr+
+valr"
+z&RawConfigParser._join_multiline_valuesc
+zTRead the defaults passed in the initializer.
+        Note: values can be non-string.N)
+RawConfigParser._read_defaultsc
+excr
+RawConfigParser._handle_errorc
+Create a sequence of lookups with 'vars' taking priority over
+        the 'section' which takes priority over the DEFAULTSECT.
+        N)	r
+	_ChainMapr
+sectiondictZ
+vardictr
+RawConfigParser._unify_valuesc
+zJReturn a boolean value translating from other types if necessary.
+        z
+Not a boolean: %s)
+BOOLEAN_STATESr>
+z#RawConfigParser._convert_to_booleanr
+Raises a TypeError for non-string values.
+        The only legal non-string value if we allow valueless
+        options is None, so we need to check if the value is a
+        string if:
+        - we do not allow valueless options, or
+        - we allow valueless options but the value is not None
+        For compatibility reasons this method is not used in classic set()
+        for RawConfigParsers. It is invoked in every case for mapping protocol
+        access and in ConfigParser.set().
+        z
+section names must be stringsz
+option keys must be stringsz
+option values must be stringsN)
+	TypeErrorr
+_validate_value_types
+z%RawConfigParser._validate_value_typesc
+RawConfigParser.converters)
+T)?r&
+_SECT_TMPLr
+_default_dictr
+__classcell__r"
+z(ConfigParser implementing interpolation.Nc
+zmSet an option.  Extends RawConfigParser.set by validating type and
+        interpolation syntax on the value.
+ConfigParser.setc
+Create a new section in the configuration.  Extends
+        RawConfigParser.add_section by validating if the section name is
+        a string.)
+ConfigParser.add_sectionc
+Reads the defaults passed in the initializer, implicitly converting
+        values to strings like the rest of the API.
+        Does not perform interpolation for backwards compatibility.
+        N)
+hold_interpolationr"
+ConfigParser._read_defaults)
+z8ConfigParser alias for backwards compatibility purposes.c
+The SafeConfigParser class has been renamed to ConfigParser in Python 3.2. This alias will be removed in future versions. Use ConfigParser directly instead.rB
+SafeConfigParser.__init__)
+z+A proxy for a single section from a parser.c
+z@Creates a view on a section of the specified `name` in `parser`.rh
+_implN)
+_parser
+_namer
+getattr
+setattr)
+getterr"
+SectionProxy.__init__c
+<Section: {}>)
+SectionProxy.__repr__c
+SectionProxy.__getitem__c
+SectionProxy.__setitem__c
+SectionProxy.__delitem__c
+SectionProxy.__contains__c
+_optionsr$
+SectionProxy.__len__c
+SectionProxy.__iter__c
+SectionProxy._optionsc
+SectionProxy.parserc
+SectionProxy.nameNF)
+Get an option value.
+        Unless `fallback` is provided, `None` will be returned if the option
+        is not found.
+        r
+SectionProxy.get)
+Z	d	d
+Enables reuse of get*() methods between the parser and section proxies.
+    If a parser class implements a getter directly, the value for the given
+    key will be ``None``. The presence of the converter name here enables
+    section proxies to find and use the implementation on the parser class.
+    z
+^get(?P<name>.+)$c
+_data
+	GETTERCREri
+callabler(
+ConverterMapping.__init__c
+ConverterMapping.__getitem__c
+Incompatible key: {} (type: {})z)Incompatible key: cannot use "" as a name)
+typer,
+Z	converterr)
+valuesrh
+func
+proxyr*
+ConverterMapping.__setitem__c
+delattrr
+instr"
+ConverterMapping.__delitem__c
+iterr,
+ConverterMapping.__iter__c
+ConverterMapping.__len__N)
+))r)
+collections.abcr
+collectionsr
+__all__r
+objectr
+<module>

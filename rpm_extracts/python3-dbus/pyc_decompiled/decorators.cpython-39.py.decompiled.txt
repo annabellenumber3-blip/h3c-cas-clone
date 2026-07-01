@@ -1,0 +1,229 @@
+m	Z	
+Service-side D-Bus decorators.)
+method
+signalZ
+restructuredtext
+validate_interface_name
+	Signature
+validate_member_name)
+SignalMessage)
+DBusException)
+is_py2Fc
+Factory for decorators used to mark methods of a `dbus.service.Object`
+    to be exported on the D-Bus.
+    The decorated method will be exported over D-Bus as the method of the
+    same name on the given D-Bus interface.
+    :Parameters:
+        `dbus_interface` : str
+            Name of a D-Bus interface
+        `in_signature` : str or None
+            If not None, the signature of the method parameters in the usual
+            D-Bus notation
+        `out_signature` : str or None
+            If not None, the signature of the return value in the usual
+            D-Bus notation
+        `async_callbacks` : tuple containing (str,str), or None
+            If None (default) the decorated method is expected to return
+            values matching the `out_signature` as usual, or raise
+            an exception on error. If not None, the following applies:
+            `async_callbacks` contains the names of two keyword arguments to
+            the decorated function, which will be used to provide a success
+            callback and an error callback (in that order).
+            When the decorated method is called via the D-Bus, its normal
+            return value will be ignored; instead, a pair of callbacks are
+            passed as keyword arguments, and the decorated method is
+            expected to arrange for one of them to be called.
+            On success the success callback must be called, passing the
+            results of this method as positional parameters in the format
+            given by the `out_signature`.
+            On error the decorated method may either raise an exception
+            before it returns, or arrange for the error callback to be
+            called with an Exception instance as parameter.
+        `sender_keyword` : str or None
+            If not None, contains the name of a keyword argument to the
+            decorated function, conventionally ``'sender'``. When the
+            method is called, the sender's unique name will be passed as
+            this keyword argument.
+        `path_keyword` : str or None
+            If not None (the default), the decorated method will receive
+            the destination object path as a keyword argument with this
+            name. Normally you already know the object path, but in the
+            case of "fallback paths" you'll usually want to use the object
+            path in the method's implementation.
+            For fallback objects, `rel_path_keyword` (new in 0.82.2) is
+            likely to be more useful.
+            :Since: 0.80.0?
+        `rel_path_keyword` : str or None
+            If not None (the default), the decorated method will receive
+            the destination object path, relative to the path at which the
+            object was exported, as a keyword argument with this
+            name. For non-fallback objects the relative path will always be
+            '/'.
+            :Since: 0.82.2
+        `destination_keyword` : str or None
+            If not None (the default), the decorated method will receive
+            the destination bus name as a keyword argument with this name.
+            Included for completeness - you shouldn't need this.
+            :Since: 0.80.0?
+        `message_keyword` : str or None
+            If not None (the default), the decorated method will receive
+            the `dbus.lowlevel.MethodCallMessage` as a keyword argument
+            with this name.
+            :Since: 0.80.0?
+        `connection_keyword` : str or None
+            If not None (the default), the decorated method will receive
+            the `dbus.connection.Connection` as a keyword argument
+            with this name. This is generally only useful for objects
+            that are available on more than one connection.
+            :Since: 0.82.0
+        `utf8_strings` : bool
+            If False (default), D-Bus strings are passed to the decorated
+            method as objects of class dbus.String, a unicode subclass.
+            If True, D-Bus strings are passed to the decorated method
+            as objects of class dbus.UTF8String, a str subclass guaranteed
+            to be encoded in UTF-8.
+            This option does not affect object-paths and signatures, which
+            are always 8-bit strings (str subclass) encoded in ASCII.
+            :Since: 0.80.0
+        `byte_arrays` : bool
+            If False (default), a byte array will be passed to the decorated
+            method as an `Array` (a list subclass) of `Byte` objects.
+            If True, a byte array will be passed to the decorated method as
+            a `ByteArray`, a str subclass. This is usually what you want,
+            but is switched off by default to keep dbus-python's API
+            consistent.
+            :Since: 0.80.0
+    c
+_!t"
+z\async_callbacks must be a tuple of (keyword for return callback, keyword for error callback)
+z<input signature is longer than the number of arguments takenz=input signature is shorter than the number of arguments takenT)
+byte_arraysZ
+utf8_stringsFz*unexpected keyword argument 'utf8_strings')$
+hasattr
+inspect
+	signature
+parameters
+values
+kind
+	Parameter
+POSITIONAL_ONLY
+POSITIONAL_OR_KEYWORD
+append
+name
+getargspec
+type
+tuple
+	TypeError
+ValueError
+remover
+_dbus_is_methodZ
+_dbus_async_callbacks
+_dbus_interfaceZ
+_dbus_in_signatureZ
+_dbus_out_signatureZ
+_dbus_sender_keywordZ
+_dbus_path_keywordZ
+_dbus_rel_path_keywordZ
+_dbus_destination_keywordZ
+_dbus_message_keywordZ
+_dbus_connection_keyword
+_dbus_args
+dictZ
+_dbus_get_args_optionsr	
+get)
+func
+args
+argZ
+in_sig
+async_callbacksr
+connection_keyword
+dbus_interface
+destination_keyword
+in_signature
+kwargs
+message_keyword
+out_signature
+path_keyword
+rel_path_keyword
+sender_keyword
+5/usr/lib64/python3.9/site-packages/dbus/decorators.py
+	decorator
+method.<locals>.decorator)
+Factory for decorators used to mark methods of a `dbus.service.Object`
+    to emit signals on the D-Bus.
+    Whenever the decorated method is called in Python, after the method
+    body is executed, a signal with the same name as the decorated method,
+    with the given D-Bus interface, will be emitted from this object.
+    :Parameters:
+        `dbus_interface` : str
+            The D-Bus interface whose signal is emitted
+        `signature` : str
+            The signature of the signal in the usual D-Bus notation
+        `path_keyword` : str or None
+            A keyword argument to the decorated method. If not None,
+            that argument will not be emitted as an argument of
+            the signal, and when the signal is emitted, it will appear
+            to come from the object path given by the keyword argument.
+            Note that when calling the decorated method, you must always
+            pass in the object path as a keyword argument, not as a
+            positional argument.
+            This keyword argument cannot be used on objects where
+            the class attribute ``SUPPORTS_MULTIPLE_OBJECT_PATHS`` is true.
+            :Deprecated: since 0.82.0. Use `rel_path_keyword` instead.
+        `rel_path_keyword` : str or None
+            A keyword argument to the decorated method. If not None,
+            that argument will not be emitted as an argument of
+            the signal.
+            When the signal is emitted, if the named keyword argument is given,
+            the signal will appear to come from the object path obtained by
+            appending the keyword argument to the object's object path.
+            This is useful to implement "fallback objects" (objects which
+            own an entire subtree of the object-path tree).
+            If the object is available at more than one object-path on the
+            same or different connections, the signal will be emitted at
+            an appropriate object-path on each connection - for instance,
+            if the object is exported at /abc on connection 1 and at
+            /def and /x/y/z on connection 2, and the keyword argument is
+            /foo, then signals will be emitted from /abc/foo and /def/foo
+            on connection 1, and /x/y/z/foo on connection 2.
+            :Since: 0.82.0
+    Nr
+warnz
+dbus.service.signal::path_keyword has been deprecated since dbus-python 0.82.0, and will not work on objects that support multiple object pathsr
+stacklevelzJdbus.service.signal::path_keyword and rel_path_keyword cannot both be usedc
+)	Nc
+Nz[path_keyword cannot be used on the signals of an object that supports multiple object paths
+Path %r is not below %r)
+SUPPORTS_MULTIPLE_OBJECT_PATHSr
+__dbus_object_path__
+startswithr
+Z	locationsr
+send_message)
+selfr%
+keywordsZ
+abs_pathZ
+rel_path
+locationZ
+object_path
+message)
+member_namer0
+emit_signal$
+z.signal.<locals>.decorator.<locals>.emit_signalr
+function has no argument "%s"z@signal signature is longer than the number of arguments providedzAsignal signature is shorter than the number of arguments providedT)
+__name__r
+__doc__Z
+_dbus_is_signalr 
+_dbus_signaturer!
+keywordZ
+signal.<locals>.decorator)
+warningsr6
+DeprecationWarningr
+NNNNNNNNFN)
+NNN)
+__all__Z
+__docformat__r
+dbusr
+dbus.lowlevelr
+dbus.exceptionsr
+dbus._compatr	
+<module>

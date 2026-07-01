@@ -1,0 +1,337 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.h3c.h3cloud.performance.monitor.service.mapper.clickhouse.DomainCpuDetailMapper">
+    <delete id ="deleteBeforeTime">
+        ALTER TABLE TBL_DOMAIN_CPU_DETAIL DELETE WHERE TIME &lt; #{time}
+    </delete>
+    <select id="readByCondition" resultType="com.h3c.h3cloud.common.model.performance.DomainCpuDetailData">
+        SELECT TIME as time, CPU_RATE as cpuRate, CPU_READY as cpuReady, MEMORY as memory, DOMAIN_ID as domainId, HOST_ID as hostId, HOST_POOL_ID as hostpoolId,
+        CLUSTER_ID as clusterId, OP_GROUP_CODE as operatorGroupCode, OP_GROUP_ID as operatorGroupId, CPU_USAGE_MHZ as cpuUsageMhz FROM TBL_DOMAIN_CPU_DETAIL
+        WHERE TIME BETWEEN ${startTime} AND ${endTime}
+        <if test="domainId!=null and domainId!=''">
+            AND DOMAIN_ID=${domainId}
+        </if>
+        <if test="clusterIds!=null and clusterIds!=''">
+            AND CLUSTER_ID in (${clusterIds})
+        </if>
+        <if test="hostIds!=null and hostIds!=''">
+            AND HOST_ID in (${hostIds})
+        </if>
+        <if test="vmIds!=null and vmIds!=''">
+            AND DOMAIN_ID in (${vmIds})
+        </if>
+        <if test="operatorGroupCode!=null and operatorGroupCode!=''">
+            AND OP_GROUP_CODE LIKE #{operatorGroupCode}
+        </if>
+        <if test='sort!=null and sort=="0"'>
+            ORDER BY ${sortField} ASC
+        </if>
+        <if test="sort!=null and sort!='' and sort==1">
+            ORDER BY ${sortField} DESC
+        </if>
+    </select>
+    <select id="readAvgTopnByCondition" resultType="com.h3c.h3cloud.common.model.performance.DomainCpuDetailData">
+        SELECT DOMAIN_ID as domainId, domain.uuid as  uuid, domain.title as title, domain.host_id as hostId,
+        <choose>
+            <when test="type!=null and type=='cpu'">
+                ROUND(AVG(CPU_RATE),2) as cpuRate
+            </when>
+            <when test="type!=null and type=='cpuUsage'">
+                ROUND(AVG(CPU_USAGE_MHZ),2) as cpuUsageMhz
+            </when>
+            <otherwise>
+                ROUND(AVG(MEMORY),2) as memory
+            </otherwise>
+        </choose>
+        FROM TBL_DOMAIN_CPU_DETAIL cpuDetail ,
+        ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_DOMAIN} domain WHERE cpuDetail.DOMAIN_ID = domain.id AND domain.enable = 1
+        AND cpuDetail.TIME BETWEEN ${startTime} AND ${endTime}
+        <if test="hostPoolId!=null and hostPoolId!=''">
+            AND HOST_POOL_ID =${hostPoolId}
+        </if>
+        <if test="clusterId!=null and clusterId!=''">
+            AND CLUSTER_ID =${clusterId}
+        </if>
+        <if test="hostId!=null and hostId!=''">
+            AND HOST_ID =${hostId}
+        </if>
+        <if test="clusterIds!=null and clusterIds!=''">
+            AND CLUSTER_ID in (${clusterIds})
+        </if>
+        <if test="hostIds!=null and hostIds!=''">
+            AND HOST_ID in (${hostIds})
+        </if>
+        <if test="vmIds!=null and vmIds!=''">
+            AND DOMAIN_ID in (${vmIds})
+        </if>
+        <if test="manageExistVm!=null and manageExistVm!=''">
+            AND LOCATE(#{manageExistVm}, domain.metdata)
+        </if>
+        <if test="operatorGroupCode!=null and operatorGroupCode!=''">
+            AND OP_GROUP_CODE LIKE #{operatorGroupCode}
+        </if>
+        GROUP BY cpuDetail.DOMAIN_ID, domain.uuid, domain.title, domain.host_id having MAX(cpuDetail.TIME) > ${endTime} -241
+        <choose>
+            <when test="type!=null and type=='cpu'">
+                ORDER BY cpuRate DESC
+            </when>
+            <when test="type!=null and type=='cpuUsage'">
+                ORDER BY cpuUsageMhz DESC
+            </when>
+            <otherwise>
+                ORDER BY memory DESC
+            </otherwise>
+        </choose>
+        <if test="limit!=null and limit!=''">
+            LIMIT ${limit}
+        </if>
+    </select>
+    <select id="readSysAvgPerformance" resultType="com.h3c.h3cloud.common.model.performance.DomainCpuDetailData">
+        SELECT ROUND(AVG(CPU_RATE),2) as cpuRate, ROUND(AVG(MEMORY),2) as memory, DOMAIN_ID as domainId FROM TBL_DOMAIN_CPU_DETAIL
+        WHERE TIME BETWEEN ${startTime} AND ${endTime}
+        <if test="domainId!=null and domainId!=''">
+            AND DOMAIN_ID = ${domainId}
+        </if>
+        <if test="hostPoolId!=null and hostPoolId!=''">
+            AND HOST_POOL_ID =${hostPoolId}
+        </if>
+        <if test="operatorGroupCode!=null and operatorGroupCode!=''">
+            AND OP_GROUP_CODE LIKE #{operatorGroupCode}
+        </if>
+        <if test="vmIds!=null and vmIds!=''">
+            AND DOMAIN_ID in (${vmIds})
+        </if>
+        GROUP BY DOMAIN_ID
+    </select>
+    <select id="readSysPerformance" resultType="com.h3c.h3cloud.common.model.performance.DomainCpuDetailData">
+        SELECT CPU_RATE as cpuRate, MEMORY as memory, CPU_USAGE_MHZ as cpuUsageMhz, CPU_READY as cpuReady, TIME as time FROM TBL_DOMAIN_CPU_DETAIL
+        WHERE TIME BETWEEN ${startTime} AND ${endTime} AND DOMAIN_ID = ${domainId} ORDER BY TIME ASC
+    </select>
+    <select id="readCpuMemRateByCluster" resultType="com.h3c.h3cloud.common.model.performance.DomainCpuDetailData">
+        select b.uuid as uuid, a.TIME as time, a.CPU_RATE as cpuRate, a.MEMORY as memory from (select TIME,CPU_RATE,MEMORY,DOMAIN_ID from TBL_DOMAIN_CPU_DETAIL
+        WHERE TIME BETWEEN ${startTime} AND ${endTime} AND CLUSTER_ID = ${clusterId}) as a
+        join  ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_DOMAIN} as b on a.DOMAIN_ID=b.id
+        order by uuid, time
+    </select>
+    <select id="readDrxVmPerformance" resultType="com.h3c.h3cloud.common.model.performance.DomainCpuDetailData">
+        SELECT
+          ROUND(AVG(domainCpu.CPU_RATE),2) as cpuRate,
+          ROUND(AVG(domainCpu.MEMORY),2) as memory,
+          domainCpu.TIME as time
+        FROM TBL_DOMAIN_CPU_DETAIL domainCpu , ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_DRX_VM} drxVm
+        WHERE domainCpu.DOMAIN_ID=drxVm.domain_id AND drxVm.drx_business_id=${drxbId}
+          AND TIME BETWEEN ${startTime} AND ${endTime}
+        GROUP BY domainCpu.TIME
+        ORDER BY domainCpu.TIME ASC
+    </select>
+    <select id="readDrxVmTopN" resultType="com.h3c.h3cloud.common.model.performance.DomainCpuDetailData">
+        SELECT domainCpu.DOMAIN_ID as domainId,domain.title as title,
+        <choose>
+            <when test="type!=null and type=='cpu'">
+                SUM(domainCpu.CPU_RATE) as cpuRate
+            </when>
+            <otherwise>
+                SUM(domainCpu.MEMORY) as memory
+            </otherwise>
+        </choose>
+        FROM TBL_DOMAIN_CPU_DETAIL domainCpu ,
+        ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_DRX_VM} drxVm,
+        ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_DOMAIN} domain
+        WHERE domainCpu.DOMAIN_ID=drxVm.domain_id
+        AND drxVm.domain_id=domain.id
+        AND drxVm.drx_business_id=${drxbId}
+        AND domainCpu.TIME BETWEEN ${startTime} AND ${endTime}
+        GROUP BY domainCpu.DOMAIN_ID,domain.title
+        <choose>
+            <when test="type!=null and type=='cpu'">
+                ORDER BY cpuRate DESC
+            </when>
+            <otherwise>
+                ORDER BY memory DESC
+            </otherwise>
+        </choose>
+        LIMIT 5
+    </select>
+    <select id="readMinMemoryRate" resultType="com.h3c.h3cloud.common.model.performance.DomainCpuDetailData">
+       SELECT MIN(MEMORY) as memory, DOMAIN_ID as domainId FROM TBL_DOMAIN_CPU_DETAIL
+        WHERE TIME BETWEEN ${startTime} AND ${endTime} AND DOMAIN_ID IN(${vmIds}) GROUP BY DOMAIN_ID
+    </select>
+    <select id="readCurrentRate" resultType="com.h3c.h3cloud.common.model.performance.DomainCpuDetailData">
+       SELECT T1.DOMAIN_ID as domainId, T1.CPU_RATE as cpuRate, T1.MEMORY as memory, T1.TIME as time  FROM TBL_DOMAIN_CPU_DETAIL T1 ,
+       (SELECT DOMAIN_ID, MAX(TIME) TIME FROM TBL_DOMAIN_CPU_DETAIL GROUP BY DOMAIN_ID) T2
+       WHERE T1.HOST_ID =${hostId} AND T1.DOMAIN_ID = T2.DOMAIN_ID AND T1.TIME = T2.TIME
+    </select>
+    <select id="readDrxVmLowest" resultType="com.h3c.h3cloud.common.model.performance.DomainCpuDetailData">
+        SELECT DETAIL.DOMAIN_ID as domainId, DOMAIN.domain_name as domainName, DOMAIN.host_id as hostId, DOMAIN.cluster_id as clusterId, DOMAIN.title as title,
+        <choose>
+            <when test="type!=null and type=='cpu'">
+                ROUND(AVG(DETAIL.CPU_RATE),2) as cpuRate
+            </when>
+            <otherwise>
+                ROUND(AVG(DETAIL.MEMORY),2) as memory
+            </otherwise>
+        </choose>
+        FROM TBL_DOMAIN_CPU_DETAIL DETAIL , ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_DOMAIN} DOMAIN,
+        ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_DRX_VM} DRX
+        WHERE DRX.drx_business_id =${drxbId}  AND DRX.flag = 1 AND DRX.domain_id = DOMAIN.id AND DRX.domain_id = DETAIL.DOMAIN_ID
+          AND DETAIL.TIME BETWEEN ${startTime} AND ${endTime}
+          AND DOMAIN.status = 2
+        GROUP BY DETAIL.DOMAIN_ID,DOMAIN.domain_name, DOMAIN.host_id, DOMAIN.cluster_id, DOMAIN.title
+        <choose>
+            <when test="type!=null and type=='cpu'">
+                ORDER BY cpuRate ASC
+            </when>
+            <otherwise>
+                ORDER BY memory ASC
+            </otherwise>
+        </choose>
+        <if test="limit!=null and limit!=''">
+            LIMIT ${limit}
+        </if>
+    </select>
+    <select id="readTopCpuMemoryDetail" resultType="com.h3c.h3cloud.common.model.performance.DomainCpuDetailData">
+       SELECT MAX(CPU_RATE) as cpuRate, MAX(MEMORY) as memory, DOMAIN_ID as domainId FROM TBL_DOMAIN_CPU_DETAIL
+       WHERE TIME BETWEEN ${startTime} AND ${endTime}
+        <if test="domainId!=null and domainId!=''">
+            AND DOMAIN_ID = ${domainId}
+        </if>
+        <if test="hostPoolId!=null and hostPoolId!=''">
+            AND HOST_POOL_ID =${hostPoolId}
+        </if>
+        <if test="vmIds!=null and vmIds!=''">
+            AND DOMAIN_ID in (${vmIds})
+        </if>
+        <if test="operatorGroupCode!=null and operatorGroupCode!=''">
+            AND OP_GROUP_CODE LIKE #{operatorGroupCode}
+        </if>
+        GROUP BY DOMAIN_ID
+    </select>
+    <select id="readRecentVmCpuMemRate" resultType="com.h3c.h3cloud.common.model.performance.DomainCpuDetailData">
+       SELECT C.TIME as time, C.CPU_RATE as cpuRate, C.MEMORY as memory, C.DOMAIN_ID as domainId, C.CPU_USAGE_MHZ as cpuUsageMhz from TBL_DOMAIN_CPU_DETAIL C  WHERE C.TIME=( SELECT MAX(TIME)-${duration} FROM TBL_DOMAIN_CPU_DETAIL)
+        <if test="hostPoolId!=null and hostPoolId!=''">
+            AND C.HOST_POOL_ID =${hostPoolId}
+        </if>
+        <if test="hostId!=null and hostId!=''">
+            AND C.HOST_ID =${hostId}
+        </if>
+        <if test="domainId!=null and domainId!=''">
+            AND C.DOMAIN_ID = ${domainId}
+        </if>
+        <if test="clusterId!=null and clusterId!=''">
+            AND C.CLUSTER_ID =${clusterId}
+        </if>
+        <if test="vmIds!=null and vmIds!=''">
+            AND C.DOMAIN_ID in (${vmIds})
+        </if>
+        <if test="operatorGroupCode!=null and operatorGroupCode!=''">
+            AND C.OP_GROUP_CODE LIKE #{operatorGroupCode}
+        </if>
+        <if test='sort!=null and sort=="0"'>
+            ORDER BY ${sortField} ASC
+        </if>
+        <if test="sort!=null and sort!='' and sort==1">
+            ORDER BY ${sortField} DESC
+        </if>
+        <if test="limit!=null and limit!=''">
+            <if test="offset==null">
+                LIMIT ${limit}
+            </if>
+            <if test="offset!=null">
+                LIMIT ${offset},${limit}
+            </if>
+        </if>
+    </select>
+    <select id="readTopnByCondition" resultType="com.h3c.h3cloud.common.model.performance.DomainCpuDetailData">
+        select
+        <choose>
+            <when test="type!=null and type=='cpu'">
+                tdio.CPU_RATE as cpuRate,
+            </when>
+            <otherwise>
+                tdio.MEMORY as memory,
+            </otherwise>
+        </choose>
+        tdio.DOMAIN_ID as domainId, tdio.TIME as time from (SELECT
+        <choose>
+            <when test="type!=null and type=='cpu'">
+                SUM(cpuDetail.CPU_RATE) sumcpu,
+            </when>
+            <otherwise>
+                SUM(cpuDetail.MEMORY) sumcpu,
+            </otherwise>
+        </choose>
+        cpuDetail.DOMAIN_ID FROM TBL_DOMAIN_CPU_DETAIL cpuDetail , ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_DOMAIN} domain
+        WHERE cpuDetail.DOMAIN_ID = domain.id
+        AND cpuDetail.TIME BETWEEN ${startTime} AND ${endTime}
+        <if test="clusterIds!=null and clusterIds!=''">
+            AND cpuDetail.CLUSTER_ID in (${clusterIds})
+        </if>
+        <if test="hostIds!=null and hostIds!=''">
+            AND cpuDetail.HOST_ID in (${hostIds})
+        </if>
+        <if test="vmIds!=null and vmIds!=''">
+            AND cpuDetail.DOMAIN_ID in (${vmIds})
+        </if>
+        <if test="operatorGroupCode!=null and operatorGroupCode!=''">
+            AND cpuDetail.OP_GROUP_CODE LIKE #{operatorGroupCode}
+        </if>
+        GROUP BY cpuDetail.DOMAIN_ID ORDER BY sumcpu DESC LIMIT ${limit}) t
+        left join TBL_DOMAIN_CPU_DETAIL tdio on t.DOMAIN_ID=tdio.DOMAIN_ID
+        WHERE tdio.TIME BETWEEN ${startTime} AND ${endTime} ORDER BY  tdio.TIME
+    </select>
+    <select id="readCpuMemTopN" resultType="com.h3c.h3cloud.common.model.performance.DomainCpuDetailStatisticsData">
+        SELECT FLOW.DOMAIN_ID as domainId,
+        <choose>
+            <when test='type!=null and type=="0"'>
+                ROUND(AVG(FLOW.CPU_RATE),2) as avgCpuRate
+            </when>
+            <otherwise>
+                ROUND(AVG(FLOW.MEMORY),2) as avgMemRate
+            </otherwise>
+        </choose>
+        FROM  ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_DOMAIN} TD,
+        TBL_DOMAIN_CPU_DETAIL FLOW  WHERE TD.id = FLOW.DOMAIN_ID AND TIME BETWEEN ${startTime} AND ${endTime}
+        <if test="hostPoolId!=null and hostPoolId!=''">
+            AND FLOW.HOST_POOL_ID =${hostPoolId}
+        </if>
+        <if test="clusterId!=null and clusterId!=''">
+            AND FLOW.CLUSTER_ID =${clusterId}
+        </if>
+        <if test="hostId!=null and hostId!=''">
+            AND FLOW.HOST_ID =${hostId}
+        </if>
+        <if test="operatorGroupCode!=null and operatorGroupCode!=''">
+            AND FLOW.OP_GROUP_CODE LIKE #{operatorGroupCode}
+        </if>
+        GROUP BY FLOW.DOMAIN_ID
+        <choose>
+            <when test='type!=null and type=="0"'>
+                ORDER BY avgCpuRate DESC
+            </when>
+            <otherwise>
+                ORDER BY avgMemRate DESC
+            </otherwise>
+        </choose>
+        <if test="limit!=null and limit!=''">
+            LIMIT ${limit}
+        </if>
+    </select>
+    <select id="readSysAvgMaxMinPerformance" resultType="com.h3c.h3cloud.common.model.performance.DomainCpuDetailStatisticsData">
+        SELECT DOMAIN_ID as domainId,
+        ROUND(AVG(CPU_RATE),2) as avgCpuRate , MAX(CPU_RATE) as maxCpuRate, MIN(CPU_RATE) as minCpuRate,
+        ROUND(AVG(MEMORY),2) as avgMemRate , MAX(MEMORY) as maxMemRate, MIN(MEMORY) as minMemRate
+        FROM TBL_DOMAIN_CPU_DETAIL detail  WHERE TIME BETWEEN ${startTime} AND ${endTime}
+        <if test="domainId!=null and domainId!=''">
+            AND DOMAIN_ID = ${domainId}
+        </if>
+        <if test="vmIds!=null and vmIds!=''">
+            AND DOMAIN_ID in (${vmIds})
+        </if>
+        GROUP BY DOMAIN_ID
+    </select>
+    <select id="readRecentDurationDomainCpuMemRate" resultType="com.h3c.h3cloud.common.model.performance.DomainCpuDetailData">
+        SELECT ROUND(AVG(CPU_RATE),2) as cpuRate,ROUND(AVG(MEMORY),2) as memory FROM TBL_DOMAIN_CPU_DETAIL WHERE DOMAIN_ID = ${domainId}
+        AND TIME >= (SELECT MAX(TIME) FROM TBL_DOMAIN_CPU_DETAIL WHERE DOMAIN_ID = ${domainId}) -${duration}
+        GROUP BY DOMAIN_ID
+    </select>
+</mapper>

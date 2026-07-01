@@ -1,0 +1,253 @@
+e	y^
+This module provides an interface to the native time zone data on Windows,
+including :py:class:`datetime.tzinfo` implementations.
+Attempting to import this module on a non-Windows platform will raise an
+:py:obj:`ImportError`.
+winreg)
+	text_type)
+wintypesz#Running tzwin on non-Windows system
+tzrangebase)
+tzwin
+tzwinlocal
+tzres
+z7SOFTWARE\Microsoft\Windows NT\CurrentVersion\Time Zonesz4SOFTWARE\Microsoft\Windows\CurrentVersion\Time Zonesz4SYSTEM\CurrentControlSet\Control\TimeZoneInformationc
+ConnectRegistry
+HKEY_LOCAL_MACHINE
+OpenKey
+TZKEYNAMENTZ
+CloseZ
+WindowsError
+TZKEYNAME9X)
+handle
+	TZKEYNAME
+3/usr/lib/python3.9/site-packages/dateutil/tz/win.py
+_settzkeyname"
+    Class for accessing ``tzres.dll``, which contains timezone name related
+    resources.
+    .. versionadded:: 2.5.0
+    
+	tzres.dllc
+user32)
+ctypesZ
+WinDLLr
+Z	HINSTANCEZ
+UINT
+LPWSTRZ
+c_int
+LoadStringW
+argtypes
+_tzres
+	tzres_loc)
+selfr
+__init__9
+tzres.__init__c
+        Load a timezone name from a DLL offset (integer).
+        >>> from dateutil.tzwin import tzres
+        >>> tzr = tzres()
+        >>> print(tzr.load_name(112))
+        'Eastern Standard Time'
+        :param offset:
+            A positive integer value referring to a string from the tzres dll.
+        .. note::
+            Offsets found in the registry are generally of the form
+            ``@tzres.dll,-114``. The offset in this case is 114, not -114.
+        r
+p_wcharr
+castZ
+byrefr
+_handle)
+offset
+resourceZ
+lpBufferZ
+ncharr
+	load_nameG
+tzres.load_namec
+        Parse strings as returned from the Windows registry into the time zone
+        name as defined in the registry.
+        >>> from dateutil.tzwin import tzres
+        >>> tzr = tzres()
+        >>> print(tzr.name_from_string('@tzres.dll,-251'))
+        'Dateline Daylight Time'
+        >>> print(tzr.name_from_string('Eastern Standard Time'))
+        'Eastern Standard Time'
+        :param tzname_str:
+            A timezone name string as returned from a Windows registry key.
+        :return:
+            Returns the localized timezone string from tzres.dll if the string
+            is of the form `@tzres.dll,-offset`, else returns the input string.
+        
+Malformed timezone string.)
+startswith
+split
+ValueErrorr$
+tzname_strZ	name_spltr"
+name_from_string^
+tzres.name_from_stringN)
+__name__
+__module__
+__qualname__
+__doc__r
+POINTERr
+WCHARr 
+	tzwinbasezBtzinfo class based on win32's timezones available in the registry.c
+Nz#tzwinbase is an abstract base class)
+NotImplementedError
+tzwinbase.__init__c
+isinstancer/
+NotImplemented
+_std_offset
+_dst_offset
+_stddayofweek
+_dstdayofweek
+_stdweeknumber
+_dstweeknumber
+_stdhour
+_dsthour
+_stdminute
+_dstminute
+	_std_abbr
+	_dst_abbr)
+otherr
+__eq__
+tzwinbase.__eq__c
+z4Return a list of all time zones known to the system.Nc
+EnumKey)
+tzkeyr
+<listcomp>
+z"tzwinbase.list.<locals>.<listcomp>r
+range
+QueryInfoKey)
+resultr
+list
+tzwinbase.listc
+        Return the display name of the time zone.
+        )
+_displayr1
+display
+tzwinbase.displayc
+        For a given year, get the DST on and off transition times, expressed
+        always on the standard time side. For zones with no transitions, this
+        function returns ``None``.
+        :param year:
+            The year whose transitions you would like to query.
+        :return:
+            Returns a :class:`tuple` of :class:`datetime.datetime` objects,
+            ``(dston, dstoff)`` for zones with an annual DST transition, or
+            ``None`` for fixed offset zones.
+        N)
+hasdst
+picknthweekday
+	_dstmonthr7
+	_stdmonthr6
+_dst_base_offset)
+yearZ
+dstonZ
+dstoffr
+transitions
+tzwinbase.transitionsc
+_get_hasdst
+tzwinbase._get_hasdstc
+_dst_base_offset_r1
+tzwinbase._dst_base_offsetN)
+staticmethodrJ
+propertyrQ
+    Time zone object created from the zone info in the Windows registry
+    These are similar to :py:class:`dateutil.tz.tzrange` objects in that
+    the time zone data is provided in the format of a single offset rule
+    for either 0 or 2 time zone transitions per year.
+    :param: name
+        The name of a Windows time zone key, e.g. "Eastern Standard Time".
+        The full list of keys can be retrieved with :func:`tzwin.list`.
+    c
+{kn}\{name})
+nameZ
+StdZ
+Displayz
+=3l16hZ
+TZIr
+minutes
+_namer
+formatr
+valuestodictr>
+struct
+unpack
+datetime
+	timedeltar4
+	tzkeynamerE
+keydict
+	stdoffset
+	dstoffsetr
+tzwin.__init__c
+Nz	tzwin(%s))
+reprra
+__repr__
+tzwin.__repr__c
+	__class__ra
+__reduce__
+tzwin.__reduce__N)
+    Class representing the local time zone information in the Windows registry
+    While :class:`dateutil.tz.tzlocal` makes system calls (via the :mod:`time`
+    module) to retrieve time zone information, ``tzwinlocal`` retrieves the
+    rules directly from the Windows registry and creates an object like
+    :class:`dateutil.tz.tzwin`.
+    Because Windows does not have an equivalent of :func:`time.tzset`, on
+    Windows, :class:`dateutil.tz.tzlocal` instances will always reflect the
+    time zone settings *at the time that the process was started*, meaning
+    changes to the machine's time zone settings during the run of a program
+    on Windows will **not** be reflected by :class:`dateutil.tz.tzlocal`.
+    Because ``tzwinlocal`` reads the registry directly, it is unaffected by
+    this issue.
+    c
+}	|	d
+}	|	d
+StandardNameZ
+DaylightNamez	{kn}\{sn})
+snrZ
+BiasZ
+StandardBiasZ
+DaylightBiasr\
+=8hZ
+StandardStartr
+DaylightStart) r
+TZLOCALKEYNAMErc
+OSErrorrf
+tzlocalkeyri
+_keydictrk
+tzwinlocal.__init__c
+tzwinlocal()r
+tzwinlocal.__repr__c
+tzwinlocal(%s))
+__str__E
+tzwinlocal.__str__c
+tzwinlocal.__reduce__N)
+z> dayofweek == 0 means Sunday, whichweek 5 means last instance r
+day)
+replaceZ
+isoweekday
+ONEWEEK
+month)	rR
+Z	dayofweekZ
+hourZ
+minuteZ	whichweek
+firstZ
+weekdayoneZ
+z0Convert a registry key's values to a dictionary.r
+@tzres
+Z	EnumValueZ	REG_DWORDZ
+REG_DWORD_LITTLE_ENDIANZ
+REG_SZr&
+rstrip)
+keyZ
+dout
+sizeZ
+tz_resrC
+key_name
+valueZ
+dtyper
+Z	six.movesr
+sixr
+ImportErrorZ
+_commonr
+__all__rg
+objectr	
+<module>

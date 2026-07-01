@@ -1,0 +1,392 @@
+m	Z	m
+d d!
+d!e 
+Callable
+Dict
+Iterable
+Iterator
+List
+Optional
+Pattern
+Tuple
+TypeVar
+Union
+canonicalize_version)
+LegacyVersion
+Version
+parse
+VersionTypeVar)
+boundc
+InvalidSpecifierzH
+    An invalid specifier was found, users should refer to PEP 440.
+    N)
+__name__
+__module__
+__qualname__
+__doc__
+D/usr/lib/python3.9/site-packages/pip/_vendor/packaging/specifiers.pyr
+BaseSpecifier
+returnc
+        Returns the str representation of this Specifier like object. This
+        should be representative of the Specifier itself.
+        Nr
+selfr
+__str__(
+BaseSpecifier.__str__c
+        Returns a hash value for this Specifier like object.
+        Nr
+__hash__/
+BaseSpecifier.__hash__
+otherr
+        Returns a boolean representing whether or not the two Specifier like
+        objects are equal.
+        Nr
+__eq__5
+BaseSpecifier.__eq__c
+        Returns a boolean representing whether or not the two Specifier like
+        objects are not equal.
+        Nr
+__ne__<
+BaseSpecifier.__ne__c
+        Returns whether or not pre-releases as a whole are allowed by this
+        specifier.
+        Nr
+prereleasesC
+BaseSpecifier.prereleasesN
+valuer
+        Sets whether or not pre-releases as a whole are allowed by this
+        specifier.
+        Nr
+itemr'
+        Determines if the given item is contained within this specifier.
+        Nr
+containsQ
+BaseSpecifier.contains
+iterabler'
+        Takes an iterable of items and filters them so that only items which
+        are contained within this specifier are allowed in it.
+        Nr
+filterW
+BaseSpecifier.filter)
+abstractmethod
+strr 
+intr!
+object
+boolr%
+abstractpropertyr
+setterr.
+	metaclassc
+d d!
+d#d!
+e	d$
+d%d&
+e	d'
+d(d)
+d/e e!
+e e!
+d+d,
+_IndividualSpecifier
+_operators
+_regex
+specr'
+Invalid specifier: '
+operator
+version)
+searchr
+group
+strip
+_spec
+_prereleases)
+matchr
+__init__f
+_IndividualSpecifier.__init__r
+, prereleases=r>
+<{}({!r}{})>)
+format
+	__class__r
+prer
+__repr__s
+_IndividualSpecifier.__repr__c
+{}{})
+_IndividualSpecifier.__str__c
+_canonical_spec
+z$_IndividualSpecifier._canonical_specc
+hashrP
+_IndividualSpecifier.__hash__r"
+isinstancer4
+NotImplementedrP
+_IndividualSpecifier.__eq__c
+_IndividualSpecifier.__ne__)
+NZ	_compare_)
+getattrr<
+operator_callabler
+_get_operator
+z"_IndividualSpecifier._get_operator
+_coerce_version
+z$_IndividualSpecifier._coerce_versionc
+_IndividualSpecifier.operatorc
+_IndividualSpecifier.versionc
+z _IndividualSpecifier.prereleasesr(
+__contains__
+z!_IndividualSpecifier.__contains__r+
+is_prereleaserX
+normalized_itemrW
+_IndividualSpecifier.containsr/
+NFr'
+append)
+yielded
+found_prereleases
+kwrC
+parsed_versionr
+_IndividualSpecifier.filter)
+N)#r
+__annotations__r
+propertyr
+CallableOperatorrX
+UnparsedVersion
+ParsedVersionr[
+Z	d e
+LegacySpecifiera
+        (?P<operator>(==|!=|<=|>=|<|>))
+        \s*
+        (?P<version>
+            [^,;\s)]* # Since this is a "legacy" specifier, and the version
+                      # string can be just about anything, we match everything
+                      # except for whitespace, a semi-colon for marker support,
+                      # a closing paren since versions can be enclosed in
+                      # them, and a comma since it's a version separator.
+        )
+        
+^\s*
+\s*$
+equal
+	not_equal
+less_than_equal
+greater_than_equal
+	less_than
+greater_than)
+NzZCreating a LegacyVersion has been deprecated and will be removed in the next major release)
+superrJ
+warnings
+warn
+DeprecationWarning)
+LegacySpecifier.__init__rY
+LegacySpecifier._coerce_version
+prospectiver@
+_compare_equal
+LegacySpecifier._compare_equalc
+_compare_not_equal
+z"LegacySpecifier._compare_not_equalc
+_compare_less_than_equal"
+z(LegacySpecifier._compare_less_than_equalc
+_compare_greater_than_equal%
+z+LegacySpecifier._compare_greater_than_equalc
+_compare_less_than*
+z"LegacySpecifier._compare_less_thanc
+_compare_greater_than-
+z%LegacySpecifier._compare_greater_than)
+_regex_str
+compile
+VERBOSE
+IGNORECASEr=
+__classcell__r
+	Specifier)
+wrapped4
+z)_require_version_compare.<locals>.wrapped)
+	functools
+wrapsrm
+_require_version_compare1
+d d!
+d"d#
+d$d!
+        (?P<operator>(~=|==|!=|<=|>=|<|>|===))
+        (?P<version>
+            (?:
+                # The identity operators allow for an escape hatch that will
+                # do an exact string match of the version you wish to install.
+                # This will not be parsed by PEP 440 and we cannot determine
+                # any semantic meaning from it. This operator is discouraged
+                # but included entirely as an escape hatch.
+                (?<====)  # Only match for the identity operator
+                \s*
+                [^\s]*    # We just match everything, except for whitespace
+                          # since we are only testing for strict identity.
+            )
+            |
+            (?:
+                # The (non)equality operators allow for wild card and local
+                # versions to be specified so we have to define these two
+                # operators separately to enable that.
+                (?<===|!=)            # Only match for equals and not equals
+                \s*
+                v?
+                (?:[0-9]+!)?          # epoch
+                [0-9]+(?:\.[0-9]+)*   # release
+                (?:                   # pre release
+                    [-_\.]?
+                    (a|b|c|rc|alpha|beta|pre|preview)
+                    [-_\.]?
+                    [0-9]*
+                )?
+                (?:                   # post release
+                    (?:-[0-9]+)|(?:[-_\.]?(post|rev|r)[-_\.]?[0-9]*)
+                )?
+                # You cannot use a wild card and a dev or local version
+                # together so group them with a | and make them optional.
+                (?:
+                    (?:[-_\.]?dev[-_\.]?[0-9]*)?         # dev release
+                    (?:\+[a-z0-9]+(?:[-_\.][a-z0-9]+)*)? # local
+                    |
+                    \.\*  # Wild card syntax of .*
+                )?
+            )
+            |
+            (?:
+                # The compatible operator requires at least two digits in the
+                # release segment.
+                (?<=~=)               # Only match for the compatible operator
+                \s*
+                v?
+                (?:[0-9]+!)?          # epoch
+                [0-9]+(?:\.[0-9]+)+   # release  (We have a + instead of a *)
+                (?:                   # pre release
+                    [-_\.]?
+                    (a|b|c|rc|alpha|beta|pre|preview)
+                    [-_\.]?
+                    [0-9]*
+                )?
+                (?:                                   # post release
+                    (?:-[0-9]+)|(?:[-_\.]?(post|rev|r)[-_\.]?[0-9]*)
+                )?
+                (?:[-_\.]?dev[-_\.]?[0-9]*)?          # dev release
+            )
+            |
+            (?:
+                # All other operators only allow a sub set of what the
+                # (non)equality operators do. Specifically they do not allow
+                # local versions to be specified nor do they allow the prefix
+                # matching wild cards.
+                (?<!==|!=|~=)         # We have special cases for these
+                                      # operators so we want to make sure they
+                                      # don't match here.
+                \s*
+                v?
+                (?:[0-9]+!)?          # epoch
+                [0-9]+(?:\.[0-9]+)*   # release
+                (?:                   # pre release
+                    [-_\.]?
+                    (a|b|c|rc|alpha|beta|pre|preview)
+                    [-_\.]?
+                    [0-9]*
+                )?
+                (?:                                   # post release
+                    (?:-[0-9]+)|(?:[-_\.]?(post|rev|r)[-_\.]?[0-9]*)
+                )?
+                (?:[-_\.]?dev[-_\.]?[0-9]*)?          # dev release
+            )
+        )
+        ro
+compatiblerq
+Z	arbitrary)
+~=rw
+===r
+.*rz
+join
+list
+	itertools
+	takewhile
+_is_not_suffix
+_version_splitrX
+prefixr
+_compare_compatible
+Specifier._compare_compatiblec
+endswithr
+publicr
+_pad_version
+local)	r
+split_specZ
+split_prospectiveZ
+shortened_prospectiveZ
+padded_specZ
+padded_prospectiveZ
+spec_versionr
+Specifier._compare_equalc
+Specifier._compare_not_equalc
+z"Specifier._compare_less_than_equalc
+z%Specifier._compare_greater_than_equal)
+spec_strr
+NFT)
+base_version
+Specifier._compare_less_thanc
+is_postreleaser
+Specifier._compare_greater_thanc
+lowerr
+_compare_arbitrary7
+Specifier._compare_arbitraryr
+Specifier.prereleasesNr(
+^([0-9]+)((?:a|b|c|rc)[0-9]+)$rY
+split
+_prefix_regexrD
+extend
+groupsrd
+resultr,
+segmentr
+startswith)
+	<genexpr>g
+z!_is_not_suffix.<locals>.<genexpr>)
+post)
+anyr
+left
+rightr
+isdigit
+<lambda>p
+_pad_version.<locals>.<lambda>c
+insert
+chain)
+left_splitZ
+right_splitr
+d d!
+d#d$
+SpecifierSetr>
+specifiersr'
+<listcomp>
+z)SpecifierSet.__init__.<locals>.<listcomp>
+,)	r
+addr
+	frozenset
+_specsrH
+split_specifiers
+parsed
+	specifierr
+SpecifierSet.__init__r
+<SpecifierSet({!r}{})>)
+SpecifierSet.__repr__c
+z'SpecifierSet.__str__.<locals>.<genexpr>)
+sortedr
+SpecifierSet.__str__c
+SpecifierSet.__hash__r"
+NzFCannot combine SpecifierSets with True and False prerelease overrides.)
+ValueError)
+__and__
+SpecifierSet.__and__c
+SpecifierSet.__eq__c
+SpecifierSet.__ne__c
+__len__
+SpecifierSet.__len__c
+iterr
+__iter__
+SpecifierSet.__iter__c
+z+SpecifierSet.prereleases.<locals>.<genexpr>)
+SpecifierSet.prereleasesr(
+SpecifierSet.__contains__r+
+z(SpecifierSet.contains.<locals>.<genexpr>)
+allr
+SpecifierSet.containsr/
+rnqB|
+filteredrf
+SpecifierSet.filter)
+)+r2
+typingr
+utilsr
+ABCMetar
+<module>

@@ -1,0 +1,752 @@
+m	Z	
+m Z 
+m!Z!
+m"Z"
+Weight Boosting.
+This module contains weight boosting estimators for both classification and
+regression.
+The module structure is the following:
+- The `BaseWeightBoosting` base class implements a common ``fit`` method
+  for all the estimators in the module. Regression and classification
+  only differ from each other in the loss function that is optimized.
+- :class:`~sklearn.ensemble.AdaBoostClassifier` implements adaptive boosting
+  (AdaBoost-SAMME) for classification problems.
+- :class:`~sklearn.ensemble.AdaBoostRegressor` implements adaptive boosting
+  (AdaBoost.R2) for regression problems.
+ABCMeta
+abstractmethodN)
+xlogy
+BaseEnsemble
+ClassifierMixin
+RegressorMixin
+is_classifier
+is_regressor)
+DecisionTreeClassifier
+DecisionTreeRegressor)
+check_random_state
+_safe_indexing)
+check_scalar)
+softmax)
+stable_cumsum)
+accuracy_score
+r2_score)
+check_is_fitted)
+_check_sample_weight)
+has_fit_parameter)
+_num_samples
+AdaBoostClassifier
+AdaBoostRegressorc
+BaseWeightBoostingz
+Base class for AdaBoost estimators.
+    Warning: This class should not be used directly. Use derived classes
+    instead.
+    N
+n_estimators
+estimator_params
+learning_rate
+random_statec
+base_estimatorr
+super
+__init__r 
+selfr"
+	__class__
+G/usr/lib64/python3.9/site-packages/sklearn/ensemble/_weight_boosting.pyr$
+BaseWeightBoosting.__init__c
+cscTF)
+accept_sparse
+	ensure_2d
+allow_nd
+dtype
+reset)
+_validate_data
+_check_XR
+BaseWeightBoosting._check_Xc
+qbt	
+Build a boosted classifier/regressor from the training set (X, y).
+        Parameters
+        ----------
+        X : {array-like, sparse matrix} of shape (n_samples, n_features)
+            The training input samples. Sparse matrix can be CSC, CSR, COO,
+            DOK, or LIL. COO, DOK, and LIL are converted to CSR.
+        y : array-like of shape (n_samples,)
+            The target values (class labels in classification, real numbers in
+            regression).
+        sample_weight : array-like of shape (n_samples,), default=None
+            Sample weights. If None, the sample weights are initialized to
+            1 / n_samples.
+        Returns
+        -------
+        self : object
+        r
+left)
+target_typeZ
+min_valZ
+include_boundariesr 
+neitherr*
+Z	y_numeric)
+copyZ
+only_non_negative)
+z:Sample weights have reached infinite values, at iteration zG, causing overflow. Iterations stopped. Try lowering the learning rate.r
+stacklevel)
+numbersZ
+Integralr 
+Realr1
+float64
+_validate_estimator
+estimators_Z
+zeros
+estimator_weights_
+onesZ
+estimator_errors_r
+range
+_boostZ
+isfinite
+warnings
+warn)	r%
+sample_weightr!
+iboost
+estimator_weight
+estimator_errorZ
+sample_weight_sumr(
+fit]
+BaseWeightBoosting.fitc
+Implement a single boost.
+        Warning: This method needs to be overridden by subclasses.
+        Parameters
+        ----------
+        iboost : int
+            The index of the current boost iteration.
+        X : {array-like, sparse matrix} of shape (n_samples, n_features)
+            The training input samples. Sparse matrix can be CSC, CSR, COO,
+            DOK, or LIL. COO, DOK, and LIL are converted to CSR.
+        y : array-like of shape (n_samples,)
+            The target values (class labels).
+        sample_weight : array-like of shape (n_samples,)
+            The current sample weights.
+        random_state : RandomState
+            The current random number generator
+        Returns
+        -------
+        sample_weight : array-like of shape (n_samples,) or None
+            The reweighted sample weights.
+            If None then boosting has terminated early.
+        estimator_weight : float
+            The weight for the current boost.
+            If None then boosting has terminated early.
+        error : float
+            The classification error for the current boost.
+            If None then boosting has terminated early.
+        Nr(
+BaseWeightBoosting._boostc
+Return staged scores for X, y.
+        This generator method yields the ensemble score after each iteration of
+        boosting and therefore allows monitoring, such as to determine the
+        score on a test set after each boost.
+        Parameters
+        ----------
+        X : {array-like, sparse matrix} of shape (n_samples, n_features)
+            The training input samples. Sparse matrix can be CSC, CSR, COO,
+            DOK, or LIL. COO, DOK, and LIL are converted to CSR.
+        y : array-like of shape (n_samples,)
+            Labels for X.
+        sample_weight : array-like of shape (n_samples,), default=None
+            Sample weights.
+        Yields
+        ------
+        z : float
+        
+staged_predictr
+y_predr(
+staged_score
+BaseWeightBoosting.staged_scorec
+The impurity-based feature importances.
+        The higher, the more important the feature.
+        The importance of a feature is computed as the (normalized)
+        total reduction of the criterion brought by that feature.  It is also
+        known as the Gini importance.
+        Warning: impurity-based feature importances can be misleading for
+        high cardinality features (many unique values). See
+        :func:`sklearn.inspection.permutation_importance` as an alternative.
+        Returns
+        -------
+        feature_importances_ : ndarray of shape (n_features,)
+            The feature importances.
+        Nr
+z?Estimator not fitted, call `fit` before `feature_importances_`.c
+feature_importances_)
+weightZ
+clfr(
+	<genexpr>$
+z:BaseWeightBoosting.feature_importances_.<locals>.<genexpr>ziUnable to compute feature importances since base_estimator does not have a feature_importances_ attribute)
+ValueErrorr=
+AttributeError)
+norm
+z'BaseWeightBoosting.feature_importances_)
+__name__
+__module__
+__qualname__
+__doc__r
+tupler$
+propertyrN
+__classcell__r(
+	metaclassc
+Calculate algorithm 4, step 2, equation c) of Zhu et al [1].
+    References
+    ----------
+    .. [1] J. Zhu, H. Zou, S. Rosset, T. Hastie, "Multi-class AdaBoost", 2009.
+    N
+outr
+axis)	
+predict_probar9
+clip
+finfor/
+logr:
+newaxis)
+	estimator
+	n_classesr3
+probaZ	log_probar(
+_samme_proba3
+d!d"
+An AdaBoost classifier.
+    An AdaBoost [1] classifier is a meta-estimator that begins by fitting a
+    classifier on the original dataset and then fits additional copies of the
+    classifier on the same dataset but where the weights of incorrectly
+    classified instances are adjusted such that subsequent classifiers focus
+    more on difficult cases.
+    This class implements the algorithm known as AdaBoost-SAMME [2].
+    Read more in the :ref:`User Guide <adaboost>`.
+    .. versionadded:: 0.14
+    Parameters
+    ----------
+    base_estimator : object, default=None
+        The base estimator from which the boosted ensemble is built.
+        Support for sample weighting is required, as well as proper
+        ``classes_`` and ``n_classes_`` attributes. If ``None``, then
+        the base estimator is :class:`~sklearn.tree.DecisionTreeClassifier`
+        initialized with `max_depth=1`.
+    n_estimators : int, default=50
+        The maximum number of estimators at which boosting is terminated.
+        In case of perfect fit, the learning procedure is stopped early.
+        Values must be in the range `[1, inf)`.
+    learning_rate : float, default=1.0
+        Weight applied to each classifier at each boosting iteration. A higher
+        learning rate increases the contribution of each classifier. There is
+        a trade-off between the `learning_rate` and `n_estimators` parameters.
+        Values must be in the range `(0.0, inf)`.
+    algorithm : {'SAMME', 'SAMME.R'}, default='SAMME.R'
+        If 'SAMME.R' then use the SAMME.R real boosting algorithm.
+        ``base_estimator`` must support calculation of class probabilities.
+        If 'SAMME' then use the SAMME discrete boosting algorithm.
+        The SAMME.R algorithm typically converges faster than SAMME,
+        achieving a lower test error with fewer boosting iterations.
+    random_state : int, RandomState instance or None, default=None
+        Controls the random seed given at each `base_estimator` at each
+        boosting iteration.
+        Thus, it is only used when `base_estimator` exposes a `random_state`.
+        Pass an int for reproducible output across multiple function calls.
+        See :term:`Glossary <random_state>`.
+    Attributes
+    ----------
+    base_estimator_ : estimator
+        The base estimator from which the ensemble is grown.
+    estimators_ : list of classifiers
+        The collection of fitted sub-estimators.
+    classes_ : ndarray of shape (n_classes,)
+        The classes labels.
+    n_classes_ : int
+        The number of classes.
+    estimator_weights_ : ndarray of floats
+        Weights for each estimator in the boosted ensemble.
+    estimator_errors_ : ndarray of floats
+        Classification error for each estimator in the boosted
+        ensemble.
+    feature_importances_ : ndarray of shape (n_features,)
+        The impurity-based feature importances if supported by the
+        ``base_estimator`` (when based on decision trees).
+        Warning: impurity-based feature importances can be misleading for
+        high cardinality features (many unique values). See
+        :func:`sklearn.inspection.permutation_importance` as an alternative.
+    n_features_in_ : int
+        Number of features seen during :term:`fit`.
+        .. versionadded:: 0.24
+    feature_names_in_ : ndarray of shape (`n_features_in_`,)
+        Names of features seen during :term:`fit`. Defined only when `X`
+        has feature names that are all strings.
+        .. versionadded:: 1.0
+    See Also
+    --------
+    AdaBoostRegressor : An AdaBoost regressor that begins by fitting a
+        regressor on the original dataset and then fits additional copies of
+        the regressor on the same dataset but where the weights of instances
+        are adjusted according to the error of the current prediction.
+    GradientBoostingClassifier : GB builds an additive model in a forward
+        stage-wise fashion. Regression trees are fit on the negative gradient
+        of the binomial or multinomial deviance loss function. Binary
+        classification is a special case where only a single regression tree is
+        induced.
+    sklearn.tree.DecisionTreeClassifier : A non-parametric supervised learning
+        method used for classification.
+        Creates a model that predicts the value of a target variable by
+        learning simple decision rules inferred from the data features.
+    References
+    ----------
+    .. [1] Y. Freund, R. Schapire, "A Decision-Theoretic Generalization of
+           on-Line Learning and an Application to Boosting", 1995.
+    .. [2] J. Zhu, H. Zou, S. Rosset, T. Hastie, "Multi-class AdaBoost", 2009.
+    Examples
+    --------
+    >>> from sklearn.ensemble import AdaBoostClassifier
+    >>> from sklearn.datasets import make_classification
+    >>> X, y = make_classification(n_samples=1000, n_features=4,
+    ...                            n_informative=2, n_redundant=0,
+    ...                            random_state=0, shuffle=False)
+    >>> clf = AdaBoostClassifier(n_estimators=100, random_state=0)
+    >>> clf.fit(X, y)
+    AdaBoostClassifier(n_estimators=100, random_state=0)
+    >>> clf.predict([[0, 0, 0, 0]])
+    array([1])
+    >>> clf.score(X, y)
+    0.983...
+    Nr
+SAMME.R)
+	algorithmr!
+AdaBoostClassifier.__init__c
+Build a boosted classifier from the training set (X, y).
+        Parameters
+        ----------
+        X : {array-like, sparse matrix} of shape (n_samples, n_features)
+            The training input samples. Sparse matrix can be CSC, CSR, COO,
+            DOK, or LIL. COO, DOK, and LIL are converted to CSR.
+        y : array-like of shape (n_samples,)
+            The target values (class labels).
+        sample_weight : array-like of shape (n_samples,), default=None
+            Sample weights. If None, the sample weights are initialized to
+            ``1 / n_samples``.
+        Returns
+        -------
+        self : object
+            Fitted estimator.
+        )
+SAMMErn
+z,Algorithm must be 'SAMME' or 'SAMME.R'. Got 
+	 instead.)
+AdaBoostClassifier.fitc
+:Check the estimator and set the base_estimator_ attribute.r
+Z	max_depth
+defaultrn
+AdaBoostClassifier with algorithm='SAMME.R' requires that the weak learner supports the calculation of class probabilities with a predict_proba method.
+Please change the base estimator or set algorithm='SAMME' instead.rD
+z!%s doesn't support sample_weight.N)
+hasattrZ
+base_estimator_
+	TypeErrorr
+z&AdaBoostClassifier._validate_estimatorc
+Implement a single boost.
+        Perform a single boost according to the real multi-class SAMME.R
+        algorithm or to the discrete SAMME algorithm and return the updated
+        sample weights.
+        Parameters
+        ----------
+        iboost : int
+            The index of the current boost iteration.
+        X : {array-like, sparse matrix} of shape (n_samples, n_features)
+            The training input samples.
+        y : array-like of shape (n_samples,)
+            The target values (class labels).
+        sample_weight : array-like of shape (n_samples,)
+            The current sample weights.
+        random_state : RandomState instance
+            The RandomState instance used if the base estimator accepts a
+            `random_state` attribute.
+        Returns
+        -------
+        sample_weight : array-like of shape (n_samples,) or None
+            The reweighted sample weights.
+            If None then boosting has terminated early.
+        estimator_weight : float
+            The weight for the current boost.
+            If None then boosting has terminated early.
+        estimator_error : float
+            The classification error for the current boost.
+            If None then boosting has terminated early.
+        rn
+_boost_real
+_boost_discreterI
+AdaBoostClassifier._boostc
+z:Implement a single boost using the SAMME.R real algorithm.
+classes_Nr
+weightsrc
+_make_estimatorrH
+getattrr}
+n_classes_
+taker9
+argmax
+mean
+average
+arrayri
+exp)
+y_predict_proba
+	y_predict
+	incorrectrG
+classesZ
+y_codesZ
+y_codingrl
+AdaBoostClassifier._boost_realc
+}	|	d
+z<Implement a single boost using the SAMME discrete algorithm.r|
+z\BaseClassifier in AdaBoostClassifier ensemble is worse than random, ensemble can not be fit.
+NNNr
+predictr
+poprS
+z"AdaBoostClassifier._boost_discretec
+Predict classes for X.
+        The predicted class of an input sample is computed as the weighted mean
+        prediction of the classifiers in the ensemble.
+        Parameters
+        ----------
+        X : {array-like, sparse matrix} of shape (n_samples, n_features)
+            The training input samples. Sparse matrix can be CSC, CSR, COO,
+            DOK, or LIL. COO, DOK, and LIL are converted to CSR.
+        Returns
+        -------
+        y : ndarray of shape (n_samples,)
+            The predicted classes.
+        r
+decision_functionr
+predr(
+AdaBoostClassifier.predictc
+q(n0|
+Return staged predictions for X.
+        The predicted class of an input sample is computed as the weighted mean
+        prediction of the classifiers in the ensemble.
+        This generator method yields the ensemble prediction after each
+        iteration of boosting and therefore allows monitoring, such as to
+        determine the prediction on a test set after each boost.
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            The input samples. Sparse matrix can be CSC, CSR, COO,
+            DOK, or LIL. COO, DOK, and LIL are converted to CSR.
+        Yields
+        ------
+        y : generator of ndarray of shape (n_samples,)
+            The predicted classes.
+        r
+staged_decision_functionr9
+z!AdaBoostClassifier.staged_predictc
+Compute the decision function of ``X``.
+        Parameters
+        ----------
+        X : {array-like, sparse matrix} of shape (n_samples, n_features)
+            The training input samples. Sparse matrix can be CSC, CSR, COO,
+            DOK, or LIL. COO, DOK, and LIL are converted to CSR.
+        Returns
+        -------
+        score : ndarray of shape of (n_samples, k)
+            The decision function of the input samples. The order of
+            outputs is the same of that of the :term:`classes_` attribute.
+            Binary classification is a special cases with ``k == 1``,
+            otherwise ``k==n_classes``. For binary classification,
+            values closer to -1 or 1 mean more like the first or second
+            class in ``classes_``, respectively.
+        Nrn
+z7AdaBoostClassifier.decision_function.<locals>.<genexpr>c
+z$AdaBoostClassifier.decision_functionc
+}	|	d
+Compute decision function of ``X`` for each boosting iteration.
+        This method allows monitoring (i.e. determine error on testing set)
+        after each boosting iteration.
+        Parameters
+        ----------
+        X : {array-like, sparse matrix} of shape (n_samples, n_features)
+            The training input samples. Sparse matrix can be CSC, CSR, COO,
+            DOK, or LIL. COO, DOK, and LIL are converted to CSR.
+        Yields
+        ------
+        score : generator of ndarray of shape (n_samples, k)
+            The decision function of the input samples. The order of
+            outputs is the same of that of the :term:`classes_` attribute.
+            Binary classification is a special cases with ``k == 1``,
+            otherwise ``k==n_classes``. For binary classification,
+            values closer to -1 or 1 mean more like the first or second
+            class in ``classes_``, respectively.
+        Nr
+current_predZ
+tmp_predr(
+z+AdaBoostClassifier.staged_decision_functionc
+Compute probabilities from the decision function.
+        This is based eq. (4) of [1] where:
+            p(y=c|X) = exp((1 / K-1) f_c(X)) / sum_k(exp((1 / K-1) f_k(X)))
+                     = softmax((1 / K-1) * f(X))
+        References
+        ----------
+        .. [1] J. Zhu, H. Zou, S. Rosset, T. Hastie, "Multi-class AdaBoost",
+               2009.
+        r
+vstackr
+decisionrk
+_compute_proba_from_decisionB
+z/AdaBoostClassifier._compute_proba_from_decisionc
+Predict class probabilities for X.
+        The predicted class probabilities of an input sample is computed as
+        the weighted mean predicted class probabilities of the classifiers
+        in the ensemble.
+        Parameters
+        ----------
+        X : {array-like, sparse matrix} of shape (n_samples, n_features)
+            The training input samples. Sparse matrix can be CSC, CSR, COO,
+            DOK, or LIL. COO, DOK, and LIL are converted to CSR.
+        Returns
+        -------
+        p : ndarray of shape (n_samples, n_classes)
+            The class probabilities of the input samples. The order of
+            outputs is the same of that of the :term:`classes_` attribute.
+        r
+z AdaBoostClassifier.predict_probac
+Predict class probabilities for X.
+        The predicted class probabilities of an input sample is computed as
+        the weighted mean predicted class probabilities of the classifiers
+        in the ensemble.
+        This generator method yields the ensemble predicted class probabilities
+        after each iteration of boosting and therefore allows monitoring, such
+        as to determine the predicted class probabilities on a test set after
+        each boost.
+        Parameters
+        ----------
+        X : {array-like, sparse matrix} of shape (n_samples, n_features)
+            The training input samples. Sparse matrix can be CSC, CSR, COO,
+            DOK, or LIL. COO, DOK, and LIL are converted to CSR.
+        Yields
+        ------
+        p : generator of ndarray of shape (n_samples,)
+            The class probabilities of the input samples. The order of
+            outputs is the same of that of the :term:`classes_` attribute.
+        N)
+staged_predict_probaq
+z'AdaBoostClassifier.staged_predict_probac
+Predict class log-probabilities for X.
+        The predicted class log-probabilities of an input sample is computed as
+        the weighted mean predicted class log-probabilities of the classifiers
+        in the ensemble.
+        Parameters
+        ----------
+        X : {array-like, sparse matrix} of shape (n_samples, n_features)
+            The training input samples. Sparse matrix can be CSC, CSR, COO,
+            DOK, or LIL. COO, DOK, and LIL are converted to CSR.
+        Returns
+        -------
+        p : ndarray of shape (n_samples, n_classes)
+            The class probabilities of the input samples. The order of
+            outputs is the same of that of the :term:`classes_` attribute.
+        )
+predict_log_proba
+z$AdaBoostClassifier.predict_log_proba)
+staticmethodr
+An AdaBoost regressor.
+    An AdaBoost [1] regressor is a meta-estimator that begins by fitting a
+    regressor on the original dataset and then fits additional copies of the
+    regressor on the same dataset but where the weights of instances are
+    adjusted according to the error of the current prediction. As such,
+    subsequent regressors focus more on difficult cases.
+    This class implements the algorithm known as AdaBoost.R2 [2].
+    Read more in the :ref:`User Guide <adaboost>`.
+    .. versionadded:: 0.14
+    Parameters
+    ----------
+    base_estimator : object, default=None
+        The base estimator from which the boosted ensemble is built.
+        If ``None``, then the base estimator is
+        :class:`~sklearn.tree.DecisionTreeRegressor` initialized with
+        `max_depth=3`.
+    n_estimators : int, default=50
+        The maximum number of estimators at which boosting is terminated.
+        In case of perfect fit, the learning procedure is stopped early.
+        Values must be in the range `[1, inf)`.
+    learning_rate : float, default=1.0
+        Weight applied to each regressor at each boosting iteration. A higher
+        learning rate increases the contribution of each regressor. There is
+        a trade-off between the `learning_rate` and `n_estimators` parameters.
+        Values must be in the range `(0.0, inf)`.
+    loss : {'linear', 'square', 'exponential'}, default='linear'
+        The loss function to use when updating the weights after each
+        boosting iteration.
+    random_state : int, RandomState instance or None, default=None
+        Controls the random seed given at each `base_estimator` at each
+        boosting iteration.
+        Thus, it is only used when `base_estimator` exposes a `random_state`.
+        In addition, it controls the bootstrap of the weights used to train the
+        `base_estimator` at each boosting iteration.
+        Pass an int for reproducible output across multiple function calls.
+        See :term:`Glossary <random_state>`.
+    Attributes
+    ----------
+    base_estimator_ : estimator
+        The base estimator from which the ensemble is grown.
+    estimators_ : list of regressors
+        The collection of fitted sub-estimators.
+    estimator_weights_ : ndarray of floats
+        Weights for each estimator in the boosted ensemble.
+    estimator_errors_ : ndarray of floats
+        Regression error for each estimator in the boosted ensemble.
+    feature_importances_ : ndarray of shape (n_features,)
+        The impurity-based feature importances if supported by the
+        ``base_estimator`` (when based on decision trees).
+        Warning: impurity-based feature importances can be misleading for
+        high cardinality features (many unique values). See
+        :func:`sklearn.inspection.permutation_importance` as an alternative.
+    n_features_in_ : int
+        Number of features seen during :term:`fit`.
+        .. versionadded:: 0.24
+    feature_names_in_ : ndarray of shape (`n_features_in_`,)
+        Names of features seen during :term:`fit`. Defined only when `X`
+        has feature names that are all strings.
+        .. versionadded:: 1.0
+    See Also
+    --------
+    AdaBoostClassifier : An AdaBoost classifier.
+    GradientBoostingRegressor : Gradient Boosting Classification Tree.
+    sklearn.tree.DecisionTreeRegressor : A decision tree regressor.
+    References
+    ----------
+    .. [1] Y. Freund, R. Schapire, "A Decision-Theoretic Generalization of
+           on-Line Learning and an Application to Boosting", 1995.
+    .. [2] H. Drucker, "Improving Regressors using Boosting Techniques", 1997.
+    Examples
+    --------
+    >>> from sklearn.ensemble import AdaBoostRegressor
+    >>> from sklearn.datasets import make_regression
+    >>> X, y = make_regression(n_features=4, n_informative=2,
+    ...                        random_state=0, shuffle=False)
+    >>> regr = AdaBoostRegressor(random_state=0, n_estimators=100)
+    >>> regr.fit(X, y)
+    AdaBoostRegressor(n_estimators=100, random_state=0)
+    >>> regr.predict([[0, 0, 0, 0]])
+    array([4.7972...])
+    >>> regr.score(X, y)
+    0.9771...
+    Nr
+linear)
+lossr!
+AdaBoostRegressor.__init__c
+Build a boosted regressor from the training set (X, y).
+        Parameters
+        ----------
+        X : {array-like, sparse matrix} of shape (n_samples, n_features)
+            The training input samples. Sparse matrix can be CSC, CSR, COO,
+            DOK, or LIL. COO, DOK, and LIL are converted to CSR.
+        y : array-like of shape (n_samples,)
+            The target values (real numbers).
+        sample_weight : array-like of shape (n_samples,), default=None
+            Sample weights. If None, the sample weights are initialized to
+            1 / n_samples.
+        Returns
+        -------
+        self : object
+            Fitted AdaBoostRegressor estimator.
+        )
+square
+exponentialz7loss must be 'linear', 'square', or 'exponential'. Got rq
+AdaBoostRegressor.fitc
+z%AdaBoostRegressor._validate_estimatorc
+Implement a single boost for regression
+        Perform a single boost according to the AdaBoost.R2 algorithm and
+        return the updated sample weights.
+        Parameters
+        ----------
+        iboost : int
+            The index of the current boost iteration.
+        X : {array-like, sparse matrix} of shape (n_samples, n_features)
+            The training input samples.
+        y : array-like of shape (n_samples,)
+            The target values (class labels in classification, real numbers in
+            regression).
+        sample_weight : array-like of shape (n_samples,)
+            The current sample weights.
+        random_state : RandomState
+            The RandomState instance used if the base estimator accepts a
+            `random_state` attribute.
+            Controls also the bootstrap of the weights used to train the weak
+            learner.
+            replacement.
+        Returns
+        -------
+        sample_weight : array-like of shape (n_samples,) or None
+            The reweighted sample weights.
+            If None then boosting has terminated early.
+        estimator_weight : float
+            The weight for the current boost.
+            If None then boosting has terminated early.
+        estimator_error : float
+            The regression error for the current boost.
+            If None then boosting has terminated early.
+        r|
+size
+replace
+choicer9
+aranger
+maxr
+power)
+bootstrap_idxZ
+error_vectZ
+sample_maskZ
+masked_sample_weightZ
+masked_error_vectorZ	error_maxrG
+betarF
+AdaBoostRegressor._boostc
+<listcomp>
+z9AdaBoostRegressor._get_median_predict.<locals>.<listcomp>r
+argsortr
+)	r%
+limitZ
+predictionsZ
+sorted_idxZ
+weight_cdfZ
+median_or_aboveZ
+median_idxZ
+median_estimatorsr(
+_get_median_predict
+z%AdaBoostRegressor._get_median_predictc
+Predict regression value for X.
+        The predicted regression value of an input sample is computed
+        as the weighted median prediction of the regressors in the ensemble.
+        Parameters
+        ----------
+        X : {array-like, sparse matrix} of shape (n_samples, n_features)
+            The training input samples. Sparse matrix can be CSC, CSR, COO,
+            DOK, or LIL. COO, DOK, and LIL are converted to CSR.
+        Returns
+        -------
+        y : ndarray of shape (n_samples,)
+            The predicted regression values.
+        )
+AdaBoostRegressor.predictc
+Return staged predictions for X.
+        The predicted regression value of an input sample is computed
+        as the weighted median prediction of the regressors in the ensemble.
+        This generator method yields the ensemble prediction after each
+        iteration of boosting and therefore allows monitoring, such as to
+        determine the prediction on a test set after each boost.
+        Parameters
+        ----------
+        X : {array-like, sparse matrix} of shape (n_samples, n_features)
+            The training input samples.
+        Yields
+        ------
+        y : generator of ndarray of shape (n_samples,)
+            The predicted regression values.
+        r
+	enumerater<
+z AdaBoostRegressor.staged_predict)
+)(r[
+abcr
+numpyr9
+scipy.specialr
+_baser
+baser
+treer
+utilsr
+utils.extmathr
+metricsr
+utils.validationr
+__all__r
+<module>

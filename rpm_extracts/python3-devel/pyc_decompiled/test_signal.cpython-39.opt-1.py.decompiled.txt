@@ -1,0 +1,908 @@
+l	Z	d
+Z"d!d"
+Z#e$d#k
+support)
+assert_python_ok
+spawn_pythonc
+GenericTestsc
+SIG_DFL
+SIG_IGN>
+	SIG_BLOCK
+SIG_UNBLOCK
+SIG_SETMASKZ
+SIGZ
+SIG_Z
+CTRL_
+win32)
+signal
+getattr
+assertIsInstance
+HandlersZ
+Sigmasks
+startswith
+Signals
+assertEqual
+platform)
+self
+name
+(/usr/lib64/python3.9/test/test_signal.py
+test_enums
+GenericTests.test_enumsN)
+__name__
+__module__
+__qualname__r
+Not valid on Windowsc
+PosixTestsc
+argsr
+trivial_signal_handler&
+z!PosixTests.trivial_signal_handlerc
+assertRaises
+ValueErrorr
+	getsignalr#
+	strsignal
+,test_out_of_range_signal_number_raises_error)
+z7PosixTests.test_out_of_range_signal_number_raises_errorc
+	TypeErrorr
+SIGUSR1r(
+0test_setting_signal_handler_to_none_raises_error1
+z;PosixTests.test_setting_signal_handler_to_none_raises_errorc
+SIGHUPr#
+hupr
+test_getsignal5
+PosixTests.test_getsignalc
+NZ	InterruptZ
+TerminatedZ
+Hangup)
+assertInr
+SIGINT
+SIGTERMr-
+test_strsignal=
+PosixTests.test_strsignalc
+signalinterproctester.py)
+path
+dirname
+__file__
+joinr
+scriptr
+test_interprocess_signalC
+z#PosixTests.test_interprocess_signalc
+valid_signalsr
+setr/
+SIGALRM
+assertNotIn
+NSIG
+assertLess
+test_valid_signalsH
+PosixTests.test_valid_signals
+sys.executable required.c
+z+KeyboardInterrupt triggers exit via SIGINT.
+-czaimport os, signal, time
+os.kill(os.getpid(), signal.SIGINT)
+for _ in range(999): time.sleep(0.01)
+stderr
+KeyboardInterruptN)
+subprocess
+runr
+executable
+PIPEr/
+returncoder
+processr
+!test_keyboard_interrupt_exit_codeQ
+z,PosixTests.test_keyboard_interrupt_exit_codeN)
+unittest
+skipUnlessr
+Windows specificc
+WindowsSignalTestsc
+assertGreaterEqualr@
+z%WindowsSignalTests.test_valid_signalsc
+<lambda>p
+z3WindowsSignalTests.test_issue9324.<locals>.<lambda>
+SIGABRTZ
+SIGBREAK
+SIGFPE
+SIGILLr0
+SIGSEGVr1
+assertTruer$
+handler
+checkedr
+test_issue9324n
+z!WindowsSignalTests.test_issue9324rD
+z?KeyboardInterrupt triggers an exit using STATUS_CONTROL_C_EXIT.rE
+raise KeyboardInterruptrF
+N)	rI
+STATUS_CONTROL_C_EXITr
+z4WindowsSignalTests.test_keyboard_interrupt_exit_codeN)
+WakeupFDTestsc
+signumF)
+set_wakeup_fdr0
+test_invalid_call
+WakeupFDTests.test_invalid_callc
+make_bad_fdr$
+OSErrorr
+test_invalid_fd
+WakeupFDTests.test_invalid_fdc
+socket
+fileno
+closer$
+sockrh
+test_invalid_socket
+z!WakeupFDTests.test_invalid_socketc
+set_blockingFrX
+)	r3
+pipe
+addCleanuprl
+hasattrrn
+test_set_wakeup_fd_result
+z'WakeupFDTests.test_set_wakeup_fd_resultc
+NFrX
+setblockingrk
+sock1Z
+fd1Z
+sock2Z
+fd2r
+ test_set_wakeup_fd_socket_result
+z.WakeupFDTests.test_set_wakeup_fd_socket_resultr
+tests specific to POSIXc
+NTz&the fd %s must be in non-blocking modeFrX
+	exception)
+rfdZ
+test_set_wakeup_fd_blocking
+z)WakeupFDTests.test_set_wakeup_fd_blockingN)
+skipIfr
+WakeupSignalTestsN
+need _testcapiT
+orderedc
+if 1:
+        import _testcapi
+        import os
+        import signal
+        import struct
+        signals = {!r}
+        def handler(signum, frame):
+            pass
+        def check_signum(signals):
+            data = os.read(read, len(signals)+1)
+            raised = struct.unpack('%uB' % len(data), data)
+            if not {!r}:
+                raised = set(raised)
+                signals = set(signals)
+            if raised != signals:
+                raise Exception("%r != %r" % (raised, signals))
+        {}
+        signal.signal(signal.SIGALRM, handler)
+        read, write = os.pipe()
+        os.set_blocking(write, False)
+        signal.set_wakeup_fd(write)
+        test()
+        check_signum(signals)
+        os.close(read)
+        os.close(write)
+        rE
+format
+tuple
+intr
+Z	test_bodyr|
+signals
+coder
+check_wakeup
+WakeupSignalTests.check_wakeupc
+if 1:
+        import _testcapi
+        import errno
+        import os
+        import signal
+        import sys
+        from test.support import captured_stderr
+        def handler(signum, frame):
+            1/0
+        signal.signal(signal.SIGALRM, handler)
+        r, w = os.pipe()
+        os.set_blocking(r, False)
+        # Set wakeup_fd a read-only file descriptor to trigger the error
+        signal.set_wakeup_fd(r)
+        try:
+            with captured_stderr() as err:
+                signal.raise_signal(signal.SIGALRM)
+        except ZeroDivisionError:
+            # An ignored exception should have been printed out on stderr
+            err = err.getvalue()
+            if ('Exception ignored when trying to write to the signal wakeup fd'
+                not in err):
+                raise AssertionError(err)
+            if ('OSError: [Errno %d]' % errno.EBADF) not in err:
+                raise AssertionError(err)
+        else:
+            raise AssertionError("ZeroDivisionError not raised")
+        os.close(r)
+        os.close(w)
+        
+xz9OS doesn't report write() error on the read end of a piperE
+writerg
+skipTestrl
+test_wakeup_write_error
+z)WakeupSignalTests.test_wakeup_write_errorc
+def test():
+            import select
+            import time
+            TIMEOUT_FULL = 10
+            TIMEOUT_HALF = 5
+            class InterruptSelect(Exception):
+                pass
+            def handler(signum, frame):
+                raise InterruptSelect
+            signal.signal(signal.SIGALRM, handler)
+            signal.alarm(1)
+            # We attempt to get a signal during the sleep,
+            # before select is called
+            try:
+                select.select([], [], [], TIMEOUT_FULL)
+            except InterruptSelect:
+                pass
+            else:
+                raise Exception("select() was not interrupted")
+            before_time = time.monotonic()
+            select.select([read], [], [], TIMEOUT_FULL)
+            after_time = time.monotonic()
+            dt = after_time - before_time
+            if dt >= TIMEOUT_HALF:
+                raise Exception("%s >= %s" % (dt, TIMEOUT_HALF))
+        
+test_wakeup_fd_early<
+z&WakeupSignalTests.test_wakeup_fd_earlyc
+def test():
+            import select
+            import time
+            TIMEOUT_FULL = 10
+            TIMEOUT_HALF = 5
+            class InterruptSelect(Exception):
+                pass
+            def handler(signum, frame):
+                raise InterruptSelect
+            signal.signal(signal.SIGALRM, handler)
+            signal.alarm(1)
+            before_time = time.monotonic()
+            # We attempt to get a signal during the select call
+            try:
+                select.select([read], [], [], TIMEOUT_FULL)
+            except InterruptSelect:
+                pass
+            else:
+                raise Exception("select() was not interrupted")
+            after_time = time.monotonic()
+            dt = after_time - before_time
+            if dt >= TIMEOUT_HALF:
+                raise Exception("%s >= %s" % (dt, TIMEOUT_HALF))
+        r
+test_wakeup_fd_during^
+z'WakeupSignalTests.test_wakeup_fd_duringc
+def test():
+            signal.signal(signal.SIGUSR1, handler)
+            signal.raise_signal(signal.SIGUSR1)
+            signal.raise_signal(signal.SIGALRM)
+        )
+test_signum|
+WakeupSignalTests.test_signum
+pthread_sigmask
+need signal.pthread_sigmask()c
+def test():
+            signum1 = signal.SIGUSR1
+            signum2 = signal.SIGUSR2
+            signal.signal(signum1, handler)
+            signal.signal(signum2, handler)
+            signal.pthread_sigmask(signal.SIG_BLOCK, (signum1, signum2))
+            signal.raise_signal(signum1)
+            signal.raise_signal(signum2)
+            # Unblocking the 2 signals calls the C signal handler twice
+            signal.pthread_sigmask(signal.SIG_UNBLOCK, (signum1, signum2))
+        Fr{
+SIGUSR2r(
+test_pending
+WakeupSignalTests.test_pending)
+	_testcapir
+socketpairz
+need socket.socketpairc
+WakeupSocketSignalTestsNrz
+if 1:
+        import signal
+        import socket
+        import struct
+        import _testcapi
+        signum = signal.SIGINT
+        signals = (signum,)
+        def handler(signum, frame):
+            pass
+        signal.signal(signum, handler)
+        read, write = socket.socketpair()
+        write.setblocking(False)
+        signal.set_wakeup_fd(write.fileno())
+        signal.raise_signal(signum)
+        data = read.recv(1)
+        if not data:
+            raise Exception("no signum written")
+        raised = struct.unpack('B', data)
+        if raised != signals:
+            raise Exception("%r != %r" % (raised, signals))
+        read.close()
+        write.close()
+        rE
+test_socket
+z#WakeupSocketSignalTests.test_socketc
+sendr
+if 1:
+        import errno
+        import signal
+        import socket
+        import sys
+        import time
+        import _testcapi
+        from test.support import captured_stderr
+        signum = signal.SIGINT
+        def handler(signum, frame):
+            pass
+        signal.signal(signum, handler)
+        read, write = socket.socketpair()
+        read.setblocking(False)
+        write.setblocking(False)
+        signal.set_wakeup_fd(write.fileno())
+        # Close sockets: send() will fail
+        read.close()
+        write.close()
+        with captured_stderr() as err:
+            signal.raise_signal(signum)
+        err = err.getvalue()
+        if ('Exception ignored when trying to {action} to the signal wakeup fd'
+            not in err):
+            raise AssertionError(err)
+        
+actionrE
+test_send_error
+"z'WakeupSocketSignalTests.test_send_errorc
+if 1:
+        import errno
+        import signal
+        import socket
+        import sys
+        import time
+        import _testcapi
+        from test.support import captured_stderr
+        signum = signal.SIGINT
+        # This handler will be called, but we intentionally won't read from
+        # the wakeup fd.
+        def handler(signum, frame):
+            pass
+        signal.signal(signum, handler)
+        read, write = socket.socketpair()
+        # Fill the socketpair buffer
+        if sys.platform == 'win32':
+            # bpo-34130: On Windows, sometimes non-blocking send fails to fill
+            # the full socketpair buffer, so use a timeout of 50 ms instead.
+            write.settimeout(0.050)
+        else:
+            write.setblocking(False)
+        # Start with large chunk size to reduce the
+        # number of send needed to fill the buffer.
+        written = 0
+        for chunk_size in (2 ** 16, 2 ** 8, 1):
+            chunk = b"x" * chunk_size
+            try:
+                while True:
+                    write.send(chunk)
+                    written += chunk_size
+            except (BlockingIOError, socket.timeout):
+                pass
+        print(f"%s bytes written into the socketpair" % written, flush=True)
+        write.setblocking(False)
+        try:
+            write.send(b"x")
+        except BlockingIOError:
+            # The socketpair buffer seems full
+            pass
+        else:
+            raise AssertionError("%s bytes failed to fill the socketpair "
+                                 "buffer" % written)
+        # By default, we get a warning when a signal arrives
+        msg = ('Exception ignored when trying to {action} '
+               'to the signal wakeup fd')
+        signal.set_wakeup_fd(write.fileno())
+        with captured_stderr() as err:
+            signal.raise_signal(signum)
+        err = err.getvalue()
+        if msg not in err:
+            raise AssertionError("first set_wakeup_fd() test failed, "
+                                 "stderr: %r" % err)
+        # And also if warn_on_full_buffer=True
+        signal.set_wakeup_fd(write.fileno(), warn_on_full_buffer=True)
+        with captured_stderr() as err:
+            signal.raise_signal(signum)
+        err = err.getvalue()
+        if msg not in err:
+            raise AssertionError("set_wakeup_fd(warn_on_full_buffer=True) "
+                                 "test failed, stderr: %r" % err)
+        # But not if warn_on_full_buffer=False
+        signal.set_wakeup_fd(write.fileno(), warn_on_full_buffer=False)
+        with captured_stderr() as err:
+            signal.raise_signal(signum)
+        err = err.getvalue()
+        if err != "":
+            raise AssertionError("set_wakeup_fd(warn_on_full_buffer=False) "
+                                 "test failed, stderr: %r" % err)
+        # And then check the default again, to make sure warn_on_full_buffer
+        # settings don't leak across calls.
+        signal.set_wakeup_fd(write.fileno())
+        with captured_stderr() as err:
+            signal.raise_signal(signum)
+        err = err.getvalue()
+        if msg not in err:
+            raise AssertionError("second set_wakeup_fd() test failed, "
+                                 "stderr: %r" % err)
+        r
+test_warn_on_full_buffer
+dz0WakeupSocketSignalTests.test_warn_on_full_buffer)	r
+SiginterruptTestc
+Perform a read during which a signal will arrive.  Return True if the
+        read is interrupted by the signal and raises an exception.  Return False
+        if it returns normally.
+        a
+if 1:
+            import errno
+            import os
+            import signal
+            import sys
+            interrupt = %r
+            r, w = os.pipe()
+            def handler(signum, frame):
+                1 / 0
+            signal.signal(signal.SIGALRM, handler)
+            if interrupt is not None:
+                signal.siginterrupt(signal.SIGALRM, interrupt)
+            print("ready")
+            sys.stdout.flush()
+            # run the test twice
+            try:
+                for loop in range(2):
+                    # send a SIGALRM in a second (during the read)
+                    signal.alarm(1)
+                    try:
+                        # blocking call: read from a pipe without data
+                        os.read(r, 1)
+                    except ZeroDivisionError:
+                        pass
+                    else:
+                        sys.exit(2)
+                sys.exit(3)
+            finally:
+                os.close(r)
+                os.close(w)
+        rE
+timeoutNF)
+Child error (exit code %s): %rr
+stdout
+readline
+communicater
+SHORT_TIMEOUTrI
+TimeoutExpired
+kill
+wait
+	Exception)
+Z	interruptr
+first_liner
+exitcoder
+readpipe_interruptedX
+z%SiginterruptTest.readpipe_interruptedc
+interruptedr
+test_without_siginterrupt
+z*SiginterruptTest.test_without_siginterruptc
+test_siginterrupt_on
+z%SiginterruptTest.test_siginterrupt_onc
+assertFalser
+test_siginterrupt_off
+z&SiginterruptTest.test_siginterrupt_offN)
+ItimerTestc
+hndl_called
+hndl_count
+itimerr
+sig_alrm
+	old_alarmr(
+setUp
+ItimerTest.setUpc
+	setitimerr(
+tearDown
+ItimerTest.tearDownc
+ItimerTest.sig_alrmc
+z.setitimer didn't disable ITIMER_VIRTUAL timer.r
+ItimerErrorr
+ITIMER_VIRTUALr!
+sig_vtalrm
+ItimerTest.sig_vtalrmc
+ITIMER_PROFr!
+sig_prof
+ItimerTest.sig_profc
+test_itimer_exc
+ItimerTest.test_itimer_excc
+ITIMER_REALr
+pauser
+test_itimer_real
+ItimerTest.test_itimer_real)
+netbsd5zDitimer not reliable (does not mix well with threading) on some BSDs.c
+r0qjq0|
+Ng333333
+8timeout: likely cause: machine too slow or load too highT)
+	SIGVTALRMr
+time
+	monotonic
+	getitimerr
+start_time
+test_itimer_virtual
+ItimerTest.test_itimer_virtualc
+r0qjq0|
+)	Nr
+SIGPROFr
+test_itimer_prof
+ItimerTest.test_itimer_profc
+sleepr
+test_setitimer_tiny
+ItimerTest.test_setitimer_tinyN)
+d d!
+d"d#
+d$d%
+d&d'
+d(d)
+d*d+
+PendingSignalsTestsz[
+    Test pthread_sigmask(), pthread_kill(), sigpending() and sigwait()
+    functions.
+    
+sigpendingz
+need signal.sigpending()c
+test_sigpending_empty
+z)PendingSignalsTests.test_sigpending_emptyr
+if 1:
+            import os
+            import signal
+            def handler(signum, frame):
+                1/0
+            signum = signal.SIGUSR1
+            signal.signal(signum, handler)
+            signal.pthread_sigmask(signal.SIG_BLOCK, [signum])
+            os.kill(os.getpid(), signum)
+            pending = signal.sigpending()
+            for sig in pending:
+                assert isinstance(sig, signal.Signals), repr(pending)
+            if pending != {signum}:
+                raise Exception('%s != {%s}' % (pending, signum))
+            try:
+                signal.pthread_sigmask(signal.SIG_UNBLOCK, [signum])
+            except ZeroDivisionError:
+                pass
+            else:
+                raise Exception("ZeroDivisionError not raised")
+        rE
+test_sigpending
+z#PendingSignalsTests.test_sigpending
+pthread_killz
+need signal.pthread_kill()c
+if 1:
+            import signal
+            import threading
+            import sys
+            signum = signal.SIGUSR1
+            def handler(signum, frame):
+                1/0
+            signal.signal(signum, handler)
+            tid = threading.get_ident()
+            try:
+                signal.pthread_kill(tid, signum)
+            except ZeroDivisionError:
+                pass
+            else:
+                raise Exception("ZeroDivisionError not raised")
+        rE
+test_pthread_kill9
+z%PendingSignalsTests.test_pthread_killc
+        test: body of the "def test(signum):" function.
+        blocked: number of the blocked signal
+        aw
+if 1:
+        import signal
+        import sys
+        from signal import Signals
+        def handler(signum, frame):
+            1/0
+        %s
+        blocked = %s
+        signum = signal.SIGALRM
+        # child: block and wait the signal
+        try:
+            signal.signal(signum, handler)
+            signal.pthread_sigmask(signal.SIG_BLOCK, [blocked])
+            # Do the tests
+            test(signum)
+            # The handler must not be called on unblock
+            try:
+                signal.pthread_sigmask(signal.SIG_UNBLOCK, [blocked])
+            except ZeroDivisionError:
+                print("the signal handler has been called",
+                      file=sys.stderr)
+                sys.exit(1)
+        except BaseException as err:
+            print("error: {}".format(err), file=sys.stderr)
+            sys.stderr.flush()
+            sys.exit(1)
+        rE
+stripr
+blocked
+testr
+wait_helperR
+PendingSignalsTests.wait_helper
+sigwaitz
+need signal.sigwait()c
+        def test(signum):
+            signal.alarm(1)
+            received = signal.sigwait([signum])
+            assert isinstance(received, signal.Signals), received
+            if received != signum:
+                raise Exception('received %s, not %s' % (received, signum))
+        
+test_sigwait
+z PendingSignalsTests.test_sigwait
+sigwaitinfoz
+need signal.sigwaitinfo()c
+        def test(signum):
+            signal.alarm(1)
+            info = signal.sigwaitinfo([signum])
+            if info.si_signo != signum:
+                raise Exception("info.si_signo != %s" % signum)
+        r
+test_sigwaitinfo
+z$PendingSignalsTests.test_sigwaitinfo
+sigtimedwaitz
+need signal.sigtimedwait()c
+        def test(signum):
+            signal.alarm(1)
+            info = signal.sigtimedwait([signum], 10.1000)
+            if info.si_signo != signum:
+                raise Exception('info.si_signo != %s' % signum)
+        r
+test_sigtimedwait
+z%PendingSignalsTests.test_sigtimedwaitc
+        def test(signum):
+            import os
+            os.kill(os.getpid(), signum)
+            info = signal.sigtimedwait([signum], 0)
+            if info.si_signo != signum:
+                raise Exception('info.si_signo != %s' % signum)
+        r
+test_sigtimedwait_poll
+z*PendingSignalsTests.test_sigtimedwait_pollc
+        def test(signum):
+            received = signal.sigtimedwait([signum], 1.0)
+            if received is not None:
+                raise Exception("received=%r" % (received,))
+        r
+test_sigtimedwait_timeout
+z-PendingSignalsTests.test_sigtimedwait_timeoutc
+"test_sigtimedwait_negative_timeout
+z6PendingSignalsTests.test_sigtimedwait_negative_timeoutc
+if True:
+            import os, threading, sys, time, signal
+            # the default handler terminates the process
+            signum = signal.SIGUSR1
+            def kill_later():
+                # wait until the main thread is waiting in sigwait()
+                time.sleep(1)
+                os.kill(os.getpid(), signum)
+            # the signal must be blocked by all the threads
+            signal.pthread_sigmask(signal.SIG_BLOCK, [signum])
+            killer = threading.Thread(target=kill_later)
+            killer.start()
+            received = signal.sigwait([signum])
+            if received != signum:
+                print("sigwait() received %s, not %s" % (received, signum),
+                      file=sys.stderr)
+                sys.exit(1)
+            killer.join()
+            # unblock the signal, which should have been cleared by sigwait()
+            signal.pthread_sigmask(signal.SIG_UNBLOCK, [signum])
+        r
+test_sigwait_thread
+	z'PendingSignalsTests.test_sigwait_threadc
+test_pthread_sigmask_arguments
+z2PendingSignalsTests.test_pthread_sigmask_argumentsc
+assertLessEqualrA
+"test_pthread_sigmask_valid_signals
+z6PendingSignalsTests.test_pthread_sigmask_valid_signalsc
+Na-	
+if 1:
+        import signal
+        import os; import threading
+        def handler(signum, frame):
+            1/0
+        def kill(signum):
+            os.kill(os.getpid(), signum)
+        def check_mask(mask):
+            for sig in mask:
+                assert isinstance(sig, signal.Signals), repr(sig)
+        def read_sigmask():
+            sigmask = signal.pthread_sigmask(signal.SIG_BLOCK, [])
+            check_mask(sigmask)
+            return sigmask
+        signum = signal.SIGUSR1
+        # Install our signal handler
+        old_handler = signal.signal(signum, handler)
+        # Unblock SIGUSR1 (and copy the old mask) to test our signal handler
+        old_mask = signal.pthread_sigmask(signal.SIG_UNBLOCK, [signum])
+        check_mask(old_mask)
+        try:
+            kill(signum)
+        except ZeroDivisionError:
+            pass
+        else:
+            raise Exception("ZeroDivisionError not raised")
+        # Block and then raise SIGUSR1. The signal is blocked: the signal
+        # handler is not called, and the signal is now pending
+        mask = signal.pthread_sigmask(signal.SIG_BLOCK, [signum])
+        check_mask(mask)
+        kill(signum)
+        # Check the new mask
+        blocked = read_sigmask()
+        check_mask(blocked)
+        if signum not in blocked:
+            raise Exception("%s not in %s" % (signum, blocked))
+        if old_mask ^ blocked != {signum}:
+            raise Exception("%s ^ %s != {%s}" % (old_mask, blocked, signum))
+        # Unblock SIGUSR1
+        try:
+            # unblock the pending signal calls immediately the signal handler
+            signal.pthread_sigmask(signal.SIG_UNBLOCK, [signum])
+        except ZeroDivisionError:
+            pass
+        else:
+            raise Exception("ZeroDivisionError not raised")
+        try:
+            kill(signum)
+        except ZeroDivisionError:
+            pass
+        else:
+            raise Exception("ZeroDivisionError not raised")
+        # Check the new mask
+        unblocked = read_sigmask()
+        if signum in unblocked:
+            raise Exception("%s in %s" % (signum, unblocked))
+        if blocked ^ unblocked != {signum}:
+            raise Exception("%s ^ %s != {%s}" % (blocked, unblocked, signum))
+        if old_mask != unblocked:
+            raise Exception("%s != %s" % (old_mask, unblocked))
+        rE
+test_pthread_sigmask
+Hz(PendingSignalsTests.test_pthread_sigmaskc
+if True:
+            import threading
+            import signal
+            import sys
+            def handler(signum, frame):
+                sys.exit(3)
+            signal.signal(signal.SIGUSR1, handler)
+            signal.pthread_kill(threading.get_ident(), signal.SIGUSR1)
+            sys.exit(2)
+        rE
+Child error (exit code %s): %s)
+test_pthread_kill_main_threadE
+z1PendingSignalsTests.test_pthread_kill_main_threadN)
+__doc__rP
+StressTestz
+    Stress signal delivery, especially when a signal arrives in
+    the middle of recomputing the signal state or executing
+    previously tripped signal handlers.
+    c
+old_handlerr
+setsigf
+StressTest.setsigc
+appendr
+perf_counterr
+frame
+timesr
+z5StressTest.measure_itimer_resolution.<locals>.handlerr
+MbP?c
+<listcomp>|
+z8StressTest.measure_itimer_resolution.<locals>.<listcomp>r
+z,detected median itimer() resolution: %.6f s.)
+range
+statisticsZ
+medianr
+verbose
+print)
+Z	durationsZ
+medr
+measure_itimer_resolutionj
+z$StressTest.measure_itimer_resolutionc
+Ng-C
+z^detected itimer resolution (%.3f s.) too high (> 10 ms.) on this platform (or system too busy))
+resor
+decide_itimer_count
+StressTest.decide_itimer_countr
+test needs setitimer()c
+        This test uses dependent signal handlers.
+        c
+randomr
+first_handler
+z@StressTest.test_stress_delivery_dependent.<locals>.first_handlerNc
+sigsr
+second_handler
+zAStressTest.test_stress_delivery_dependent.<locals>.second_handlerr
+Some signals were lost)
+getpidr@
+expected_sigs
+deadliner
+test_stress_delivery_dependent
+z)StressTest.test_stress_delivery_dependentc
+)	z>
+        This test uses simultaneous signal handlers.
+        c
+z=StressTest.test_stress_delivery_simultaneous.<locals>.handlerr
+!test_stress_delivery_simultaneous
+z,StressTest.test_stress_delivery_simultaneousr+
+test needs SIGUSR1c
+num_received_signalsr
+custom_handler
+zAStressTest.test_stress_modifying_handlers.<locals>.custom_handlerc
+raise_signalr
+do_stop
+num_sent_signalsrd
+set_interrupts
+zAStressTest.test_stress_modifying_handlers.<locals>.set_interruptsc
+cycle_handlers
+zAStressTest.test_stress_modifying_handlers.<locals>.cycle_handlers)
+targetTz
+Signal z
+ ignored due to race condition)
+	threadingZ
+Threadr
+catch_unraisable_exception
+startr7
+unraisabler
+	exc_valuerg
+assertGreaterr?
+ignoredrv
+test_stress_modifying_handlers
+z)StressTest.test_stress_modifying_handlersN)
+Z	d	S
+RaiseSignalTestc
+KeyboardInterruptr
+test_sigint
+RaiseSignalTest.test_sigintr
+Windows specific testc
+z#OSError (Invalid argument) expected)
+failrg
+errnoZ
+EINVAL)
+test_invalid_argument 
+z%RaiseSignalTest.test_invalid_argumentc
+is_okr
+z-RaiseSignalTest.test_handler.<locals>.handler)
+old_signalr
+test_handler,
+RaiseSignalTest.test_handlerN)
+PidfdSignalTest
+pidfd_send_signalz
+pidfd support not built inc
+kernel does not support pidfdsz"Not enough privileges to use pidfsz
+/proc/z
+^siginfo must be None$)
+ENOSYSr
+EPERMr
+EBADFr3
+openr
+O_DIRECTORYrp
+assertRaisesRegexr*
+objectr!
+my_pidfdr
+test_pidfd_send_signal:
+z&PidfdSignalTest.test_pidfd_send_signalN)
+reap_childrenr
+tearDownModuleM
+__main__)&r#
+test.support.script_helperr
+ImportErrorZ
+TestCaser
+mainr
+<module>

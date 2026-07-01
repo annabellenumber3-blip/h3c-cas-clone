@@ -1,0 +1,439 @@
+m	Z	m
+m Z 
+l!m"Z"
+l#m$Z$
+d"d#
+Z(d$d%
+Z)d&d
+d(d)
+Z*d[d
+d&d+
+d,d-
+Z+d\d
+d/d&d0
+d1d2
+Z,d]d
+d5d6
+Z-d^d
+d7d8
+d9d:
+Z.d7d!
+d;d<
+Z/d_d=d>d=d?
+d@dA
+Z0d`d/dB
+dCdD
+Z1d&d7dEdFdGdH
+dIdJ
+Z2dKdLdMdN
+dOdP
+Z3dad&dQd&dR
+dSdT
+Z4dbd&d
+dVdW
+Z5d&d&d
+dYdZ
+)cz+ miscellaneous sorting / groupby utilities 
+annotations)
+defaultdict)
+TYPE_CHECKING
+Callable
+DefaultDict
+Iterable
+SequenceN)
+algos
+	hashtable
+lib)
+unique_label_indices)
+IndexKeyFunc
+Shape)
+ensure_int64
+ensure_platform_int
+is_extension_array_dtype)
+ABCMultiIndex
+ABCRangeIndex)
+isna)
+extract_array)
+MultiIndex
+Indexr
+z!str | int | list[str] | list[int]z!Sequence[bool | int] | bool | int
+boolr
+np.ndarray | None)
+target
+level
+	ascending
+kind
+na_position
+sort_remaining
+returnc
+    Helper method that return the indexer according to input parameters for
+    the sort_index method of DataFrame and Series.
+    Parameters
+    ----------
+    target : Index
+    level : int or level name or list of ints or list of level names
+    ascending : bool or list of bools, default True
+    kind : {'quicksort', 'mergesort', 'heapsort', 'stable'}, default 'quicksort'
+    na_position : {'first', 'last'}, default 'last'
+    sort_remaining : bool, default True
+    key : callable, optional
+    Returns
+    -------
+    Optional[ndarray]
+        The indexer for the new index.
+    )
+levelsN)
+ordersr
+ensure_key_mappedZ
+_sort_levels_monotonicZ	sortlevel
+isinstancer
+lexsort_indexerZ
+_get_codes_for_sortingZ
+is_monotonic_increasingZ
+is_monotonic_decreasing
+nargsort)	r
+indexer
+9/usr/lib64/python3.9/site-packages/pandas/core/sorting.py
+get_indexer_indexer,
+shape
+sort
+xnullc
+qxt	|
+    For the particular label_list, gets the offsets into the hypothetical list
+    representing the totally ordered cartesian product of all possible label
+    combinations, *as long as* this space fits within int64 bounds;
+    otherwise, though group indices identify unique combinations of
+    labels, they cannot be deconstructed.
+    - If `sort`, rank of returned ids preserve lexical ranks of labels.
+      i.e. returned id's can be used to do lexical sort on labels;
+    - If `xnull` nulls (-1 labels) are passed through.
+    Parameters
+    ----------
+    labels : sequence of arrays
+        Integers identifying levels at each location
+    shape : tuple[int, ...]
+        Number of unique levels at each location
+    sort : bool
+        If the ranks of returned ids should match lexical ranks of labels
+    xnull : bool
+        If true nulls are excluded. i.e. -1 values in the labels are
+        passed through.
+    Returns
+    -------
+    An array of type int64 where two elements are equal if their corresponding
+    labels are equal at all location.
+    Notes
+    -----
+    The length of `labels` and `shape` must be identical.
+    
+	enumerater1
+i8max
+len)
+mulr+
+_int64_cut_off
+z'get_group_index.<locals>._int64_cut_offz
+tuple[np.ndarray, int]c
+any)
+sizer+
+maybe_lift
+z#get_group_index.<locals>.maybe_liftc
+<listcomp>
+z#get_group_index.<locals>.<listcomp>r4
+dtyper
+subok
+copyr;
+listr5
+prod
+astype
+range
+int64r7
+compress_group_index)
+labelsr.
+lshaper8
+nlevZ
+stride
+mask
+comp_ids
+obs_idsr+
+get_group_indexa
+tuple[np.ndarray, np.ndarray])
+sizesr"
+    Group_index is offsets into cartesian product of all possible labels. This
+    space can be huge, so this function compresses it, by computing offsets
+    (comp_ids) into the list of unique labels (obs_group_ids).
+    Parameters
+    ----------
+    labels : list of label arrays
+    sizes : tuple[int] of size of the levels
+    Returns
+    -------
+    np.ndarray[np.intp]
+        comp_ids
+    np.ndarray[np.int64]
+        obs_group_ids
+    TF
+idsr+
+get_compressed_ids
+the_prodrC
+is_int64_overflow_possible
+Nz,cannot deconstruct factorized group indices!r4
+ValueError
+reversedrP
+putmask
+append)
+comp_labelsr.
+label_listZ
+factor
+decons_group_index
+np.ndarray)
+    Reconstruct labels from observed group ids.
+    Parameters
+    ----------
+    comp_ids : np.ndarray[np.intp]
+    xnull : bool
+        If nulls are excluded; i.e. -1 labels are passed through.
+    c
+	<genexpr>
+z'decons_obs_group_ids.<locals>.<genexpr>rF
+z(decons_obs_group_ids.<locals>.<listcomp>c
+FTrH
+intp
+)	rM
+fromiter
+asarrayr]
+liftrT
+decons_obs_group_ids
+compressr"
+NTFrZ
+maxrR
+get_group_index_sorter)
+ngroupsZ
+obsr+
+indexer_from_factorized
+lastz
+Callable | None)
+    Performs lexical sorting on a set of keys
+    Parameters
+    ----------
+    keys : sequence of arrays
+        Sequence of ndarrays to be sorted by the indexer
+    orders : bool or list of booleans, optional
+        Determines the sorting order for each element in keys. If a list,
+        it must be the same length as keys. This determines whether the
+        corresponding element in keys should be sorted in ascending
+        (True) or descending (False) order. if bool, applied to all
+        elements as above. if None, defaults to True.
+    na_position : {'first', 'last'}, default 'last'
+        Determines placement of NA elements in the sorted list ("last" or "first")
+    key : Callable, optional
+        Callable key function applied to every element in keys before sorting
+        .. versionadded:: 1.0.0
+    Returns
+    -------
+    np.ndarray[np.intp]
+    r
+CategoricalNTc
+z#lexsort_indexer.<locals>.<listcomp>)
+ordered)
+first
+invalid na_position: r;
+pandas.core.arraysrr
+categories
+codesrI
+wherer=
+tuple)
+keysr$
+order
+	quicksort
+    Intended to be a drop-in replacement for np.argsort which handles NaNs.
+    Adds ascending, na_position, and key parameters.
+    (GH #6399, #5231, #27237)
+    Parameters
+    ----------
+    kind : str, default 'quicksort'
+    ascending : bool, default True
+    na_position : {'first', 'last'}, default 'last'
+    key : Optional[Callable], default None
+    mask : Optional[np.ndarray], default None
+        Passed when called by ExtensionArray.argsort.
+    Returns
+    -------
+    np.ndarray[np.intp]
+    Nr
+argsortr
+asanyarray
+aranger7
+nonzeroZ
+concatenater^
+itemsr
+non_nans
+non_nan_idxZ
+nan_idxr*
+method
+axisc
+    Implementation of np.argmin/argmax but for ExtensionArray and which
+    handles missing values.
+    Parameters
+    ----------
+    values : ExtensionArray
+    method : {"argmax", "argmin"}
+    axis : int, default 0
+    Returns
+    -------
+    int
+    >
+argmin
+argmaxr
+_nanargminmax)
+funcr+
+nargminmax.<locals>.<listcomp>)
+_values_for_argsort
+ndimr=
+arrayr
+valuesr
+zippedr+
+nargminmax
+    See nanargminmax.__doc__.
+    r
+indexr!
+    Returns a new MultiIndex in which key has been applied
+    to all levels specified in level (or all levels if level
+    is None). Used for key sorting for MultiIndex.
+    Parameters
+    ----------
+    index : MultiIndex
+        Index to which to apply the key function on the
+        specified levels.
+    key : Callable
+        Function that takes an Index and returns an Index of
+        the same shape. This key is applied to each level
+        separately. The name of the level can be used to
+        distinguish different levels for application.
+    level : list-like, int or str, default None
+        Level or list of levels to apply the key function to.
+        If None, key function is applied to all levels. Other
+        levels are left unchanged.
+    Returns
+    -------
+    labels : MultiIndex
+        Resulting MultiIndex with modified levels.
+    Nc
+_get_level_number)
+lev)
+z1_ensure_key_mapped_multiindex.<locals>.<listcomp>c
+_get_level_values)
+sort_levelsr+
+nlevels
+typeZ
+from_arrays)
+mappedr+
+_ensure_key_mapped_multiindex
+    Applies a callable key function to the values function and checks
+    that the resulting value has the same shape. Can be called on Index
+    subclasses, Series, DataFrames, or ndarrays.
+    Parameters
+    ----------
+    values : Series, DataFrame, Index subclass, or ndarray
+    key : Optional[Callable], key to be called on the values array
+    levels : Optional[List], if values is a MultiIndex, list of levels to
+    apply the key to.
+    r
+zDUser-provided `key` function must not change the shape of the array.z6User-provided `key` function returned an invalid type z-             which could not be converted to 
+pandas.core.indexes.apir
+	TypeError)
+resultZ
+type_of_valuesr+
+Iterable[Index]z
+Iterable[np.ndarray]z
+list[tuple])
+qTq"d
+z%Map compressed group id -> key tuple.F)
+z&get_flattened_list.<locals>.<listcomp>)
+Int64HashTable
+maprP
+get_itemr
+)	rV
+arraysZ
+labsr
+tabler8
+get_flattened_list*
+list[np.ndarray]z
+list[Index]z
+dict[str | tuple, np.ndarray])
+    Returns
+    -------
+    dict:
+        Labels mapped to indexers.
+    c
+z$get_indexer_dict.<locals>.<listcomp>TrZ
+takerh
+sorterr+
+allr]
+indices_fast)
+group_indexro
+sorted_labelsr+
+get_indexer_dict;
+int | None)
+    algos.groupsort_indexer implements `counting sort` and it is at least
+    O(ngroups), where
+        ngroups = prod(shape)
+        shape = map(len, keys)
+    that is, linear in the number of combinations (cartesian product) of unique
+    values of groupby keys. This can be huge when doing multi-key groupby.
+    np.argsort(kind='mergesort') is O(count x log(count)) where count is the
+    length of the data-frame;
+    Both algorithms are `stable` sort and that is necessary for correctness of
+    groupby operations. e.g. consider:
+        df.groupby(key)[col].transform('first')
+    Parameters
+    ----------
+    group_index : np.ndarray[np.intp]
+        signed integer dtype
+    ngroups : int or None, default None
+    Returns
+    -------
+    np.ndarray[np.intp]
+    Nr4
+Z	mergesortr
+logr	
+groupsort_indexerr
+countZ
+alphaZ
+betaZ
+do_groupsortr
+    Group_index is offsets into cartesian product of all possible labels. This
+    space can be huge, so this function compresses it, by computing offsets
+    (comp_ids) into the list of unique labels (obs_group_ids).
+    r
+get_labels_groupby
+_reorder_by_uniques)
+Z	size_hintr
+obs_group_idsr+
+uniquesrS
+    Parameters
+    ----------
+    uniques : np.ndarray[np.int64]
+    labels : np.ndarray[np.intp]
+    Returns
+    -------
+    np.ndarray[np.int64]
+    np.ndarray[np.intp]
+    rG
+emptyr7
+putr
+reverse_indexerrU
+__doc__Z
+__future__r
+collectionsr
+typingr
+numpyrM
+pandas._libsr	
+pandas._libs.hashtabler
+pandas._typingr
+pandas.core.dtypes.commonr
+pandas.core.dtypes.genericr
+pandas.core.dtypes.missingr
+pandas.core.constructionr
+pandasr
+pandas.core.indexes.baser
+<module>

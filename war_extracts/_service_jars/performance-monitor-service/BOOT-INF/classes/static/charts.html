@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="css/bootstrap.min.css" rel="stylesheet" integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
+  <script src="js/echarts.min.js"></script>
+  <script src="js/jquery-3.7.1.min.js"></script>
+  <link href="css/flatpickr.min.css" rel="stylesheet">
+  <script src="js/flatpickr.js"></script>
+  <style>
+    .form-select {
+      width: 150px;
+      display: inline-block;
+    }
+    select {
+      box-shadow: none;
+    }
+    .control-group {
+      display: flex;
+      align-items: center;
+      margin-left: 20px;
+      margin-top: 20px;
+    }
+    .control-group label {
+      margin-right: 10px;
+      line-height: 38px;
+    }
+    #customTimeContainer {
+      display: flex;
+      margin-left: 20px;
+      align-items: center;
+    }
+    #customTimeContainer > label {
+      margin-right: 10px;
+    }
+    #refreshIntervalSelector {
+      float: right;
+      margin-right: 20px;
+    }
+  </style>
+</head>
+<body>
+  <button type="button" class="btn btn-primary btn-sm" id="jumpToIndex" onclick="jumpToIndex()" style="margin-left: 30px;">返回概览页</button>
+  <div style="display: inline-block;">
+    <div class="control-group">
+      <label for="timeRange">时间范围：</label>
+      <select id="timeRange" class="form-select">
+        <option value="realtime">实时</option>
+        <option value="lastHour">最近一小时</option>
+        <option value="lastTwoHours">最近两小时</option>
+        <option value="lastSixHours">最近六小时</option>
+        <option value="lastDay">最近一天</option>
+        <option value="lastTwoDays">最近两天</option>
+        <option value="lastThreeDays">最近三天</option>
+        <option value="custom">自定义</option>
+      </select>
+      <div id="customTimeContainer" style="display: none;">
+        <label for="startTime">起始时间：</label>
+        <input type="text" id="startTime" class="form-control" style="width: 160px;">
+        
+        <label for="endTime" style="margin-left: 10px;">结束时间：</label>
+        <input type="text" id="endTime" class="form-control" style="width: 160px;">
+      </div>
+      <div style="margin-left: 20px;" data-toggle="tooltip" title="刷新间隔：页面自动刷新间隔">
+        <label for="refreshIntervalSelector">刷新间隔：</label>
+        <select class="form-select" id="refreshIntervalSelector">
+          <option value="10">10s</option>
+          <option value="30">30s</option>
+          <option value="60">1min</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div id="chartsContainer" style="margin: 20px;"></div>
+
+  <script>
+    var refreshIntervalSelector = document.getElementById('refreshIntervalSelector');
+    var urlParams = new URLSearchParams(window.location.search);
+    // 提取service参数的值
+    var service = urlParams.get('service');
+    var timer;
+
+    function formatTime(timestamp, showFullDate = false) {
+      var date = new Date(timestamp * 1000); // 将时间戳转换为 JavaScript 的 Date 对象
+      var month = (date.getMonth() + 1).toString().padStart(2, '0');
+      var day = date.getDate().toString().padStart(2, '0');
+      var hours = date.getHours().toString().padStart(2, '0'); // 获取小时，并补足为两位数
+      var minutes = date.getMinutes().toString().padStart(2, '0'); // 获取分钟，并补足为两位数
+      var seconds = date.getSeconds().toString().padStart(2, '0'); // 获取秒，并补足为两位数
+      if (showFullDate) {
+        return month + '-' + day + '\n' + hours + ':' + minutes + ':' + seconds; // 显示月份和号数，然后换行显示时间
+      }
+      return hours + ':' + minutes + ':' + seconds; // 仅显示时间
+    }
+
+    function createChart(container, data, showFullDate) {
+      var chart = echarts.init(container);
+      var option = {
+        title: { text: data.title },
+        tooltip: {
+          backgroundColor: 'rgba(50,50,50,0.6)',
+          textStyle: { color: '#fff' },
+          trigger: 'axis',
+          formatter: function (params) {
+            var result = params[0].name.replace('\n', ' ') + '<br>';
+            for (var i = 0; i < params.length; i++) {
+              var value = params[i].value; // 获取原始数值
+              value = value + '%'; // 对数值添加百分号处理
+              result += params[i].seriesName + ': ' + value + '<br>';
+            }
+            return result;
+          }
+        },
+        xAxis: {
+          type: 'category',
+          data: data.lineDataX,
+          boundaryGap: false,
+          axisTick: { show: false }, // 是否显示刻度线false
+          axisLabel: {
+            formatter: function (value) {
+              if (showFullDate) {
+                var parts = value.split('\n');
+                return parts[0] + '\n' + parts[1];
+              } else {
+                return value;
+              }
+            }
+          }
+        },
+        yAxis: {
+          type: 'value', // 设置为数值轴
+          min: 0,
+          max: 100,
+          axisLine: { show: true }, // 是否显示轴线
+          axisLabel: { textStyle: { color: '#333' }}, // 设置刻度标签的文字颜色
+          splitLine: {
+            show: true, // 是否显示分隔线
+            lineStyle: { color: '#eee', type: 'dashed' } // 分隔线颜色,分隔线类型
+          },
+          axisTick: { show: false }
+        },
+        series: [{
+          name: data.title,
+          type: 'line',
+          symbol: 'none',
+          smooth: true,
+          data: data.lineDataY,
+          areaStyle: { color: 'rgba(0, 128, 255, 0.3)' }// 设置区域填充的颜色，这里使用了半透明的蓝色
+        }]
+      };
+      chart.setOption(option);
+    }
+
+    // 启动定时器函数
+    function startTimer(interval) {
+      timer = setInterval(fetchDataAndCreateCharts, interval * 1000);
+    }
+
+    // 清除定时器函数
+    function clearTimer() {
+      clearInterval(timer);
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      $(function () {
+        $('[data-toggle="tooltip"]').tooltip();
+      });
+
+      // flatpickr 初始化代码
+      const startTimeInput = flatpickr("#startTime", {
+        enableTime: true,
+        dateFormat: "Y-m-d H:i",
+        onChange: function(selectedDates, dateStr, instance) {
+          endTimeInput.set('minDate', dateStr);
+          checkCustomTime();
+        }
+      });
+
+      const endTimeInput = flatpickr("#endTime", {
+        enableTime: true,
+        dateFormat: "Y-m-d H:i",
+        onChange: function(selectedDates, dateStr, instance) {
+          startTimeInput.set('maxDate', dateStr);
+          checkCustomTime();
+        }
+      });
+
+      // 处理时间范围下拉框的变化
+      var timeRangeSelector = document.getElementById('timeRange');
+      timeRangeSelector.addEventListener('change', function() {
+        if (timeRangeSelector.value === 'custom') {
+          document.getElementById('customTimeContainer').style.display = 'flex';
+          document.getElementById('refreshIntervalSelector').parentElement.style.display = 'none';
+          startTimeInput.clear();
+          endTimeInput.clear();
+          clearTimer();
+        } else {
+          document.getElementById('customTimeContainer').style.display = 'none';
+          document.getElementById('refreshIntervalSelector').parentElement.style.display = 'block';
+          fetchDataAndCreateCharts();
+          clearTimer();
+          startTimer(refreshIntervalSelector.value);
+        }
+      });
+
+      refreshIntervalSelector.addEventListener('change', function() {
+        fetchDataAndCreateCharts();
+        clearTimer();
+        var selectedInterval = refreshIntervalSelector.value;
+        startTimer(selectedInterval);
+      });
+      // 设置样式为 Flexbox 布局
+      document.getElementById('chartsContainer').style.display = 'flex';
+      document.getElementById('chartsContainer').style.flexWrap = 'wrap';
+
+      // 启动初始定时器
+      fetchDataAndCreateCharts();
+      startTimer(refreshIntervalSelector.value);
+    });
+
+    function checkCustomTime() {
+      var startTimeVal = document.getElementById('startTime').value;
+      var endTimeVal = document.getElementById('endTime').value;
+      if (startTimeVal && endTimeVal) {
+        fetchDataAndCreateCharts();  // 当自定义时间范围都有值时，发起请求
+      }
+    }
+
+    function fetchDataAndCreateCharts() {
+      var endTime = Math.floor(Date.now() / 1000);
+      var startTime;
+      var showFullDate = false; // 是否显示完整日期和时间
+      let interval;
+
+      var timeRangeVal = document.getElementById('timeRange').value;
+      switch (timeRangeVal) {
+        case 'realtime':
+          interval = 30 * 60;
+          break;
+        case 'lastHour':
+          interval = 60 * 60;
+          break;
+        case 'lastTwoHours':
+          interval = 2 * 60 * 60;
+          break;
+        case 'lastSixHours':
+          interval = 6 * 60 * 60;
+          break;
+        case 'lastDay':
+          interval = 24 * 60 * 60;
+          break;
+        case 'lastTwoDays':
+          interval = 2 * 24 * 60 * 60;
+          showFullDate = true;
+          break;
+        case 'lastThreeDays':
+          interval = 3 * 24 * 60 * 60;
+          showFullDate = true;
+          break;
+        case 'custom':
+          var startTimeVal = document.getElementById('startTime').value;
+          var endTimeVal = document.getElementById('endTime').value;
+          if (!startTimeVal || !endTimeVal) {
+            return; // 自定义时间为空时，直接返回不下发请求
+          }
+          startTime = Math.floor(new Date(startTimeVal).getTime() / 1000);
+          endTime = Math.floor(new Date(endTimeVal).getTime() / 1000);
+          showFullDate = true;
+          break;
+        default:
+          interval = 30 * 60;
+      }
+
+      var requestData = {
+        start: startTime,
+        end: endTime,
+        service: service,
+        metric: '',
+        interval: interval
+      };
+
+      $.ajax({
+        url: '/performance/core-service-mon',
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        data: requestData,
+        success: function(data) {
+          var chartsContainer = document.getElementById('chartsContainer');
+          chartsContainer.innerHTML = '';
+          data.data.forEach(item => {
+            var chartContainer = document.createElement('div');
+            chartContainer.style.width = 'calc(40% - 20px)';
+            chartContainer.style.minWidth = '650px';
+            chartContainer.style.margin = '10px';
+            chartContainer.style.height = '300px';
+            chartsContainer.appendChild(chartContainer);
+            var echartsData = {
+              title: item.metricName, // 使用 metricName 作为标题
+              lineDataX: [],
+              lineDataY: [],
+            };
+            item.data.forEach(dataItem => {
+              echartsData.lineDataX.push(formatTime(dataItem.time, showFullDate));
+              echartsData.lineDataY.push(dataItem.value);
+            });
+            createChart(chartContainer, echartsData, showFullDate);
+          });
+        },
+        error: function() {
+          console.error('数据获取失败');
+        }
+      });
+    }
+    // 返回概览页
+    function jumpToIndex() {
+      window.location.href = 'index.html';
+    }
+  </script>
+</body>
+</html>

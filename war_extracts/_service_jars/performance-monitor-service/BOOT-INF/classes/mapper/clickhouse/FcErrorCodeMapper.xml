@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.h3c.h3cloud.performance.monitor.service.mapper.clickhouse.FcErrorCodeMapper">
+    <delete id ="deleteBeforeTime">
+        ALTER TABLE TBL_FC_STORAGE_ERROR_CODE DELETE WHERE TIME &lt; #{time}
+    </delete>
+    <select id="readCurrentFcErrorCode" resultType="com.h3c.h3cloud.common.model.performance.FcErrorCodeData">
+        SELECT  FEC.PHYSIC_PORT AS physicPort, FEC.ERROR_FRAMES AS errorFrames, FEC.INVALID_CRC_COUNT AS invalidCrcCount,
+        FEC.LOSS_OF_SIGNAL_COUNT AS lossOfSignalCount, FEC.LOSS_OF_SYNC_COUNT AS lossOfSyncCount,
+        FEC.LINK_FAILURE_COUNT AS linkFailureCount, FEC.INVALID_TX_WORD_COUNT AS invalidTxWordCount
+        FROM TBL_FC_STORAGE_ERROR_CODE FEC
+        WHERE HOST_ID = ${hostId} AND PHYSIC_PORT = #{physicPort} AND TIME = (SELECT MAX(TIME) FROM TBL_FC_STORAGE_ERROR_CODE)-${duration}
+    </select>
+    <select id="readPhysicPortFcErrorCodeByCondition" resultType="com.h3c.h3cloud.common.model.performance.FcErrorCodeData">
+        SELECT  FEC.PHYSIC_PORT AS physicPort, FEC.ERROR_FRAMES AS errorFrames, FEC.INVALID_CRC_COUNT AS invalidCrcCount,
+        FEC.LOSS_OF_SIGNAL_COUNT AS lossOfSignalCount, FEC.LOSS_OF_SYNC_COUNT AS lossOfSyncCount,
+        FEC.LINK_FAILURE_COUNT AS linkFailureCount, FEC.INVALID_TX_WORD_COUNT AS invalidTxWordCount, FEC.TIME AS time
+        FROM TBL_FC_STORAGE_ERROR_CODE FEC
+        WHERE PHYSIC_PORT = #{physicPort} AND TIME BETWEEN ${startTime} AND ${endTime}
+        <if test="operatorGroupCode!=null and operatorGroupCode!=''">
+            AND FEC.OP_GROUP_CODE LIKE #{operatorGroupCode}
+        </if>
+        ORDER BY TIME ASC
+    </select>
+    <select id="isFcErrorCodeExistsRecently" resultType="com.h3c.h3cloud.common.model.performance.FcErrorCodeStatisticsData">
+        SELECT SUM(ERROR_FRAMES) as errorFramesSum,  SUM(INVALID_CRC_COUNT) as invalidCrcCountSum, SUM(LOSS_OF_SIGNAL_COUNT) as lossOfSignalCountSum,
+        SUM(LOSS_OF_SYNC_COUNT) as lossOfSyncCountSum, SUM(LINK_FAILURE_COUNT) as linkFailureCountSum, SUM(INVALID_TX_WORD_COUNT) as invalidTxWordCountSum
+        FROM TBL_FC_STORAGE_ERROR_CODE
+        WHERE HOST_ID = ${hostId} AND PHYSIC_PORT = #{physicPort}
+        <if test="startTime!=null and startTime!=''">
+            AND TIME BETWEEN ${startTime} AND ${endTime}
+        </if>
+        GROUP BY HOST_ID, PHYSIC_PORT
+        LIMIT 0,${limit}
+    </select>
+</mapper>

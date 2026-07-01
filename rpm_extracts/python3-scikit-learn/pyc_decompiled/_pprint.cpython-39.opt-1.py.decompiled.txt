@@ -1,0 +1,211 @@
+ztThis module contains the _EstimatorPrettyPrinter class used in
+BaseEstimator.__repr__ for pretty-printing estimators
+OrderedDict
+BaseEstimator)
+get_config
+is_scalar_nanc
+KeyValTuplez@Dummy class for correctly rendering key-value tuples from dicts.c
+super
+__repr__)
+self
+	__class__
+;/usr/lib64/python3.9/site-packages/sklearn/utils/_pprint.pyr
+KeyValTuple.__repr__)
+__name__
+__module__
+__qualname__
+__doc__r
+__classcell__r
+KeyValTupleParamzEDummy class for correctly rendering key-value tuples from parameters.N)
+)	zgReturn dict (param_name: value) of parameters that were given to
+    estimator with non-default values.F
+deepZ
+deprecated_originalc
+default)
+nameZ
+paramr
+<dictcomp>`
+z#_changed_params.<locals>.<dictcomp>c
+NTF)
+inspectZ
+_empty
+isinstancer
+reprr
+init_paramsr
+has_changedb
+z$_changed_params.<locals>.has_changedc
+get_params
+getattr
+__init__r
+Z	signature
+parameters
+items)
+Z	estimator
+paramsZ	init_funcr
+_changed_paramsY
+_EstimatorPrettyPrintera
+Pretty Printer class for estimator objects.
+    This extends the pprint.PrettyPrinter class, because:
+    - we need estimators to be printed with their parameters, e.g.
+      Estimator(param1=value1, ...) which is not supported by default.
+    - the 'compact' parameter of PrettyPrinter is ignored for dicts, which
+      may lead to very long representations that we want to avoid.
+    Quick overview of pprint.PrettyPrinter (see also
+    https://stackoverflow.com/questions/49565047/pprint-with-hex-numbers):
+    - the entry point is the _format() method which calls format() (overridden
+      here)
+    - format() directly calls _safe_repr() for a first try at rendering the
+      object
+    - _safe_repr formats the whole object recursively, only calling itself,
+      not caring about line length or anything
+    - back to _format(), if the output string is too long, _format() then calls
+      the appropriate _pprint_TYPE() method (e.g. _pprint_list()) depending on
+      the type of the object. This where the line length and the compact
+      parameters are taken into account.
+    - those _pprint_TYPE() methods will internally use the format() method for
+      rendering the nested objects of an object (e.g. the elements of a list)
+    In the end, everything has to be implemented twice: in _safe_repr and in
+    the custom _pprint_TYPE methods. Unfortunately PrettyPrinter is really not
+    straightforward to extend (especially when we want a compact output), so
+    the code is a bit convoluted.
+    This class overrides:
+    - format() to support the changed_only parameter
+    - _safe_repr to support printing of estimators (for when they fit on a
+      single line)
+    - _format_dict_items so that dict are correctly 'compacted'
+    - _format_items so that ellipsis is used on long lists and tuples
+    When estimators cannot be printed on a single line, the builtin _format()
+    will call _pprint_estimator() because it was registered to do so (see
+    _dispatch[BaseEstimator.__repr__] = _pprint_estimator).
+    both _format_dict_items() and _pprint_estimator() use the
+    _format_params_or_dict_items() method that will format parameters and
+    key-value pairs respecting the compact parameter. This method needs another
+    subroutine _pprint_key_val_tuple() used when a parameter or a key-value
+    pair is too long to fit on a single line. This subroutine is called in
+    _format() and is registered as well in the _dispatch dict (just like
+    _pprint_estimator). We had to create the two classes KeyValTuple and
+    KeyValTupleParam for this.
+    r
+NFT)
+compact
+indent_at_name
+n_max_elements_to_showc
+print_changed_only)
+_indent_at_name
+_indent_per_levelr
+_changed_onlyr/
+indent
+width
+depth
+streamr-
+z _EstimatorPrettyPrinter.__init__c
+changed_only)
+_safe_reprr2
+object
+context
+	maxlevels
+levelr
+format
+_EstimatorPrettyPrinter.formatc
+valr
+	<genexpr>
+z<_EstimatorPrettyPrinter._pprint_estimator.<locals>.<genexpr>r
+writer
+lenr2
+sortedr(
+_format_params)
+	allowancer;
+_pprint_estimator
+z)_EstimatorPrettyPrinter._pprint_estimatorc
+is_dict
+_format_params_or_dict_items
+_format_dict_items
+z*_EstimatorPrettyPrinter._format_dict_itemsc
+NFrI
+z&_EstimatorPrettyPrinter._format_paramsc
+r8|	}
+Format dict items or parameters respecting the compact=True
+        parameter. For some reason, the builtin rendering of dict items doesn't
+        respect compact=True and will use one line per key-value if all cannot
+        fit in a single line.
+        Dict items will be rendered as <'key': value> while params will be
+        rendered as <key=value>. The implementation is mostly copy/pasting from
+        the builtin _format_items().
+        This also adds ellipsis if the number of items is greater than
+        self.n_max_elements_to_show.
+        
+, ...T
+_width
+iter
+next
+StopIterationr/
+_compact
+_repr
+striprD
+_format)
+delimnl
+delimr4
+	max_width
+next_ent
+last
+n_items
+entr 
+krepr
+vrepr
+middle
+class_r
+z4_EstimatorPrettyPrinter._format_params_or_dict_itemsc
+Format the items of an iterable (list, tuple...). Same as the
+        built-in _format_items, with support for ellipsis if the number of
+        elements is greater than self.n_max_elements_to_show.
+        r
+_format_items
+z%_EstimatorPrettyPrinter._format_itemsc
+r0|	
+z=Pretty printing for key-value tuples from dict or parameters.rS
+_pprint_key_val_tupleK
+z-_EstimatorPrettyPrinter._pprint_key_val_tuple)
+pprint
+PrettyPrinterZ	_dispatch
+copyr
+zMSame as the builtin _safe_repr, with added support for Estimator
+    objects.TFr
+{}TFz
+{...}r
+keyr7
+%s: %sz
+{%s}rV
+[]TFz
+[%s]z
+(%s,))
+()TFz
+(%s)z
+...r
+%s=%srS
+%s(%s)
+typern
+_builtin_scalarsr
+issubclass
+dictr
+_recursion
+appendr9
+_safe_tuple
+join
+list
+tuplerD
+startswith)
+objid
+readable
+	recursive
+componentsrw
+safereprr(
+Z	kreadableZ
+krecurrh
+Z	vreadableZ
+vrecurr>
+oreprZ	oreadableZ
+orecurr)
+collectionsr
+baser
+_configr
+<module>

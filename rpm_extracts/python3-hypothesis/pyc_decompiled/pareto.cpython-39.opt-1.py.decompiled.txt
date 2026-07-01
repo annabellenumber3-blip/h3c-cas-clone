@@ -1,0 +1,173 @@
+m	Z	m
+Enum)
+SortedList)
+ConjectureData
+ConjectureResult
+Status)
+LazySequenceCopy
+swap)
+sort_keyz
+-infc
+DominanceRelationr
+__name__
+__module__
+__qualname__
+NO_DOMINANCE
+EQUAL
+LEFT_DOMINATES
+RIGHT_DOMINATES
+I/usr/lib/python3.9/site-packages/hypothesis/internal/conjecture/pareto.pyr
+Returns the dominance relation between ``left`` and ``right``, according
+    to the rules that one ConjectureResult dominates another if and only if it
+    is better in every way.
+    The things we currently consider to be "better" are:
+        * Something that is smaller in shrinking order is better.
+        * Something that has higher status is better.
+        * Each ``interesting_origin`` is treated as its own score, so if two
+          interesting examples have different origins then neither dominates
+          the other.
+        * For each target observation, a higher score is better.
+    In "normal" operation where there are no bugs or target observations, the
+    pareto front only has one element (the smallest valid test case), but for
+    more structured or failing tests it can be useful to track, and future work
+    will depend on it more.)
+left
+right)
+bufferr
+	dominancer
+statusr
+tags
+issubsetr
+INTERESTINGZ
+interesting_origin
+setZ
+target_observations
+NO_SCORE)
+result
+targetZ
+left_scoreZ
+right_scorer
+ParetoFrontaT
+Maintains an approximate pareto front of ConjectureData objects. That
+    is, we try to maintain a collection of objects such that no element of the
+    collection is pareto dominated by any other. In practice we don't quite
+    manage that, because doing so is computationally very expensive. Instead
+    we maintain a random sample of data objects that are "rarely" dominated by
+    any other element of the collection (roughly, no more than about 10%).
+    Only valid test cases are considered to belong to the pareto front - any
+    test case with a status less than valid is discarded.
+    Note that the pareto front is potentially quite large, and currently this
+    will store the entire front in memory. This is bounded by the number of
+    valid examples we run, which is max_examples in normal execution, and
+    currently we do not support workflows with large max_examples which have
+    large values of max_examples very well anyway, so this isn't a major issue.
+    In future we may weish to implement some sort of paging out to disk so that
+    we can work with larger fronts.
+    Additionally, because this is only an approximate pareto front, there are
+    scenarios where it can be much larger than the actual pareto front. There
+    isn't a huge amount we can do about this - checking an exact pareto front
+    is intrinsically quadratic.
+    "Most" of the time we should be relatively close to the true pareto front,
+    say within an order of magnitude, but it's not hard to construct scenarios
+    where this is not the case. e.g. suppose we enumerate all valid test cases
+    in increasing shortlex order as s_1, ..., s_n, ... and have scores f and
+    g such that f(s_i) = min(i, N) and g(s_i) = 1 if i >= N, then the pareto
+    front is the set {s_1, ..., S_N}, but the only element of the front that
+    will dominate s_i when i > N is S_N, which we select with probability
+    1 / N. A better data structure could solve this, but at the cost of more
+    expensive operations and higher per element memory use, so we'll wait to
+    see how much of a problem this is in practice before we try that.
+    c
+<lambda>
+z&ParetoFront.__init__.<locals>.<lambda>)
+key)
+_ParetoFront__random
+ _ParetoFront__eviction_listenersr
+front
+_ParetoFront__pending)
+selfZ
+randomr
+__init__}
+ParetoFront.__init__c
+t	|	
+t	|	
+n"|	d
+q,|	
+Attempts to add ``data`` to the pareto front. Returns True if
+        ``data`` is now in the front, including if data is already in the
+        collection, and False otherwiseFTr
+	as_resultr
+VALIDr+
+addr,
+index
+lenr)
+Z	randranger
+popr
+appendZ
+randintr
+_ParetoFront__remove)
+datar+
+Z	to_remove
+failures
+	candidateZ
+domZ
+dominatorsZ
+already_replaced
+ParetoFront.addc
+Register a listener function that will be called with data when it
+        gets removed from the front because something else dominates it.N)
+on_evict
+ParetoFront.on_evictc
+isinstancer
+__contains__
+ParetoFront.__contains__c
+iterr+
+__iter__
+ParetoFront.__iter__c
+__getitem__
+ParetoFront.__getitem__c
+__len__
+ParetoFront.__len__c
+remove
+ValueErrorr,
+__remove
+ParetoFront.__removeN)
+__doc__r.
+ParetoOptimisera
+Class for managing optimisation of the pareto front. That is, given the
+    current best known pareto front, this class runs an optimisation process
+    that attempts to bring it closer to the actual pareto front.
+    Currently this is fairly basic and only handles pareto optimisation that
+    works by reducing the test case in the shortlex order. We expect it will
+    grow more powerful over time.
+    c
+_ParetoOptimiser__engineZ
+pareto_frontr+
+enginer
+ParetoOptimiser.__init__c
+Shrink to data that strictly pareto dominates the current
+                best value we've seen, which is the current target of the
+                shrinker.
+                Note that during shrinking we may discover other smaller
+                examples that this function will reject and will get added to
+                the front. This is fine, because they will be processed on
+                later iterations of this loop.TF)
+sourceZ
+destinationrB
+allow_transition3
+z-ParetoOptimiser.run.<locals>.allow_transition)
+interesting_examples
+minr
+shrinkr2
+bisect_left)
+seenr9
+prevr"
+shrunkr
+ParetoOptimiser.runN)
+enumr
+sortedcontainersr
+Z#hypothesis.internal.conjecture.datar
+Z)hypothesis.internal.conjecture.junkdrawerr
+Z'hypothesis.internal.conjecture.shrinkerr	
+floatr 
+<module>

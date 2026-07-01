@@ -1,0 +1,264 @@
+d!d"
+d#d$
+d%d&
+)'a&
+Middleware to check for obedience to the WSGI specification.
+Some of the things this checks:
+* Signature of the application and start_response (including that
+  keyword arguments are not used).
+* Environment checks:
+  - Environment is a dictionary (and not a subclass).
+  - That all the required keys are in the environment: REQUEST_METHOD,
+    SERVER_NAME, SERVER_PORT, wsgi.version, wsgi.input, wsgi.errors,
+    wsgi.multithread, wsgi.multiprocess, wsgi.run_once
+  - That HTTP_CONTENT_TYPE and HTTP_CONTENT_LENGTH are not in the
+    environment (these headers should appear as CONTENT_LENGTH and
+    CONTENT_TYPE).
+  - Warns if QUERY_STRING is missing, as the cgi module acts
+    unpredictably in that case.
+  - That CGI-style variables (that don't contain a .) have
+    (non-unicode) string values
+  - That wsgi.version is a tuple
+  - That wsgi.url_scheme is 'http' or 'https' (@@: is this too
+    restrictive?)
+  - Warns if the REQUEST_METHOD is not known (@@: probably too
+    restrictive).
+  - That SCRIPT_NAME and PATH_INFO are empty or start with /
+  - That at least one of SCRIPT_NAME or PATH_INFO are set.
+  - That CONTENT_LENGTH is a positive integer.
+  - That SCRIPT_NAME is not '/' (it should be '', and PATH_INFO should
+    be '/').
+  - That wsgi.input has the methods read, readline, readlines, and
+    __iter__
+  - That wsgi.errors has the methods flush, write, writelines
+* The status is a string, contains a space, starts with an integer,
+  and that integer is in range (> 100).
+* That the headers is a list (not a subclass, not another kind of
+  sequence).
+* That the items of the headers are tuples of strings.
+* That there is no 'status' header (that is used in CGI, but not in
+  WSGI).
+* That the headers don't contain newlines or colons, end in _ or -, or
+  contain characters codes below 037.
+* That Content-Type is given if there is content (CGI often has a
+  default content type, but WSGI does not).
+* That no Content-Type is given when there is no content (@@: is this
+  too restrictive?)
+* That the exc_info argument to start_response is a tuple or None.
+* That all calls to the writer are with strings, and no other methods
+  on the writer are accessed.
+* That wsgi.input is used properly:
+  - .read() is called with exactly one argument
+  - That it returns a string
+  - That readline, readlines, and __iter__ return strings
+  - That .close() is not called
+  - No other methods are provided
+* That wsgi.errors is used properly:
+  - .write() and .writelines() is called with a string
+  - That .close() is not called, and no other methods are provided.
+* The response iterator:
+  - That it is not a string (it should be a list of a single string; a
+    string will work, but perform horribly).
+  - That .__next__() returns a string
+  - That the iterator is not iterated over until start_response has
+    been called (that can signal either a server or application
+    error).
+  - That .close() is called (doesn't raise exception, only prints to
+    sys.stderr, because we only know it isn't called when the object
+    is garbage collected).
+	validator
+^[a-zA-Z][a-zA-Z0-9\-_]*$z
+[\000-\037]c
+WSGIWarningz:
+    Raised in response to WSGI-spec-related warnings
+    N)
+__name__
+__module__
+__qualname__
+__doc__
+(/usr/lib64/python3.9/wsgiref/validate.pyr
+AssertionError)
+cond
+argsr
+assert_~
+Nz!{0} must be of type str (got {1}))
+type
+strr
+format
+repr)
+value
+titler
+check_string_type
+    When applied between a WSGI server and a WSGI application, this
+    middleware will check for WSGI compliance on a number of levels.
+    This middleware does not modify the request or response in any
+    way, but will raise an AssertionError if anything seems off
+    (except for a failure to close the application iterator, which
+    will be printed to stderr -- there's no way to raise an exception
+    at that point).
+    c
+Two arguments required
+No keyword arguments allowedc
+Invalid number of arguments: %sr
+check_status
+check_headers
+check_content_type
+check_exc_info
+append
+WriteWrapper)
+status
+headers
+exc_info
+start_responseZ
+start_response_startedr
+start_response_wrapper
+z;validator.<locals>.lint_app.<locals>.start_response_wrapper
+wsgi.input
+wsgi.errorsFz>The application must return an iterator, if only an empty list)
+check_environ
+InputWrapper
+ErrorWrapper
+check_iterator
+IteratorWrapper)
+environr%
+iterator
+applicationr$
+lint_app
+validator.<locals>.lint_appr
+input)
+self
+wsgi_inputr
+__init__
+InputWrapper.__init__c
+readr
+bytes
+InputWrapper.readc
+readliner
+InputWrapper.readlinec
+	readlinesr
+listr8
+lines
+liner
+InputWrapper.readlinesc
+__iter__
+InputWrapper.__iter__c
+z input.close() must not be called
+close
+InputWrapper.closeN)	r
+errors)
+wsgi_errorsr
+ErrorWrapper.__init__c
+write
+ErrorWrapper.writec
+flushrB
+ErrorWrapper.flushc
+seqr?
+writelines
+ErrorWrapper.writelinesc
+z!errors.close() must not be calledrA
+ErrorWrapper.closeN)
+writer)
+wsgi_writerr
+WriteWrapper.__init__c
+__call__
+WriteWrapper.__call__N)
+PartialIteratorWrapperc
+wsgi_iteratorr
+PartialIteratorWrapper.__init__c
+PartialIteratorWrapper.__iter__N)
+original_iterator
+iterr.
+closed
+check_start_response)
+IteratorWrapper.__init__c
+IteratorWrapper.__iter__c
+Iterator read after closedFz$Iterator yielded non-bytestring (%r)zjThe application returns and we started iterating over its body, but start_response has not yet been called)
+nextr.
+__next__
+IteratorWrapper.__next__c
+NTrC
+hasattrrQ
+IteratorWrapper.closec
+Nz/Iterator garbage collected without being closed)
+stderrrF
+__del__#
+IteratorWrapper.__del__N)
+Nz:Environment is not of the right type: %r (environment: %r))	
+REQUEST_METHODZ
+SERVER_NAMEZ
+SERVER_PORT
+wsgi.versionr&
+wsgi.multithreadz
+wsgi.multiprocessz
+wsgi.run_oncez$Environment missing required key: %r)
+HTTP_CONTENT_TYPEZ
+HTTP_CONTENT_LENGTHz8Environment should not have the key: %s (use %s instead)
+QUERY_STRINGz
+QUERY_STRING is not in the WSGI environment; the cgi module will use sys.argv when this variable is missing, so application errors are more likely
+.z9Environmental variable %s is not a string: %r (value: %r)r\
+z#wsgi.version should be a tuple (%r)z
+wsgi.url_scheme)
+httpZ
+httpsz
+wsgi.url_scheme unknown: %rr&
+GETZ
+HEADZ
+POSTZ
+OPTIONSZ
+PATCHZ
+PUTZ
+DELETEZ
+TRACEz
+Unknown REQUEST_METHOD: %rZ
+SCRIPT_NAME
+/z$SCRIPT_NAME doesn't start with /: %rZ	PATH_INFOz"PATH_INFO doesn't start with /: %rZ
+CONTENT_LENGTHr
+Invalid CONTENT_LENGTH: %rzgOne of SCRIPT_NAME or PATH_INFO are required (PATH_INFO should at least be '/' if SCRIPT_NAME is empty)zOSCRIPT_NAME cannot be '/'; it should instead be '', and PATH_INFO should be '/')
+dict
+warnings
+warnr
+keysr
+tuple
+check_input
+check_errors
+startswith
+int)
+keyr
+z-wsgi.input (%r) doesn't have the attribute %s
+attrr
+z.wsgi.errors (%r) doesn't have the attribute %srk
+Statusr
+z)Status codes must be three characters: %r
+Status code is invalid: %r
+ zjThe status string (%r) should be a three-digit integer followed by a single space and a status explanation)
+splitr
+status_codeZ
+status_intr
+Nz%Headers (%r) must be of type list: %rz1Individual headers (%r) must be of type tuple: %rr
+Header namez
+Header valuer!
+zyThe Status header cannot be used; it conflicts with CGI script, and HTTP status is not given through headers (value: %r).
+:z,Header names may not contain ':' or '\n': %rz
+Bad header name: %r
+_z#Names may not end in '-' or '_': %rr
+z#Bad header value: %r (bad char: %r))
+lower
+	header_re
+search
+endswith
+bad_header_value_re
+group)
+item
+namer
+)	Nrm
+content-typezJContent-Type header found in a %s response, which must not return content.z,No Content-Type header found in headers (%s))
+codeZ
+NO_MESSAGE_BODYr~
+Nz exc_info (%r) is not a tuple: %r)
+NzwYou should not return a string as your application iterator, instead return a single-item list containing a bytestring.)
+isinstancer
+__all__
+rerX
+compilerx
+Warningr
+<module>

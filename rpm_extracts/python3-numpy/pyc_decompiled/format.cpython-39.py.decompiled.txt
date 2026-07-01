@@ -1,0 +1,586 @@
+m	Z	
+d:d d!
+d"d#
+d$d%
+d&d'
+d(d)
+d*d+
+Z d,d-
+Z!d;d/d0
+Z"d<d2d3
+Z#d=d5d6
+Z$d>d8d9
+Binary serialization
+NPY format
+==========
+A simple format for saving numpy arrays to disk with the full
+information about them.
+The ``.npy`` format is the standard binary file format in NumPy for
+persisting a *single* arbitrary NumPy array on disk. The format stores all
+of the shape and dtype information necessary to reconstruct the array
+correctly even on another machine with a different architecture.
+The format is designed to be as simple as possible while achieving
+its limited goals.
+The ``.npz`` format is the standard format for persisting *multiple* NumPy
+arrays on disk. A ``.npz`` file is a zip file containing multiple ``.npy``
+files, one for each array.
+Capabilities
+------------
+- Can represent all NumPy arrays including nested record arrays and
+  object arrays.
+- Represents the data in its native binary form.
+- Supports Fortran-contiguous arrays directly.
+- Stores all of the necessary information to reconstruct the array
+  including shape and dtype on a machine of a different
+  architecture.  Both little-endian and big-endian arrays are
+  supported, and a file with little-endian numbers will yield
+  a little-endian array on any machine reading the file. The
+  types are described in terms of their actual sizes. For example,
+  if a machine with a 64-bit C "long int" writes out an array with
+  "long ints", a reading machine with 32-bit C "long ints" will yield
+  an array with 64-bit integers.
+- Is straightforward to reverse engineer. Datasets often live longer than
+  the programs that created them. A competent developer should be
+  able to create a solution in their preferred programming language to
+  read most ``.npy`` files that they have been given without much
+  documentation.
+- Allows memory-mapping of the data. See `open_memmep`.
+- Can be read from a filelike stream object instead of an actual file.
+- Stores object arrays, i.e. arrays containing elements that are arbitrary
+  Python objects. Files with object arrays are not to be mmapable, but
+  can be read and written to disk.
+Limitations
+-----------
+- Arbitrary subclasses of numpy.ndarray are not completely preserved.
+  Subclasses will be accepted for writing, but only the array data will
+  be written out. A regular numpy.ndarray object will be created
+  upon reading the file.
+.. warning::
+  Due to limitations in the interpretation of structured dtypes, dtypes
+  with fields with empty names will have the names replaced by 'f0', 'f1',
+  etc. Such arrays will not round-trip through the format entirely
+  accurately. The data is intact; only the field names will differ. We are
+  working on a fix for this. This fix will not require a change in the
+  file format. The arrays with such structures can still be saved and
+  restored, and the correct dtype may be restored by using the
+  ``loadedarray.view(correct_dtype)`` method.
+File extensions
+---------------
+We recommend using the ``.npy`` and ``.npz`` extensions for files saved
+in this format. This is by no means a requirement; applications may wish
+to use these file formats but use an extension specific to the
+application. In the absence of an obvious alternative, however,
+we suggest using ``.npy`` and ``.npz``.
+Version numbering
+-----------------
+The version numbering of these formats is independent of NumPy version
+numbering. If the format is upgraded, the code in `numpy.io` will still
+be able to read and write Version 1.0 files.
+Format Version 1.0
+------------------
+The first 6 bytes are a magic string: exactly ``\x93NUMPY``.
+The next 1 byte is an unsigned byte: the major version number of the file
+format, e.g. ``\x01``.
+The next 1 byte is an unsigned byte: the minor version number of the file
+format, e.g. ``\x00``. Note: the version of the file format is not tied
+to the version of the numpy package.
+The next 2 bytes form a little-endian unsigned short int: the length of
+the header data HEADER_LEN.
+The next HEADER_LEN bytes form the header data describing the array's
+format. It is an ASCII string which contains a Python literal expression
+of a dictionary. It is terminated by a newline (``\n``) and padded with
+spaces (``\x20``) to make the total of
+``len(magic string) + 2 + len(length) + HEADER_LEN`` be evenly divisible
+by 64 for alignment purposes.
+The dictionary contains three keys:
+    "descr" : dtype.descr
+      An object that can be passed as an argument to the `numpy.dtype`
+      constructor to create the array's dtype.
+    "fortran_order" : bool
+      Whether the array data is Fortran-contiguous or not. Since
+      Fortran-contiguous arrays are a common form of non-C-contiguity,
+      we allow them to be written directly to disk for efficiency.
+    "shape" : tuple of int
+      The shape of the array.
+For repeatability and readability, the dictionary keys are sorted in
+alphabetic order. This is for convenience only. A writer SHOULD implement
+this if possible. A reader MUST NOT depend on this.
+Following the header comes the array data. If the dtype contains Python
+objects (i.e. ``dtype.hasobject is True``), then the data is a Python
+pickle of the array. Otherwise the data is the contiguous (either C-
+or Fortran-, depending on ``fortran_order``) bytes of the array.
+Consumers can figure out the number of bytes by multiplying the number
+of elements given by the shape (noting that ``shape=()`` means there is
+1 element) by ``dtype.itemsize``.
+Format Version 2.0
+------------------
+The version 1.0 format only allowed the array header to have a total size of
+65535 bytes.  This can be exceeded by structured arrays with a large number of
+columns.  The version 2.0 format extends the header size to 4 GiB.
+`numpy.save` will automatically save in 2.0 format if the data requires it,
+else it will always use the more compatible 1.0 format.
+The description of the fourth element of the header therefore has become:
+"The next 4 bytes form a little-endian unsigned int: the length of the header
+data HEADER_LEN."
+Format Version 3.0
+------------------
+This version replaces the ASCII string (which in practice was latin1) with
+a utf8-encoded string, so supports structured types with any unicode field
+names.
+Notes
+-----
+The ``.npy`` format, including motivation for creating it and a comparison of
+alternatives, is described in the
+:doc:`"npy-format" NEP <neps:nep-0001-npy-format>`, however details have
+evolved with time and this document is more current.
+	safe_eval)
+	isfileobj
+	os_fspath
+pickle>
+shape
+fortran_order
+descrs
+NUMPY
+latin1)
+utf8)
+Nz>we only support format version (1,0), (2,0), and (3,0), not %s)
+ValueError)
+version
+6/usr/lib64/python3.9/site-packages/numpy/lib/format.py
+_check_version
+ Return the magic string for the given file format version.
+    Parameters
+    ----------
+    major : int in [0, 255]
+    minor : int in [0, 255]
+    Returns
+    -------
+    magic : str
+    Raises
+    ------
+    ValueError if the version cannot be formatted.
+    r
+z&major version must be 0 <= major < 256z&minor version must be 0 <= minor < 256)
+MAGIC_PREFIX
+bytes)
+major
+minorr
+magic
+ Read the magic string to get the version of the file format.
+    Parameters
+    ----------
+    fp : filelike object
+    Returns
+    -------
+    major : int
+    minor : int
+    z
+magic stringN
+z4the magic string is not correct; expected %r, got %r)
+_read_bytes
+	MAGIC_LENr
+fpZ	magic_strr
+read_magic
+_has_metadata)
+	<genexpr>
+z _has_metadata.<locals>.<genexpr>F)
+metadata
+names
+anyZ
+subdtyper%
+baser(
+    Get a serializable descriptor from the dtype.
+    The .descr attribute of a dtype object cannot be round-tripped through
+    the dtype() constructor. Simple types, like dtype('float32'), have
+    a descr which looks like a record array with one field with '' as
+    a name. The dtype() constructor interprets this as a request to give
+    a default name.  Instead, we construct descriptor that can be passed to
+    dtype().
+    Parameters
+    ----------
+    dtype : dtype
+        The dtype of the array that will be written to disk.
+    Returns
+    -------
+    descr : object
+        An object that can be passed to `numpy.dtype()` in order to
+        replicate the input dtype.
+    zlmetadata on a dtype may be saved or ignored, but will raise if saved when read. Use another form of storage.r	
+stacklevelN)
+warnings
+warn
+UserWarningr-
+dtyper
+dtype_to_descr
+    Returns a dtype based off the given description.
+    This is essentially the reverse of `dtype_to_descr()`. It will remove
+    the valueless padding fields created by, i.e. simple fields like
+    dtype('float32'), and then convert the description to its corresponding
+    dtype.
+    Parameters
+    ----------
+    descr : object
+        The object retreived by dtype.descr. Can be passed to
+        `numpy.dtype()` in order to replicate the input dtype.
+    Returns
+    -------
+    dtype : dtype
+        The dtype constructed by the description.
+    r
+formats
+titles
+offsets
+itemsize)
+isinstancer5
+numpyr7
+tuple
+descr_to_dtype
+typeZ
+voidr-
+appendr=
+offsetZ
+field
+nameZ	descr_strr
+is_pad
+titler
+ Get the dictionary of header metadata from a numpy.ndarray.
+    Parameters
+    ----------
+    array : numpy.ndarray
+    Returns
+    -------
+    d : dict
+        This has the appropriate entries for writing its string representation
+        to the header of the file.
+    r
+flags
+c_contiguous
+f_contiguousr8
+array
+header_data_from_array_1_0S
+    Takes a stringified header, and attaches the prefix and padding to it
+    r
+z'Header length {} too big for version={}
+struct
+_header_size_infor>
+encoderB
+ARRAY_ALIGNr!
+calcsizer
+pack
+error
+formatr
+headerr
+encodingZ
+hlenZ
+padlenZ
+header_prefixr
+_wrap_headero
+    Like `_wrap_header`, but chooses an appropriate version given the contents
+    r
+z>Stored array in format 2.0. It can only beread by NumPy >= 1.9r	
+z@Stored array in format 3.0. It can only be read by NumPy >= 1.17)
+UnicodeEncodeErrorr2
+retr
+_wrap_header_guess_version
+ Write the header for an array and returns the version used
+    Parameters
+    ----------
+    fp : filelike object
+    d : dict
+        This has the appropriate entries for writing its string representation
+        to the header of the file.
+    version: tuple or None
+        None means use oldest that works
+        explicit version will raise a ValueError if the format does not
+        allow saving this data.  Default: None
+    
+'%s': %s, 
+sorted
+itemsrD
+repr
+joinr]
+write)
+valuer
+_write_array_header
+ Write the header for an array using the 1.0 format.
+    Parameters
+    ----------
+    fp : filelike object
+    d : dict
+        This has the appropriate entries for writing its string
+        representation to the header of the file.
+    r
+write_array_header_1_0
+ Write the header for an array using the 2.0 format.
+        The 2.0 format allows storing very large structured arrays.
+    .. versionadded:: 1.9.0
+    Parameters
+    ----------
+    fp : filelike object
+    d : dict
+        This has the appropriate entries for writing its string
+        representation to the header of the file.
+    r
+write_array_header_2_0
+    Read an array header from a filelike object using the 1.0 file format
+    version.
+    This will leave the file object located just after the header.
+    Parameters
+    ----------
+    fp : filelike object
+        A file object or something with a `.read()` method like a file.
+    Returns
+    -------
+    shape : tuple of int
+        The shape of the array.
+    fortran_order : bool
+        The array data will be written out directly if it is either
+        C-contiguous or Fortran-contiguous. Otherwise, it will be made
+        contiguous before writing it out.
+    dtype : dtype
+        The dtype of the file's data.
+    Raises
+    ------
+    ValueError
+        If the data is invalid.
+    r
+_read_array_header
+read_array_header_1_0
+    Read an array header from a filelike object using the 2.0 file format
+    version.
+    This will leave the file object located just after the header.
+    .. versionadded:: 1.9.0
+    Parameters
+    ----------
+    fp : filelike object
+        A file object or something with a `.read()` method like a file.
+    Returns
+    -------
+    shape : tuple of int
+        The shape of the array.
+    fortran_order : bool
+        The array data will be written out directly if it is either
+        C-contiguous or Fortran-contiguous. Otherwise, it will be made
+        contiguous before writing it out.
+    dtype : dtype
+        The dtype of the file's data.
+    Raises
+    ------
+    ValueError
+        If the data is invalid.
+    r
+read_array_header_2_0
+rZq,n
+Clean up 'L' in npz header ints.
+    Cleans up the 'L' in strings representing integers. Needed to allow npz
+    headers produced in Python2 to be read in Python3.
+    Parameters
+    ----------
+    s : string
+        Npy file header.
+    Returns
+    -------
+    header : str
+        Cleaned up header.
+    r
+StringIOFr
+tokenize
+iorr
+generate_tokens
+readline
+NAMErD
+NUMBER
+untokenize)
+tokensZ
+last_token_was_number
+token
+token_typeZ
+token_stringr
+_filter_header
+rxt	|
+    see read_array_header_1_0
+    r
+Invalid version {!r}z
+array header lengthz
+array headerr
+Cannot parse header: {!r}z Header is not a dictionary: {!r}z.Header does not contain the correct keys: {!r}r
+int)
+z%_read_array_header.<locals>.<genexpr>z
+shape is not valid: {!r}r
+z'fortran_order is not a valid bool: {!r}r
+z+descr is not a valid dtype descriptor: {!r})
+getr
+unpack
+decoder
+SyntaxErrorr>
+dict
+EXPECTED_KEYS
+keysr`
+boolrA
+	TypeError)
+hinfoZ
+hlength_typerY
+hlength_strZ
+header_lengthrX
+    Write an array to an NPY file, including a header.
+    If the array is neither C-contiguous nor Fortran-contiguous AND the
+    file_like object is not a real file object, this function will have to
+    copy data in memory.
+    Parameters
+    ----------
+    fp : file_like object
+        An open, writable file object, or similar object with a
+        ``.write()`` method.
+    array : ndarray
+        The array to write to disk.
+    version : (int, int) or None, optional
+        The version number of the format. None means use the oldest
+        supported version that is able to store the data.  Default: None
+    allow_pickle : bool, optional
+        Whether to allow writing pickled data. Default: True
+    pickle_kwargs : dict, optional
+        Additional keyword arguments to pass to pickle.dump, excluding
+        'protocol'. These are only useful when pickling objects in object
+        arrays on Python 3 to Python 2 compatible format.
+    Raises
+    ------
+    ValueError
+        If the array cannot be persisted. This includes the case of
+        allow_pickle=False and array being an object array.
+    Various other errors
+        If the array contains Python objects as part of its dtype, the
+        process of pickling them may raise various errors if the objects
+        are not picklable.
+    r
+z5Object arrays cannot be saved when allow_pickle=FalseNZ
+protocolr
+external_loopZ
+bufferedZ
+zerosize_ok
+buffersize
+order
+maxr7
+	hasobjectr
+dumprH
+tofiler?
+nditerrd
+tobytes)
+allow_pickle
+pickle_kwargsr
+chunkr
+write_arrays
+sVt	d
+}	~	n
+}	~	0
+    Read an array from an NPY file.
+    Parameters
+    ----------
+    fp : file_like object
+        If this is not a real file object, then this may take extra memory
+        and time.
+    allow_pickle : bool, optional
+        Whether to allow writing pickled data. Default: False
+        .. versionchanged:: 1.16.3
+            Made default False in response to CVE-2019-6446.
+    pickle_kwargs : dict
+        Additional keyword arguments to pass to pickle.load. These are only
+        useful when loading object arrays saved on Python 2 when using
+        Python 3.
+    Returns
+    -------
+    array : ndarray
+        The array from the data on disk.
+    Raises
+    ------
+    ValueError
+        If the data is invalid, or allow_pickle=False and the file contains
+        an object array.
+    r
+z6Object arrays cannot be loaded when allow_pickle=FalseNz]Unpickling a python object failed: %r
+You may need to pass the encoding= option to numpy.load)
+countz
+array data
+multiply
+reduceZ
+int64r
+load
+UnicodeErrorr
+fromfileZ
+ndarrayr=
+BUFFER_SIZE
+ranger
+frombufferr
+Z	transpose)
+errZ
+max_read_count
+read_countZ	read_size
+datar
+read_array
+    Open a .npy file as a memory-mapped array.
+    This may be used to read an existing file or create a new one.
+    Parameters
+    ----------
+    filename : str or path-like
+        The name of the file on disk.  This may *not* be a file-like
+        object.
+    mode : str, optional
+        The mode in which to open the file; the default is 'r+'.  In
+        addition to the standard file modes, 'c' is also accepted to mean
+        "copy on write."  See `memmap` for the available mode strings.
+    dtype : data-type, optional
+        The data type of the array if we are creating a new file in "write"
+        mode, if not, `dtype` is ignored.  The default value is None, which
+        results in a data-type of `float64`.
+    shape : tuple of int
+        The shape of the array if we are creating a new file in "write"
+        mode, in which case this parameter is required.  Otherwise, this
+        parameter is ignored and is thus optional.
+    fortran_order : bool, optional
+        Whether the array should be Fortran-contiguous (True) or
+        C-contiguous (False, the default) if we are creating a new file in
+        "write" mode.
+    version : tuple of int (major, minor) or None
+        If the mode is a "write" mode, then this is the version of the file
+        format used to create the file.  None means use the oldest
+        supported version that is able to store the data.  Default: None
+    Returns
+    -------
+    marray : memmap
+        The memory-mapped array.
+    Raises
+    ------
+    ValueError
+        If the data or the mode is invalid.
+    IOError
+        If the file is not found or cannot be opened correctly.
+    See Also
+    --------
+    numpy.memmap
+    zZFilename must be a string or a path-like object.  Memmap cannot use existing file handles.
+wz6Array can't be memory-mapped: Python objects in dtype.)
+moderE
+openr
+tellr#
+memmap)
+filenamer
+marrayr
+open_memmap
+ran out of datac
+    Read from file-like object until size bytes are read.
+    Raises ValueError if not EOF is encountered before size bytes are read.
+    Non-blocking objects only supported if they derive from io objects.
+    Required as e.g. ZipExtFile in python 2.6 can return less data than
+    requested.
+    r
+z)EOF: reading %s, expected %d bytes got %dN)
+readrB
+BlockingIOErrorr
+sizeZ
+error_templater
+NTN)
+NNFN)
+__doc__r?
+numpy.lib.utilsr
+numpy.compatr
+__all__r
+<module>

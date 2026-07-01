@@ -1,0 +1,412 @@
+m	Z	
+	constants)
+	protocols)
+transports)
+loggerc
+Nz(Server side SSL needs a valid SSLContextF)
+ValueError
+sslZ
+create_default_contextZ
+check_hostname)
+server_side
+server_hostname
+sslcontext
+(/usr/lib64/python3.9/asyncio/sslproto.py
+_create_transport_context
+Z	UNWRAPPEDZ
+DO_HANDSHAKEZ
+WRAPPEDZ
+SHUTDOWNc
+_SSLPipea
+An SSL "Pipe".
+    An SSL pipe allows you to communicate with an SSL/TLS protocol instance
+    through memory buffers. It can be used to implement a security layer for an
+    existing connection where you don't have access to the connection's file
+    descriptor, or for some reason you don't want to use it.
+    An SSL pipe can be in "wrapped" and "unwrapped" mode. In unwrapped mode,
+    data is passed through untransformed. In wrapped mode, application level
+    data is encrypted to SSL record level data and vice versa. The SSL record
+    level is the lowest level in the SSL protocol suite and is what travels
+    as-is over the wire.
+    An SslPipe initially is in "unwrapped" mode. To start SSL, call
+    do_handshake(). To shutdown SSL again, call unwrap().
+    i
+        The *context* argument specifies the ssl.SSLContext to use.
+        The *server_side* argument indicates whether this is a server side or
+        client side transport.
+        The optional *server_hostname* argument can be used to specify the
+        hostname you are connecting to. You may only specify this parameter if
+        the _ssl module supports Server Name Indication (SNI).
+        NF)
+_context
+_server_side
+_server_hostname
+_UNWRAPPED
+_stater
+Z	MemoryBIO
+	_incoming
+	_outgoing
+_sslobj
+_need_ssldata
+_handshake_cb
+_shutdown_cb)
+self
+contextr	
+__init__7
+_SSLPipe.__init__c
+z*The SSL context passed to the constructor.)
+_SSLPipe.contextc
+z^The internal ssl.SSLObject instance.
+        Return None if the pipe is not wrapped.
+        )
+ssl_objectR
+_SSLPipe.ssl_objectc
+zgWhether more record level data is needed to complete a handshake
+        that is currently in progress.)
+need_ssldataZ
+_SSLPipe.need_ssldatac
+        Whether a security layer is currently in effect.
+        Return False during handshake.
+        )
+_WRAPPEDr
+wrapped`
+_SSLPipe.wrappedc
+Start the SSL handshake.
+        Return a list of ssldata. A ssldata element is a list of buffers
+        The optional *callback* argument can be used to install a callback that
+        will be called when the handshake is complete. The callback will be
+        called with None if successful, else an exception instance.
+        z"handshake in progress or completed)
+only_handshake)
+RuntimeErrorr
+wrap_bior
+_DO_HANDSHAKEr
+feed_ssldata
+callback
+ssldata
+appdatar
+do_handshakei
+_SSLPipe.do_handshakec
+Start the SSL shutdown sequence.
+        Return a list of ssldata. A ssldata element is a list of buffers
+        The optional *callback* argument can be used to install a callback that
+        will be called when the shutdown is complete. The callback will be
+        called without arguments.
+        z
+no security layer presentz
+shutdown in progressr#
+	_SHUTDOWNr
+shutdown~
+_SSLPipe.shutdownc
+Send a potentially "ragged" EOF.
+        This method will raise an SSL_ERROR_EOF exception if the EOF is
+        unexpected.
+        r#
+Z	write_eofr'
+feed_eof
+_SSLPipe.feed_eofFc
+j	rl|
+Feed SSL record level data into the pipe.
+        The data must be a bytes instance. It is OK to send an empty bytes
+        instance. This can be used to get ssldata for a handshake initiated by
+        this endpoint.
+        Return a (ssldata, appdata) tuple. The ssldata element is a list of
+        buffers containing SSL data that needs to be sent to the remote SSL.
+        The appdata element is a list of buffers containing plaintext data that
+        needs to be forwarded to the application. The appdata list may contain
+        an empty buffer indicating an SSL "close_notify" alert. This alert must
+        be acknowledged by calling shutdown().
+        FN
+errno)
+writer&
+read
+max_size
+appendr-
+unwrapr
+SSLError
+CertificateError
+getattr
+SSL_ERROR_WANT_READ
+SSL_ERROR_WANT_WRITE
+SSL_ERROR_SYSCALLr
+pending)
+datar$
+chunk
+	exc_errnor
+_SSLPipe.feed_ssldatar
+zPt	|
+Feed plaintext data into the pipe.
+        Return an (ssldata, offset) tuple. The ssldata element is a list of
+        buffers containing record level data that needs to be sent to the
+        remote SSL instance. The offset is the number of plaintext bytes that
+        were processed, which may be less than the length of data.
+        NOTE: In case of short writes, this call MUST be retried with the SAME
+        buffer passed into the *data* argument (i.e. the id() must be the
+        same). This is an OpenSSL requirement. A further particularity is that
+        a short write will always have offset == 0, because the _ssl module
+        does not enable partial writes. And even though the offset is zero,
+        there will still be encrypted data in ssldata.
+        NFr0
+PROTOCOL_IS_SHUTDOWN)
+memoryviewr
+reasonr8
+offsetr*
+viewr>
+feed_appdata
+_SSLPipe.feed_appdata)
+__name__
+__module__
+__qualname__
+__doc__r3
+propertyr
+d d!
+_SSLProtocolTransportc
+_loop
+_ssl_protocol
+_closed)
+loopZ
+ssl_protocolr
+_SSLProtocolTransport.__init__Nc
+z#Get optional transport information.)
+_get_extra_info
+name
+defaultr
+get_extra_info&
+z$_SSLProtocolTransport.get_extra_infoc
+_set_app_protocol)
+protocolr
+set_protocol*
+z"_SSLProtocolTransport.set_protocolc
+_app_protocolr
+get_protocol-
+z"_SSLProtocolTransport.get_protocolc
+is_closing0
+z _SSLProtocolTransport.is_closingc
+Close the transport.
+        Buffered data will be flushed asynchronously.  No more data
+        will be received.  After all buffered data is flushed, the
+        protocol's connection_lost() method will (eventually) called
+        with None as its argument.
+        TN)
+_start_shutdownr
+close3
+_SSLProtocolTransport.closec
+unclosed transport )
+source)
+ResourceWarningr\
+_warnr
+__del__>
+_SSLProtocolTransport.__del__c
+Nz*SSL transport has not been initialized yet)
+_transportr%
+is_reading)
+z _SSLProtocolTransport.is_readingc
+Pause the receiving end.
+        No data will be passed to the protocol's data_received()
+        method until resume_reading() is called.
+        N)
+pause_readingr
+z#_SSLProtocolTransport.pause_readingc
+Resume the receiving end.
+        Data received will once again be passed to the protocol's
+        data_received() method.
+        N)
+resume_readingr
+z$_SSLProtocolTransport.resume_readingc
+Set the high- and low-water limits for write flow control.
+        These two values control when to call the protocol's
+        pause_writing() and resume_writing() methods.  If specified,
+        the low-water limit must be less than or equal to the
+        high-water limit.  Neither value can be negative.
+        The defaults are implementation-specific.  If only the
+        high-water limit is given, the low-water limit defaults to an
+        implementation-specific value less than or equal to the
+        high-water limit.  Setting high to zero forces low to zero as
+        well, and causes pause_writing() to be called whenever the
+        buffer becomes non-empty.  Setting low to zero causes
+        resume_writing() to be called only once the buffer is empty.
+        Use of zero for either limit is generally sub-optimal as it
+        reduces opportunities for doing I/O and computation
+        concurrently.
+        N)
+set_write_buffer_limits)
+highZ
+lowr
+z-_SSLProtocolTransport.set_write_buffer_limitsc
+z,Return the current size of the write buffer.)
+get_write_buffer_sizer
+z+_SSLProtocolTransport.get_write_buffer_sizec
+_protocol_pausedr
+z&_SSLProtocolTransport._protocol_pausedc
+Write some data bytes to the transport.
+        This does not block; it buffers the data and arranges for it
+        to be sent out asynchronously.
+        z+data: expecting a bytes-like instance, got N)	
+isinstance
+bytes
+	bytearrayrA
+	TypeError
+typerE
+_write_appdata
+_SSLProtocolTransport.writec
+zAReturn True if this transport supports write_eof(), False if not.Fr
+can_write_eof
+z#_SSLProtocolTransport.can_write_eofc
+Close the transport immediately.
+        Buffered data will be lost.  No more data will be received.
+        The protocol's connection_lost() method will (eventually) be
+        called with None as its argument.
+        TN)
+_abortrM
+abort
+_SSLProtocolTransport.abort)
+_SendfileModeZ
+FALLBACKZ
+_sendfile_compatibler
+warnings
+warnr_
+d-d	d
+d!d"
+d#d$
+d/d&d'
+d(d)
+d*d+
+SSLProtocolz
+SSL protocol.
+    Implementation of SSL on top of a socket using incoming and outgoing
+    buffers which are ssl.MemoryBIO objects.
+    FNTc	
+stdlib ssl module not availabler
+z7ssl_handshake_timeout should be a positive number, got )
+SSL_HANDSHAKE_TIMEOUTr
+_sslcontext
+dict
+_extra
+collections
+deque
+_write_backlog
+_write_buffer_size
+_waiterrK
+_app_transport
+_sslpipe
+_session_established
+_in_handshake
+_in_shutdownr`
+_call_connection_made
+_ssl_handshake_timeout)	r
+app_protocolr
+waiterr	
+call_connection_madeZ
+ssl_handshake_timeoutr
+SSLProtocol.__init__c
+BufferedProtocol
+_app_protocol_is_buffer)
+SSLProtocol._set_app_protocolc
+Z	cancelledZ
+set_exceptionZ
+set_result
+_wakeup_waiter
+SSLProtocol._wakeup_waiterc
+zXCalled when the low-level connection is made.
+        Start the SSL handshake.
+        N)
+_start_handshake)
+	transportr
+connection_made
+SSLProtocol.connection_madec
+Called when the low-level connection is lost or closed.
+        The argument is an exception object or None (the latter
+        meaning a regular EOF is received or the connection was
+        aborted or closed).
+        FNT
+_handshake_timeout_handle)
+	call_soonrX
+connection_lostr|
+cancelr
+SSLProtocol.connection_lostc
+z\Called when the low-level transport's buffer goes over
+        the high-water mark.
+        N)
+pause_writingr
+SSLProtocol.pause_writingc
+z^Called when the low-level transport's buffer drains below
+        the low-water mark.
+        N)
+resume_writingr
+SSLProtocol.resume_writingc
+zXCalled when some SSL data is received.
+        The argument is a bytes object.
+        Nz
+SSL error in data receivedz/application protocol failed to receive SSL data)
+SystemExit
+KeyboardInterrupt
+BaseException
+_fatal_errorr`
+_feed_data_to_buffered_protorX
+data_receivedr[
+SSLProtocol.data_receivedc
+Called when the other end of the low-level stream
+        is half-closed.
+        If this returns a false value (including None), the transport
+        will close itself.  If it returns a true value, closing the
+        transport is up to the protocol.
+        z
+%r received EOFz?returning true from eof_received() has no effect when using sslN)
+	get_debugr
+debugr
+ConnectionResetErrorr
+eof_receivedZ
+warningr`
+Z	keep_openr
+SSLProtocol.eof_receivedc
+SSLProtocol._get_extra_infoc
+NTr#
+SSLProtocol._start_shutdownc
+_process_write_backlogrm
+SSLProtocol._write_appdatac
+%r starts SSL handshakeT)
+time
+_handshake_start_timer
+call_laterr
+_check_handshake_timeoutr
+SSLProtocol._start_handshakec
+NTz$SSL handshake is taking longer than z! seconds: aborting the connection)
+ConnectionAbortedError)
+msgr
+z$SSLProtocol._check_handshake_timeoutc
+z0t	|
+NFz1SSL handshake failed on verifying the certificatez
+SSL handshake failedz
+%r: SSL handshake took %.1f msg
+peercert
+cipher
+compressionr
+getpeercertr
+updater
+handshake_excZ
+sslobjr
+_on_handshake_completep
+z"SSLProtocol._on_handshake_completec
+Fatal error on SSL transport)
+ranger@
+	_finalizer1
+_pausedrc
+z"SSLProtocol._process_write_backlog
+Fatal error on transportc
+%r: %sT)
+exc_info)
+messageZ	exceptionr
+)	rg
+OSErrorrK
+call_exception_handlerr`
+_force_close)
+SSLProtocol._fatal_errorc
+SSLProtocol._finalizec
+SSLProtocol._abort)
+FNTN)
+ImportError
+logr
+objectr
+_FlowControlMixinZ	TransportrJ
+Protocolrs
+<module>

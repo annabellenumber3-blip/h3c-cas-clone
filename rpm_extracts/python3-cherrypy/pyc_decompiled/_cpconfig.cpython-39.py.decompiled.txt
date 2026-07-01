@@ -1,0 +1,198 @@
+Configuration system for CherryPy.
+Configuration in CherryPy is implemented via dictionaries. Keys are strings
+which name the mapped value, which may be of any type.
+Architecture
+------------
+CherryPy Requests are part of an Application, which runs in a global context,
+and configuration data may apply to any of those three scopes:
+Global
+    Configuration entries which apply everywhere are stored in
+    cherrypy.config.
+Application
+    Entries which apply to each mounted application are stored
+    on the Application object itself, as 'app.config'. This is a two-level
+    dict where each key is a path, or "relative URL" (for example, "/" or
+    "/path/to/my/page"), and each value is a config dict. Usually, this
+    data is provided in the call to tree.mount(root(), config=conf),
+    although you may also use app.merge(conf).
+Request
+    Each Request object possesses a single 'Request.config' dict.
+    Early in the request process, this dict is populated by merging global
+    config entries, Application entries (whose path equals or is a parent
+    of Request.path_info), and any config acquired while looking up the
+    page handler (see next).
+Declaration
+-----------
+Configuration data may be supplied as a Python dictionary, as a filename,
+or as an open file object. When you supply a filename or file, CherryPy
+uses Python's builtin ConfigParser; you declare Application config by
+writing each path as a section header::
+    [/path/to/my/page]
+    request.stream = True
+To declare global configuration entries, place them in a [global] section.
+You may also declare config entries directly on the classes and methods
+(page handlers) that make up your CherryPy application via the ``_cp_config``
+attribute, set with the ``cherrypy.config`` decorator. For example::
+    @cherrypy.config(**{'tools.gzip.on': True})
+    class Demo:
+        @cherrypy.expose
+        @cherrypy.config(**{'request.show_tracebacks': False})
+        def index(self):
+            return "Hello world"
+.. note::
+    This behavior is only guaranteed for the default dispatcher.
+    Other dispatchers may have different restrictions on where
+    you can attach config attributes.
+Namespaces
+----------
+Configuration keys are separated into namespaces by the first "." in the key.
+Current namespaces:
+engine
+    Controls the 'application engine', including autoreload.
+    These can only be declared in the global config.
+tree
+    Grafts cherrypy.Application objects onto cherrypy.tree.
+    These can only be declared in the global config.
+hooks
+    Declares additional request-processing functions.
+    Configures the logging for each application.
+    These can only be declared in the global or / config.
+request
+    Adds attributes to each Request.
+response
+    Adds attributes to each Response.
+server
+    Controls the default HTTP server via cherrypy.server.
+    These can only be declared in the global config.
+tools
+    Runs and configures additional request-processing packages.
+wsgi
+    Adds WSGI middleware to an Application's "pipeline".
+    These can only be declared in the app's root config ("/").
+checker
+    Controls the 'checker', which looks for common errors in
+    app state (including config) when the engine starts.
+    Global config only.
+The only key that does not exist in a namespace is the "environment" entry.
+This special entry 'imports' other config entries from a template stored in
+cherrypy._cpconfig.environments[environment]. It only applies to the global
+config, and only when you use cherrypy.config.update.
+You can define your own namespaces to be called at the Global, Application,
+or Request level, by adding a named handler to cherrypy.config.namespaces,
+app.namespaces, or app.request_class.namespaces. The name can
+be any string, and the handler must be either a callable or a (Python 2.5
+style) context manager.
+text_or_bytes)
+reprconfc
+z>Register for autoreload if ob is a string (presumed filename).N)
+isinstancer
+cherrypy
+engineZ
+autoreload
+files
+add)
+is_filename
+6/usr/lib/python3.9/site-packages/cherrypy/_cpconfig.py
+ _if_filename_register_autoreload~
+Merge one app config (from a dict, file, or filename) into another.
+    If the given config is a filename, it will be appended to
+    the list of files to monitor for "autoreload" changes.
+    z
+Application config must include section headers, but the config you tried to merge doesn't have any sections. Wrap your config in another dict with paths as section headers, for example: {'/': config}.N)
+Parser
+load
+itemsr
+dict
+ValueError
+setdefault
+update)
+base
+otherZ
+sectionZ	value_mapr	
+merge
+Configz@The 'global' configuration data for the entire CherryPy process.c
+z*Update self from a dict, file or filename.N)
+superr
+selfZ
+config
+	__class__r	
+Config.updatec
+Update self from a dict.
+global
+tools.staticdir.dirz
+tools.staticdir.sectionN)
+getr
+lenr
+checkerZ
+global_config_contained_pathsr
+_applyr
+Config._applyc
+z-Decorate for page handlers to set _cp_config.c
+_cp_config)
+_Varsr
+kwargsr	
+tool_decorator
+z'Config.__call__.<locals>.tool_decoratorr	
+__call__
+Config.__call__)	
+__name__
+__module__
+__qualname__
+__doc__r
+staticmethodr%
+__classcell__r	
+zDAdapter allowing setting a default attribute on a function or class.c
+target)
+__init__
+_Vars.__init__c
+hasattrr-
+setattr
+getattr)
+defaultr	
+_Vars.setdefaultN)
+engine.autoreload.on
+checker.on
+tools.log_headers.on
+request.show_tracebacks
+request.show_mismatched_params)
+log.screen)
+engine.SIGHUPz
+engine.SIGTERMT)
+stagingZ
+productionZ
+embeddedZ
+test_suitec
+z*Config handler for the "server" namespace.
+serversr
+	_cpserver
+onN)
+splitr
+Server
+	subscribe
+unsubscriber0
+server)
+atomsZ
+servernamer<
+_server_namespace_handler
+z*Config handler for the "engine" namespace.>
+SIGTERM
+SIGHUPNr:
+callabler0
+plugin
+attrname
+opZ	sub_unsubr	
+_engine_namespace_handler
+z2Namespace handler for the 'tree' config namespace.z
+Mounted: %s on %s
+/N)	r
+treeZ
+graftr
+script_name)
+msgr	
+_tree_namespace_handler
+cherrypy._cpcompatr
+cherrypy.libr
+objectr 
+environmentsrD
+namespacesrJ
+<module>

@@ -1,0 +1,1477 @@
+m Z m!Z!m"Z"m#Z#m$Z$
+l%Z%d
+l%m&Z&
+d	l'm(Z(
+l)m*Z+
+l,Z%d
+m.Z.
+d d!d"d
+d#d$d%d
+d&d'i
+d)d*
+d+d,
+d,e2
+d-d.
+d.e2
+d/d0
+d0e2
+d1d2
+d3d4
+d4e6
+j8j9e
+j8j:e/
+d5d6
+d7d8
+d8e5e7
+d9d:
+j8j9G
+d;d<
+d<e<e;
+j8j9G
+d=d>
+d>e4e7
+d?d@
+d@e5e6
+dAdB
+dBe<e?
+dCdD
+dEdF
+dGdH
+j8j9e
+j8jDG
+dIdJ
+dJeBe?
+j8j9e
+j8jDG
+dKdL
+dLeBe@
+j8j9e
+j8jDG
+dMdN
+dNeCe?
+j8j9e
+j8jDG
+dOdP
+dPeCe@
+j8j9G
+dQdR
+dReAe?
+j8j9G
+dSdT
+dTeAe@
+j8j9G
+dUdV
+dVe4e6
+ZKdWdX
+dYjMeNdYjMe
+jOdYjMePdYjMeQdZjMeRd[jMeSd
+d\d]
+jTd^jMeUd_jMi	ZVd`da
+ZWdidbdc
+j8j9G
+ddde
+dee4
+j8j9e
+j8jDe
+j8jZdfd6
+dgdh
+dhe3
+SQL io tests
+The SQL tests are broken down in different classes:
+- `PandasSQLTest`: base class with common methods for all test classes
+- Tests for the public API (only tests with sqlite3)
+    - `_TestSQLApi` base class
+    - `TestSQLApi`: test the public API with sqlalchemy engine
+    - `TestSQLiteFallbackApi`: test the public API with a sqlite DBAPI
+      connection
+- Tests for the different SQL flavors (flavor specific type conversions)
+    - Tests for the sqlalchemy mode: `_TestSQLAlchemy` is the base class with
+      common methods, `_TestSQLAlchemyConn` tests the API with a SQLAlchemy
+      Connection object. The different tested flavors (sqlite3, MySQL,
+      PostgreSQL) derive from the base class
+    - Tests for the fallback mode (`TestSQLiteFallback`)
+date
+datetime
+time)
+StringIO)
+is_datetime64_dtype
+is_datetime64tz_dtype)
+	DataFrame
+Index
+MultiIndex
+Series
+	Timestamp
+concat
+date_range
+isna
+to_datetime
+to_timedelta)
+SQLAlchemyEngine
+_gt14
+get_engine
+read_sql_query
+read_sql_table
+inspect)
+declarative)
+sessionTFz
+CREATE TABLE iris (
+                "SepalLength" REAL,
+                "SepalWidth" REAL,
+                "PetalLength" REAL,
+                "PetalWidth" REAL,
+                "Name" TEXT
+            )z
+CREATE TABLE iris (
+                `SepalLength` DOUBLE,
+                `SepalWidth` DOUBLE,
+                `PetalLength` DOUBLE,
+                `PetalWidth` DOUBLE,
+                `Name` VARCHAR(200)
+            )a
+CREATE TABLE iris (
+                "SepalLength" DOUBLE PRECISION,
+                "SepalWidth" DOUBLE PRECISION,
+                "PetalLength" DOUBLE PRECISION,
+                "PetalWidth" DOUBLE PRECISION,
+                "Name" VARCHAR(200)
+            )
+sqlite
+mysql
+postgresqlz&INSERT INTO iris VALUES(?, ?, ?, ?, ?)z.INSERT INTO iris VALUES(%s, %s, %s, %s, "%s");z,INSERT INTO iris VALUES(%s, %s, %s, %s, %s);a
+CREATE TABLE types_test_data (
+                    "TextCol" TEXT,
+                    "DateCol" TEXT,
+                    "IntDateCol" INTEGER,
+                    "IntDateOnlyCol" INTEGER,
+                    "FloatCol" REAL,
+                    "IntCol" INTEGER,
+                    "BoolCol" INTEGER,
+                    "IntColWithNull" INTEGER,
+                    "BoolColWithNull" INTEGER
+                )a
+CREATE TABLE types_test_data (
+                    `TextCol` TEXT,
+                    `DateCol` DATETIME,
+                    `IntDateCol` INTEGER,
+                    `IntDateOnlyCol` INTEGER,
+                    `FloatCol` DOUBLE,
+                    `IntCol` INTEGER,
+                    `BoolCol` BOOLEAN,
+                    `IntColWithNull` INTEGER,
+                    `BoolColWithNull` BOOLEAN
+                )a
+CREATE TABLE types_test_data (
+                    "TextCol" TEXT,
+                    "DateCol" TIMESTAMP,
+                    "DateColWithTz" TIMESTAMP WITH TIME ZONE,
+                    "IntDateCol" INTEGER,
+                    "IntDateOnlyCol" INTEGER,
+                    "FloatCol" DOUBLE PRECISION,
+                    "IntCol" INTEGER,
+                    "BoolCol" BOOLEAN,
+                    "IntColWithNull" INTEGER,
+                    "BoolColWithNull" BOOLEAN
+                )zo
+                INSERT INTO types_test_data
+                VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)
+                
+TextCol
+DateCol
+IntDateCol
+IntDateOnlyCol
+FloatCol
+IntCol
+BoolCol
+IntColWithNull
+BoolColWithNull)
+query
+fieldszz
+                INSERT INTO types_test_data
+                VALUES("%s", %s, %s, %s, %s, %s, %s, %s, %s)
+                z|
+                INSERT INTO types_test_data
+                VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                
+DateColWithTzr"
+z1SELECT * FROM iris WHERE Name=? AND SepalLength=?z9SELECT * FROM iris WHERE `Name`="%s" AND `SepalLength`=%sz7SELECT * FROM iris WHERE "Name"=%s AND "SepalLength"=%sz]
+                SELECT * FROM iris WHERE Name=:name AND SepalLength=:length
+                zy
+                SELECT * FROM iris WHERE
+                `Name`="%(name)s" AND `SepalLength`=%(length)s
+                zw
+                SELECT * FROM iris WHERE
+                "Name"=%(name)s AND "SepalLength"=%(length)s
+                z&SELECT * FROM iris WHERE Name LIKE '%'z(SELECT * FROM iris WHERE `Name` LIKE '%'z(SELECT * FROM iris WHERE "Name" LIKE '%'r
+                CREATE VIEW iris_view AS
+                SELECT * FROM iris
+                )
+create_iris
+insert_iris
+create_test_types
+insert_test_types
+read_parameters
+read_named_parameters
+read_no_parameters_with_percent
+create_viewc
+	MixInBasec
+conn)
+hasattr
+_get_all_tables
+drop_table
+_close_conn)
+self
+method
+>/usr/lib64/python3.9/site-packages/pandas/tests/io/test_sql.py
+teardown_method
+MixInBase.teardown_methodN)
+__name__
+__module__
+__qualname__r@
+MySQLMixInc
+DROP TABLE IF EXISTS )
+cursor
+execute
+sqlZ
+_get_valid_mysql_name
+commit)
+table_name
+curr>
+MySQLMixIn.drop_tablec
+SHOW TABLESc
+tabler>
+<listcomp>
+z.MySQLMixIn._get_all_tables.<locals>.<listcomp>)
+fetchall)
+MySQLMixIn._get_all_tablesc
+Error)
+pymysql.errrS
+close)
+MySQLMixIn._close_connN
+SQLiteMixInc
+_get_valid_sqlite_namerI
+SQLiteMixIn.drop_tablec
+Nz1SELECT name FROM sqlite_master WHERE type='table'c
+z/SQLiteMixIn._get_all_tables.<locals>.<listcomp>)
+SQLiteMixIn._get_all_tablesc
+SQLiteMixIn._close_connNrU
+SQLAlchemyMixInc
+SQLDatabaser6
+SQLAlchemyMixIn.drop_tablec
+bind)
+sqlalchemy
+schema
+MetaDatar6
+reflect
+tables
+keys)
+metaZ
+table_listr>
+SQLAlchemyMixIn._get_all_tablesc
+disposerZ
+SQLAlchemyMixIn._close_connNrU
+d8d!d"
+d#d$
+d%d&
+d'd(
+d)d*
+d+d,
+d9d.d/
+d0d1
+d2d3
+d4d5
+d6d7
+PandasSQLTestzT
+    Base class with common private methods for SQLAlchemy and fallback cases.
+    c
+	_get_exec"
+PandasSQLTest._get_exec)
+data
+csvz
+iris.csv
+paramsc
+irisr-
+newliner.
+paramr7
+setup_connectr9
+SQL_STRINGS
+flavor
+openri
+reader
+next)
+datapath
+requestZ
+iris_csv_fileZ
+iris_csv
+rowr>
+load_iris_data(
+PandasSQLTest.load_iris_datac
+NZ	iris_viewr4
+_load_iris_view;
+PandasSQLTest._load_iris_viewc
+ffffff
+@gffffff
+Iris-setosa)
+dtypes
+type
+iloc
+equalContents
+values)
+iris_frameZ
+pytyperx
+_check_iris_loaded_frame?
+z&PandasSQLTest._check_iris_loaded_framec
+index
+2000-01-03 00:00:00gN
+?g9\
+2000-01-04 00:00:00g
+2000-01-05 00:00:00gG
+2000-01-06 00:00:00g
+?{mX
+?gnk3
+columns)
+test_frame1
+_load_test1_dataF
+PandasSQLTest._load_test1_datac
+asdZ
+gsqZ
+yltZ
+jkl)
+@g333333
+FTTF)
+1990-11-22z
+1991-10-26z
+1993-11-26z
+1995-12-12)
+test_frame2
+dfr>
+_load_test2_datai
+PandasSQLTest._load_test2_datac
+test_frame3r
+_load_test3_dataw
+PandasSQLTest._load_test3_datac
+int64
+floatr
+boolr+
+astype)
+flavor_dtypesr
+_filter_to_flavor
+z>PandasSQLTest._load_types_test_data.<locals>._filter_to_flavorc
+<dictcomp>
+z7PandasSQLTest._load_types_test_data.<locals>.<dictcomp>r
+types_test)
+_load_types_test_data
+z#PandasSQLTest._load_types_test_datac
+types_test_datar/
+firstr
+2000-01-01 00:00:00-08:00i
+g333333$@r
+2000-06-01 00:00:00-07:00i
+field
+z/PandasSQLTest._load_raw_sql.<locals>.<listcomp>r*
+_load_raw_sql
+PandasSQLTest._load_raw_sqlc
+Nz SELECT count(*) AS count_1 FROM r
+fetchone)
+resultr>
+_count_rows
+PandasSQLTest._count_rowsc
+SELECT * FROM iris)
+	pandasSQL
+read_queryr
+_read_sql_iris
+PandasSQLTest._read_sql_irisc
+_read_sql_iris_parameter
+z&PandasSQLTest._read_sql_iris_parameterc
+nameZ
+lengthrj
+_read_sql_iris_named_parameter
+z,PandasSQLTest._read_sql_iris_named_parameterc
+(_read_sql_iris_no_parameter_with_percent
+z6PandasSQLTest._read_sql_iris_no_parameter_with_percentNc
+to_sqlr
+lenr
+num_entries
+num_rowsr>
+_to_sql
+PandasSQLTest._to_sqlc
+_to_sql_empty
+PandasSQLTest._to_sql_emptyc
+fail
+	if_existsz"Table 'test_frame1' already exists
+match)
+pytest
+raises
+ValueError
+msgr>
+_to_sql_fail
+PandasSQLTest._to_sql_failc
+replacer
+_to_sql_replace
+PandasSQLTest._to_sql_replacec
+append
+_to_sql_append 
+PandasSQLTest._to_sql_appendc
+dict
+zip)
+zIPandasSQLTest._to_sql_method_callable.<locals>.sample.<locals>.<listcomp>)
+insert)
+pd_tabler6
+	data_iterrh
+checkr
+sample3
+z5PandasSQLTest._to_sql_method_callable.<locals>.sampler
+_to_sql_method_callable0
+z%PandasSQLTest._to_sql_method_callable
+autoc
+z `to_sql` with the `engine` paramr
+engineNr
+engine_kwargsr
+_to_sql_with_sql_engineD
+z%PandasSQLTest._to_sql_with_sql_enginec
+test_frame_roundtrip
+"SELECT * FROM test_frame_roundtrip
+level_0T
+inplace)
+	set_indexr
+assert_frame_equal
+_roundtripU
+PandasSQLTest._roundtripc
+iris_resultsrx
+_execute_sqla
+PandasSQLTest._execute_sqlc
+line1
+line2
+test_to_sql_saves_index)
+from_recordsr
+_get_index_columns)
+ix_colsr>
+_to_sql_save_indexg
+z PandasSQLTest._to_sql_save_indexc
+Nz'CREATE TABLE test_trans (A INT, B TEXT)c
+z7PandasSQLTest._transaction_test.<locals>.DummyExceptionN
+DummyExceptions
+z/INSERT INTO test_trans (A,B) VALUES (1, 'blah')
+errorz
+SELECT * FROM test_trans)
+run_transactionrG
+	Exceptionr
+transr
+ins_sql
+res2r>
+_transaction_testo
+PandasSQLTest._transaction_test)
+__doc__rf
+fixturery
+d d!
+d"d#
+d$d%
+d)d*f
+d+d,f
+d)d*f
+d+d,f
+d-d.
+d/d0
+Z d1d2
+Z!d3d4
+d7d8
+Z#d9d:
+Z$d;d<
+d=d>e&e'e&e'd?
+d@dA
+Z(dBdC
+Z)dDdE
+Z*dFdG
+Z+dHdI
+Z,dJdK
+Z-dLdM
+Z.dNdO
+Z/dPdQ
+Z0dRdS
+Z1d>S
+_TestSQLApia
+    Base class to test the public API.
+    From this two classes are derived to run these tests for both the
+    sqlalchemy mode (`TestSQLApi`) and the fallback mode
+    (`TestSQLiteFallbackApi`).  These tests are run with sqlite3. Specific
+    tests for the different sql flavours are included in `_TestSQLAlchemy`.
+    Notes:
+    flavor can always be passed even in SQLAlchemy mode,
+    should be correctly ignored.
+    we don't use drop_table because that isn't part of the public api
+    r
+modec
+connectr6
+_TestSQLApi.setup_connectT
+autousec
+load_test_data_and_sql
+setup_method
+_TestSQLApi.setup_methodc
+z"_TestSQLApi.load_test_data_and_sqlc
+test_read_sql_iris
+_TestSQLApi.test_read_sql_irisc
+SELECT * FROM iris_viewr
+test_read_sql_view
+_TestSQLApi.test_read_sql_viewc
+Nz/SELECT * FROM iris_view WHERE SepalLength < 0.0
+	chunksize)
+with_batchZ
+without_batchr>
+&test_read_sql_with_chunksize_no_result
+z2_TestSQLApi.test_read_sql_with_chunksize_no_resultc
+test_to_sql
+_TestSQLApi.test_to_sqlc
+z"Table 'test_frame2' already existsr
+test_to_sql_fail
+_TestSQLApi.test_to_sql_failc
+test_to_sql_replace
+_TestSQLApi.test_to_sql_replacec
+test_frame4r
+test_to_sql_append
+_TestSQLApi.test_to_sql_appendc
+test_frame5F
+SELECT * FROM test_frame5)
+read_sqlr
+test_to_sql_type_mapping
+z$_TestSQLApi.test_to_sql_type_mappingc
+dtypeZ
+series
+test_seriesFr
+SELECT * FROM test_series)
+arangerH
+to_frame)
+s2r>
+test_to_sql_series
+_TestSQLApi.test_to_sql_seriesc
+conr
+intr
+test_roundtrip
+_TestSQLApi.test_roundtripc
+test_roundtrip_chunksize
+z$_TestSQLApi.test_roundtrip_chunksizec
+test_execute_sql
+_TestSQLApi.test_execute_sqlc
+SELECT * FROM types_test_datar!
+parse_dates
+%Y-%m-%d %H:%M:%Sr"
+%Y%m%d
+test_date_parsing
+_TestSQLApi.test_date_parsingr
+ignore
+raise
+coercez
+read_sql, text, moder-
+fallbackr
+datetime64[ns]
+errors)
+textr
+expectedr
+test_custom_dateparsing_error?
+z)_TestSQLApi.test_custom_dateparsing_errorc
+	index_colr/
+test_date_and_index]
+_TestSQLApi.test_date_and_indexc
+00:00:01z
+00:00:03
+foor 
+test_timedeltaz
+SELECT * FROM test_timedeltar
+assert_produces_warning
+UserWarningr
+assert_series_equal
+view
+_TestSQLApi.test_timedeltac
+Complex datatypes not supportedr
+test_complex)
+test_complex_raisess
+_TestSQLApi.test_complex_raisesz
+index_name,index_label,expected)
+other_labelrG
+index_nameNrH
+col1r
+SELECT * FROM test_index_label
+test_index_label
+index_label)
+ranger
+temp_framer)
+framer>
+test_to_sql_index_labely
+z#_TestSQLApi.test_to_sql_index_labelc
+zALength of 'index_label' should match number of levels, which is 2r
+from_productrH
+namesr
+"test_to_sql_index_label_multiindex
+z._TestSQLApi.test_to_sql_index_label_multiindexc
+test_multiindex_roundtripz'SELECT * FROM test_multiindex_roundtrip
+check_index_type)
+z%_TestSQLApi.test_multiindex_roundtripr
+333333
+?g333333
+ffffff
+@g333333
+test_dtype_argumentz$SELECT A, B FROM test_dtype_argument
+_TestSQLApi.test_dtype_argumentc
+test_frame_integer_col_namesr
+test_integer_col_names
+z"_TestSQLApi.test_integer_col_namesc
+testr'
+get_schemar
+create_sqlr>
+test_get_schema
+_TestSQLApi.test_get_schemac
+pypi)
+test_get_schema_with_schema
+z'_TestSQLApi.test_get_schema_with_schemac
+INTEGERr^
+IntegerrH
+float_framer
+test_get_schema_dtypes
+z"_TestSQLApi.test_get_schema_dtypesc
+Col1Z
+Col2r^
+z'CONSTRAINT test_pk PRIMARY KEY ("Col1")r
+z)CONSTRAINT test_pk PRIMARY KEY ("A", "B"))
+constraint_sentencer>
+test_get_schema_keys
+z _TestSQLApi.test_get_schema_keysc
+abcder
+test_chunksizeFr
+select * from test_chunksizer
+ignore_indexr
+randomZ
+randn
+listr
+res1r
+sizes
+chunk
+res3r>
+test_chunksize_read
+_TestSQLApi.test_chunksize_readc
+John P. Doez	Jane Doverv
+Z	person_id
+person_namerw
+category
+test_categoricalFr
+SELECT * FROM test_categorical)	r
+copyr
+df2r
+_TestSQLApi.test_categoricalc
+test_unicodeFr
+test_unicode_column_name>
+z$_TestSQLApi.test_unicode_column_namec
+d1187b08-4943-4c8d-a7f6Fr
+z'SELECT * FROM `d1187b08-4943-4c8d-a7f6`)	r
+nanr
+test_escaped_table_nameC
+z#_TestSQLApi.test_escaped_table_name)2rA
+__annotations__rn
+mark
+parametrizerH
+SQLAlchemy not installed
+reasonc
+d d!d"e
+d&d'
+d(d)d*g
+d+d,
+d-d.
+d/d0
+d1d2
+d3d4
+d5d6
+TestSQLApiz
+    Test the public API as it would be used directly
+    Tests for `read_sql_table` are included here, as this is specific for the
+    sqlalchemy mode.
+    r
+sqlite:///:memory:
+create_enginerZ
+TestSQLApi.connectc
+test_framer
+colsr
+test_read_table_columns^
+z"TestSQLApi.test_read_table_columnsc
+)	Nr
+test_read_table_index_colf
+z$TestSQLApi.test_read_table_index_colc
+iris_frame1
+iris_frame2r>
+test_read_sql_delegatev
+z!TestSQLApi.test_read_sql_delegatec
+Nz,CREATE TABLE invalid (x INTEGER, y UNKNOWN);z0CREATE TABLE other_table (x INTEGER, y INTEGER);T
+record
+alwaysZ
+other_tablez
+SELECT * FROM other_table)
+warnings
+catch_warnings
+simplefilterrH
+test_not_reflect_all_tables
+z&TestSQLApi.test_not_reflect_all_tablesc
+CaseSensitive)
+(test_warning_case_insensitive_table_name
+z3TestSQLApi.test_warning_case_insensitive_table_namec
+reflectionZ
+test_index_savedc
+column_namesr>
+z1TestSQLApi._get_index_columns.<locals>.<listcomp>)
+sqlalchemy.enginer
+Z	InspectorZ
+from_enginer6
+get_indexes)
+tbl_namer
+insp
+ixsr>
+TestSQLApi._get_index_columnsc
+201412120154Z
+201412110254T)
+	test_type
+SQLTable)
+dbrO
+test_sqlalchemy_type_mapping
+z'TestSQLApi.test_sqlalchemy_type_mappingz
+integer, expected)
+int8
+SMALLINT)
+Int8r
+uint8r
+UInt8r
+int16r
+Int16r
+uint16rh
+UInt16rh
+int32rh
+Int32rh
+uint32
+BIGINT)
+UInt32r
+Int64r
+integerr:
+test_sqlalchemy_integer_mapping
+z*TestSQLApi.test_sqlalchemy_integer_mappingr
+uint64Z
+UInt64c
+)	Nr
+z1Unsigned 64 bit integer datatype is not supportedr
+(test_sqlalchemy_integer_overload_mapping
+z3TestSQLApi.test_sqlalchemy_integer_overload_mappingc
+l	}	t
+sqlite:///rl
+pg8000 is installedz)postgresql+pg8000://user:pass@host/dbname
+pg8000r
+select * from table)
+ensure_cleanr
+skip
+ImportErrorr
+db_urirO
+test_database_uri_string
+z#TestSQLApi.test_database_uri_stringc
+SepalLengthZ
+SepalWidthZ
+PetalLengthZ
+PetalWidth
+Name)
+Table
+ColumnZ
+REAL
+TEXT)
+metadatarl
+_make_iris_table_metadata
+z$TestSQLApi._make_iris_table_metadatac
+Nz#select * from iris where name=:namer
+Iris-versicolorrj
+set)
+Z	name_text
+iris_df
+	all_namesr>
+test_query_by_text_obj
+z!TestSQLApi.test_query_by_text_objc
+select
+whererX
+Z	bindparamrH
+name_selectr
+test_query_by_select_obj
+z#TestSQLApi.test_query_by_select_objc
+%_variationZ
+test_column_percentageFr
+test_column_with_percentage
+z&TestSQLApi.test_column_with_percentageN)
+_EngineToConnMixinzS
+    A mixin that causes setup_connect to create a conn rather than an engine.
+    Tr
+superr
+beginZ
+_EngineToConnMixin__txrH
+_EngineToConnMixin__engine
+rollbackrT
+	__class__r>
+_EngineToConnMixin.setup_method)
+__classcell__r>
+TestSQLApiConnNr
+TestSQLiteFallbackApiz9
+    Test the public sqlite connection fallback API
+    r
+:memory:c
+sqlite3r
+databaser>
+TestSQLiteFallbackApi.connectc
+test_frame3_legacyFr
+z!SELECT * FROM test_frame3_legacy;)	r
+test_sql_open_closeL
+z)TestSQLiteFallbackApi.test_sql_open_closez
+SQLAlchemy is installedr
+mysql://root@localhost/pandasz-Using URI string without sqlalchemy installedr
+test_con_string_import_error\
+z2TestSQLiteFallbackApi.test_con_string_import_errorc
+z9Execution failed on sql 'iris': near "iris": syntax errorr
+)	rH
+DatabaseError)
+z,TestSQLiteFallbackApi.test_read_sql_delegatec
+test_safe_names_warningl
+z-TestSQLiteFallbackApi.test_safe_names_warningc
+test_get_schema2s
+z&TestSQLiteFallbackApi.test_get_schema2c
+Column 
+ not found)
+split
+stripr
+column
+colr>
+_get_sqlite_column_typex
+z-TestSQLiteFallbackApi._get_sqlite_column_typec
+SQLiteDatabaser6
+SQLiteTableZ
+sql_schema)
+test_sqlite_type_mapping
+z.TestSQLiteFallbackApi.test_sqlite_type_mappingN)
+skipif
+SQLALCHEMY_INSTALLEDr
+d!d"
+d#d$
+d%d&
+d'd(
+d)d*
+d+d,
+d-d.
+d/d0
+d1d2
+d3d4
+d5d6
+Z d7d8
+Z!d9d:
+Z"d;d<
+Z#d=d>
+Z$d?d@
+Z%dAdB
+Z&dCdD
+Z'dEdF
+Z(dGdH
+Z)dIdJ
+Z*dKdL
+Z+dMdN
+Z,dOdP
+Z-dQdR
+Z.dSdT
+Z/dUdV
+Z0dWdX
+Z1dYdZ
+Z2d[d\
+Z3d]d^
+Z4d_d`
+Z5dadb
+Z6dcdd
+Z7dedf
+:dgdhe;j<g
+dhe;j<
+e;j<
+dkdl
+Z=dmdn
+Z>dodp
+Z?dqdr
+Z@dsdt
+ZAdudv
+ZBdwdx
+ZCdyS
+_TestSQLAlchemyz
+    Base class for testing the sqlalchemy backend.
+    Subclasses for specific database types are created below. Tests that
+    deviate for each flavor are overwritten there.
+    rp
+class
+scopec
+setup_import
+setup_driverr
+clsr6
+setup_class
+_TestSQLAlchemy.setup_classc
+z&_TestSQLAlchemy.load_test_data_and_sqlr
+_TestSQLAlchemy.setup_methodc
+_TestSQLAlchemy.setup_importc
+NotImplementedErrorr
+_TestSQLAlchemy.setup_driverc
+_TestSQLAlchemy.connectc
+Can't connect to z
+ server)
+excZ
+OperationalErrorr
+_TestSQLAlchemy.setup_connectc
+test_read_sql
+_TestSQLAlchemy.test_read_sqlc
+test_read_sql_parameter
+z'_TestSQLAlchemy.test_read_sql_parameterc
+test_read_sql_named_parameter
+z-_TestSQLAlchemy.test_read_sql_named_parameterc
+_TestSQLAlchemy.test_to_sqlc
+test_to_sql_empty
+z!_TestSQLAlchemy.test_to_sql_emptyc
+z _TestSQLAlchemy.test_to_sql_failc
+z#_TestSQLAlchemy.test_to_sql_replacec
+z"_TestSQLAlchemy.test_to_sql_appendc
+multir
+test_to_sql_method_multi
+z(_TestSQLAlchemy.test_to_sql_method_multic
+test_to_sql_method_callable
+z+_TestSQLAlchemy.test_to_sql_method_callablec
+oneZ
+tworP
+Z	temp_connrP
+test_create_table
+z!_TestSQLAlchemy.test_create_tablec
+test_drop_table
+_TestSQLAlchemy.test_drop_tablec
+_TestSQLAlchemy.test_roundtripc
+z _TestSQLAlchemy.test_execute_sqlc
+test_read_table
+_TestSQLAlchemy.test_read_tablec
+z'_TestSQLAlchemy.test_read_table_columnsc
+Nz!Table this_doesnt_exist not foundr
+this_doesnt_existr'
+test_read_table_absent_raises
+z-_TestSQLAlchemy.test_read_table_absent_raisesc
+test_default_type_conversion
+	z,_TestSQLAlchemy.test_default_type_conversionc
+i64l
+test_bigintFr
+_TestSQLAlchemy.test_bigintc
+test_default_date_load-
+z&_TestSQLAlchemy.test_default_date_loadc
+2000-01-01 08:00:00
+UTC)
+2000-06-01 07:00:00r 
+z&DateCol loaded with incorrect type -> )	r
+AssertionError)
+expected_datar:
+z:_TestSQLAlchemy.test_datetime_with_timezone.<locals>.checkz
+select * from types_test_datar,
+z&no column with datetime with time zoner.
+test_datetime_with_timezone4
+z+_TestSQLAlchemy.test_datetime_with_timezonec
+2013-01-01 09:00:00r
+US/Pacific)
+periodsr
+test_datetime_tzFr
+SELECT * FROM test_datetime_tzr
+tz_convertZ
+tz_localizerH
+%test_datetime_with_timezone_roundtrip
+z5_TestSQLAlchemy.test_datetime_with_timezone_roundtripc
+)	Nr
+test_datetime_obbFr
+NaTr
+test_out_of_bounds_datetime
+z+_TestSQLAlchemy.test_out_of_bounds_datetimec
+2018-01-01r
+freqZ
+numsr
+Z	foo_tableZ	info_daterM
+check_names)
+_with_freqr
+datesr:
+"test_naive_datetimeindex_roundtrip
+z2_TestSQLAlchemy.test_naive_datetimeindex_roundtripc
+formatr"
+unit)
+objectr!
+datetime64)
+expected_typer>
+z!_TestSQLAlchemy.test_date_parsingc
+test_datetimer
+axis
+SELECT * FROM test_datetimer
+dropr
+_TestSQLAlchemy.test_datetimec
+locr
+test_datetime_NaT
+z!_TestSQLAlchemy.test_datetime_NaTc
+	test_dateFr
+test_datetime_date
+z"_TestSQLAlchemy.test_datetime_datec
+	test_timeFr
+test_time2z
+SELECT * FROM test_time2c
+%H:%M:%S.%f
+strftime
+<lambda>
+z4_TestSQLAlchemy.test_datetime_time.<locals>.<lambda>Z
+test_time3r
+SELECT * FROM test_time3c
+TestSQLiteFallbackr
+applymaprp
+sqlite_conn
+refr>
+test_datetime_time
+z"_TestSQLAlchemy.test_datetime_timec
+s1r%
+test_read_writeFr
+check_dtypeZ
+check_exact)
+float32r
+test_mixed_dtype_insert
+z'_TestSQLAlchemy.test_mixed_dtype_insertc
+)	Nr
+test_nanFr
+SELECT * FROM test_nan)
+test_nan_numeric)
+z _TestSQLAlchemy.test_nan_numericc
+)	Nr
+test_nan_fullcolumn6
+z#_TestSQLAlchemy.test_nan_fullcolumnc
+test_nan_stringE
+_TestSQLAlchemy.test_nan_stringc
+z6_TestSQLAlchemy._get_index_columns.<locals>.<listcomp>)
+z"_TestSQLAlchemy._get_index_columnsc
+test_to_sql_save_index^
+z&_TestSQLAlchemy.test_to_sql_save_indexc
+test_transactionsa
+z!_TestSQLAlchemy.test_transactionsc
+test_get_schema_create_tabler'
+blank_test_df
+returned_dfr>
+z,_TestSQLAlchemy.test_get_schema_create_tablec
+dtype_test
+dtype_test2r
+z&The type of B is not a SQLAlchemy typer
+dtype_test3
+single_dtype_test)
+String)	r;
+sqltyper
+sqltypeaZ
+sqltypebr>
+test_dtypet
+_TestSQLAlchemy.test_dtypec
+BoolZ
+DateZ
+Float
+notna_dtype_testr]
+sqltypesri
+Booleanrb
+my_type
+col_dictr>
+test_notna_dtype
+z _TestSQLAlchemy.test_notna_dtypec
+float64r
+f32Z
+f64_as_f32Z
+i32r
+test_dtypesFr
+Z	precision)
+test_double_precision
+z%_TestSQLAlchemy.test_double_precisionc
+)	Nc
+Nz'SELECT test_foo_data FROM test_foo_datar'
+connectionr)
+z;_TestSQLAlchemy.test_connectable_issue_example.<locals>.fooc
+test_foo_datar
+z;_TestSQLAlchemy.test_connectable_issue_example.<locals>.barc
+run_callable)
+connectabler6
+foo_data
+main
+z<_TestSQLAlchemy.test_connectable_issue_example.<locals>.mainrX
+test_connectable_issue_example
+z._TestSQLAlchemy.test_connectable_issue_example
+inputr>
+infe0c
+GH 36465r
+inf cannot be used with MySQLr
+foobarFr
+pymysqlZ
+VERSIONr
+xfailZ
+nodeZ
+add_markerr
+assert_equal)
+test_to_sql_with_negative_npinf
+z/_TestSQLAlchemy.test_to_sql_with_negative_npinfc
+Hello, World!
+spamc
+z7_TestSQLAlchemy.test_temporary_table.<locals>.TemporaryZ	temp_test
+prefixesZ	TEMPORARYT)
+primary_keyr)
+nullableN)
+__tablename__Z
+__table_args__r^
+Unicodera
+	Temporary
+declarative_base
+sa_sessionZ
+sessionmakerr6
+transactionrW
+Z	__table__Z
+create
+flushrH
+)	r;
+Z	test_datar:
+Baserd
+Sessionr
+test_temporary_table
+z$_TestSQLAlchemy.test_temporary_tablec
+Nz*engine must be one of 'auto', 'sqlalchemy'r
+bad_engine)
+test_invalid_engine
+z#_TestSQLAlchemy.test_invalid_enginec
+io.sql.enginer^
+option_contextr
+test_options_sqlalchemy!
+z'_TestSQLAlchemy.test_options_sqlalchemyc
+test_options_auto'
+z!_TestSQLAlchemy.test_options_autoc
+test_options_get_engine-
+z'_TestSQLAlchemy.test_options_get_enginec
+"test_get_engine_auto_error_message8
+z2_TestSQLAlchemy.test_get_engine_auto_error_messageN)DrA
+classmethodr
+infr`
+_TestSQLAlchemyConnc
+Nz4Nested transactions rollbacks don't work with Pandas)
+z%_TestSQLAlchemyConn.test_transactionsN)
+_TestSQLiteAlchemyzL
+    Test the sqlalchemy backend against an in-memory sqlite database.
+    r
+_TestSQLiteAlchemy.connectc
+driverr
+_TestSQLiteAlchemy.setup_driverc
+z/_TestSQLiteAlchemy.test_default_type_conversionc
+z)_TestSQLiteAlchemy.test_default_date_loadc
+test_bigintwarningFr
+test_bigint_warningj
+z&_TestSQLiteAlchemy.test_bigint_warningN)
+_TestMySQLAlchemyzA
+    Test the sqlalchemy backend against an MySQL database.
+    r
+mysql+z
+://root@localhost:
+/pandas)
+connect_args)
+portry
+_TestMySQLAlchemy.connectc
+client_flag)
+importorskipru
+Z	constantsZ
+CLIENTZ
+MULTI_STATEMENTSry
+_TestMySQLAlchemy.setup_driverc
+z._TestMySQLAlchemy.test_default_type_conversionc
+g333333
+test_procedureFr
+DROP PROCEDURE IF EXISTS get_testdb;
+        CREATE PROCEDURE get_testdb ()
+        BEGIN
+            SELECT * FROM test_procedure;
+        ENDz
+CALL get_testdb();)
+)	r;
+procrW
+r1rp
+test_read_procedure
+z%_TestMySQLAlchemy.test_read_procedureN)
+_TestPostgreSQLAlchemyzF
+    Test the sqlalchemy backend against an PostgreSQL database.
+    r
+postgresql+z
+://postgres:postgres@localhost:rx
+_TestPostgreSQLAlchemy.connectc
+psycopg2)
+z#_TestPostgreSQLAlchemy.setup_driverc
+col2Z
+col3z$DROP SCHEMA IF EXISTS other CASCADE;z
+CREATE SCHEMA other;Z
+test_schema_publicFr
+test_schema_public_explicitZ
+public)
+test_schema_other
+other)
+z!Table test_schema_other not foundr
+test_schema_other2)
+isinstancer^
+Enginer
+read_table)
+res4r
+engine2rd
+pdsqlr>
+test_schema_support
+z*_TestPostgreSQLAlchemy.test_schema_supportc
+j	}	d
+"Nr>
+	<genexpr>#	
+zl_TestPostgreSQLAlchemy.test_copy_from_callable_insertion_method.<locals>.psql_insert_copy.<locals>.<genexpr>
+COPY z
+) FROM STDIN WITH CSV)
+file)
+writerZ	writerows
+seek
+joinr_
+copy_expert)
+dbapi_connrK
+s_bufr
+Z	sql_queryr>
+psql_insert_copy
+zY_TestPostgreSQLAlchemy.test_copy_from_callable_insertion_method.<locals>.psql_insert_copyr
+test_copy_insertF)
+(test_copy_from_callable_insertion_method
+z?_TestPostgreSQLAlchemy.test_copy_from_callable_insertion_methodN)
+TestMySQLAlchemyNr
+TestMySQLAlchemyConnNr
+TestPostgreSQLAlchemyNr
+TestPostgreSQLAlchemyConnNr
+TestSQLiteAlchemyNr
+TestSQLiteAlchemyConnNr
+d!d"
+d#d$
+d%d&
+d'd(
+d)d*
+d+d,
+d-d.
+d/d0
+d1d2
+d3d4
+d5d6
+Z d7S
+)8r1
+    Test the fallback mode against an in-memory sqlite database.
+    r
+TestSQLiteFallback.connectc
+z TestSQLiteFallback.setup_connectc
+z)TestSQLiteFallback.load_test_data_and_sqlTr
+TestSQLiteFallback.setup_methodc
+z TestSQLiteFallback.test_read_sqlc
+z*TestSQLiteFallback.test_read_sql_parameterc
+z0TestSQLiteFallback.test_read_sql_named_parameterc
+TestSQLiteFallback.test_to_sqlc
+z$TestSQLiteFallback.test_to_sql_emptyc
+z#TestSQLiteFallback.test_to_sql_failc
+z&TestSQLiteFallback.test_to_sql_replacec
+z%TestSQLiteFallback.test_to_sql_appendc
+z+TestSQLiteFallback.test_to_sql_method_multic
+drop_test_frame)
+test_create_and_drop_table
+z-TestSQLiteFallback.test_create_and_drop_tablec
+z!TestSQLiteFallback.test_roundtripc
+z#TestSQLiteFallback.test_execute_sqlc
+SELECT * FROM test_dater
+z%TestSQLiteFallback.test_datetime_datec
+SELECT * FROM test_timer
+z7TestSQLiteFallback.test_datetime_time.<locals>.<lambda>)	r
+z%TestSQLiteFallback.test_datetime_timec
+Nz1SELECT * FROM sqlite_master WHERE type = 'index' z
+AND tbl_name = '
+PRAGMA index_info(
+tolist)
+ix_nameZ
+ix_infor>
+z%TestSQLiteFallback._get_index_columnsc
+z)TestSQLiteFallback.test_to_sql_save_indexc
+z$TestSQLiteFallback.test_transactionsc
+PRAGMA table_info(r
+Table z	, column r
+recsZ
+cidr
+ctypeZ
+not_null
+defaultZ
+pkr>
+z*TestSQLiteFallback._get_sqlite_column_typec
+Not applicable to MySQL legacyr
+STRINGr
+z!B \(<class 'bool'>\) not a stringr
+)	rp
+TestSQLiteFallback.test_dtypec
+z#TestSQLiteFallback.test_notna_dtypec
+z$Empty table or column name specifiedr
+test_weird_name]z
+test_weird_name[z
+test_weird_name`z
+test_weird_name"z
+test_weird_name'z
+_b.test_weird_name_01-30z
+"_b.test_weird_name_01-30"Z
+99beginswithnumberZ
+12345r|
+test_weird_col_namer
+	enumeraterH
+table_exists)
+ndxZ
+weird_namer{
+c_tblr>
+test_illegal_names
+z%TestSQLiteFallback.test_illegal_namesN)!rA
+z Returns date in YYYYMMDD format.r1
+date_format
+'{}'z
+{:.8f}z
+{:d}c
+NULLr>
+{:.10f}z
+'{!s}'c
+_formattersr
+tuple)
+argsZ
+processed_args
+argZ	formatterr>
+format_query.
+z#Replace removed sql.tquery function)
+tquery:
+TestXSQLiteTr
+functionr<
+TestXSQLite.setup_methodc
+makeTimeDataFrame
+_check_roundtrip
+test_basicP
+TestXSQLite.test_basicc
+(INSERT INTO test VALUES (%s, %s, %s, %s)
+select * from testr'
+MbP?
+rtol
+iterrowsr
+)	r;
+idxrx
+fmt_sqlr
+test_write_row_by_rowT
+z!TestXSQLite.test_write_row_by_rowc
+z$INSERT INTO test VALUES (?, ?, ?, ?)r
+test_executei
+TestXSQLite.test_executec
+r q t
+splitlinesr
+lines
+line
+tokensrK
+test_schemax
+TestXSQLite.test_schemac
+        CREATE TABLE test
+        (
+        a TEXT,
+        b TEXT,
+        c REAL,
+        PRIMARY KEY (a, b)
+        );
+        
+,INSERT INTO test VALUES("foo", "bar", 1.234)
+,INSERT INTO test VALUES("foo", "baz", 2.567)z
+Execution failed on sqlr
+(INSERT INTO test VALUES("foo", "bar", 7))
+test_execute_fail
+TestXSQLite.test_execute_failc
+external_error_raisedr
+ProgrammingErrorr
+test_execute_closed_connection
+z*TestXSQLite.test_execute_closed_connectionc
+test_na_roundtrip
+TestXSQLite.test_na_roundtripc
+test_tableF
+select * from test_tablerE
+txtrG
+test_table2
+select * from test_table2rV
+frame2Z
+new_idxr>
+TestXSQLite._check_roundtripc
+Fromr
+testkeywordsF
+onesrH
+test_keyword_as_column_names
+z(TestXSQLite.test_keyword_as_column_namesc
+mono_dfFr
+my_c0r>
+z8TestXSQLite.test_onecolumn_of_integer.<locals>.<genexpr>z
+select * from mono_df)	r
+sumrG
+con_xZ
+the_sumr
+test_onecolumn_of_integer
+z%TestXSQLite.test_onecolumn_of_integerc
+table_if_exists
+SELECT * FROM c
+            Drops tables created from individual tests
+            so no dependencies arise from sequential tests
+            N
+test_table_to_droprZ
+clean_up
+z,TestXSQLite.test_if_exists.<locals>.clean_upz*'notvalidvalue' is not valid for if_existsr
+notvalidvalue
+z&Table 'table_if_exists' already existsr
+df_if_exists_1
+df_if_exists_2rJ
+sql_selectr
+test_if_exists
+TestXSQLite.test_if_existsN)
+zFgh-13611: there is no support for MySQL if SQLAlchemy is not installedc
+TestXMySQLTr
+Z	localhost
+rootr
+pandas)
+host
+user
+passwdr
+read_default_groupz
+Create a group of connection parameters under the heading [pandas] in your system's mysql default file, typically located at ~/.my.cnf or /etc/.my.cnf.z
+Cannot connect to database. Create a group of connection parameters under the heading [pandas] in your system's mysql default file, typically located at ~/.my.cnf or /etc/.my.cnf.)
+RuntimeErrorrS
+errr>
+TestXMySQL.setup_classr
+TestXMySQL.setup_methodc
+TestXMySQL.test_basicc
+DROP TABLE IF EXISTS testr^
+drop_sqlrb
+z TestXMySQL.test_write_row_by_rowc
+Z	chunk_genZ
+chunk_dfr>
+test_chunksize_read_typeo
+z#TestXMySQL.test_chunksize_read_typec
+Unknown table.*r
+filterwarningsrG
+TestXMySQL.test_executec
+r q t
+)	Nr^
+TestXMySQL.test_schemac
+        CREATE TABLE test
+        (
+        a TEXT,
+        b TEXT,
+        c REAL,
+        PRIMARY KEY (a(5), b(5))
+        );
+        r
+<insert message here>r
+TestXMySQL.test_execute_failc
+z)TestXMySQL.test_execute_closed_connectionc
+TestXMySQL.test_na_roundtripc
+DROP TABLE IF EXISTS test_tabler4
+z DROP TABLE IF EXISTS test_table2r
+TestXMySQL._check_roundtripc
+z'TestXMySQL.test_keyword_as_column_namesc
+z+TestXMySQL.test_if_exists.<locals>.clean_upr
+TestXMySQL.test_if_existsN)
+NN)\r
+numpyr!
+pandas.core.dtypes.commonr
+pandas._testingZ
+_testingr
+pandas.io.sqlrH
+sqlalchemy.extr
+sqlalchemy.ormr
+sqlalchemy.schemaZ
+sqlalchemy.sql.sqltypesrO
+singler
+str_
+bytesr
+<module>

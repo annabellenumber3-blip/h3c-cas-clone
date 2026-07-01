@@ -1,0 +1,446 @@
+6,67
+division)
+mpzTF)
+python_2_unicode_compatible
+numbertheory)
+normalise_bytes)
+MalformedPointError)
+orderlen
+string_to_number
+number_to_stringc
+CurveFpz9Elliptic Curve over the field of integers modulo a prime.Nc
+            The curve of points satisfying y^2 = x^3 + a*x + b (mod p).
+            h is an integer that is the cofactor of the elliptic curve domain
+            parameters; it is the number of points satisfying the elliptic
+            curve equation divided by the order of the base point. It is used
+            for selection of efficient algorithm for public point verification.
+            N)
+_CurveFp__p
+_CurveFp__a
+_CurveFp__b
+_CurveFp__h
+self
+7/usr/lib/python3.9/site-packages/ecdsa/ellipticcurve.py
+__init__>
+CurveFp.__init__c
+Return True if other is an identical curve, False otherwise.
+        Note: the value of the cofactor of the curve is not taken into account
+        when comparing curves, as it's derived from the base point and
+        intrinsic curve characteristic (but it's complex to compute),
+        only the prime and curve parameters are considered.
+        )
+isinstancer
+NotImplemented)
+otherr
+__eq__^
+CurveFp.__eq__c
+z<Return False if other is an identical curve, True otherwise.r
+__ne__o
+CurveFp.__ne__c
+hashr
+__hash__s
+CurveFp.__hash__c
+z	CurveFp.pc
+z	CurveFp.ac
+z	CurveFp.bc
+cofactor
+CurveFp.cofactorc
+z!Is the point (x,y) on this curve?r
+contains_point
+CurveFp.contains_pointc
+CurveFp(p=%d, a=%d, b=%d, h=%d)r
+__str__
+CurveFp.__str__)
+__name__
+__module__
+__qualname__
+__doc__
+GMPYr
+AbstractPointz2Class for common methods of elliptic curve points.c
+        Decode public point from :term:`raw encoding`.
+        :term:`raw encoding` is the same as the :term:`uncompressed` encoding,
+        but without the 0x04 byte at the beginning.
+        N
+data
+raw_encoding_lengthZ
+coord_x
+coord_yr
+_from_raw_encoding
+z AbstractPoint._from_raw_encodingc
+z-Decode public point from compressed encoding.Nr
+z#Malformed compressed point encodingr7
+z0Encoding does not correspond to a point on curve)
+powr
+square_root_mod_primeZ
+SquareRootError
+bool)	r2
+curveZ
+is_evenr'
+alphaZ
+beta
+_from_compressed
+AbstractPoint._from_compressedc
+z)Decode public point from hybrid encoding.r
+z"Inconsistent hybrid point encoding)
+clsr2
+validate_encodingr'
+_from_hybrid
+AbstractPoint._from_hybridTNc
+        Initialise the object from byte encoding of a point.
+        The method does accept and automatically detect the type of point
+        encoding used. It supports the :term:`raw encoding`,
+        :term:`uncompressed`, :term:`compressed`, and :term:`hybrid` encodings.
+        Note: generally you will want to call the ``from_bytes()`` method of
+        either a child class, PointJacobi or Point.
+        :param data: single point encoding of the public key
+        :type data: :term:`bytes-like object`
+        :param curve: the curve on which the public key is expected to lay
+        :type curve: ecdsa.ellipticcurve.CurveFp
+        :param validate_encoding: whether to verify that the encoding of the
+            point is self-consistent, defaults to True, has effect only
+            on ``hybrid`` encoding
+        :type validate_encoding: bool
+        :param valid_encodings: list of acceptable point encoding formats,
+            supported ones are: :term:`uncompressed`, :term:`compressed`,
+            :term:`hybrid`, and :term:`raw encoding` (specified with ``raw``
+            name). All formats by default (specified with ``None``).
+        :type valid_encodings: :term:`set-like object`
+        :raises MalformedPointError: if the public point does not lay on the
+            curve or the encoding is invalid
+        :return: x and y coordinates of the encoded point
+        :rtype: tuple(int, int)
+        
+uncompressed
+compressed
+hybrid
+rawc
+set)
+	<genexpr>
+z+AbstractPoint.from_bytes.<locals>.<genexpr>z@Only uncompressed, compressed, hybrid or raw encoding supported.r1
+z*Invalid X9.62 encoding of the public pointrF
+z[Length of string does not match lengths of any of the enabled ({0}) encodings of the curve.z
+ValueErrorr
+lenr	
+format
+join)	rA
+valid_encodingsZ
+key_lenr3
+from_bytes
+AbstractPoint.from_bytesc
+z.Convert the point to the :term:`raw encoding`.
+prime
+x_strZ
+y_strr
+_raw_encode"
+AbstractPoint._raw_encodec
+z*Encode the point into the compressed form.r
+_compressed_encode)
+z AbstractPoint._compressed_encodec
+z&Encode the point into the hybrid form.r
+raw_encr
+_hybrid_encode1
+AbstractPoint._hybrid_encoderH
+        Convert the point to a byte string.
+        The method by default uses the :term:`raw encoding` (specified
+        by `encoding="raw"`. It can also output points in :term:`uncompressed`,
+        :term:`compressed`, and :term:`hybrid` formats.
+        :return: :term:`raw encoding` of a public on the curve
+        :rtype: bytes
+        rH
+encodingr
+to_bytes8
+AbstractPoint.to_bytes)
+staticmethodr6
+classmethodrC
+d!d"
+d#d$
+d%d&
+d'd(
+d)d*
+d+d,
+d-d.
+d/d0
+d1d2
+d3d4
+d5d6
+d7d8
+d9d:
+Z d;d<
+Z!d=d>
+Z"d?d@
+PointJacobiu
+    Point on an elliptic curve. Uses Jacobi coordinates.
+    In Jacobian coordinates, there are three parameters, X, Y and Z.
+    They correspond to affine parameters 'x' and 'y' like so:
+    x = X / Z
+    y = Y / Z
+    NFc
+        Initialise a point that uses Jacobi representation internally.
+        :param CurveFp curve: curve on which the point resides
+        :param int x: the X parameter of Jacobi representation (equal to x when
+          converting from affine coordinates
+        :param int y: the Y parameter of Jacobi representation (equal to y when
+          converting from affine coordinates
+        :param int z: the Z parameter of Jacobi representation (equal to 1 when
+          converting from affine coordinates
+        :param int order: the point order, must be non zero when using
+          generator=True
+        :param bool generator: the point provided is a curve generator, as
+          such, it will be commonly used with scalar multiplication. This will
+          cause to precompute multiplication table generation for it
+        N)
+superr_
+_PointJacobi__curver/
+_PointJacobi__coords
+_PointJacobi__order
+_PointJacobi__generator
+_PointJacobi__precompute)
+order
+	generator
+	__class__r
+PointJacobi.__init__Tc
+        Initialise the object from byte encoding of a point.
+        The method does accept and automatically detect the type of point
+        encoding used. It supports the :term:`raw encoding`,
+        :term:`uncompressed`, :term:`compressed`, and :term:`hybrid` encodings.
+        :param data: single point encoding of the public key
+        :type data: :term:`bytes-like object`
+        :param curve: the curve on which the public key is expected to lay
+        :type curve: ecdsa.ellipticcurve.CurveFp
+        :param validate_encoding: whether to verify that the encoding of the
+            point is self-consistent, defaults to True, has effect only
+            on ``hybrid`` encoding
+        :type validate_encoding: bool
+        :param valid_encodings: list of acceptable point encoding formats,
+            supported ones are: :term:`uncompressed`, :term:`compressed`,
+            :term:`hybrid`, and :term:`raw encoding` (specified with ``raw``
+            name). All formats by default (specified with ``None``).
+        :type valid_encodings: :term:`set-like object`
+        :param int order: the point order, must be non zero when using
+            generator=True
+        :param bool generator: the point provided is a curve generator, as
+            such, it will be commonly used with scalar multiplication. This
+            will cause to precompute multiplication table generation for it
+        :raises MalformedPointError: if the public point does not lay on the
+            curve or the encoding is invalid
+        :return: Point on curve
+        :rtype: PointJacobi
+        r
+)	rA
+PointJacobi.from_bytesc
+appendr'
+double
+scale)
+precomputerK
+coord_zZ
+doublerr
+_maybe_precompute
+PointJacobi._maybe_precomputec
+__dict__
+copy
+stater
+__getstate__
+PointJacobi.__getstate__c
+updaterr
+__setstate__
+PointJacobi.__setstate__c
+z}Compare for equality two points with each-other.
+        Note: only points that lay on the same curve can be equal.
+        r
+INFINITYr
+Pointr'
+zz1Z
+zz2r
+PointJacobi.__eq__c
+z2Compare for inequality two points with each-other.r
+PointJacobi.__ne__c
+zIReturn the order of the point.
+        None if it is undefined.
+        )
+PointJacobi.orderc
+z-Return curve over which the point is defined.)
+PointJacobi.curvec
+        Return affine x coordinate.
+        This method should be used only when the 'y' coordinate is not needed.
+        It's computationally more efficient to use `to_affine()` and then
+        call x() and y() on the returned instance. Or call `scale()`
+        and then x() and y() on the returned instance.
+        r
+inverse_mod)
+PointJacobi.xc
+        Return affine y coordinate.
+        This method should be used only when the 'x' coordinate is not needed.
+        It's computationally more efficient to use `to_affine()` and then
+        call x() and y() on the returned instance. Or call `scale()`
+        and then x() and y() on the returned instance.
+        r
+PointJacobi.yc
+        Return point scaled so that z == 1.
+        Modifies point in place, returns self.
+        r
+z_invZ
+zz_invr
+PointJacobi.scalec
+Return point in affine form.)
+	to_affine(
+PointJacobi.to_affinec
+Create from an affine point.
+        :param bool generator: set to True to make the point to precalculate
+          multiplication table - useful for public point when verifying many
+          signatures (around 100 or so) or for generator points of a curve.
+        r
+pointrh
+from_affine1
+PointJacobi.from_affinec
+}	|	|	
+z"Add a point to itself with z == 1.
+YYYY
+_double_with_z_1H
+PointJacobi._double_with_z_1c
+z#Add a point to itself, arbitrary z.r
+_doubleX
+PointJacobi._doublec
+Add a point to itself.)
+PointJacobi.doublec
+z&add points when both Z1 and Z2 equal 1
+_add_with_z_1}
+PointJacobi._add_with_z_1c
+add points when Z1 == Z2r1
+_add_with_z_eq
+PointJacobi._add_with_z_eqc
+add points when Z2 == 1r
+Z1Z1
+_add_with_z2_1
+PointJacobi._add_with_z2_1c
+add points with arbitrary zr
+Z2Z2Z
+_add_with_z_ne
+PointJacobi._add_with_z_nec
+Add other to self.r
+__radd__
+PointJacobi.__radd__c
+z&add two points, select fastest method.r
+_add
+PointJacobi._addc
+z!Add two points on elliptic curve.z%The other point is on different curve)
+__add__
+PointJacobi.__add__c
+Multiply point by an integer.r
+__rmul__
+PointJacobi.__rmul__c
+z4Multiply point by integer with precomputation table.r
+_mul_precompute
+PointJacobi._mul_precomputec
+z&Calculate non-adjacent form of number.r1
+mult
+retZ
+_naf
+PointJacobi._nafc
+reversedr
+__mul__
+PointJacobi.__mul__c
+rl| d
+r(nB| d
+n@| d
+nf| d
+n@| d
+        Do two multiplications at the same time, add results.
+        calculates self*self_mul + other*other_mul
+        r
+listr
+intrP
+zip)!r
+self_mulr
+Z	other_mulr
+mAmB_XZ
+mAmB_YZ
+mAmB_ZZ
+pAmB_XZ
+pAmB_YZ
+pAmB_ZZ
+mApB_XZ
+mApB_YZ
+mApB_ZZ
+pApB_XZ
+pApB_YZ
+pApB_ZZ
+self_nafZ	other_nafr
+mul_add8
+PointJacobi.mul_addc
+Return negated point.)
+__neg__
+PointJacobi.__neg__)
+TNNF)
+F)%r+
+__classcell__r
+)"rx
+zrA point on an elliptic curve. Altering x and y is forbidden,
+     but they can be read by the x() and y() methods.Nc
+z@curve, x, y, order; order (optional) is the order of this point.r
+_Point__curver/
+	_Point__x
+	_Point__y
+_Point__orderr&
+Point.__init__Tc
+        Initialise the object from byte encoding of a point.
+        The method does accept and automatically detect the type of point
+        encoding used. It supports the :term:`raw encoding`,
+        :term:`uncompressed`, :term:`compressed`, and :term:`hybrid` encodings.
+        :param data: single point encoding of the public key
+        :type data: :term:`bytes-like object`
+        :param curve: the curve on which the public key is expected to lay
+        :type curve: ecdsa.ellipticcurve.CurveFp
+        :param validate_encoding: whether to verify that the encoding of the
+            point is self-consistent, defaults to True, has effect only
+            on ``hybrid`` encoding
+        :type validate_encoding: bool
+        :param valid_encodings: list of acceptable point encoding formats,
+            supported ones are: :term:`uncompressed`, :term:`compressed`,
+            :term:`hybrid`, and :term:`raw encoding` (specified with ``raw``
+            name). All formats by default (specified with ``None``).
+        :type valid_encodings: :term:`set-like object`
+        :param int order: the point order, must be non zero when using
+            generator=True
+        :raises MalformedPointError: if the public point does not lay on the
+            curve or the encoding is invalid
+        :return: Point on curve
+        :rtype: Point
+        )
+Point.from_bytesc
+Return True if the points are identical, False otherwise.
+        Note: only points that lay on the same curve can be equal.
+        )
+Point.__eq__c
+z6Returns False if points are identical, True otherwise.r
+Point.__ne__c
+Point.__neg__c
+Add one point to another point.r
+Point.__add__c
+Multiply a point by an integer.c
+resultr
+leftmost_bit
+z#Point.__mul__.<locals>.leftmost_bitr
+negative_selfrK
+Point.__mul__c
+Point.__rmul__c
+infinityz
+(%d,%d))
+Point.__str__c
+z)Return a new point that is twice the old.r9
+)	rw
+Point.doublec
+Point.xc
+Point.yc
+Point.curvec
+Point.order)
+TNN)
+__future__r
+gmpy2r
+ImportErrorZ
+gmpyZ
+sixr
+_compatr
+errorsr
+utilr	
+objectr
+<module>"

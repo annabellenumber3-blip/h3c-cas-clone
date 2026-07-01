@@ -1,0 +1,170 @@
+z*Help for building DNS wire format messages
+Renderera
+Helper class for building DNS wire-format messages.
+    Most applications can use the higher-level L{dns.message.Message}
+    class and its to_wire() method to generate wire-format messages.
+    This class is for those applications which need finer control
+    over the generation of messages.
+    Typical use::
+        r = dns.renderer.Renderer(id=1, flags=0x80, max_size=512)
+        r.add_question(qname, qtype, qclass)
+        r.add_rrset(dns.renderer.ANSWER, rrset_1)
+        r.add_rrset(dns.renderer.ANSWER, rrset_2)
+        r.add_rrset(dns.renderer.AUTHORITY, ns_rrset)
+        r.add_edns(0, 0, 4096)
+        r.add_rrset(dns.renderer.ADDITIONAL, ad_rrset_1)
+        r.add_rrset(dns.renderer.ADDITIONAL, ad_rrset_2)
+        r.write_header()
+        r.add_tsig(keyname, secret, 300, 1, 0, '', request_mac)
+        wire = r.get_wire()
+    output, an io.BytesIO, where rendering is written
+    id: the message id
+    flags: the message flags
+    max_size: the maximum size of the message
+    origin: the origin to use when rendering relative names
+    compress: the compression table
+    section: an int, the section currently being rendered
+    counts: list of the number of RRs in each section
+    mac: the MAC of the rendered message (if TSIG was used)
+    Nr
+Initialize a new renderer.Nr
+BytesIO
+output
+randomZ
+randint
+flags
+max_size
+origin
+compress
+QUESTION
+section
+counts
+writeZ
+mac)
+selfr
+0/usr/lib/python3.9/site-packages/dns/renderer.py
+__init__M
+Renderer.__init__c
+Truncate the output buffer at offset *where*, and remove any
+        compression table entries that pointed beyond the truncation
+        point.
+        N)
+seek
+truncater
+items
+append)
+whereZ
+keys_to_delete
+	_rollback^
+Renderer._rollbackc
+Set the renderer's current section.
+        Sections must be rendered order: QUESTION, ANSWER, AUTHORITY,
+        ADDITIONAL.  Sections may be empty.
+        Raises dns.exception.FormError if an attempt was made to set
+        a section value less than the current section.
+        N)
+	exceptionZ	FormError)
+_set_sectionm
+Renderer._set_sectionc
+tellr
+TooBig)
+startr
+_track_size|
+Renderer._track_sizec
+Add a question to the message.z
+!HHNr
+to_wirer
+struct
+packr
+qnameZ
+rdtypeZ
+rdclassr
+add_question
+Renderer.add_questionc
+Add the rrset to the specified section.
+        Any keyword arguments are passed on to the rdataset's to_wire()
+        routine.
+        N
+rrset
+	add_rrset
+Renderer.add_rrsetc
+Add the rdataset to the specified section, using the specified
+        name as the owner name.
+        Any keyword arguments are passed on to the rdataset's to_wire()
+        routine.
+        Nr+
+nameZ
+rdatasetr,
+add_rdataset
+Renderer.add_rdatasetc
+z&Add an EDNS OPT record to the message.l
+message
+MessageZ	_make_optr.
+ADDITIONAL)
+ednsZ	ednsflagsZ
+payload
+options
+optr
+add_edns
+Renderer.add_ednsc	
+	|	|
+z$Add a TSIG signature to the message.r
+getvalue
+isinstancer!
+tsigZ
+Keyr2
+_make_tsigZ
+sign
+time
+_write_tsig)
+keyname
+secret
+fudger
+tsig_error
+other_data
+request_mac
+	algorithm
+keyr<
+add_tsig
+Renderer.add_tsigc
+Add a TSIG signature to the message. Unlike add_tsig(), this can be
+        used for a series of consecutive DNS envelopes, e.g. for a zone
+        transfer over TCP [RFC2845, 4.4].
+        For the first message in the sequence, give ctx=None. For each
+        subsequent message, give the ctx that was returned from the
+        add_multi_tsig() call for the previous message.r
+ctxr@
+add_multi_tsig
+Renderer.add_multi_tsigc
+!HHIHr
+Z	rdatatypeZ
+TSIG
+rdataclass
+ANYr$
+SEEK_END)
+rdata_startZ
+afterr
+Renderer._write_tsigc
+Write the DNS message header.
+        Writing the DNS message header is done after all sections
+        have been rendered, but before the optional TSIG signature
+        is added.
+        r
+!HHHHHHr
+write_header
+Renderer.write_headerc
+Return the wire format message.)
+get_wire
+Renderer.get_wire)
+__name__
+__module__
+__qualname__
+__doc__r
+contextlib
+contextmanagerr&
+INr*
+default_algorithmrJ
+dns.exceptionr!
+dns.tsigr
+ANSWERZ	AUTHORITYr4
+<module>

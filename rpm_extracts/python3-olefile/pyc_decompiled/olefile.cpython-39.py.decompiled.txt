@@ -1,0 +1,1077 @@
+l	Z	d
+Z-d	Z.d
+Z4d	Z5d
+Z7d Z8d!Z9d"Z:d#Z;d$Z<d%Z=d&Z>d'Z?d(Z@d)ZAd*ZBd+ZCd,ZDd-ZEd.ZFd/ZGd0ZHd1ZId2ZJd3ZKd4ZLd5ZMd6ZNd7ZOd8ZPd9ZQd:ZRd;ZSd<ZTd=ZUd>ZVd?ZWd@ZXdAZYdBZZd#Z[d,Z\d6Z]dCZ^dDZ_dEdF
+r@dGdH
+dIdH
+Zad]dJdK
+Zbd^dLdM
+ZcdNdO
+ZddPdQ
+dRdS
+dTdU
+dVdW
+dXdY
+ZjdZd[
+Zkeld\k
+)_a:
+olefile (formerly OleFileIO_PL)
+Module to read/write Microsoft OLE2 files (also called Structured Storage or
+Microsoft Compound Document File Format), such as Microsoft Office 97-2003
+documents, Image Composer and FlashPix files, Outlook messages, ...
+This version is compatible with Python 2.7 and 3.4+
+Project website: https://www.decalage.info/olefile
+olefile is copyright (c) 2005-2018 Philippe Lagadec
+(https://www.decalage.info)
+olefile is based on the OleFileIO module from the PIL library v1.1.7
+See: http://www.pythonware.com/products/pil/index.htm
+and http://svn.effbot.org/public/tags/pil-1.1.7/PIL/OleFileIO.py
+The Python Imaging Library (PIL) is
+Copyright (c) 1997-2009 by Secret Labs AB
+Copyright (c) 1995-2009 by Fredrik Lundh
+See source code and LICENSE.txt for information on usage and redistribution.
+print_functionz
+2018-09-09z
+0.46z
+Philippe Lagadec)
+	isOleFile
+	OleFileIO
+OleMetadata
+enable_logging
+MAGIC
+STGTY_EMPTY
+KEEP_UNICODE_NAMES
+STGTY_STREAM
+STGTY_STORAGE
+STGTY_ROOT
+STGTY_PROPERTY
+STGTY_LOCKBYTES
+MINIMAL_OLEFILE_SIZE
+DEFECT_UNSURE
+DEFECT_POTENTIAL
+DEFECT_INCORRECT
+DEFECT_FATAL
+DEFAULT_PATH_ENCODING
+MAXREGSECT
+DIFSECT
+FATSECT
+ENDOFCHAIN
+FREESECT
+	MAXREGSID
+NOSTREAM
+UNKNOWN_SIZE
+WORD_CLSIDN
+iz>Need to fix a bug with 32 bit arrays, please contact author...T
+utf-8
+    Create a suitable logger object for this module.
+    The goal is not to change settings of the root logger, to avoid getting
+    other modules' logs on the screen.
+    If a logger exists with same name, reuse it. (Else it would have duplicate
+    handlers and messages would be doubled.)
+    The level is set to CRITICAL+1 by default, to avoid any logging.
+    )
+loggingZ
+Logger
+managerZ
+loggerDictZ	getLogger
+setLevelZ
+addHandlerZ
+NullHandler)
+name
+levelZ
+logger
+3/usr/lib/python3.9/site-packages/olefile/olefile.py
+get_logger
+olefilec
+    Enable logging for this module (disabled by default).
+    This will set the module-specific logger level to NOTSET, which
+    means the main application controls the actual logging level.
+    N)
+logr&
+NOTSETr)
+z$00020900-0000-0000-C000-000000000046
+    Test if a file is an OLE container (according to the magic bytes in its header).
+    .. note::
+        This function only checks the first 8 bytes of the file, not the
+        rest of the OLE structure.
+    .. versionadded:: 0.16
+    :param filename: filename, contents or file-like object of the OLE file (string-like or file-like object)
+        - if filename is a string smaller than 1536 bytes, it is the path
+          of the file to open. (bytes or unicode string)
+        - if filename is a string longer than 1535 bytes, it is parsed
+          as the content of an OLE file in memory. (bytes type only)
+        - if filename is a file-like object (with read and seek methods),
+          it is parsed as-is.
+    :type filename: bytes or str or unicode or file
+    :returns: True if OLE, False otherwise.
+    :rtype: bool
+    
+readr
+rbTF)	
+hasattrrU
+lenr
+seek
+isinstance
+bytesr
+open)
+filename
+header
+fpr)
+	__class__
+intrb
+    Converts a 2-bytes (16 bits) string to an integer.
+    :param c: string containing bytes to convert
+    :param o: offset of bytes to convert in string
+    z
+<Hr/
+struct
+unpack
+i16G
+    Converts a 4-bytes (32 bits) string to an integer.
+    :param c: string containing bytes to convert
+    :param o: offset of bytes to convert in string
+    z
+i32Q
+)	z^
+    Converts a CLSID to a human-readable string.
+    :param clsid: string of length 16.
+    r:
+z0%08X-%04X-%04X-%02X%02X-%02X%02X%02X%02X%02X%02Xr
+striprn
+tuple
+maprd
+clsidr)
+_clsid[
+        convert FILETIME (64 bits int) to Python datetime.datetime
+        
+microseconds)
+datetime
+	timedelta)
+filetime
+_FILETIME_null_dater)
+filetime2datetimel
+    class to parse and store metadata from standard properties of OLE files.
+    Available attributes:
+    codepage, title, subject, author, keywords, comments, template,
+    last_saved_by, revision_number, total_edit_time, last_printed, create_time,
+    last_saved_time, num_pages, num_words, num_chars, thumbnail,
+    creating_application, security, codepage_doc, category, presentation_target,
+    bytes, lines, paragraphs, slides, notes, hidden_slides, mm_clips,
+    scale_crop, heading_pairs, titles_of_parts, manager, company, links_dirty,
+    chars_with_spaces, unused, shared_doc, link_base, hlinks, hlinks_changed,
+    version, dig_sig, content_type, content_status, language, doc_version
+    Note: an attribute is set to None when not present in the properties of the
+    OLE file.
+    References for SummaryInformation stream:
+    - https://msdn.microsoft.com/en-us/library/dd942545.aspx
+    - https://msdn.microsoft.com/en-us/library/dd925819%28v=office.12%29.aspx
+    - https://msdn.microsoft.com/en-us/library/windows/desktop/aa380376%28v=vs.85%29.aspx
+    - https://msdn.microsoft.com/en-us/library/aa372045.aspx
+    - http://sedna-soft.de/articles/summary-information-stream/
+    - https://poi.apache.org/apidocs/org/apache/poi/hpsf/SummaryInformation.html
+    References for DocumentSummaryInformation stream:
+    - https://msdn.microsoft.com/en-us/library/dd945671%28v=office.12%29.aspx
+    - https://msdn.microsoft.com/en-us/library/windows/desktop/aa380374%28v=vs.85%29.aspx
+    - https://poi.apache.org/apidocs/org/apache/poi/hpsf/DocumentSummaryInformation.html
+    new in version 0.25
+    )
+codepage
+title
+subject
+author
+keywords
+comments
+template
+last_saved_by
+revision_number
+total_edit_time
+last_printed
+create_time
+last_saved_time
+	num_pages
+	num_words
+	num_chars
+	thumbnail
+creating_application
+security)
+codepage_doc
+category
+presentation_targetr[
+lines
+paragraphs
+slides
+notes
+hidden_slides
+mm_clips
+scale_crop
+heading_pairs
+titles_of_partsr%
+company
+links_dirty
+chars_with_spaces
+unused
+shared_doc
+	link_base
+hlinks
+hlinks_changed
+version
+dig_sig
+content_type
+content_status
+language
+doc_versionc
+        Constructor for OleMetadata
+        All attributes are set to None by default
+        N)/r|
+selfr)
+__init__
+OleMetadata.__init__c
+)	a=
+        Parse standard properties of an OLE file, from the streams
+        ``\x05SummaryInformation`` and ``\x05DocumentSummaryInformation``,
+        if present.
+        Properties are converted to strings, integers or python datetime objects.
+        If a property is not present, its value is set to None.
+        Nz
+SummaryInformationTr5
+convert_time
+no_conversionr#
+DocumentSummaryInformation
+SUMMARY_ATTRIBS
+DOCSUM_ATTRIBS
+setattr
+exists
+getproperties
+rangerX
+get)
+attrib
+propsr!
+valuer)
+parse_properties
+OleMetadata.parse_propertiesc
+        Dump all metadata, for debugging purposes.
+        z*Properties from SummaryInformation stream:
+- %s: %sz2Properties from DocumentSummaryInformation stream:N)
+printr
+getattr
+reprr
+propr
+dump
+OleMetadata.dumpN)	
+__name__
+__module__
+__qualname__
+__doc__r
+	OleStreama
+    OLE2 Stream
+    Returns a read-only file object which can be used to read
+    the contents of a OLE stream (instance of the BytesIO class).
+    To open a stream, use the openstream method in the OleFile class.
+    This function can be used with either ordinary streams,
+    or ministreams, depending on the offset, sectorsize, and
+    fat table arguments.
+    Attributes:
+        - size: actual size of data stream, after it was opened.
+    c	
+r*|	
+nR|	
+) a_
+        Constructor for OleStream class.
+        :param fp: file object, the OLE container or the MiniFAT stream
+        :param sect: sector index of first sector in the stream
+        :param size: total size of the stream
+        :param offset: offset in bytes for the first FAT or MiniFAT sector
+        :param sectorsize: size of one sector
+        :param fat: array/list of sector indexes (FAT or MiniFAT)
+        :param filesize: size of OLE file (for debugging)
+        :param olefileio: OleFileIO object containing this stream
+        :returns: a BytesIO instance containing the OLE stream
+        z
+OleStream.__init__:zE  sect=%d (%X), size=%d, offset=%d, sectorsize=%d, len(fat)=%d, fp=%sz2Attempting to open a stream from a closed OLE FileFTz
+  stream with UNKNOWN SIZEr#
+nb_sectors = %dz(malformed OLE document, stream too larger
+z!size == 0 and sect != ENDOFCHAIN:z+incorrect OLE sector index for empty streamz
+Reading stream sector[%d] = %Xhz6Reached ENDOFCHAIN sector for stream with unknown sizez$sect=ENDOFCHAIN before expected sizez
+incomplete OLE streamz
+sect=%d (%X) / len(fat)=%dz
+i=%d / nb_sectors=%d
+,incorrect OLE FAT, sector index out of rangez
+sect=%d, seek=%d, filesize=%d
+OLE sector index out of rangez9sect=%d / len(fat)=%d, seek=%d / filesize=%d, len read=%dz
+seek+len(read)=%d
+incomplete OLE sectorr.
+z3Read data of length %d, truncated to stream size %dNz3Read data of length %d, the stream size was unknownz9Read data of length %d, less than expected stream size %dz%OLE stream size is less than declared)
+debugrX
+oler_
+closed
+OSErrorr
+_raise_defectr
+append
+IndexError
+join
+size
+BytesIOr
+sectr
+offset
+sectorsize
+filesize
+	olefileioZ
+unknown_size
+nb_sectors
+datar!
+sector_datar)
+OleStream.__init__N)
+OleDirectoryEntryz
+    OLE2 Directory Entry
+    z
+<64sHBBIII16sIQQIII
+        Constructor for an OleDirectoryEntry object.
+        Parses a 128-bytes entry from the OLE Directory stream.
+        :param entry  : string (must be 128 bytes long)
+        :param sid    : index of this directory entry in the OLE file directory
+        :param olefile: OleFileIO containing this directory entry
+        Fz
+unhandled OLE storage typer
+duplicate OLE root entryz
+incorrect OLE root entryrJ
+z(incorrect DirEntry name length >64 bytesNr/
+DirEntry SID=%d: %sz
+ - type: %dz
+ - sect: %Xhz% - SID left: %d, right: %d, child: %d
+z+sectorsize=%d, sizeLow=%d, sizeHigh=%d (%X)z
+incorrect OLE stream size
+z% - size: %d (sizeLow=%d, sizeHigh=%d)z
+OLE storage with size>0T)-
+sidr,
+kids
+	kids_dict
+usedri
+STRUCT_DIRENTRYZ
+name_rawZ
+namelength
+entry_typeZ
+color
+sid_left
+	sid_right
+	sid_childZ
+dwUserFlags
+createTime
+modifyTime
+isectStartZ
+sizeLowZ
+sizeHighr
+name_utf16
+_decode_utf16_strr'
+longru
+is_minifat
+minisectorcutoff
+_check_duplicate_stream
+sect_chain)
+entryr
+OleDirectoryEntry.__init__c
+listr
+minifat
+loadminifatr
+Z	next_sectr)
+build_sect_chain-
+z"OleDirectoryEntry.build_sect_chainc
+        Read and build the red-black tree attached to this OleDirectoryEntry
+        object, if it is a storage.
+        Note that this method builds a tree of all subentries, so it should
+        only be called for the root object once.
+        z.build_storage_tree: SID=%d - %s - sid_child=%dN)
+append_kidsr
+sortr
+build_storage_tree@
+	z$OleDirectoryEntry.build_storage_treec
+)	a)
+        Walk through red-black tree of children of this directory entry to add
+        all of them to the kids list. (recursive method)
+        :param child_sid: index of child directory entry to use, or None when called
+            first time for the root. (only used during recursion)
+        z
+append_kids: child_sid=%dNr
+OLE DirEntry index out of rangezHappend_kids: child_sid=%d - %s - sid_left=%d, sid_right=%d, sid_child=%dz#OLE Entry referenced more than onceTz!Duplicate filename in OLE storage)
+direntriesr
+_load_direntryr
+lowerr
+Z	child_sid
+childZ
+name_lowerr)
+OleDirectoryEntry.append_kidsc
+Compare entries by name
+otherr)
+__eq__
+OleDirectoryEntry.__eq__c
+__lt__
+OleDirectoryEntry.__lt__c
+__ne__
+OleDirectoryEntry.__ne__c
+__le__
+OleDirectoryEntry.__le__r
+)	zADump this entry, and all its subentries (for debug purposes only))
+z	(invalid)z	(storage)z
+(stream)z
+(lockbytes)z
+(property)z
+(root)z	(UNKNOWN)
+endr[
+{%s}r/
+tabZ
+TYPESZ	type_name
+kidr)
+OleDirectoryEntry.dumpc
+        Return modification time of a directory entry.
+        :returns: None if modification time is null, a python datetime object
+            otherwise (UTC timezone)
+        new in version 0.26
+        r
+getmtime
+OleDirectoryEntry.getmtimec
+        Return creation time of a directory entry.
+        :returns: None if modification time is null, a python datetime object
+            otherwise (UTC timezone)
+        new in version 0.26
+        r
+getctime
+OleDirectoryEntry.getctimeN)
+DIRENTRY_SIZEri
+calcsizer
+d d!
+d"d#
+dUd%d&
+dVd'd(
+d)d*
+d+d,
+d-d.
+d/d0
+dWd2d3
+dXd4d5
+d6d7
+d8d9
+Z d:d;
+Z!d<d=
+Z"d>d?
+Z#d@dA
+Z$dBdC
+Z%dDdE
+Z&dFdG
+Z'dHdI
+Z(dJdK
+Z)dYdLdM
+Z*dNdO
+    OLE container object
+    This class encapsulates the interface to an OLE 2 structured
+    storage file.  Use the listdir and openstream methods to
+    access the contents of this file.
+    Object names are given as a list of strings, one for each subentry
+    level.  The root entry should be omitted.  For example, the following
+    code extracts all image streams from a Microsoft Image Composer file::
+        ole = OleFileIO("fan.mic")
+        for entry in ole.listdir():
+            if entry[1:2] == "Image":
+                fin = ole.openstream(entry)
+                fout = open(entry[0:1], "wb")
+                while True:
+                    s = fin.read(8192)
+                    if not s:
+                        break
+                    fout.write(s)
+    You can use the viewer application provided with the Python Imaging
+    Library to view the resulting files (which happens to be standard
+    TIFF files).
+    NFc
+        Constructor for the OleFileIO class.
+        :param filename: file to open.
+            - if filename is a string smaller than 1536 bytes, it is the path
+              of the file to open. (bytes or unicode string)
+            - if filename is a string longer than 1535 bytes, it is parsed
+              as the content of an OLE file in memory. (bytes type only)
+            - if filename is a file-like object (with read, seek and tell methods),
+              it is parsed as-is.
+        :param raise_defects: minimal level for defects to be raised as exceptions.
+            (use DEFECT_FATAL for a typical application, DEFECT_INCORRECT for a
+            security-oriented application, see source code for details)
+        :param write_mode: bool, if True the file is opened in read/write mode instead
+            of read-only by default.
+        :param debug: bool, set debug mode (deprecated, not used anymore)
+        :param path_encoding: None or str, name of the codec to use for path
+            names (streams and storages), or None for Unicode.
+            Unicode by default on Python 3+, UTF-8 on Python 2.x.
+            (new in olefile 0.42, was hardcoded to Latin-1 until olefile v0.41)
+        N)
+write_mode)(
+_raise_defects_level
+parsing_issuesr
+path_encoding
+	_filesize
+ministream
+_used_streams_fat
+_used_streams_minifat
+byte_order
+directory_fpr
+dll_versionr
+first_difat_sector
+first_dir_sector
+first_mini_fat_sectorr_
+header_clsid
+header_signature
+metadata
+mini_sector_shift
+mini_sector_size
+mini_stream_cutoff_sizer
+minifatsectr
+minisectorsize
+minor_version
+nb_sect
+num_difat_sectors
+num_dir_sectors
+num_fat_sectors
+num_mini_fat_sectors
+	reserved1
+	reserved2
+root
+sector_shift
+sector_size
+transaction_signature_numberr\
+raise_defectsr
+OleFileIO.__init__c
+	__enter__6
+OleFileIO.__enter__c
+close)
+argsr)
+__exit__:
+OleFileIO.__exit__c
+        This method should be called for any defect found during file parsing.
+        It may raise an IOError exception according to the minimal level chosen
+        for the OleFileIO object.
+        :param defect_level: defect level, possible values are:
+            - DEFECT_UNSURE    : a case which looks weird, but not sure it's a defect
+            - DEFECT_POTENTIAL : a potential defect
+            - DEFECT_INCORRECT : an error according to specifications, but parsing can go on
+            - DEFECT_FATAL     : an error which cannot be ignored, parsing is impossible
+        :param message: string describing the defect, used with raised exception.
+        :param exception_type: exception class to be raised, IOError by default
+        N)
+errorr
+warning)
+defect_level
+messageZ
+exception_typer)
+OleFileIO._raise_defect
+replacec
+        Decode a string encoded in UTF-16 LE format, as found in the OLE
+        directory or in property streams. Return a string encoded
+        according to the path_encoding specified for the OleFileIO object.
+        :param utf16_str: bytes string encoded in UTF-16 LE format
+        :param errors: str, see python documentation for str.decode()
+        :return: str, encoded according to path_encoding
+        z
+UTF-16LEN)
+decoder
+encode)
+Z	utf16_str
+errorsZ
+unicode_strr)
+OleFileIO._decode_utf16_strc
+j/d!v
+t-d"
+t-d#
+t-d%
+t0d)
+t-d+
+1d,|
+        Open an OLE2 file in read-only or read/write mode.
+        Read and parse the header, FAT and directory.
+        :param filename: string-like or file-like object, OLE file to parse
+            - if filename is a string smaller than 1536 bytes, it is the path
+              of the file to open. (bytes or unicode string)
+            - if filename is a string longer than 1535 bytes, it is parsed
+              as the content of an OLE file in memory. (bytes type only)
+            - if filename is a file-like object (with read, seek and tell methods),
+              it is parsed as-is.
+        :param write_mode: bool, if True the file is opened in read/write mode instead
+            of read-only by default. (ignored if filename is not a path)
+        rU
+r+brV
+File size: %d bytes (%Xh)r
+Magic = %r instead of %rz#not an OLE2 structured storage filez
+<8s16sHHHHHHLLLLLLLLLLz
+fmt_header size = %d, +FAT = %di
+incorrect OLE signaturer:
+incorrect CLSID in OLE headerz
+Minor Version = %dz%DLL Version   = %d (expected: 3 or 4))
+z"incorrect DllVersion in OLE headerz#Byte Order    = %X (expected: FFFE)i
+z!incorrect ByteOrder in OLE headerr/
+z0Sector Size   = %d bytes (expected: 512 or 4096))
+z#incorrect sector_size in OLE headerr"
+z3sector_size does not match DllVersion in OLE headerz/MiniFAT Sector Size   = %d bytes (expected: 64))
+z(incorrect mini_sector_size in OLE headerz.incorrect OLE header (non-null reserved bytes)z Number of Directory sectors = %dz3incorrect number of directory sectors in OLE headerz
+Number of FAT sectors = %dz
+First Directory sector  = %Xhz$Transaction Signature Number    = %dz5incorrect OLE header (transaction_signature_number>0)z/Mini Stream cutoff size = %Xh (expected: 1000h)z/incorrect mini_stream_cutoff_size in OLE headerzJFixing the mini_stream_cutoff_size to 4096 (mandatory value) instead of %dz
+First MiniFAT sector      = %Xhz
+Number of MiniFAT sectors = %dz
+First DIFAT sector        = %Xhz
+Number of DIFAT sectors   = %dr#
+z/Maximum number of sectors in the file: %d (%Xh)rB
+SEEK_END
+tellr
+	bytearrayr
+loadfat
+loaddirectoryr!
+moder
+fmt_header
+header_sizeZ
+header1r)
+OleFileIO.openc
+        close the OLE file, to release the file object
+        N)
+OleFileIO.closec
+        Checks if a stream has not been already referenced elsewhere.
+        This method should only be called once for each known stream, and only
+        if stream size is not null.
+        :param first_sect: int, index of first sector of the stream in FAT
+        :param minifat: bool, if True, stream is located in the MiniFAT, else in the FAT
+        z,_check_duplicate_stream: sect=%Xh in MiniFATz(_check_duplicate_stream: sect=%Xh in FATNz
+Stream referenced twice)
+first_sectr
+used_streamsr)
+z!OleFileIO._check_duplicate_streamr
+|	|	|
+        Display a part of FAT in human-readable form for debugging purposes
+        r3
+..free..z
+[ END. ]z
+FATSECT z
+DIFSECT r#
+indexr
+%6X:r.
+    --->N)
+firstindex
+VPLZ
+fatnames
+nbsect
+nlinesr!
+auxr'
+dumpfatl
+OleFileIO.dumpfatc
+|	|	|
+qrd	S
+        Display a sector in a human-readable form, for debugging purposes
+        r3
+bigr#
+array
+UINT32
+	byteorder
+byteswaprX
+sectorrE
+dumpsect
+OleFileIO.dumpsectc
+        convert a sector to an array of 32 bits unsigned integers,
+        swapping bytes on big endian CPUs such as PowerPC (old Macs)
+        rK
+sect2array
+OleFileIO.sect2arrayc
+        Adds the indexes of the given sector to the FAT
+        :param sect: string containing the first FAT sector, or array of long integers
+        :returns: index of last FAT sector.
+        Nr.
+isect = %Xz
+found end of sector chain)
+isEnabledForr$
+DEBUGrR
+getsectr
+fat1Z
+isect
+nextfatr)
+loadfat_sect
+OleFileIO.loadfat_sectc
+        Load the FAT table.
+        zDLoading the FAT table, starting with the 1st sector after the header
+len(sect)=%d, so %d integersr
+z)DIFAT is used, because file size > 6.8MB.
+z#incorrect DIFAT, not enough sectorsz)incorrect DIFAT, first index out of rangez
+DIFAT analysis...r#
+nb_difat = %dz
+incorrect DIFATz
+DIFAT block %d, sector %XNz
+next DIFAT sector: %Xz
+incorrect end of DIFATz$No DIFAT, because file size < 6.8MB.z!len(fat)=%d, shrunk to nb_sect=%dz6FAT references %d sectors / Maximum %d sectors in filez
+FAT:)
+IOError
+	iterrangerW
+nb_difat_sectorsZ
+nb_difatZ
+isect_difatr!
+sector_difatZ
+difatr)
+OleFileIO.loadfatc
+        Load the MiniFAT table.
+        r#
+zaloadminifat(): minifatsect=%d, nb FAT sectors=%d, used_size=%d, stream_size=%d, nb MiniSectors=%dz%OLE MiniStream is larger than MiniFATT
+	force_FATz$MiniFAT shrunk from %d to %d sectorsNz
+loadminifat(): len=%dz	
+MiniFAT:)
+_openrU
+stream_sizeZ
+nb_minisectorsZ	used_sizerX
+OleFileIO.loadminifatc
+        Read given sector from file on disk.
+        :param sect: int, sector index
+        :returns: a string containing the sector data.
+        r#
+z(getsect(): sect=%X, seek=%d, filesize=%dr
+z*getsect(): sect=%X, read=%d, sectorsize=%dr
+OleFileIO.getsectro
+        Write given sector to file on disk.
+        :param sect: int, sector index
+        :param data: bytes, sector data
+        :param padding: single byte, padding character if data < sector size
+        z'write_sect: data must be a bytes stringr#
+z4write_sect: padding must be a bytes string of 1 charz+write_sect(): sect=%X, seek=%d, filesize=%dr
+Data is larger than sector sizeN)
+	TypeErrorrX
+ValueError
+write)
+paddingr)
+write_sectr
+OleFileIO.write_sectc
+        Write given sector to file on disk.
+        :param fp_pos: int, file position
+        :param data: bytes, sector data
+        :param padding: single byte, padding character if data < sector size
+        z,write_mini_sect: data must be a bytes stringr#
+z9write_mini_sect: padding must be a bytes string of 1 charz)write_mini_sect(): fp_pos=%d, filesize=%dr
+fp_posr
+len_datar)
+_write_mini_sect
+OleFileIO._write_mini_sectc
+        Load the directory.
+        :param sect: sector index of directory stream.
+        z
+Loading the Directory:Tr^
+z&loaddirectory: size=%d, max_entries=%dNr
+)	r-
+max_entriesZ
+root_entryr)
+OleFileIO.loaddirectoryc
+        Load a directory entry from the directory.
+        This method should only be called once for each storage/stream when
+        loading the directory.
+        :param sid: index of storage/stream in the directory.
+        :returns: a OleDirectoryEntry object
+        :exception IOError: if the entry has always been referenced.
+        r
+z OLE directory index out of rangeNz'double reference for OLE stream/storager
+)	rX
+OleFileIO._load_direntryc
+        Dump directory (for debugging only)
+        N)
+dumpdirectory
+OleFileIO.dumpdirectoryc
+        Open a stream, either in FAT or MiniFAT according to its size.
+        (openstream helper)
+        :param start: index of first sector
+        :param size: size of stream (or nothing if size is unknown)
+        :param force_FAT: if False (default), stream will be opened in FAT or MiniFAT
+            according to size. If True, it will always be opened in FAT.
+        z1OleFileIO.open(): sect=%Xh, size=%d, force_FAT=%sz%Opening MiniStream: sect=%Xh, size=%dTr^
+strr
+startr
+size_ministreamr)
+OleFileIO._openTc
+        listdir helper
+        :param files: list of files to fill in
+        :param prefix: current location in storage tree (list of names)
+        :param node: current node (OleDirectoryEntry object)
+        :param streams: bool, include streams if True (True by default) - new in v0.26
+        :param storages: bool, include storages if True (False by default) - new in v0.26
+            (note: the root storage is never included)
+        r#
+NzIThe directory tree contains an entry which is not a stream nor a storage.)	r'
+_listr
+files
+prefix
+node
+streams
+storagesr
+OleFileIO._listc
+        Return a list of streams and/or storages stored in this file
+        :param streams: bool, include streams if True (True by default) - new in v0.26
+        :param storages: bool, include storages if True (False by default) - new in v0.26
+            (note: the root storage is never included)
+        :returns: list of stream and/or storage paths
+        )
+listdir3
+OleFileIO.listdirc
+qLq(t
+        Returns directory entry of given filename. (openstream helper)
+        Note: this method is case-insensitive.
+        :param filename: path of stream in storage tree (except root entry), either:
+            - a string using Unix path syntax, for example:
+              'storage_1/storage_1.2/stream'
+            - or a list of storage filenames, path to the desired stream/storage.
+              Example: ['storage_1', 'storage_1.2', 'stream']
+        :returns: sid of requested filename
+        :exception IOError: if file not found
+        
+file not found)	rZ
+basestring
+splitr+
+_findA
+OleFileIO._findc
+        Open a stream as a read-only file object (BytesIO).
+        Note: filename is case-insensitive.
+        :param filename: path of stream in storage tree (except root entry), either:
+            - a string using Unix path syntax, for example:
+              'storage_1/storage_1.2/stream'
+            - or a list of storage filenames, path to the desired stream/storage.
+              Example: ['storage_1', 'storage_1.2', 'stream']
+        :returns: file object (read-only)
+        :exception IOError: if filename not found, or if this is not a stream.
+        z
+this file is not a stream)
+openstreama
+OleFileIO.openstreamc
+	enumeraterh
+data_to_writer
+block_size
+idxr
+Z	sect_baseZ
+sect_offsetrg
+data_per_sectorr)
+_write_mini_streamv
+OleFileIO._write_mini_streamc
+}	t	|	
+t	|	
+t	|	
+        Write a stream to disk. For now, it is only possible to replace an
+        existing stream by data of the same size.
+        :param stream_name: path of stream in storage tree (except root entry), either:
+            - a string using Unix path syntax, for example:
+              'storage_1/storage_1.2/stream'
+            - or a list of storage filenames, path to the desired stream/storage.
+              Example: ['storage_1', 'storage_1.2', 'stream']
+        :param data: bytes, data to be written, must be the same size as the original
+            stream.
+        z)write_stream: data must be a bytes stringz
+this is not a streamz?write_stream: data must be the same size as the existing stream)
+NzGwrite_stream: size=%d sectorsize=%d data_sector=%Xh size%%sectorsize=%dr
+z)incorrect last sector index in OLE stream)
+stream_namer
+data_sectorr)
+write_stream
+OleFileIO.write_streamc
+        Test if given filename exists as a stream or a storage in the OLE
+        container, and return its type.
+        :param filename: path of stream in storage tree. (see openstream for syntax)
+        :returns: False if object does not exist, its entry type (>0) otherwise:
+            - STGTY_STREAM: a stream
+            - STGTY_STORAGE: a storage
+            - STGTY_ROOT: the root entry
+        FN)
+get_type
+OleFileIO.get_typec
+        Return clsid of a stream/storage.
+        :param filename: path of stream/storage in storage tree. (see openstream for
+            syntax)
+        :returns: Empty string if clsid is null, a printable representation of the clsid otherwise
+        new in version 0.44
+        )
+getclsid
+OleFileIO.getclsidc
+        Return modification time of a stream/storage.
+        :param filename: path of stream/storage in storage tree. (see openstream for
+            syntax)
+        :returns: None if modification time is null, a python datetime object
+            otherwise (UTC timezone)
+        new in version 0.26
+        )
+OleFileIO.getmtimec
+        Return creation time of a stream/storage.
+        :param filename: path of stream/storage in storage tree. (see openstream for
+            syntax)
+        :returns: None if creation time is null, a python datetime object
+            otherwise (UTC timezone)
+        new in version 0.26
+        )
+OleFileIO.getctimec
+        Test if given filename exists as a stream or a storage in the OLE
+        container.
+        Note: filename is case-insensitive.
+        :param filename: path of stream in storage tree. (see openstream for syntax)
+        :returns: True if object exist, else False.
+        TFN)
+OleFileIO.existsc
+        Return size of a stream in the OLE container, in bytes.
+        :param filename: path of stream in storage tree (see openstream for syntax)
+        :returns: size in bytes (long integer)
+        :exception IOError: if file not found
+        :exception TypeError: if this is not a stream.
+        z
+object is not an OLE stream)
+get_size
+OleFileIO.get_sizec
+        Return root entry name. Should usually be 'Root Entry' or 'R' in most
+        implementations.
+        )
+get_rootentry_name*
+OleFileIO.get_rootentry_namec
+rDt"t
+t$j%|
+r`t'|
+        Return properties described in substream.
+        :param filename: path of stream in storage tree (see openstream for syntax)
+        :param convert_time: bool, if True timestamps will be converted to Python datetime
+        :param no_conversion: None or list of int, timestamps not to be converted
+            (for example total editing time is not a real timestamp)
+        :returns: a dictionary of values indexed by id (integer)
+        Nrs
+****r
+z6Error while parsing properties header in stream %s: %sr
+z!property id=%d: type=%d offset=%Xi
+z8Converting property #%d to python datetime, value=%d=%fsi
+timedelta days=%dl
+z5property id=%d: type=%d not implemented in parser yetz3Error while parsing property id %d in stream %s: %s),rZ
+BaseExceptionr
+type
+minrg
+VT_I2rm
+VT_UI2
+VT_I4
+VT_INT
+VT_ERROR
+VT_UI4
+VT_UINT
+VT_BSTR
+VT_LPSTRr6
+VT_BLOB
+	VT_LPWSTRr
+VT_FILETIMEr
+floatrx
+VT_UI1rd
+VT_CLSID
+VT_CF
+VT_BOOL
+bool)
+streampathr_
+fmtidZ	num_props
+msgr!
+property_idr
+property_typer
+countrz
+OleFileIO.getpropertiesc
+        Parse standard properties streams, return an OleMetadata object
+        containing all the available metadata.
+        (also stored in the metadata attribute of the OleFileIO object)
+        new in version 0.25
+        )
+get_metadata
+OleFileIO.get_metadata)
+FN),r
+!d#|
+d%t#d&
+d%d'd(
+d)|	
+|	j)D
+d1|	
+d2|	
+|	j1
+rv|	j1D
+!d8|
+    Main function when olefile is runs as a script from the command line.
+    This will open an OLE2 file and display its structure and properties
+    :return: nothing
+    r
+infor4
+criticalz1usage: %prog [options] <filename> [filename2 ...])
+usagez
+store_true
+check_streamsz*check all streams (for debugging purposes))
+action
+dest
+helpz
+debug_modez\debug mode, shortcut for -l debug (displays a lot of debug information, for developers only)z
+--loglevel
+loglevelZ
+storezBlogging level debug/info/warning/error/critical (default=%default))
+defaultr
+z=olefile version %s %s - https://www.decalage.info/en/olefile
+%(levelname)-8s %(message)s)
+formatzD--------------------------------------------------------------------
+%r: propertiesTr
+(binary data)z
+   z&Error while parsing property stream %rz
+Checking streams...
+size %dz
+NOT a stream : type=%dz5Modification/Creation times of all directory entries:z
+- %s: mtime=%s ctime=%sz
+Error while parsing metadataz
+Root entry name: "%s"Z
+worddocumentz
+This is a Word document.z
+type of stream 'WordDocument':z
+size :z
+macros/vbaz%This document may contain VBA macros.z(
+Non-fatal issues raised during parsing:r
+Nonez
+Error while parsing file %r)3rN
+optparser$
+INFOZ
+WARNINGZ
+ERROR
+CRITICALZ
+OptionParserZ
+add_option
+parse_argsr
+__version__
+__date__rX
+print_help
+exitr
+basicConfigr
+sorted
+itemsrZ
+	exceptionr
+DEFAULT_LOG_LEVELZ
+LOG_LEVELSr
+parser
+optionsr1
+streamnamer
+st_typer
+metar+
+exctyper
+main
+__main__)
+__future__r
+__author__
+__all__r
+os.pathr:
+xranger]
+itemsizerM
+	NameErrorr	
+version_infor
+VT_EMPTYZ
+VT_NULLr
+VT_R4Z
+VT_R8Z
+VT_CYZ
+VT_DATEr
+VT_DISPATCHr
+VT_VARIANTZ
+VT_UNKNOWNZ
+VT_DECIMALZ
+VT_I1r
+VT_I8Z
+VT_UI8r
+VT_VOIDZ
+VT_HRESULTZ
+VT_PTRZ
+VT_SAFEARRAYZ	VT_CARRAYZ
+VT_USERDEFINEDr
+Z	VT_STREAMZ
+VT_STORAGEZ
+VT_STREAMED_OBJECTZ
+VT_STORED_OBJECTZ
+VT_BLOB_OBJECTr
+Z	VT_VECTORr
+<module>

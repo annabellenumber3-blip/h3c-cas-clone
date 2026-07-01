@@ -1,0 +1,58 @@
+#!/usr/bin/expect
+# Author : guozhonghua/02084
+# Date   : 2011-11-30
+# Des    : Add new node into ocfs2 fils system
+# Usage  : server node_name number ip port cluster_name
+# Params :
+#      $0: the server to be added node
+#      $1: the node's host name
+#      $2: the number of the host
+#      $3: ip adress
+#      $4: port
+#      $5: the cluster name
+
+if {$argc<6} {
+    send_user "usage: $argv0 server name number ip port cluster_name\n"
+    exit 11
+}
+
+set server [lindex $argv 0]
+set name [lindex $argv 1]
+set number [lindex $argv 2]
+set ip_address [lindex $argv 3]
+set ip_port [lindex $argv 4]
+set cluster_name [lindex $argv 5]
+set ssh_user [lindex $argv 6]
+
+set MODULE_NAME ocfs2_add_new_node
+log_file /var/log/expect.log
+send_log "[exec date] \[$MODULE_NAME\]: remove /etc/cvk/cluster.conf on $server to avoid conflict.\n"
+
+spawn -noecho ssh $ssh_user\@$server "sudo rm -f /etc/cvk/cluster.conf; sudo o2cb_ctl -C -i -n $name -t node -a number=$number -a ip_address=$ip_address -a ip_port=$ip_port -a cluster=$cluster_name"
+set timeout 300
+expect "*(yes/no)*" {
+    send "yes\r"
+    exp_continue
+} "Permission denied, please try again" {
+    send_user "[exec date] \[$MODULE_NAME\]: Permission denied, please try again.\n"
+
+    # User name or password error
+    exit 51
+} "*assword:" {
+    send "password\r"
+    send_user "[exec date] \[$MODULE_NAME\]: need password, or ssh public key.\n"
+    exp_continue
+} "ssh:" {
+    send_user "[exec date] \[$MODULE_NAME\]: execute ssh command failed, no route to host.\n"
+    exit 50
+} "o2cb_ctl:" {
+    # no privileges, make directory failed
+    send_user "[exec date] \[$MODULE_NAME\]: execute o2cb_ctl command failed.\n"
+    exit 52
+} timeout {
+    send_user "[exec date] \[$MODULE_NAME\]: time out, server address or port error.\n"
+    exit 50
+} eof {
+    send_user "\n"
+    exit 0
+}

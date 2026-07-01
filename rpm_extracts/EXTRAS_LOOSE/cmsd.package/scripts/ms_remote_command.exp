@@ -1,0 +1,34 @@
+#!/usr/bin/expect
+
+set ssh_opt [lindex $argv 0]
+set server [lindex $argv 1]
+set password [lindex $argv 2]
+set command [lindex $argv 3]
+set par1 [lindex $argv 4]
+set par2 [lindex $argv 5]
+set par3 [lindex $argv 6]
+set par4 [lindex $argv 7]
+set par5 [lindex $argv 8]
+
+
+spawn -noecho ssh -oPubkeyAuthentication=no $ssh_opt $server $command $par1 $par2 $par3 $par4 $par5
+
+set timeout 360
+expect "*assword:" {
+    send "$password\r"
+    exp_continue
+} "*Permission denied*" {
+    exit 1
+} expect "*verwrite*" {
+    send "y\r"
+    exp_continue
+}  expect "*remove*" {
+    send "y\r"
+    exp_continue
+} timeout {
+    exit 1
+} eof {
+    catch wait result  
+    exit [lindex $result 3]  
+}
+

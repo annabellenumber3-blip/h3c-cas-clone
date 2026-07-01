@@ -1,0 +1,48 @@
+#!/usr/bin/expect
+# Author : guozhonghua/02084
+# Date   : 2011-11-30
+# Des    : Delete the node of the OCFS2 file system
+# usage  :
+# Params :
+#      $0: server
+#      $1: node name
+#      $2: cluster name
+
+if {$argc<3} {
+    send_user "usage: $argv0 server node_name cluster_name\n"
+    exit 11
+}
+
+set server [lindex $argv 0]
+set nn [lindex $argv 1]
+set cn [lindex $argv 2]
+set ssh_user [lindex $argv 3]
+
+set MODULE_NAME ocfs2_node_del
+log_file /var/log/expect.log
+
+spawn -noecho ssh -q $ssh_user\@$server sudo ocfs2_node_del.sh $nn $cn
+set timeout 60
+expect "*(yes/no)*" {
+    send "yes\r"
+    exp_continue
+} "Permission denied, please try again" {
+    send_user "[exec date] \[$MODULE_NAME\]: Permission denied, please try again.\n"
+    exit 51
+} "*assword:" {
+    send "password\r"
+    send_user "[exec date] \[$MODULE_NAME\]: need password, or ssh public key.\n"
+    exit 51
+} "ssh:" {
+    send_user "[exec date] \[$MODULE_NAME\]: execute ssh command failed, no route to host.\n"
+    exit 50
+} "ocfs2_node_del:" {
+    send_user "[exec date] \[$MODULE_NAME\]: execute ocfs2_node_del shell script failed.\n"
+    exit 52
+} timeout {
+    send_user "[exec date] \[$MODULE_NAME\]: time out, server address or port error.\n"
+    exit 50
+} eof {
+    send_user "\n"
+    exit 0
+}

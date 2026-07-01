@@ -1,0 +1,304 @@
+	refpolicy)
+access)
+utilc
+Obtain all of the avc and policy load messages from the audit
+    log. This function uses ausearch and requires that the current
+    process have sufficient rights to run ausearch.
+    Returns:
+       string contain all of the audit messages returned by ausearch.
+    r
+/proc/uptime
+/sbin/ausearch
+5AVC,USER_AVC,MAC_POLICY_LOAD,DAEMON_START,SELINUX_ERRz
+stdout)
+subprocess
+time
+open
+float
+read
+split
+close
+	localtime
+strftime
+Popen
+PIPE
+communicater
+decode_input)
+bootdateZ
+boottime
+output
+2/usr/lib/python3.9/site-packages/sepolgen/audit.py
+get_audit_boot_msgs
+get_audit_msgs2
+Obtain all of the avc and policy load messages from /bin/dmesg.
+    Returns:
+       string contain all of the audit messages returned by dmesg.
+    r
+/bin/dmesgr
+get_dmesg_msgsA
+AuditMessagez
+Base class for all objects representing audit messages.
+    AuditMessage is a base class for all audit messages and only
+    provides storage for the raw message (as a string) and a
+    parsing function that does nothing.
+    c
+message
+header
+selfr(
+__init__W
+AuditMessage.__init__c
+Parse a string that has been split into records by space into
+        an audit message.
+        This method should be overridden by subclasses. Error reporting
+        should be done by raise ValueError exceptions.
+        
+audit(r
+msgr
+lenr)
+recsr0
+fieldsr
+from_split_string[
+AuditMessage.from_split_stringN
+__name__
+__module__
+__qualname__
+__doc__r,
+InvalidMessagez
+Class representing invalid audit messages. This is used to differentiate
+    between audit messages that aren't recognized (that should return None from
+    the audit message parser) and a message that is recognized but is malformed
+    in some way.
+    c
+InvalidMessage.__init__N
+PathMessagez!Class representing a path messagec
+pathr*
+PathMessage.__init__c
+PathMessage.from_split_stringNr6
+AVCMessagea
+AVC message representing an access denial or granted message.
+    This is a very basic class and does not represent all possible fields
+    in an avc message. Currently the fields are:
+       scontext - context for the source (process) that generated the message
+       tcontext - context for the target
+       tclass - object class for the target (only one)
+       comm - the process name
+       exe - the on-disc binary
+       path - the path of the target
+       access - list of accesses that were allowed or denied
+       denial - boolean indicating whether this was a denial (True) or granted
+          (False) message.
+       ioctlcmd - ioctl 'request' parameter
+    An example audit message generated from the audit daemon looks like (line breaks
+    added):
+       'type=AVC msg=audit(1155568085.407:10877): avc:  denied  { search } for
+       pid=677 comm="python" name="modules" dev=dm-0 ino=13716388
+       scontext=user_u:system_r:setroubleshootd_t:s0
+       tcontext=system_u:object_r:modules_object_t:s0 tclass=dir'
+    An example audit message stored in syslog (not processed by the audit daemon - line
+    breaks added):
+       'Sep 12 08:26:43 dhcp83-5 kernel: audit(1158064002.046:4): avc:  denied  { read }
+       for  pid=2 496 comm="bluez-pin" name=".gdm1K3IFT" dev=dm-0 ino=3601333
+       scontext=user_u:system_r:bluetooth_helper_t:s0-s0:c0
+       tcontext=system_u:object_r:xdm_tmp_t:s0 tclass=file
+    c
+SecurityContext
+scontext
+tcontext
+tclass
+comm
+exer@
+name
+accesses
+denial
+ioctlcmd
+	audit2why
+TERULE
+typer*
+AVCMessage.__init__c
+#AVC message in invalid format [%s]
+ValueErrorr(
+append)
+startZ
+found_close
+__parse_access
+AVCMessage.__parse_accessc
+grantedr-
+ranger1
+_AVCMessage__parse_accessrK
+intrL
+analyze)
+Z	found_srcZ	found_tgtZ
+found_classZ
+found_accessrU
+AVCMessage.from_split_stringc
+Invalid Target Context %s
+Invalid Source Context %s
+Invalid Type Class %s
+Invalid permission %s
+ z&Error during access vector computationz	user (%s)Z
+object_rz	role (%s)z
+level (%s))
+Z	to_stringrD
+tuplerJ
+datarF
+avcdict
+keysrO
+NOPOLICYrN
+BADTCONrR
+BADSCONZ
+BADPERM
+joinZ
+BADCOMPUTEZ
+CONSTRAINT
+userrS
+role
+level)
+access_tupler
+AVCMessage.analyzeN)
+PolicyLoadMessagez6Audit message indicating that the policy was reloaded.c
+PolicyLoadMessage.__init__Nr>
+DaemonStartMessagez3Audit message indicating that a daemon was started.c
+auditdr*
+DaemonStartMessage.__init__c
+z$DaemonStartMessage.from_split_stringNr6
+ComputeSidMessagea
+Audit message indicating that a sid was not valid.
+    Compute sid messages are generated on attempting to create a security
+    context that is not valid. Security contexts are invalid if the role is
+    not authorized for the user or the type is not authorized for the role.
+    This class does not store all of the fields from the compute sid message -
+    just the type and role.
+    c
+invalid_contextrD
+ComputeSidMessage.__init__c
+z;Split string does not represent a valid compute sid message
+z#ComputeSidMessage.from_split_stringc
+role %s types %s;
+ComputeSidMessage.outputN)
+AuditParsera
+Parser for audit messages.
+    This class parses audit messages and stores them according to their message
+    type. This is not a general purpose audit message parser - it only extracts
+    selinux related messages.
+    Each audit messages are stored in one of four lists:
+       avc_msgs - avc denial or granted messages. Messages are stored in
+          AVCMessage objects.
+       comput_sid_messages - invalid sid messages. Messages are stored in
+          ComputSidMessage objects.
+       invalid_msgs - selinux related messages that are not valid. Messages
+          are stored in InvalidMessageObjects.
+       policy_load_messages - policy load messages. Messages are stored in
+          PolicyLoadMessage objects.
+    These lists will be reset when a policy load message is seen if
+    AuditParser.last_load_only is set to true. It is assumed that messages
+    are fed to the parser in chronological order - time stamps are not
+    parsed.
+    Fc
+_AuditParser__initialize
+last_load_only)
+AuditParser.__init__c
+avc_msgs
+compute_sid_msgs
+invalid_msgs
+policy_load_msgs
+	path_msgs
+	by_header
+check_input_filerq
+__initializek
+AuditParser.__initializec
+strip)
+<listcomp>
+z,AuditParser.__parse_line.<locals>.<listcomp>Fz
+avc:z
+message=avc:z	msg='avc:Tz
+security_compute_sid:z
+type=MAC_POLICY_LOADz	type=1403z
+type=AVC_PATHz
+type=DAEMON_START)
+listr{
+lineZ
+recrU
+foundr0
+__parse_line
+AuditParser.__parse_linec
+_AuditParser__parse_line
+isinstancere
+__parse
+AuditParser.__parsec
+valuesr
+value
+avcr@
+__post_process
+AuditParser.__post_processc
+zpParse the contents of a file object. This method can be called
+        multiple times (along with parse_string).z
+Nothing to do
+readline
+_AuditParser__parser{
+stderr
+write
+exit
+_AuditParser__post_process)
+inputr
+parse_file
+AuditParser.parse_filec
+Parse a string containing audit messages - messages should
+        be separated by new lines. This method can be called multiple
+        times (along with parse_file).
+lines
+parse_string
+AuditParser.parse_stringNc
+Return RoleAllowSet statements matching the specified filter
+        Filter out types that match the filer, or all roles
+        Params:
+           role_filter - [optional] Filter object used to filter the
+              output.
+        Returns:
+           Access vector set representing the denied access in the
+           audit logs parsed by this object.
+        )
+RoleTypeSetrv
+filter
+addrk
+role_filterZ
+role_typesZ
+to_role
+AuditParser.to_roleTc
+Convert the audit logs access into a an access vector set.
+        Convert the audit logs into an access vector set, optionally
+        filtering the restults with the passed in filter object.
+        Filter objects are object instances with a .filter method
+        that takes and access vector and returns True if the message
+        should be included in the final output and False otherwise.
+        Params:
+           avc_filter - [optional] Filter object used to filter the
+              output.
+        Returns:
+           Access vector set representing the denied access in the
+           audit logs parsed by this object.
+        TZ
+ioctl)
+Z	audit_msg)
+AccessVectorSetru
+AccessVectorrD
+XpermSetr
+xpermsZ
+add_av)
+avc_filterZ
+only_denialsZ
+av_setr
+avZ	xperm_setr
+	to_access
+AuditParser.to_access)
+AVCTypeFilterc
+compile
+regex
+AVCTypeFilter.__init__c
+NTF)
+matchrD
+AVCTypeFilter.filterN
+ComputeSidTypeFilterc
+ComputeSidTypeFilter.__init__c
+ComputeSidTypeFilter.filterNr
+selinux.audit2whyrM
+<module>

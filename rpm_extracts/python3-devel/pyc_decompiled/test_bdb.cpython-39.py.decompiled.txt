@@ -1,0 +1,561 @@
+Z d d!
+Z!d"d#
+Z"d$d%
+Z#d&d'
+d(d)
+d*d+
+d+e&
+d,d-
+d-e&
+d.d/
+d/e&
+d0d1
+d1e&
+Z*e+d2k
+ Test the bdb module.
+    A test defines a list of tuples that may be seen as paired tuples, each
+    pair being defined by 'expect_tuple, set_tuple' as follows:
+        ([event, [lineno[, co_name[, eargs]]]]), (set_type, [sargs])
+    * 'expect_tuple' describes the expected current state of the Bdb instance.
+      It may be the empty tuple and no check is done in that case.
+    * 'set_tuple' defines the set_*() method to be invoked when the Bdb
+      instance reaches this state.
+    Example of an 'expect_tuple, set_tuple' pair:
+        ('line', 2, 'tfunc_main'), ('step', )
+    Definitions of the members of the 'expect_tuple':
+        event:
+            Name of the trace event. The set methods that do not give back
+            control to the tracer [1] do not trigger a tracer event and in
+            that case the next 'event' may be 'None' by convention, its value
+            is not checked.
+            [1] Methods that trigger a trace event are set_step(), set_next(),
+            set_return(), set_until() and set_continue().
+        lineno:
+            Line number. Line numbers are relative to the start of the
+            function when tracing a function in the test_bdb module (i.e. this
+            module).
+        co_name:
+            Name of the function being currently traced.
+        eargs:
+            A tuple:
+            * On an 'exception' event the tuple holds a class object, the
+              current exception must be an instance of this class.
+            * On a 'line' event, the tuple holds a dictionary and a list. The
+              dictionary maps each breakpoint number that has been hit on this
+              line to its hits count. The list holds the list of breakpoint
+              number temporaries that are being deleted.
+    Definitions of the members of the 'set_tuple':
+        set_type:
+            The type of the set method to be invoked. This may
+            be the type of one of the Bdb set methods: 'step', 'next',
+            'until', 'return', 'continue', 'break', 'quit', or the type of one
+            of the set methods added by test_bdb.Bdb: 'ignore', 'enable',
+            'disable', 'clear', 'up', 'down'.
+        sargs:
+            The arguments of the set method if any, packed in a tuple.
+contextmanager)
+islice
+repeatc
+BdbExceptionN)
+__name__
+__module__
+__qualname__
+%/usr/lib64/python3.9/test/test_bdb.pyr
+BdbErrorz!Error raised by the Bdb instance.N
+__doc__r	
+BdbSyntaxErrorz
+Syntax error in the test case.Nr
+BdbNotExpectedErrorz
+Unexpected result.Nr
+_bdb
+Breakpoint
+nextZ
+bplist
+bpbynumberr	
+reset_BreakpointI
+rJd	n
+bpr	
+<listcomp>O
+z$info_breakpoints.<locals>.<listcomp>
+Fz!BpNum Temp Enb Hits Ignore Where
+yes z
+no  Z
+yesz
+no z
+%-5d %s %s %-4d %-6d at %s:%dz
+	stop only if %s
+	temporary
+enabledZ
+number
+hits
+ignore
+path
+basename
+file
+line
+cond)
+bp_listZ
+header_addedr
+infoZ
+dispZ
+enabr	
+info_breakpointsN
+Bdbz$Extend Bdb to enhance test coverage.c
+	currentbp
+super
+trace_dispatch)
+self
+frame
+event
+	__class__r	
+Bdb.trace_dispatchFNc
+}	|	j	}
+funcname)
+isinstance
+__file__
+globals
+	importlib
+import_module
+__dict__
+eval
+__code__
+co_filename
+co_firstlineno
+co_namer-
+	set_breakr
+filename
+linenor
+globals_
+module
+func
+code
+resr3
+Bdb.set_breakc
+	get_stack
+stack
+indexr0
+Bdb.get_stackc
+z8Increment the ignore count of Breakpoint number 'bpnum'.r
+get_bpbynumberr 
+bpnumr
+set_ignore
+Bdb.set_ignorec
+set_enable
+Bdb.set_enablec
+NFrT
+set_disable
+Bdb.set_disablec
+clear_breakr
+fnamerE
+errr	
+	set_clear
+Bdb.set_clearc
+Move up in the frame stack.z
+Oldest framer
+set_up
+Bdb.set_upc
+Move down in the frame stack.r
+Newest framer
+lenrM
+set_down
+Bdb.set_down)
+FNN)
+__classcell__r	
+d d!
+d"d#
+d$d%
+d-d&d'
+d(d)
+d*d+
+Tracerz$A tracer for testing the bdb module.NFc
+skipz
+Dry-run results for %s:)
+__init__
+expect_set
+dry_run
+header
+	init_test)
+	test_caser3
+Tracer.__init__c
+cur_except
+expect_set_no
+breakpoint_hits
+listr
+expected_list
+set_listrZ
+Tracer.init_testc
+	exception)
+Tracer.trace_dispatchc
+call)
+Z	stop_here
+process_event
+next_set_method)
+argument_listr	
+	user_call
+Tracer.user_callc
+  )	rs
+strip
+split
+print
+delete_temporariesrt
+	user_line
+Tracer.user_linec
+return)
+return_valuer	
+user_return
+Tracer.user_returnc
+exc_infors
+user_exception
+Tracer.user_exceptionc
+do_clear
+Tracer.do_clearc
+clear_bpbynumber)
+Tracer.delete_temporariesc
+z-expect_set list exhausted, cannot pop item %d)
+expect
+IndexErrorr
+	set_tuplerZ
+pop_next
+Tracer.pop_nextc
+Wrong event type)
+z(No breakpoints hit at expect_set item %dz
+Breakpoint numbers do not matchc
+bpsr	
+z(Tracer.process_event.<locals>.<listcomp>c
+Wrong breakpoint hit countr
+Wrong temporary breakpointsz/Wrong exception at expect_set item %d, got '%s')
+print_statere
+check_equal
+check_lno_name
+check_expect_max_sizer\
+sorted
+keys
+raise_not_expectedrj
+args
+tbr'
+temporariesZ
+bpnumsr	
+Tracer.process_eventc
+Nz"%s at expect_set item %d, got '%s')
+expected
+result
+msgr	
+Tracer.check_equalc
+z+Check the line number and function co_name.r
+Wrong line numberrh
+Wrong function nameN)
+lno_abs2relr
+f_coderB
+Tracer.check_lno_namec
+Nz'Invalid size of the %s expect tuple: %s)
+sizer	
+Tracer.check_expect_max_sizec
+canonicr0
+f_linenor9
+Tracer.lno_abs2relc
+lno_rel2absG
+Tracer.lno_rel2absc
+('%s', %d, '%s'
+%s: %s
+ljustr
+stater
+	get_stateL
+Tracer.get_statec
+%d: %s)
+Tracer.print_statec
+  Expected: %s
+  Got:      )
+Tracer.raise_not_expectedc
+set_)
+step
+continue
+quit)
+until)
+break
+clearr 
+enable
+disable)
+down)
+"%s" is an invalid set_tuple)
+getattrr0
+extendr1
+set_typer
+set_methodrE
+remainr	
+Tracer.next_set_method)
+NFN)
+	TracerRunzAProvide a context for running a Tracer instance with a test case.Nc
+tracer
+_original_tracer)
+TracerRun.__init__c
+gettracer
+	__enter__
+TracerRun.__enter__c
+)	Nr
+z+All paired tuples have not been processed, z
+the last one was number %dr
+TFz#BdbNotExpectedError with empty args)
+settracer
+issubclassr
+BaseExceptionr
+fail)
+type_
+value
+	tracebackZ	not_empty
+err_msgr	
+__exit__
+TracerRun.__exit__)
+NNN)
+Run a test and print the dry-run results.
+    'modules':  A dictionary mapping module names to their source code as a
+                string. The dictionary MUST include one module named
+                'test_module' with a main() function.
+    'set_list': A list of set_type tuples to be run on the module.
+    For example, running the following script outputs the following results:
+    *****************************   SCRIPT   ********************************
+    from test.test_bdb import run_test, break_in_func
+    code = '''
+        def func():
+            lno = 3
+        def main():
+            func()
+            lno = 7
+    '''
+    set_list = [
+                break_in_func('func', 'test_module.py'),
+                ('continue', ),
+                ('step', ),
+                ('step', ),
+                ('step', ),
+                ('quit', ),
+            ]
+    modules = { 'test_module': code }
+    run_test(modules, set_list)
+    ****************************   results   ********************************
+    1: ('line', 2, 'tfunc_import'),    ('next',),
+    2: ('line', 3, 'tfunc_import'),    ('step',),
+    3: ('call', 5, 'main'),            ('break', ('test_module.py', None, False, None, 'func')),
+    4: ('None', 5, 'main'),            ('continue',),
+    5: ('line', 3, 'func', ({1: 1}, [])), ('step',),
+      BpNum Temp Enb Hits Ignore Where
+      1     no   yes 1    0      at test_module.py:2
+    6: ('return', 3, 'func'),          ('step',),
+    7: ('line', 7, 'main'),            ('step',),
+    8: ('return', 7, 'main'),          ('quit',),
+    *************************************************************************
+    c
+StopIteration)
+run_test.<locals>.gen
+<lambda>
+run_test.<locals>.<lambda>r	
+BaseTestCaserd
+iterrc
+create_modulesr
+runcall
+tfunc_import)
+modulesrn
+testr
+run_test
+supportZ
+temp_cwdr
+appendr!
+getcwd
+open
+write
+textwrap
+dedent
+	linecache
+checkcacher;
+invalidate_cachesZ
+forgetr
+break_in_func%
+test_module_for_bdbr
+main)
+tfunc_first
+tfunc_second
+lnor	
+tfunc_main.
+Base class for all tests.Nc
+failureExceptionr
+BaseTestCase.fail)
+StateTestCasez;Test the step, next, return, until and quit 'set_' methods.c
+	test_stepK
+StateTestCase.test_stepc
+Noner
+subTestr9
+ test_step_next_on_last_statementU
+z.StateTestCase.test_step_next_on_last_statementc
+	test_nextc
+StateTestCase.test_nextc
+            def main():
+                lno = 3
+        )
+TEST_MODULEr
+test_next_over_importn
+z#StateTestCase.test_next_over_importc
+test_next_on_plain_statement|
+z*StateTestCase.test_next_on_plain_statementc
+test_next_in_caller_frame
+z'StateTestCase.test_next_in_caller_framec
+test_return
+StateTestCase.test_returnc
+test_return_in_caller_frame
+z)StateTestCase.test_return_in_caller_framec
+test_until
+StateTestCase.test_untilc
+test_until_with_too_large_count
+z-StateTestCase.test_until_with_too_large_countc
+test_until_in_caller_frame
+z(StateTestCase.test_until_in_caller_framec
+importlib*Z	zipimportz
+encodings.*r`
+	test_skip
+StateTestCase.test_skipc
+Nz	anything*r`
+assertIsZ
+is_skipped_module)
+bdbr	
+test_skip_with_no_name_module
+z+StateTestCase.test_skip_with_no_name_modulec
+assertRaisesr
+	test_down
+StateTestCase.test_downc
+test_up
+StateTestCase.test_upN)
+BreakpointTestCasez
+Test the breakpoint set method.c
+/non/existent/module.pyr
+test_bp_on_non_existent_module
+z1BreakpointTestCase.test_bp_on_non_existent_modulec
+TEST_MODULE_FNAMErc
+test_bp_after_last_statement
+z/BreakpointTestCase.test_bp_after_last_statementc
+d	d	i
+            def func():
+                lno = 3
+            def main():
+                for i in range(2):
+                    func()
+        r
+test_temporary_bp
+z$BreakpointTestCase.test_temporary_bpc
+            def func():
+                lno = 3
+            def main():
+                for i in range(3):
+                    func()
+        r
+test_disabled_temporary_bp$
+z-BreakpointTestCase.test_disabled_temporary_bpc
+            def func(a):
+                lno = 3
+            def main():
+                for i in range(3):
+                    func(i)
+        r
+a == 2r
+test_bp_condition@
+z$BreakpointTestCase.test_bp_conditionc
+            def func(a):
+                lno = 3
+            def main():
+                func(0)
+        r
+1 / 0r
+)test_bp_exception_on_condition_evaluationT
+z<BreakpointTestCase.test_bp_exception_on_condition_evaluationc
+test_bp_ignore_countg
+z'BreakpointTestCase.test_bp_ignore_countc
+ test_ignore_count_on_disabled_bp|
+z3BreakpointTestCase.test_ignore_count_on_disabled_bpc
+            def func():
+                lno = 3
+                lno = 4
+            def main():
+                for i in range(3):
+                    func()
+        r
+test_clear_two_bp_on_same_line
+z1BreakpointTestCase.test_clear_two_bp_on_same_linec
+test_clear_at_no_bp
+z&BreakpointTestCase.test_clear_at_no_bpN)
+RunTestCasez Test run, runeval and set_trace.c
+            lno = 2
+        )
+<module>r
+<string>
+exec)
+compiler
+test_run_step
+RunTestCase.test_run_stepc
+test_module_for_bdb.main())
+runevalr:
+locals)
+test_runeval_step
+RunTestCase.test_runeval_stepN)
+IssuesTestCasez
+Test fixed bdb issues.c
+            from test_module_for_bdb_2 import func
+            def main():
+                func()
+                lno = 5
+        z9
+            def func():
+                lno = 3
+        Z
+test_module_for_bdb_2r
+test_module_for_bdb_2.pyr
+code_1Z
+code_2r
++test_step_at_return_with_no_trace_in_caller
+z:IssuesTestCase.test_step_at_return_with_no_trace_in_callerc
+            def test_gen():
+                yield 0
+                lno = 4
+                return 123
+            def main():
+                it = test_gen()
+                next(it)
+                next(it)
+                lno = 11
+        )
+test_genr
+#test_next_until_return_in_generator
+z2IssuesTestCase.test_next_until_return_in_generatorc
+            def test_gen():
+                yield 0
+                lno = 4
+                yield 1
+                return 123
+            def main():
+                for i in test_gen():
+                    lno = 10
+                lno = 11
+        r
+'test_next_command_in_generator_for_loop#
+z6IssuesTestCase.test_next_command_in_generator_for_loopc
+            def test_subgen():
+                yield 0
+                return 123
+            def test_gen():
+                x = yield from test_subgen()
+                return 456
+            def main():
+                for i in test_gen():
+                    lno = 12
+                lno = 13
+        r
+/test_next_command_in_generator_with_subiteratorB
+z>IssuesTestCase.test_next_command_in_generator_with_subiteratorc
+test_subgenr
+1test_return_command_in_generator_with_subiteratora
+z@IssuesTestCase.test_return_command_in_generator_with_subiteratorN)	r
+__main__)
+N)-r
+unittestr
+contextlibr
+	itertoolsr
+test.supportr
+	Exceptionr
+TestCaser
+<module>

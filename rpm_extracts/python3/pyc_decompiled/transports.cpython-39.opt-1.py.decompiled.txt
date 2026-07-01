@@ -1,0 +1,229 @@
+Abstract Transport class.)
+BaseTransport
+ReadTransport
+WriteTransport
+	Transport
+DatagramTransport
+SubprocessTransportc
+Base class for transports.
+_extraNc
+self
+extra
+*/usr/lib64/python3.9/asyncio/transports.py
+__init__
+BaseTransport.__init__c
+z#Get optional transport information.)
+get)
+name
+defaultr
+get_extra_info
+BaseTransport.get_extra_infoc
+z2Return True if the transport is closing or closed.N
+NotImplementedError
+is_closing
+BaseTransport.is_closingc
+Close the transport.
+        Buffered data will be flushed asynchronously.  No more data
+        will be received.  After all buffered data is flushed, the
+        protocol's connection_lost() method will (eventually) be
+        called with None as its argument.
+        Nr
+close
+BaseTransport.closec
+Set a new protocol.Nr
+protocolr
+set_protocol%
+BaseTransport.set_protocolc
+Return the current protocol.Nr
+get_protocol)
+BaseTransport.get_protocol)
+__name__
+__module__
+__qualname__
+__doc__
+	__slots__r
+z#Interface for read-only transports.r
+z*Return True if the transport is receiving.Nr
+is_reading3
+ReadTransport.is_readingc
+Pause the receiving end.
+        No data will be passed to the protocol's data_received()
+        method until resume_reading() is called.
+        Nr
+pause_reading7
+ReadTransport.pause_readingc
+Resume the receiving end.
+        Data received will once again be passed to the protocol's
+        data_received() method.
+        Nr
+resume_reading?
+ReadTransport.resume_readingN)
+z$Interface for write-only transports.r
+Set the high- and low-water limits for write flow control.
+        These two values control when to call the protocol's
+        pause_writing() and resume_writing() methods.  If specified,
+        the low-water limit must be less than or equal to the
+        high-water limit.  Neither value can be negative.
+        The defaults are implementation-specific.  If only the
+        high-water limit is given, the low-water limit defaults to an
+        implementation-specific value less than or equal to the
+        high-water limit.  Setting high to zero forces low to zero as
+        well, and causes pause_writing() to be called whenever the
+        buffer becomes non-empty.  Setting low to zero causes
+        resume_writing() to be called only once the buffer is empty.
+        Use of zero for either limit is generally sub-optimal as it
+        reduces opportunities for doing I/O and computation
+        concurrently.
+        Nr
+high
+lowr
+set_write_buffer_limitsM
+z&WriteTransport.set_write_buffer_limitsc
+z,Return the current size of the write buffer.Nr
+get_write_buffer_sizeb
+z$WriteTransport.get_write_buffer_sizec
+Write some data bytes to the transport.
+        This does not block; it buffers the data and arranges for it
+        to be sent out asynchronously.
+        Nr
+datar
+writef
+WriteTransport.writec
+Write a list (or any iterable) of data bytes to the transport.
+        The default implementation concatenates the arguments and
+        calls write() on the result.
+        
+joinr)
+list_of_datar(
+writelinesn
+WriteTransport.writelinesc
+Close the write end after flushing buffered data.
+        (This is like typing ^D into a UNIX program reading from stdin.)
+        Data may still be received.
+        Nr
+	write_eofw
+WriteTransport.write_eofc
+zAReturn True if this transport supports write_eof(), False if not.Nr
+can_write_eof
+WriteTransport.can_write_eofc
+Close the transport immediately.
+        Buffered data will be lost.  No more data will be received.
+        The protocol's connection_lost() method will (eventually) be
+        called with None as its argument.
+        Nr
+abort
+WriteTransport.abort)
+Interface representing a bidirectional transport.
+    There may be several implementations, but typically, the user does
+    not implement new transports; rather, the platform provides some
+    useful transports that are implemented using the platform's best
+    practices.
+    The user never instantiates a transport directly; they call a
+    utility function, passing it a protocol factory and other
+    information necessary to create the transport and protocol.  (E.g.
+    EventLoop.create_connection() or EventLoop.create_server().)
+    The utility function will asynchronously create a transport and a
+    protocol and hook them up by calling the protocol's
+    connection_made() method, passing it the transport.
+    The implementation here raises NotImplemented for every method
+    except writelines(), which calls write() in a loop.
+    r
+z(Interface for datagram (UDP) transports.r
+Send data to the transport.
+        This does not block; it buffers the data and arranges for it
+        to be sent out asynchronously.
+        addr is target socket address.
+        If addr is None use target address pointed on transport creation.
+        Nr
+addrr
+sendto
+DatagramTransport.sendtoc
+DatagramTransport.abort)
+Get subprocess id.Nr
+get_pid
+SubprocessTransport.get_pidc
+Get subprocess returncode.
+        See also
+        http://docs.python.org/3/library/subprocess#subprocess.Popen.returncode
+        Nr
+get_returncode
+z"SubprocessTransport.get_returncodec
+z&Get transport for pipe with number fd.Nr
+get_pipe_transport
+z&SubprocessTransport.get_pipe_transportc
+Send signal to subprocess.
+        See also:
+        docs.python.org/3/library/subprocess#subprocess.Popen.send_signal
+        Nr
+signalr
+send_signal
+SubprocessTransport.send_signalc
+Stop the subprocess.
+        Alias for close() method.
+        On Posix OSs the method sends SIGTERM to the subprocess.
+        On Windows the Win32 API function TerminateProcess()
+         is called to stop the subprocess.
+        See also:
+        http://docs.python.org/3/library/subprocess#subprocess.Popen.terminate
+        Nr
+	terminate
+SubprocessTransport.terminatec
+Kill the subprocess.
+        On Posix OSs the function sends SIGKILL to the subprocess.
+        On Windows kill() is an alias for terminate().
+        See also:
+        http://docs.python.org/3/library/subprocess#subprocess.Popen.kill
+        Nr
+kill
+SubprocessTransport.killN)
+_FlowControlMixinav
+All the logic for (write) flow control in a mix-in base class.
+    The subclass must implement get_write_buffer_size().  It must call
+    _maybe_pause_protocol() whenever the write buffer size increases,
+    and _maybe_resume_protocol() whenever it decreases.  It may also
+    override set_write_buffer_limits() (e.g. to specify different
+    defaults).
+    The subclass constructor must call super().__init__(extra).  This
+    will call set_write_buffer_limits().
+    The user may call set_write_buffer_limits() and
+    get_write_buffer_size(), and their protocol's pause_writing() and
+    resume_writing() may be called.
+    )
+_loop
+_protocol_paused
+_high_water
+_low_waterNc
+superr
+_set_write_buffer_limits)
+loop
+	__class__r
+_FlowControlMixin.__init__c
+protocol.pause_writing() failed
+messageZ	exceptionZ	transportr
+	_protocolZ
+pause_writing
+SystemExit
+KeyboardInterrupt
+BaseExceptionr;
+call_exception_handler)
+size
+excr
+_maybe_pause_protocol
+z'_FlowControlMixin._maybe_pause_protocolc
+NFz protocol.resume_writing() failedrC
+resume_writingrF
+_maybe_resume_protocol!
+z(_FlowControlMixin._maybe_resume_protocolc
+get_write_buffer_limits1
+z)_FlowControlMixin.get_write_buffer_limitsc
+high (z
+) must be >= low (z
+) must be >= 0)
+ValueErrorr=
+z*_FlowControlMixin._set_write_buffer_limitsc
+z)_FlowControlMixin.set_write_buffer_limitsc
+z'_FlowControlMixin.get_write_buffer_size)
+__classcell__r
+N)	r
+__all__r
+<module>

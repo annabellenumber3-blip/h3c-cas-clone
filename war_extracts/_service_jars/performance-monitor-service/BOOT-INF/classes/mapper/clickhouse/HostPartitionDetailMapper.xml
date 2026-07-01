@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.h3c.h3cloud.performance.monitor.service.mapper.clickhouse.HostPartitionDetailMapper">
+    <delete id ="deleteBeforeTime">
+        ALTER TABLE TBL_HOST_PARTITION_DETAIL DELETE WHERE TIME &lt; #{time}
+    </delete>
+    <select id="readPartitionById" resultType="com.h3c.h3cloud.common.model.performance.HostPartitionDetailData">
+        SELECT TIME as time, PARTITION_NAME as partitionName, UTILIZATION as utilization, SIZE as size, USED as used,
+         PARTITION_TYPE as partitionType,MOUNTED_DIR as mountedDir
+        FROM TBL_HOST_PARTITION_DETAIL dpd  WHERE dpd.HOST_ID = ${hostId}
+         AND TIME = (SELECT MAX(TIME) FROM TBL_HOST_PARTITION_DETAIL)
+    </select>
+    <select id="readHostPartitionByCondition" resultType="com.h3c.h3cloud.common.model.performance.HostPartitionDetailData">
+        SELECT TIME as time, PARTITION_NAME as partitionName, UTILIZATION as utilization, USED as used
+        FROM TBL_HOST_PARTITION_DETAIL dpd  WHERE dpd.HOST_ID = ${hostId} AND TIME BETWEEN ${startTime} AND ${endTime}
+        ORDER BY TIME ASC
+    </select>
+    <select id="readAllPartition" resultType="com.h3c.h3cloud.common.model.performance.HostPartitionDetailData">
+        SELECT TIME as time, hpd.HOST_ID as hostId, PARTITION_NAME as partitionName, UTILIZATION as utilization, SIZE as size, MOUNTED_DIR as mountedDir,
+        host.name as hostName,host.status as hostStatus
+        FROM TBL_HOST_PARTITION_DETAIL hpd  LEFT JOIN ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_HOST} host
+        ON hpd.HOST_ID = host.id WHERE host.id is NOT NULL AND hpd.PARTITION_TYPE !=#{partitionType}
+        AND TIME = (SELECT MAX(TIME) FROM TBL_HOST_PARTITION_DETAIL)
+        <if test="operatorGroupCode!=null and operatorGroupCode!=''">
+            AND hpd.OP_GROUP_CODE like #{operatorGroupCode}
+        </if>
+        ORDER BY HOST_ID
+    </select>
+    <select id="queryPartitions" resultType="com.h3c.h3cloud.common.model.performance.HostPartitionDetailData">
+        SELECT PARTITION_NAME as partitionName, UTILIZATION as utilization, SIZE as size, MOUNTED_DIR as mountedDir, PARTITION_TYPE as partitionType, USED as used
+        FROM TBL_HOST_PARTITION_DETAIL hpd  WHERE hpd.HOST_ID=${hostId}
+        AND TIME = (SELECT MAX(TIME) FROM TBL_HOST_PARTITION_DETAIL)
+    </select>
+</mapper>

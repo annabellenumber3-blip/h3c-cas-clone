@@ -1,0 +1,31 @@
+#!/bin/bash
+
+help()
+{
+    echo "usage: $0 {wait-stop}"
+}
+
+wait_stop()
+{
+    /usr/sbin/cmsadm just-stop-local-service &> /dev/null
+
+    time=1
+    while [ $time -le 12 ]; do   # timeout is 12 * 5 = 60s
+        pidof cmsd &> /dev/null
+        if [ $? -ne 0 ]; then
+            return 0
+        fi
+
+        sleep 5
+        let time+=1
+    done
+
+    return 1
+}
+
+case $1 in
+    wait-stop) wait_stop $* ;;
+    *) help  ;;
+esac
+
+exit $?

@@ -1,0 +1,1548 @@
+m Z!
+m"Z#
+m$Z$
+l%Z&d
+l'Z'd
+l(Z(d
+l*Z*d
+Z+e+e*
+Z:d!g
+Z;d"d#
+Z:d$d#
+Z;d%d&
+Z<e(
+Z>e>
+Z@e*
+d)ZAn
+d*ZAe
+2e@d+
+2eBeAd,
+2eBeAd-
+ZCe<eC
+ZDeD
+ZEe<e
+2eEd/d0
+2eEd0
+n2e0g
+Z7e0g
+Z8d5d6g
+ZGeG
+HeGd
+ZIe8
+JeId7g
+Jd9d:g
+jLd;
+jNd<d=g
+jOeMd>
+eReP
+ZVePjWd
+2d?eV
+Z8t4e
+2d?eV
+jXd!
+jXd!
+jXd@
+dAd#
+a4dBd#
+Z5dCd#
+a6dDd#
+Z[dEdF
+Z\dGdH
+dIdJ
+dKdL
+dMdN
+dOdP
+dPe_
+dQdR
+dRe_
+dSdT
+dTe_
+dUdV
+dVec
+dWdX
+dXe_
+dYdZ
+dZe_
+d[d\
+d\e_
+d]d^
+d^e_
+d_d`
+d`eg
+dadb
+dbe_
+dcdd
+dde_
+dedf
+dfe_
+dgdh
+dhe_
+didj
+dje_
+dldm
+dmeo
+dndo
+doeo
+dpdq
+dqeq
+drds
+dseq
+dtdu
+dueq
+dvdw
+dweq
+dxdy
+dyeq
+dzd{
+d{eq
+d|d}
+d}eq
+This file defines a set of system_info classes for getting
+information about various resources (libraries, library directories,
+include directories, etc.) in the system. Usage:
+    info_dict = get_info(<name>)
+  where <name> is a string 'atlas','x11','fftw','lapack','blas',
+  'lapack_src', 'blas_src', etc. For a complete list of allowed names,
+  see the definition of get_info() function below.
+  Returned info_dict is a dictionary which is compatible with
+  distutils.setup keyword arguments. If info_dict == {}, then the
+  asked resource is not available (system_info could not find it).
+  Several *_info classes specify an environment variable to specify
+  the locations of software. When setting the corresponding environment
+  variable to 'None' then the software will be ignored, even when it
+  is available in system.
+Global parameters:
+  system_info.search_static_first - search static libraries (.a)
+             in precedence to shared ones (.so, .sl) if enabled.
+  system_info.verbosity - output the results to stdout if enabled.
+The file 'site.cfg' is looked for in
+1) Directory of main setup.py file being run.
+2) Home directory of user running the setup.py file as ~/.numpy-site.cfg
+3) System wide directory (location of this file...)
+The first one found is used to get system configuration options The
+format is that used by ConfigParser (i.e., Windows .INI style). The
+section ALL is not intended for general use.
+Appropriate defaults are used if nothing is specified.
+The order of finding the locations of resources is the following:
+ 1. environment variable
+ 2. section in site.cfg
+ 3. DEFAULT section in site.cfg
+ 4. System default search paths (see ``default_*`` variables below).
+Only the first complete match is returned.
+Currently, the following classes are available, along with their section names:
+    Numeric_info:Numeric
+    _numpy_info:Numeric
+    _pkg_config_info:None
+    accelerate_info:accelerate
+    agg2_info:agg2
+    amd_info:amd
+    atlas_3_10_blas_info:atlas
+    atlas_3_10_blas_threads_info:atlas
+    atlas_3_10_info:atlas
+    atlas_3_10_threads_info:atlas
+    atlas_blas_info:atlas
+    atlas_blas_threads_info:atlas
+    atlas_info:atlas
+    atlas_threads_info:atlas
+    blas64__opt_info:ALL               # usage recommended (general ILP64 BLAS, 64_ symbol suffix)
+    blas_ilp64_opt_info:ALL            # usage recommended (general ILP64 BLAS)
+    blas_ilp64_plain_opt_info:ALL      # usage recommended (general ILP64 BLAS, no symbol suffix)
+    blas_info:blas
+    blas_mkl_info:mkl
+    blas_opt_info:ALL                  # usage recommended
+    blas_src_info:blas_src
+    blis_info:blis
+    boost_python_info:boost_python
+    dfftw_info:fftw
+    dfftw_threads_info:fftw
+    djbfft_info:djbfft
+    f2py_info:ALL
+    fft_opt_info:ALL
+    fftw2_info:fftw
+    fftw3_info:fftw3
+    fftw_info:fftw
+    fftw_threads_info:fftw
+    flame_info:flame
+    freetype2_info:freetype2
+    gdk_2_info:gdk_2
+    gdk_info:gdk
+    gdk_pixbuf_2_info:gdk_pixbuf_2
+    gdk_pixbuf_xlib_2_info:gdk_pixbuf_xlib_2
+    gdk_x11_2_info:gdk_x11_2
+    gtkp_2_info:gtkp_2
+    gtkp_x11_2_info:gtkp_x11_2
+    lapack64__opt_info:ALL             # usage recommended (general ILP64 LAPACK, 64_ symbol suffix)
+    lapack_atlas_3_10_info:atlas
+    lapack_atlas_3_10_threads_info:atlas
+    lapack_atlas_info:atlas
+    lapack_atlas_threads_info:atlas
+    lapack_ilp64_opt_info:ALL          # usage recommended (general ILP64 LAPACK)
+    lapack_ilp64_plain_opt_info:ALL    # usage recommended (general ILP64 LAPACK, no symbol suffix)
+    lapack_info:lapack
+    lapack_mkl_info:mkl
+    lapack_opt_info:ALL                # usage recommended
+    lapack_src_info:lapack_src
+    mkl_info:mkl
+    numarray_info:numarray
+    numerix_info:numerix
+    numpy_info:numpy
+    openblas64__info:openblas64_
+    openblas64__lapack_info:openblas64_
+    openblas_clapack_info:openblas
+    openblas_ilp64_info:openblas_ilp64
+    openblas_ilp64_lapack_info:openblas_ilp64
+    openblas_info:openblas
+    openblas_lapack_info:openblas
+    sfftw_info:fftw
+    sfftw_threads_info:fftw
+    system_info:ALL
+    umfpack_info:umfpack
+    wx_info:wx
+    x11_info:x11
+    xft_info:xft
+Note that blas_opt_info and lapack_opt_info honor the NPY_BLAS_ORDER
+and NPY_LAPACK_ORDER environment variables to determine the order in which
+specific BLAS and LAPACK libraries are searched for.
+This search (or autodetection) can be bypassed by defining the environment
+variables NPY_BLAS_LIBS and NPY_LAPACK_LIBS, which should then contain the
+exact linker flags to use (language will be set to F77). Building against
+Netlib BLAS/LAPACK or stub files, in order to be able to switch BLAS and LAPACK
+implementations at runtime. If using this to build NumPy itself, it is
+recommended to also define NPY_CBLAS_LIBS (assuming your BLAS library has a
+CBLAS interface) to enable CBLAS usage for matrix multiplication (unoptimized
+otherwise).
+Example:
+----------
+[DEFAULT]
+# default section
+library_dirs = /usr/lib:/usr/local/lib:/opt/lib
+include_dirs = /usr/include:/usr/local/include:/opt/include
+src_dirs = /usr/local/src:/opt/src
+# search static libraries (.a) in preference to shared ones (.so)
+search_static_first = 0
+[fftw]
+libraries = rfftw, fftw
+[atlas]
+library_dirs = /usr/lib/3dnow:/usr/lib/3dnow/atlas
+# for overriding the names of the atlas libraries
+libraries = lapack, f77blas, cblas, atlas
+[x11]
+library_dirs = /usr/X11R6/lib
+include_dirs = /usr/X11R6/include
+----------
+Note that the ``libraries`` key is the default setting for libraries.
+Authors:
+  Pearu Peterson <pearu@cens.ioc.ee>, February 2002
+  David M. Cooke <cookedm@physics.mcmaster.ca>, April 2002
+Copyright 2002 Pearu Peterson all rights reserved,
+Pearu Peterson <pearu@cens.ioc.ee>
+Permission to use, modify, and distribute this software is given under the
+terms of the NumPy (BSD style) license.  See LICENSE.txt that came with
+this distribution for specifics.
+NO WARRANTY IS EXPRESSED OR IMPLIED.  USE AT YOUR OWN RISK.
+glob)
+reduce)
+NoOptionError)
+RawConfigParser)
+DistutilsError)
+Distribution)
+log)
+get_platform)
+find_executable
+filepath_from_subprocess_output)
+is_sequence
+	is_string
+get_shared_lib_extension)
+config)
+customized_ccompiler)
+_shell_utils
+system_info
+32bitZ
+64bitc
+global_compiler
+_customized_ccompiler
+A/usr/lib64/python3.9/site-packages/numpy/distutils/system_info.pyr
+    Convert a python string into a literal suitable for inclusion into C code
+    
+"{}")
+replace
+format)
+_c_string_literal
+Return a list of library paths valid on 32 or 64 bit systems.
+    Inputs:
+      paths : sequence
+        A sequence of strings (typically paths)
+      bits : int
+        An integer, the only valid values are 32 or 64.  A ValueError exception
+      is raised otherwise.
+    Examples:
+    Consider a list of directories
+    >>> paths = ['/usr/X11R6/lib','/usr/X11/lib','/usr/lib']
+    For a 32-bit platform, this is already valid:
+    >>> np.distutils.system_info.libpaths(paths,32)
+    ['/usr/X11R6/lib', '/usr/X11/lib', '/usr/lib']
+    On 64 bits, we prepend the '64' postfix
+    >>> np.distutils.system_info.libpaths(paths,64)
+    ['/usr/X11R6/lib64', '/usr/X11R6/lib', '/usr/X11/lib64', '/usr/X11/lib',
+    '/usr/lib64', '/usr/lib']
+    )
+z+Invalid bit size in libpaths: 32 or 64 onlyr
+ValueError
+extend)
+paths
+bits
+libpaths
+win32z
+exec_prefix
+libs
+includez
+include/suitesparse
+libc
+<listcomp>
+z5Add a package manager root to the include directoriesc
+path
+joinr5
+library_rootr
+	<genexpr>(
+z"add_system_root.<locals>.<genexpr>c
+normpath
+default_lib_dirsr$
+	_lib_dirs
+default_include_dirs
+_include_dirsr=
+add_system_root!
+vcpkgr
+x86Z
+x64Z	installedz
+-windowsz
+-windows-static
+conda
+Library)
+/usr/local/libz
+/opt/lib
+/usr/libz
+/opt/local/libz
+/sw/lib)
+/usr/local/includez
+/opt/includez
+/opt/local/include/ufsparsez
+/opt/local/includez
+/sw/includez
+/usr/include/suitesparse)
+/usr/local/srcz
+/opt/srcz
+/sw/src)
+/usr/X11R6/libz
+/usr/X11/librI
+/usr/X11R6/includez
+/usr/X11/includez
+/usr/lib/X11z
+/usr/lib/*/libX11.soz
+/usr/lib/X11/includez
+/usr/include/X11
+gccz
+-print-multiarch)
+stdout
+stderrz	/usr/lib/
+srcc
+isdir
+Returns a list of files named 'fname' from
+    1) System-wide directory (directory-location of this module)
+    2) Users HOME directory (os.environ['HOME'])
+    3) Local directory
+    r
+__file__
+	NameError
+argvr3
+split
+abspath
+isfile
+append
+expanduser
+KeyError)
+fname
+	filenames
+sysfileZ	user_filer
+get_standard_filez
+]0}	|	s
+]<}	|	
+ Parse an environment variable `env` by splitting with "," and only returning elements from `base_order`
+    This method will sequence the environment variable and check for their invidual elements in `base_order`.
+    The items in the environment variable may be negated via '^item' or '!itema,itemb'.
+    It must start with ^/! to negate all options.
+    Raises
+    ------
+    ValueError: for mixed negated and non-negated orders or multiple negated orders
+    Parameters
+    ----------
+    base_order : list of str
+       the base list of orders
+    env : str
+       the environment variable to be parsed, if none is found, `base_order` is returned
+    Returns
+    -------
+    allow_order : list of str
+        allowed orders in lower-case
+    unknown_order : list of str
+        for values not overlapping with `base_order`
+    Nc
+lower)
+orderr
+z$_parse_env_order.<locals>.<listcomp>
+Environment variable 'z1' may only contain a single (prefixed) negation: r
+z,' may not mix negated an non-negated items: 
+environ
+startswith
+list
+countr#
+copyrZ
+remove)
+base_order
+envZ	order_str
+negZ
+order_str_lZ
+sum_negZ
+orders
+unknown_orderZ
+allow_orderra
+_parse_env_order
+t t!t"t#t$t%t&t't(t)t*t*t+t,t-t.t/t0t1t2t3t4t5t6t7t8t8t9t9t:t;t;t<t<t=t=t>t>t?t@tAtBd
+    notfound_action:
+      0 - do nothing
+      1 - display warning message
+      2 - raise error
+    )J
+atlas
+atlas_threads
+atlas_blas
+atlas_blas_threads
+lapack_atlasZ
+lapack_atlas_threads
+atlas_3_10
+atlas_3_10_threads
+atlas_3_10_blas
+atlas_3_10_blas_threadsZ
+lapack_atlas_3_10Z
+lapack_atlas_3_10_threads
+flame
+openblas
+openblas_lapack
+openblas_clapack
+blis
+lapack_mkl
+blas_mkl
+accelerate
+openblas64_Z
+openblas64__lapack
+openblas_ilp64Z
+openblas_ilp64_lapack
+x11Z
+fft_opt
+fftw
+fftw2
+fftw3
+dfftw
+sfftw
+fftw_threads
+dfftw_threads
+sfftw_threads
+djbfft
+blas
+lapack
+lapack_src
+blas_src
+numpy
+f2py
+Numeric
+numeric
+numarray
+numerixZ
+lapack_optZ
+lapack_ilp64_optZ
+lapack_ilp64_plain_optZ
+lapack64__opt
+blas_optZ
+blas_ilp64_optZ
+blas_ilp64_plain_optZ
+blas64__opt
+boost_python
+agg2
+gdk_pixbuf_xlib_2
+gdk-pixbuf-xlib-2.0
+gdk_pixbuf_2
+gdk-pixbuf-2.0
+gdk_2
+gdk-2.0
+	gdk_x11_2
+gdk-x11-2.0
+gtkp_x11_2
+gtk+-x11-2.0
+gtkp_2
+gtk+-2.0
+	freetype2
+umfpack
+amd)G
+atlas_info
+atlas_threads_info
+atlas_blas_info
+atlas_blas_threads_info
+lapack_atlas_info
+lapack_atlas_threads_info
+atlas_3_10_info
+atlas_3_10_threads_info
+atlas_3_10_blas_info
+atlas_3_10_blas_threads_info
+lapack_atlas_3_10_info
+lapack_atlas_3_10_threads_info
+flame_info
+mkl_info
+openblas_info
+openblas_lapack_info
+openblas_clapack_info
+	blis_info
+lapack_mkl_info
+blas_mkl_info
+accelerate_info
+openblas64__info
+openblas64__lapack_info
+openblas_ilp64_info
+openblas_ilp64_lapack_info
+x11_info
+fft_opt_info
+	fftw_info
+fftw2_info
+fftw3_info
+dfftw_info
+sfftw_info
+fftw_threads_info
+dfftw_threads_info
+sfftw_threads_info
+djbfft_info
+	blas_info
+lapack_info
+lapack_src_info
+blas_src_info
+numpy_info
+	f2py_info
+Numeric_info
+numarray_info
+numerix_info
+lapack_opt_info
+lapack_ilp64_opt_info
+lapack_ilp64_plain_opt_info
+lapack64__opt_info
+blas_opt_info
+blas_ilp64_opt_info
+blas_ilp64_plain_opt_info
+blas64__opt_info
+boost_python_info
+	agg2_info
+wx_info
+gdk_pixbuf_xlib_2_info
+gdk_pixbuf_2_info
+gdk_info
+gdk_2_info
+gdk_x11_2_info
+gtkp_x11_2_info
+gtkp_2_info
+xft_info
+freetype2_info
+umfpack_info
+amd_inforg
+get_info)
+name
+notfound_actionZ
+NotFoundErrorz1Some third-party program or library is not found.N
+__name__
+__module__
+__qualname__
+__doc__r
+AliasedOptionErrorz
+    Aliases entries in config files should not be existing.
+    In section '{section}' we found multiple appearances of options {options}.Nr
+AtlasNotFoundErrorz
+    Atlas (http://github.com/math-atlas/math-atlas) libraries not found.
+    Directories to search for the libraries can be specified in the
+    numpy/distutils/site.cfg file (section [atlas]) or by setting
+    the ATLAS environment variable.Nr
+FlameNotFoundErrorz
+    FLAME (http://www.cs.utexas.edu/~flame/web/) libraries not found.
+    Directories to search for the libraries can be specified in the
+    numpy/distutils/site.cfg file (section [flame]).Nr
+LapackNotFoundErrorz
+    Lapack (http://www.netlib.org/lapack/) libraries not found.
+    Directories to search for the libraries can be specified in the
+    numpy/distutils/site.cfg file (section [lapack]) or by setting
+    the LAPACK environment variable.Nr
+LapackSrcNotFoundErrorz
+    Lapack (http://www.netlib.org/lapack/) sources not found.
+    Directories to search for the sources can be specified in the
+    numpy/distutils/site.cfg file (section [lapack_src]) or by setting
+    the LAPACK_SRC environment variable.Nr
+LapackILP64NotFoundErrorz
+    64-bit Lapack libraries not found.
+    Known libraries in numpy/distutils/site.cfg file are:
+    openblas64_, openblas_ilp64
+    Nr
+BlasOptNotFoundErrorz
+    Optimized (vendor) Blas libraries are not found.
+    Falls back to netlib Blas library which has worse performance.
+    A better performance should be easily gained by switching
+    Blas library.Nr
+BlasNotFoundErrorz
+    Blas (http://www.netlib.org/blas/) libraries not found.
+    Directories to search for the libraries can be specified in the
+    numpy/distutils/site.cfg file (section [blas]) or by setting
+    the BLAS environment variable.Nr
+BlasILP64NotFoundErrorz
+    64-bit Blas libraries not found.
+    Known libraries in numpy/distutils/site.cfg file are:
+    openblas64_, openblas_ilp64
+    Nr
+BlasSrcNotFoundErrorz
+    Blas (http://www.netlib.org/blas/) sources not found.
+    Directories to search for the sources can be specified in the
+    numpy/distutils/site.cfg file (section [blas_src]) or by setting
+    the BLAS_SRC environment variable.Nr
+FFTWNotFoundErrorz
+    FFTW (http://www.fftw.org/) libraries not found.
+    Directories to search for the libraries can be specified in the
+    numpy/distutils/site.cfg file (section [fftw]) or by setting
+    the FFTW environment variable.Nr
+DJBFFTNotFoundErrorz
+    DJBFFT (https://cr.yp.to/djbfft.html) libraries not found.
+    Directories to search for the libraries can be specified in the
+    numpy/distutils/site.cfg file (section [djbfft]) or by setting
+    the DJBFFT environment variable.Nr
+NumericNotFoundErrorzw
+    Numeric (https://www.numpy.org/) module not found.
+    Get it from above location, install it, and retry setup.py.Nr
+X11NotFoundErrorz
+X11 libraries not found.Nr
+UmfpackNotFoundErrora
+    UMFPACK sparse solver (https://www.cise.ufl.edu/research/sparse/umfpack/)
+    not found. Directories to search for the libraries can be specified in the
+    numpy/distutils/site.cfg file (section [umfpack]) or by setting
+    the UMFPACK environment variable.Nr
+d:d!d"
+d#d$
+d;d&d'
+d(d)
+d*d+
+d,d-
+d.d/
+d0d1
+d2d3
+Z d4d5
+z= get_info() is the only public method. Don't use others.
+    Nr
+ALLc
+library_dirs
+include_dirs
+runtime_library_dirs
+rpath
+src_dirs
+search_static_first
+extra_compile_args
+extra_link_argsz
+.numpy-site.cfgz
+site.cfgr
+	__class__
+infoZ
+local_prefixesr3
+pathsepr<
+default_runtime_dirs
+default_src_dirs
+strr
+ConfigParser
+filesr$
+parse_config_files
+sectionZ
+getboolean
+isinstance
+int)
+selfr@
+defaultsr
+__init__
+system_info.__init__c
+readr
+has_sectionr
+add_section
+system_info.parse_config_filesc
+keyz"Library %s was not found. Ignoring
+	librariesr
+z*Runtime library %s was not found. Ignoring)	
+get_libraries
+get_lib_dirs
+get_runtime_lib_dirsr$
+check_libs
+dict_appendr
+pop)
+dirsZ
+r_dirsr
+calc_libraries_info
+system_info.calc_libraries_infoc
+calc_extra_info
+saved_resultsr
+lib_info
+extra_infor
+set_info
+system_info.set_infoc
+ Ensure that only one of `options` are found in the section
+        Parameters
+        ----------
+        *options : list of str
+           a list of options to be found in the section (``self.section``)
+        Returns
+        -------
+        str :
+            the option that is uniquely found in the section
+        Raises
+        ------
+        AliasedOptionError :
+            in case more than one of the options are found
+        c
+has_optionr
+optr#
+z1system_info.get_option_single.<locals>.<listcomp>rd
+[{}]z
+options)
+indexr
+foundr
+get_option_single
+system_info.get_option_singlec
+has_info-
+system_info.has_infoc
+ Updates the information in the current information with
+        respect to these flags:
+          extra_compile_args
+          extra_link_args
+        )
+NativeParserrW
+tmpr
+system_info.calc_extra_infoc
+zv Return a dictionary with items that are compatible
+            with numpy.distutils.setup keyword arguments.
+        r
+	calc_info
+stacklevelz
+  NOT AVAILABLEz
+  FOUND:)
+sourcesr%
+...i
+    %s = %sr	
+hasattrr<
+warnings
+warn
+notfounderrorr
+reprr2
+get_threshold
+INFO
+itemsr
+lenrk
+deepcopy)
+flag
+system_info.get_infoc
+qLq4|
+}	|	d
+|	d	d
+|	d	d
+Setting %s=%s
+Nonez
+Disabled %s: %sz
+(%s is None)
+_lib_namesrd
+z#Replacing _lib_names[0]==%r with %r)
+Specified path %s is invalid.r=
+( %s = %s )r;
+dir_env_varr
+dirname
+getattrrI
+basename
+splitextrP
+debug)
+env_varZ
+default_dirs
+retr
+	get_pathsd
+system_info.get_pathsr
+system_info.get_lib_dirsr
+z system_info.get_runtime_lib_dirsr
+get_include_dirs
+system_info.get_include_dirsr
+get_src_dirs
+system_info.get_src_dirsc
+z(system_info.get_libs.<locals>.<listcomp>c
+strip)
+defaultr,
+get_libs
+system_info.get_libsr%
+system_info.get_librariesc
+msvc
+.ar*
+.lib
+cygwin
+.dll.a
+darwinz
+.dylib)
+compiler_typerZ
+platformr
+so_ext)
+static_exts
+extsr
+library_extensions
+system_info.library_extensionsc
+If static or shared libraries are available then return
+        their info dictionary.
+        Checks for all libraries as shared libraries first, then
+        static (or vice versa if self.search_static_first is True).
+        N
+  libraries %s not found in %sre
+_check_libsr
+lib_dirsr,
+opt_libsrp
+extr
+system_info.check_libsc
+If static or shared libraries are available then return
+        their info dictionary.
+        Checks each library for shared or static.
+        rr
+check_libs2
+system_info.check_libs2c
+qTq2|
+)	Nr*
+.dllrh
+combine_pathsrI
+lib_dirr/
+lib_prefixesrw
+prefixr(
+	_find_lib
+system_info._find_libc
+found_dirs
+found_libsr/
+Z	found_libr
+_find_libs
+system_info._find_libsc
+}	|	|
+zxFind mandatory and optional libs in expected paths.
+        Missing optional libraries are silently forgotten.
+        r
+opt_found_dirsZ
+opt_found_libsrz
+system_info._check_libsc
+zjReturn a list of existing paths composed by all combinations
+        of items from the arguments.
+        )
+argsr
+system_info.combine_paths)
+fft_opt_info.calc_infoN
+FFTWr
+fftw3.h
+SCIPY_FFTW3_HN
+includes
+macrosr
+rfftw
+fftw.h
+rfftw.h
+SCIPY_FFTW_HNc
+z8Returns True on successful version detection, else FalseZ
+_libsr%
+define_macrosTz
+  %s not foundr
+Z	ver_paramru
+	incl_dirsr3
+calc_ver_infoK
+fftw_info.calc_ver_infoc
+ver_infor
+fftw_info.calc_infoN)
+FFTW3r
+drfftwz
+dfftw.hz
+drfftw.h)
+SCIPY_DFFTW_HNr
+srfftwz
+sfftw.hz
+srfftw.h)
+SCIPY_SFFTW_HNr
+fftw threadsZ
+rfftw_threadsr
+fftw_threads.hz
+rfftw_threads.h)
+SCIPY_FFTW_THREADS_HNr
+dfftw threadsZ
+drfftw_threadsr
+dfftw_threads.hz
+drfftw_threads.h)
+SCIPY_DFFTW_THREADS_HNr
+sfftw threadsZ
+srfftw_threadsr
+sfftw_threads.hz
+srfftw_threads.h)
+SCIPY_SFFTW_THREADS_HNr
+DJBFFTc
+z)djbfft_info.get_paths.<locals>.<listcomp>
+pre_dirsr,
+djbfft_info.get_pathsc
+djbfft.aZ
+extra_objectsz
+libdjbfft.aZ	libdjbfftr
+fftc8.hz	fftfreq.hr=
+SCIPY_DJBFFT_HN)
+djbfft_info.calc_infoN)	r
+MKLROOTZ
+mkl_rtc
+]:}	|	
+LD_LIBRARY_PATHr	
+/etc/ld.so.conf
+mkl*r/
+openrb
+mklrootr%
+ld_so_confr^
+intel_mkl_dirsr;
+path_atoms
+sub_dirr
+get_mkl_rootdir
+mkl_info.get_mkl_rootdirc
+)	Nrd
+cpur"
+intel64Z
+32r/
+cpuinfor
+is_ItaniumZ
+is_IntelZ
+is_64bitr3
+pltr
+mkl_info.__init__c
+mkl_libsr%
+SCIPY_MKL_HN
+HAVE_CBLASN)
+pthread
+_lib_mklrx
+mkl_info.calc_infoN)	r
+ATLAS
+f77blas
+cblasN
+freebsdZ
+atlas_rZ	alapack_rr
+atlas*
+ATLAS*Z
+sseZ
+3dnowZ
+sse2c
+z(atlas_info.get_paths.<locals>.<listcomp>r
+atlas_info.get_pathsc
+]b}	|
+atlas_libsr%
+lapack_libsru
+cblas.hr
+language
+ATLAS_WITH_LAPACK_ATLASNr
+ATLAS_WITHOUT_LAPACKNa
+                *********************************************************************
+                    Could not find lapack library within the ATLAS installation.
+                *********************************************************************
+                r=
+                    *********************************************************************
+                        Lapack library (from ATLAS) is probably incomplete:
+                          size of %s is %sk (expected >4000k)
+                        Follow the instructions in the KNOWN PROBLEMS section of the file
+                        numpy/INSTALL.txt.
+                    *********************************************************************
+                    i
+f77)
+_lib_atlas
+_lib_lapackrx
+textwrap
+dedentrC
+exists
+stat
+get_atlas_version)
+atlas_1r7
+Z	lib_dirs2r
+messageZ
+lapack_dirZ
+lapack_nameZ
+lapack_libr{
+atlas_version
+atlas_extra_infor
+atlas_info.calc_info)
+atlas_blas_info.calc_infoN
+PTATLASr
+	ptf77blas
+ptcblasN
+satlasN)
+NZ	atlas_libr%
+atlas_3_10_blas_info.calc_infoNr
+tatlasN)
+LAPACKc
+lapack_info.calc_infoN)	r
+LAPACK_SRCc
+LAPACK*/SRCZ
+SRCc
+z-lapack_src_info.get_paths.<locals>.<listcomp>r
+lapack_src_info.get_pathsc
+dgesv.fzB
+        ilaenv ieeeck lsame lsamen xerbla
+        iparmq
+        a
+        bdsdc bdsqr disna labad lacpy ladiv lae2 laebz laed0 laed1
+        laed2 laed3 laed4 laed5 laed6 laed7 laed8 laed9 laeda laev2
+        lagtf lagts lamch lamrg lanst lapy2 lapy3 larnv larrb larre
+        larrf lartg laruv las2 lascl lasd0 lasd1 lasd2 lasd3 lasd4
+        lasd5 lasd6 lasd7 lasd8 lasd9 lasda lasdq lasdt laset lasq1
+        lasq2 lasq3 lasq4 lasq5 lasq6 lasr lasrt lassq lasv2 pttrf
+        stebz stedc steqr sterf
+        larra larrc larrd larr larrk larrj larrr laneg laisnan isnan
+        lazq3 lazq4
+        a
+        gbbrd gbcon gbequ gbrfs gbsv gbsvx gbtf2 gbtrf gbtrs gebak
+        gebal gebd2 gebrd gecon geequ gees geesx geev geevx gegs gegv
+        gehd2 gehrd gelq2 gelqf gels gelsd gelss gelsx gelsy geql2
+        geqlf geqp3 geqpf geqr2 geqrf gerfs gerq2 gerqf gesc2 gesdd
+        gesv gesvd gesvx getc2 getf2 getrf getri getrs ggbak ggbal
+        gges ggesx ggev ggevx ggglm gghrd gglse ggqrf ggrqf ggsvd
+        ggsvp gtcon gtrfs gtsv gtsvx gttrf gttrs gtts2 hgeqz hsein
+        hseqr labrd lacon laein lags2 lagtm lahqr lahrd laic1 lals0
+        lalsa lalsd langb lange langt lanhs lansb lansp lansy lantb
+        lantp lantr lapll lapmt laqgb laqge laqp2 laqps laqsb laqsp
+        laqsy lar1v lar2v larf larfb larfg larft larfx largv larrv
+        lartv larz larzb larzt laswp lasyf latbs latdf latps latrd
+        latrs latrz latzm lauu2 lauum pbcon pbequ pbrfs pbstf pbsv
+        pbsvx pbtf2 pbtrf pbtrs pocon poequ porfs posv posvx potf2
+        potrf potri potrs ppcon ppequ pprfs ppsv ppsvx pptrf pptri
+        pptrs ptcon pteqr ptrfs ptsv ptsvx pttrs ptts2 spcon sprfs
+        spsv spsvx sptrf sptri sptrs stegr stein sycon syrfs sysv
+        sysvx sytf2 sytrf sytri sytrs tbcon tbrfs tbtrs tgevc tgex2
+        tgexc tgsen tgsja tgsna tgsy2 tgsyl tpcon tprfs tptri tptrs
+        trcon trevc trexc trrfs trsen trsna trsyl trti2 trtri trtrs
+        tzrqf tzrzf
+        lacn2 lahr2 stemr laqr0 laqr1 laqr2 laqr3 laqr4 laqr5
+        a
+        laexc lag2 lagv2 laln2 lanv2 laqtr lasy2 opgtr opmtr org2l
+        org2r orgbr orghr orgl2 orglq orgql orgqr orgr2 orgrq orgtr
+        orm2l orm2r ormbr ormhr orml2 ormlq ormql ormqr ormr2 ormr3
+        ormrq ormrz ormtr rscl sbev sbevd sbevx sbgst sbgv sbgvd sbgvx
+        sbtrd spev spevd spevx spgst spgv spgvd spgvx sptrd stev stevd
+        stevr stevx syev syevd syevr syevx sygs2 sygst sygv sygvd
+        sygvx sytd2 sytrd
+        a
+        bdsqr hbev hbevd hbevx hbgst hbgv hbgvd hbgvx hbtrd hecon heev
+        heevd heevr heevx hegs2 hegst hegv hegvd hegvx herfs hesv
+        hesvx hetd2 hetf2 hetrd hetrf hetri hetrs hpcon hpev hpevd
+        hpevx hpgst hpgv hpgvd hpgvx hprfs hpsv hpsvx hptrd hptrf
+        hptri hptrs lacgv lacp2 lacpy lacrm lacrt ladiv laed0 laed7
+        laed8 laesy laev2 lahef lanhb lanhe lanhp lanht laqhb laqhe
+        laqhp larcm larnv lartg lascl laset lasr lassq pttrf rot spmv
+        spr stedc steqr symv syr ung2l ung2r ungbr unghr ungl2 unglq
+        ungql ungqr ungr2 ungrq ungtr unm2l unm2r unmbr unmhr unml2
+        unmlq unmql unmqr unmr2 unmr3 unmrq unmrz unmtr upgtr upmtr
+        z
+ econd z
+ secnd z
+ srot srscl z
+ drot drscl z
+ icmax1 scsum1 z
+ izmax1 dzsum1 c
+s%s.fr
+z-lapack_src_info.calc_info.<locals>.<listcomp>c
+d%s.fr
+c%s.fr
+z%s.fr
+%s.fr
+src_dirr
+INSTALLc
+lamch.fr:
+src_dir2r
+sdczc
+larfp.fr:
+ilaz
+lr.fr:
+lc.fr:
+allauxZ
+lauxZ
+lasrcZ
+sd_lasrcZ
+cz_lasrcZ
+sclauxZ
+dzlauxZ
+slasrcZ
+dlasrcZ
+clasrcZ
+zlasrcZ
+oclasrcZ
+ozlasrcr@
+lapack_src_info.calc_infoN)	r
+/* This file is generated from numpy/distutils/system_info.py */
+void ATL_buildinfo(void);
+int main(void) {
+  ATL_buildinfo();
+  return 0;
+}	|	r
+}	|	
+rr|	
+z!undefined reference to `_gfortranZ
+gfortrana
+                    *****************************************************
+                    Linkage with ATLAS requires gfortran. Use
+                      python setup.py config_fc --fcompiler=gnu95 ...
+                    when building extension libraries that use ATLAS.
+                    Make sure that -lgfortran is used for C++ extensions.
+                    *****************************************************
+                    r=
+f90)
+ATLAS_REQUIRES_GFORTRANN)
+z#ATLAS_(?P<version>\d+[.]\d+[.]\d+)_
+versionZ
+ATLAS_VERSIONZ
+ATLAS_INFOr
+NO_ATLAS_INFOrN
+?.?.?z*ATLAS version (?P<version>\d+[.]\d+[.]\d+)z
+undefined symbol: ATL_buildinfoz
+3.2.1_pre3.3.6z
+Status: %dz
+Output: %s)
+tuple
+_cached_atlas_version
+cmd_configr
+get_output
+atlas_version_c_text
+search
+	Exception
+groupr3
+resultr
+Z	d	d
+NPY_LAPACK_ORDERc
+_calc_info_mkl
+lapack_opt_info._calc_info_mklc
+_calc_info_openblas
+z#lapack_opt_info._calc_info_openblasc
+_calc_info_flame
+z lapack_opt_info._calc_info_flamec
+_get_info_lapackr*
+_calc_info_atlas
+z lapack_opt_info._calc_info_atlasc
+_calc_info_accelerate
+z%lapack_opt_info._calc_info_acceleratec
+	fblas_srcr
+info_srcr
+_get_info_blas
+lapack_opt_info._get_info_blasc
+flapack_srcr
+z lapack_opt_info._get_info_lapackc
+Z	info_blasr
+_calc_info_lapack-
+z!lapack_opt_info._calc_info_lapackc
+)	Nr
+NPY_LAPACK_LIBSr
+_calc_info_from_envvar7
+z&lapack_opt_info._calc_info_from_envvarc
+_calc_info_{}
+_calc_infoA
+lapack_opt_info._calc_infoc
+zElapack_opt_info user defined LAPACK order has unacceptable values: {}r
+lapack_order
+order_env_var_namerI
+lapack_opt_info.calc_infoN)
+_ilp64_opt_info_mixinNc
+BLAS_SYMBOL_PREFIXr	
+BLAS_SYMBOL_SUFFIXF)
+dictrg
+symbol_prefix
+symbol_suffix
+bool)
+suffixr
+_check_info`
+z!_ilp64_opt_info_mixin._check_info)
+NPY_LAPACK_ILP64_ORDERc
+_lapackTF
+z lapack_ilp64_opt_info._calc_infoN)
+64_Nr
+Z	d	d
+NPY_BLAS_ORDERc
+blas_opt_info._calc_info_mklc
+_calc_info_blis
+blas_opt_info._calc_info_blisc
+z!blas_opt_info._calc_info_openblasc
+blas_opt_info._calc_info_atlasc
+z#blas_opt_info._calc_info_acceleratec
+T)	rC
+_calc_info_blas
+blas_opt_info._calc_info_blasc
+NPY_BLAS_LIBSr
+NPY_CBLAS_LIBSr
+z$blas_opt_info._calc_info_from_envvarc
+blas_opt_info._calc_infoc
+zAblas_opt_info user defined BLAS order has unacceptable values: {}r
+blas_orderr
+blas_opt_info.calc_infoN)
+NPY_BLAS_ILP64_ORDERc
+NTFr
+blas_ilp64_opt_info._calc_infoN)
+cblas_infor
+CBLASN)
+BLASc
+	blas_libsr%
+Windowsr
+cblas_libsr
+systemr
+get_cblas_libsr2
+cblas_info_objZ	cblas_optr	
+blas_info.calc_infoc
+ Check whether we can link with CBLAS interface
+        This method will search through several combinations of libraries
+        to check whether CBLAS is present:
+        1. Libraries in ``info['libraries']``, as is
+        2. As 1. but also explicitly adding ``'cblas'`` as a library
+        3. As 1. but also explicitly adding ``'blas'`` as a library
+        4. Check only library ``'cblas'``
+        5. Check only library ``'blas'``
+        Parameters
+        ----------
+        info : dict
+           system information dictionary for compilation and linking
+        Returns
+        -------
+        libraries : list of str or None
+            a list of libraries that enables the use of CBLAS interface.
+            Returns None if not found or a compilation error occurs.
+            Since 1.17 returns a list.
+        z
+            #include <cblas.h>
+            int main(int argc, const char *argv[])
+            {
+                double a[4] = {1,2,3,4};
+                double b[4] = {5,6,7,8};
+                return cblas_ddot(4, a, 1, b, 1) > 10;
+            }
+source.c
+wtN)
+output_dirr
+a.outr
+extra_postargs)
+tempfile
+mkdtempr
+write
+compiler`
+	distutils
+	ccompilerZ
+CompileError
+	LinkError
+shutil
+rmtree
+link_executablerg
+tmpdirr 
+objr,
+blas_info.get_cblas_libsN)
+OPENBLASc
+openblas_info.symbol_prefixc
+openblas_info.symbol_suffixc
+openblas_libsr%
+new_fcompiler)
+c_compilerZ
+gnu95TFro
+numpy.distutils.fcompilerr 
+check_msvc_gfortran_libsr/
+check_symbolsr
+skip_symbol_checkr1
+openblas_info._calc_infoc
+openblas_info.calc_infoc
+)	Nrg
+buildr
+z	.fobjectsz	.cobjectsrJ
+getcwdrO
+makedirsr
+library_pathsZ
+libraryZ
+library_dir
+fullpathrU
+fake_lib_fileZ
+fake_clib_filer^
+z&openblas_info.check_msvc_gfortran_libsc
+void %s%s%s();N
+symbol_namer#
+z.openblas_info.check_symbols.<locals>.<genexpr>c
+z	%s%s%s();Nr&
+            %(prototypes)s
+            int main(int argc, const char *argv[])
+            {
+                %(calls)s
+                return 0;
+            })
+prototypes
+callsr
+_require_symbolsr
+extra_argsr^
+openblas_info.check_symbolsN)
+propertyr
+zungqr_N)	r
+OPENBLAS_ILP64Z
+openblas64
+dgemm_
+cblas_dgemmc
+HAVE_BLAS_ILP64N
+superr
+openblas_ilp64_info._calc_info)
+__classcell__r
+LAPACKE_zungqrc
+HAVE_LAPACKENr1
+z%openblas_ilp64_lapack_info._calc_info)
+OPENBLAS64_r
+BLISc
+	blis_libsr%
+blis_info.calc_infoN)	r
+ Usage of libflame for LAPACK operations
+    This requires libflame to be compiled with lapack wrappers:
+    ./configure --enable-lapack2flame ...
+    Be aware that libflame 5.1.0 has some missing names in the shared library, so
+    if you have problems, try the static flame library.
+    rz
+}	z.|
+zS libflame does not necessarily have a wrapper for fortran LAPACK, we need to check z
+            void zungqr_();
+            int main(int argc, const char *argv[])
+            {
+                zungqr_();
+                return 0;
+            }r
+check_embedded_lapackW	
+z flame_info.check_embedded_lapackc
+qxt	|
+flame_libsr
+flame_info.calc_infoN)
+veclibc
+ACCELERATEr%
+z-accelerate_info.calc_info.<locals>.<listcomp>rk
+_PYTHON_HOST_PLATFORM
+i386
+intelZ
+x86_64rd
+z0/System/Library/Frameworks/Accelerate.framework/r
+-msse3z5-I/System/Library/Frameworks/vecLib.framework/Headersz
+-Wl,-frameworkz
+-Wl,Acceleratez,/System/Library/Frameworks/vecLib.framework/r7
+-Wl,vecLib)
+getenvr	
+Z	link_argsr9
+accelerate_info.calc_infoN)
+BLAS_SRCc
+z+blas_src_info.get_paths.<locals>.<listcomp>r
+blas_src_info.get_pathsc
+daxpy.fao
+        caxpy csscal dnrm2 dzasum saxpy srotg zdotc ccopy cswap drot
+        dznrm2 scasum srotm zdotu cdotc dasum drotg icamax scnrm2
+        srotmg zdrot cdotu daxpy drotm idamax scopy sscal zdscal crotg
+        dcabs1 drotmg isamax sdot sswap zrotg cscal dcopy dscal izamax
+        snrm2 zaxpy zscal csrot ddot dswap sasum srot zcopy zswap
+        scabs1
+        a
+        cgbmv chpmv ctrsv dsymv dtrsv sspr2 strmv zhemv ztpmv cgemv
+        chpr dgbmv dsyr lsame ssymv strsv zher ztpsv cgerc chpr2 dgemv
+        dsyr2 sgbmv ssyr xerbla zher2 ztrmv cgeru ctbmv dger dtbmv
+        sgemv ssyr2 zgbmv zhpmv ztrsv chbmv ctbsv dsbmv dtbsv sger
+        stbmv zgemv zhpr chemv ctpmv dspmv dtpmv ssbmv stbsv zgerc
+        zhpr2 cher ctpsv dspr dtpsv sspmv stpmv zgeru ztbmv cher2
+        ctrmv dspr2 dtrmv sspr stpsv zhbmv ztbsv
+        z
+        cgemm csymm ctrsm dsyrk sgemm strmm zhemm zsyr2k chemm csyr2k
+        dgemm dtrmm ssymm strsm zher2k zsyrk cher2k csyrk dsymm dtrsm
+        ssyr2k zherk ztrmm cherk ctrmm dsyr2k ssyrk zgemm zsymm ztrsm
+        c
+.fr:
+z+blas_src_info.calc_info.<locals>.<listcomp>c
+blas1Z
+blas2Z
+blas3r@
+blas_src_info.calc_infoN)	r
+X11c
+default_x11_lib_dirs
+default_x11_include_dirsr#
+x11_info.__init__c
+qtqZ|
+x11_libsr%
+X11/X.hr
+inc_dirr7
+x11_info.calc_infoN)	r
+_numpy_infor
+get_includer.
+platincluder
+__import__
+modulenamerS
+AttributeError
+	sysconfig
+get_path
+ImportErrorrB
+moduler|
+py_incl_dir
+py_pincl_dirr7
+_numpy_info.__init__c
+rJq0|
+qtq0t
+__version__r
+_VERSIONr
+arrayobject.hr
+upperr!
+vrsr
+_numpy_info.calc_infoN)	r
+NUMERIXz
+environment varr
+	defaulted)
+zonumerix selector must be either 'Numeric' or 'numarray' or 'numpy' but the value obtained from the %s was '%s'.)
+whichr
+msg1r
+msg2r
+msg3r
+numerix_info.calc_infoN)
+fortranobject.c
+numpy.f2pyr
+f2py_dirr
+f2py_info.calc_infoNr
+BOOSTc
+boost*c
+z/boost_python_info.get_paths.<locals>.<listcomp>r
+boost_python_info.get_pathsc
+pythonrM
+module.cppr.
+*.cppr
+boost_python_src)
+py_incl_dirsrI
+srcs_dirZ
+bpl_srcsr
+boost_python_info.calc_infoN
+AGG2c
+agg2*c
+z'agg2_info.get_paths.<locals>.<listcomp>r
+agg2_info.get_pathsc
+agg_affine_matrix.cppr*
+agg_win32_bmp.cpprP
+agg_platform_support.cppZ
+agg2_srcr.
+)	ra
+Z	agg2_srcsr
+agg2_info.calc_infoNrR
+_pkg_config_infoNZ
+PKG_CONFIGz
+pkg-configr	
+--modversionz
+--cflagsc
+config_env_varr3
+default_config_exer#
+get_config_exe
+_pkg_config_info.get_config_exec
+append_config_exe
+subprocessZ
+check_output
+OSErrorZ
+CalledProcessErrorr
+config_exeZ
+option
+cmdr
+get_config_output
+z"_pkg_config_info.get_config_outputc
+}	|	r
+Nz-File not found: %s. Cannot determine %s info.r-
+_z	--releasez
+--libsr=
+version_flagrZ
+version_macro_namer
+release_macro_name
+cflags_flagr*
+release
+optsr3
+_pkg_config_info.calc_info)
+Z	WX_CONFIGz	wx-configr	
+WX_VERSIONZ
+WX_RELEASEz	--versionz
+--cxxflagsN)
+GDK_PIXBUF_XLIB_VERSIONN
+GDK_PIXBUF_VERSIONNrh
+GDK_X11_VERSIONNrh
+GDK_VERSIONNrh
+GTK_X11_VERSIONNrh
+GTK_VERSIONNrh
+XFT_VERSIONNrh
+FREETYPE2_VERSIONNrh
+AMDc
+qvqL|
+amd_libsr%
+amd.hr
+SCIPY_AMD_HNr_
+Z	swig_opts)
+amd_info.calc_infoN)
+UMFPACKc
+q|qL|
+umfpack_libsr%
+z	umfpack.hr
+SCIPY_UMFPACK_HNr_
+umfpack_info.calc_infoN)	r
+qxn"t
+)	zc Return a list of existing paths composed by all combinations of
+        items from arguments.
+    rd
+<lambda>
+combine_paths.<locals>.<lambda>r
+(paths: %s)re
+mapr
+kwsr
+c++r
+dict_append.<locals>.<listcomp>c
+language_maprg
+inv_language_map
+max)
+Z	languagesrM
+usage: %prog [-v] [info objs]z
+-vz	--verbose
+store_true
+verboseFz"be verbose and print more messages)
+action
+destrd
+helprd
+optparseZ
+OptionParserZ
+add_option
+parse_args)
+parserrf
+parseCmdLine
+_infor=
+Info classes not defined: %sre
+inspectrU
+set_threshold
+DEBUGrG
+globalsrk
+isclass
+issubclassr
+	verbosityr
+Z	show_onlyrg
+show_allZ
+_gdict_r
+confr
+__main__)
+	functoolsr
+configparserr
+distutils.errorsr
+distutils.distr
+numpy.distutilsr
+distutils.utilr	
+numpy.distutils.exec_commandr
+numpy.distutils.misc_utilr
+numpy.distutils.command.configr
+distutils.ccompilerr
+__all__rm
+_bitsZ
+architectureZ
+platform_bitsr
+get_config_varr@
+Z	vcpkg_dirZ	specifierZ
+vcpkg_installedZ
+vcpkg_rootrF
+Z	conda_dirr
+globbed_x11_dirrW
+x11_so_dirr$
+devnullr:
+Popen
+PIPEr(
+communicate
+decoderb
+triplet
+returncoder|
+insertrZ
+<module>

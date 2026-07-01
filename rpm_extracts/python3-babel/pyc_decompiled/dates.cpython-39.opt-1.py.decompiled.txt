@@ -1,0 +1,1062 @@
+m	Z	m
+Z dgd
+Z!dhd
+Z"did
+Z#djd
+d d!
+d"d#
+d$d%
+d&d'
+Z+d(e
+d)d*
+Z,d(e
+d+d,
+Z-d(e
+d-d.
+d1d2
+d3d4
+d/d0e
+d5d6
+d7d8
+d9d:
+d;d<
+d>d?
+Z5d@Z6dAdBd0d/e
+dCdD
+Z7dEdF
+dGdH
+dIdJ
+dKdL
+dMdN
+dOdP
+dPe%
+dQdR
+dRe%
+dTdUg
+dTdUg
+dTdUg
+dTdUg
+dTdUg
+dTdUg
+dTdUg
+dTdUg
+dTdZg
+dTdZg
+!Z?d\Z@i
+ZAd]d^
+ZBd_d`
+ZCdadb
+ZDdcdd
+ZEdkdedf
+    babel.dates
+    ~~~~~~~~~~~
+    Locale dependent formatting and parsing of dates and times.
+    The default locale for the functions in this module is determined by the
+    following environment variables, in that order:
+     * ``LC_TIME``,
+     * ``LC_ALL``, and
+     * ``LANG``
+    :copyright: (c) 2013-2021 by the Babel Team.
+    :license: BSD, see LICENSE for more details.
+divisionN)
+date
+datetime
+time
+	timedelta)
+bisect_right)
+default_locale
+get_global
+Locale)
+LOCALTZ)
+string_types
+integer_types
+number_types
+PY2u	
+LC_TIMEc
+rpt	|
+    Parse a `dt_or_tzinfo` value into a datetime and a tzinfo.
+    See the docs for this function's callers for semantics.
+    :rtype: tuple[datetime, tzinfo]
+    N)
+nowr
+isinstancer
+get_timezoner
+_get_datetime
+tzinfo
+dt_or_tzinfo
+//usr/lib/python3.9/site-packages/babel/dates.py
+_get_dt_and_tzinfo2
+    Get the timezone name out of a time, datetime, or tzinfo object.
+    :rtype: str
+    
+zone
+keyN)
+hasattrr
+tznamer
+utcnowr
+_get_tz_nameO
+    Get a datetime out of an "instant" (date, time, datetime, number).
+    .. warning:: The return values of this function may depend on the system clock.
+    If the instant is None, the current moment is used.
+    If the instant is a time, it's augmented with today's date.
+    Dates are converted to naive datetimes with midnight as the time component.
+    >>> _get_datetime(date(2015, 1, 1))
+    datetime.datetime(2015, 1, 1, 0, 0)
+    UNIX timestamps are converted to datetimes.
+    >>> _get_datetime(1400000000)
+    datetime.datetime(2014, 5, 13, 16, 53, 20)
+    Other values are passed through as-is.
+    >>> x = datetime(2015, 1, 1)
+    >>> _get_datetime(x) is x
+    True
+    :param instant: date, time, datetime, integer, float or None
+    :type instant: date|time|datetime|int|float|None
+    :return: a datetime
+    :rtype: datetime
+    N)
+	datetime_r 
+float
+utcfromtimestampr
+combiner
+todayr
+instantr
+    Ensure the datetime passed has an attached tzinfo.
+    If the datetime is tz-naive to begin with, UTC is attached.
+    If a tzinfo is passed in, the datetime is normalized to that timezone.
+    >>> _ensure_datetime_tzinfo(datetime(2015, 1, 1)).tzinfo.zone
+    'UTC'
+    >>> tz = get_timezone("Europe/Stockholm")
+    >>> _ensure_datetime_tzinfo(datetime(2015, 1, 1, 13, 15, tzinfo=UTC), tzinfo=tz).hour
+    14
+    :param datetime: Datetime to augment.
+    :param tzinfo: Optional tznfo.
+    :return: datetime with tzinfo
+    :rtype: datetime
+    N
+	normalize)
+replacer
+astimezoner
+_ensure_datetime_tzinfo
+    Get a timezoned time from a given instant.
+    .. warning:: The return values of this function may depend on the system clock.
+    :param time: time, datetime or None
+    :rtype: time
+    Nr'
+timetz)
+	_get_time
+Looks up a timezone by name and returns it.  The timezone object
+    returned comes from ``pytz`` and corresponds to the `tzinfo` interface and
+    can be used with all of the functions of Babel that operate with dates.
+    If a timezone is not known a :exc:`LookupError` is raised.  If `zone`
+    is ``None`` a local zone object is returned.
+    :param zone: the name of the timezone to look up.  If a timezone object
+                 itself is passed in, mit's returned unchanged.
+    Nz
+Unknown timezone %s)
+_pytz
+timezoneZ
+UnknownTimeZoneError
+LookupError)
+Given a timezone it will return a :class:`TimezoneTransition` object
+    that holds the information about the next timezone transition that's going
+    to happen.  For instance this can be used to detect when the next DST
+    change is going to happen and how it looks like.
+    The transition is calculated relative to the given datetime object.  The
+    next transition that follows the date is used.  If a transition cannot
+    be found the return value will be `None`.
+    Transition information can only be provided for timezones returned by
+    the :func:`get_timezone` function.
+    :param zone: the timezone for which the transition should be looked up.
+                 If not provided the local timezone is used.
+    :param dt: the date after which the next transition should be found.
+               If not given the current time is assumed.
+    Nr'
+_utc_transition_timesz
+Given timezone does not have UTC transition times.  This can happen because the operating system fallback local timezone is used or a custom timezone objectr
+	activates
+from_tzinfo
+	to_tzinfo
+reference_date)
+	TypeError
+maxr
+_transition_infoZ
+_tzinfosr/
+ValueError
+TimezoneTransition)
+idxZ	old_transZ	new_transZ
+old_tzZ
+new_tzr
+get_next_timezone_transition
+zdA helper object that represents the return value from
+    :func:`get_next_timezone_transition`.
+    Nc
+selfr3
+__init__
+TimezoneTransition.__init__c
+z/The name of the timezone before the transition.)
+_tzname
+from_tz
+TimezoneTransition.from_tzc
+z.The name of the timezone after the transition.)
+to_tz
+TimezoneTransition.to_tzc
+z0The UTC offset in seconds before the transition.)
+intr4
+_utcoffset
+total_secondsrA
+from_offset
+TimezoneTransition.from_offsetc
+z/The UTC offset in seconds after the transition.)
+	to_offset
+TimezoneTransition.to_offsetc
+Nz"<TimezoneTransition %s -> %s (%s)>)
+__repr__$
+TimezoneTransition.__repr__)
+__name__
+__module__
+__qualname__
+__doc__r?
+propertyrB
+wide
+stand-alonec
+Return the names for day periods (AM/PM) used by the locale.
+    >>> get_period_names(locale='en_US')['am']
+    u'AM'
+    :param width: the width to use, one of "abbreviated", "narrow", or "wide"
+    :param context: the context, either "format" or "stand-alone"
+    :param locale: the `Locale` object, or a locale string
+    )
+parseZ
+day_periods
+width
+context
+localer
+get_period_names,
+formatc
+Return the day names used by the locale for the specified format.
+    >>> get_day_names('wide', locale='en_US')[1]
+    u'Tuesday'
+    >>> get_day_names('short', locale='en_US')[1]
+    u'Tu'
+    >>> get_day_names('abbreviated', locale='es')[1]
+    u'mar.'
+    >>> get_day_names('narrow', context='stand-alone', locale='de_DE')[1]
+    u'D'
+    :param width: the width to use, one of "wide", "abbreviated", "short" or "narrow"
+    :param context: the context, either "format" or "stand-alone"
+    :param locale: the `Locale` object, or a locale string
+    )
+daysrR
+get_day_names9
+Return the month names used by the locale for the specified format.
+    >>> get_month_names('wide', locale='en_US')[1]
+    u'January'
+    >>> get_month_names('abbreviated', locale='es')[1]
+    u'ene.'
+    >>> get_month_names('narrow', context='stand-alone', locale='de_DE')[1]
+    u'J'
+    :param width: the width to use, one of "wide", "abbreviated", or "narrow"
+    :param context: the context, either "format" or "stand-alone"
+    :param locale: the `Locale` object, or a locale string
+    )
+monthsrR
+get_month_namesL
+Return the quarter names used by the locale for the specified format.
+    >>> get_quarter_names('wide', locale='en_US')[1]
+    u'1st quarter'
+    >>> get_quarter_names('abbreviated', locale='de_DE')[1]
+    u'Q1'
+    >>> get_quarter_names('narrow', locale='de_DE')[1]
+    u'1'
+    :param width: the width to use, one of "wide", "abbreviated", or "narrow"
+    :param context: the context, either "format" or "stand-alone"
+    :param locale: the `Locale` object, or a locale string
+    )
+quartersrR
+get_quarter_names]
+Return the era names used by the locale for the specified format.
+    >>> get_era_names('wide', locale='en_US')[1]
+    u'Anno Domini'
+    >>> get_era_names('abbreviated', locale='de_DE')[1]
+    u'n. Chr.'
+    :param width: the width to use, either "wide", "abbreviated", or "narrow"
+    :param locale: the `Locale` object, or a locale string
+    )
+eras
+get_era_namesn
+mediumc
+Return the date formatting patterns used by the locale for the specified
+    format.
+    >>> get_date_format(locale='en_US')
+    <DateTimePattern u'MMM d, y'>
+    >>> get_date_format('full', locale='de_DE')
+    <DateTimePattern u'EEEE, d. MMMM y'>
+    :param format: the format to use, one of "full", "long", "medium", or
+                   "short"
+    :param locale: the `Locale` object, or a locale string
+    )
+date_formats
+get_date_format|
+Return the datetime formatting patterns used by the locale for the
+    specified format.
+    >>> get_datetime_format(locale='en_US')
+    u'{1}, {0}'
+    :param format: the format to use, one of "full", "long", "medium", or
+                   "short"
+    :param locale: the `Locale` object, or a locale string
+    N)
+datetime_formats)
+patternsr
+get_datetime_format
+Return the time formatting patterns used by the locale for the specified
+    format.
+    >>> get_time_format(locale='en_US')
+    <DateTimePattern u'h:mm:ss a'>
+    >>> get_time_format('full', locale='de_DE')
+    <DateTimePattern u'HH:mm:ss zzzz'>
+    :param format: the format to use, one of "full", "long", "medium", or
+                   "short"
+    :param locale: the `Locale` object, or a locale string
+    )
+time_formatsr_
+get_time_format
+longFc
+Return the timezone associated with the given `datetime` object formatted
+    as string indicating the offset from GMT.
+    >>> dt = datetime(2007, 4, 1, 15, 30)
+    >>> get_timezone_gmt(dt, locale='en')
+    u'GMT+00:00'
+    >>> get_timezone_gmt(dt, locale='en', return_z=True)
+    'Z'
+    >>> get_timezone_gmt(dt, locale='en', width='iso8601_short')
+    u'+00'
+    >>> tz = get_timezone('America/Los_Angeles')
+    >>> dt = tz.localize(datetime(2007, 4, 1, 15, 30))
+    >>> get_timezone_gmt(dt, locale='en')
+    u'GMT-07:00'
+    >>> get_timezone_gmt(dt, 'short', locale='en')
+    u'-0700'
+    >>> get_timezone_gmt(dt, locale='en', width='iso8601_short')
+    u'-07'
+    The long format depends on the locale, for example in France the acronym
+    UTC string is used instead of GMT:
+    >>> get_timezone_gmt(dt, 'long', locale='fr_FR')
+    u'UTC-07:00'
+    .. versionadded:: 0.9
+    :param datetime: the ``datetime`` object; if `None`, the current date and
+                     time in UTC is used
+    :param width: either "long" or "short" or "iso8601" or "iso8601_short"
+    :param locale: the `Locale` object, or a locale string
+    :param return_z: True or False; Function returns indicator "Z"
+                     when local time offset is 0
+    
+iso8601_shortz
+%+03d
+shortz	%+03d%02d
+iso8601z
+%+03d:%02dZ
+gmt)
+Z	utcoffsetrX
+seconds
+divmod
+zone_formats)
+return_z
+offsetrl
+hours
+patternr
+get_timezone_gmt
+}	n\t
+}	n.d
+Return a representation of the given timezone using "location format".
+    The result depends on both the local display name of the country and the
+    city associated with the time zone:
+    >>> tz = get_timezone('America/St_Johns')
+    >>> print(get_timezone_location(tz, locale='de_DE'))
+    Kanada (St. John
+s) Zeit
+    >>> print(get_timezone_location(tz, locale='en'))
+    Canada (St. John
+s) Time
+    >>> print(get_timezone_location(tz, locale='en', return_city=True))
+    St. John
+    >>> tz = get_timezone('America/Mexico_City')
+    >>> get_timezone_location(tz, locale='de_DE')
+    u'Mexiko (Mexiko-Stadt) Zeit'
+    If the timezone is associated with a country that uses only a single
+    timezone, just the localized country name is returned:
+    >>> tz = get_timezone('Europe/Berlin')
+    >>> get_timezone_name(tz, locale='de_DE')
+    u'Mitteleurop\xe4ische Zeit'
+    .. versionadded:: 0.9
+    :param dt_or_tzinfo: the ``datetime`` or ``tzinfo`` object that determines
+                         the timezone; if `None`, the current date and time in
+                         UTC is assumed
+    :param locale: the `Locale` object, or a locale string
+    :param return_city: True or False, if True then return exemplar city (location)
+                        for the time zone
+    :return: the localized timezone name using location format
+    
+zone_aliasesZ
+regionZ
+zone_territoriesZ
+territory_zonesr1
+fallbackZ
+city
+meta_zones
+time_zonesrn
+territories
+lenrt
+splitr)
+return_cityr
+infoZ
+region_formatZ	territoryZ
+territory_nameZ
+fallback_formatZ	city_name
+metazone
+metazone_infor
+get_timezone_location
+}	|	rHd
+Return the localized display name for the given timezone. The timezone
+    may be specified using a ``datetime`` or `tzinfo` object.
+    >>> dt = time(15, 30, tzinfo=get_timezone('America/Los_Angeles'))
+    >>> get_timezone_name(dt, locale='en_US')
+    u'Pacific Standard Time'
+    >>> get_timezone_name(dt, locale='en_US', return_zone=True)
+    'America/Los_Angeles'
+    >>> get_timezone_name(dt, width='short', locale='en_US')
+    u'PST'
+    If this function gets passed only a `tzinfo` object and no concrete
+    `datetime`,  the returned display name is indenpendent of daylight savings
+    time. This can be used for example for selecting timezones, or to set the
+    time of events that recur across DST changes:
+    >>> tz = get_timezone('America/Los_Angeles')
+    >>> get_timezone_name(tz, locale='en_US')
+    u'Pacific Time'
+    >>> get_timezone_name(tz, 'short', locale='en_US')
+    u'PT'
+    If no localized display name for the timezone is available, and the timezone
+    is associated with a country that uses only a single timezone, the name of
+    that country is returned, formatted according to the locale:
+    >>> tz = get_timezone('Europe/Berlin')
+    >>> get_timezone_name(tz, locale='de_DE')
+    u'Mitteleurop\xe4ische Zeit'
+    >>> get_timezone_name(tz, locale='pt_BR')
+    u'Hor\xe1rio da Europa Central'
+    On the other hand, if the country uses multiple timezones, the city is also
+    included in the representation:
+    >>> tz = get_timezone('America/St_Johns')
+    >>> get_timezone_name(tz, locale='de_DE')
+    u'Neufundland-Zeit'
+    Note that short format is currently not supported for all timezones and
+    all locales.  This is partially because not every timezone has a short
+    code in every locale.  In that case it currently falls back to the long
+    format.
+    For more information see `LDML Appendix J: Time Zone Display Names
+    <https://www.unicode.org/reports/tr35/#Time_Zone_Fallback>`_
+    .. versionadded:: 0.9
+    .. versionchanged:: 1.0
+       Added `zone_variant` support.
+    :param dt_or_tzinfo: the ``datetime`` or ``tzinfo`` object that determines
+                         the timezone; if a ``tzinfo`` object is used, the
+                         resulting display name will be generic, i.e.
+                         independent of daylight savings time; if `None`, the
+                         current date in UTC is assumed
+    :param width: either "long" or "short"
+    :param uncommon: deprecated and ignored
+    :param zone_variant: defines the zone variation to return.  By default the
+                           variation is defined from the datetime object
+                           passed in.  If no datetime object is passed in, the
+                           ``'generic'`` variation is assumed.  The following
+                           values are valid: ``'generic'``, ``'daylight'`` and
+                           ``'standard'``.
+    :param locale: the `Locale` object, or a locale string
+    :param return_zone: True or False. If true then function
+                        returns long time zone ID
+    N
+generic
+daylight
+standard)
+Invalid zone variationrs
+dstr9
+NO_INHERITANCE_MARKERrr
+uncommonrU
+zone_variant
+return_zoner
+namer
+get_timezone_name/
+Return a date formatted according to the given pattern.
+    >>> d = date(2007, 4, 1)
+    >>> format_date(d, locale='en_US')
+    u'Apr 1, 2007'
+    >>> format_date(d, format='full', locale='de_DE')
+    u'Sonntag, 1. April 2007'
+    If you don't want to use the locale default formats, you can specify a
+    custom date pattern:
+    >>> format_date(d, "EEE, MMM d, ''yy", locale='en')
+    u"Sun, Apr 1, '07"
+    :param date: the ``date`` or ``datetime`` object; if `None`, the current
+                 date is used
+    :param format: one of "full", "long", "medium", or "short", or a custom
+                   date/time pattern
+    :param locale: a `Locale` object or a locale identifier
+    N
+fullrd
+date_r%
+parse_pattern
+apply)
+format_date
+Return a date formatted according to the given pattern.
+    >>> dt = datetime(2007, 4, 1, 15, 30)
+    >>> format_datetime(dt, locale='en_US')
+    u'Apr 1, 2007, 3:30:00 PM'
+    For any pattern requiring the display of the time-zone, the third-party
+    ``pytz`` package is needed to explicitly specify the time-zone:
+    >>> format_datetime(dt, 'full', tzinfo=get_timezone('Europe/Paris'),
+    ...                 locale='fr_FR')
+    u'dimanche 1 avril 2007 \xe0 17:30:00 heure d\u2019\xe9t\xe9 d\u2019Europe centrale'
+    >>> format_datetime(dt, "yyyy.MM.dd G 'at' HH:mm:ss zzz",
+    ...                 tzinfo=get_timezone('US/Eastern'), locale='en')
+    u'2007.04.01 AD at 11:30:00 EDT'
+    :param datetime: the `datetime` object; if `None`, the current date and
+                     time is used
+    :param format: one of "full", "long", "medium", or "short", or a custom
+                   date/time pattern
+    :param tzinfo: the timezone to apply to the time for display
+    :param locale: a `Locale` object or a locale identifier
+    r
+{0}N
+{1})
+format_timer
+format_datetime
+Return a time formatted according to the given pattern.
+    >>> t = time(15, 30)
+    >>> format_time(t, locale='en_US')
+    u'3:30:00 PM'
+    >>> format_time(t, format='short', locale='de_DE')
+    u'15:30'
+    If you don't want to use the locale default formats, you can specify a
+    custom time pattern:
+    >>> format_time(t, "hh 'o''clock' a", locale='en')
+    u"03 o'clock PM"
+    For any pattern requiring the display of the time-zone a
+    timezone has to be specified explicitly:
+    >>> t = datetime(2007, 4, 1, 15, 30)
+    >>> tzinfo = get_timezone('Europe/Paris')
+    >>> t = tzinfo.localize(t)
+    >>> format_time(t, format='full', tzinfo=tzinfo, locale='fr_FR')
+    u'15:30:00 heure d\u2019\xe9t\xe9 d\u2019Europe centrale'
+    >>> format_time(t, "hh 'o''clock' a, zzzz", tzinfo=get_timezone('US/Eastern'),
+    ...             locale='en')
+    u"09 o'clock AM, Eastern Daylight Time"
+    As that example shows, when this function gets passed a
+    ``datetime.datetime`` value, the actual time in the formatted string is
+    adjusted to the timezone specified by the `tzinfo` parameter. If the
+    ``datetime`` is "naive" (i.e. it has no associated timezone information),
+    it is assumed to be in UTC.
+    These timezone calculations are **not** performed if the value is of type
+    ``datetime.time``, as without date information there's no way to determine
+    what a given time would translate to in a different timezone without
+    information about whether daylight savings time is in effect or not. This
+    means that time values are left as-is, and the value of the `tzinfo`
+    parameter is only used to display the timezone name if needed:
+    >>> t = time(15, 30)
+    >>> format_time(t, format='full', tzinfo=get_timezone('Europe/Paris'),
+    ...             locale='fr_FR')
+    u'15:30:00 heure normale d\u2019Europe centrale'
+    >>> format_time(t, format='full', tzinfo=get_timezone('US/Eastern'),
+    ...             locale='en_US')
+    u'3:30:00 PM Eastern Standard Time'
+    :param time: the ``time`` or ``datetime`` object; if `None`, the current
+                 time in UTC is used
+    :param format: one of "full", "long", "medium", or "short", or a custom
+                   date/time pattern
+    :param tzinfo: the time-zone to apply to the time for display
+    :param locale: a `Locale` object or a locale identifier
+    r
+Return a time and/or date formatted according to the given pattern.
+    The skeletons are defined in the CLDR data and provide more flexibility
+    than the simple short/long/medium formats, but are a bit harder to use.
+    The are defined using the date/time symbols without order or punctuation
+    and map to a suitable format for the given locale.
+    >>> t = datetime(2007, 4, 1, 15, 30)
+    >>> format_skeleton('MMMEd', t, locale='fr')
+    u'dim. 1 avr.'
+    >>> format_skeleton('MMMEd', t, locale='en')
+    u'Sun, Apr 1'
+    >>> format_skeleton('yMMd', t, locale='fi')  # yMMd is not in the Finnish locale; yMd gets used
+    u'1.4.2007'
+    >>> format_skeleton('yMMd', t, fuzzy=False, locale='fi')  # yMMd is not in the Finnish locale, an error is thrown
+    Traceback (most recent call last):
+        ...
+    KeyError: yMMd
+    After the skeleton is resolved to a pattern `format_datetime` is called so
+    all timezone processing etc is the same as for that.
+    :param skeleton: A date time skeleton as defined in the cldr data.
+    :param datetime: the ``time`` or ``datetime`` object; if `None`, the current
+                 time in UTC is used
+    :param tzinfo: the time-zone to apply to the time for display
+    :param fuzzy: If the skeleton is not found, allow choosing a skeleton that's
+                  close enough to it.
+    :param locale: a `Locale` object or a locale identifier
+    )
+datetime_skeletons
+match_skeletonr
+skeletonr
+fuzzyrU
+format_skeleton,
+yeari
+monthi
+weeki
+hourrg
+minuterf
+secondr1
+g333333
+}	|	|
+Return a time delta according to the rules of the given locale.
+    >>> format_timedelta(timedelta(weeks=12), locale='en_US')
+    u'3 months'
+    >>> format_timedelta(timedelta(seconds=1), locale='es')
+    u'1 segundo'
+    The granularity parameter can be provided to alter the lowest unit
+    presented, which defaults to a second.
+    >>> format_timedelta(timedelta(hours=3), granularity='day',
+    ...                  locale='en_US')
+    u'1 day'
+    The threshold parameter can be used to determine at which value the
+    presentation switches to the next higher unit. A higher threshold factor
+    means the presentation will switch later. For example:
+    >>> format_timedelta(timedelta(hours=23), threshold=0.9, locale='en_US')
+    u'1 day'
+    >>> format_timedelta(timedelta(hours=23), threshold=1.1, locale='en_US')
+    u'23 hours'
+    In addition directional information can be provided that informs
+    the user if the date is in the past or in the future:
+    >>> format_timedelta(timedelta(hours=1), add_direction=True, locale='en')
+    u'in 1 hour'
+    >>> format_timedelta(timedelta(hours=-1), add_direction=True, locale='en')
+    u'1 hour ago'
+    The format parameter controls how compact or wide the presentation is:
+    >>> format_timedelta(timedelta(hours=3), format='short', locale='en')
+    u'3 hr'
+    >>> format_timedelta(timedelta(hours=3), format='narrow', locale='en')
+    u'3h'
+    :param delta: a ``timedelta`` object representing the time difference to
+                  format, or the delta in seconds as an `int` value
+    :param granularity: determines the smallest unit that should be displayed,
+                        the value can be one of "year", "month", "week", "day",
+                        "hour", "minute" or "second"
+    :param threshold: factor that determines at which point the presentation
+                      switches to the next higher unit
+    :param add_direction: if this flag is set to `True` the return value will
+                          include directional information.  For instance a
+                          positive timedelta will include the information about
+                          it being in the future, a negative will be information
+                          about the value being in the past.
+    :param format: the format, can be "narrow", "short" or "long". (
+                   "medium" is deprecated, currently converted to "long" to
+                   maintain compatibility)
+    :param locale: a `Locale` object or a locale identifier
+    )
+narrowrj
+z1Format must be one of "narrow", "short" or "long"r^
+zU"medium" value for format param of format_timedelta is deprecated. Use "long" instead)
+categoryrd
+date_fieldsr
+futureZ
+pastz	duration-Z
+unit_patterns)
+_datarz
+a_unitZ
+unit_rel_patterns
+add_directionrW
+_iter_patterns
+z(format_timedelta.<locals>._iter_patternsr
+warnings
+warn
+DeprecationWarningr
+TIMEDELTA_UNITS
+absr8
+round
+plural_formr)
+str)
+deltaZ
+granularityZ	thresholdr
+unitZ
+secs_per_unit
+valuer
+format_timedelta]
+<lambda>
+z+_format_fallback_interval.<locals>.<lambda>c
+	<genexpr>
+z,_format_fallback_interval.<locals>.<genexpr>c
+{0}-{1}r
+interval_formatsrz
+start
+endr
+formatted_startZ
+formatted_endr
+_format_fallback_interval
+}	t	D
+    Format an interval between two instants according to the locale's rules.
+    >>> format_interval(date(2016, 1, 15), date(2016, 1, 17), "yMd", locale="fi")
+    u'15.
+17.1.2016'
+    >>> format_interval(time(12, 12), time(16, 16), "Hm", locale="en_GB")
+    '12:12
+16:16'
+    >>> format_interval(time(5, 12), time(16, 16), "hm", locale="en_US")
+    '5:12 AM 
+ 4:16 PM'
+    >>> format_interval(time(16, 18), time(16, 24), "Hm", locale="it")
+    '16:18
+16:24'
+    If the start instant equals the end instant, the interval is formatted like the instant.
+    >>> format_interval(time(16, 18), time(16, 18), "Hm", locale="it")
+    '16:18'
+    Unknown skeletons fall back to "default" formatting.
+    >>> format_interval(date(2015, 1, 1), date(2017, 1, 1), "wzq", locale="ja")
+    '2015/01/01
+2017/01/01'
+    >>> format_interval(time(16, 18), time(16, 24), "xxx", locale="ja")
+    '16:18:00
+16:24:00'
+    >>> format_interval(date(2016, 1, 15), date(2016, 1, 17), "xxx", locale="de")
+    '15.01.2016 
+ 17.01.2016'
+    :param start: First instant (datetime/date/time)
+    :param end: Second instant (datetime/date/time)
+    :param skeleton: The "skeleton format" to use for formatting.
+    :param tzinfo: tzinfo to use (if none is already attached)
+    :param fuzzy: If the skeleton is not found, allow choosing a skeleton that's
+                  close enough to it.
+    :param locale: A locale object or identifier.
+    :return: Formatted interval
+    N)
+z"format_interval.<locals>.<genexpr>)
+DateTimeFormat
+PATTERN_CHAR_ORDER
+extract
+join
+zip)
+skel_formatsZ	start_fmtZ
+end_fmt
+fieldr
+format_interval
+qXqL|
+    Get the day period ID for a given time.
+    This ID can be used as a key for the period name dictionary.
+    >>> get_period_names(locale="de")[get_period_id(time(7, 42), locale="de")]
+    u'Morgen'
+    :param time: The time to inspect.
+    :param tzinfo: The timezone for the time. See ``format_time``.
+    :param type: The period type to use. Either "selection" or None.
+                 The selection type is used for selecting among phrases such as
+                 
+Your email arrived yesterday evening
+ or 
+Your email arrived last night
+    :param locale: the `Locale` object, or a locale string
+    :return: period ID. Something is always returned -- even if it's just "am" or "pm".
+    rf
+fromT
+beforeZ
+afterz$'after' is deprecated as of CLDR 29.i
+pmN)
+day_period_rulesrz
+items
+NotImplementedError)
+typerU
+seconds_past_midnightZ
+rulesetsZ
+rule_idZ
+rulesZ
+ruleZ
+start_okZ
+end_okr
+get_period_id;
+Parse a date from a string.
+    This function uses the date format for the locale as a hint to determine
+    the order in which the date fields appear in the string.
+    >>> parse_date('4/1/04', locale='en_US')
+    datetime.date(2004, 4, 1)
+    >>> parse_date('01.04.2004', locale='de_DE')
+    datetime.date(2004, 4, 1)
+    :param string: the string containing the date
+    :param locale: a `Locale` object or a locale identifier
+    r
+itemr
+<listcomp>
+parse_date.<locals>.<listcomp>
+(\d+)
+lower
+index
+sort
+dict
+	enumerate
+findallr|
+stringrU
+year_idxZ	month_idxZ
+day_idx
+indexes
+numbersr
+parse_dateq
+}	t	|
+Parse a time from a string.
+    This function uses the time format for the locale as a hint to determine
+    the order in which the time fields appear in the string.
+    >>> parse_time('15:30:00', locale='en_US')
+    datetime.time(15, 30)
+    :param string: the string containing the time
+    :param locale: a `Locale` object or a locale identifier
+    :return: the parsed time
+    :rtype: `time`
+    r
+parse_time.<locals>.<listcomp>r
+hour_idxZ
+min_idxZ
+sec_idxr
+parse_time
+DateTimePatternc
+DateTimePattern.__init__c
+<%s %r>)
+DateTimePattern.__repr__c
+__unicode__
+DateTimePattern.__unicode__c
+utf-8)
+encode)
+patr
+__str__
+DateTimePattern.__str__c
+NotImplementedrW
+otherr
+__mod__
+DateTimePattern.__mod__c
+DateTimePattern.applyN)	rJ
+d!d"
+d)d$d%
+d*d&d'
+DateTimeFormat.__init__c
+Unsupported date/time field %r)
+format_era
+format_year
+format_quarter
+format_month
+format_weekrW
+format_day_of_year
+format_day_of_week_in_month
+format_weekday
+format_periodr
+format_frac_seconds
+format_milliseconds_in_day
+format_timezone
+KeyError)
+char
+numr
+__getitem__
+DateTimeFormat.__getitem__c
+z&Not implemented: extracting %r from %r)	r
+DateTimeFormat.extractc
+abbreviatedrO
+erar
+DateTimeFormat.format_erac
+isupper
+isocalendarrW
+DateTimeFormat.format_yearc
+%0*dr!
+quarterrS
+DateTimeFormat.format_quarterc
+DateTimeFormat.format_monthc
+islower
+get_day_of_year
+get_week_numberr
+weekdayrW
+day_of_yearr
+DateTimeFormat.format_weekr
+        Return weekday from parsed datetime according to format pattern.
+        >>> format = DateTimeFormat(date(2016, 2, 28), Locale.parse('en_US'))
+        >>> format.format_weekday()
+        u'Sunday'
+        'E': Day of week - Use one through three letters for the abbreviated day name, four for the full (wide) name,
+             five for the narrow name, or six for the short name.
+        >>> format.format_weekday('E',2)
+        u'Sun'
+        'e': Local day of week. Same as E except adds a numeric value that will depend on the local starting day of the
+             week, using one or two letters. For this example, Monday is the first day of the week.
+        >>> format.format_weekday('e',2)
+        '01'
+        'c': Stand-Alone local day of week - Use one letter for the local numeric value (same as 'e'), three for the
+             abbreviated day name, four for the full (wide) name, five for the narrow name, or six for the short name.
+        >>> format.format_weekday('c',1)
+        '1'
+        :param char: pattern format character ('e','E','c')
+        :param num: count of format character
+        r#
+first_week_dayr
+DateTimeFormat.format_weekdayc
+z!DateTimeFormat.format_day_of_yearc
+z*DateTimeFormat.format_day_of_week_in_monthc
+)	Nr
+z Could not format period %s in %s)
+periodrS
+period_namesr
+DateTimeFormat.format_periodc
+ Return fractional seconds.
+        Rounds the time's microseconds to the precision given by the number         of digits passed in.
+        i@B
+microsecondrW
+z"DateTimeFormat.format_frac_secondsc
+msecsr
+z)DateTimeFormat.format_milliseconds_in_dayc
+DateTimeFormat.format_timezonec
+lengthr
+DateTimeFormat.formatNc
+DateTimeFormat.get_day_of_yearc
+Return the number of the week of a day within a period. This may be
+        the week number in a year or the week number in a month.
+        Usually this will return a value equal to or greater than 1, but if the
+        first week of the period is so short that it actually counts as the last
+        week of the previous period, this function will return 0.
+        >>> format = DateTimeFormat(date(2006, 1, 8), Locale.parse('de_DE'))
+        >>> format.get_week_number(6)
+        1
+        >>> format = DateTimeFormat(date(2006, 1, 8), Locale.parse('en_US'))
+        >>> format.get_week_number(6)
+        2
+        :param day_of_period: the number of the day in the period (usually
+                              either the day of month or the day of year)
+        :param day_of_week: the week day; if ommitted, the week day of the
+                            current date is assumed
+        Nr1
+min_week_daysr
+day_of_periodZ
+day_of_weekZ	first_dayZ
+week_numberZ	max_weeksr
+DateTimeFormat.get_week_number)
+Z(GyYuUQqMLlwWdDFgEecabBChHKkjJmsSAzZOvVXxc
+Parse date, time, and datetime format patterns.
+    >>> parse_pattern("MMMMd").format
+    u'%(MMMM)s%(d)s'
+    >>> parse_pattern("MMM d, yyyy").format
+    u'%(MMM)s %(d)s, %(yyyy)s'
+    Pattern can contain literal strings in single quotes:
+    >>> parse_pattern("H:mm' Uhr 'z").format
+    u'%(H)s:%(mm)s Uhr %(z)s'
+    An actual single quote can be used by using two adjacent single quote
+    characters:
+    >>> parse_pattern("hh' o''clock'").format
+    u"%(hh)s o'clock"
+    :param pattern: the formatting pattern to parse
+    
+chars
+Invalid length for field: %rz
+%%(%s)sz
+Unknown token type: %sr
+_pattern_cache
+tokenize_pattern
+appendr)
+PATTERN_CHARSr9
+result
+tok_type
+	tok_value
+	fieldchar
+fieldnum
+limitr
+    Tokenize date format patterns.
+    Returns a list of (token_type, token_value) tuples.
+    ``token_type`` may be either "chars" or "field".
+    For "chars" tokens, the value is the literal value.
+    For "field" tokens, the value is a tuple of (field character, repetition count).
+    :param pattern: Pattern string
+    :type pattern: str
+    :rtype: list[tuple]
+    Nr
+charbufr<
+append_charsW
+z&tokenize_pattern.<locals>.append_charsc
+append_field[
+z&tokenize_pattern.<locals>.append_field
+''rB
+extend)
+quotebufrD
+    Turn a date format pattern token stream back into a string.
+    This is the reverse operation of ``tokenize_pattern``.
+    :type tokens: Iterable[tuple]
+    :rtype: str
+    r
+z%untokenize_pattern.<locals>.<genexpr>z
+'%s'r
+anyr)
+tokens
+outputr=
+untokenize_pattern
+    Split an interval-describing datetime pattern into multiple pieces.
+    > The pattern is then designed to be broken up into two pieces by determining the first repeating field.
+    - https://www.unicode.org/reports/tr35/tr35-dates.html#intervalFormats
+    >>> split_interval_pattern(u'E d.M. 
+ E d.M.')
+    [u'E d.M. 
+ ', 'E d.M.']
+    >>> split_interval_pattern("Y 'text' Y 'more text'")
+    ["Y 'text '", "Y 'more text'"]
+    >>> split_interval_pattern(u"E, MMM d 
+ E")
+    [u'E, MMM d 
+ ', u'E']
+    >>> split_interval_pattern("MMM d")
+    ['MMM d']
+    >>> split_interval_pattern("y G")
+    ['y G']
+    >>> split_interval_pattern(u"MMM d 
+ d")
+    [u'MMM d 
+ ', u'd']
+    :param pattern: Interval pattern string
+    :return: list of "subpatterns"
+    r
+z*split_interval_pattern.<locals>.<listcomp>)
+setr9
+clear
+add)
+seen_fields
+partsr=
+split_interval_pattern
+|	d	
+|	d	
+q>q\|
+    Find the closest match for the given datetime skeleton among the options given.
+    This uses the rules outlined in the TR35 document.
+    >>> match_skeleton('yMMd', ('yMd', 'yMMMd'))
+    'yMd'
+    >>> match_skeleton('yMMd', ('jyMMd',), allow_different_fields=True)
+    'jyMMd'
+    >>> match_skeleton('yMMd', ('qyMMd',), allow_different_fields=False)
+    >>> match_skeleton('hmz', ('hmv',))
+    'hmv'
+    :param skeleton: The skeleton to match
+    :type skeleton: str
+    :param options: An iterable of other skeletons to match against
+    :type options: Iterable[str]
+    :return: The closest skeleton match, or if no match was found, None.
+    :rtype: str|None
+    c
+optionr
+z!match_skeleton.<locals>.<genexpr>r
+sortedrH
+optionsZ
+allow_different_fieldsZ
+get_input_field_widthZ
+best_skeletonZ
+best_distancerS
+get_opt_field_widthZ
+distancer
+input_widthZ	opt_widthr
+F)GrM
+__future__r
+pytzr-
+bisectr
+babel.corer
+babel.utilr
+babel._compatr
+time_r
+objectr:
+<module>

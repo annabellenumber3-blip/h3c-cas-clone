@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.h3c.h3cloud.performance.monitor.service.mapper.clickhouse.DomainFlowLinkStatMapper">
+    <delete id ="deleteBeforeTime">
+        ALTER TABLE TBL_DOMAIN_FLOW_LINK_STAT DELETE WHERE TIME &lt; #{time}
+    </delete>
+    <select id="readDrxVmFlowLink" resultType="com.h3c.h3cloud.common.model.performance.DomainFlowLinkStatData">
+        SELECT round(AVG(netLink.FLOW_LINK),0) as flowLink, netLink.TIME as time
+        FROM TBL_DOMAIN_FLOW_LINK_STAT netLink , ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_DRX_VM}  drxVm
+        WHERE netLink.DOMAIN_ID=drxVm.domain_id AND drxVm.drx_business_id=${drxbId}
+        AND netLink.TIME BETWEEN ${startTime} AND ${endTime}
+        GROUP BY TIME
+        ORDER BY TIME ASC
+    </select>
+    <select id="readVmFlowLink" resultType="com.h3c.h3cloud.common.model.performance.DomainFlowLinkStatData">
+        SELECT FLOW_LINK as flowLink, TIME as time FROM TBL_DOMAIN_FLOW_LINK_STAT
+         WHERE DOMAIN_ID =${domainId} AND TIME BETWEEN ${startTime} AND ${endTime} ORDER BY TIME ASC
+    </select>
+    <select id="readRecentVmFlowLink" resultType="com.h3c.h3cloud.common.model.performance.DomainFlowLinkStatData">
+        SELECT FLOW_LINK as flowLink, TIME as time, DOMAIN_ID as domainId FROM TBL_DOMAIN_FLOW_LINK_STAT
+        WHERE TIME = (SELECT MAX(TIME)-${duration} FROM TBL_DOMAIN_FLOW_LINK_STAT)
+        <if test="domainId!=null and domainId!=''">
+            AND DOMAIN_ID=${domainId}
+        </if>
+        <if test="hostId!=null and hostId!=''">
+            AND HOST_ID=${hostId}
+        </if>
+        <if test="clusterId!=null and clusterId!=''">
+            AND CLUSTER_ID=${clusterId}
+        </if>
+        <if test="hostPoolId!=null and hostPoolId!=''">
+            AND HOST_POOL_ID=${hostPoolId}
+        </if>
+    </select>
+    <select id="readRecentDurationVmFlowLink" resultType="com.h3c.h3cloud.common.model.performance.DomainFlowLinkStatData">
+        SELECT DOMAIN_ID as domainId,ROUND(AVG(FLOW_LINK),0) as flowLink FROM TBL_DOMAIN_FLOW_LINK_STAT WHERE DOMAIN_ID=${domainId}
+        AND TIME >= (SELECT MAX(TIME) FROM TBL_DOMAIN_FLOW_LINK_STAT WHERE DOMAIN_ID = ${domainId})-${duration}
+        GROUP BY DOMAIN_ID
+    </select>
+</mapper>

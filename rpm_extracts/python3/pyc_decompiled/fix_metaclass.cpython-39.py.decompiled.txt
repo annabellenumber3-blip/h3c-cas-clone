@@ -1,0 +1,109 @@
+Fixer for __metaclass__ = X -> (metaclass=X) methods.
+   The various forms of classef (inherits nothing, inherits once, inherits
+   many) don't parse the same in the CST so we look at ALL classes for
+   a __metaclass__ and if we find one normalize the inherits to all be
+   an arglist.
+   For one-liner classes ('class X: pass') there is no indent/dedent so
+   we normalize those into having a suite.
+   Moving the __metaclass__ into the classdef can also cause the class
+   body to be empty so there is some special casing for that as well.
+   This fixer also tries very hard to keep original indenting and spacing
+   in all those corner cases.
+fixer_base)
+token)
+syms
+Node
+Leafc
+ we have to check the cls_node without changing it.
+        There are two possibilities:
+          1)  clsdef => suite => simple_stmt => expr_stmt => Leaf('__meta')
+          2)  clsdef => simple_stmt => expr_stmt => Leaf('__meta')
+    
+__metaclass__TF)
+children
+typer
+suite
+has_metaclass
+simple_stmt
+	expr_stmt
+isinstancer
+value)
+parent
+node
+	expr_nodeZ	left_side
+3/usr/lib64/python3.9/lib2to3/fixes/fix_metaclass.pyr
+qJq(t
+zf one-line classes don't get a suite in the parse tree so we add
+        one to normalize the tree
+    Nz
+No class suite and no ':'!
+	enumerater
+COLON
+ValueErrorr
+append_child
+clone
+remove)
+cls_noder
+	move_noder
+fixup_parse_tree-
+}	|	j
+ if there is a semi-colon all the parts count as part of the same
+        simple_stmt.  We just want the __metaclass__ part so we move
+        everything after the semi-colon into its own simple_stmt node
+    Nr
+SEMIr
+insert_child
+prefix)
+Z	stmt_nodeZ
+semi_indr
+new_exprZ
+new_stmtr
+Z	new_leaf1Z	old_leaf1r
+fixup_simple_stmtG
+NEWLINEr
+remove_trailing_newline_
+No class suite!r
+listr
+simple_noder
+Z	left_noder
+find_metasd
+ If an INDENT is followed by a thing with a prefix then nuke the prefix
+        Otherwise we get in trouble when removing __metaclass__ at suite start
+    Nr%
+popr
+INDENTr
+DEDENTr#
+extend)
+kidsr
+fixup_indent{
+FixMetaclassTz
+    classdef<any*>
+    c
+Unexpected class definition
+	metaclass
+pass
+lenr
+arglistr
+Z	set_childr"
+RPAR
+LPARr
+COMMAr
+selfr
+resultsZ
+last_metaclassr
+stmtZ	text_typer>
+meta_txtZ
+orig_meta_prefixr
+Z	pass_leafr
+	transform
+FixMetaclass.transformN)
+__name__
+__module__
+__qualname__Z
+BM_compatibleZ
+PATTERNrC
+__doc__r*
+pygramr
+fixer_utilr
+BaseFixr0
+<module>

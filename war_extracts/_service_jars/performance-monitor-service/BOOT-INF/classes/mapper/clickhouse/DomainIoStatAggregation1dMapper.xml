@@ -1,0 +1,368 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.h3c.h3cloud.performance.monitor.service.mapper.clickhouse.DomainIoStatAggregation1dMapper">
+    <delete id ="deleteBeforeTime">
+        ALTER TABLE AGG_DOMAIN_IO_STAT_1D DELETE WHERE TIME &lt; #{time}
+    </delete>
+    <select id="readInfoByCondition" resultType="com.h3c.h3cloud.common.model.performance.DomainIoStatData">
+        SELECT TIME as time, DEV_NAME as devName,
+        ROUND(avgMerge(UTILIZATION_AVG),2) as utilization,
+        ROUND(avgMerge(SIZE_AVG),2) as size,
+        ROUND(avgMerge(IO_STAT_AVG),2) as ioStat,
+        ROUND(avgMerge(RD_STAT_AVG),2) as rdStat,
+        ROUND(avgMerge(WR_STAT_AVG),2) as wrStat,
+        ROUND(avgMerge(RD_REQ_AVG),2) as rdReq,
+        ROUND(avgMerge(WR_REQ_AVG),2) as wrReq,
+        ROUND(avgMerge(RD_REQ_PS_AVG),2) as rdReqps,
+        ROUND(avgMerge(WR_REQ_PS_AVG),2) as wrReqps,
+        ROUND(avgMerge(RD_LATENCY_AVG),2) as rdLatency,
+        ROUND(avgMerge(WR_LATENCY_AVG),2) as wrLatency
+        FROM AGG_DOMAIN_IO_STAT_1D
+        WHERE TIME BETWEEN ${startTime} AND ${endTime} AND DOMAIN_ID=${domainId}
+        <if test="currentDisk!=null and currentDisk!=''">
+            AND DEV_NAME = #{currentDisk}
+        </if>
+        AND DEV_NAME IN (select DEV_NAME from TBL_DOMAIN_IO_STAT t1 WHERE t1.TIME =
+        (select MAX(TIME)-${duration} from TBL_DOMAIN_IO_STAT WHERE DOMAIN_ID=${domainId})
+        and t1.DOMAIN_ID=${domainId})
+        GROUP BY TIME, DEV_NAME
+        ORDER BY TIME ASC
+    </select>
+    <select id="readIOStatTrend" resultType="com.h3c.h3cloud.common.model.performance.DomainIoStatStatisticsData">
+        SELECT DOMAIN_ID as domainId,
+        <choose>
+            <when test="cycle!=null and cycle=='hour'">
+                formatDateTime(toDateTime(TIME), '%Y-%m-%d %H') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='week'">
+                formatDateTime(toDateTime(TIME), '%Y %V') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='month'">
+                formatDateTime(toDateTime(TIME), '%Y-%m') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='year'">
+                formatDateTime(toDateTime(TIME), '%Y') as timeStr,
+            </when>
+            <otherwise>
+                formatDateTime(toDateTime(TIME), '%Y-%m-%d') as timeStr,
+            </otherwise>
+        </choose>
+        DEV_NAME as devName,
+        ROUND(sum(IO_STAT_AVG * if((${endTime} - toUnixTimestamp(TIME)) > 86400, 86400, ${endTime} - toUnixTimestamp(TIME))),2) as sumIoStat
+        FROM
+        (SELECT DOMAIN_ID, DEV_NAME, TIME, avgMerge(IO_STAT_AVG) as IO_STAT_AVG FROM AGG_DOMAIN_IO_STAT_1D detail
+        WHERE TIME BETWEEN ${startTime} AND ${endTime}
+        <if test="domainId!=null and domainId!=''">
+            AND DOMAIN_ID = ${domainId}
+        </if>
+        <if test="vmIds!=null and vmIds!=''">
+            AND DOMAIN_ID in (${vmIds})
+        </if>
+        GROUP BY DOMAIN_ID, DEV_NAME, TIME) t
+        GROUP BY DOMAIN_ID, DEV_NAME, timeStr ORDER BY timeStr
+    </select>
+    <select id="readDomainDiskRateByCondition" resultType="com.h3c.h3cloud.common.model.performance.DomainIoStatStatisticsData">
+        SELECT DOMAIN_ID as domainId,
+        <choose>
+            <when test="cycle!=null and cycle=='hour'">
+                formatDateTime(toDateTime(TIME), '%Y-%m-%d %H') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='week'">
+                formatDateTime(toDateTime(TIME), '%Y %V') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='month'">
+                formatDateTime(toDateTime(TIME), '%Y-%m') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='year'">
+                formatDateTime(toDateTime(TIME), '%Y') as timeStr,
+            </when>
+            <otherwise>
+                formatDateTime(toDateTime(TIME), '%Y-%m-%d') as timeStr,
+            </otherwise>
+        </choose>
+        DEV_NAME as devName,
+        <choose>
+            <when test='type!=null and type=="0"'>
+                ROUND(avgMerge(RD_STAT_AVG),2) as avgRdStat , maxMerge(RD_STAT_MAX) as maxRdStat, minMerge(RD_STAT_MIN) as minRdStat
+            </when>
+            <when test='type!=null and type=="1"'>
+                ROUND(avgMerge(WR_STAT_AVG),2) as avgWrStat , maxMerge(WR_STAT_MAX) as maxWrStat, minMerge(WR_STAT_MIN) as minWrStat
+            </when>
+            <otherwise>
+                ROUND(avgMerge(UTILIZATION_AVG),2) as avgUtilization , maxMerge(UTILIZATION_MAX) as maxUtilization, minMerge(UTILIZATION_MIN) as minUtilization
+            </otherwise>
+        </choose>
+        FROM AGG_DOMAIN_IO_STAT_1D detail WHERE TIME BETWEEN ${startTime} AND ${endTime}
+        <if test="domainId!=null and domainId!=''">
+            AND DOMAIN_ID = ${domainId}
+        </if>
+        <if test="vmIds!=null and vmIds!=''">
+            AND DOMAIN_ID in (${vmIds})
+        </if>
+        GROUP BY DOMAIN_ID, DEV_NAME, timeStr ORDER BY timeStr
+    </select>
+    <select id="readIOTopNDomainByCondition" resultType="com.h3c.h3cloud.common.model.performance.DomainIoStatStatisticsData">
+        SELECT IO.DOMAIN_ID as domainId,
+        ROUND(sum(IO_STAT_AVG * if((${endTime} - toUnixTimestamp(TIME)) > 86400, 86400, ${endTime} - toUnixTimestamp(TIME))),2) as sumIoStat,
+        TD.title as title FROM
+        (SELECT DOMAIN_ID, DEV_NAME, TIME, avgMerge(IO_STAT_AVG) as IO_STAT_AVG FROM AGG_DOMAIN_IO_STAT_1D
+        WHERE TIME BETWEEN ${startTime} AND ${endTime}
+        <if test="hostPoolId!=null and hostPoolId!=''">
+            AND HOST_POOL_ID =${hostPoolId}
+        </if>
+        <if test="clusterId!=null and clusterId!=''">
+            AND CLUSTER_ID =${clusterId}
+        </if>
+        <if test="hostId!=null and hostId!=''">
+            AND HOST_ID =${hostId}
+        </if>
+        <if test="operatorGroupCode!=null and operatorGroupCode!=''">
+            AND OP_GROUP_CODE LIKE #{operatorGroupCode}
+        </if>
+        GROUP BY DOMAIN_ID, DEV_NAME, TIME) IO,
+        ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_DOMAIN} TD WHERE IO.DOMAIN_ID=TD.id
+        GROUP BY DOMAIN_ID,TD.title ORDER BY sumIoStat DESC
+        <if test="limit!=null and limit!=''">
+            LIMIT 0,${limit}
+        </if>
+    </select>
+    <select id="queryMrigateDomain" resultType="com.h3c.h3cloud.common.model.performance.DomainIoStatStatisticsData">
+        SELECT
+        <if test="type!=null and type=='DISKIO'">
+            ROUND(avgMerge(IO_STAT_AVG),2) as avgIoStat
+        </if>
+        <if test="type!=null and type=='IOPS'">
+            ROUND((avgMerge(RD_REQ_PS_AVG) + avgMerge(WR_REQ_PS_AVG)),2) as avgReqps
+        </if>
+        FROM AGG_DOMAIN_IO_STAT_1D io WHERE TIME BETWEEN ${startTime} AND ${endTime} AND DOMAIN_ID=${domainId}
+        AND io.DEV_NAME in (${devNames})
+    </select>
+    <select id="readVmDiskLatencyTrendByCondition" resultType="com.h3c.h3cloud.common.model.performance.DomainIoStatStatisticsData">
+        SELECT DOMAIN_ID as domainId,
+        <choose>
+            <when test="cycle!=null and cycle=='hour'">
+                formatDateTime(toDateTime(TIME), '%Y-%m-%d %H') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='week'">
+                formatDateTime(toDateTime(TIME), '%Y %V') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='month'">
+                formatDateTime(toDateTime(TIME), '%Y-%m') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='year'">
+                formatDateTime(toDateTime(TIME), '%Y') as timeStr,
+            </when>
+            <otherwise>
+                formatDateTime(toDateTime(TIME), '%Y-%m-%d') as timeStr,
+            </otherwise>
+        </choose>
+        DEV_NAME as devName,
+        <choose>
+            <when test='type!=null and type=="0"'>
+                ROUND(avgMerge(RD_LATENCY_AVG),2) as avgRdLatency , maxMerge(RD_LATENCY_MAX) as maxRdLatency, minMerge(RD_LATENCY_MIN) as minRdLatency
+            </when>
+            <otherwise>
+                ROUND(avgMerge(WR_LATENCY_AVG),2) as avgWrLatency , maxMerge(WR_LATENCY_MAX) as maxWrLatency, minMerge(WR_LATENCY_MIN) as minWrLatency
+            </otherwise>
+        </choose>
+        FROM AGG_DOMAIN_IO_STAT_1D detail WHERE TIME BETWEEN ${startTime} AND ${endTime}
+        <if test="domainId!=null and domainId!=''">
+            AND DOMAIN_ID = ${domainId}
+        </if>
+        <if test="vmIds!=null and vmIds!=''">
+            AND DOMAIN_ID in (${vmIds})
+        </if>
+        GROUP BY DOMAIN_ID, DEV_NAME, timeStr ORDER BY timeStr
+    </select>
+    <select id="readVmDiskReqTrendByCondition" resultType="com.h3c.h3cloud.common.model.performance.DomainIoStatStatisticsData">
+        SELECT DOMAIN_ID as domainId,
+        <choose>
+            <when test="cycle!=null and cycle=='hour'">
+                formatDateTime(toDateTime(TIME), '%Y-%m-%d %H') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='week'">
+                formatDateTime(toDateTime(TIME), '%Y %V') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='month'">
+                formatDateTime(toDateTime(TIME), '%Y-%m') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='year'">
+                formatDateTime(toDateTime(TIME), '%Y') as timeStr,
+            </when>
+            <otherwise>
+                formatDateTime(toDateTime(TIME), '%Y-%m-%d') as timeStr,
+            </otherwise>
+        </choose>
+        DEV_NAME as devName,
+        <choose>
+            <when test='type!=null and type=="0"'>
+                ROUND(avgMerge(RD_REQ_PS_AVG),2) as avgRdReqps , maxMerge(RD_REQ_PS_MAX) as maxRdReqps, minMerge(RD_REQ_PS_MIN) as minRdReqps
+            </when>
+            <otherwise>
+                ROUND(avgMerge(WR_REQ_PS_AVG),2) as avgWrReqps , maxMerge(WR_REQ_PS_MAX) as maxWrReqps, minMerge(WR_REQ_PS_MIN) as minWrReqps
+            </otherwise>
+        </choose>
+        FROM AGG_DOMAIN_IO_STAT_1D detail WHERE TIME BETWEEN ${startTime} AND ${endTime}
+        <if test="domainId!=null and domainId!=''">
+            AND DOMAIN_ID = ${domainId}
+        </if>
+        <if test="vmIds!=null and vmIds!=''">
+            AND DOMAIN_ID in (${vmIds})
+        </if>
+        GROUP BY  DOMAIN_ID, DEV_NAME, timeStr ORDER BY timeStr
+    </select>
+    <select id="readVmsDiskLatencyTrendByCondition" resultType="com.h3c.h3cloud.common.model.performance.DomainIoStatStatisticsData">
+        SELECT DOMAIN_ID as domainId,
+        <choose>
+            <when test="cycle!=null and cycle=='hour'">
+                formatDateTime(toDateTime(TIME), '%Y-%m-%d %H') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='week'">
+                formatDateTime(toDateTime(TIME), '%Y %V') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='month'">
+                formatDateTime(toDateTime(TIME), '%Y-%m') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='year'">
+                formatDateTime(toDateTime(TIME), '%Y') as timeStr,
+            </when>
+            <otherwise>
+                formatDateTime(toDateTime(TIME), '%Y-%m-%d') as timeStr,
+            </otherwise>
+        </choose>
+        any(DEV_NAME) as devName,
+        <choose>
+            <when test='type!=null and type=="0"'>
+                ROUND(avgMerge(RD_LATENCY_AVG),2) as avgRdLatency
+            </when>
+            <otherwise>
+                ROUND(avgMerge(WR_LATENCY_AVG),2) as avgWrLatency
+            </otherwise>
+        </choose>
+        FROM AGG_DOMAIN_IO_STAT_1D detail WHERE TIME BETWEEN ${startTime} AND ${endTime}
+        <if test="vmIds!=null and vmIds!=''">
+            AND DOMAIN_ID in (${vmIds})
+        </if>
+        GROUP BY  DOMAIN_ID, timeStr ORDER BY timeStr
+    </select>
+    <select id="readVmsDiskIopsTrendByCondition" resultType="com.h3c.h3cloud.common.model.performance.DomainIoStatStatisticsData">
+        SELECT DOMAIN_ID as domainId,
+        <choose>
+            <when test="cycle!=null and cycle=='hour'">
+                formatDateTime(toDateTime(TIME), '%Y-%m-%d %H') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='week'">
+                formatDateTime(toDateTime(TIME), '%Y %V') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='month'">
+                formatDateTime(toDateTime(TIME), '%Y-%m') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='year'">
+                formatDateTime(toDateTime(TIME), '%Y') as timeStr,
+            </when>
+            <otherwise>
+                formatDateTime(toDateTime(TIME), '%Y-%m-%d') as timeStr,
+            </otherwise>
+        </choose>
+        any(DEV_NAME) as devName,
+        <choose>
+            <when test='type!=null and type=="0"'>
+                ROUND(avgMerge(RD_REQ_PS_AVG),2) as avgRdReqps
+            </when>
+            <otherwise>
+                ROUND(avgMerge(WR_REQ_PS_AVG),2) as avgWrReqps
+            </otherwise>
+        </choose>
+        FROM AGG_DOMAIN_IO_STAT_1D detail WHERE TIME BETWEEN ${startTime} AND ${endTime}
+        <if test="vmIds!=null and vmIds!=''">
+            AND DOMAIN_ID in (${vmIds})
+        </if>
+        GROUP BY DOMAIN_ID, timeStr ORDER BY timeStr
+    </select>
+    <select id="readDomainsDiskRateByCondition" resultType="com.h3c.h3cloud.common.model.performance.DomainIoStatStatisticsData">
+        SELECT DOMAIN_ID as domainId,
+        <choose>
+            <when test="cycle!=null and cycle=='hour'">
+                formatDateTime(toDateTime(TIME), '%Y-%m-%d %H') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='week'">
+                formatDateTime(toDateTime(TIME), '%Y %V') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='month'">
+                formatDateTime(toDateTime(TIME), '%Y-%m') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='year'">
+                formatDateTime(toDateTime(TIME), '%Y') as timeStr,
+            </when>
+            <otherwise>
+                formatDateTime(toDateTime(TIME), '%Y-%m-%d') as timeStr,
+            </otherwise>
+        </choose>
+        any(DEV_NAME) as devName,
+        <choose>
+            <when test='type!=null and type=="0"'>
+                ROUND(avgMerge(RD_STAT_AVG),2) as avgRdStat
+            </when>
+            <when test='type!=null and type=="1"'>
+                ROUND(avgMerge(WR_STAT_AVG),2) as avgWrStat
+            </when>
+            <otherwise>
+                ROUND(avgMerge(UTILIZATION_AVG),2) as avgUtilization
+            </otherwise>
+        </choose>
+        FROM AGG_DOMAIN_IO_STAT_1D detail WHERE TIME BETWEEN ${startTime} AND ${endTime}
+        <if test="vmIds!=null and vmIds!=''">
+            AND DOMAIN_ID in (${vmIds})
+        </if>
+        GROUP BY  DOMAIN_ID, timeStr ORDER BY timeStr
+    </select>
+    <select id="readVmsIOStatTrend" resultType="com.h3c.h3cloud.common.model.performance.DomainIoStatStatisticsData">
+        SELECT DOMAIN_ID as domainId,
+        <choose>
+            <when test="cycle!=null and cycle=='hour'">
+                formatDateTime(toDateTime(TIME), '%Y-%m-%d %H') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='week'">
+                formatDateTime(toDateTime(TIME), '%Y %V') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='month'">
+                formatDateTime(toDateTime(TIME), '%Y-%m') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='year'">
+                formatDateTime(toDateTime(TIME), '%Y') as timeStr,
+            </when>
+            <otherwise>
+                formatDateTime(toDateTime(TIME), '%Y-%m-%d') as timeStr,
+            </otherwise>
+        </choose>
+        any(DEV_NAME) as devName,
+        ROUND(sum(IO_STAT_AVG * if((${endTime} - toUnixTimestamp(TIME)) > 86400, 86400, ${endTime} - toUnixTimestamp(TIME))),2) as sumIoStat
+        FROM
+        (SELECT DOMAIN_ID, DEV_NAME, TIME, avgMerge(IO_STAT_AVG) as IO_STAT_AVG FROM AGG_DOMAIN_IO_STAT_1D detail
+        WHERE TIME BETWEEN ${startTime} AND ${endTime}
+        <if test="vmIds!=null and vmIds!=''">
+            AND DOMAIN_ID in (${vmIds})
+        </if>
+        GROUP BY HOST_POOL_ID, CLUSTER_ID, HOST_ID, DOMAIN_ID, DEV_NAME, TIME) t
+        GROUP BY  DOMAIN_ID, timeStr ORDER BY timeStr
+    </select>
+    <select id="readDiskDataByCluster" resultType="com.h3c.h3cloud.common.model.performance.DomainIoStatData">
+        select b.uuid as uuid, a.DEV_NAME as devName, a.TIME as time, a.SIZE as size, a.UTILIZATION as utilization
+        from (select TIME, DOMAIN_ID, DEV_NAME, round(avgMerge(UTILIZATION_AVG),2) as UTILIZATION, round(avgMerge(SIZE_AVG),2) as SIZE from AGG_DOMAIN_IO_STAT_1D
+        where TIME between ${startTime} and ${endTime} and CLUSTER_ID = ${clusterId} GROUP BY TIME, DOMAIN_ID, DEV_NAME) as a
+        join  ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_DOMAIN} as b on a.DOMAIN_ID=b.id
+        order by uuid, devName, time
+    </select>
+    <select id="readUtilizationAvgMaxMinInfo" resultType="com.h3c.h3cloud.common.model.performance.DomainIoStatStatisticsData">
+        SELECT DOMAIN_ID as domainId, DEV_NAME as devName,
+        ROUND(avgMerge(UTILIZATION_AVG),2) as avgUtilization, maxMerge(UTILIZATION_MAX) as maxUtilization, minMerge(UTILIZATION_MIN) as minUtilization
+        FROM AGG_DOMAIN_IO_STAT_1D detail WHERE TIME BETWEEN ${startTime} AND ${endTime}
+        <if test="domainId!=null and domainId!=''">
+            AND DOMAIN_ID = ${domainId}
+        </if>
+        <if test="vmIds!=null and vmIds!=''">
+            AND DOMAIN_ID in (${vmIds})
+        </if>
+        GROUP BY DOMAIN_ID, DEV_NAME
+    </select>
+</mapper>

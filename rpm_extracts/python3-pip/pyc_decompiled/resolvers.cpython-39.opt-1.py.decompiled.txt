@@ -1,0 +1,244 @@
+d d!
+AbstractResolver)
+DirectedGraph
+IteratorMapping
+build_iter_view
+RequirementInformation
+requirement
+parentc
+ResolverExceptionz
+A base class for all exceptions raised by this module.
+    Exceptions derived by this class should all be handled in this module. Any
+    bubbling pass the resolver should be treated as a bug.
+    N)
+__name__
+__module__
+__qualname__
+__doc__
+D/usr/lib/python3.9/site-packages/pip/_vendor/resolvelib/resolvers.pyr
+RequirementsConflictedc
+superr
+__init__
+	criterion)
+selfr
+	__class__r
+RequirementsConflicted.__init__c
+Requirements conflict: {}
+repr
+	<genexpr>
+z1RequirementsConflicted.__str__.<locals>.<genexpr>)
+format
+joinr
+iter_requirement
+__str__
+RequirementsConflicted.__str__
+__classcell__r
+InconsistentCandidatec
+	candidater
+InconsistentCandidate.__init__c
+Nz+Provided candidate {!r} does not satisfy {}r
+z0InconsistentCandidate.__str__.<locals>.<genexpr>)
+InconsistentCandidate.__str__r&
+	CriterionaQ
+Representation of possible resolution results of a package.
+    This holds three attributes:
+    * `information` is a collection of `RequirementInformation` pairs.
+      Each pair is a requirement contributing to this criterion, and the
+      candidate that provides the requirement.
+    * `incompatibilities` is a collection of all known not-to-work candidates
+      to exclude from consideration.
+    * `candidates` is a collection containing all possible candidates deducted
+      from the union of contributing requirements and known incompatibilities.
+      It should never be empty, except when the criterion is an attribute of a
+      raised `RequirementsConflicted` (in which case it is always empty).
+    .. note::
+        This class is intended to be externally immutable. **Do not** mutate
+        any of its attribute containers.
+    c
+candidates
+information
+incompatibilities)
+Criterion.__init__c
+({!r}, via={!r})N)
+reqr	
+z%Criterion.__repr__.<locals>.<genexpr>z
+Criterion({}))
+requirementsr
+__repr__F
+Criterion.__repr__c
+z-Criterion.iter_requirement.<locals>.<genexpr>
+Criterion.iter_requirementc
+z(Criterion.iter_parent.<locals>.<genexpr>r3
+iter_parentP
+Criterion.iter_parentN)
+ResolutionErrorN)
+ResolutionImpossiblec
+causes)
+ResolutionImpossible.__init__
+ResolutionTooDeepc
+round_count)
+ResolutionTooDeep.__init__r9
+Statez!mapping criteria backtrack_causesc
+Resolutionz
+Stateful resolution object.
+    This is designed as a one-off object that holds information to kick start
+    the resolution process, and holds the results afterwards.
+    c
+_states)
+provider
+reporterr
+Resolution.__init__c
+state)
+IndexError
+AttributeErrorr$
+Resolution.statec
+Push a new state into history.
+        This new state will be used to hold resolution results of the next
+        coming round.
+        rC
+mapping
+criteria
+backtrack_causes)
+copyrI
+append)
+baserD
+_push_new_state|
+Resolution._push_new_statec
+requirement_or_candidater#
+identifierr/
+adding_requirementr>
+identify
+listr.
+find_matchesr
+operator
+methodcaller
+attrgetterr-
+matchesr-
+_add_to_criteria
+Resolution._add_to_criteriac
+resolutionsr,
+)	r>
+get_preferencerD
+namer
+_get_preference
+Resolution._get_preferencec
+is_satisfied_byr
+current_pinr
+z8Resolution._is_current_pin_satisfying.<locals>.<genexpr>)
+KeyError
+allr#
+_is_current_pin_satisfying
+z%Resolution._is_current_pin_satisfyingc
+get_dependenciesrX
+_get_updated_criteria
+z Resolution._get_updated_criteriac
+z7Resolution._attempt_to_pin_criterion.<locals>.<genexpr>ra
+pinning
+updaterH
+pop)
+eZ	satisfiedr
+_attempt_to_pin_criterion
+z$Resolution._attempt_to_pin_criterionc
+Perform backtracking.
+        When we enter here, the stack is like this::
+            [ state Z ]
+            [ state Y ]
+            [ state X ]
+            .... earlier states are irrelevant.
+        1. No pins worked for Z, so it does not have a pin.
+        2. We want to reset state Y to unpinned, and pin another candidate.
+        3. State X holds what state Y was before the pin, but does not
+           have the incompatibility information gathered in state Y.
+        Each iteration of the loop will:
+        1.  Discard Z.
+        2.  Discard Y but remember its incompatibility information gathered
+            previously, and the failure we're dealing with right now.
+        3.  Push a new state Y' based on X, and apply the incompatibility
+            information from Y to Y'.
+        4a. If this causes Y' to conflict, we need to backtrack again. Make Y'
+            the new Z and go back to step 2.
+        4b. If the incompatibilities apply cleanly, end backtracking.
+        
+<listcomp>
+z)Resolution._backtrack.<locals>.<listcomp>ra
+extendr.
+incompatibilities_from_brokenr
+_patch_criteria!
+z.Resolution._backtrack.<locals>._patch_criteriaTF)
+lenr@
+popitemrI
+itemsrL
+backtrackingrN
+broken_staterY
+successr
+_backtrack
+Resolution._backtrackc
+}	d	d
+already resolvedrG
+indexc
+keyr
+z&Resolution.resolve.<locals>.<listcomp>)
+RuntimeErrorr?
+startingr<
+collections
+OrderedDictrX
+rangeZ
+starting_roundrr
+ending
+minrZ
+ending_roundr:
+max_roundsr
+round_indexZ
+unsatisfied_namesrY
+failure_causesrs
+resolveM
+Resolution.resolveN)
+propertyrD
+NTF)
+idr^
+_has_route_to_root)
+all_keys
+	connected
+pkeyr
+Resultz
+mapping graph criteriac
+s^qD|
+qxqDt
+<dictcomp>
+z!_build_result.<locals>.<dictcomp>c
+graphrI
+connectr
+_build_result
+Resolverz3The thing that performs the actual resolution work.
+Take a collection of constraints, spit out the resolution result.
+        The return value is a representation to the final resolution result. It
+        is a tuple subclass with three public members:
+        * `mapping`: A dict of resolved candidates. Each key is an identifier
+            of a requirement (as returned by the provider's `identify` method),
+            and the value is the resolved candidate.
+        * `graph`: A `DirectedGraph` instance representing the dependency tree.
+            The vertices are keys of `mapping`, and each edge represents *why*
+            a particular package is included. A special vertex `None` is
+            included to represent parents of user-supplied requirements.
+        * `criteria`: A dict of "criteria" that hold detailed information on
+            how edges in the graph are derived. Each key is an identifier of a
+            requirement, and the value is a `Criterion` instance.
+        The following exceptions may be raised if a resolution cannot be found:
+        * `ResolutionImpossible`: A resolution cannot be found for the given
+            combination of requirements. The `causes` attribute of the
+            exception is a list of (requirement, parent), giving the
+            requirements that could not be satisfied.
+        * `ResolutionTooDeep`: The dependency tree is too deeply nested and
+            the resolver gave up. This is usually caused by a circular
+            dependency, but you can try to resolve this by increasing the
+            `max_rounds` argument.
+        )
+resolutionrD
+Resolver.resolveN)
+base_exceptionr~
+Z	providersr
+structsr
+namedtupler
+	Exceptionr
+objectr*
+<module>

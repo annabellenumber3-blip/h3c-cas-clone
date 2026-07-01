@@ -1,0 +1,69 @@
+#!/usr/bin/expect
+# Author : guozhonghua/02084
+# Des    : scp file
+# Usage  : Get multiple files from remote server: expect file_scp.exp root@192.168.0.5:/root/vms/* ./temp 22 password
+#        : Send one file to remote server: expect file_scp.exp ./temp/vm_data_file.dat root@192.168.0.5:/root/vms 22 password
+# Params :
+#      $0: original directory(get from remote directory, as root@hostname:/root/gzh/*);
+#          one file(send from local to remote server, ./gzhtest/vm_data_file.dat)
+#      $1: destinantion directory
+#      $2: server port
+#      $3: password
+if {$argc<4} {
+    send_user "usage: $argv0 server port password dest dir ... "
+    exit 4
+}
+
+set server [lindex $argv 0]
+set port [lindex $argv 1]
+set password [lindex $argv 2]
+set des_dir [lindex $argv 3]
+set file_type [lindex $argv 4]
+if {"$password" == "0"} {
+    set pubarg yes
+} else {
+    set pubarg no
+}
+# replace // with / in des_dir
+regsub -all {//} $des_dir / des_dir
+spawn ssh -oPubkeyAuthentication=$pubarg -oUserKnownHostsFile=/dev/null -p $port $server ls $file_type $des_dir
+set out ""
+set timeout 60
+expect "*(yes/no)*" {
+    send "yes\r"
+    #expect "password:"
+    #send "$password\r"
+    exp_continue
+} "Permission denied, please try again" {
+    send_user "\n"
+    exit 51
+} "Permission denied (publickey,password)" {
+    send_user "\n"
+    exit 50
+} "*assword:" {
+    send "$password\r"
+    #expect "ls:" {  exit 3
+    #   } "password:" { exit 1
+    #   }
+    exp_continue
+} "ssh:" {
+    send_user "\n"
+    exit 50
+} "exec request failed on channel" {
+    exit 50
+} "remote username contains invalid characters" {
+    exit 61
+} "ls:" {
+    send_user "\n"
+    exit 55
+} timeout {
+    send_user "\n"
+    exit 50
+} eof {
+    set expect_out(buffer) "$out$expect_out(buffer)"
+    exit 0
+} full_buffer {
+    set out "$out$expect_out(buffer)"
+    set expect_out(buffer) ""
+    exp_continue
+}

@@ -1,0 +1,311 @@
+m	Z	
+d'd#d$
+)(a[
+Revised simplex method for linear programming
+The *revised simplex* method uses the method described in [1]_, except
+that a factorization [2]_ of the basis matrix, rather than its inverse,
+is efficiently maintained and used to solve the linear systems at each
+iteration of the algorithm.
+.. versionadded:: 1.3.0
+References
+----------
+.. [1] Bertsimas, Dimitris, and J. Tsitsiklis. "Introduction to linear
+           programming." Athena Scientific 1 (1997): 997.
+.. [2] Bartels, Richard H. "A stabilization of the simplex method."
+            Journal in  Numerische Mathematik 16.5 (1971): 414-434.
+solve
+_check_unknown_options)
+BGLU)
+LinAlgError)
+_postsolve)
+OptimizeResultc
+    The purpose of phase one is to find an initial basic feasible solution
+    (BFS) to the original problem.
+    Generates an auxiliary problem with a trivial BFS and an objective that
+    minimizes infeasibility of the original problem. Solves the auxiliary
+    problem using the main simplex routine (phase two). This either yields
+    a BFS to the original problem or determines that the original problem is
+    infeasible. If feasible, phase one detects redundant rows in the original
+    constraint matrix and removes them, then chooses additional indices as
+    necessary to complete a basis/BFS for the original problem.
+    r
+dtypeNF
+shape
+_generate_auxiliary_problem
+_phase_two
+ones
+bool
+absr
+argmax
+wherer
+LinAlgError2)
+callback
+postsolve_args
+maxiter
+disp
+	maxupdate
+mast
+pivot
+status
+basis
+residualZ
+iter_k
+phase_one_nZ	keep_rowsZ
+basis_column
+basis_finderZ
+pertinent_rowZ
+eligible_columnsZ
+eligible_column_indices
+indexZ
+new_basis_column
+@/usr/lib64/python3.9/site-packages/scipy/optimize/_linprog_rs.py
+_phase_one
+]^}	t
+    Called when the auxiliary problem terminates with artificial columns in
+    the basis, which must be removed and replaced with non-artificial
+    columns. Finds additional columns that do not make the matrix singular.
+    r
+Basis has dependent columns)
+arange
+zeros
+lenr
+size
+linalgZ
+matrix_rank
+	Exception
+rangeZ
+randomZ
+permutation
+concatenate)
+optionsr*
+rank
+iZ	new_basisr,
+_get_more_basis_columnse
+    Modifies original problem to create an auxiliary problem with a trivial
+    initial basic feasible solution and an objective that minimizes
+    infeasibility in the original problem.
+    Conceptually, this is done by stacking an identity matrix on the right of
+    the original constraint matrix, adding artificial variables to correspond
+    with each of these new columns, and generating a cost vector that is all
+    zeros except for ones corresponding with each of the new variables.
+    A initial basic feasible solution is trivial: all variables are zero
+    except for the artificial variables, which are set equal to the
+    corresponding element of the right hand side `b`.
+    Runnning the simplex method on this auxiliary problem drives all of the
+    artificial variables - and thus the cost - to zero if the original problem
+    is feasible. The original problem is declared infeasible otherwise.
+    Much of the complexity below is to improve efficiency by using singleton
+    columns in the original problem where possible, thus generating artificial
+    variables only as necessary, and using an initial 'guess' basic feasible
+    solution.
+    r
+_select_singleton_columnsZ
+isinZ
+logical_notZ
+logical_andr6
+hstack)
+nonzero_constraintsr&
+colsZ
+rowsZ
+i_tofixZ
+i_notinbasisZ
+i_fix_without_auxZ
+arowsZ
+n_auxZ
+acolsZ
+basis_ngZ
+basis_ng_rowsr,
+)	a\
+    Finds singleton columns for which the singleton entry is of the same sign
+    as the right-hand side; these columns are eligible for inclusion in an
+    initial basis. Determines the rows in which the singleton entries are
+    located. For each of these rows, returns the indices of the one singleton
+    column and its corresponding row.
+    r
+axisr
+return_index)
+nonzero
+sumr
+unique)
+column_indices
+columnsZ
+row_indicesZ
+nonzero_rowsZ
+nonzero_columnsZ	same_signZ
+unique_row_indicesZ
+first_columnsr,
+    Returns logical array indicating the locations of rows with at least
+    one nonzero element.
+    r
+_find_nonzero_rows
+bland
+    Selects a pivot to enter the basis. Currently Bland's rule - the smallest
+    index that has a negative reduced cost - is the default.
+    
+mrcr
+lowerr
+argmin)
+c_hatr8
+ruler
+_select_enter_pivot
+    Print indicators of optimization status to the console.
+    
+PhaseZ	Iterationz
+Minimum Slack      z
+Constraint Residualz
+Objective          z+{0:<6}{1:<10}{2:<20.13}{3:<20.13}{4:<20.13}Z
+NAN)
+printr
+ValueError
+formatr3
+norm)
+phase
+	iteration
+slack
+headerZ
+fmtr,
+_display_iter"
+nitrS
+completer$
+message
+success)
+x_postsolveZ
+x_orW
+resr,
+_display_and_callback8
+|	r6t
+s@d	}
+    The heart of the simplex method. Beginning with a basic feasible solution,
+    moves to adjacent basic feasible solutions successively lower reduced cost.
+    Terminates when there are no basic feasible solutions with lower reduced
+    cost or if the problem is determined to be unbounded.
+    This implementation follows the revised simplex method based on LU
+    decomposition. Rather than maintaining a tableau or an inverse of the
+    basis matrix, we keep a factorization of the basis matrix that allows
+    efficient solution of linear systems while avoiding stability issues
+    associated with inverted matrices.
+    r
+transposedr
+allrM
+updater
+abr*
+th_starr,
+    Solve the following linear programming problem via a two-phase
+    revised simplex algorithm.::
+        minimize:     c @ x
+        subject to:  A @ x == b
+                     0 <= x < oo
+    User-facing documentation is in _linprog_doc.py.
+    Parameters
+    ----------
+    c : 1-D array
+        Coefficients of the linear objective function to be minimized.
+    c0 : float
+        Constant term in objective function due to fixed (and eliminated)
+        variables. (Currently unused.)
+    A : 2-D array
+        2-D array which, when matrix-multiplied by ``x``, gives the values of
+        the equality constraints at ``x``.
+    b : 1-D array
+        1-D array of values representing the RHS of each equality constraint
+        (row) in ``A_eq``.
+    x0 : 1-D array, optional
+        Starting values of the independent variables, which will be refined by
+        the optimization algorithm. For the revised simplex method, these must
+        correspond with a basic feasible solution.
+    callback : callable, optional
+        If a callback function is provided, it will be called within each
+        iteration of the algorithm. The callback function must accept a single
+        `scipy.optimize.OptimizeResult` consisting of the following fields:
+            x : 1-D array
+                Current solution vector.
+            fun : float
+                Current value of the objective function ``c @ x``.
+            success : bool
+                True only when an algorithm has completed successfully,
+                so this is always False as the callback function is called
+                only while the algorithm is still iterating.
+            slack : 1-D array
+                The values of the slack variables. Each slack variable
+                corresponds to an inequality constraint. If the slack is zero,
+                the corresponding constraint is active.
+            con : 1-D array
+                The (nominally zero) residuals of the equality constraints,
+                that is, ``b - A_eq @ x``.
+            phase : int
+                The phase of the algorithm being executed.
+            status : int
+                For revised simplex, this is always 0 because if a different
+                status is detected, the algorithm terminates.
+            nit : int
+                The number of iterations performed.
+            message : str
+                A string descriptor of the exit status of the optimization.
+    postsolve_args : tuple
+        Data needed by _postsolve to convert the solution to the standard-form
+        problem into the solution to the original problem.
+    Options
+    -------
+    maxiter : int
+       The maximum number of iterations to perform in either phase.
+    tol : float
+        The tolerance which determines when a solution is "close enough" to
+        zero in Phase 1 to be considered a basic feasible solution or close
+        enough to positive to serve as an optimal solution.
+    disp : bool
+        Set to ``True`` if indicators of optimization status are to be printed
+        to the console each iteration.
+    maxupdate : int
+        The maximum number of updates performed on the LU factorization.
+        After this many updates is reached, the basis matrix is factorized
+        from scratch.
+    mast : bool
+        Minimize Amortized Solve Time. If enabled, the average time to solve
+        a linear system using the basis factorization is measured. Typically,
+        the average solve time will decrease with each successive solve after
+        initial factorization, as factorization takes much more time than the
+        solve operation (and updates). Eventually, however, the updated
+        factorization becomes sufficiently complex that the average solve time
+        begins to increase. When this is detected, the basis is refactorized
+        from scratch. Enable this option to maximize speed at the risk of
+        nondeterministic behavior. Ignored if ``maxupdate`` is 0.
+    pivot : "mrc" or "bland"
+        Pivot rule: Minimum Reduced Cost (default) or Bland's rule. Choose
+        Bland's rule if iteration limit is reached and cycling is suspected.
+    unknown_options : dict
+        Optional arguments not used by this particular solver. If
+        `unknown_options` is non-empty a warning is issued listing all
+        unused options.
+    Returns
+    -------
+    x : 1-D array
+        Solution vector.
+    status : int
+        An integer representing the exit status of the optimization::
+         0 : Optimization terminated successfully
+         1 : Iteration limit reached
+         2 : Problem appears to be infeasible
+         3 : Problem appears to be unbounded
+         4 : Numerical difficulties encountered
+         5 : No constraints; turn presolve on
+         6 : Guess x0 cannot be converted to a basic feasible solution
+    message : str
+        A string descriptor of the exit status of the optimization.
+    iteration : int
+        The number of iterations taken to solve the problem.
+    )
+z%Optimization terminated successfully.z
+Iteration limit reached.aS
+The problem appears infeasible, as the phase one auxiliary problem terminated successfully with a residual of {0:.1e}, greater than the tolerance {1} required for the solution to be considered feasible. Consider increasing the tolerance to be greater than {0:.1e}. If this tolerance is unnaceptably large, the problem is likely infeasible.z
+The problem is unbounded, as the simplex algorithm found a basic feasible solution from which there is a direction with negative reduced cost in which all decision variables increase.zLNumerical difficulties encountered; consider trying method='interior-point'.zKProblems with no constraints are trivially solved; please turn presolve on.z?The guess x0 cannot be converted to a basic feasible solution. r
+unknown_optionsZ
+messagesr'
+_linprog_rs
+__doc__Z
+numpyr
+scipy.linalgr
+optimizer
+_bglu_denser
+numpy.linalg.linalgr
+_linprog_utilr
+<module>

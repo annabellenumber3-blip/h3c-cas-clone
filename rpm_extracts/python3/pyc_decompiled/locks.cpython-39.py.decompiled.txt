@@ -1,0 +1,247 @@
+Synchronization primitives.)
+Lock
+Event
+	Condition
+	Semaphore
+BoundedSemaphore
+events)
+exceptionsc
+_ContextManagerMixinc
+acquire
+self
+%/usr/lib64/python3.9/asyncio/locks.py
+__aenter__
+_ContextManagerMixin.__aenter__c
+release)
+exc_type
+	__aexit__
+_ContextManagerMixin.__aexit__N)
+__name__
+__module__
+__qualname__r
+Primitive lock objects.
+    A primitive lock is a synchronization primitive that is not owned
+    by a particular coroutine when locked.  A primitive lock is in one
+    of two states, 'locked' or 'unlocked'.
+    It is created in the unlocked state.  It has two basic methods,
+    acquire() and release().  When the state is unlocked, acquire()
+    changes the state to locked and returns immediately.  When the
+    state is locked, acquire() blocks until a call to release() in
+    another coroutine changes it to unlocked, then the acquire() call
+    resets it to locked and returns.  The release() method should only
+    be called in the locked state; it changes the state to unlocked
+    and returns immediately.  If an attempt is made to release an
+    unlocked lock, a RuntimeError will be raised.
+    When more than one coroutine is blocked in acquire() waiting for
+    the state to turn to unlocked, only one coroutine proceeds when a
+    release() call resets the state to unlocked; first coroutine which
+    is blocked in acquire() is being processed.
+    acquire() is a coroutine and should be called with 'await'.
+    Locks also support the asynchronous context management protocol.
+    'async with lock' statement should be used.
+    Usage:
+        lock = Lock()
+        ...
+        await lock.acquire()
+        try:
+            ...
+        finally:
+            lock.release()
+    Context manager usage:
+        lock = Lock()
+        ...
+        async with lock:
+             ...
+    Lock objects can be tested for locking state:
+        if not lock.locked():
+           await lock.acquire()
+        else:
+           # lock is acquired
+           ...
+    N
+loopc
+[The loop argument is deprecated since Python 3.8, and scheduled for removal in Python 3.10.
+stacklevel)
+_waiters
+_lockedr
+get_event_loop
+_loop
+warnings
+warn
+DeprecationWarning
+__init__M
+Lock.__init__c
+lockedZ
+unlocked
+, waiters:
+super
+__repr__r"
+resZ
+extra
+	__class__r
+Lock.__repr__c
+z Return True if lock is acquired.)
+Lock.lockedc
+Acquire a lock.
+        This method blocks until the lock is unlocked, then sets it to
+        locked and returns True.
+        Nc
+	cancelled)
+	<genexpr>j
+Lock.acquire.<locals>.<genexpr>T)
+collections
+dequer$
+create_future
+append
+remover	
+CancelledError
+_wake_up_first
+futr
+Lock.acquirec
+Release a lock.
+        When the lock is locked, reset it to unlocked, and return.
+        If any other coroutines are blocked waiting for the lock to become
+        unlocked, allow exactly one of them to proceed.
+        When invoked on an unlocked lock, a RuntimeError is raised.
+        There is no return value.
+        Fz
+Lock is not acquired.N)
+RuntimeErrorr
+Lock.releasec
+z*Wake up the first waiter if it isn't done.NT)
+next
+iter
+StopIteration
+done
+set_resultrE
+Lock._wake_up_first)
+__doc__r)
+__classcell__r
+Asynchronous equivalent to threading.Event.
+    Class implementing event objects. An event manages a flag that can be set
+    to true with the set() method and reset to false with the clear() method.
+    The wait() method blocks until the flag is true. The flag is initially
+    false.
+    Nr
+_valuer
+Event.__init__c
+setZ
+unsetr,
+Event.__repr__c
+z5Return True if and only if the internal flag is true.
+is_set
+Event.is_setc
+Set the internal flag to true. All coroutines waiting for it to
+        become true are awakened. Coroutine that call wait() once the flag is
+        true will not block at all.
+        TN)
+z	Event.setc
+Reset the internal flag to false. Subsequently, coroutines calling
+        wait() will block until set() is called to set the internal flag
+        to true again.FNrQ
+clear
+Event.clearc
+Block until the internal flag is true.
+        If the internal flag is true on entry, return True
+        immediately.  Otherwise, block until another coroutine calls
+        set() to set the flag to true, then return True.
+        TN)
+wait
+Event.wait)
+Asynchronous equivalent to threading.Condition.
+    This class implements condition variable objects. A condition variable
+    allows one or more coroutines to wait until they are notified by another
+    coroutine.
+    A new Lock object is created and used as the underlying lock.
+    Nr
+z"loop argument must agree with lock)
+ValueError
+_lockr+
+lockr
+Condition.__init__c
+Condition.__repr__c
+r(t	j
+Wait until notified.
+        If the calling coroutine has not acquired the lock when this
+        method is called, a RuntimeError is raised.
+        This method releases the underlying lock, and then blocks
+        until it is awakened by a notify() or notify_all() call for
+        the same condition variable in another coroutine.  Once
+        awakened, it re-acquires the lock and returns True.
+        z
+cannot wait on un-acquired lockNFT)
+Condition.waitc
+Wait until a predicate becomes true.
+        The predicate should be a callable which result will be
+        interpreted as a boolean value.  The final predicate value is
+        the return value.
+        N)
+Z	predicate
+resultr
+wait_for4
+Condition.wait_forr
+By default, wake up one coroutine waiting on this condition, if any.
+        If the calling coroutine has not acquired the lock when this method
+        is called, a RuntimeError is raised.
+        This method wakes up at most n of the coroutines waiting for the
+        condition variable; it is a no-op if no coroutines are waiting.
+        Note: an awakened coroutine does not actually return from its
+        wait() call until it can reacquire the lock. Since notify() does
+        not release the lock, its caller should.
+        z!cannot notify on un-acquired lockr
+idxrF
+notifyA
+Condition.notifyc
+Wake up all threads waiting on this condition. This method acts
+        like notify(), but wakes up all waiting threads instead of one. If the
+        calling thread has not acquired the lock when this method is called,
+        a RuntimeError is raised.
+        N)
+notify_allY
+Condition.notify_all)
+A Semaphore implementation.
+    A semaphore manages an internal counter which is decremented by each
+    acquire() call and incremented by each release() call. The counter
+    can never go below zero; when acquire() finds that it is zero, it blocks,
+    waiting until some other thread calls release().
+    Semaphores also support the context management protocol.
+    The optional argument gives the initial value for the internal
+    counter; it defaults to 1. If the value given is less than 0,
+    ValueError is raised.
+    r
+z$Semaphore initial value must be >= 0r
+valuer
+Semaphore.__init__c
+)	Nr+
+unlocked, value:r,
+Semaphore.__repr__c
+popleftrK
+waiterr
+_wake_up_next
+Semaphore._wake_up_nextc
+z:Returns True if semaphore can not be acquired immediately.r
+Semaphore.lockedc
+Acquire a semaphore.
+        If the internal counter is larger than zero on entry,
+        decrement it by one and return True immediately.  If it is
+        zero on entry, block, waiting until some other coroutine has
+        called release() to make it larger than 0, and then return
+        True.
+        r
+cancelr8
+Semaphore.acquirec
+Release a semaphore, incrementing the internal counter by one.
+        When it was zero on entry and another coroutine is waiting for it to
+        become larger than zero again, wake up that coroutine.
+        r
+Semaphore.release)
+A bounded semaphore implementation.
+    This raises ValueError in release() if it would increase the value
+    above the initial value.
+    r
+_bound_valuer1
+BoundedSemaphore.__init__c
+Nz(BoundedSemaphore released too many times)
+BoundedSemaphore.release)
+__all__r>
+<module>

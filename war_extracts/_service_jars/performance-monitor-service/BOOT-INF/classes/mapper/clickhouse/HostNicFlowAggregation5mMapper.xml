@@ -1,0 +1,354 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.h3c.h3cloud.performance.monitor.service.mapper.clickhouse.HostNicFlowAggregation5mMapper">
+    <delete id ="deleteBeforeTime">
+        ALTER TABLE AGG_HOST_NIC_FLOW_5M DELETE WHERE TIME &lt; #{time}
+    </delete>
+    <select id="readHostNicFlow" resultType="com.h3c.h3cloud.common.model.performance.HostNicFlowData">
+        SELECT MAC as mac, TIME as time,
+        ROUND(avgMerge(RX_FLOW_AVG),2) as rxFlow,
+        ROUND(avgMerge(RX_PACKETS_AVG),2) as rxPackets,
+        ROUND(avgMerge(TX_PACKETS_AVG),2) as txPackets,
+        ROUND(avgMerge(TX_FLOW_AVG),2) as txFlow,
+        ROUND(avgMerge(RX_DROP_AVG),2) as rxDropCount,
+        ROUND(avgMerge(TX_DROP_AVG),2) as txDropCount
+        FROM AGG_HOST_NIC_FLOW_5M
+        WHERE HOST_ID =${hostId}  AND TIME BETWEEN ${startTime} AND ${endTime}
+        <if test="mac!=null and mac!=''">
+            AND MAC =#{mac}
+        </if>
+        GROUP BY TIME, HOST_ID, HOST_POOL_ID, CLUSTER_ID, MAC
+        ORDER BY TIME ASC
+    </select>
+    <select id="readNetFlowTopN" resultType="com.h3c.h3cloud.common.model.performance.HostNicFlowStatisticsData">
+        SELECT TD.name as hostName,FLOW.HOST_ID as hostId,
+        <choose>
+            <when test='type!=null and type=="0"'>
+                ROUND(sum(RX_FLOW_AVG * if((${endTime} - toUnixTimestamp(TIME)) > 300, 300, ${endTime} - toUnixTimestamp(TIME))),2) +
+                ROUND(sum(TX_FLOW_AVG * if((${endTime} - toUnixTimestamp(TIME)) > 300, 300, ${endTime} - toUnixTimestamp(TIME))),2) as allFlowSum
+            </when>
+            <when test='type!=null and type=="1"'>
+                ROUND(sum(RX_FLOW_AVG * if((${endTime} - toUnixTimestamp(TIME)) > 300, 300, ${endTime} - toUnixTimestamp(TIME))),2) rxFlowSum
+            </when>
+            <otherwise>
+                ROUND(sum(TX_FLOW_AVG * if((${endTime} - toUnixTimestamp(TIME)) > 300, 300, ${endTime} - toUnixTimestamp(TIME))),2) txFlowSum
+            </otherwise>
+        </choose>
+        FROM (SELECT HOST_ID, TIME, MAC,
+        <choose>
+            <when test='type!=null and type=="0"'>
+                avgMerge(RX_FLOW_AVG) RX_FLOW_AVG,  ROUND(avgMerge(TX_FLOW_AVG),2) TX_FLOW_AVG
+            </when>
+            <when test='type!=null and type=="1"'>
+                avgMerge(RX_FLOW_AVG) RX_FLOW_AVG
+            </when>
+            <otherwise>
+                avgMerge(TX_FLOW_AVG) TX_FLOW_AVG
+            </otherwise>
+        </choose>
+        FROM AGG_HOST_NIC_FLOW_5M
+        WHERE TIME BETWEEN ${startTime} AND ${endTime}
+        <if test="hostPoolId!=null and hostPoolId!=''">
+            AND HOST_POOL_ID  =${hostPoolId}
+        </if>
+        <if test="clusterId!=null and clusterId!=''">
+            AND CLUSTER_ID =${clusterId}
+        </if>
+        <if test="operatorGroupCode!=null and operatorGroupCode!=''">
+            AND OP_GROUP_CODE LIKE #{operatorGroupCode}
+        </if>
+        GROUP BY HOST_POOL_ID, CLUSTER_ID, HOST_ID, MAC, TIME) FLOW,
+        ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_HOST} TD  WHERE TD.id = FLOW.HOST_ID
+        GROUP BY hostId,hostName
+        <choose>
+            <when test='type!=null and type=="0"'>
+                ORDER BY allFlowSum DESC
+            </when>
+            <when test='type!=null and type=="1"'>
+                ORDER BY rxFlowSum DESC
+            </when>
+            <otherwise>
+                ORDER BY txFlowSum DESC
+            </otherwise>
+        </choose>
+        <if test="limit!=null and limit!=''">
+            LIMIT ${limit}
+        </if>
+    </select>
+    <select id="readNetTrendByCondition" resultType="com.h3c.h3cloud.common.model.performance.HostNicFlowStatisticsData">
+        SELECT HOST_ID as hostId,
+        <choose>
+            <when test="cycle!=null and cycle=='hour'">
+                formatDateTime(toDateTime(TIME), '%Y-%m-%d %H') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='week'">
+                formatDateTime(toDateTime(TIME), '%Y %V') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='month'">
+                formatDateTime(toDateTime(TIME), '%Y-%m') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='year'">
+                formatDateTime(toDateTime(TIME), '%Y') as timeStr,
+            </when>
+            <otherwise>
+                formatDateTime(toDateTime(TIME), '%Y-%m-%d') as timeStr,
+            </otherwise>
+        </choose>
+        MAC as mac,
+        <choose>
+            <when test='type!=null and type=="0"'>
+                ROUND(sum(RX_FLOW_AVG * if((${endTime} - toUnixTimestamp(TIME)) > 300, 300, ${endTime} - toUnixTimestamp(TIME))),2) +
+                ROUND(sum(TX_FLOW_AVG * if((${endTime} - toUnixTimestamp(TIME)) > 300, 300, ${endTime} - toUnixTimestamp(TIME))),2) as allFlowSum
+            </when>
+            <when test='type!=null and type=="1"'>
+                ROUND(sum(RX_FLOW_AVG * if((${endTime} - toUnixTimestamp(TIME)) > 300, 300, ${endTime} - toUnixTimestamp(TIME))),2) rxFlowSum
+            </when>
+            <otherwise>
+                ROUND(sum(TX_FLOW_AVG * if((${endTime} - toUnixTimestamp(TIME)) > 300, 300, ${endTime} - toUnixTimestamp(TIME))),2) txFlowSum
+            </otherwise>
+        </choose>
+        FROM (SELECT HOST_ID, TIME, MAC,
+        <choose>
+            <when test='type!=null and type=="0"'>
+                avgMerge(RX_FLOW_AVG) RX_FLOW_AVG,  ROUND(avgMerge(TX_FLOW_AVG),2) TX_FLOW_AVG
+            </when>
+            <when test='type!=null and type=="1"'>
+                avgMerge(RX_FLOW_AVG) RX_FLOW_AVG
+            </when>
+            <otherwise>
+                avgMerge(TX_FLOW_AVG) TX_FLOW_AVG
+            </otherwise>
+        </choose>
+        FROM AGG_HOST_NIC_FLOW_5M
+        WHERE TIME BETWEEN ${startTime} AND ${endTime}
+        <if test="hostId!=null and hostId!=''">
+            AND HOST_ID = ${hostId}
+        </if>
+        <if test="hostIds!=null and hostIds!=''">
+            AND HOST_ID in (${hostIds})
+        </if>
+        GROUP BY HOST_POOL_ID, CLUSTER_ID, HOST_ID, MAC, TIME) FLOW
+        GROUP BY  HOST_ID, MAC, timeStr ORDER BY timeStr
+    </select>
+
+    <select id="readNetRateByCondition" resultType="com.h3c.h3cloud.common.model.performance.HostNicFlowStatisticsData">
+        SELECT HOST_ID as hostId,
+        <choose>
+            <when test="cycle!=null and cycle=='hour'">
+                formatDateTime(toDateTime(TIME), '%Y-%m-%d %H') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='week'">
+                formatDateTime(toDateTime(TIME), '%Y %V') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='month'">
+                formatDateTime(toDateTime(TIME), '%Y-%m') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='year'">
+                formatDateTime(toDateTime(TIME), '%Y') as timeStr,
+            </when>
+            <otherwise>
+                formatDateTime(toDateTime(TIME), '%Y-%m-%d') as timeStr,
+            </otherwise>
+        </choose>
+        MAC as mac,
+        <choose>
+            <when test='type!=null and type=="0"'>
+                ROUND(avgMerge(RX_FLOW_AVG),2) as rxFlowAvg, maxMerge(RX_FLOW_MAX) as rxFlowMax, minMerge(RX_FLOW_MIN) as rxFlowMin
+            </when>
+            <otherwise>
+                ROUND(avgMerge(TX_FLOW_AVG),2) as txFlowAvg, maxMerge(TX_FLOW_MAX) as txFlowMax, minMerge(TX_FLOW_MIN) as txFlowMin
+            </otherwise>
+        </choose>
+        FROM AGG_HOST_NIC_FLOW_5M detail  WHERE TIME BETWEEN ${startTime} AND ${endTime}
+        <if test="mac!=null and mac!=''">
+            AND MAC = #{mac}
+        </if>
+        <if test="hostId!=null and hostId!=''">
+            AND HOST_ID = ${hostId}
+        </if>
+        <if test="hostIds!=null and hostIds!=''">
+            AND HOST_ID in (${hostIds})
+        </if>
+        GROUP BY  HOST_ID, MAC, timeStr ORDER BY timeStr
+    </select>
+    <select id="readNetPacketsByCondition" resultType="com.h3c.h3cloud.common.model.performance.HostNicFlowStatisticsData">
+        SELECT HOST_ID as hostId,
+        <choose>
+            <when test="cycle!=null and cycle=='hour'">
+                formatDateTime(toDateTime(TIME), '%Y-%m-%d %H') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='week'">
+                formatDateTime(toDateTime(TIME), '%Y %V') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='month'">
+                formatDateTime(toDateTime(TIME), '%Y-%m') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='year'">
+                formatDateTime(toDateTime(TIME), '%Y') as timeStr,
+            </when>
+            <otherwise>
+                formatDateTime(toDateTime(TIME), '%Y-%m-%d') as timeStr,
+            </otherwise>
+        </choose>
+        MAC as mac,
+        <choose>
+            <when test='type!=null and type=="0"'>
+                ROUND(avgMerge(RX_DROP_AVG),2) as rxDropAvg, maxMerge(RX_DROP_MAX) as rxDropMax, minMerge(RX_DROP_MIN) as rxDropMin
+            </when>
+            <when test='type!=null and type=="1"'>
+                ROUND(avgMerge(TX_DROP_AVG),2) as txDropAvg, maxMerge(TX_DROP_MAX) as txDropMax, minMerge(TX_DROP_MIN) as txDropMin
+            </when>
+            <when test='type!=null and type=="2"'>
+                ROUND(avgMerge(RX_PACKETS_AVG),2) as rxPacketsAvg, maxMerge(RX_PACKETS_MAX) as rxPacketsMax, minMerge(RX_PACKETS_MIN) as rxPacketsMin
+            </when>
+            <otherwise>
+                ROUND(avgMerge(TX_PACKETS_AVG),2) as txPacketsAvg, maxMerge(TX_PACKETS_MAX) as txPacketsMax, minMerge(TX_PACKETS_MIN) as txPacketsMin
+            </otherwise>
+        </choose>
+        FROM AGG_HOST_NIC_FLOW_5M detail  WHERE TIME BETWEEN ${startTime} AND ${endTime}
+        <if test="mac!=null and mac!=''">
+            AND MAC = #{mac}
+        </if>
+        <if test="hostId!=null and hostId!=''">
+            AND HOST_ID = ${hostId}
+        </if>
+        <if test="hostIds!=null and hostIds!=''">
+            AND HOST_ID in (${hostIds})
+        </if>
+        GROUP BY  HOST_ID, MAC, timeStr ORDER BY timeStr
+    </select>
+
+    <select id="readHostsNetTrendByCondition" resultType="com.h3c.h3cloud.common.model.performance.HostNicFlowStatisticsData">
+        SELECT HOST_ID as hostId,
+        <choose>
+            <when test="cycle!=null and cycle=='hour'">
+                formatDateTime(toDateTime(TIME), '%Y-%m-%d %H') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='week'">
+                formatDateTime(toDateTime(TIME), '%Y %V') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='month'">
+                formatDateTime(toDateTime(TIME), '%Y-%m') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='year'">
+                formatDateTime(toDateTime(TIME), '%Y') as timeStr,
+            </when>
+            <otherwise>
+                formatDateTime(toDateTime(TIME), '%Y-%m-%d') as timeStr,
+            </otherwise>
+        </choose>
+        any(MAC) as mac,
+        <choose>
+            <when test='type!=null and type=="0"'>
+                ROUND(sum(RX_FLOW_AVG * if((${endTime} - toUnixTimestamp(TIME)) > 300, 300, ${endTime} - toUnixTimestamp(TIME))),2) +
+                ROUND(sum(TX_FLOW_AVG * if((${endTime} - toUnixTimestamp(TIME)) > 300, 300, ${endTime} - toUnixTimestamp(TIME))),2) as allFlowSum
+            </when>
+            <when test='type!=null and type=="1"'>
+                ROUND(sum(RX_FLOW_AVG * if((${endTime} - toUnixTimestamp(TIME)) > 300, 300, ${endTime} - toUnixTimestamp(TIME))),2) rxFlowSum
+            </when>
+            <otherwise>
+                ROUND(sum(TX_FLOW_AVG * if((${endTime} - toUnixTimestamp(TIME)) > 300, 300, ${endTime} - toUnixTimestamp(TIME))),2) txFlowSum
+            </otherwise>
+        </choose>
+        FROM (SELECT HOST_ID, TIME, MAC,
+        <choose>
+            <when test='type!=null and type=="0"'>
+                avgMerge(RX_FLOW_AVG) RX_FLOW_AVG,  ROUND(avgMerge(TX_FLOW_AVG),2) TX_FLOW_AVG
+            </when>
+            <when test='type!=null and type=="1"'>
+                avgMerge(RX_FLOW_AVG) RX_FLOW_AVG
+            </when>
+            <otherwise>
+                avgMerge(TX_FLOW_AVG) TX_FLOW_AVG
+            </otherwise>
+        </choose>
+        FROM AGG_HOST_NIC_FLOW_5M
+        WHERE TIME BETWEEN ${startTime} AND ${endTime}
+        <if test="hostIds!=null and hostIds!=''">
+            AND HOST_ID in (${hostIds})
+        </if>
+        GROUP BY HOST_POOL_ID, CLUSTER_ID, HOST_ID, MAC, TIME) FLOW
+        GROUP BY  HOST_ID, timeStr ORDER BY timeStr
+    </select>
+
+    <select id="readHostsNetRateByCondition" resultType="com.h3c.h3cloud.common.model.performance.HostNicFlowStatisticsData">
+        SELECT HOST_ID as hostId,
+        <choose>
+            <when test="cycle!=null and cycle=='hour'">
+                formatDateTime(toDateTime(TIME), '%Y-%m-%d %H') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='week'">
+                formatDateTime(toDateTime(TIME), '%Y %V') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='month'">
+                formatDateTime(toDateTime(TIME), '%Y-%m') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='year'">
+                formatDateTime(toDateTime(TIME), '%Y') as timeStr,
+            </when>
+            <otherwise>
+                formatDateTime(toDateTime(TIME), '%Y-%m-%d') as timeStr,
+            </otherwise>
+        </choose>
+        any(MAC) as mac,
+        <choose>
+            <when test='type!=null and type=="0"'>
+                ROUND(avgMerge(RX_FLOW_AVG),2) as rxFlowAvg
+            </when>
+            <otherwise>
+                ROUND(avgMerge(TX_FLOW_AVG),2) as txFlowAvg
+            </otherwise>
+        </choose>
+        FROM AGG_HOST_NIC_FLOW_5M detail  WHERE TIME BETWEEN ${startTime} AND ${endTime}
+        <if test="mac!=null and mac!=''">
+            AND MAC = #{mac}
+        </if>
+        <if test="hostIds!=null and hostIds!=''">
+            AND HOST_ID in (${hostIds})
+        </if>
+        GROUP BY  HOST_ID, timeStr ORDER BY timeStr
+    </select>
+    <select id="readHostsNetPacketsByCondition" resultType="com.h3c.h3cloud.common.model.performance.HostNicFlowStatisticsData">
+        SELECT HOST_ID as hostId,
+        <choose>
+            <when test="cycle!=null and cycle=='hour'">
+                formatDateTime(toDateTime(TIME), '%Y-%m-%d %H') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='week'">
+                formatDateTime(toDateTime(TIME), '%Y %V') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='month'">
+                formatDateTime(toDateTime(TIME), '%Y-%m') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='year'">
+                formatDateTime(toDateTime(TIME), '%Y') as timeStr,
+            </when>
+            <otherwise>
+                formatDateTime(toDateTime(TIME), '%Y-%m-%d') as timeStr,
+            </otherwise>
+        </choose>
+        any(MAC) as mac,
+        <choose>
+            <when test='type!=null and type=="0"'>
+                ROUND(avgMerge(RX_DROP_AVG),2) as rxDropAvg
+            </when>
+            <when test='type!=null and type=="1"'>
+                ROUND(avgMerge(TX_DROP_AVG),2) as txDropAvg
+            </when>
+            <when test='type!=null and type=="2"'>
+                ROUND(avgMerge(RX_PACKETS_AVG),2) as rxPacketsAvg
+            </when>
+            <otherwise>
+                ROUND(avgMerge(TX_PACKETS_AVG),2) as txPacketsAvg
+            </otherwise>
+        </choose>
+        FROM AGG_HOST_NIC_FLOW_5M detail  WHERE TIME BETWEEN ${startTime} AND ${endTime}
+        <if test="mac!=null and mac!=''">
+            AND MAC = #{mac}
+        </if>
+        <if test="hostIds!=null and hostIds!=''">
+            AND HOST_ID in (${hostIds})
+        </if>
+        GROUP BY  HOST_ID, timeStr ORDER BY timeStr
+    </select>
+</mapper>

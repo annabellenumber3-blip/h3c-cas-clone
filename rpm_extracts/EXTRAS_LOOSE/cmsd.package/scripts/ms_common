@@ -1,0 +1,1076 @@
+###############################################################################
+#       Common global variables definition for the HA shells.
+#
+# Copyright (c) 2011 xxx
+#                    All Rights Reserved.
+#
+###############################################################################
+
+###############################################################################
+##  global variables
+###############################################################################
+UTIL_SHELL_SCRIPT_PATH=/opt/bin
+. ${UTIL_SHELL_SCRIPT_PATH}/util_tomcat_common_define
+if [ "X$TOMCAT_SERVICE" != "X" ]; then
+    CVM_TOMCAT_SERVICE=$TOMCAT_SERVICE
+else
+    CVM_TOMCAT_SERVICE="tomcat"
+fi
+if [ "$HOME" = "" ]; then
+    export HOME=/root
+fi
+
+SCRIPT_CONF_PATH="/etc/cmsd/services/"
+SKIP_MONITOR_CVM_CONF_PATH="/etc/cmsd/ms_service_monitor_cvm.conf"
+SKIP_MONITOR_FS_DATA_CONF_PATH="/etc/cmsd/ms_service_monitor_filesystem_data.conf"
+SKIP_MONITOR_FILESYSTEM_CONF_PATH="/etc/cmsd/ms_service_monitor_filesystem.conf"
+SKIP_MONITOR_NETWORK_CONF_PATH="/etc/cmsd/ms_service_monitor_network.conf"
+MYSQL_SIZE_CONF_PATH="/etc/cmsd/services/mysql_size.conf"
+
+CVK_VM_DEFINE_FOLDER="/etc/libvirt/qemu"
+CVK_STORAGE_DEFINE_FOLDER="/etc/libvirt/storage"
+
+SYNC_DATABASE_PORT=20136
+SYNC_DATA_PORT=20137
+MYSQL_STARTUP_CONFIG="/etc/init/mysql.conf"
+MYSQLD_CONFIG="/etc/apparmor.d/usr.sbin.mysqld"
+CVM_DEFAULT_MYSQL_DATABASE="/database/data-share"
+CVM_ORIGINAL_MYSQL_DATABASE="/var/lib/mysql"
+DRBD_RESOURCE_CONFIG_NAME="r0"
+DRBD_RESOURCE_CONFIG="/etc/drbd.d/r0.res"
+DRBD_RESOURCE_DATA_NAME="r1"
+DRBD_RESOURCE_DATA="/etc/drbd.d/r1.res"
+DRBD_CONFIG="/etc/drbd.d/global_common.conf"
+
+ssh="ssh -oConnectTimeout=120 -oTCPKeepAlive=yes -oServerAliveInterval=60 -oServerAliveCountMax=3"
+CVM_LOG="/var/log/cvm_master.log"
+
+COROSYC_SERVICE_CONFIG_FILE="/etc/default/corosync"
+COROSYC_CONFIG_FILE="/etc/corosync/corosync.conf"
+
+CVM_TOMCAT_SERVICE_FILE="/etc/init.d/$TOMCAT_SERVICE"
+CVM_TOMCAT6_SERVICE_FILE="/etc/init.d/tomcat6"
+
+CVM_HOST_DIR="/root/.ssh/"
+#CVM_USERNAME=$(/opt/bin/util_cvk_user_manage.sh query)
+CVM_USERNAME="sysadmin"
+CVM_USER_HOST_DIR="/home/$CVM_USERNAME/.ssh/"
+USER_INFO_CONF="/etc/cvk/user_info.conf"
+CVM_HOST_SYNC_DIR="/database/data-share/.ssh/"
+
+## /vms disk partition dir
+CVM_DISK_DIR="/var/log/.cvm_master"
+## CVM deploy flag
+CVM_DEPOLY_FLAG="/var/log/.cvm_master/.ms_deploy_flag"
+## /vms disk partition size
+CVM_DISK_SIZE_FILE="/var/log/.cvm_master/cvm_disk_size.info"
+## log of 'parted rm' command 
+CVM_DISK_RM_FILE="/var/log/.cvm_master/cvm_disk_rm.info"
+## log of 'parted mkpart' command 
+CVM_DISK_MK_FILE="/var/log/.cvm_master/cvm_disk_mkpart.info"
+## log of 'partion tabe type' command 
+CVM_DISK_PAR_TYPE_FILE="/var/log/.cvm_master/cvm_disk_partion_type.info"
+## deploy status file
+CVM_PROCESS_STATUS_FILE="/var/log/.cvm_master/cvm_status.info"
+## add sync partition status file
+CVM_PROCESS_ADD_SYNC_PAR_STATUS_FILE="/var/log/.cvm_master/cvm_add_sync_partition_status.info"
+# recovery flag, when this file is create, will use root login to peer
+CVM_RECOVERY_FLAG="/var/log/.cvm_master/.ms_recovery_flag"
+
+## log of 'mysql disk partition's size' command 
+CVM_DISK_MYSQL_PAR_FILE="/var/log/.cvm_master/cvm_disk_mysql_partion.info"
+CVM_DISK_DATA_PAR_FILE="/var/log/.cvm_master/cvm_disk_data_partion.info"
+CVM_DISK_MONGO_PAR_FILE="/var/log/.cvm_master/cvm_disk_mongo_partion.info"
+MYSQL_DISK_PART_SIZE="20"
+
+CVM_HA_OCFS_CONF_DIR="/etc/cvm"
+DRBD_R0_MaxTry="3600"
+DRBD_R1_MaxTry="6000"
+RECOVERY_DRBD_MaxTry="6000"
+if [ "X$(/opt/bin/os_lsb_release -is)" = "XH3Linux" ]; then
+    MYSQL_NAME="seasql"
+    MYSQL_CONFIG="/etc/database/config"
+else
+    MYSQL_NAME="mysql"
+    if [ -f /etc/mysql/mysql.conf.d/mysqld.cnf ]; then
+        MYSQL_CONFIG="/etc/mysql/mysql.conf.d/mysqld.cnf"
+    else
+        MYSQL_CONFIG="/etc/mysql/my.cnf"
+    fi
+fi
+
+SERVICE_LISTS=(
+    "cvm_ha"
+    "tomcat"
+    "casserver"
+    "vmware-api-server"
+    "nginx"
+    "redis"
+    "auth-center"
+    "liccmgr"
+    "rabbitmq-server"
+    "performance-monitor-service"
+)
+##############################################################################
+#    Func Name: get_user_name
+# Date Created: 2020-12-23
+#       Author: fengxiaojun
+#  Description: get username
+#        usage:
+#       Output: Username
+#       Return: 1 0
+#      Caution:
+#-----------------------------------------------------------------------------
+#  Modification History
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+get_user_name()
+{
+    user_info_conf="/etc/cvk/user_info.conf"
+    host_user_name="root"
+    if [ -e "$user_info_conf" ]; then
+        host_user_name=$(cat $user_info_conf | grep -w "^permit_user_ssh" | sed 's/[[:space:]]//g' | awk -F '=' '{print $2}')
+    fi
+
+    echo $host_user_name
+}
+
+##############################################################################
+#    Func Name: get_nic_device_name
+# Date Created: 2023-03-15
+#       Author: s25313
+#  Description: get nic device name
+#        usage:
+#       Output: nic device name(vswitch0 or vswitch0.vlanid)
+#       Return:
+#      Caution:
+#-----------------------------------------------------------------------------
+#  Modification History
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+get_nic_device_name()
+{
+    vlan_min=2
+    vlan_max=4094
+    nic_name=`/opt/bin/ovs_bridge.sh get vswitch0 --linux_bridge| awk '{print $3}'`
+    if [ "X$nic_name" = "X" ];then
+        nic_name="vswitch0"
+        get_vlan_id=`/opt/bin/ovs_bridge.sh get vswitch0 --vlan | awk '{print $3}'`
+        get_network_engine=`/opt/bin/ovs_bridge.sh get vswitch0 --network_engine | awk '{print $3}'`
+        vlan_id=$(($get_vlan_id))
+        if [[ "X$get_network_engine" = "Xlinux" && $vlan_id -ge 2 && $vlan_id -le 4094 ]]; then
+            nic_name="$nic_name"."$vlan_id"
+        fi
+    else
+        get_vlan_id=`/opt/bin/ovs_bridge.sh get vswitch0 --vlan | awk '{print $3}'`
+        vlan_id=$(($get_vlan_id))
+        if [[ $vlan_id -ge 2 && $vlan_id -le 4094 ]]; then
+            nic_name="$nic_name"."$vlan_id"
+        fi
+    fi
+    echo $nic_name
+}
+
+##############################################################################
+#    Func Name: get_vbnic_device_name
+# Date Created: 2024-07-13
+#       Author: c16096
+#  Description: get vb nic device name
+#        usage:
+#       Output: nic device name(vb or vb.vlanid)
+#       Return:
+#      Caution:
+#-----------------------------------------------------------------------------
+#  Modification History
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+get_vbnic_device_name()
+{
+    name=$1
+    vlan_min=2
+    vlan_max=4094
+    nic_name=`/opt/bin/ovs_bridge.sh get $name --linux_bridge| awk '{print $3}'`
+    get_vlan_id=`/opt/bin/ovs_bridge.sh get $name --vlan | awk '{print $3}'`
+    vlan_id=$(($get_vlan_id))
+    if [[ "X$nic_name" != "X" && $vlan_id -ge 2 && $vlan_id -le 4094 ]]; then
+       nic_name="$nic_name"."$vlan_id"
+    fi
+    if [ "X$nic_name" = "X" ];then
+       nic_name=$name
+    fi
+    echo $nic_name
+}
+##############################################################################
+#    Func Name: sed_replace
+# Date Created: 2013-05-17
+#       Author: gaoliang
+#  Description: replace str to another file
+#        usage: $0 $1 
+#               $1 : sed parameter1 .must
+#               $2 : sed parameter2 .must
+#               $3 : file .must
+#       Output: None
+#       Return: 1 0
+#      Caution:
+#-----------------------------------------------------------------------------
+#  Modification History
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+sed_replace()
+{
+    if [ $# -lt 2 ] ; then
+        echo "ERROR: Not enough arguments [$#] to input."
+        exit 1
+    fi 
+    parm1=$1
+    parm2=$2
+    file=$3
+    
+    #random
+    seconds=$(date +%N)
+    BAK=".${seconds}.bak"
+    
+    #fix:202305221700 replace controller name
+    controller_name=$(ms_info.sh controller hostname)
+    if [ "X$parm1" == "X$controller_name" ]; then
+        sed "6 s/$parm1/$parm2/g" ${file} > ${file}${BAK}
+    else
+        #modify other
+        sed "s/$parm1/$parm2/g" ${file} > ${file}${BAK}
+    fi
+    
+    if [ $? = 0 ]; then
+        mv ${file}${BAK} $file
+        rm -rf ${file}${BAK}
+    else
+        echo "sed s/$parm1/$parm2/g ${file} > ${file}${BAK} error."
+        exit 1
+    fi 
+}
+##############################################################################
+#    Func Name: sed_delete
+# Date Created: 2013-05-17
+#       Author: gaoliang
+#  Description: delete str to another file
+#        usage: $0 $1 
+#               $1 : sed parameter .must
+#               $1 : file .must
+#       Output: None
+#       Return: 1 0
+#      Caution:
+#-----------------------------------------------------------------------------
+#  Modification History
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+sed_delete()
+{
+    if [ $# -lt 2 ] ; then
+        echo "ERROR: Not enough arguments [$#] to input."
+        exit 1
+    fi 
+    parm=$1
+    file=$2
+        
+    #random
+    seconds=$(date +%N)
+    BAK=".${seconds}.bak"
+    
+    #modify
+    sed "/$parm/d" ${file} > ${file}${BAK}
+    if [ $? = 0 ]; then
+        mv ${file}${BAK} $file
+        rm -rf ${file}${BAK}
+    else
+        echo "sed /$parm/d ${file} > ${file}${BAK} error."
+        exit 1
+    fi 
+}
+##############################################################################
+#    Func Name: check_ping_ip
+# Date Created: 2013-05-17
+#       Author: gaoliang
+#  Description: check ping ip
+#        usage: $0 $1 
+#               $1 : ip .must
+#       Output: None
+#       Return: 1 0
+#      Caution:
+#-----------------------------------------------------------------------------
+#  Modification History
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+###############################################################################
+check_ping_ip()
+{
+    if [ $# -lt 1 ] ; then
+        echo "ERROR: Not enough arguments [$#] to input."
+        exit 1
+    fi 
+    ip=$1
+    $ping -c 2 $ip 1>>$CVM_LOG 2>&1
+    if [ $? != 0 ]; then
+        echo "ERROR: host ip=$ip is not right, because this ip can not be pinged successfully"
+        exit 1    
+    fi
+}
+##############################################################################
+#    Func Name: check_ip
+# Date Created: 2013-05-17
+#       Author: gaoliang
+#  Description: check ip
+#        usage: $0 $1 
+#               $1 : ip .must
+#       Output: None
+#       Return: 1 0
+#      Caution:
+#-----------------------------------------------------------------------------
+#  Modification History
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+###############################################################################
+check_ip()  
+{  
+    return 0
+
+    if [ $# -lt 1 ] ; then
+        echo "ERROR: Not enough arguments [$#] to input."
+        exit 1
+    fi
+    ip=$1
+    nic_name=`get_nic_device_name`
+    brdip=$(ip addr show $nic_name |/bin/grep -m1 -oP '(?<=brd )[0-9.]+')
+    rtn_ip=$(echo $ip | grep "^[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}$")
+    if [ "$ip" = "$brdip" ]; then
+        return 1
+    fi
+    if [ "$rtn_ip" != "$ip" ]; then  
+        return 1
+    else  
+        rtn=$(echo $ip | awk -F '.' '$1 < 255 && $1 > 0 && $2 < 256 && $2 >= 0 && $3 < 256 && $3 >= 0 && $4 < 256 && $4 >= 0 {print 1}')
+        if [ "$rtn" != "1" ]; then
+            return 1
+        fi
+    fi
+    return 0
+}
+##############################################################################
+#    Func Name: check_port
+# Date Created: 2013-05-17
+#       Author: 
+#  Description: check ip
+#        usage: $0 $1 
+#               $1 : port .must
+#       Output: None
+#       Return: 1 0
+#      Caution:
+#-----------------------------------------------------------------------------
+#  Modification History
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+###############################################################################
+check_port()  
+{  
+    port=$1
+    rtn=$(echo $port | grep "^[1-9][0-9]\{3,4\}$")
+    if [ "X$rtn" = "X" ]; then  
+        return 1
+    fi
+    return 0
+}
+##############################################################################
+#    Func Name: check_netmask
+# Date Created: 2013-05-17
+#       Author: 
+#  Description: check ip
+#        usage: $0 $1 
+#               $1 : ip .must
+#       Output: None
+#       Return: 1 0
+#      Caution:
+#-----------------------------------------------------------------------------
+#  Modification History
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+###############################################################################
+check_netmask()  
+{  
+    if [ $# -lt 1 ] ; then
+        echo "ERROR: Not enough arguments [$#] to input."
+        exit 1
+    fi
+
+    netmask=$1
+    echo $netmask | grep -q "[^0-9]"
+    if [ $? -eq 0 ]; then
+        return 1
+    fi
+    if [[ $netmask -lt 0 || $netmask -gt $netmask_len ]]; then
+        return 1
+    fi
+
+    return 0
+}
+
+##############################################################################
+#    Func Name: check_ip_and_exit_on_error
+# Date Created: 2018-03-14
+#       Author: 
+#  Description: check if inputed ip is in valid format, if not, exit the script
+#        usage: $0
+#       Output: None
+#       Return: 0
+#      Caution:
+#-----------------------------------------------------------------------------
+#  Modification History
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+###############################################################################
+check_ip_and_exit_on_error()
+{
+    local error_msg
+    local ip
+
+    if [ $# -eq 1 ]; then
+        error_msg=$1
+    else
+        ip=$1
+        error_msg=$2
+    fi
+
+    error_msg=$(format_err_string "$error_msg" "$ip")
+
+    if [ "X$ip" = "X" ] || ! check_ip $ip ; then
+        cvm_printlog "PRINT-CMD-CONSOLE" $error_msg
+        exit 1
+    fi
+}
+
+##############################################################################
+#    Func Name: check_netmask_and_exit_on_error
+# Date Created: 2018-03-14
+#       Author: 
+#  Description: check if inputed netmask is in valid format, if not, exit the script
+#        usage: $0
+#       Output: None
+#       Return: 0
+#      Caution:
+#-----------------------------------------------------------------------------
+#  Modification History
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+###############################################################################
+check_netmask_and_exit_on_error()
+{
+    local error_msg
+    local netmask
+
+    if [ $# -eq 1 ]; then
+        error_msg=$1
+    else
+        netmask=$1
+        error_msg=$2
+    fi 
+
+    error_msg=$(format_err_string "$error_msg" "$netmask")
+
+    if [ "X$netmask" = "X" ] || ! check_netmask $netmask ; then
+        cvm_printlog "PRINT-CMD-CONSOLE" $error_msg
+        exit 1
+    fi
+}
+
+##############################################################################
+#    Func Name: check_mutual_exclusive_params
+# Date Created: 2018-03-14
+#       Author: 
+#  Description: check all params should not be same with each other
+#        usage: $0
+#       Output: None
+#       Return: 0
+#      Caution: max params is 9-1=8, the last param is error msg
+#-----------------------------------------------------------------------------
+#  Modification History
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+###############################################################################
+check_mutual_exclusive_params()
+{
+    local error_msg
+    local params_num=`expr $# - 1` # last param is error_msg
+
+    eval error_msg=\${$#}
+
+    declare -A temp_arr
+    for i in `seq $params_num`; do
+        param=${!i}
+        if [ "X${temp_arr[$param]}" = "X" ]; then
+            temp_arr[$param]=1
+        else
+            cvm_printlog "PRINT-CMD-CONSOLE" $error_msg
+            unset temp_arr
+            exit 1
+        fi
+    done
+
+    unset temp_arr
+}
+
+##############################################################################
+# Name: check_ms_env
+# Date Created: 2018-03-14
+#       Author:
+#  Description: check if env of ms is ok: 1. if soft link exists
+#        usage: $0 $__peer_ip
+#       Output:
+#       Return:
+#      Caution:
+#-----------------------------------------------------------------------------
+#  Modification History
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+check_ms_env()
+{
+    local __peer_ip=$1
+
+    if [ "X$__peer_ip" = "X" ]; then
+        cvm_printlog "PRINT-CMD-CONSOLE" $shell_name "ERROR: peer ip is not inputed."
+        return 1
+    fi
+
+    # check if soft link exists
+    if [ ! -h /root/.ssh/hosts ]; then
+        cvm_printlog "PRINT-CMD-CONSOLE-FORCE" $shell_name "ERROR: no soft link of /root/.ssh/hosts."
+        return 1
+    fi
+
+    if [ ! -h /etc/cvm ]; then
+        cvm_printlog "PRINT-CMD-CONSOLE-FORCE" $shell_name "ERROR: no soft link of /etc/cvm."
+        return 1
+    fi
+
+    $ssh $__peer_ip 'sudo test -h /root/.ssh/hosts'
+    if [ $? != 0 ]; then
+        cvm_printlog "PRINT-CMD-CONSOLE-FORCE" $shell_name "ERROR: In $__peer_ip, no soft link of /root/.ssh/hosts."
+        return 1
+    fi
+
+    $ssh $__peer_ip 'sudo test -h /etc/cvm'
+    if [ $? != 0 ]; then
+        cvm_printlog "PRINT-CMD-CONSOLE-FORCE" $shell_name "ERROR: In $__peer_ip, no soft link of /etc/cvm."
+        return 1
+    fi
+
+    # check non-root user
+    if [ "X${SSH_USER}" != "Xroot" ]; then
+        # check if soft link exists
+        if [ ! -h /home/${SSH_USER}/.ssh/hosts ]; then
+            cvm_printlog "PRINT-CMD-CONSOLE-FORCE" $shell_name "ERROR: no soft link of /home/${SSH_USER}/.ssh/hosts."
+            return 1
+        fi
+
+        $ssh $__peer_ip "sudo test -h /home/${SSH_USER}/.ssh/hosts"
+        if [ $? != 0 ]; then
+            cvm_printlog "PRINT-CMD-CONSOLE-FORCE" $shell_name "ERROR: In $__peer_ip, no soft link of /home/${SSH_USER}/.ssh/hosts."
+            return 1
+        fi
+
+    fi
+
+    return 0
+}
+
+##########################################################################
+#    Func Name: get_local_ip
+# Date Created: 2018-03-14
+#       Author: 
+#  Description: get local ip on vswitch0
+#        usage: $0
+#       Output: None
+#       Return: 0
+#      Caution:
+#-----------------------------------------------------------------------------
+#  Modification History
+#  DATE        NAME             DESCRIPTION
+#  2023-03-15  s2533            get local ip on vswitch0 or vswitch0.vlanid
+##############################################################################
+###############################################################################
+get_local_ip()
+{
+    local local_ip=""
+    if [ -f /etc/drbd.d/r0.res ] && [ -f /etc/cmsd/cmsd.xml ]; then
+        local_ip=$(grep "<self .*role=\"[12]\"" /etc/cmsd/cmsd.xml | /bin/grep -oP -m1 '(?<= ip=")[0-9.a-z:]+')
+    else
+        # check if ipv4 addr exists
+        local_ip=`python /opt/bin/netcfgtool.pyc get --name=vswitch0 | grep ipv4 | awk -F "[=,/,']" '{print $3}'`
+        # check if ipv6 addr exists
+        if [ "X$local_ip" = "X" ]; then
+          local_ip=`python /opt/bin/netcfgtool.pyc get --name=vswitch0 | grep ipv6 | awk -F "[=,/,']" '{print $3}'`
+        fi
+    fi
+
+    echo $local_ip
+}
+
+##########################################################################
+#    Func Name: format_ip_addr
+# Date Created: 2023-08-17
+#       Author: luofangli
+#  Description: format ip addr
+#        usage: $0
+#       Output: None
+#       Return: 0
+#      Caution:
+#-----------------------------------------------------------------------------
+#  Modification History
+#  DATE        NAME             DESCRIPTION
+#  2023-08-17  l13214            format ip addr
+##############################################################################
+###############################################################################
+format_ip_addr()
+{
+    local ip_addr=$1
+    if [ "X$ip_addr" != "X" ]; then
+        python -c "import IPy; print (IPy.IP('$ip_addr').strCompressed())"
+    fi
+}
+##############################################################################
+#    Func Name: cvm_printlog
+# Date Created: 2013-08-13
+#       Author: gaoliang
+#  Description: print log
+#        usage: $0 $1 $2 $3
+#               $1 : whether print log to console; PRINT-CMD-CONSOLE: print log to console .must
+#               $2 : the caller's name, usually, it is the shell name; must
+#               $3 : the message string; must
+#       Output: None
+#       Return: 1 0
+#      Caution:
+#-----------------------------------------------------------------------------
+#  Modification History
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+###############################################################################
+cvm_printlog() {
+    is_print_console=$1
+    shell_name=$2
+    shift 2
+
+    #make up the full message
+    HOSTNAME=$(hostname)
+    DATE=$(date "+%Y-%m-%d %H:%M:%S")
+    LOG_MSG="$DATE [${HOSTNAME}](${shell_name}):"PID=$$" :$*"
+
+    #buildup the log file name
+    CVM_LOGFILE="/var/log/cvm_master_slave.log"
+
+    echo -e "${LOG_MSG}" >> ${CVM_LOGFILE}
+    
+    if [ "X$is_print_console" = "XPRINT-CMD-CONSOLE-FORCE" ]; then
+        echo -e $*
+    fi
+
+: '
+    if [ "X$is_print_console" = "XPRINT-CMD-CONSOLE" ]; then
+        echo -e $*
+    fi
+'
+}
+
+##############################################################################
+#    Func Name: do_cmd_and_exit_on_error
+# Date Created: 2018-03-14
+#       Author: d14404
+#  Description: excute cmd and exit if error happens
+#        usage: $0 cmd error_msg
+#       Output: None
+#       Return: 1 0
+#      Caution:
+#-----------------------------------------------------------------------------
+#  Modification History
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+###############################################################################
+do_cmd_and_exit_on_error()
+{
+    local cmd
+    local cmd_out
+    local params_num=`expr $# - 1`
+
+    eval error_msg=\${$#}
+
+    for i in `seq $params_num`; do
+        cmd="$cmd ${!i}"
+    done
+
+    cmd_out=$(eval "$cmd" 2>&1)
+
+    if [ $? -ne 0 ]; then
+        cvm_printlog "PRINT-CMD-CONSOLE" $error_msg
+        exit 1
+    fi
+
+    if [ "X$cmd_out" != "X" ]; then
+        echo $cmd_out
+    fi
+}
+
+##############################################################################
+#    Func Name: mount_vms_to_partition
+# Date Created: 2018-03-14
+#       Author: d14404
+#  Description: mount /vms to specified partition, exit if no
+#        usage: $0 partiton peer_ip
+#       Output: None
+#       Return: 1 0
+#      Caution: this requires ssh no need to input password
+#-----------------------------------------------------------------------------
+#  Modification History
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+###############################################################################
+mount_vms_to_partition()
+{
+    local partition=$1
+    local peer_ip=$2
+
+    mkfs -t ext4 $partition 1>>$CVM_LOG 2>&1
+    mount $partition /vms
+    /opt/bin/ms_add_vms_to_fstab.sh $partition
+    cvm_printlog "PRINT-CMD-CONSOLE" $shell_name "success to mount vms to $partition and add vms to fstab."
+    if [ "X$peer_ip" != "X" ]; then
+        $ssh $peer_ip sudo mkfs -t ext4 $partition 1>>$CVM_LOG 2>&1
+        $ssh $peer_ip sudo mount $partition /vms
+        $ssh $peer_ip sudo /opt/bin/ms_add_vms_to_fstab.sh $partition
+    fi
+}
+
+##############################################################################
+#    Func Name: format_err_string
+# Date Created: 2018-03-14
+#       Author: d14404
+#  Description: format err string
+#        usage: $0 err_string params
+#       Output: None
+#       Return: 1 0
+#      Caution:
+#-----------------------------------------------------------------------------
+#  Modification History
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+###############################################################################
+format_err_string()
+{
+    local err_str=$1
+    shift 1
+
+    err_str=`printf "$err_str" $@`
+    echo $err_str
+}
+##############################################################################
+#    Func Name: ssh_keygen_check
+# Date Created: 2018-03-14
+#       Author: l13214
+#  Description: timeout ssh check
+#        usage: $0 $1
+#       Output: None
+#       Return: 1 0
+#      Caution:
+#-----------------------------------------------------------------------------
+#  Modification History
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+###############################################################################
+ssh_keygen_check()
+{
+    timeout 15 bash <<EOF
+$ssh $1 'sudo echo ok' &> /dev/null
+exit 0
+EOF
+    if [ $? != 0 ]; then
+        return 1
+    fi
+    return 0
+}
+##############################################################################
+#    Func Name: cvm_get_peer_ip
+# Date Created: 2018-03-14
+#       Author: l13214
+#  Description: get peer ip
+#        usage: $0
+#       Output: None
+#       Return: 1 0
+#      Caution:
+#-----------------------------------------------------------------------------
+#  Modification History
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+###############################################################################
+cvm_get_peer_ip()
+{
+    #get peer_ip
+    peer_ip=$(grep "<host .*role=\"[12]\"" /etc/cmsd/cmsd.xml | /bin/grep -oP -m1 '(?<= ip=")[0-9.a-z:]+')
+    echo $peer_ip
+}
+#############################################################################
+#    Func Name: cvm_get_ctl_ip
+# Date Created: 2018-03-14
+#       Author: l13214
+#  Description: get ctl ip
+#        usage: $0
+#       Output: None
+#       Return: 
+#      Caution:
+#-----------------------------------------------------------------------------
+#  Modification History
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+###############################################################################
+cvm_get_ctl_ip()
+{
+    #get controller ip
+    ctl_ip=$(grep "<host .*role=\"[3]\".*type=\"1\"" /etc/cmsd/cmsd.xml 2>/dev/null | /bin/grep -m 1 -oP '(?<=ip=")[0-9.a-z:]+')
+    echo $ctl_ip
+}
+#############################################################################
+#    Func Name: cvm_get_ping_ip
+# Date Created: 2018-03-14
+#       Author: l13214
+#  Description: get ping ip
+#        usage: $0
+#       Output: None
+#       Return: 
+#      Caution:
+#-----------------------------------------------------------------------------
+#  Modification History
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+###############################################################################
+cvm_get_ping_ip()
+{
+    #get ping_ip
+    ping_ip=$(grep "host .*role=\"[3]\".*type=\"2\"" /etc/cmsd/cmsd.xml 2>/dev/null |/bin/grep -oP -m1 '(?<= ip=")[0-9.a-z:]+|(?<= ip_other=")[0-9.a-z:]+')
+    echo $ping_ip 
+}
+#############################################################################
+#    Func Name: cvm_get_web_ip
+# Date Created: 2018-03-14
+#       Author: l13214
+#  Description: get webip
+#        usage: $0
+#       Output: None
+#       Return: 
+#      Caution:
+#-----------------------------------------------------------------------------
+#  Modification History
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+###############################################################################
+cvm_get_web_ip()
+{
+    #get web_ip
+    web_ip=$(/bin/grep -m1 -oP '(?<=ip = )[0-9.a-z:]+' /etc/cmsd/services/network.conf 2>/dev/null)
+    echo $web_ip
+}
+
+#############################################################################
+#    Func Name: cvm_get_netmask
+# Date Created: 2018-10-24
+#       Author: d14404
+#  Description: get netmask
+#        usage: $0
+#       Output: None
+#       Return: 
+#      Caution:
+#-----------------------------------------------------------------------------
+#  Modification History
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+###############################################################################
+cvm_get_netmask()
+{
+    local netamsk=$(/bin/grep -m1 -oP '(?<=netmask = )[0-9.a-z:]+' /etc/cmsd/services/network.conf 2>/dev/null)
+    echo $netamsk
+}
+
+#############################################################################
+#    Func Name: adjust_tools
+# Date Created: 2018-03-14
+#       Author: d14404
+#  Description: set tools according ipv4/ipv6
+#        usage: $0 $ip
+#       Output: None
+#       Return: 
+#      Caution:
+#-----------------------------------------------------------------------------
+#  Modification History
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+###############################################################################
+adjust_tools()
+{
+    local ip=$1
+
+    grep -q ":" <<<$ip
+    if [ $? -eq 0 ]; then
+        ping="ping6"
+        ssh="$ssh -6"
+        REMOTE_CMD="/opt/bin/ms_remote_command.exp -6"
+        REMOTE_INFO_CMD="/opt/bin/ms_peerinfo_checking.exp -6"
+        REMOTE_GEN_SSHKEY="/opt/bin/ms_remote_gen_sshkey.exp -6"
+        INET_PATTERN="inet6[[:space:]]"
+        netmask_len=128
+    else
+        ping="ping"
+        ssh="$ssh -4"
+        REMOTE_CMD="/opt/bin/ms_remote_command.exp -4"
+        REMOTE_INFO_CMD="/opt/bin/ms_peerinfo_checking.exp -4"
+        REMOTE_GEN_SSHKEY="/opt/bin/ms_remote_gen_sshkey.exp -4"
+        INET_PATTERN="inet[[:space:]]"
+        netmask_len=32
+    fi
+
+    SSH_USER=`get_user_name`
+    # if we are doning ms_recovery.sh, should use root
+    if [ -f "$CVM_RECOVERY_FLAG" ]; then
+        ps -ef | grep -q [m]s_recovery.sh
+        if [ $? -eq 0 ]; then
+            SSH_USER="root"
+        fi
+    fi
+
+
+    ssh="$ssh -l ${SSH_USER}"
+}
+##############################################################################
+#    Func Name: ms_check_by_id
+# Date Created: 2021-04-01
+#       Author: l13214
+#  Description: check by-id from drbd res
+#        usage: $0
+#       Output: None
+#       Return: 1 0
+#      Caution: 
+#-----------------------------------------------------------------------------
+#  Modification History
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+###############################################################################
+ms_check_by_id()
+{
+    grep -Eq "^[[:space:]]*disk[[:space:]].*/dev/disk/by-id/" /etc/drbd.d/r0.res
+    if [ $? -eq 0 ]; then
+        echo 1
+    else
+        echo 0
+    fi
+}
+##############################################################################
+#    Func Name: cvm_get_drbd_disk
+# Date Created: 2021-04-01
+#       Author: l13214
+#  Description: get local sync disk from drbd res
+#        usage: $0
+#       Output: None
+#       Return: local sync disk
+#      Caution: 
+#-----------------------------------------------------------------------------
+#  Modification History
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+###############################################################################
+cvm_get_drbd_disk()
+{
+    local master_ip=$1
+    local res=$2
+
+    diskpathdev=/dev/
+    local ip_line=$(sed -n "/$master_ip/=" $res)
+    local disk_line=$(expr $ip_line-1|bc)
+    local disk_used_drbd_id=$(sed -n "${disk_line}p" $res 2>/dev/null | grep "[[:space:]]*disk[[:space:]]" | awk '{print $2}' | tr -d '";')
+    local disk_used=$(readlink $disk_used_drbd_id |awk -F '/' '{print $3}')
+    local drbd_disk=$diskpathdev$disk_used
+    echo $drbd_disk
+}
+##############################################################################
+#    Func Name: cvm_get_peer_drbd_disk
+# Date Created: 2021-04-01
+#       Author: l13214
+#  Description: get peer sync disk from drbd res
+#        usage: $0
+#       Output: None
+#       Return: peer sync disk
+#      Caution: 
+#-----------------------------------------------------------------------------
+#  Modification History
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+###############################################################################
+cvm_get_peer_drbd_disk()
+{
+    local peer_ip=$1
+    local res=$2
+
+    diskpathdev=/dev/
+    local ip_line=$(sed -n "/$peer_ip/=" $res)
+    local disk_line=$(expr $ip_line-1|bc)
+    local disk_used_drbd_id=$(sed -n "${disk_line}p" $res 2>/dev/null | grep "[[:space:]]*disk[[:space:]]" | awk '{print $2}' | tr -d '";')
+    local disk_used=$($ssh $peer_ip sudo readlink $disk_used_drbd_id |awk -F '/' '{print $3}')
+    local peer_drbd_disk=$diskpathdev$disk_used
+    echo $peer_drbd_disk
+}
+
+#############################################################################
+#    Func Name: sudo_scp
+# Date Created: 2018-03-14
+#       Author: d14404
+#  Description: copy to remote using sudo
+#        usage: $0 $ip
+#       Output: None
+#       Return:
+#      Caution: must be called after adjust_tools
+#-----------------------------------------------------------------------------
+#  Modification History
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+###############################################################################
+sudo_scp()
+{
+    local local_file=$1
+    local remote_ip=$2
+    local remote_file=$3
+
+    if [ "X${remote_file}" = "X" ]; then
+        remote_file=${local_file}
+    fi
+
+    sudo cat "${local_file}" | $ssh ${remote_ip} "sudo tee ${remote_file}"
+}
+
+#############################################################################
+#    Func Name: sudo_scp_dir
+# Date Created: 2018-03-14
+#       Author: d14404
+#  Description: copy to remote using sudo
+#        usage: $0 $ip
+#       Output: None
+#       Return:
+#      Caution: must be called after adjust_tools
+#-----------------------------------------------------------------------------
+#  Modification History
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+###############################################################################
+sudo_scp_dir()
+{
+    local local_dir=$1
+    local remote_ip=$2
+    local remote_dir=$3
+
+    if [ "X${remote_dir}" = "X" ]; then
+        remote_dir=${local_dir}
+    fi
+
+    sudo tar -C "${local_dir}" -c . -O | $ssh ${remote_ip} "sudo tar -C ${remote_dir} -x"
+}
+## end of file
+###############################################################################

@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.h3c.h3cloud.performance.monitor.service.mapper.clickhouse.HostNicFlowMapper">
+    <delete id ="deleteBeforeTime">
+        ALTER TABLE TBL_HOST_NIC_FLOW DELETE WHERE TIME &lt; #{time}
+    </delete>
+    <select id="readNetPacketsRate" resultType="com.h3c.h3cloud.common.model.performance.HostNicFlowData">
+        SELECT T1.MAC as mac, T1.TIME as time, T1.RX_PACKETS as rxPackets, T1.TX_PACKETS as txPackets FROM TBL_HOST_NIC_FLOW AS T1 ,
+        (SELECT HOST_ID, MAX(TIME)-${duration} AS TIME from TBL_HOST_NIC_FLOW GROUP BY HOST_ID) AS T2
+        WHERE T1.HOST_ID = T2.HOST_ID AND T1.TIME = T2.TIME
+        AND T1.HOST_ID =${hostId}
+        <if test="mac!=null and mac!=''">
+            AND MAC =#{mac}
+        </if>
+    </select>
+    <select id="readPhyNetFlow" resultType="com.h3c.h3cloud.common.model.performance.HostNicFlowData">
+        SELECT MAC as mac, TIME as time, RX_FLOW as rxFlow, RX_PACKETS as rxPackets, TX_PACKETS as txPackets, TX_FLOW as txFlow,
+        RX_DROP as rxDropCount, TX_DROP as txDropCount, HOST_ID as hostId, HOST_POOL_ID as hostPoolId, CLUSTER_ID as clusterId,
+        OP_GROUP_ID as operatorGroupId, OP_GROUP_CODE as operatorGroupCode, RX_ERR as rxErrCount, TX_ERR as txErrCount FROM TBL_HOST_NIC_FLOW
+        <where>
+            <if test="mac!=null and mac!=''">
+                AND MAC =#{mac}
+            </if>
+            <if test="hostId!=null and hostId!=''">
+                AND HOST_ID =${hostId}
+            </if>
+            <if test="startTime!=null and startTime!=''">
+                AND TIME BETWEEN ${startTime} AND ${endTime}
+            </if>
+        </where>
+        <if test='sort!=null and sort=="0"'>
+            ORDER BY ${sortField} ASC
+        </if>
+        <if test='sort!=null and sort=="1"'>
+            ORDER BY ${sortField} DESC
+        </if>
+    </select>
+    <select id="readHostNicFlow" resultType="com.h3c.h3cloud.common.model.performance.HostNicFlowData">
+        SELECT MAC as mac, TIME as time, RX_FLOW as rxFlow, RX_PACKETS as rxPackets, TX_PACKETS as txPackets, TX_FLOW as txFlow,
+        RX_DROP as rxDropCount, TX_DROP as txDropCount FROM TBL_HOST_NIC_FLOW
+        WHERE HOST_ID =${hostId}  AND TIME BETWEEN ${startTime} AND ${endTime}
+        <if test="mac!=null and mac!=''">
+            AND MAC =#{mac}
+        </if>
+        ORDER BY TIME ASC
+    </select>
+    <select id="readRecentHostStatus" resultType="com.h3c.h3cloud.common.model.performance.HostNicFlowData">
+        SELECT  MAX(tdio.RX_FLOW + tdio.TX_FLOW) as flow,  tdio.HOST_ID as hostId from TBL_HOST_NIC_FLOW tdio
+        WHERE tdio.TIME=(SELECT MAX(TIME) FROM TBL_HOST_NIC_FLOW)-${duration}
+        <if test="hostPoolId!=null and hostPoolId!=''">
+            AND tdio.HOST_POOL_ID=${hostPoolId}
+        </if>
+        <if test="clusterId!=null and clusterId!=''">
+            AND tdio.CLUSTER_ID=${clusterId}
+        </if>
+        <if test="operatorGroupCode!=null and operatorGroupCode!=''">
+            AND tdio.OP_GROUP_CODE LIKE #{operatorGroupCode}
+        </if>
+        GROUP BY  tdio.HOST_ID
+    </select>
+    <select id="queryHostNicFlowByMac" resultType="com.h3c.h3cloud.common.model.performance.HostNicFlowData">
+        SELECT MAC as mac, TIME as time, RX_FLOW as rxFlow, RX_PACKETS as rxPackets, TX_PACKETS as txPackets, TX_FLOW as txFlow,
+        RX_DROP as rxDropCount, TX_DROP as txDropCount, HOST_ID as hostId, HOST_POOL_ID as hostPoolId, CLUSTER_ID as clusterId,
+        OP_GROUP_ID as operatorGroupId, OP_GROUP_CODE as operatorGroupCode, RX_ERR as rxErrCount, TX_ERR as txErrCount FROM TBL_HOST_NIC_FLOW
+        AND MAC =#{mac} ORDER BY TIME DESC
+    </select>
+    <select id="queryNewestHostNicFlowByHostId" resultType="com.h3c.h3cloud.common.model.performance.HostNicFlowData">
+        SELECT MAC as mac, TIME as time, RX_FLOW as rxFlow, TX_FLOW as txFlow,RX_PACKETS as rxPackets,TX_PACKETS as txPackets FROM TBL_HOST_NIC_FLOW   where HOST_ID =${hostId}
+        AND TIME = (SELECT MAX(TIME) FROM TBL_HOST_NIC_FLOW  WHERE HOST_ID =${hostId}) - ${duration}
+    </select>
+    <select id="queryNewDurationHostNicFlowByHostId" resultType="com.h3c.h3cloud.common.model.performance.HostNicFlowData">
+        SELECT HOST_ID as hostId,ROUND(AVG(RX_FLOW),2) as rxFlow,ROUND(AVG(RX_PACKETS),2) as rxPackets,ROUND(AVG(TX_FLOW),2) as txFlow,ROUND(AVG(TX_PACKETS),2) as txPackets,MAC as mac FROM TBL_HOST_NIC_FLOW  WHERE HOST_ID=${hostId}
+         AND TIME >= (SELECT MAX(TIME) FROM TBL_HOST_NIC_FLOW  WHERE HOST_ID =${hostId}) - ${duration}  GROUP BY HOST_ID,MAC
+    </select>
+    <select id="queryAllByLastestTime" resultType="com.h3c.h3cloud.common.model.performance.HostNicFlowData">
+        SELECT MAC as mac,RX_FLOW as rxFlow,TX_FLOW as txFlow,HOST_ID as hostId FROM TBL_HOST_NIC_FLOW WHERE TIME = (SELECT MAX(TIME) FROM TBL_HOST_NIC_FLOW) - ${duration}
+    </select>
+
+    <select id="queryHostNicFlowTopByCondition" resultType="com.h3c.h3cloud.common.model.performance.HostNicFlowData">
+        SELECT any(tem.HOST_ID) hostId,SUM(tem.rx_avg) + SUM(tem.tx_avg) flow, any(th.cluster_id) clusterId, any(th.host_pool_id) hostpoolId, any(th.name) hostName
+        FROM (SELECT HOST_ID, MAC, ROUND(AVG(RX_FLOW),2) rx_avg, ROUND(AVG(TX_FLOW),2) tx_avg from TBL_HOST_NIC_FLOW where  TIME BETWEEN ${startTime} AND ${endTime}
+        <if test="hostPoolId!=null and hostPoolId!=''">
+            AND HOST_POOL_ID =${hostPoolId}
+        </if>
+        <if test="clusterId!=null and clusterId!=''">
+            AND CLUSTER_ID=${clusterId}
+        </if>
+        <if test="hostId!=null and hostId!=''">
+            AND HOST_ID=${hostId}
+        </if>
+        <if test="operatorGroupCode!=null and operatorGroupCode!=''">
+            AND OP_GROUP_CODE LIKE #{operatorGroupCode}
+        </if>
+        GROUP BY HOST_ID, MAC
+        HAVING MAX(TIME) > ${endTime} - 241) as tem
+        ,${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_HOST} th WHERE tem.HOST_ID = th.id
+        GROUP BY tem.HOST_ID
+        ORDER BY flow DESC
+        <if test="limit!=null and limit!=''">
+            LIMIT ${limit}
+        </if>
+    </select>
+    <select id="getHostIOTrend" resultType="com.h3c.h3cloud.common.model.performance.HostNicFlowData">
+        SELECT  tdio.HOST_ID as hostId,SUM(RX_FLOW)+SUM(TX_FLOW) as flow,tdio.TIME time, any(TT.name) as hostName FROM TBL_HOST_NIC_FLOW tdio
+        INNER JOIN ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_HOST} TT ON tdio.HOST_ID=TT.id
+        WHERE tdio.HOST_ID IN (${hostIds})
+        AND tdio.TIME BETWEEN ${startTime} AND ${endTime}
+        <if test="operatorGroupCode!=null and operatorGroupCode!=''">
+            AND tdio.OP_GROUP_CODE LIKE #{operatorGroupCode}
+        </if>
+        GROUP BY tdio.HOST_ID, tdio.TIME
+        ORDER BY tdio.TIME ASC
+    </select>
+
+</mapper>

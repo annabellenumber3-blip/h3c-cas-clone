@@ -1,0 +1,645 @@
+Z"d+d
+Z#d,d
+Z$d-d"d#
+Z%d$d%d&
+d'd(
+d)d*
+time)
+linalg)
+pdist)
+squareform)
+csr_matrix
+issparse
+NearestNeighbors)
+BaseEstimator)
+check_random_state)
+_openmp_effective_n_threads)
+check_non_negative)
+PCA)
+pairwise_distances
+_utils)
+_barnes_hut_tsnec
+Compute joint probabilities p_ij from distances.
+    Parameters
+    ----------
+    distances : ndarray of shape (n_samples * (n_samples-1) / 2,)
+        Distances of samples are stored as condensed matrices, i.e.
+        we omit the diagonal and duplicate entries and store everything
+        in a one-dimensional array.
+    desired_perplexity : float
+        Desired perplexity of the joint probability distributions.
+    verbose : int
+        Verbosity level.
+    Returns
+    -------
+    P : ndarray of shape (n_samples * (n_samples-1) / 2,)
+        Condensed joint probability matrix.
+    F
+copy)
+astype
+float32r
+_binary_search_perplexity
+maximum
+MACHINE_EPSILONr
+	distances
+desired_perplexity
+verbose
+conditional_P
+sum_P
+=/usr/lib64/python3.9/site-packages/sklearn/manifold/_t_sne.py
+_joint_probabilities$
+Compute joint probabilities p_ij from distances using just nearest
+    neighbors.
+    This method is approximately equal to _joint_probabilities. The latter
+    is O(N), but limiting the joint probability to nearest neighbors improves
+    this substantially to O(uN).
+    Parameters
+    ----------
+    distances : sparse matrix of shape (n_samples, n_samples)
+        Distances of samples to its n_neighbors nearest neighbors. All other
+        distances are left to zero (and are not materialized in memory).
+        Matrix should be of CSR format.
+    desired_perplexity : float
+        Desired perplexity of the joint probability distributions.
+    verbose : int
+        Verbosity level.
+    Returns
+    -------
+    P : sparse matrix of shape (n_samples, n_samples)
+        Condensed joint probability matrix with only nearest neighbors. Matrix
+        will be of CSR format.
+    r
+"All probabilities should be finite)
+shape
+z5[t-SNE] Computed conditional probabilities in {:.3f}s)
+sort_indicesr(
+data
+reshaper
+isfiniter
+ravel
+indices
+indptrr
+print
+format)
+	n_samplesZ
+distances_datar 
+durationr#
+_joint_probabilities_nnE
+t-SNE objective function: gradient of the KL divergence
+    of p_ijs and q_ijs and the absolute error.
+    Parameters
+    ----------
+    params : ndarray of shape (n_params,)
+        Unraveled embedding.
+    P : ndarray of shape (n_samples * (n_samples-1) / 2,)
+        Condensed joint probability matrix.
+    degrees_of_freedom : int
+        Degrees of freedom of the Student's-t distribution.
+    n_samples : int
+        Number of samples.
+    n_components : int
+        Dimension of the embedded space.
+    skip_num_points : int, default=0
+        This does not compute the gradient for points with indices below
+        `skip_num_points`. This is useful when computing transforms of new
+        data where you'd like to keep the old data fixed.
+    compute_error: bool, default=True
+        If False, the kl_divergence is not computed and returns NaN.
+    Returns
+    -------
+    kl_divergence : float
+        Kullback-Leibler divergence of p_ij and q_ij.
+    grad : ndarray of shape (n_params,)
+        Unraveled gradient of the Kullback-Leibler divergence with respect to
+        the embedding.
+    Z
+sqeuclideanr)
+dtype
+order)
+ndarrayr:
+ranger.
+paramsr!
+degrees_of_freedomr5
+n_components
+skip_num_points
+compute_error
+X_embeddedZ
+dist
+kl_divergence
+gradZ
+_kl_divergence~
+t-SNE objective function: KL divergence of p_ijs and q_ijs.
+    Uses Barnes-Hut tree methods to calculate the gradient that
+    runs in O(NlogN) instead of O(N^2).
+    Parameters
+    ----------
+    params : ndarray of shape (n_params,)
+        Unraveled embedding.
+    P : sparse matrix of shape (n_samples, n_sample)
+        Sparse approximate joint probability matrix, computed only for the
+        k nearest-neighbors and symmetrized. Matrix should be of CSR format.
+    degrees_of_freedom : int
+        Degrees of freedom of the Student's-t distribution.
+    n_samples : int
+        Number of samples.
+    n_components : int
+        Dimension of the embedded space.
+    angle : float, default=0.5
+        This is the trade-off between speed and accuracy for Barnes-Hut T-SNE.
+        'angle' is the angular size (referred to as theta in [3]) of a distant
+        node as measured from a point. If this size is below 'angle' then it is
+        used as a summary node of all points contained within it.
+        This method is not very sensitive to changes in this parameter
+        in the range of 0.2 - 0.8. Angle less than 0.2 has quickly increasing
+        computation time and angle greater 0.8 has quickly increasing error.
+    skip_num_points : int, default=0
+        This does not compute the gradient for points with indices below
+        `skip_num_points`. This is useful when computing transforms of new
+        data where you'd like to keep the old data fixed.
+    verbose : int, default=False
+        Verbosity level.
+    compute_error: bool, default=True
+        If False, the kl_divergence is not computed and returns NaN.
+    num_threads : int, default=1
+        Number of threads used to compute the gradient. This is set here to
+        avoid calling _openmp_effective_n_threads for each gradient step.
+    Returns
+    -------
+    kl_divergence : float
+        Kullback-Leibler divergence of p_ij and q_ij.
+    grad : ndarray of shape (n_params,)
+        Unraveled gradient of the Kullback-Leibler divergence with respect to
+        the embedding.
+    Fr
+dofrF
+num_threadsr8
+int64r0
+zerosr(
+gradientr.
+anglerE
+val_P
+	neighborsr0
+errorrL
+_kl_divergence_bh
+Batch gradient descent with momentum and individual gains.
+    Parameters
+    ----------
+    objective : callable
+        Should return a tuple of cost and gradient for a given parameter
+        vector. When expensive to compute, the cost can optionally
+        be None and can be computed every n_iter_check steps using
+        the objective_error function.
+    p0 : array-like of shape (n_params,)
+        Initial parameter vector.
+    it : int
+        Current number of iterations (this function will be called more than
+        once during the optimization).
+    n_iter : int
+        Maximum number of gradient descent iterations.
+    n_iter_check : int, default=1
+        Number of iterations before evaluating the global error. If the error
+        is sufficiently low, we abort the optimization.
+    n_iter_without_progress : int, default=300
+        Maximum number of iterations without progress before we abort the
+        optimization.
+    momentum : float within (0.0, 1.0), default=0.8
+        The momentum generates a weight for previous gradients that decays
+        exponentially.
+    learning_rate : float, default=200.0
+        The learning rate for t-SNE is usually in the range [10.0, 1000.0]. If
+        the learning rate is too high, the data may look like a 'ball' with any
+        point approximately equidistant from its nearest neighbours. If the
+        learning rate is too low, most points may look compressed in a dense
+        cloud with few outliers.
+    min_gain : float, default=0.01
+        Minimum individual gain for each parameter.
+    min_grad_norm : float, default=1e-7
+        If the gradient norm is below this threshold, the optimization will
+        be aborted.
+    verbose : int, default=0
+        Verbosity level.
+    args : sequence, default=None
+        Arguments to pass to objective function.
+    kwargs : dict, default=None
+        Keyword arguments to pass to objective function.
+    Returns
+    -------
+    p : ndarray of shape (n_params,)
+        Optimum parameters.
+    error : float
+        Optimum.
+    i : int
+        Last iteration.
+    Nr
+outr
+zR[t-SNE] Iteration %d: error = %.7f, gradient norm = %.7f (%s iterations in %0.3fs)zV[t-SNE] Iteration %d: did not make any progress during the last %d episodes. Finished.z1[t-SNE] Iteration %d: gradient norm %f. Finished.)
+zeros_likeZ	ones_like
+finfo
+float
+maxr
+norm
+invertZ
+clip
+infr2
+Z	objectiveZ
+n_iter
+n_iter_check
+n_iter_without_progress
+momentum
+learning_rateZ
+min_gain
+min_grad_normr
+args
+kwargs
+updateZ
+gainsrS
+best_errorZ	best_iterrK
+ticZ
+check_convergencerJ
+Z	grad_normZ
+incZ
+decZ
+tocr6
+_gradient_descent+
+	euclidean)
+n_neighbors
+metricc
+}	|	d
+Expresses to what extent the local structure is retained.
+    The trustworthiness is within [0, 1]. It is defined as
+    .. math::
+        T(k) = 1 - \frac{2}{nk (2n - 3k - 1)} \sum^n_{i=1}
+            \sum_{j \in \mathcal{N}_{i}^{k}} \max(0, (r(i, j) - k))
+    where for each sample i, :math:`\mathcal{N}_{i}^{k}` are its k nearest
+    neighbors in the output space, and every sample j is its :math:`r(i, j)`-th
+    nearest neighbor in the input space. In other words, any unexpected nearest
+    neighbors in the output space are penalised in proportion to their rank in
+    the input space.
+    Parameters
+    ----------
+    X : ndarray of shape (n_samples, n_features) or (n_samples, n_samples)
+        If the metric is 'precomputed' X must be a square distance
+        matrix. Otherwise it contains a sample per row.
+    X_embedded : ndarray of shape (n_samples, n_components)
+        Embedding of the training data in low-dimensional space.
+    n_neighbors : int, default=5
+        The number of neighbors that will be considered. Should be fewer than
+        `n_samples / 2` to ensure the trustworthiness to lies within [0, 1], as
+        mentioned in [1]_. An error will be raised otherwise.
+    metric : str or callable, default='euclidean'
+        Which metric to use for computing pairwise distances between samples
+        from the original input space. If metric is 'precomputed', X must be a
+        matrix of pairwise distances or squared distances. Otherwise, for a list
+        of available metrics, see the documentation of argument metric in
+        `sklearn.pairwise.pairwise_distances` and metrics listed in
+        `sklearn.metrics.pairwise.PAIRWISE_DISTANCE_FUNCTIONS`. Note that the
+        "cosine" metric uses :func:`~sklearn.metrics.pairwise.cosine_distances`.
+        .. versionadded:: 0.20
+    Returns
+    -------
+    trustworthiness : float
+        Trustworthiness of the low-dimensional embedding.
+    References
+    ----------
+    .. [1] Jarkko Venna and Samuel Kaski. 2001. Neighborhood
+           Preservation in Nonlinear Projection Methods: An Experimental Study.
+           In Proceedings of the International Conference on Artificial Neural Networks
+           (ICANN '01). Springer-Verlag, Berlin, Heidelberg, 485-491.
+    .. [2] Laurens van der Maaten. Learning a Parametric Embedding by Preserving
+           Local Structure. Proceedings of the Twelth International Conference on
+           Artificial Intelligence and Statistics, PMLR 5:384-391, 2009.
+    r
+n_neighbors (z%) should be less than n_samples / 2 (
+precomputedr
+axis)
+return_distancer9
+ValueErrorr
+fill_diagonalr`
+argsortr	
+fitZ
+kneighborsrP
+intZ
+arangeZ
+newaxisr
+dist_XZ
+ind_XZ
+ind_X_embeddedZ
+inverted_indexZ
+ordered_indicesZ
+ranks
+trustworthiness
+Z	d"d
+TSNEa$%
+T-distributed Stochastic Neighbor Embedding.
+    t-SNE [1] is a tool to visualize high-dimensional data. It converts
+    similarities between data points to joint probabilities and tries
+    to minimize the Kullback-Leibler divergence between the joint
+    probabilities of the low-dimensional embedding and the
+    high-dimensional data. t-SNE has a cost function that is not convex,
+    i.e. with different initializations we can get different results.
+    It is highly recommended to use another dimensionality reduction
+    method (e.g. PCA for dense data or TruncatedSVD for sparse data)
+    to reduce the number of dimensions to a reasonable amount (e.g. 50)
+    if the number of features is very high. This will suppress some
+    noise and speed up the computation of pairwise distances between
+    samples. For more tips see Laurens van der Maaten's FAQ [2].
+    Read more in the :ref:`User Guide <t_sne>`.
+    Parameters
+    ----------
+    n_components : int, default=2
+        Dimension of the embedded space.
+    perplexity : float, default=30.0
+        The perplexity is related to the number of nearest neighbors that
+        is used in other manifold learning algorithms. Larger datasets
+        usually require a larger perplexity. Consider selecting a value
+        between 5 and 50. Different values can result in significantly
+        different results.
+    early_exaggeration : float, default=12.0
+        Controls how tight natural clusters in the original space are in
+        the embedded space and how much space will be between them. For
+        larger values, the space between natural clusters will be larger
+        in the embedded space. Again, the choice of this parameter is not
+        very critical. If the cost function increases during initial
+        optimization, the early exaggeration factor or the learning rate
+        might be too high.
+    learning_rate : float or 'auto', default=200.0
+        The learning rate for t-SNE is usually in the range [10.0, 1000.0]. If
+        the learning rate is too high, the data may look like a 'ball' with any
+        point approximately equidistant from its nearest neighbours. If the
+        learning rate is too low, most points may look compressed in a dense
+        cloud with few outliers. If the cost function gets stuck in a bad local
+        minimum increasing the learning rate may help.
+        Note that many other t-SNE implementations (bhtsne, FIt-SNE, openTSNE,
+        etc.) use a definition of learning_rate that is 4 times smaller than
+        ours. So our learning_rate=200 corresponds to learning_rate=800 in
+        those other implementations. The 'auto' option sets the learning_rate
+        to `max(N / early_exaggeration / 4, 50)` where N is the sample size,
+        following [4] and [5]. This will become default in 1.2.
+    n_iter : int, default=1000
+        Maximum number of iterations for the optimization. Should be at
+        least 250.
+    n_iter_without_progress : int, default=300
+        Maximum number of iterations without progress before we abort the
+        optimization, used after 250 initial iterations with early
+        exaggeration. Note that progress is only checked every 50 iterations so
+        this value is rounded to the next multiple of 50.
+        .. versionadded:: 0.17
+           parameter *n_iter_without_progress* to control stopping criteria.
+    min_grad_norm : float, default=1e-7
+        If the gradient norm is below this threshold, the optimization will
+        be stopped.
+    metric : str or callable, default='euclidean'
+        The metric to use when calculating distance between instances in a
+        feature array. If metric is a string, it must be one of the options
+        allowed by scipy.spatial.distance.pdist for its metric parameter, or
+        a metric listed in pairwise.PAIRWISE_DISTANCE_FUNCTIONS.
+        If metric is "precomputed", X is assumed to be a distance matrix.
+        Alternatively, if metric is a callable function, it is called on each
+        pair of instances (rows) and the resulting value recorded. The callable
+        should take two arrays from X as input and return a value indicating
+        the distance between them. The default is "euclidean" which is
+        interpreted as squared euclidean distance.
+    metric_params : dict, default=None
+        Additional keyword arguments for the metric function.
+        .. versionadded:: 1.1
+    init : {'random', 'pca'} or ndarray of shape (n_samples, n_components),             default='random'
+        Initialization of embedding. Possible options are 'random', 'pca',
+        and a numpy array of shape (n_samples, n_components).
+        PCA initialization cannot be used with precomputed distances and is
+        usually more globally stable than random initialization. `init='pca'`
+        will become default in 1.2.
+    verbose : int, default=0
+        Verbosity level.
+    random_state : int, RandomState instance or None, default=None
+        Determines the random number generator. Pass an int for reproducible
+        results across multiple function calls. Note that different
+        initializations might result in different local minima of the cost
+        function. See :term:`Glossary <random_state>`.
+    method : str, default='barnes_hut'
+        By default the gradient calculation algorithm uses Barnes-Hut
+        approximation running in O(NlogN) time. method='exact'
+        will run on the slower, but exact, algorithm in O(N^2) time. The
+        exact algorithm should be used when nearest-neighbor errors need
+        to be better than 3%. However, the exact method cannot scale to
+        millions of examples.
+        .. versionadded:: 0.17
+           Approximate optimization *method* via the Barnes-Hut.
+    angle : float, default=0.5
+        Only used if method='barnes_hut'
+        This is the trade-off between speed and accuracy for Barnes-Hut T-SNE.
+        'angle' is the angular size (referred to as theta in [3]) of a distant
+        node as measured from a point. If this size is below 'angle' then it is
+        used as a summary node of all points contained within it.
+        This method is not very sensitive to changes in this parameter
+        in the range of 0.2 - 0.8. Angle less than 0.2 has quickly increasing
+        computation time and angle greater 0.8 has quickly increasing error.
+    n_jobs : int, default=None
+        The number of parallel jobs to run for neighbors search. This parameter
+        has no impact when ``metric="precomputed"`` or
+        (``metric="euclidean"`` and ``method="exact"``).
+        ``None`` means 1 unless in a :obj:`joblib.parallel_backend` context.
+        ``-1`` means using all processors. See :term:`Glossary <n_jobs>`
+        for more details.
+        .. versionadded:: 0.22
+    square_distances : True, default='deprecated'
+        This parameter has no effect since distance values are always squared
+        since 1.1.
+        .. deprecated:: 1.1
+             `square_distances` has no effect from 1.1 and will be removed in
+             1.3.
+    Attributes
+    ----------
+    embedding_ : array-like of shape (n_samples, n_components)
+        Stores the embedding vectors.
+    kl_divergence_ : float
+        Kullback-Leibler divergence after optimization.
+    n_features_in_ : int
+        Number of features seen during :term:`fit`.
+        .. versionadded:: 0.24
+    feature_names_in_ : ndarray of shape (`n_features_in_`,)
+        Names of features seen during :term:`fit`. Defined only when `X`
+        has feature names that are all strings.
+        .. versionadded:: 1.0
+    n_iter_ : int
+        Number of iterations run.
+    See Also
+    --------
+    sklearn.decomposition.PCA : Principal component analysis that is a linear
+        dimensionality reduction method.
+    sklearn.decomposition.KernelPCA : Non-linear dimensionality reduction using
+        kernels and PCA.
+    MDS : Manifold learning using multidimensional scaling.
+    Isomap : Manifold learning based on Isometric Mapping.
+    LocallyLinearEmbedding : Manifold learning using Locally Linear Embedding.
+    SpectralEmbedding : Spectral embedding for non-linear dimensionality.
+    References
+    ----------
+    [1] van der Maaten, L.J.P.; Hinton, G.E. Visualizing High-Dimensional Data
+        Using t-SNE. Journal of Machine Learning Research 9:2579-2605, 2008.
+    [2] van der Maaten, L.J.P. t-Distributed Stochastic Neighbor Embedding
+        https://lvdmaaten.github.io/tsne/
+    [3] L.J.P. van der Maaten. Accelerating t-SNE using Tree-Based Algorithms.
+        Journal of Machine Learning Research 15(Oct):3221-3245, 2014.
+        https://lvdmaaten.github.io/publications/papers/JMLR_2014.pdf
+    [4] Belkina, A. C., Ciccolella, C. O., Anno, R., Halpert, R., Spidlen, J.,
+        & Snyder-Cappione, J. E. (2019). Automated optimized parameters for
+        T-distributed stochastic neighbor embedding improve visualization
+        and analysis of large datasets. Nature Communications, 10(1), 1-12.
+    [5] Kobak, D., & Berens, P. (2019). The art of using t-SNE for single-cell
+        transcriptomics. Nature Communications, 10(1), 1-14.
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from sklearn.manifold import TSNE
+    >>> X = np.array([[0, 0, 0], [0, 1, 1], [1, 0, 1], [1, 1, 1]])
+    >>> X_embedded = TSNE(n_components=2, learning_rate='auto',
+    ...                   init='random').fit_transform(X)
+    >>> X_embedded.shape
+    (4, 2)
+    
+warni
+barnes_hutrN
+deprecated)
+perplexity
+early_exaggerationrf
+metric_params
+initr
+random_state
+methodrQ
+n_jobs
+square_distancesc
+selfrD
+__init__
+TSNE.__init__c
+r~t	|
+d)d*
+j!d+
+t(d0|
+j!|	|
+j d2
+j,d4d5
+_-t.|
+rLt0|
+d9d:
+rxd<|
+)@z;Private function to fit the model using X as training data.r~
+zMThe default initialization in TSNE will change from 'random' to 'pca' in 1.2.Z
+randomzJThe default learning rate in TSNE will change from 200.0 to 'auto' in 1.2.rW
+pcazfPCA initialization is currently not supported with the sparse input matrix. Use init="random" instead.)
+exactz('method' must be 'barnes_hut' or 'exact'rZ
+z!'angle' must be between 0.0 - 1.0r
+zSThe parameter `square_distances` has not effect and will be removed in version 1.3.
+autor
+z4'learning_rate' must be a positive number or 'auto'.r
+csrr
+accept_sparseZ
+ensure_min_samplesr:
+cscZ
+coo)
+zBThe parameter init="pca" cannot be used with metric="precomputed".r
+z$X should be a square distance matrixzKTSNE.fit(). With metric='precomputed', X should contain positive distances.r
+TSNE with method="exact" does not accept sparse precomputed distance matrix. Use method="barnes_hut" or provide the dense distance matrix.
+zj'n_components' should be inferior to 4 for the barnes_hut algorithm as it relies on quad-tree or oct-tree.z0early_exaggeration must be at least 1, but is {}r|
+n_iter should be at least 250Nz'[t-SNE] Computing pairwise distances...rn
+squared)
+zAAll distances should be positive, the metric given is not correctr'
+z(All probabilities should be non-negativez5All probabilities should be less or then equal to onert
+z)[t-SNE] Computing {} nearest neighbors...)
+	algorithmr
+z([t-SNE] Indexed {} samples in {:.3f}s...Z
+distance)
+modez7[t-SNE] Computed neighbors for {} samples in {:.3f}s...Z
+randomized)
+svd_solverr
+The PCA initialization in TSNE will change to have the standard deviation of PC1 equal to 1e-4 in 1.2. This will ensure better convergence.g-C
+sizez0'init' must be 'pca', 'random', or a numpy array)
+isinstancer
+warningsr~
+FutureWarning
+_initrf
+_learning_rater
+	TypeErrorr
+_validate_datar
+float64rp
+anyr%
+minrw
+kneighbors_graphr*
+fit_transformr
+standard_normalr^
+_tsne)
+neighbors_nnr
+metric_params_r!
+knnr4
+distances_nnrG
+_fit
+z	TSNE._fitc
+rxt	}	|
+Runs t-SNE.r
+zE[t-SNE] KL divergence after %d iterations with early exaggeration: %fr
+z-[t-SNE] KL divergence after %d iterations: %f)
+_N_ITER_CHECKrg
+dictrD
+_EXPLORATION_N_ITERr
+n_iter_r+
+kl_divergence_)
+opt_argsZ
+obj_funcrI
+Z	remainingr#
+TSNE._tsnec
+Fit X into an embedded space and return that transformed output.
+        Parameters
+        ----------
+        X : ndarray of shape (n_samples, n_features) or (n_samples, n_samples)
+            If the metric is 'precomputed' X must be a square distance
+            matrix. Otherwise it contains a sample per row. If the method
+            is 'exact', X may be a sparse matrix of type 'csr', 'csc'
+            or 'coo'. If the method is 'barnes_hut' and the metric is
+            'precomputed', X may be a precomputed sparse graph.
+        y : None
+            Ignored.
+        Returns
+        -------
+        X_new : ndarray of shape (n_samples, n_components)
+            Embedding of the training data in low-dimensional space.
+        )
+embedding_)
+yZ	embeddingr#
+TSNE.fit_transformc
+Fit X into an embedded space.
+        Parameters
+        ----------
+        X : ndarray of shape (n_samples, n_features) or (n_samples, n_samples)
+            If the metric is 'precomputed' X must be a square distance
+            matrix. Otherwise it contains a sample per row. If the method
+            is 'exact', X may be a sparse matrix of type 'csr', 'csc'
+            or 'coo'. If the method is 'barnes_hut' and the metric is
+            'precomputed', X may be a precomputed sparse graph.
+        y : None
+            Ignored.
+        Returns
+        -------
+        X_new : array of shape (n_samples, n_components)
+            Embedding of the training data in low-dimensional space.
+        )
+TSNE.fitc
+pairwisers
+_more_tagsx
+TSNE._more_tags)
+__name__
+__module__
+__qualname__
+__doc__r
+NN)(r
+numpyr
+scipyr
+scipy.spatial.distancer
+scipy.sparser
+baser
+utilsr
+utils._openmp_helpersr
+utils.validationr
+decompositionr
+metrics.pairwiser
+doubleZ
+epsr
+<module>

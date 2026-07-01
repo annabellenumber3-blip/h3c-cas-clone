@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.h3c.h3cloud.bare.metal.mapper.ImageFileMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="imageFileMap" type="com.h3c.h3cloud.bare.metal.model.ImageFile">
+        <id column="ID" property="id" />
+        <result column="NAME" property="name" />
+        <result column="OS_VERSION" property="osVersion" />
+        <result column="OS_TYPE" property="osType" />
+        <result column="PATH" property="path" />
+        <result column="UPLOAD_TIME" property="uploadTime" />
+        <result column="FILE_SIZE" property="fileSize" />
+        <result column="MD5" property="md5" />
+        <result column="DESCRIPTION" property="description" />
+        <result column="OP_GROUP_ID" property="opGroupId" />
+        <result column="OP_GROUP_CODE" property="opGroupCode" />
+        <result column="CAPACITY" property="capacity" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Image_Column_List">
+        ID AS id, NAME AS name, OS AS os, PATH AS path, UPLOAD_TIME AS uploadTime, FILE_SIZE AS fileSize, MD5 AS MD5
+    </sql>
+    <select id="getImageFilePageList" resultType="com.h3c.h3cloud.bare.metal.model.ImageFile">
+        select * from
+        TBL_IMG_FILE
+        <where>
+            <if test="map.title!=null and map.title!=''">
+                and NAME like #{map.title}
+            </if>
+            <if test="map.os!=null and map.os!=''">
+                and OS_VERSION like #{map.os}
+            </if>
+            <if test="map.operatorGroupCode!=null and map.operatorGroupCode!=''">
+                and OP_GROUP_CODE like #{map.operatorGroupCode}
+            </if>
+        </where>
+        <if test="map.sortField!=null and map.sortField!=''">
+            order by ${map.sortField}
+        </if>
+        <if test="map.sortField!=null and map.sortField!='' and map.sortDir!=null and map.sortDir!=''">
+            ${map.sortDir}
+        </if>
+
+    </select>
+</mapper>
+
+

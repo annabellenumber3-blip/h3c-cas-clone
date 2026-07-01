@@ -1,0 +1,75 @@
+List
+Optionalz8include-system-site-packages\s*=\s*(?P<value>true|false))
+returnc
+znChecks if sys.base_prefix and sys.prefix match.
+    This handles PEP 405 compliant virtual environments.
+    
+base_prefix)
+prefix
+getattr
+B/usr/lib/python3.9/site-packages/pip/_internal/utils/virtualenv.py
+_running_under_venv
+zmChecks if sys.real_prefix is set.
+    This handles virtual environments created with pypa's virtualenv.
+    Z
+real_prefix)
+hasattrr
+!_running_under_regular_virtualenv
+zBReturn True if we're running inside a virtualenv, False otherwise.)
+running_under_virtualenv
+Reads {sys.prefix}/pyvenv.cfg and returns its contents as list of lines
+    Returns None, if it could not read/access the file.
+    z
+pyvenv.cfgz
+utf-8)
+encodingN)	
+path
+joinr
+open
+read
+splitlines
+OSError)
+pyvenv_cfg_file
+_get_pyvenv_cfg_lines$
+Check `{sys.prefix}/pyvenv.cfg` for system site-packages inclusion
+    PEP 405 specifies that when system site-packages are not supposed to be
+    visible from a virtual environment, `pyvenv.cfg` must contain the following
+    line:
+        include-system-site-packages = false
+    Additionally, log a warning if accessing the file fails.
+    Nz
+Could not access 'pyvenv.cfg' despite a virtual environment being active. Assuming global site-packages is not accessible in this environment.T
+valueZ
+falseF)
+loggerZ
+warning
+#_INCLUDE_SYSTEM_SITE_PACKAGES_REGEX
+match
+group)
+Z	cfg_lines
+liner
+_no_global_under_venv3
+Check if "no-global-site-packages.txt" exists beside site.py
+    This mirrors logic in pypa/virtualenv for determining whether system
+    site-packages are visible in the virtual environment.
+    z
+no-global-site-packages.txt)
+dirname
+abspath
+site
+__file__r
+exists)
+site_mod_dirZ
+no_global_site_packages_filer	
+#_no_global_under_regular_virtualenvP
+zHReturns a boolean, whether running in venv with no system site-packages.F)
+virtualenv_no_global^
+loggingr
+rer"
+typingr
+Z	getLogger
+__name__r
+compiler
+boolr
+strr
+<module>

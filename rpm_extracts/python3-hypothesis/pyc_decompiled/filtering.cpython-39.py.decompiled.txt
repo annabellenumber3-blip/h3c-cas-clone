@@ -1,0 +1,146 @@
+Tools for understanding predicates, to satisfy them by construction.
+For example::
+    integers().filter(lamda x: x >= 0) -> integers(min_value=0)
+This is intractable in general, but reasonably easy for simple cases involving
+numeric bounds, strings with length or regex constraints, and collection lengths -
+and those are precisely the most common cases.  When they arise in e.g. Pandas
+dataframes, it's also pretty painful to do the constructive version by hand in
+a library; so we prefer to share all the implementation effort here.
+See https://github.com/HypothesisWorks/hypothesis/issues/2701 for details.
+Decimal)
+Fraction)
+partial)
+Callable
+Dict
+NamedTuple
+Optional
+TypeVar)
+ceil
+floor)
+extract_lambda_source
+ConstructivePredicatea
+Return kwargs to the appropriate strategy, and the predicate if needed.
+    For example::
+        integers().filter(lambda x: x >= 0)
+        -> {"min_value": 0"}, None
+        integers().filter(lambda x: x >= 0 and x % 7)
+        -> {"min_value": 0}, lambda x: x % 7
+    At least in principle - for now we usually return the predicate unchanged
+    if needed.
+    We have a separate get-predicate frontend for each "group" of strategies; e.g.
+    for each numeric type, for strings, for bytes, for collection sizes, etc.
+    
+kwargs
+	predicatec
+clsr
+A/usr/lib/python3.9/site-packages/hypothesis/internal/filtering.py
+	unchanged>
+ConstructivePredicate.unchangedN)
+__name__
+__module__
+__qualname__
+__doc__r
+strr
+__annotations__r	
+	Predicate
+classmethodr
+node
+argname
+returnc
+Non-local variable)
+isinstance
+Name
+ValueError
+ARGZ
+literal_eval)
+convertF
+)	Nz
+Can't analyse this comparisonT
+	max_value
+exclude_max
+	min_value
+exclude_minr-
+Unhandled comparison operator)
+floatr'
+LtEZ
+GtEZ
+numr
+comp_to_kwargsN
+con_predicatesr!
+math
+getr
+baser
+merge_predso
+treer 
+fallbackr!
+z"t	|
+Take an AST; return a ConstructivePredicate.
+    >>> lambda x: x >= 0
+    {"min_value": 0}, None
+    >>> lambda x: x < 10
+    {"max_value": 10, "exclude_max": True}, None
+    >>> lambda x: x >= y
+    {}, lambda x: x >= y
+    See also https://greentreesnakes.readthedocs.io/en/latest/
+    r
+startr 
+numeric_bounds_from_ast)
+	<genexpr>
+z*numeric_bounds_from_ast.<locals>.<genexpr>)
+Compare
+comparators
+left
+	enumerate
+appendr7
+BoolOpr*
+values)
+valsZ
+comparisons
+valZ
+bounds
+compr
+<lambda>
+r~t!|
+Shared logic for understanding numeric bounds.
+    We then specialise this in the other functions below, to ensure that e.g.
+    all the values are representable in the types that we're planning to generate
+    so that the strategy validation doesn't complain.
+    rB
+args
+keywordsr
+is_snanr3
+isnan
+operator
+funcr
+inspectZ	getsourcer#
+parse
+	ExceptionZ
+Module
+bodyZ
+Expr
+valueZ
+LambdarD
+argZ
+FunctionDefZ
+Return
+AST)
+options
+sourcer@
+get_numeric_predicate_bounds
+)	Nr0
+<dictcomp>
+z0get_integer_predicate_bounds.<locals>.<dictcomp>)
+isinf
+UNSATISFIABLEr3
+itemsr
+get_integer_predicate_bounds
+decimalr
+Z	fractionsr
+	functoolsr
+typingr
+hypothesis.internal.compatr
+hypothesis.internal.reflectionr
+boolr
+objectr'
+dictr7
+<module>

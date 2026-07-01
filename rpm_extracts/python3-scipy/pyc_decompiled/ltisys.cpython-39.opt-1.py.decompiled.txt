@@ -1,0 +1,2170 @@
+m Z m!Z!m"Z"m#Z#m$Z$m%Z%m&Z&m'Z'
+l(Z(g
+e.e,
+e.e-
+e1e,
+e1e-
+d e+
+d!d"
+d"e5e,
+d#d$
+d$e5e-
+Z7d\d%d&
+Z8d'd(
+Z9d]d*d+
+Z:d,d-
+Z;d^d.d/
+Z<d_d0d1
+Z=d`d2d3
+Z>dad4d5
+Z?dbd7d8
+Z@dcd:d;
+d<d=
+ZBd>d?
+ZCd@dA
+ZDdBdC
+ZEdDdE
+ZFdFdG
+ZGdHdI
+ZHdJdK
+ZIdddOdP
+ZJdedQdR
+ZKdfdSdT
+ZLdgdUdV
+ZMdhdXdY
+ZNdidZd[
+)jz]
+ltisys -- a collection of classes and functions for modeling linear
+time invariant systems.
+	integrate
+interpolate
+linalg)
+interp1d
+tf2zpk
+zpk2tf
+	normalize
+freqs
+freqz
+	freqs_zpk
+	freqz_zpk)
+tf2ss
+abcd_normalize
+ss2tf
+zpk2ss
+ss2zpk
+cont2discrete)
+real
+atleast_1d
+atleast_2d
+squeeze
+asarray
+zeros
+	transpose
+ones
+zeros_like
+linspace
+nan_to_num)
+dlti
+TransferFunction
+ZerosPolesGain
+StateSpace
+lsim
+lsim2
+impulse
+impulse2
+step
+step2
+bode
+freqresp
+place_poles
+dlsim
+dstep
+dimpulse
+	dfreqresp
+dbodec
+LinearTimeInvariantc
+z2Create a new object, don't allow direct instances.z\The LinearTimeInvariant class is not meant to be used directly, use `lti` or `dlti` instead.)
+NotImplementedError
+super
+__new__
+system
+kwargs
+	__class__
+9/usr/lib64/python3.9/site-packages/scipy/signal/ltisys.pyr7
+LinearTimeInvariant.__new__c
+        Initialize the `lti` baseclass.
+        The heavy lifting is done by the subclasses.
+        N)
+__init__
+inputs
+outputs
+selfr<
+LinearTimeInvariant.__init__c
+zAReturn the sampling time of the system, `None` for `lti` systems.
+LinearTimeInvariant.dtc
+_dt_dictI
+LinearTimeInvariant._dt_dictc
+Zeros of the system.)
+to_zpkr
+LinearTimeInvariant.zerosc
+Poles of the system.)
+polesrF
+LinearTimeInvariant.polesc
+Convert to `StateSpace` system, without copying.
+        Returns
+        -------
+        sys: StateSpace
+            The `StateSpace` system. If the class is already an instance of
+            `StateSpace` then this instance is returned.
+        N)
+isinstancer%
+to_ssrF
+_as_ssZ
+LinearTimeInvariant._as_ssc
+Convert to `ZerosPolesGain` system, without copying.
+        Returns
+        -------
+        sys: ZerosPolesGain
+            The `ZerosPolesGain` system. If the class is already an instance of
+            `ZerosPolesGain` then this instance is returned.
+        N)
+_as_zpkh
+LinearTimeInvariant._as_zpkc
+Convert to `TransferFunction` system, without copying.
+        Returns
+        -------
+        sys: ZerosPolesGain
+            The `TransferFunction` system. If the class is already an instance of
+            `TransferFunction` then this instance is returned.
+        N)
+to_tfrF
+_as_tfv
+LinearTimeInvariant._as_tf)
+__name__
+__module__
+__qualname__r7
+propertyrI
+__classcell__r>
+    Continuous-time linear time invariant system base class.
+    Parameters
+    ----------
+    *system : arguments
+        The `lti` class can be instantiated with either 2, 3 or 4 arguments.
+        The following gives the number of arguments and the corresponding
+        continuous-time subclass that is created:
+            * 2: `TransferFunction`:  (numerator, denominator)
+            * 3: `ZerosPolesGain`: (zeros, poles, gain)
+            * 4: `StateSpace`:  (A, B, C, D)
+        Each argument can be an array or a sequence.
+    See Also
+    --------
+    ZerosPolesGain, StateSpace, TransferFunction, dlti
+    Notes
+    -----
+    `lti` instances do not exist directly. Instead, `lti` creates an instance
+    of one of its subclasses: `StateSpace`, `TransferFunction` or
+    `ZerosPolesGain`.
+    If (numerator, denominator) is passed in for ``*system``, coefficients for
+    both the numerator and denominator should be specified in descending
+    exponent order (e.g., ``s^2 + 3s + 5`` would be represented as ``[1, 3,
+    5]``).
+    Changing the value of properties that are not directly part of the current
+    system representation (such as the `zeros` of a `StateSpace` system) is
+    very inefficient and may lead to numerical inaccuracies. It is better to
+    convert to the specific system representation first. For example, call
+    ``sys = sys.to_zpk()`` before accessing/changing the zeros, poles or gain.
+    Examples
+    --------
+    >>> from scipy import signal
+    >>> signal.lti(1, 2, 3, 4)
+    StateSpaceContinuous(
+    array([[1]]),
+    array([[2]]),
+    array([[3]]),
+    array([[4]]),
+    dt: None
+    )
+    >>> signal.lti([1, 2], [3, 4], 5)
+    ZerosPolesGainContinuous(
+    array([1, 2]),
+    array([3, 4]),
+    5,
+    dt: None
+    )
+    >>> signal.lti([3, 4], [1, 2])
+    TransferFunctionContinuous(
+    array([3., 4.]),
+    array([1., 2.]),
+    dt: None
+    )
+    c
+/Create an instance of the appropriate subclass.
+zF`system` needs to be an instance of `lti` or have 2, 3 or 4 arguments.)
+TransferFunctionContinuousr7
+ZerosPolesGainContinuous
+StateSpaceContinuous
+ValueErrorr6
+lti.__new__c
+lti.__init__Nc
+        Return the impulse response of a continuous-time system.
+        See `impulse` for details.
+        
+lti.impulsec
+        Return the step response of a continuous-time system.
+        See `step` for details.
+        rc
+lti.stepc
+        Return the response of a continuous-time system to input `U`.
+        See `lsim` for details.
+        )
+output
+lti.output
+        Calculate Bode magnitude and phase data of a continuous-time system.
+        Returns a 3-tuple containing arrays of frequencies [rad/s], magnitude
+        [dB] and phase [deg]. See `bode` for details.
+        Examples
+        --------
+        >>> from scipy import signal
+        >>> import matplotlib.pyplot as plt
+        >>> sys = signal.TransferFunction([1], [1, 1])
+        >>> w, mag, phase = sys.bode()
+        >>> plt.figure()
+        >>> plt.semilogx(w, mag)    # Bode magnitude plot
+        >>> plt.figure()
+        >>> plt.semilogx(w, phase)  # Bode phase plot
+        >>> plt.show()
+        
+lti.bode
+        Calculate the frequency response of a continuous-time system.
+        Returns a 2-tuple containing arrays of frequencies [rad/s] and
+        complex magnitude.
+        See `freqresp` for details.
+        rj
+lti.freqresp
+zohc
+Return a discretized version of the current system.
+        Parameters: See `cont2discrete` for details.
+        Returns
+        -------
+        sys: instance of `dlti`
+        z5to_discrete is not implemented for this system class.N)
+method
+alphar>
+to_discrete
+lti.to_discrete)
+NNN)
+NNN)
+__doc__r7
+    Discrete-time linear time invariant system base class.
+    Parameters
+    ----------
+    *system: arguments
+        The `dlti` class can be instantiated with either 2, 3 or 4 arguments.
+        The following gives the number of arguments and the corresponding
+        discrete-time subclass that is created:
+            * 2: `TransferFunction`:  (numerator, denominator)
+            * 3: `ZerosPolesGain`: (zeros, poles, gain)
+            * 4: `StateSpace`:  (A, B, C, D)
+        Each argument can be an array or a sequence.
+    dt: float, optional
+        Sampling time [s] of the discrete-time systems. Defaults to ``True``
+        (unspecified sampling time). Must be specified as a keyword argument,
+        for example, ``dt=0.1``.
+    See Also
+    --------
+    ZerosPolesGain, StateSpace, TransferFunction, lti
+    Notes
+    -----
+    `dlti` instances do not exist directly. Instead, `dlti` creates an instance
+    of one of its subclasses: `StateSpace`, `TransferFunction` or
+    `ZerosPolesGain`.
+    Changing the value of properties that are not directly part of the current
+    system representation (such as the `zeros` of a `StateSpace` system) is
+    very inefficient and may lead to numerical inaccuracies.  It is better to
+    convert to the specific system representation first. For example, call
+    ``sys = sys.to_zpk()`` before accessing/changing the zeros, poles or gain.
+    If (numerator, denominator) is passed in for ``*system``, coefficients for
+    both the numerator and denominator should be specified in descending
+    exponent order (e.g., ``z^2 + 3z + 5`` would be represented as ``[1, 3,
+    5]``).
+    .. versionadded:: 0.18.0
+    Examples
+    --------
+    >>> from scipy import signal
+    >>> signal.dlti(1, 2, 3, 4)
+    StateSpaceDiscrete(
+    array([[1]]),
+    array([[2]]),
+    array([[3]]),
+    array([[4]]),
+    dt: True
+    )
+    >>> signal.dlti(1, 2, 3, 4, dt=0.1)
+    StateSpaceDiscrete(
+    array([[1]]),
+    array([[2]]),
+    array([[3]]),
+    array([[4]]),
+    dt: 0.1
+    )
+    >>> signal.dlti([1, 2], [3, 4], 5, dt=0.1)
+    ZerosPolesGainDiscrete(
+    array([1, 2]),
+    array([3, 4]),
+    5,
+    dt: 0.1
+    )
+    >>> signal.dlti([3, 4], [1, 2], dt=0.1)
+    TransferFunctionDiscrete(
+    array([3., 4.]),
+    array([1., 2.]),
+    dt: 0.1
+    )
+    c
+zG`system` needs to be an instance of `dlti` or have 2, 3 or 4 arguments.)
+TransferFunctionDiscreter7
+ZerosPolesGainDiscrete
+StateSpaceDiscreter`
+dlti.__new__c
+popr6
+dlti.__init__c
+z'Return the sampling time of the system.rH
+dlti.dtc
+        Return the impulse response of the discrete-time `dlti` system.
+        See `dimpulse` for details.
+        
+dlti.impulsec
+        Return the step response of the discrete-time `dlti` system.
+        See `dstep` for details.
+        rz
+z	dlti.stepc
+        Return the response of the discrete-time system to input `u`.
+        See `dlsim` for details.
+        )
+dlti.outputri
+        Calculate Bode magnitude and phase data of a discrete-time system.
+        Returns a 3-tuple containing arrays of frequencies [rad/s], magnitude
+        [dB] and phase [deg]. See `dbode` for details.
+        Examples
+        --------
+        >>> from scipy import signal
+        >>> import matplotlib.pyplot as plt
+        Transfer function: H(z) = 1 / (z^2 + 2z + 3) with sampling time 0.5s
+        >>> sys = signal.TransferFunction([1], [1, 2, 3], dt=0.5)
+        Equivalent: signal.dbode(sys)
+        >>> w, mag, phase = sys.bode()
+        >>> plt.figure()
+        >>> plt.semilogx(w, mag)    # Bode magnitude plot
+        >>> plt.figure()
+        >>> plt.semilogx(w, phase)  # Bode phase plot
+        >>> plt.show()
+        rj
+z	dlti.bodern
+        Calculate the frequency response of a discrete-time system.
+        Returns a 2-tuple containing arrays of frequencies [rad/s] and
+        complex magnitude.
+        See `dfreqresp` for details.
+        )
+whole)
+dlti.freqresp)
+NNN)
+NNN)
+setterr(
+Linear Time Invariant system class in transfer function form.
+    Represents the system as the continuous-time transfer function
+    :math:`H(s)=\sum_{i=0}^N b[N-i] s^i / \sum_{j=0}^M a[M-j] s^j` or the
+    discrete-time transfer function
+    :math:`H(s)=\sum_{i=0}^N b[N-i] z^i / \sum_{j=0}^M a[M-j] z^j`, where
+    :math:`b` are elements of the numerator `num`, :math:`a` are elements of
+    the denominator `den`, and ``N == len(b) - 1``, ``M == len(a) - 1``.
+    `TransferFunction` systems inherit additional
+    functionality from the `lti`, respectively the `dlti` classes, depending on
+    which system representation is used.
+    Parameters
+    ----------
+    *system: arguments
+        The `TransferFunction` class can be instantiated with 1 or 2
+        arguments. The following gives the number of input arguments and their
+        interpretation:
+            * 1: `lti` or `dlti` system: (`StateSpace`, `TransferFunction` or
+              `ZerosPolesGain`)
+            * 2: array_like: (numerator, denominator)
+    dt: float, optional
+        Sampling time [s] of the discrete-time systems. Defaults to `None`
+        (continuous-time). Must be specified as a keyword argument, for
+        example, ``dt=0.1``.
+    See Also
+    --------
+    ZerosPolesGain, StateSpace, lti, dlti
+    tf2ss, tf2zpk, tf2sos
+    Notes
+    -----
+    Changing the value of properties that are not part of the
+    `TransferFunction` system representation (such as the `A`, `B`, `C`, `D`
+    state-space matrices) is very inefficient and may lead to numerical
+    inaccuracies.  It is better to convert to the specific system
+    representation first. For example, call ``sys = sys.to_ss()`` before
+    accessing/changing the A, B, C, D system matrices.
+    If (numerator, denominator) is passed in for ``*system``, coefficients
+    for both the numerator and denominator should be specified in descending
+    exponent order (e.g. ``s^2 + 3s + 5`` or ``z^2 + 3z + 5`` would be
+    represented as ``[1, 3, 5]``)
+    Examples
+    --------
+    Construct the transfer function:
+    .. math:: H(s) = \frac{s^2 + 3s + 3}{s^2 + 2s + 1}
+    >>> from scipy import signal
+    >>> num = [1, 3, 3]
+    >>> den = [1, 2, 1]
+    >>> signal.TransferFunction(num, den)
+    TransferFunctionContinuous(
+    array([1., 3., 3.]),
+    array([1., 2., 1.]),
+    dt: None
+    )
+    Construct the transfer function with a sampling time of 0.1 seconds:
+    .. math:: H(z) = \frac{z^2 + 3z + 3}{z^2 + 2z + 1}
+    >>> signal.TransferFunction(num, den, dt=0.1)
+    TransferFunctionDiscrete(
+    array([1., 3., 3.]),
+    array([1., 2., 1.]),
+    dt: 0.1
+    )
+    c
+z8Handle object conversion if input is an instance of lti.r
+getr]
+TransferFunction.__new__c
+z&Initialize the state space LTI system.r
+_num
+_denr
+TransferFunction.__init__c
+z7Return representation of the system's transfer functionz
+{0}(
+{1},
+{2},
+dt: {3}
+formatr=
+reprr
+__repr__N
+TransferFunction.__repr__c
+z+Numerator of the `TransferFunction` system.)
+TransferFunction.numc
+shaperD
+z-Denominator of the `TransferFunction` system.)
+TransferFunction.denc
+        Copy the parameters of another `TransferFunction` object
+        Parameters
+        ----------
+        system : `TransferFunction`
+            The `StateSpace` system that is to be copied
+        N)
+_copyp
+TransferFunction._copyc
+        Return a copy of the current `TransferFunction` system.
+        Returns
+        -------
+        sys : instance of `TransferFunction`
+            The current system (copy)
+        
+copyZ
+deepcopyrF
+TransferFunction.to_tfc
+        Convert system representation to `ZerosPolesGain`.
+        Returns
+        -------
+        sys : instance of `ZerosPolesGain`
+            Zeros, poles, gain representation of the current system
+        )
+TransferFunction.to_zpkc
+        Convert system representation to `StateSpace`.
+        Returns
+        -------
+        sys : instance of `StateSpace`
+            State space model of the current system
+        )
+TransferFunction.to_ssc
+Change a transfer function from the variable `z` to `z**-1`.
+        Parameters
+        ----------
+        num, den: 1d array_like
+            Sequences representing the coefficients of the numerator and
+            denominator polynomials, in order of descending degree of 'z'.
+            That is, ``5z**2 + 3z + 2`` is presented as ``[5, 3, 2]``.
+        Returns
+        -------
+        num, den: 1d array_like
+            Sequences representing the coefficients of the numerator and
+            denominator polynomials, in order of ascending degree of 'z**-1'.
+            That is, ``5 + 3 z**-1 + 2 z**-2`` is presented as ``[5, 3, 2]``.
+        r
+hstackr
+diffr>
+_z_to_zinv
+TransferFunction._z_to_zinvc
+Change a transfer function from the variable `z` to `z**-1`.
+        Parameters
+        ----------
+        num, den: 1d array_like
+            Sequences representing the coefficients of the numerator and
+            denominator polynomials, in order of ascending degree of 'z**-1'.
+            That is, ``5 + 3 z**-1 + 2 z**-2`` is presented as ``[5, 3, 2]``.
+        Returns
+        -------
+        num, den: 1d array_like
+            Sequences representing the coefficients of the numerator and
+            denominator polynomials, in order of descending degree of 'z'.
+            That is, ``5z**2 + 3z + 2`` is presented as ``[5, 3, 2]``.
+        r
+_zinv_to_z
+TransferFunction._zinv_to_z)
+staticmethodr
+    Continuous-time Linear Time Invariant system in transfer function form.
+    Represents the system as the transfer function
+    :math:`H(s)=\sum_{i=0}^N b[N-i] s^i / \sum_{j=0}^M a[M-j] s^j`, where
+    :math:`b` are elements of the numerator `num`, :math:`a` are elements of
+    the denominator `den`, and ``N == len(b) - 1``, ``M == len(a) - 1``.
+    Continuous-time `TransferFunction` systems inherit additional
+    functionality from the `lti` class.
+    Parameters
+    ----------
+    *system: arguments
+        The `TransferFunction` class can be instantiated with 1 or 2
+        arguments. The following gives the number of input arguments and their
+        interpretation:
+            * 1: `lti` system: (`StateSpace`, `TransferFunction` or
+              `ZerosPolesGain`)
+            * 2: array_like: (numerator, denominator)
+    See Also
+    --------
+    ZerosPolesGain, StateSpace, lti
+    tf2ss, tf2zpk, tf2sos
+    Notes
+    -----
+    Changing the value of properties that are not part of the
+    `TransferFunction` system representation (such as the `A`, `B`, `C`, `D`
+    state-space matrices) is very inefficient and may lead to numerical
+    inaccuracies.  It is better to convert to the specific system
+    representation first. For example, call ``sys = sys.to_ss()`` before
+    accessing/changing the A, B, C, D system matrices.
+    If (numerator, denominator) is passed in for ``*system``, coefficients
+    for both the numerator and denominator should be specified in descending
+    exponent order (e.g. ``s^2 + 3s + 5`` would be represented as
+    ``[1, 3, 5]``)
+    Examples
+    --------
+    Construct the transfer function:
+    .. math:: H(s) = \frac{s^2 + 3s + 3}{s^2 + 2s + 1}
+    >>> from scipy import signal
+    >>> num = [1, 3, 3]
+    >>> den = [1, 2, 1]
+    >>> signal.TransferFunction(num, den)
+    TransferFunctionContinuous(
+    array([ 1.,  3.,  3.]),
+    array([ 1.,  2.,  1.]),
+    dt: None
+    )
+    ro
+        Returns the discretized `TransferFunction` system.
+        Parameters: See `cont2discrete` for details.
+        Returns
+        -------
+        sys: instance of `dlti` and `StateSpace`
+        
+z&TransferFunctionContinuous.to_discrete)
+    Discrete-time Linear Time Invariant system in transfer function form.
+    Represents the system as the transfer function
+    :math:`H(z)=\sum_{i=0}^N b[N-i] z^i / \sum_{j=0}^M a[M-j] z^j`, where
+    :math:`b` are elements of the numerator `num`, :math:`a` are elements of
+    the denominator `den`, and ``N == len(b) - 1``, ``M == len(a) - 1``.
+    Discrete-time `TransferFunction` systems inherit additional functionality
+    from the `dlti` class.
+    Parameters
+    ----------
+    *system: arguments
+        The `TransferFunction` class can be instantiated with 1 or 2
+        arguments. The following gives the number of input arguments and their
+        interpretation:
+            * 1: `dlti` system: (`StateSpace`, `TransferFunction` or
+              `ZerosPolesGain`)
+            * 2: array_like: (numerator, denominator)
+    dt: float, optional
+        Sampling time [s] of the discrete-time systems. Defaults to `True`
+        (unspecified sampling time). Must be specified as a keyword argument,
+        for example, ``dt=0.1``.
+    See Also
+    --------
+    ZerosPolesGain, StateSpace, dlti
+    tf2ss, tf2zpk, tf2sos
+    Notes
+    -----
+    Changing the value of properties that are not part of the
+    `TransferFunction` system representation (such as the `A`, `B`, `C`, `D`
+    state-space matrices) is very inefficient and may lead to numerical
+    inaccuracies.
+    If (numerator, denominator) is passed in for ``*system``, coefficients
+    for both the numerator and denominator should be specified in descending
+    exponent order (e.g., ``z^2 + 3z + 5`` would be represented as
+    ``[1, 3, 5]``).
+    Examples
+    --------
+    Construct the transfer function with a sampling time of 0.5 seconds:
+    .. math:: H(z) = \frac{z^2 + 3z + 3}{z^2 + 2z + 1}
+    >>> from scipy import signal
+    >>> num = [1, 3, 3]
+    >>> den = [1, 2, 1]
+    >>> signal.TransferFunction(num, den, 0.5)
+    TransferFunctionDiscrete(
+    array([ 1.,  3.,  3.]),
+    array([ 1.,  2.,  1.]),
+    dt: 0.5
+    )
+    N
+    Linear Time Invariant system class in zeros, poles, gain form.
+    Represents the system as the continuous- or discrete-time transfer function
+    :math:`H(s)=k \prod_i (s - z[i]) / \prod_j (s - p[j])`, where :math:`k` is
+    the `gain`, :math:`z` are the `zeros` and :math:`p` are the `poles`.
+    `ZerosPolesGain` systems inherit additional functionality from the `lti`,
+    respectively the `dlti` classes, depending on which system representation
+    is used.
+    Parameters
+    ----------
+    *system : arguments
+        The `ZerosPolesGain` class can be instantiated with 1 or 3
+        arguments. The following gives the number of input arguments and their
+        interpretation:
+            * 1: `lti` or `dlti` system: (`StateSpace`, `TransferFunction` or
+              `ZerosPolesGain`)
+            * 3: array_like: (zeros, poles, gain)
+    dt: float, optional
+        Sampling time [s] of the discrete-time systems. Defaults to `None`
+        (continuous-time). Must be specified as a keyword argument, for
+        example, ``dt=0.1``.
+    See Also
+    --------
+    TransferFunction, StateSpace, lti, dlti
+    zpk2ss, zpk2tf, zpk2sos
+    Notes
+    -----
+    Changing the value of properties that are not part of the
+    `ZerosPolesGain` system representation (such as the `A`, `B`, `C`, `D`
+    state-space matrices) is very inefficient and may lead to numerical
+    inaccuracies.  It is better to convert to the specific system
+    representation first. For example, call ``sys = sys.to_ss()`` before
+    accessing/changing the A, B, C, D system matrices.
+    Examples
+    --------
+    >>> from scipy import signal
+    Transfer function: H(s) = 5(s - 1)(s - 2) / (s - 3)(s - 4)
+    >>> signal.ZerosPolesGain([1, 2], [3, 4], 5)
+    ZerosPolesGainContinuous(
+    array([1, 2]),
+    array([3, 4]),
+    5,
+    dt: None
+    )
+    Transfer function: H(z) = 5(z - 1)(z - 2) / (z - 3)(z - 4)
+    >>> signal.ZerosPolesGain([1, 2], [3, 4], 5, dt=0.1)
+    ZerosPolesGainDiscrete(
+    array([1, 2]),
+    array([3, 4]),
+    5,
+    dt: 0.1
+    )
+    c
+z9Handle object conversion if input is an instance of `lti`r
+ZerosPolesGain.__new__c
+z)Initialize the zeros, poles, gain system.r
+_zeros
+_poles
+_gainr
+gainr
+ZerosPolesGain.__init__c
+z5Return representation of the `ZerosPolesGain` system.z
+{0}(
+{1},
+{2},
+{3},
+dt: {4}
+ZerosPolesGain.__repr__c
+z%Zeros of the `ZerosPolesGain` system.)
+ZerosPolesGain.zerosc
+z%Poles of the `ZerosPolesGain` system.)
+ZerosPolesGain.polesc
+z$Gain of the `ZerosPolesGain` system.
+ZerosPolesGain.gainc
+        Copy the parameters of another `ZerosPolesGain` system.
+        Parameters
+        ----------
+        system : instance of `ZerosPolesGain`
+            The zeros, poles gain system that is to be copied
+        N)
+ZerosPolesGain._copyc
+        Convert system representation to `TransferFunction`.
+        Returns
+        -------
+        sys : instance of `TransferFunction`
+            Transfer function of the current system
+        )
+ZerosPolesGain.to_tfc
+        Return a copy of the current 'ZerosPolesGain' system.
+        Returns
+        -------
+        sys : instance of `ZerosPolesGain`
+            The current system (copy)
+        r
+ZerosPolesGain.to_zpkc
+ZerosPolesGain.to_ss)
+    Continuous-time Linear Time Invariant system in zeros, poles, gain form.
+    Represents the system as the continuous time transfer function
+    :math:`H(s)=k \prod_i (s - z[i]) / \prod_j (s - p[j])`, where :math:`k` is
+    the `gain`, :math:`z` are the `zeros` and :math:`p` are the `poles`.
+    Continuous-time `ZerosPolesGain` systems inherit additional functionality
+    from the `lti` class.
+    Parameters
+    ----------
+    *system : arguments
+        The `ZerosPolesGain` class can be instantiated with 1 or 3
+        arguments. The following gives the number of input arguments and their
+        interpretation:
+            * 1: `lti` system: (`StateSpace`, `TransferFunction` or
+              `ZerosPolesGain`)
+            * 3: array_like: (zeros, poles, gain)
+    See Also
+    --------
+    TransferFunction, StateSpace, lti
+    zpk2ss, zpk2tf, zpk2sos
+    Notes
+    -----
+    Changing the value of properties that are not part of the
+    `ZerosPolesGain` system representation (such as the `A`, `B`, `C`, `D`
+    state-space matrices) is very inefficient and may lead to numerical
+    inaccuracies.  It is better to convert to the specific system
+    representation first. For example, call ``sys = sys.to_ss()`` before
+    accessing/changing the A, B, C, D system matrices.
+    Examples
+    --------
+    >>> from scipy import signal
+    Transfer function: H(s) = 5(s - 1)(s - 2) / (s - 3)(s - 4)
+    >>> signal.ZerosPolesGain([1, 2], [3, 4], 5)
+    ZerosPolesGainContinuous(
+    array([1, 2]),
+    array([3, 4]),
+    5,
+    dt: None
+    )
+    ro
+        Returns the discretized `ZerosPolesGain` system.
+        Parameters: See `cont2discrete` for details.
+        Returns
+        -------
+        sys: instance of `dlti` and `ZerosPolesGain`
+        r
+z$ZerosPolesGainContinuous.to_discrete)
+    Discrete-time Linear Time Invariant system in zeros, poles, gain form.
+    Represents the system as the discrete-time transfer function
+    :math:`H(s)=k \prod_i (s - z[i]) / \prod_j (s - p[j])`, where :math:`k` is
+    the `gain`, :math:`z` are the `zeros` and :math:`p` are the `poles`.
+    Discrete-time `ZerosPolesGain` systems inherit additional functionality
+    from the `dlti` class.
+    Parameters
+    ----------
+    *system : arguments
+        The `ZerosPolesGain` class can be instantiated with 1 or 3
+        arguments. The following gives the number of input arguments and their
+        interpretation:
+            * 1: `dlti` system: (`StateSpace`, `TransferFunction` or
+              `ZerosPolesGain`)
+            * 3: array_like: (zeros, poles, gain)
+    dt: float, optional
+        Sampling time [s] of the discrete-time systems. Defaults to `True`
+        (unspecified sampling time). Must be specified as a keyword argument,
+        for example, ``dt=0.1``.
+    See Also
+    --------
+    TransferFunction, StateSpace, dlti
+    zpk2ss, zpk2tf, zpk2sos
+    Notes
+    -----
+    Changing the value of properties that are not part of the
+    `ZerosPolesGain` system representation (such as the `A`, `B`, `C`, `D`
+    state-space matrices) is very inefficient and may lead to numerical
+    inaccuracies.  It is better to convert to the specific system
+    representation first. For example, call ``sys = sys.to_ss()`` before
+    accessing/changing the A, B, C, D system matrices.
+    Examples
+    --------
+    >>> from scipy import signal
+    Transfer function: H(s) = 5(s - 1)(s - 2) / (s - 3)(s - 4)
+    >>> signal.ZerosPolesGain([1, 2], [3, 4], 5)
+    ZerosPolesGainContinuous(
+    array([1, 2]),
+    array([3, 4]),
+    5,
+    dt: None
+    )
+    Transfer function: H(z) = 5(z - 1)(z - 2) / (z - 3)(z - 4)
+    >>> signal.ZerosPolesGain([1, 2], [3, 4], 5, dt=0.1)
+    ZerosPolesGainDiscrete(
+    array([1, 2]),
+    array([3, 4]),
+    5,
+    dt: 0.1
+    )
+    Nr
+argr>
+_atleast_2d_or_none
+d!d 
+d"d#
+d$d#
+d%d&
+d'd&
+d(d)
+d*d+
+d,d-
+d.d/
+)0r%
+    Linear Time Invariant system in state-space form.
+    Represents the system as the continuous-time, first order differential
+    equation :math:`\dot{x} = A x + B u` or the discrete-time difference
+    equation :math:`x[k+1] = A x[k] + B u[k]`. `StateSpace` systems
+    inherit additional functionality from the `lti`, respectively the `dlti`
+    classes, depending on which system representation is used.
+    Parameters
+    ----------
+    *system: arguments
+        The `StateSpace` class can be instantiated with 1 or 4 arguments.
+        The following gives the number of input arguments and their
+        interpretation:
+            * 1: `lti` or `dlti` system: (`StateSpace`, `TransferFunction` or
+              `ZerosPolesGain`)
+            * 4: array_like: (A, B, C, D)
+    dt: float, optional
+        Sampling time [s] of the discrete-time systems. Defaults to `None`
+        (continuous-time). Must be specified as a keyword argument, for
+        example, ``dt=0.1``.
+    See Also
+    --------
+    TransferFunction, ZerosPolesGain, lti, dlti
+    ss2zpk, ss2tf, zpk2sos
+    Notes
+    -----
+    Changing the value of properties that are not part of the
+    `StateSpace` system representation (such as `zeros` or `poles`) is very
+    inefficient and may lead to numerical inaccuracies.  It is better to
+    convert to the specific system representation first. For example, call
+    ``sys = sys.to_zpk()`` before accessing/changing the zeros, poles or gain.
+    Examples
+    --------
+    >>> from scipy import signal
+    >>> a = np.array([[0, 1], [0, 0]])
+    >>> b = np.array([[0], [1]])
+    >>> c = np.array([[1, 0]])
+    >>> d = np.array([[0]])
+    >>> sys = signal.StateSpace(a, b, c, d)
+    >>> print(sys)
+    StateSpaceContinuous(
+    array([[0, 1],
+           [0, 0]]),
+    array([[0],
+           [1]]),
+    array([[1, 0]]),
+    array([[0]]),
+    dt: None
+    )
+    >>> sys.to_discrete(0.1)
+    StateSpaceDiscrete(
+    array([[1. , 0.1],
+           [0. , 1. ]]),
+    array([[0.005],
+           [0.1  ]]),
+    array([[1, 0]]),
+    array([[0]]),
+    dt: 0.1
+    )
+    >>> a = np.array([[1, 0.1], [0, 1]])
+    >>> b = np.array([[0.005], [0.1]])
+    >>> signal.StateSpace(a, b, c, d, dt=0.1)
+    StateSpaceDiscrete(
+    array([[1. , 0.1],
+           [0. , 1. ]]),
+    array([[0.005],
+           [0.1  ]]),
+    array([[1, 0]]),
+    array([[0]]),
+    dt: 0.1
+    )
+    g
+Y@Nc
+z4Create new StateSpace object and settle inheritance.r
+StateSpace.__new__c
+z+Initialize the state space lti/dlti system.r
+StateSpace.__init__c
+z1Return representation of the `StateSpace` system.z"{0}(
+{1},
+{2},
+{3},
+{4},
+dt: {5}
+))	r
+StateSpace.__repr__c
+ndarray
+float
+complexZ
+number
+otherr>
+_check_binop_other>
+StateSpace._check_binop_otherc
+        Post-multiply another system or a scalar
+        Handles multiplication of systems in the sense of a frequency domain
+        multiplication. That means, given two systems E1(s) and E2(s), their
+        multiplication, H(s) = E1(s) * E2(s), means that applying H(s) to U(s)
+        is equivalent to first applying E2(s), and then E1(s).
+        Notes
+        -----
+        For SISO systems the order of system application does not matter.
+        However, for MIMO systems, where the two systems are matrices, the
+        order above ensures standard Matrix multiplication rules apply.
+        z,Cannot multiply systems with different `dt`.r
+dtype)
+NotImplementedrM
+typerI
+	TypeErrorr
+vstackr
+find_common_typer
+)	rG
+common_dtyper>
+__mul__B
+StateSpace.__mul__c
+z4Pre-multiply a scalar or matrix (but not StateSpace)r>
+__rmul__~
+StateSpace.__rmul__c
+z8Negate the system (equivalent to pre-multiplying by -1).)
+__neg__
+StateSpace.__neg__c
+        Adds two systems in the sense of frequency domain addition.
+        z
+Cannot add {} and {}z'Cannot add systems with different `dt`.z;Cannot add systems with incompatible dimensions ({} and {})r>
+block_diagr
+__add__
+StateSpace.__add__c
+__sub__
+StateSpace.__sub__c
+__radd__
+StateSpace.__radd__c
+__rsub__
+StateSpace.__rsub__c
+        Divide by a scalar
+        r
+z3Cannot divide StateSpace by non-scalar numpy arraysr
+ndimr`
+__truediv__
+StateSpace.__truediv__c
+z(State matrix of the `StateSpace` system.)
+StateSpace.Ac
+z(Input matrix of the `StateSpace` system.)
+StateSpace.Bc
+z)Output matrix of the `StateSpace` system.)
+StateSpace.Cc
+z.Feedthrough matrix of the `StateSpace` system.)
+StateSpace.Dc
+        Copy the parameters of another `StateSpace` system.
+        Parameters
+        ----------
+        system : instance of `StateSpace`
+            The state-space system that is to be copied
+        N)
+StateSpace._copyc
+        Convert system representation to `TransferFunction`.
+        Parameters
+        ----------
+        kwargs : dict, optional
+            Additional keywords passed to `ss2zpk`
+        Returns
+        -------
+        sys : instance of `TransferFunction`
+            Transfer function of the current system
+        )
+StateSpace.to_tfc
+        Convert system representation to `ZerosPolesGain`.
+        Parameters
+        ----------
+        kwargs : dict, optional
+            Additional keywords passed to `ss2zpk`
+        Returns
+        -------
+        sys : instance of `ZerosPolesGain`
+            Zeros, poles, gain representation of the current system
+        )
+StateSpace.to_zpkc
+        Return a copy of the current `StateSpace` system.
+        Returns
+        -------
+        sys : instance of `StateSpace`
+            The current system (copy)
+        r
+StateSpace.to_ss)
+__array_priority__Z
+__array_ufunc__r7
+    Continuous-time Linear Time Invariant system in state-space form.
+    Represents the system as the continuous-time, first order differential
+    equation :math:`\dot{x} = A x + B u`.
+    Continuous-time `StateSpace` systems inherit additional functionality
+    from the `lti` class.
+    Parameters
+    ----------
+    *system: arguments
+        The `StateSpace` class can be instantiated with 1 or 3 arguments.
+        The following gives the number of input arguments and their
+        interpretation:
+            * 1: `lti` system: (`StateSpace`, `TransferFunction` or
+              `ZerosPolesGain`)
+            * 4: array_like: (A, B, C, D)
+    See Also
+    --------
+    TransferFunction, ZerosPolesGain, lti
+    ss2zpk, ss2tf, zpk2sos
+    Notes
+    -----
+    Changing the value of properties that are not part of the
+    `StateSpace` system representation (such as `zeros` or `poles`) is very
+    inefficient and may lead to numerical inaccuracies.  It is better to
+    convert to the specific system representation first. For example, call
+    ``sys = sys.to_zpk()`` before accessing/changing the zeros, poles or gain.
+    Examples
+    --------
+    >>> from scipy import signal
+    >>> a = np.array([[0, 1], [0, 0]])
+    >>> b = np.array([[0], [1]])
+    >>> c = np.array([[1, 0]])
+    >>> d = np.array([[0]])
+    >>> sys = signal.StateSpace(a, b, c, d)
+    >>> print(sys)
+    StateSpaceContinuous(
+    array([[0, 1],
+           [0, 0]]),
+    array([[0],
+           [1]]),
+    array([[1, 0]]),
+    array([[0]]),
+    dt: None
+    )
+    ro
+        Returns the discretized `StateSpace` system.
+        Parameters: See `cont2discrete` for details.
+        Returns
+        -------
+        sys: instance of `dlti` and `StateSpace`
+        r
+z StateSpaceContinuous.to_discrete)
+    Discrete-time Linear Time Invariant system in state-space form.
+    Represents the system as the discrete-time difference equation
+    :math:`x[k+1] = A x[k] + B u[k]`.
+    `StateSpace` systems inherit additional functionality from the `dlti`
+    class.
+    Parameters
+    ----------
+    *system: arguments
+        The `StateSpace` class can be instantiated with 1 or 3 arguments.
+        The following gives the number of input arguments and their
+        interpretation:
+            * 1: `dlti` system: (`StateSpace`, `TransferFunction` or
+              `ZerosPolesGain`)
+            * 4: array_like: (A, B, C, D)
+    dt: float, optional
+        Sampling time [s] of the discrete-time systems. Defaults to `True`
+        (unspecified sampling time). Must be specified as a keyword argument,
+        for example, ``dt=0.1``.
+    See Also
+    --------
+    TransferFunction, ZerosPolesGain, dlti
+    ss2zpk, ss2tf, zpk2sos
+    Notes
+    -----
+    Changing the value of properties that are not part of the
+    `StateSpace` system representation (such as `zeros` or `poles`) is very
+    inefficient and may lead to numerical inaccuracies.  It is better to
+    convert to the specific system representation first. For example, call
+    ``sys = sys.to_zpk()`` before accessing/changing the zeros, poles or gain.
+    Examples
+    --------
+    >>> from scipy import signal
+    >>> a = np.array([[1, 0.1], [0, 1]])
+    >>> b = np.array([[0.005], [0.1]])
+    >>> c = np.array([[1, 0]])
+    >>> d = np.array([[0]])
+    >>> signal.StateSpace(a, b, c, d, dt=0.1)
+    StateSpaceDiscrete(
+    array([[ 1. ,  0.1],
+           [ 0. ,  1. ]]),
+    array([[ 0.005],
+           [ 0.1  ]]),
+    array([[1, 0]]),
+    array([[0]]),
+    dt: 0.1
+    )
+    Nr
+    Simulate output of a continuous-time linear system, by using
+    the ODE solver `scipy.integrate.odeint`.
+    Parameters
+    ----------
+    system : an instance of the `lti` class or a tuple describing the system.
+        The following gives the number of elements in the tuple and
+        the interpretation:
+        * 1: (instance of `lti`)
+        * 2: (num, den)
+        * 3: (zeros, poles, gain)
+        * 4: (A, B, C, D)
+    U : array_like (1D or 2D), optional
+        An input array describing the input at each time T.  Linear
+        interpolation is used between given times.  If there are
+        multiple inputs, then each column of the rank-2 array
+        represents an input.  If U is not given, the input is assumed
+        to be zero.
+    T : array_like (1D or 2D), optional
+        The time steps at which the input is defined and at which the
+        output is desired.  The default is 101 evenly spaced points on
+        the interval [0,10.0].
+    X0 : array_like (1D), optional
+        The initial condition of the state vector.  If `X0` is not
+        given, the initial conditions are assumed to be 0.
+    kwargs : dict
+        Additional keyword arguments are passed on to the function
+        `odeint`.  See the notes below for more details.
+    Returns
+    -------
+    T : 1D ndarray
+        The time values for the output.
+    yout : ndarray
+        The response of the system.
+    xout : ndarray
+        The time-evolution of the state-vector.
+    Notes
+    -----
+    This function uses `scipy.integrate.odeint` to solve the
+    system's differential equations.  Additional keyword arguments
+    given to `lsim2` are passed on to `odeint`.  See the documentation
+    for `scipy.integrate.odeint` for the full list of arguments.
+    If (num, den) is passed in for ``system``, coefficients for both the
+    numerator and denominator should be specified in descending exponent
+    order (e.g. ``s^2 + 3s + 5`` would be represented as ``[1, 3, 5]``).
+    See Also
+    --------
+    lsim
+    Examples
+    --------
+    We'll use `lsim2` to simulate an analog Bessel filter applied to
+    a signal.
+    >>> from scipy.signal import bessel, lsim2
+    >>> import matplotlib.pyplot as plt
+    Create a low-pass Bessel filter with a cutoff of 12 Hz.
+    >>> b, a = bessel(N=5, Wn=2*np.pi*12, btype='lowpass', analog=True)
+    Generate data to which the filter is applied.
+    >>> t = np.linspace(0, 1.25, 500, endpoint=False)
+    The input signal is the sum of three sinusoidal curves, with
+    frequencies 4 Hz, 40 Hz, and 80 Hz.  The filter should mostly
+    eliminate the 40 Hz and 80 Hz components, leaving just the 4 Hz signal.
+    >>> u = (np.cos(2*np.pi*4*t) + 0.6*np.sin(2*np.pi*40*t) +
+    ...      0.5*np.cos(2*np.pi*80*t))
+    Simulate the filter with `lsim2`.
+    >>> tout, yout, xout = lsim2((b, a), U=u, T=t)
+    Plot the result.
+    >>> plt.plot(t, u, 'r', alpha=0.5, linewidth=1, label='input')
+    >>> plt.plot(tout, yout, 'k', linewidth=1.5, label='output')
+    >>> plt.legend(loc='best', shadow=True, framealpha=1)
+    >>> plt.grid(alpha=0.3)
+    >>> plt.xlabel('t')
+    >>> plt.show()
+    In a second example, we simulate a double integrator ``y'' = u``, with
+    a constant input ``u = 1``.  We'll use the state space representation
+    of the integrator.
+    >>> from scipy.signal import lti
+    >>> A = np.array([[0, 1], [0, 0]])
+    >>> B = np.array([[0], [1]])
+    >>> C = np.array([[1, 0]])
+    >>> D = 0
+    >>> system = lti(A, B, C, D)
+    `t` and `u` define the time and input signal for the system to
+    be simulated.
+    >>> t = np.linspace(0, 5, num=50)
+    >>> u = np.ones_like(t)
+    Compute the simulation, and then plot `y`.  As expected, the plot shows
+    the curve ``y = 0.5*t**2``.
+    >>> tout, y, x = lsim2(system, u, t)
+    >>> plt.plot(t, y)
+    >>> plt.grid(alpha=0.3)
+    >>> plt.xlabel('t')
+    >>> plt.show()
+    z4lsim2 can only be used with continuous-time systems.Nr
+T must be a rank-1 array.r
+5U must have the same number of rows as elements in T.zVThe number of inputs in U (%d) is not compatible with the number of system inputs (%d)Z
+linearF)
+kind
+axis
+bounds_errorc
+z&The vector field of the linear system.)
+ufuncr>
+fprimet
+lsim2.<locals>.fprime
+argsc
+AttributeErrorr
+reshaperC
+odeintr
+xout
+youtr>
+z~Cast array to dtype of other array, while avoiding ComplexWarning.
+    Those can be raised when casting complex to real.
+    )
+numpyZ
+issubdtyper
+float64r
+astype)
+in1Z
+in2r>
+_cast_to_array_dtype
+    Simulate output of a continuous-time linear system.
+    Parameters
+    ----------
+    system : an instance of the LTI class or a tuple describing the system.
+        The following gives the number of elements in the tuple and
+        the interpretation:
+        * 1: (instance of `lti`)
+        * 2: (num, den)
+        * 3: (zeros, poles, gain)
+        * 4: (A, B, C, D)
+    U : array_like
+        An input array describing the input at each time `T`
+        (interpolation is assumed between given times).  If there are
+        multiple inputs, then each column of the rank-2 array
+        represents an input.  If U = 0 or None, a zero input is used.
+    T : array_like
+        The time steps at which the input is defined and at which the
+        output is desired.  Must be nonnegative, increasing, and equally spaced.
+    X0 : array_like, optional
+        The initial conditions on the state vector (zero by default).
+    interp : bool, optional
+        Whether to use linear (True, the default) or zero-order-hold (False)
+        interpolation for the input array.
+    Returns
+    -------
+    T : 1D ndarray
+        Time values for the output.
+    yout : 1D ndarray
+        System response.
+    xout : ndarray
+        Time evolution of the state vector.
+    Notes
+    -----
+    If (num, den) is passed in for ``system``, coefficients for both the
+    numerator and denominator should be specified in descending exponent
+    order (e.g. ``s^2 + 3s + 5`` would be represented as ``[1, 3, 5]``).
+    Examples
+    --------
+    We'll use `lsim` to simulate an analog Bessel filter applied to
+    a signal.
+    >>> from scipy.signal import bessel, lsim
+    >>> import matplotlib.pyplot as plt
+    Create a low-pass Bessel filter with a cutoff of 12 Hz.
+    >>> b, a = bessel(N=5, Wn=2*np.pi*12, btype='lowpass', analog=True)
+    Generate data to which the filter is applied.
+    >>> t = np.linspace(0, 1.25, 500, endpoint=False)
+    The input signal is the sum of three sinusoidal curves, with
+    frequencies 4 Hz, 40 Hz, and 80 Hz.  The filter should mostly
+    eliminate the 40 Hz and 80 Hz components, leaving just the 4 Hz signal.
+    >>> u = (np.cos(2*np.pi*4*t) + 0.6*np.sin(2*np.pi*40*t) +
+    ...      0.5*np.cos(2*np.pi*80*t))
+    Simulate the filter with `lsim`.
+    >>> tout, yout, xout = lsim((b, a), U=u, T=t)
+    Plot the result.
+    >>> plt.plot(t, u, 'r', alpha=0.5, linewidth=1, label='input')
+    >>> plt.plot(tout, yout, 'k', linewidth=1.5, label='output')
+    >>> plt.legend(loc='best', shadow=True, framealpha=1)
+    >>> plt.grid(alpha=0.3)
+    >>> plt.xlabel('t')
+    >>> plt.show()
+    In a second example, we simulate a double integrator ``y'' = u``, with
+    a constant input ``u = 1``.  We'll use the state space representation
+    of the integrator.
+    >>> from scipy.signal import lti
+    >>> A = np.array([[0.0, 1.0], [0.0, 0.0]])
+    >>> B = np.array([[0.0], [1.0]])
+    >>> C = np.array([[1.0, 0.0]])
+    >>> D = 0.0
+    >>> system = lti(A, B, C, D)
+    `t` and `u` define the time and input signal for the system to
+    be simulated.
+    >>> t = np.linspace(0, 5, num=50)
+    >>> u = np.ones_like(t)
+    Compute the simulation, and then plot `y`.  As expected, the plot shows
+    the curve ``y = 0.5*t**2``.
+    >>> tout, y, x = lsim(system, u, t)
+    >>> plt.plot(t, y)
+    >>> plt.grid(alpha=0.3)
+    >>> plt.xlabel('t')
+    >>> plt.show()
+    z3lsim can only be used with continuous-time systems.r
+Nz Initial time must be nonnegative
+?zLNon-uniform timesteps are deprecated. Results may be slow and/or inaccurate.r
+z(System does not define that many inputs.rY
+)'rM
+mapr
+sizer
+emptyr
+expmr
+anyr
+allclose
+warnings
+warn
+DeprecationWarningr'
+ranger
+newaxisr
+identity)
+interpr
+n_statesZ
+n_inputsZ
+n_stepsr
+no_inputr
+expAT_dt
+expMTZ
+Bd1Z
+Bd0r>
+Compute a reasonable set of time samples for the response time.
+    This function is used by `impulse`, `impulse2`, `step` and `step2`
+    to compute the response time when the `T` argument to the function
+    is None.
+    Parameters
+    ----------
+    A : array_like
+        The system matrix, which is square.
+    n : int
+        The number of time samples to generate.
+    Returns
+    -------
+    t : ndarray
+        The 1-D array of length `n` of time samples at which the response
+        is to be computed.
+    r
+eigvals
+absr
+vals
+tcr|
+_default_response_timesi
+Impulse response of continuous-time system.
+    Parameters
+    ----------
+    system : an instance of the LTI class or a tuple of array_like
+        describing the system.
+        The following gives the number of elements in the tuple and
+        the interpretation:
+            * 1 (instance of `lti`)
+            * 2 (num, den)
+            * 3 (zeros, poles, gain)
+            * 4 (A, B, C, D)
+    X0 : array_like, optional
+        Initial state-vector.  Defaults to zero.
+    T : array_like, optional
+        Time points.  Computed if not given.
+    N : int, optional
+        The number of time points to compute (if `T` is not given).
+    Returns
+    -------
+    T : ndarray
+        A 1-D array of time points.
+    yout : ndarray
+        A 1-D array containing the impulse response of the system (except for
+        singularities at zero).
+    Notes
+    -----
+    If (num, den) is passed in for ``system``, coefficients for both the
+    numerator and denominator should be specified in descending exponent
+    order (e.g. ``s^2 + 3s + 5`` would be represented as ``[1, 3, 5]``).
+    Examples
+    --------
+    Compute the impulse response of a second order system with a repeated
+    root: ``x''(t) + 2*x'(t) + x(t) = u(t)``
+    >>> from scipy import signal
+    >>> system = ([1.0], [1.0, 2.0, 1.0])
+    >>> t, y = signal.impulse(system)
+    >>> import matplotlib.pyplot as plt
+    >>> plt.plot(t, y)
+    z6impulse can only be used with continuous-time systems.Nri
+rht	|
+    Impulse response of a single-input, continuous-time linear system.
+    Parameters
+    ----------
+    system : an instance of the LTI class or a tuple of array_like
+        describing the system.
+        The following gives the number of elements in the tuple and
+        the interpretation:
+            * 1 (instance of `lti`)
+            * 2 (num, den)
+            * 3 (zeros, poles, gain)
+            * 4 (A, B, C, D)
+    X0 : 1-D array_like, optional
+        The initial condition of the state vector.  Default: 0 (the
+        zero vector).
+    T : 1-D array_like, optional
+        The time steps at which the input is defined and at which the
+        output is desired.  If `T` is not given, the function will
+        generate a set of time samples automatically.
+    N : int, optional
+        Number of time points to compute.  Default: 100.
+    kwargs : various types
+        Additional keyword arguments are passed on to the function
+        `scipy.signal.lsim2`, which in turn passes them on to
+        `scipy.integrate.odeint`; see the latter's documentation for
+        information about these arguments.
+    Returns
+    -------
+    T : ndarray
+        The time values for the output.
+    yout : ndarray
+        The output response of the system.
+    See Also
+    --------
+    impulse, lsim2, scipy.integrate.odeint
+    Notes
+    -----
+    The solution is generated by calling `scipy.signal.lsim2`, which uses
+    the differential equation solver `scipy.integrate.odeint`.
+    If (num, den) is passed in for ``system``, coefficients for both the
+    numerator and denominator should be specified in descending exponent
+    order (e.g. ``s^2 + 3s + 5`` would be represented as ``[1, 3, 5]``).
+    .. versionadded:: 0.8.0
+    Examples
+    --------
+    Compute the impulse response of a second order system with a repeated
+    root: ``x''(t) + 2*x'(t) + x(t) = u(t)``
+    >>> from scipy import signal
+    >>> system = ([1.0], [1.0, 2.0, 1.0])
+    >>> t, y = signal.impulse2(system)
+    >>> import matplotlib.pyplot as plt
+    >>> plt.plot(t, y)
+    z7impulse2 can only be used with continuous-time systems.r
+z*impulse2() requires a single-input system.Nri
+Xrr>
+Step response of continuous-time system.
+    Parameters
+    ----------
+    system : an instance of the LTI class or a tuple of array_like
+        describing the system.
+        The following gives the number of elements in the tuple and
+        the interpretation:
+            * 1 (instance of `lti`)
+            * 2 (num, den)
+            * 3 (zeros, poles, gain)
+            * 4 (A, B, C, D)
+    X0 : array_like, optional
+        Initial state-vector (default is zero).
+    T : array_like, optional
+        Time points (computed if not given).
+    N : int, optional
+        Number of time points to compute if `T` is not given.
+    Returns
+    -------
+    T : 1D ndarray
+        Output time points.
+    yout : 1D ndarray
+        Step response of system.
+    See also
+    --------
+    scipy.signal.step2
+    Notes
+    -----
+    If (num, den) is passed in for ``system``, coefficients for both the
+    numerator and denominator should be specified in descending exponent
+    order (e.g. ``s^2 + 3s + 5`` would be represented as ``[1, 3, 5]``).
+    Examples
+    --------
+    >>> from scipy import signal
+    >>> import matplotlib.pyplot as plt
+    >>> lti = signal.lti([1.0], [1.0, 1.0])
+    >>> t, y = signal.step(lti)
+    >>> plt.plot(t, y)
+    >>> plt.xlabel('Time [s]')
+    >>> plt.ylabel('Amplitude')
+    >>> plt.title('Step response for 1. Order Lowpass')
+    >>> plt.grid()
+    z3step can only be used with continuous-time systems.Nri
+Step response of continuous-time system.
+    This function is functionally the same as `scipy.signal.step`, but
+    it uses the function `scipy.signal.lsim2` to compute the step
+    response.
+    Parameters
+    ----------
+    system : an instance of the LTI class or a tuple of array_like
+        describing the system.
+        The following gives the number of elements in the tuple and
+        the interpretation:
+            * 1 (instance of `lti`)
+            * 2 (num, den)
+            * 3 (zeros, poles, gain)
+            * 4 (A, B, C, D)
+    X0 : array_like, optional
+        Initial state-vector (default is zero).
+    T : array_like, optional
+        Time points (computed if not given).
+    N : int, optional
+        Number of time points to compute if `T` is not given.
+    kwargs : various types
+        Additional keyword arguments are passed on the function
+        `scipy.signal.lsim2`, which in turn passes them on to
+        `scipy.integrate.odeint`.  See the documentation for
+        `scipy.integrate.odeint` for information about these arguments.
+    Returns
+    -------
+    T : 1D ndarray
+        Output time points.
+    yout : 1D ndarray
+        Step response of system.
+    See also
+    --------
+    scipy.signal.step
+    Notes
+    -----
+    If (num, den) is passed in for ``system``, coefficients for both the
+    numerator and denominator should be specified in descending exponent
+    order (e.g. ``s^2 + 3s + 5`` would be represented as ``[1, 3, 5]``).
+    .. versionadded:: 0.8.0
+    Examples
+    --------
+    >>> from scipy import signal
+    >>> import matplotlib.pyplot as plt
+    >>> lti = signal.lti([1.0], [1.0, 1.0])
+    >>> t, y = signal.step2(lti)
+    >>> plt.plot(t, y)
+    >>> plt.xlabel('Time [s]')
+    >>> plt.ylabel('Amplitude')
+    >>> plt.title('Step response for 1. Order Lowpass')
+    >>> plt.grid()
+    z4step2 can only be used with continuous-time systems.Nri
+    Calculate Bode magnitude and phase data of a continuous-time system.
+    Parameters
+    ----------
+    system : an instance of the LTI class or a tuple describing the system.
+        The following gives the number of elements in the tuple and
+        the interpretation:
+            * 1 (instance of `lti`)
+            * 2 (num, den)
+            * 3 (zeros, poles, gain)
+            * 4 (A, B, C, D)
+    w : array_like, optional
+        Array of frequencies (in rad/s). Magnitude and phase data is calculated
+        for every value in this array. If not given a reasonable set will be
+        calculated.
+    n : int, optional
+        Number of frequency points to compute if `w` is not given. The `n`
+        frequencies are logarithmically spaced in an interval chosen to
+        include the influence of the poles and zeros of the system.
+    Returns
+    -------
+    w : 1D ndarray
+        Frequency array [rad/s]
+    mag : 1D ndarray
+        Magnitude array [dB]
+    phase : 1D ndarray
+        Phase array [deg]
+    Notes
+    -----
+    If (num, den) is passed in for ``system``, coefficients for both the
+    numerator and denominator should be specified in descending exponent
+    order (e.g. ``s^2 + 3s + 5`` would be represented as ``[1, 3, 5]``).
+    .. versionadded:: 0.11.0
+    Examples
+    --------
+    >>> from scipy import signal
+    >>> import matplotlib.pyplot as plt
+    >>> sys = signal.TransferFunction([1], [1, 1])
+    >>> w, mag, phase = signal.bode(sys)
+    >>> plt.figure()
+    >>> plt.semilogx(w, mag)    # Bode magnitude plot
+    >>> plt.figure()
+    >>> plt.semilogx(w, phase)  # Bode phase plot
+    >>> plt.show()
+    rj
+f@)	r-
+log10r
+unwrapZ
+arctan2
+imagr
+phaser>
+rdt	d
+Calculate the frequency response of a continuous-time system.
+    Parameters
+    ----------
+    system : an instance of the `lti` class or a tuple describing the system.
+        The following gives the number of elements in the tuple and
+        the interpretation:
+            * 1 (instance of `lti`)
+            * 2 (num, den)
+            * 3 (zeros, poles, gain)
+            * 4 (A, B, C, D)
+    w : array_like, optional
+        Array of frequencies (in rad/s). Magnitude and phase data is
+        calculated for every value in this array. If not given, a reasonable
+        set will be calculated.
+    n : int, optional
+        Number of frequency points to compute if `w` is not given. The `n`
+        frequencies are logarithmically spaced in an interval chosen to
+        include the influence of the poles and zeros of the system.
+    Returns
+    -------
+    w : 1D ndarray
+        Frequency array [rad/s]
+    H : 1D ndarray
+        Array of complex magnitude values
+    Notes
+    -----
+    If (num, den) is passed in for ``system``, coefficients for both the
+    numerator and denominator should be specified in descending exponent
+    order (e.g. ``s^2 + 3s + 5`` would be represented as ``[1, 3, 5]``).
+    Examples
+    --------
+    Generating the Nyquist plot of a transfer function
+    >>> from scipy import signal
+    >>> import matplotlib.pyplot as plt
+    Transfer function: H(s) = 5 / (s-1)^3
+    >>> s1 = signal.ZerosPolesGain([], [1, 1, 1], [5])
+    >>> w, H = signal.freqresp(s1)
+    >>> plt.figure()
+    >>> plt.plot(H.real, H.imag, "b")
+    >>> plt.plot(H.real, -H.imag, "r")
+    >>> plt.show()
+    z7freqresp can only be used with continuous-time systems.r
+z@freqresp() requires a SISO (single input, single output) system.N)
+worN)
+ravelr
+Bunchc
+__dict__
+update)
+kwdsr>
+Bunch.__init__N)
+    Check the poles come in complex conjugage pairs
+    Check shapes of A, B and poles are compatible.
+    Check the method chosen is compatible with provided poles
+    Return update method to use and ordered poles
+    r
+Poles must be a 1D array like.rY
+A must be a 2D array/matrix.z
+B must be a 2D array/matrixr
+A must be squarez2maximum number of poles is %d but you asked for %dz/number of poles is %d but you should provide %dzFat least one of the requested pole is repeated more than rank(B) times)
+KNV0
+YTz0The method keyword must be one of 'YT' or 'KNV0'r
+z'Complex poles are not supported by KNV0z#maxiter must be at least equal to 1z
+rtol can not be greater than 1)
+_order_complex_polesr
+matrix_rank
+_YT_loop
+_KNV0_loop
+isreal)	r
+rtol
+maxiterr
+update_loopr>
+_valid_inputs\
+    Check we have complex conjugates pairs and reorder P according to YT, ie
+    real_poles, complex_i, conjugate complex_i, ....
+    The lexicographic sort on the complex poles is added to help the user to
+    compare sets of poles.
+    r
+z-Complex poles must come with their conjugates)
+sortr	
+conj
+extendr
+ordered_polesZ
+im_polesr
+sz|	t
+    Algorithm "KNV0" Kautsky et Al. Robust pole
+    assignment in linear state feedback, Int journal of Control
+    1985, vol 41 p 1129->1155
+    https://la.epfl.ch/files/content/sites/la/files/
+        users/105941/public/KautskyNicholsDooren
+    r
+full
+modeNr
+delete
+s_qrr
+norm)
+ker_pole
+transfer_matrix
+transfer_matrix_not_j
+mat_ker_pjZ
+xjr>
+_KNV0
+    Applies algorithm from YT section 6.1 page 19 related to real pairs
+    N
+svdr
+sqrtr
+mu2Z
+nu1Z
+&transfer_matrix_j_mo_transfer_matrix_jZ
+ker_pole_imo_mu1Z
+ker_pole_i_nu1Z
+ker_pole_mu_nu
+ker_pole_ijZ
+mu_nu_matrixZ
+transfer_matrix_ijr>
+_YT_real
+    Applies algorithm from YT section 6.2 page 20 related to complex pairs
+    rY
+eigZ
+argsortr
+uir~
+e_valZ
+e_vecZ	e_val_idxr#
+ker_pole_muZ
+mu1_mu2_matrixZ
+transfer_matrix_i_jr>
+_YT_complex
+    Algorithm "YT" Tits, Yang. Globally Convergent
+    Algorithms for Robust Pole Assignment by State Feedback
+    https://hdl.handle.net/1903/5598
+    The poles P have to be sorted accordingly to section 6.2 page 20
+    r
+aranger\
+appendr
+arrayre
+detr
+maxr 
+spacing)
+nb_realZ
+hnbZ
+update_orderZ
+r_compZ
+r_pZ
+r_jr
+idx_1
+stop
+nb_try
+det_transfer_matrixbZ
+transfer_matrix_not_i_jr
+det_transfer_matrix
+cur_rtolr>
+    Loop over all poles one by one and apply KNV method 0 algorithm
+    Fr
+MbP?
+} ~ n
+} ~ 0
+|!_ t!t
+|!_#|
+|!_$|
+|!_%|
+|!_&|
+|!_'|!S
+    Compute K such that eigenvalues (A - dot(B, K))=poles.
+    K is the gain matrix such as the plant described by the linear system
+    ``AX+BU`` will have its closed-loop poles, i.e the eigenvalues ``A - B*K``,
+    as close as possible to those asked for in poles.
+    SISO, MISO and MIMO systems are supported.
+    Parameters
+    ----------
+    A, B : ndarray
+        State-space representation of linear system ``AX + BU``.
+    poles : array_like
+        Desired real poles and/or complex conjugates poles.
+        Complex poles are only supported with ``method="YT"`` (default).
+    method: {'YT', 'KNV0'}, optional
+        Which method to choose to find the gain matrix K. One of:
+            - 'YT': Yang Tits
+            - 'KNV0': Kautsky, Nichols, Van Dooren update method 0
+        See References and Notes for details on the algorithms.
+    rtol: float, optional
+        After each iteration the determinant of the eigenvectors of
+        ``A - B*K`` is compared to its previous value, when the relative
+        error between these two values becomes lower than `rtol` the algorithm
+        stops.  Default is 1e-3.
+    maxiter: int, optional
+        Maximum number of iterations to compute the gain matrix.
+        Default is 30.
+    Returns
+    -------
+    full_state_feedback : Bunch object
+        full_state_feedback is composed of:
+            gain_matrix : 1-D ndarray
+                The closed loop matrix K such as the eigenvalues of ``A-BK``
+                are as close as possible to the requested poles.
+            computed_poles : 1-D ndarray
+                The poles corresponding to ``A-BK`` sorted as first the real
+                poles in increasing order, then the complex congugates in
+                lexicographic order.
+            requested_poles : 1-D ndarray
+                The poles the algorithm was asked to place sorted as above,
+                they may differ from what was achieved.
+            X : 2-D ndarray
+                The transfer matrix such as ``X * diag(poles) = (A - B*K)*X``
+                (see Notes)
+            rtol : float
+                The relative tolerance achieved on ``det(X)`` (see Notes).
+                `rtol` will be NaN if it is possible to solve the system
+                ``diag(poles) = (A - B*K)``, or 0 when the optimization
+                algorithms can't do anything i.e when ``B.shape[1] == 1``.
+            nb_iter : int
+                The number of iterations performed before converging.
+                `nb_iter` will be NaN if it is possible to solve the system
+                ``diag(poles) = (A - B*K)``, or 0 when the optimization
+                algorithms can't do anything i.e when ``B.shape[1] == 1``.
+    Notes
+    -----
+    The Tits and Yang (YT), [2]_ paper is an update of the original Kautsky et
+    al. (KNV) paper [1]_.  KNV relies on rank-1 updates to find the transfer
+    matrix X such that ``X * diag(poles) = (A - B*K)*X``, whereas YT uses
+    rank-2 updates. This yields on average more robust solutions (see [2]_
+    pp 21-22), furthermore the YT algorithm supports complex poles whereas KNV
+    does not in its original version.  Only update method 0 proposed by KNV has
+    been implemented here, hence the name ``'KNV0'``.
+    KNV extended to complex poles is used in Matlab's ``place`` function, YT is
+    distributed under a non-free licence by Slicot under the name ``robpole``.
+    It is unclear and undocumented how KNV0 has been extended to complex poles
+    (Tits and Yang claim on page 14 of their paper that their method can not be
+    used to extend KNV to complex poles), therefore only YT supports them in
+    this implementation.
+    As the solution to the problem of pole placement is not unique for MIMO
+    systems, both methods start with a tentative transfer matrix which is
+    altered in various way to increase its determinant.  Both methods have been
+    proven to converge to a stable solution, however depending on the way the
+    initial transfer matrix is chosen they will converge to different
+    solutions and therefore there is absolutely no guarantee that using
+    ``'KNV0'`` will yield results similar to Matlab's or any other
+    implementation of these algorithms.
+    Using the default method ``'YT'`` should be fine in most cases; ``'KNV0'``
+    is only provided because it is needed by ``'YT'`` in some specific cases.
+    Furthermore ``'YT'`` gives on average more robust results than ``'KNV0'``
+    when ``abs(det(X))`` is used as a robustness indicator.
+    [2]_ is available as a technical report on the following URL:
+    https://hdl.handle.net/1903/5598
+    References
+    ----------
+    .. [1] J. Kautsky, N.K. Nichols and P. van Dooren, "Robust pole assignment
+           in linear state feedback", International Journal of Control, Vol. 41
+           pp. 1129-1155, 1985.
+    .. [2] A.L. Tits and Y. Yang, "Globally convergent algorithms for robust
+           pole assignment by state feedback", IEEE Transactions on Automatic
+           Control, Vol. 41, pp. 1432-1452, 1996.
+    Examples
+    --------
+    A simple example demonstrating real pole placement using both KNV and YT
+    algorithms.  This is example number 1 from section 4 of the reference KNV
+    publication ([1]_):
+    >>> from scipy import signal
+    >>> import matplotlib.pyplot as plt
+    >>> A = np.array([[ 1.380,  -0.2077,  6.715, -5.676  ],
+    ...               [-0.5814, -4.290,   0,      0.6750 ],
+    ...               [ 1.067,   4.273,  -6.654,  5.893  ],
+    ...               [ 0.0480,  4.273,   1.343, -2.104  ]])
+    >>> B = np.array([[ 0,      5.679 ],
+    ...               [ 1.136,  1.136 ],
+    ...               [ 0,      0,    ],
+    ...               [-3.146,  0     ]])
+    >>> P = np.array([-0.2, -0.5, -5.0566, -8.6659])
+    Now compute K with KNV method 0, with the default YT method and with the YT
+    method while forcing 100 iterations of the algorithm and print some results
+    after each call.
+    >>> fsf1 = signal.place_poles(A, B, P, method='KNV0')
+    >>> fsf1.gain_matrix
+    array([[ 0.20071427, -0.96665799,  0.24066128, -0.10279785],
+           [ 0.50587268,  0.57779091,  0.51795763, -0.41991442]])
+    >>> fsf2 = signal.place_poles(A, B, P)  # uses YT method
+    >>> fsf2.computed_poles
+    array([-8.6659, -5.0566, -0.5   , -0.2   ])
+    >>> fsf3 = signal.place_poles(A, B, P, rtol=-1, maxiter=100)
+    >>> fsf3.X
+    array([[ 0.52072442+0.j, -0.08409372+0.j, -0.56847937+0.j,  0.74823657+0.j],
+           [-0.04977751+0.j, -0.80872954+0.j,  0.13566234+0.j, -0.29322906+0.j],
+           [-0.82266932+0.j, -0.19168026+0.j, -0.56348322+0.j, -0.43815060+0.j],
+           [ 0.22267347+0.j,  0.54967577+0.j, -0.58387806+0.j, -0.40271926+0.j]])
+    The absolute value of the determinant of X is a good indicator to check the
+    robustness of the results, both ``'KNV0'`` and ``'YT'`` aim at maximizing
+    it.  Below a comparison of the robustness of the results above:
+    >>> abs(np.linalg.det(fsf1.X)) < abs(np.linalg.det(fsf2.X))
+    True
+    >>> abs(np.linalg.det(fsf2.X)) < abs(np.linalg.det(fsf3.X))
+    True
+    Now a simple example for complex poles:
+    >>> A = np.array([[ 0,  7/3.,  0,   0   ],
+    ...               [ 0,   0,    0,  7/9. ],
+    ...               [ 0,   0,    0,   0   ],
+    ...               [ 0,   0,    0,   0   ]])
+    >>> B = np.array([[ 0,  0 ],
+    ...               [ 0,  0 ],
+    ...               [ 1,  0 ],
+    ...               [ 0,  1 ]])
+    >>> P = np.array([-3, -1, -2-1j, -2+1j]) / 3.
+    >>> fsf = signal.place_poles(A, B, P, method='YT')
+    We can plot the desired and computed poles in the complex plane:
+    >>> t = np.linspace(0, 2*np.pi, 401)
+    >>> plt.plot(np.cos(t), np.sin(t), 'k--')  # unit circle
+    >>> plt.plot(fsf.requested_poles.real, fsf.requested_poles.imag,
+    ...          'wo', label='Desired')
+    >>> plt.plot(fsf.computed_poles.real, fsf.computed_poles.imag, 'bx',
+    ...          label='Placed')
+    >>> plt.grid()
+    >>> plt.axis('image')
+    >>> plt.axis([-1.1, 1.1, -1.1, 1.1])
+    >>> plt.legend(bbox_to_anchor=(1.05, 1), loc=2, numpoints=1)
+    r
+rcondFr
+TzhConvergence was not reached after maxiter iterations.
+You asked for a relative tolerance of %f we got %fr(
+zfThe poles you've chosen can't be placed. Check the controllability matrix and try another set of poles)(r
+lstsqZ
+nanr
+solveZ
+diagZ
+LinAlgErrorr`
+gain_matrixr
+computed_polesZ
+requested_polesr
+nb_iter)"r
+rankBZ
+diag_poles
+idxr
+skip_conjugater
+pole_space_jr
+ker_pole_jZ
+transfer_matrix_jr/
+err_msg
+relZ
+imgr"
+full_state_feedbackr>
+rp|	|
+    Simulate output of a discrete-time linear system.
+    Parameters
+    ----------
+    system : tuple of array_like or instance of `dlti`
+        A tuple describing the system.
+        The following gives the number of elements in the tuple and
+        the interpretation:
+            * 1: (instance of `dlti`)
+            * 3: (num, den, dt)
+            * 4: (zeros, poles, gain, dt)
+            * 5: (A, B, C, D, dt)
+    u : array_like
+        An input array describing the input at each time `t` (interpolation is
+        assumed between given times).  If there are multiple inputs, then each
+        column of the rank-2 array represents an input.
+    t : array_like, optional
+        The time steps at which the input is defined.  If `t` is given, it
+        must be the same length as `u`, and the final value in `t` determines
+        the number of steps returned in the output.
+    x0 : array_like, optional
+        The initial conditions on the state vector (zero by default).
+    Returns
+    -------
+    tout : ndarray
+        Time values for the output, as a 1-D array.
+    yout : ndarray
+        System response, as a 1-D array.
+    xout : ndarray, optional
+        Time-evolution of the state-vector.  Only generated if the input is a
+        `StateSpace` system.
+    See Also
+    --------
+    lsim, dstep, dimpulse, cont2discrete
+    Examples
+    --------
+    A simple integrator transfer function with a discrete time step of 1.0
+    could be implemented as:
+    >>> from scipy import signal
+    >>> tf = ([1.0,], [1.0, -1.0], 1.0)
+    >>> t_in = [0.0, 1.0, 2.0, 3.0]
+    >>> u = np.asarray([0.0, 0.0, 1.0, 1.0])
+    >>> t_out, y = signal.dlsim(tf, u, t=t_in)
+    >>> y.T
+    array([[ 0.,  0.,  0.,  1.]])
+    z7dlsim can only be used with discrete-time dlti systems.Nr
+floorr
+is_ss_inputZ
+out_samplesZ
+stoptimer
+toutZ
+u_dtZ
+u_dt_interpr
+    Impulse response of discrete-time system.
+    Parameters
+    ----------
+    system : tuple of array_like or instance of `dlti`
+        A tuple describing the system.
+        The following gives the number of elements in the tuple and
+        the interpretation:
+            * 1: (instance of `dlti`)
+            * 3: (num, den, dt)
+            * 4: (zeros, poles, gain, dt)
+            * 5: (A, B, C, D, dt)
+    x0 : array_like, optional
+        Initial state-vector.  Defaults to zero.
+    t : array_like, optional
+        Time points.  Computed if not given.
+    n : int, optional
+        The number of time points to compute (if `t` is not given).
+    Returns
+    -------
+    tout : ndarray
+        Time values for the output, as a 1-D array.
+    yout : tuple of ndarray
+        Impulse response of system.  Each element of the tuple represents
+        the output of the system based on an impulse in each input.
+    See Also
+    --------
+    impulse, dstep, dlsim, cont2discrete
+    Examples
+    --------
+    >>> from scipy import signal
+    >>> import matplotlib.pyplot as plt
+    >>> butter = signal.dlti(*signal.butter(3, 0.5))
+    >>> t, y = signal.dimpulse(butter, n=25)
+    >>> plt.step(t, np.squeeze(y))
+    >>> plt.grid()
+    >>> plt.xlabel('n [samples]')
+    >>> plt.ylabel('Amplitude')
+    z:dimpulse can only be used with discrete-time dlti systems.Nr
+endpointr
+one_outputr>
+    Step response of discrete-time system.
+    Parameters
+    ----------
+    system : tuple of array_like
+        A tuple describing the system.
+        The following gives the number of elements in the tuple and
+        the interpretation:
+            * 1: (instance of `dlti`)
+            * 3: (num, den, dt)
+            * 4: (zeros, poles, gain, dt)
+            * 5: (A, B, C, D, dt)
+    x0 : array_like, optional
+        Initial state-vector.  Defaults to zero.
+    t : array_like, optional
+        Time points.  Computed if not given.
+    n : int, optional
+        The number of time points to compute (if `t` is not given).
+    Returns
+    -------
+    tout : ndarray
+        Output time points, as a 1-D array.
+    yout : tuple of ndarray
+        Step response of system.  Each element of the tuple represents
+        the output of the system based on a step response to each input.
+    See Also
+    --------
+    step, dimpulse, dlsim, cont2discrete
+    Examples
+    --------
+    >>> from scipy import signal
+    >>> import matplotlib.pyplot as plt
+    >>> butter = signal.dlti(*signal.butter(3, 0.5))
+    >>> t, y = signal.dstep(butter, n=25)
+    >>> plt.step(t, np.squeeze(y))
+    >>> plt.grid()
+    >>> plt.xlabel('n [samples]')
+    >>> plt.ylabel('Amplitude')
+    z7dstep can only be used with discrete-time dlti systems.Nr
+    Calculate the frequency response of a discrete-time system.
+    Parameters
+    ----------
+    system : an instance of the `dlti` class or a tuple describing the system.
+        The following gives the number of elements in the tuple and
+        the interpretation:
+            * 1 (instance of `dlti`)
+            * 2 (numerator, denominator, dt)
+            * 3 (zeros, poles, gain, dt)
+            * 4 (A, B, C, D, dt)
+    w : array_like, optional
+        Array of frequencies (in radians/sample). Magnitude and phase data is
+        calculated for every value in this array. If not given a reasonable
+        set will be calculated.
+    n : int, optional
+        Number of frequency points to compute if `w` is not given. The `n`
+        frequencies are logarithmically spaced in an interval chosen to
+        include the influence of the poles and zeros of the system.
+    whole : bool, optional
+        Normally, if 'w' is not given, frequencies are computed from 0 to the
+        Nyquist frequency, pi radians/sample (upper-half of unit-circle). If
+        `whole` is True, compute frequencies from 0 to 2*pi radians/sample.
+    Returns
+    -------
+    w : 1D ndarray
+        Frequency array [radians/sample]
+    H : 1D ndarray
+        Array of complex magnitude values
+    Notes
+    -----
+    If (num, den) is passed in for ``system``, coefficients for both the
+    numerator and denominator should be specified in descending exponent
+    order (e.g. ``z^2 + 3z + 5`` would be represented as ``[1, 3, 5]``).
+    .. versionadded:: 0.18.0
+    Examples
+    --------
+    Generating the Nyquist plot of a transfer function
+    >>> from scipy import signal
+    >>> import matplotlib.pyplot as plt
+    Transfer function: H(z) = 1 / (z^2 + 2z + 3)
+    >>> sys = signal.TransferFunction([1], [1, 2, 3], dt=0.05)
+    >>> w, H = signal.dfreqresp(sys)
+    >>> plt.figure()
+    >>> plt.plot(H.real, H.imag, "b")
+    >>> plt.plot(H.real, -H.imag, "r")
+    >>> plt.show()
+    z6dfreqresp can only be used with discrete-time systems.Nr
+Unknown system typer
+z?dfreqresp requires a SISO (single input, single output) system.)
+    Calculate Bode magnitude and phase data of a discrete-time system.
+    Parameters
+    ----------
+    system : an instance of the LTI class or a tuple describing the system.
+        The following gives the number of elements in the tuple and
+        the interpretation:
+            * 1 (instance of `dlti`)
+            * 2 (num, den, dt)
+            * 3 (zeros, poles, gain, dt)
+            * 4 (A, B, C, D, dt)
+    w : array_like, optional
+        Array of frequencies (in radians/sample). Magnitude and phase data is
+        calculated for every value in this array. If not given a reasonable
+        set will be calculated.
+    n : int, optional
+        Number of frequency points to compute if `w` is not given. The `n`
+        frequencies are logarithmically spaced in an interval chosen to
+        include the influence of the poles and zeros of the system.
+    Returns
+    -------
+    w : 1D ndarray
+        Frequency array [rad/time_unit]
+    mag : 1D ndarray
+        Magnitude array [dB]
+    phase : 1D ndarray
+        Phase array [deg]
+    Notes
+    -----
+    If (num, den) is passed in for ``system``, coefficients for both the
+    numerator and denominator should be specified in descending exponent
+    order (e.g. ``z^2 + 3z + 5`` would be represented as ``[1, 3, 5]``).
+    .. versionadded:: 0.18.0
+    Examples
+    --------
+    >>> from scipy import signal
+    >>> import matplotlib.pyplot as plt
+    Transfer function: H(z) = 1 / (z^2 + 2z + 3)
+    >>> sys = signal.TransferFunction([1], [1, 2, 3], dt=0.05)
+    Equivalent: sys.bode()
+    >>> w, mag, phase = signal.dbode(sys)
+    >>> plt.figure()
+    >>> plt.semilogx(w, mag)    # Bode magnitude plot
+    >>> plt.figure()
+    >>> plt.semilogx(w, phase)  # Bode phase plot
+    >>> plt.show()
+    rj
+rad2degr
+angle)
+NNN)
+NNN)
+NNN)
+NNN)
+NNN)
+NNN)
+NNN)
+)Prt
+scipy.linalgr
+scipyr
+scipy.interpolater
+filter_designr
+lti_conversionr
+__all__
+objectr4
+<module>

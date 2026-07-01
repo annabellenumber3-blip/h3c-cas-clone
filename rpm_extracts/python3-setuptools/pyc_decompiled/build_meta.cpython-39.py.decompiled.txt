@@ -1,0 +1,193 @@
+l	Z	d
+j Z e
+A PEP 517 interface to setuptools
+Previously, when a user or a command line tool (let's call it a "frontend")
+needed to make a request of setuptools to take a certain action, for
+example, generating a list of installation requirements, the frontend would
+would call "setup.py egg_info" or "setup.py bdist_wheel" on the command line.
+PEP 517 defines a different method of interfacing with setuptools. Rather
+than calling "setup.py" directly, the frontend should:
+  1. Set the current directory to the directory with a setup.py file
+  2. Import this module into a safe python interpreter (one in which
+     setuptools can potentially set global variables or crash hard).
+  3. Call one of the functions defined in PEP 517.
+What each function does is defined in PEP 517. However, here is a "casual"
+definition of the functions (this definition should not be relied on for
+bug reports or API stability):
+  - `build_wheel`: build a wheel in the folder and return the basename
+  - `get_requires_for_build_wheel`: get the `setup_requires` to build
+  - `prepare_metadata_for_build_wheel`: get the `install_requires`
+  - `build_sdist`: build an sdist in the folder and return the basename
+  - `get_requires_for_build_sdist`: get the `setup_requires` to build
+Again, this is not a formal definition! Just a "taste" of the module.
+parse_requirements)
+get_requires_for_build_sdist
+get_requires_for_build_wheel
+ prepare_metadata_for_build_wheel
+build_wheel
+build_sdist
+__legacy__
+SetupRequirementsErrorc
+specifiers)
+selfr
+9/usr/lib/python3.9/site-packages/setuptools/build_meta.py
+__init__5
+SetupRequirementsError.__init__N)
+__name__
+__module__
+__qualname__r
+Distributionc
+list
+strr
+specifier_listr
+fetch_build_eggs:
+Distribution.fetch_build_eggsc
+        Replace
+        distutils.dist.Distribution with this class
+        for the duration of this context.
+        N)
+	distutilsZ
+corer
+origr
+patch?
+Distribution.patchN)
+classmethod
+contextlib
+contextmanagerr
+Temporarily disable installing setup_requires
+    Under PEP 517, the backend reports build dependencies to the frontend,
+    and the frontend is responsible for ensuring they're installed.
+    So setuptools (acting as a backend) should not try to install them.
+    c
+attrsr
+<lambda>X
+z+no_install_setup_requires.<locals>.<lambda>N)
+setuptoolsZ
+_install_setup_requires)
+no_install_setup_requiresO
+path
+isdir
+join)
+name
+a_dirr
+<listcomp>`
+z1_get_immediate_subdirectories.<locals>.<listcomp>)
+listdirr*
+_get_immediate_subdirectories_
+endswith
+	extensionr
+	<genexpr>e
+z'_file_with_extension.<locals>.<genexpr>z[No distribution was found. Ensure that `setup.py` is not empty and that it calls `setup()`.)
+ValueError)
+Z	directoryr3
+matching
+filer
+_file_with_extensiond
+Nz%from setuptools import setup; setup()
+open)
+exists
+StringIO
+getattr
+tokenizer8
+setup_scriptr
+_open_setup_scriptr
+ignorez
+setup.py install is deprecated)
+warnings
+catch_warnings
+filterwarningsr
+suppress_known_deprecationz
+_BuildMetaBackendc
+--global-option)
+setdefault
+config_settingsr
+_fix_config
+_BuildMetaBackend._fix_configc
+egg_inforG
+argvr
+	run_setupr	
+requirements
+_get_build_requires
+z%_BuildMetaBackend._get_build_requires
+setup.pyc
+__main__z
+\r\nz
+exec)
+read
+replacerU
+compile
+locals)
+__file__r
+coder
+_BuildMetaBackend.run_setupNc
+wheel
+z._BuildMetaBackend.get_requires_for_build_wheelc
+z._BuildMetaBackend.get_requires_for_build_sdistc
+)	NrL
+Z	dist_infoz
+--egg-basec
+.dist-infor.
+zF_BuildMetaBackend.prepare_metadata_for_build_wheel.<locals>.<listcomp>r
+ignore_errors)
+lenr-
+shutilZ
+moveZ
+rmtree)
+metadata_directoryrJ
+dist_info_directoryZ
+dist_infosr
+z2_BuildMetaBackend.prepare_metadata_for_build_wheelc
+exist_ok)
+dirrL
+--dist-dirrG
+abspath
+makedirs
+tempfileZ
+TemporaryDirectoryrM
+remove
+rename)
+setup_commandZ
+result_extensionZ
+result_directoryrJ
+tmp_dist_dirZ
+result_basename
+result_pathr
+_build_with_temp_dir
+z&_BuildMetaBackend._build_with_temp_dirc
+bdist_wheelz
+.whl)
+wheel_directoryrJ
+_BuildMetaBackend.build_wheelc
+sdistz	--formatsZ
+gztarz
+.tar.gz)
+sdist_directoryrJ
+_BuildMetaBackend.build_sdist)
+_BuildMetaLegacyBackendaO
+Compatibility backend for setuptools
+    This is a version of setuptools.build_meta that endeavors
+    to maintain backwards
+    compatibility with pre-PEP 517 modes of invocation. It
+    exists as a temporary
+    bridge between the old packaging mechanism and the new
+    packaging mechanism,
+    and will eventually be removed.
+    rS
+dirnamerd
+insertrN
+superrk
+sys_pathZ
+script_dirZ
+sys_argv_0
+	__class__r
+z!_BuildMetaLegacyBackend.run_setup)
+__doc__rO
+__classcell__r
+)"rq
+pkg_resourcesr
+__all__
+BaseExceptionr	
+distr
+objectrF
+_BACKENDr
+<module>

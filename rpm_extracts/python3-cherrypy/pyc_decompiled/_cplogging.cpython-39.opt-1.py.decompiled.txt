@@ -1,0 +1,318 @@
+Simple config
+=============
+Although CherryPy uses the :mod:`Python logging module <logging>`, it does so
+behind the scenes so that simple logging is simple, but complicated logging
+is still possible. "Simple" logging means that you can log to the screen
+(i.e. console/stdout) or to a file, and that you can easily have separate
+error and access log files.
+Here are the simplified logging settings. You use these by adding lines to
+your config file or dict. You should set these at either the global level or
+per application (see next), but generally not both.
+ * ``log.screen``: Set this to True to have both "error" and "access" messages
+   printed to stdout.
+ * ``log.access_file``: Set this to an absolute filename where you want
+   "access" messages written.
+ * ``log.error_file``: Set this to an absolute filename where you want "error"
+   messages written.
+Many events are automatically logged; to log your own application events, call
+:func:`cherrypy.log`.
+Architecture
+============
+Separate scopes
+---------------
+CherryPy provides log managers at both the global and application layers.
+This means you can have one set of logging rules for your entire site,
+and another set of rules specific to each application. The global log
+manager is found at :func:`cherrypy.log`, and the log manager for each
+application is found at :attr:`app.log<cherrypy._cptree.Application.log>`.
+If you're inside a request, the latter is reachable from
+``cherrypy.request.app.log``; if you're outside a request, you'll have to
+obtain a reference to the ``app``: either the return value of
+:func:`tree.mount()<cherrypy._cptree.Tree.mount>` or, if you used
+:func:`quickstart()<cherrypy.quickstart>` instead, via
+``cherrypy.tree.apps['/']``.
+By default, the global logs are named "cherrypy.error" and "cherrypy.access",
+and the application logs are named "cherrypy.error.2378745" and
+"cherrypy.access.2378745" (the number is the id of the Application object).
+This means that the application logs "bubble up" to the site logs, so if your
+application has no log handlers, the site-level handlers will still log the
+messages.
+Errors vs. Access
+-----------------
+Each log manager handles both "access" messages (one per HTTP request) and
+"error" messages (everything else). Note that the "error" log is not just for
+errors! The format of access messages is highly formalized, but the error log
+isn't--it receives messages from a variety of sources (including full error
+tracebacks, if enabled).
+If you are logging the access log and error log to the same source, then there
+is a possibility that a specially crafted error message may replicate an access
+log message as described in CWE-117.  In this case it is the application
+developer's responsibility to manually escape data before
+using CherryPy's log()
+functionality, or they may create an application that is vulnerable to CWE-117.
+This would be achieved by using a custom handler escape any special characters,
+and attached as described below.
+Custom Handlers
+===============
+The simple settings above work by manipulating Python's standard :mod:`logging`
+module. So when you need something more complex, the full power of the standard
+module is yours to exploit. You can borrow or create custom handlers, formats,
+filters, and much more. Here's an example that skips the standard FileHandler
+and uses a RotatingFileHandler instead:
+    #python
+    log = app.log
+    # Remove the default FileHandlers if present.
+    log.error_file = ""
+    log.access_file = ""
+    maxBytes = getattr(log, "rot_maxBytes", 10000000)
+    backupCount = getattr(log, "rot_backupCount", 1000)
+    # Make a new RotatingFileHandler for the error log.
+    fname = getattr(log, "rot_error_file", "error.log")
+    h = handlers.RotatingFileHandler(fname, 'a', maxBytes, backupCount)
+    h.setLevel(DEBUG)
+    h.setFormatter(_cplogging.logfmt)
+    log.error_log.addHandler(h)
+    # Make a new RotatingFileHandler for the access log.
+    fname = getattr(log, "rot_access_file", "access.log")
+    h = handlers.RotatingFileHandler(fname, 'a', maxBytes, backupCount)
+    h.setLevel(DEBUG)
+    h.setFormatter(_cplogging.logfmt)
+    log.access_log.addHandler(h)
+The ``rot_*`` attributes are pulled straight from the application log object.
+Since "log.*" config entries simply set attributes on the log object, you can
+add custom attributes to your heart's content. Note that these handlers are
+used ''instead'' of the default, simple handlers outlined above (so don't set
+the "log.error_file" config entry, for example).
+_cperror
+%(message)sc
+NullHandlerzBA no-op logging handler to silence the logging.lastResort handler.c
+self
+recordr
+7/usr/lib/python3.9/site-packages/cherrypy/_cplogging.py
+handle
+NullHandler.handlec
+emit
+NullHandler.emitc
+lock
+createLock
+NullHandler.createLockN)
+__name__
+__module__
+__qualname__
+__doc__r
+d	d	e
+d!d"
+d#d"
+d$d%
+d&d'
+d(d'
+LogManagerznAn object to assist both simple and advanced logging.
+    ``cherrypy.log`` is an instance of this class.
+    Nz){h} {l} {u} {t} "{r}" {s} {b} "{f}" "{a}"
+cherrypyc
+%s.errorz	%s.accessz
+%s.error.%sz
+%s.access.%sZ
+graceful)
+logger_root
+appid
+loggingZ	getLogger
+	error_log
+access_logZ
+setLevel
+INFO
+addHandlerr
+engineZ	subscribe
+reopen_files)
+__init__
+LogManager.__init__c
+z#Close and reopen all file handlers.N)
+handlers
+isinstancer
+FileHandler
+acquire
+stream
+close
+open
+baseFilename
+mode
+release)
+LogManager.reopen_files
+Write the given ``msg`` to the error log.
+        This is not just for errors! Applications may call this at any time
+        to log application-specific information.
+        If ``traceback`` is True, the traceback of the current exception
+        (if any) will be appended to ``msg``.
+        N
+exc_info)
+Z	_exc_infor
+join
+time)
+contextZ
+severity
+	tracebackr-
+error
+LogManager.errorc
+An alias for ``error``.)
+args
+kwargsr
+__call__
+LogManager.__call__c
+j	pX|
+}	|	
+}	|	
+}	|	|
+Write to the access log (in Apache/NCSA Combined Log format).
+        See the
+        `apache documentation
+        <http://httpd.apache.org/docs/current/logs.html#combined>`_
+        for format details.
+        CherryPy calls this automatically for you. Note there are no arguments;
+        it collects the data itself from
+        :class:`cherrypy.request<cherrypy._cprequest.Request>`.
+        Like Apache started doing in 2.0.46, non-printable and other special
+        characters in %r (and we expand that to all parts) are escaped using
+        \xhh sequences, where hh stands for the hexadecimal representation
+        of the raw byte. Exceptions from this rule are " and \, which are
+        escaped by prepending a backslash, and all whitespace characters,
+        which are written in their C-style notation (\n, \t, etc).
+        N
+ISO-8859-1Z
+loginz
+Content-Lengthr+
+Refererz
+User-AgentZ
+Host)
+utf8
+serving
+request
+remote
+responseZ
+headersZ
+output_status
+split
+decode
+nameZ
+getattrr/
+request_line
+dict
+getZ	unique_id
+LazyRfc3339UtcTime
+itemsr 
+replace
+encode
+reprr
+access_log_format
+format
+	Exception)
+outheadersZ	inheadersZ
+statusZ
+atoms
+access
+LogManager.accessc
+z7Return now() in Apache Common Log Format (no timezone).)
+janZ
+febZ
+marZ
+aprZ
+mayZ
+junZ
+julZ
+octZ
+novZ
+decr
+[%02d/%s/%04d:%02d:%02d:%02d])	
+datetime
+month
+capitalizeZ
+dayZ
+yearZ
+hourZ
+minute
+second)
+monthnamesrc
+LogManager.timec
+_cpbuiltin)
+keyr*
+_get_builtin_handler)
+LogManager._get_builtin_handlerc
+screen)
+stderrr
+StreamHandler
+setFormatter
+logfmtrf
+remove)
+enabler#
+_set_screen_handler/
+LogManager._set_screen_handlerc
+Turn stderr/stdout logging on or off.
+        If you set this to True, it'll add the appropriate StreamHandler for
+        you. If you set it to False, it will remove the handler.
+        ri
+bool)
+has_hr
+LogManager.screenc
+stdout
+newvaluer
+file)
+fnamer*
+_add_builtin_file_handlerN
+z$LogManager._add_builtin_file_handlerc
+)	rh
+path
+abspathr$
+filenamer*
+_set_file_handlerT
+LogManager._set_file_handlerc
+The filename for self.error_log.
+        If you set this to a string, it'll add the appropriate FileHandler for
+        you. If you set it to ``None`` or ``''``, it will remove the handler.
+        ru
+error_filec
+LogManager.error_filec
+The filename for self.access_log.
+        If you set this to a string, it'll add the appropriate FileHandler for
+        you. If you set it to ``None`` or ``''``, it will remove the handler.
+        ru
+access_files
+LogManager.access_filec
+wsgi)
+WSGIErrorHandlerrl
+_set_wsgi_handler
+LogManager._set_wsgi_handlerc
+Write errors to wsgi.errors.
+        If you set this to True, it'll add the appropriate
+        :class:`WSGIErrorHandler<cherrypy._cplogging.WSGIErrorHandler>` for you
+        (which writes errors to ``wsgi.errors``).
+        If you set it to False, it will remove the handler.
+        r
+LogManager.wsgic
+propertyri
+setterrv
+zGA handler class which writes logging records to environ['wsgi.errors'].c
+Flushes the stream.
+wsgi.errorsN)
+wsgi_environrR
+AttributeError
+KeyError
+flush)
+WSGIErrorHandler.flushc
+Emit a record.r
+UnicodeTypez
+UTF-8)
+types
+hasattr
+write
+UnicodeErrorrW
+handleError)
+WSGIErrorHandler.emitN)
+z#Return now() in RFC3339 UTC Format.
+Z	isoformat)
+__str__
+LazyRfc3339UtcTime.__str__N)
+LoggerZ
+managerZ
+emittedNoHandlerWarningZ	Formatterrm
+Handlerr
+objectr
+<module>

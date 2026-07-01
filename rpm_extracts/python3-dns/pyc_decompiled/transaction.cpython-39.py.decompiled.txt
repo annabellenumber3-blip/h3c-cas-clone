@@ -1,0 +1,379 @@
+TransactionManagerc
+Begin a read-only transaction.N
+NotImplementedError
+self
+3/usr/lib/python3.9/site-packages/dns/transaction.py
+reader
+TransactionManager.readerFc
+Begin a writable transaction.
+        *replacement*, a ``bool``.  If `True`, the content of the
+        transaction completely replaces any prior content.  If False,
+        the default, then the content of the transaction updates the
+        existing content.
+        Nr
+replacementr
+writer
+TransactionManager.writerc
+Returns a tuple
+            (absolute_origin, relativize, effective_origin)
+        giving the absolute name of the default origin for any
+        relative domain names, the "effective origin", and whether
+        names should be relativized.  The "effective origin" is the
+        absolute origin if relativize is False, and the empty name if
+        relativize is true.  (The effective origin is provided even
+        though it can be computed from the absolute_origin and
+        relativize setting because it avoids a lot of code
+        duplication.)
+        If the returned names are `None`, then no origin information is
+        available.
+        This information is used by code working with transactions to
+        allow it to coordinate relativization.  The transaction code
+        itself takes what it gets (i.e. does not change name
+        relativity).
+        Nr
+origin_information
+z%TransactionManager.origin_informationc
+z.The class of the transaction manager.
+        Nr
+	get_class7
+TransactionManager.get_classc
+z,Origin to use in from_wire() calls.
+        N)
+absolute_originZ
+relativize
+from_wire_origin<
+z#TransactionManager.from_wire_originN)
+__name__
+__module__
+__qualname__r	
+DeleteNotExactz>Existing data did not match data specified by an exact delete.N
+__doc__r
+ReadOnlyz*Tried to write to a read-only transaction.Nr
+AlreadyEndedz*Tried to use an already-ended transaction.Nr
+isinstance
+rdataset
+ImmutableRdataset)
+_ensure_immutable_rdatasetR
+is_immutabler
+nodeZ
+ImmutableNode)
+_ensure_immutable_nodeW
+d d!
+d"d#
+d$d%
+d&d'
+d(d)
+d*d+
+d,d-
+d.d/
+d0d1
+d2d3
+d4d5
+Z d6d7
+Z!d8d9
+Z"d:d;
+Z#d<d=
+Z$d>d?
+Z%d@dA
+Z&dBdC
+Z'dDdE
+Z(dFdG
+Z)dHdI
+Z*dJdK
+Z+dLdM
+Z,dNdO
+Z-dPdQ
+Z.dRS
+TransactionFc
+managerr
+	read_only
+_ended
+_check_put_rdataset
+_check_delete_rdataset
+_check_delete_name)
+__init___
+Transaction.__init__c
+Return the rdataset associated with *name*, *rdtype*, and *covers*,
+        or `None` if not found.
+        Note that the returned rdataset is immutable.
+        N)
+_check_endedr
+strr
+name
+	from_text
+	rdatatype
+	RdataType
+make
+_get_rdatasetr
+rdtype
+coversr
+getl
+Transaction.getc
+z[Return the node at *name*, if any.
+        Returns an immutable node or ``None``.
+        )
+	_get_node
+get_nodey
+Transaction.get_nodec
+_check_read_only
+Transaction._check_read_onlyc
+Add records.
+        The arguments may be:
+            - rrset
+            - name, rdataset...
+            - name, ttl, rdata...
+        F
+_add
+argsr
+Transaction.addc
+Replace the existing rdataset at the name with the specified
+        rdataset, or add the specified rdataset if there was no existing
+        rdataset.
+        The arguments may be:
+            - rrset
+            - name, rdataset...
+            - name, ttl, rdata...
+        Note that if you want to replace the entire node, you should do
+        a delete of the name followed by one or more calls to add() or
+        replace().
+        Tr8
+replace
+Transaction.replacec
+Delete records.
+        It is not an error if some of the records are not in the existing
+        set.
+        The arguments may be:
+            - rrset
+            - name
+            - name, rdataclass, rdatatype, [covers]
+            - name, rdataset...
+            - name, rdata...
+        F
+_deleter:
+delete
+Transaction.deletec
+Delete records.
+        The arguments may be:
+            - rrset
+            - name
+            - name, rdataclass, rdatatype, [covers]
+            - name, rdataset...
+            - name, rdata...
+        Raises dns.transaction.DeleteNotExact if some of the records
+        are not in the existing set.
+        Tr>
+delete_exact
+Transaction.delete_exactc
+Does the specified name exist?N)
+_name_existsr5
+name_exists
+Transaction.name_exists
+Update the serial number.
+        *value*, an `int`, is an increment if *relative* is `True`, or the
+        actual value to set if *relative* is `False`.
+        Raises `KeyError` if there is no SOA rdataset at *name*.
+        Raises `ValueError` if *value* is negative or if the increment is
+        so large that it would cause the new serial to be less than the
+        prior value.
+        r
+negative update_serial() valueNrD
+serial)
+ValueErrorr
+NONE
+KeyErrorrE
+Serial
+valuer=
+from_rdata
+ttl)
+relativer+
+rdataZ
+new_rdatasetr
+update_serial
+Transaction.update_serialc
+_iterate_rdatasetsr
+__iter__
+Transaction.__iter__c
+Has this transaction changed anything?
+        For read-only transactions, the result is always `False`.
+        For writable transactions, the result is `True` if at some time
+        during the life of the transaction, the content was changed.
+        )
+_changedr
+changed
+Transaction.changedc
+Commit the transaction.
+        Normally transactions are used as context managers and commit
+        or rollback automatically, but it may be done explicitly if needed.
+        A ``dns.transaction.Ended`` exception will be raised if you try
+        to use a transaction after it has been committed or rolled back.
+        Raises an exception if the commit fails (in which case the transaction
+        is also rolled back.
+        TN
+_endr
+commit
+Transaction.commitc
+Rollback the transaction.
+        Normally transactions are used as context managers and commit
+        or rollback automatically, but it may be done explicitly if needed.
+        A ``dns.transaction.AlreadyEnded`` exception will be raised if you try
+        to use a transaction after it has been committed or rolled back.
+        Rollback cannot otherwise fail.
+        FNrU
+rollback
+Transaction.rollbackc
+Call *check* before putting (storing) an rdataset.
+        The function is called with the transaction, the name, and the rdataset.
+        The check function may safely make non-mutating transaction method
+        calls, but behavior is undefined if mutating transaction methods are
+        called.  The check function should raise an exception if it objects to
+        the put, and otherwise should return ``None``.
+        N)
+append
+checkr
+check_put_rdataset$
+Transaction.check_put_rdatasetc
+Call *check* before deleting an rdataset.
+        The function is called with the transaction, the name, the rdatatype,
+        and the covered rdatatype.
+        The check function may safely make non-mutating transaction method
+        calls, but behavior is undefined if mutating transaction methods are
+        called.  The check function should raise an exception if it objects to
+        the put, and otherwise should return ``None``.
+        N)
+check_delete_rdataset0
+z!Transaction.check_delete_rdatasetc
+Call *check* before putting (storing) an rdataset.
+        The function is called with the transaction and the name.
+        The check function may safely make non-mutating transaction method
+        calls, but behavior is undefined if mutating transaction methods are
+        called.  The check function should raise an exception if it objects to
+        the put, and otherwise should return ``None``.
+        N)
+check_delete_name=
+Transaction.check_delete_namec
+extra parameters to )
+	TypeError)
+methodr;
+_raise_if_not_emptyM
+Transaction._raise_if_not_emptyc
+: TTL value too bigz
+: expected a TTLz
+: expected an Rdataz
+: expected more arguments)
+popleftr
+rrset
+RRset
+to_rdatasetr
+Rdataset
+intrM
+MAX_TTLrF
+RdatarL
+IndexError)
+deletingr;
+argr
+_rdataset_from_argsQ
+Transaction._rdataset_from_argsc
+)	Nz	replace()z
+add()F
+ requires a name or RRset 
+as the first argument
+  has objects of wrong RdataClassz
+ has non-origin SOA
+not enough parameters to ) 
+collections
+dequerb
+Namerj
+rdclassr"
+_origin_informationra
+update
+union
+_checked_put_rdatasetrh
+origin
+existingZ
+trdsr
+Transaction._addc
+}	n.t
+}	|	j
+}	t	|	
+delete_exact()z
+delete()r
+: missing rdatasetTrk
+: missing rdatasz
+: name not knownrn
+)$ro
+_delete_rdatasetrj
+intersection
+difference
+_checked_delete_rdatasetrv
+_checked_delete_namerh
+exactr;
+Transaction._deletec
+Transaction._check_endedc
+_end_transaction
+Transaction._endc
+_put_rdataset)
+z!Transaction._checked_put_rdatasetc
+z$Transaction._checked_delete_rdatasetc
+_delete_name)
+z Transaction._checked_delete_namec
+	__enter__
+Transaction.__enter__c
+exc_typeZ
+exc_valZ
+exc_tbr
+__exit__
+Transaction.__exit__c
+zlReturn the rdataset associated with *name*, *rdtype*, and *covers*,
+        or `None` if not found.
+        Nr
+Transaction._get_rdatasetc
+Store the rdataset.Nr
+Transaction._put_rdatasetc
+zhDelete all data associated with *name*.
+        It is not an error if the name does not exist.
+        Nr
+Transaction._delete_namec
+Delete all data associated with *name*, *rdtype*, and *covers*.
+        It is not an error if the rdataset does not exist.
+        Nr
+Transaction._delete_rdatasetc
+z2Does name exist?
+        Returns a bool.
+        Nr
+Transaction._name_existsc
+z&Has this transaction changed anything?Nr
+Transaction._changedc
+End the transaction.
+        *commit*, a bool.  If ``True``, commit the transaction, otherwise
+        roll it back.
+        If committing and the commit fails, then roll back and raise an
+        exception.
+        Nr
+Transaction._end_transactionc
+Set the origin.
+        This method is called when reading a possibly relativized
+        source, and an origin setting operation occurs (e.g. $ORIGIN
+        in a zone file).
+        Nr
+_set_origin8
+Transaction._set_originc
+z@Return an iterator that yields (name, rdataset) tuples.
+        Nr
+Transaction._iterate_rdatasetsc
+zPReturn the node at *name*, if any.
+        Returns a node or ``None``.
+        Nr
+Transaction._get_nodec
+Transaction._origin_informationN)
+FF)/r
+emptyrP
+dns.exceptionr
+dns.nameZ
+dns.rdataclassZ
+dns.rdatasetZ
+dns.rdatatypeZ	dns.rrsetZ
+dns.serialZ
+dns.ttlr
+	exceptionZ
+DNSExceptionr
+<module>

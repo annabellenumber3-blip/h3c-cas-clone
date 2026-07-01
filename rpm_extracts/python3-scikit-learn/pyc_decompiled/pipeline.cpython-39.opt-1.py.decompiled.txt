@@ -1,0 +1,872 @@
+l m!Z!
+m"Z"
+Z(d+d"d#
+Z)d,d$d%
+d&d'
+d)d*
+The :mod:`sklearn.pipeline` module implements utilities to build a composite
+estimator, as a chain of transforms and estimators.
+defaultdict)
+isliceN)
+sparse)
+Parallel
+clone
+TransformerMixin)
+FunctionTransformer)
+_VisualBlock)
+available_if)
+Bunch
+_print_elapsed_time)
+deprecated)
+_safe_tags)
+check_memory)
+check_is_fitted)
+delayed)
+NotFittedError)
+_BaseComposition)
+Pipeline
+FeatureUnion
+make_pipeline
+make_unionc
+z\Check that final_estimator has `attr`.
+    Used together with `avaliable_if` in `Pipeline`.c
+getattr
+_final_estimator
+self
+attr
+6/usr/lib64/python3.9/site-packages/sklearn/pipeline.py
+check,
+z#_final_estimator_has.<locals>.checkr 
+_final_estimator_has'
+dPd	d
+dSd!d"
+dTd#d$
+d&d'
+dUd)d*
+d,d-
+d/d0
+d2d3
+d5d6
+d7d8
+d9d:
+d;d<
+d=d>
+dVd@dA
+dBdC
+Z"dDdE
+Z#dWdFdG
+dHdI
+dJdK
+Z&dLdM
+Z'dNdO
+    Pipeline of transforms with a final estimator.
+    Sequentially apply a list of transforms and a final estimator.
+    Intermediate steps of the pipeline must be 'transforms', that is, they
+    must implement `fit` and `transform` methods.
+    The final estimator only needs to implement `fit`.
+    The transformers in the pipeline can be cached using ``memory`` argument.
+    The purpose of the pipeline is to assemble several steps that can be
+    cross-validated together while setting different parameters. For this, it
+    enables setting parameters of the various steps using their names and the
+    parameter name separated by a `'__'`, as in the example below. A step's
+    estimator may be replaced entirely by setting the parameter with its name
+    to another estimator, or a transformer removed by setting it to
+    `'passthrough'` or `None`.
+    Read more in the :ref:`User Guide <pipeline>`.
+    .. versionadded:: 0.5
+    Parameters
+    ----------
+    steps : list of tuple
+        List of (name, transform) tuples (implementing `fit`/`transform`) that
+        are chained, in the order in which they are chained, with the last
+        object an estimator.
+    memory : str or object with the joblib.Memory interface, default=None
+        Used to cache the fitted transformers of the pipeline. By default,
+        no caching is performed. If a string is given, it is the path to
+        the caching directory. Enabling caching triggers a clone of
+        the transformers before fitting. Therefore, the transformer
+        instance given to the pipeline cannot be inspected
+        directly. Use the attribute ``named_steps`` or ``steps`` to
+        inspect estimators within the pipeline. Caching the
+        transformers is advantageous when fitting is time consuming.
+    verbose : bool, default=False
+        If True, the time elapsed while fitting each step will be printed as it
+        is completed.
+    Attributes
+    ----------
+    named_steps : :class:`~sklearn.utils.Bunch`
+        Dictionary-like object, with the following attributes.
+        Read-only attribute to access any step parameter by user given name.
+        Keys are step names and values are steps parameters.
+    classes_ : ndarray of shape (n_classes,)
+        The classes labels. Only exist if the last step of the pipeline is a
+        classifier.
+    n_features_in_ : int
+        Number of features seen during :term:`fit`. Only defined if the
+        underlying first estimator in `steps` exposes such an attribute
+        when fit.
+        .. versionadded:: 0.24
+    feature_names_in_ : ndarray of shape (`n_features_in_`,)
+        Names of features seen during :term:`fit`. Only defined if the
+        underlying estimator exposes such an attribute when fit.
+        .. versionadded:: 1.0
+    See Also
+    --------
+    make_pipeline : Convenience function for simplified pipeline construction.
+    Examples
+    --------
+    >>> from sklearn.svm import SVC
+    >>> from sklearn.preprocessing import StandardScaler
+    >>> from sklearn.datasets import make_classification
+    >>> from sklearn.model_selection import train_test_split
+    >>> from sklearn.pipeline import Pipeline
+    >>> X, y = make_classification(random_state=0)
+    >>> X_train, X_test, y_train, y_test = train_test_split(X, y,
+    ...                                                     random_state=0)
+    >>> pipe = Pipeline([('scaler', StandardScaler()), ('svc', SVC())])
+    >>> # The pipeline can be used as any other estimator
+    >>> # and avoids leaking the test set into the train set
+    >>> pipe.fit(X_train, y_train)
+    Pipeline(steps=[('scaler', StandardScaler()), ('svc', SVC())])
+    >>> pipe.score(X_test, y_test)
+    0.88
+    
+stepsNF
+memory
+verbosec
+__init__
+Pipeline.__init__Tc
+Get parameters for this estimator.
+        Returns the parameters given in the constructor as well as the
+        estimators contained within the `steps` of the `Pipeline`.
+        Parameters
+        ----------
+        deep : bool, default=True
+            If True, will return the parameters for this estimator and
+            contained subobjects that are estimators.
+        Returns
+        -------
+        params : mapping of string to any
+            Parameter names mapped to their values.
+        r$
+deep
+_get_params
+get_params
+Pipeline.get_paramsc
+Set the parameters of this estimator.
+        Valid parameter keys can be listed with ``get_params()``. Note that
+        you can directly set the parameters of the estimators contained in
+        `steps`.
+        Parameters
+        ----------
+        **kwargs : dict
+            Parameters of this estimator or parameters of estimators contained
+            in `steps`. Parameters of the steps may be set using its name and
+            the parameter name separated by a '__'.
+        Returns
+        -------
+        self : object
+            Pipeline class instance.
+        r$
+_set_params
+kwargsr 
+set_params
+Pipeline.set_paramsc
+rFq0t
+passthrough
+fit_transform
+	transformz
+All intermediate steps should be transformers and implement fit and transform or be the string 'passthrough' '%s' (type %s) doesn'tzaLast step of Pipeline should implement fit or be the string 'passthrough'. '%s' (type %s) doesn't)
+zipr$
+_validate_names
+hasattr
+	TypeError
+type)
+names
+estimators
+transformers
+	estimator
+_validate_steps
+Pipeline._validate_stepsc
+        Generate (idx, (name, trans)) tuples from self.steps
+        When filter_passthrough is True, 'passthrough' and None transformers
+        are filtered out.
+        r
+lenr$
+	enumerater
+with_final
+filter_passthrough
+stop
+name
+transr 
+_iter
+Pipeline._iterc
+        Returns the length of the Pipeline
+        )
+__len__
+Pipeline.__len__c
+Returns a sub-pipeline or a single estimator in the pipeline
+        Indexing with an integer will return an estimator; using a slice
+        returns another Pipeline instance which copies a slice of this
+        Pipeline. This copy is shallow: modifying (or fitting) estimators in
+        the sub-pipeline will affect the larger pipeline and vice-versa.
+        However, replacing a value in `step` will not affect a copy.
+        )
+Nz*Pipeline slicing only supports a step of 1r%
+isinstance
+slice
+step
+ValueError
+	__class__r$
+named_steps)
+indrI
+estr 
+__getitem__
+Pipeline.__getitem__c
+_estimator_typer
+Pipeline._estimator_typec
+Access the steps by name.
+        Read-only attribute to access any step by given name.
+        Keys are steps names and values are the steps objects.)
+dictr$
+Pipeline.named_stepsc
+Pipeline._final_estimatorc
+(step %d of %d) Processing %sr
+step_idxrI
+_log_message!
+Pipeline._log_messagec
+.0rI
+<dictcomp>)
+z.Pipeline._check_fit_params.<locals>.<dictcomp>
+Pipeline.fit does not accept the {} parameter. You can pass parameters to specific steps of your pipeline using the stepname__parameter format, e.g. `Pipeline.fit(X, y, logisticregression__sample_weight=sample_weight)`.r
+itemsrP
+format
+split)
+fit_params
+fit_params_stepsZ
+pnameZ
+pvalrO
+paramr 
+_check_fit_params(
+Pipeline._check_fit_paramsc
+location
+message_clsname
+message)
+listr$
+cache
+_fit_transform_onerK
+fit_transform_one_cachedrX
+transformerZ
+cloned_transformerZ
+fitted_transformerr 
+_fit9
+Pipeline._fitc
+Fit the model.
+        Fit all the transformers one after the other and transform the
+        data. Finally, fit the transformed data using the final estimator.
+        Parameters
+        ----------
+        X : iterable
+            Training data. Must fulfill input requirements of first step of the
+            pipeline.
+        y : iterable, default=None
+            Training targets. Must fulfill label requirements for all steps of
+            the pipeline.
+        **fit_params : dict of string -> object
+            Parameters passed to the ``fit`` method of each step, where
+            each parameter name is prefixed such that parameter ``p`` for step
+            ``s`` has key ``s__p``.
+        Returns
+        -------
+        self : object
+            Pipeline with fitted steps.
+        r
+fit_params_last_stepr 
+Pipeline.fitc
+Fit the model and transform with the final estimator.
+        Fits all the transformers one after the other and transform the
+        data. Then uses `fit_transform` on transformed data with the final
+        estimator.
+        Parameters
+        ----------
+        X : iterable
+            Training data. Must fulfill input requirements of first step of the
+            pipeline.
+        y : iterable, default=None
+            Training targets. Must fulfill label requirements for all steps of
+            the pipeline.
+        **fit_params : dict of string -> object
+            Parameters passed to the ``fit`` method of each step, where
+            each parameter name is prefixed such that parameter ``p`` for step
+            ``s`` has key ``s__p``.
+        Returns
+        -------
+        Xt : ndarray of shape (n_samples, n_transformed_features)
+            Transformed samples.
+        r
+Z	last_steprq
+Pipeline.fit_transform
+predictc
+Transform the data, and apply `predict` with the final estimator.
+        Call `transform` of each transformer in the pipeline. The transformed
+        data are finally passed to the final estimator that calls `predict`
+        method. Only valid if the final estimator implements `predict`.
+        Parameters
+        ----------
+        X : iterable
+            Data to predict on. Must fulfill input requirements of first step
+            of the pipeline.
+        **predict_params : dict of string -> object
+            Parameters to the ``predict`` called at the end of all
+            transformations in the pipeline. Note that while this may be
+            used to return uncertainties from some models with return_std
+            or return_cov, uncertainties that are generated by the
+            transformations in the pipeline are not propagated to the
+            final estimator.
+            .. versionadded:: 0.20
+        Returns
+        -------
+        y_pred : ndarray
+            Result of calling `predict` on the final estimator.
+        F
+predict_paramsrp
+Pipeline.predict
+fit_predictc
+Transform the data, and apply `fit_predict` with the final estimator.
+        Call `fit_transform` of each transformer in the pipeline. The
+        transformed data are finally passed to the final estimator that calls
+        `fit_predict` method. Only valid if the final estimator implements
+        `fit_predict`.
+        Parameters
+        ----------
+        X : iterable
+            Training data. Must fulfill input requirements of first step of
+            the pipeline.
+        y : iterable, default=None
+            Training targets. Must fulfill label requirements for all steps
+            of the pipeline.
+        **fit_params : dict of string -> object
+            Parameters passed to the ``fit`` method of each step, where
+            each parameter name is prefixed such that parameter ``p`` for step
+            ``s`` has key ``s__p``.
+        Returns
+        -------
+        y_pred : ndarray
+            Result of calling `fit_predict` on the final estimator.
+        r3
+y_predr 
+Pipeline.fit_predict
+predict_probac
+Transform the data, and apply `predict_proba` with the final estimator.
+        Call `transform` of each transformer in the pipeline. The transformed
+        data are finally passed to the final estimator that calls
+        `predict_proba` method. Only valid if the final estimator implements
+        `predict_proba`.
+        Parameters
+        ----------
+        X : iterable
+            Data to predict on. Must fulfill input requirements of first step
+            of the pipeline.
+        **predict_proba_params : dict of string -> object
+            Parameters to the `predict_proba` called at the end of all
+            transformations in the pipeline.
+        Returns
+        -------
+        y_proba : ndarray of shape (n_samples, n_classes)
+            Result of calling `predict_proba` on the final estimator.
+        Frs
+predict_proba_paramsrp
+Pipeline.predict_proba
+decision_functionc
+Transform the data, and apply `decision_function` with the final estimator.
+        Call `transform` of each transformer in the pipeline. The transformed
+        data are finally passed to the final estimator that calls
+        `decision_function` method. Only valid if the final estimator
+        implements `decision_function`.
+        Parameters
+        ----------
+        X : iterable
+            Data to predict on. Must fulfill input requirements of first step
+            of the pipeline.
+        Returns
+        -------
+        y_score : ndarray of shape (n_samples, n_classes)
+            Result of calling `decision_function` on the final estimator.
+        Frs
+Pipeline.decision_function
+score_samplesc
+Transform the data, and apply `score_samples` with the final estimator.
+        Call `transform` of each transformer in the pipeline. The transformed
+        data are finally passed to the final estimator that calls
+        `score_samples` method. Only valid if the final estimator implements
+        `score_samples`.
+        Parameters
+        ----------
+        X : iterable
+            Data to predict on. Must fulfill input requirements of first step
+            of the pipeline.
+        Returns
+        -------
+        y_score : ndarray of shape (n_samples,)
+            Result of calling `score_samples` on the final estimator.
+        Frs
+Pipeline.score_samples
+predict_log_probac
+Transform the data, and apply `predict_log_proba` with the final estimator.
+        Call `transform` of each transformer in the pipeline. The transformed
+        data are finally passed to the final estimator that calls
+        `predict_log_proba` method. Only valid if the final estimator
+        implements `predict_log_proba`.
+        Parameters
+        ----------
+        X : iterable
+            Data to predict on. Must fulfill input requirements of first step
+            of the pipeline.
+        **predict_log_proba_params : dict of string -> object
+            Parameters to the ``predict_log_proba`` called at the end of all
+            transformations in the pipeline.
+        Returns
+        -------
+        y_log_proba : ndarray of shape (n_samples, n_classes)
+            Result of calling `predict_log_proba` on the final estimator.
+        Frs
+predict_log_proba_paramsrp
+Pipeline.predict_log_probac
+_can_transform]
+Pipeline._can_transformc
+Transform the data, and apply `transform` with the final estimator.
+        Call `transform` of each transformer in the pipeline. The transformed
+        data are finally passed to the final estimator that calls
+        `transform` method. Only valid if the final estimator
+        implements `transform`.
+        This also works where final estimator is `None` in which case all prior
+        transformations are applied.
+        Parameters
+        ----------
+        X : iterable
+            Data to transform. Must fulfill input requirements of first step
+            of the pipeline.
+        Returns
+        -------
+        Xt : ndarray of shape (n_samples, n_transformed_features)
+            Transformed data.
+        )
+Pipeline.transformc
+inverse_transformN)
+	<genexpr>
+z2Pipeline._can_inverse_transform.<locals>.<genexpr>)
+allrK
+_can_inverse_transform~
+Pipeline._can_inverse_transformc
+Apply `inverse_transform` for each step in a reverse order.
+        All estimators in the pipeline must support `inverse_transform`.
+        Parameters
+        ----------
+        Xt : array-like of shape (n_samples, n_transformed_features)
+            Data samples, where ``n_samples`` is the number of samples and
+            ``n_features`` is the number of features. Must fulfill
+            input requirements of last step of pipeline's
+            ``inverse_transform`` method.
+        Returns
+        -------
+        Xt : ndarray of shape (n_samples, n_features)
+            Inverse transformed data, that is, data in the original feature
+            space.
+        )
+reversedri
+reverse_iterrY
+Pipeline.inverse_transform
+scorec
+Transform the data, and apply `score` with the final estimator.
+        Call `transform` of each transformer in the pipeline. The transformed
+        data are finally passed to the final estimator that calls
+        `score` method. Only valid if the final estimator implements `score`.
+        Parameters
+        ----------
+        X : iterable
+            Data to predict on. Must fulfill input requirements of first step
+            of the pipeline.
+        y : iterable, default=None
+            Targets used for scoring. Must fulfill label requirements for all
+            steps of the pipeline.
+        sample_weight : array-like, default=None
+            If not None, this argument is passed as ``sample_weight`` keyword
+            argument to the ``score`` method of the final estimator.
+        Returns
+        -------
+        score : float
+            Result of calling `score` on the final estimator.
+        Frs
+sample_weightr3
+score_paramsr 
+Pipeline.scorec
+z@The classes labels. Only exist if the last step is a classifier.r3
+classes_r
+Pipeline.classes_c
+pairwiser
+_more_tags
+Pipeline._more_tagsc
+Get output feature names for transformation.
+        Transform input features using the pipeline.
+        Parameters
+        ----------
+        input_features : array-like of str or None, default=None
+            Input features.
+        Returns
+        -------
+        feature_names_out : ndarray of str objects
+            Transformed feature names.
+        
+get_feature_names_outzpEstimator {} does not provide get_feature_names_out. Did you mean to call pipeline[:-1].get_feature_names_out()?)
+AttributeErrorr`
+input_featuresZ
+feature_names_outrY
+Pipeline.get_feature_names_outc
+z7Number of features seen during first step `fit` method.r
+n_features_in_r
+Pipeline.n_features_in_c
+z6Names of features seen during first step `fit` method.r
+feature_names_in_r
+Pipeline.feature_names_in_c
+z'Indicate whether pipeline has been fit.r3
+TFN)
+__sklearn_is_fitted__
+Pipeline.__sklearn_is_fitted__c
+)	Nc
+: passthroughz
+__name__)
+	_get_name
+z-Pipeline._sk_visual_block_.<locals>._get_namec
+<listcomp>
+z.Pipeline._sk_visual_block_.<locals>.<listcomp>c
+str)
+serialF)
+name_detailsZ
+dash_wrapped)
+_sk_visual_block_
+Pipeline._sk_visual_block_)
+N))r
+__module__
+__qualname__
+__doc__
+_required_parametersr)
+propertyrU
+Generate names for estimators.c
+lower)
+z$_name_estimators.<locals>.<listcomp>r
+-%d)
+intr8
+rangerC
+Z	namecountrS
+_name_estimators
+Construct a :class:`Pipeline` from the given estimators.
+    This is a shorthand for the :class:`Pipeline` constructor; it does not
+    require, and does not permit, naming the estimators. Instead, their names
+    will be set to the lowercase of their types automatically.
+    Parameters
+    ----------
+    *steps : list of Estimator objects
+        List of the scikit-learn estimators that are chained together.
+    memory : str or object with the joblib.Memory interface, default=None
+        Used to cache the fitted transformers of the pipeline. By default,
+        no caching is performed. If a string is given, it is the path to
+        the caching directory. Enabling caching triggers a clone of
+        the transformers before fitting. Therefore, the transformer
+        instance given to the pipeline cannot be inspected
+        directly. Use the attribute ``named_steps`` or ``steps`` to
+        inspect estimators within the pipeline. Caching the
+        transformers is advantageous when fitting is time consuming.
+    verbose : bool, default=False
+        If True, the time elapsed while fitting each step will be printed as it
+        is completed.
+    Returns
+    -------
+    p : Pipeline
+        Returns a scikit-learn :class:`Pipeline` object.
+    See Also
+    --------
+    Pipeline : Class for creating a pipeline of transforms with a final
+        estimator.
+    Examples
+    --------
+    >>> from sklearn.naive_bayes import GaussianNB
+    >>> from sklearn.preprocessing import StandardScaler
+    >>> from sklearn.pipeline import make_pipeline
+    >>> make_pipeline(StandardScaler(), GaussianNB(priors=None))
+    Pipeline(steps=[('standardscaler', StandardScaler()),
+                    ('gaussiannb', GaussianNB())])
+    r%
+weightrb
+resr 
+_transform_oneT
+    Fits ``transformer`` to ``X`` and ``y``. The transformed result is returned
+    with the fitted transformer. If ``weight`` is not ``None``, the result will
+    be multiplied by ``weight``.
+    r6
+    Fits ``transformer`` to ``X`` and ``y``.
+    N)
+_fit_oneo
+d,d	d
+d d!
+d"d#
+d$d%
+d&d'
+d(d)
+d*d+
+Concatenates results of multiple transformer objects.
+    This estimator applies a list of transformer objects in parallel to the
+    input data, then concatenates the results. This is useful to combine
+    several feature extraction mechanisms into a single transformer.
+    Parameters of the transformers may be set using its name and the parameter
+    name separated by a '__'. A transformer may be replaced entirely by
+    setting the parameter with its name to another transformer, removed by
+    setting to 'drop' or disabled by setting to 'passthrough' (features are
+    passed without transformation).
+    Read more in the :ref:`User Guide <feature_union>`.
+    .. versionadded:: 0.13
+    Parameters
+    ----------
+    transformer_list : list of (str, transformer) tuples
+        List of transformer objects to be applied to the data. The first
+        half of each tuple is the name of the transformer. The transformer can
+        be 'drop' for it to be ignored or can be 'passthrough' for features to
+        be passed unchanged.
+        .. versionadded:: 1.1
+           Added the option `"passthrough"`.
+        .. versionchanged:: 0.22
+           Deprecated `None` as a transformer in favor of 'drop'.
+    n_jobs : int, default=None
+        Number of jobs to run in parallel.
+        ``None`` means 1 unless in a :obj:`joblib.parallel_backend` context.
+        ``-1`` means using all processors. See :term:`Glossary <n_jobs>`
+        for more details.
+        .. versionchanged:: v0.20
+           `n_jobs` default changed from 1 to None
+    transformer_weights : dict, default=None
+        Multiplicative weights for features per transformer.
+        Keys are transformer names, values the weights.
+        Raises ValueError if key not present in ``transformer_list``.
+    verbose : bool, default=False
+        If True, the time elapsed while fitting each transformer will be
+        printed as it is completed.
+    Attributes
+    ----------
+    n_features_in_ : int
+        Number of features seen during :term:`fit`. Only defined if the
+        underlying first transformer in `transformer_list` exposes such an
+        attribute when fit.
+        .. versionadded:: 0.24
+    See Also
+    --------
+    make_union : Convenience function for simplified feature union
+        construction.
+    Examples
+    --------
+    >>> from sklearn.pipeline import FeatureUnion
+    >>> from sklearn.decomposition import PCA, TruncatedSVD
+    >>> union = FeatureUnion([("pca", PCA(n_components=1)),
+    ...                       ("svd", TruncatedSVD(n_components=2))])
+    >>> X = [[0., 1., 3], [2., 2., 5]]
+    >>> union.fit_transform(X)
+    array([[ 1.5       ,  3.0...,  0.8...],
+           [-1.5       ,  5.7..., -0.4...]])
+    
+transformer_listNF)
+n_jobs
+transformer_weightsr'
+FeatureUnion.__init__Tc
+Get parameters for this estimator.
+        Returns the parameters given in the constructor as well as the
+        estimators contained within the `transformer_list` of the
+        `FeatureUnion`.
+        Parameters
+        ----------
+        deep : bool, default=True
+            If True, will return the parameters for this estimator and
+            contained subobjects that are estimators.
+        Returns
+        -------
+        params : mapping of string to any
+            Parameter names mapped to their values.
+        r
+FeatureUnion.get_paramsc
+Set the parameters of this estimator.
+        Valid parameter keys can be listed with ``get_params()``. Note that
+        you can directly set the parameters of the estimators contained in
+        `tranformer_list`.
+        Parameters
+        ----------
+        **kwargs : dict
+            Parameters of this estimator or parameters of estimators contained
+            in `transform_list`. Parameters of the transformers may be set
+            using its name and the parameter name separated by a '__'.
+        Returns
+        -------
+        self : object
+            FeatureUnion class instance.
+        r
+FeatureUnion.set_paramsc
+dropr4
+zIAll estimators should implement fit and transform. '%s' (type %s) doesn't)
+_validate_transformers
+z#FeatureUnion._validate_transformersc
+z=FeatureUnion._validate_transformer_weights.<locals>.<genexpr>z"Attempting to weight transformer "z-", but it is not present in transformer_list.)
+setr
+transformer_namesrI
+_validate_transformer_weights
+z*FeatureUnion._validate_transformer_weightsc
+        Generate (name, trans, weight) tuples excluding None and
+        'drop' transformers.
+        r
+getr
+get_weightrI
+FeatureUnion._iterzlget_feature_names is deprecated in 1.0 and will be removed in 1.2. Please use get_feature_names_out instead.c
+Get feature names from all transformers.
+        Returns
+        -------
+        feature_names : list of strings
+            Names of the features produced by transform.
+        
+get_feature_namesz<Transformer %s (type %s) does not provide get_feature_names.c
+z2FeatureUnion.get_feature_names.<locals>.<listcomp>)
+extendr
+feature_namesrJ
+FeatureUnion.get_feature_namesc
+Get output feature names for transformation.
+        Parameters
+        ----------
+        input_features : array-like of str or None, default=None
+            Input features.
+        Returns
+        -------
+        feature_names_out : ndarray of str objects
+            Transformed feature names.
+        r
+z@Transformer %s (type %s) does not provide get_feature_names_out.c
+z6FeatureUnion.get_feature_names_out.<locals>.<listcomp>)
+dtype)
+asarray
+object)
+z"FeatureUnion.get_feature_names_outc
+Fit all transformers using X.
+        Parameters
+        ----------
+        X : iterable or array-like, depending on transformers
+            Input data, used to fit transformers.
+        y : array-like of shape (n_samples, n_outputs), default=None
+            Targets for supervised learning.
+        **fit_params : dict, default=None
+            Parameters to pass to the fit method of the estimator.
+        Returns
+        -------
+        self : object
+            FeatureUnion class instance.
+        )
+_parallel_funcr
+_update_transformer_list)
+FeatureUnion.fitc
+Fit all transformers, transform the data and concatenate results.
+        Parameters
+        ----------
+        X : iterable or array-like, depending on transformers
+            Input data to be transformed.
+        y : array-like of shape (n_samples, n_outputs), default=None
+            Targets for supervised learning.
+        **fit_params : dict, default=None
+            Parameters to pass to the fit method of the estimator.
+        Returns
+        -------
+        X_t : array-like or sparse matrix of                 shape (n_samples, sum_n_components)
+            The `hstack` of results of transformers. `sum_n_components` is the
+            sum of `n_components` (output dimension) over transformers.
+        r
+zeros
+shaper8
+_hstack)
+results
+Xsr?
+FeatureUnion.fit_transformc
+totalr 
+FeatureUnion._log_messagec
+z Runs func in parallel on X and y
+funcr
+z.FeatureUnion._parallel_func.<locals>.<genexpr>r
+FeatureUnion._parallel_funcc
+Transform X separately by each transformer, concatenate results.
+        Parameters
+        ----------
+        X : iterable or array-like, depending on transformers
+            Input data to be transformed.
+        Returns
+        -------
+        X_t : array-like or sparse matrix of                 shape (n_samples, sum_n_components)
+            The `hstack` of results of transformers. `sum_n_components` is the
+            sum of `n_components` (output dimension) over transformers.
+        r
+z)FeatureUnion.transform.<locals>.<genexpr>r
+FeatureUnion.transformc
+issparser
+z'FeatureUnion._hstack.<locals>.<genexpr>)
+anyr
+hstackZ
+tocsrr
+FeatureUnion._hstackc
+next)
+z9FeatureUnion._update_transformer_list.<locals>.<listcomp>)
+iterr
+z%FeatureUnion._update_transformer_listc
+z+Number of features seen during :term:`fit`.r
+FeatureUnion.n_features_in_c
+z"FeatureUnion.__sklearn_is_fitted__c
+parallel)
+FeatureUnion._sk_visual_block_)
+    Construct a FeatureUnion from the given transformers.
+    This is a shorthand for the FeatureUnion constructor; it does not require,
+    and does not permit, naming the transformers. Instead, they will be given
+    names automatically based on their types. It also does not allow weighting.
+    Parameters
+    ----------
+    *transformers : list of estimators
+    n_jobs : int, default=None
+        Number of jobs to run in parallel.
+        ``None`` means 1 unless in a :obj:`joblib.parallel_backend` context.
+        ``-1`` means using all processors. See :term:`Glossary <n_jobs>`
+        for more details.
+        .. versionchanged:: v0.20
+           `n_jobs` default changed from 1 to None
+    verbose : bool, default=False
+        If True, the time elapsed while fitting each transformer will be
+        printed as it is completed.
+    Returns
+    -------
+    f : FeatureUnion
+    See Also
+    --------
+    FeatureUnion : Class for concatenating the results of multiple transformer
+        objects.
+    Examples
+    --------
+    >>> from sklearn.decomposition import PCA, TruncatedSVD
+    >>> from sklearn.pipeline import make_union
+    >>> make_union(PCA(), TruncatedSVD())
+     FeatureUnion(transformer_list=[('pca', PCA()),
+                                   ('truncatedsvd', TruncatedSVD())])
+    r
+N)-r
+collectionsr
+	itertoolsr
+numpyr
+scipyr
+joblibr
+baser
+preprocessingr	
+utils._estimator_html_reprr
+utils.metaestimatorsr
+utilsr
+utils.deprecationr
+utils._tagsr
+utils.validationr
+utils.fixesr
+exceptionsr
+__all__r#
+<module>

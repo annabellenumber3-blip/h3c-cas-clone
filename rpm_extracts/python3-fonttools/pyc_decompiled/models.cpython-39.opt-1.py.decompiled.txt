@@ -1,0 +1,257 @@
+z%Variation fonts interpolation models.
+print_function
+division
+absolute_import)
+normalizeValue
+normalizeLocation
+supportScalar
+VariationModelc
+Normalizes value based on a min/default/max triple.
+	>>> normalizeValue(400, (100, 400, 900))
+	0.0
+	>>> normalizeValue(100, (100, 400, 900))
+	-1.0
+	>>> normalizeValue(650, (100, 400, 900))
+	0.5
+min)
+triple
+lower
+default
+upper
+;/usr/lib/python3.9/site-packages/fontTools/varLib/models.pyr
+Normalizes location based on axis min/default/max values from axes.
+	>>> axes = {"wght": (100, 400, 900)}
+	>>> normalizeLocation({"wght": 400}, axes)
+	{'wght': 0.0}
+	>>> normalizeLocation({"wght": 100}, axes)
+	{'wght': -1.0}
+	>>> normalizeLocation({"wght": 900}, axes)
+	{'wght': 1.0}
+	>>> normalizeLocation({"wght": 650}, axes)
+	{'wght': 0.5}
+	>>> normalizeLocation({"wght": 1000}, axes)
+	{'wght': 1.0}
+	>>> normalizeLocation({"wght": 0}, axes)
+	{'wght': -1.0}
+	>>> axes = {"wght": (0, 0, 1000)}
+	>>> normalizeLocation({"wght": 0}, axes)
+	{'wght': 0.0}
+	>>> normalizeLocation({"wght": -1}, axes)
+	{'wght': 0.0}
+	>>> normalizeLocation({"wght": 1000}, axes)
+	{'wght': 1.0}
+	>>> normalizeLocation({"wght": 500}, axes)
+	{'wght': 0.5}
+	>>> normalizeLocation({"wght": 1001}, axes)
+	{'wght': 1.0}
+	>>> axes = {"wght": (0, 1000, 1000)}
+	>>> normalizeLocation({"wght": 0}, axes)
+	{'wght': -1.0}
+	>>> normalizeLocation({"wght": -1}, axes)
+	{'wght': -1.0}
+	>>> normalizeLocation({"wght": 500}, axes)
+	{'wght': -0.5}
+	>>> normalizeLocation({"wght": 1000}, axes)
+	{'wght': 0.0}
+	>>> normalizeLocation({"wght": 1001}, axes)
+	{'wght': 0.0}
+items
+getr
+location
+axes
+tagr
+Returns the scalar multiplier at location, for a master
+	with support.  If ot is True, then a peak value of zero
+	for support of an axis means "axis does not participate".  That
+	is how OpenType Variation Font technology works.
+	>>> supportScalar({}, {})
+	1.0
+	>>> supportScalar({'wght':.2}, {})
+	1.0
+	>>> supportScalar({'wght':.2}, {'wght':(0,2,3)})
+	0.1
+	>>> supportScalar({'wght':2.5}, {'wght':(0,2,4)})
+	0.75
+	>>> supportScalar({'wght':2.5, 'wdth':0}, {'wght':(0,2,4), 'wdth':(-1,0,+1)})
+	0.75
+	>>> supportScalar({'wght':2.5, 'wdth':.5}, {'wght':(0,2,4), 'wdth':(-1,0,+1)}, ot=False)
+	0.375
+	>>> supportScalar({'wght':2.5, 'wdth':0}, {'wght':(0,2,4), 'wdth':(-1,0,+1)})
+	0.75
+	>>> supportScalar({'wght':2.5, 'wdth':.5}, {'wght':(0,2,4), 'wdth':(-1,0,+1)})
+	0.75
+supportZ
+scalar
+axisr
+peakr
+	Locations must be in normalized space.  Ie. base master
+	is at origin (0).
+	>>> from pprint import pprint
+	>>> locations = [ 	{'wght':100}, 	{'wght':-100}, 	{'wght':-180}, 	{'wdth':+.3}, 	{'wght':+120,'wdth':.3}, 	{'wght':+120,'wdth':.2}, 	{}, 	{'wght':+180,'wdth':.3}, 	{'wght':+180}, 	]
+	>>> model = VariationModel(locations, axisOrder=['wght'])
+	>>> pprint(model.locations)
+	[{},
+	 {'wght': -100},
+	 {'wght': -180},
+	 {'wght': 100},
+	 {'wght': 180},
+	 {'wdth': 0.3},
+	 {'wdth': 0.3, 'wght': 180},
+	 {'wdth': 0.3, 'wght': 120},
+	 {'wdth': 0.2, 'wght': 120}]
+	>>> pprint(model.deltaWeights)
+	[{},
+	 {0: 1.0},
+	 {0: 1.0},
+	 {0: 1.0},
+	 {0: 1.0},
+	 {0: 1.0},
+	 {0: 1.0, 4: 1.0, 5: 1.0},
+	 {0: 1.0, 3: 0.75, 4: 0.25, 5: 1.0, 6: 0.6666666666666666},
+	 {0: 1.0,
+	  3: 0.75,
+	  4: 0.25,
+	  5: 0.6666666666666667,
+	  6: 0.4444444444444445,
+	  7: 0.6666666666666667}]
+<dictcomp>
+z6VariationModel.__init__.<locals>.<listcomp>.<dictcomp>)
+locr
+<listcomp>
+z+VariationModel.__init__.<locals>.<listcomp>
+	axisOrder)
+keyc
+	locations
+index
+selfr
+getMasterLocationsSortKeyFunc
+axisPoints
+sortedr(
+mapping
+reverseMapping
+_computeMasterSupports)
+keyFuncr/
+__init__
+VariationModel.__init__c
+sign
+zJVariationModel.getMasterLocationsSortKeyFunc.<locals>.getKey.<locals>.signc
+)	Nc
+value)
+z]VariationModel.getMasterLocationsSortKeyFunc.<locals>.getKey.<locals>.key.<locals>.<listcomp>c
+	<genexpr>
+z\VariationModel.getMasterLocationsSortKeyFunc.<locals>.getKey.<locals>.key.<locals>.<genexpr>c
+absr8
+lenr
+extendr0
+keys
+tuple)
+rankZ
+onPointAxes
+orderedAxes
+zIVariationModel.getMasterLocationsSortKeyFunc.<locals>.getKey.<locals>.keyr
+getKey
+z<VariationModel.getMasterLocationsSortKeyFunc.<locals>.getKey)
+next
+iter
+addr/
+retr
+z,VariationModel.getMasterLocationsSortKeyFuncc
+z,VariationModel.lowerBound.<locals>.<genexpr>c
+anyr
+lstr
+lowerBound
+VariationModel.lowerBoundc
+z,VariationModel.upperBound.<locals>.<genexpr>c
+upperBound
+VariationModel.upperBoundc
+r>q,|
+z9VariationModel._computeMasterSupports.<locals>.<listcomp>c
+	enumerater
+setr?
+issubsetr>
+appendr
+supports
+deltaWeights)
+boxr
+valuesZ
+locVZ
+locAxes
+relevantr
+bestAxisZ	bestRatio
+valZ
+newLowerZ
+newUpperZ
+ratioZ	bestLowerZ	bestUpperZ
+bestLocVZ
+deltaWeightr
+z%VariationModel._computeMasterSupportsc
+)	r,
+masterValuesr1
+weights
+deltarW
+weightr
+	getDeltas.
+VariationModel.getDeltasc
+z-VariationModel.getScalars.<locals>.<listcomp>)
+getScalars9
+VariationModel.getScalarsc
+zip)
+deltas
+scalarsr
+contributionr
+interpolateFromDeltasAndScalars<
+z.VariationModel.interpolateFromDeltasAndScalarsc
+interpolateFromDeltasI
+z$VariationModel.interpolateFromDeltasc
+interpolateFromMastersM
+z%VariationModel.interpolateFromMastersc
+ interpolateFromMastersAndScalarsQ
+z/VariationModel.interpolateFromMastersAndScalarsN)
+__name__
+__module__
+__qualname__
+__doc__r4
+staticmethodr.
+configLoggerr
+INFO)
+levelz1usage: fonttools varLib.models source.designspace)
+filez
+  orz6usage: fonttools varLib.models location1 location2 ...)
+pprintz
+.designspace)
+DesignSpaceDocumentc
+main.<locals>.<listcomp>z
+Original locations:z
+Normalized locations:c
+chr)
+floatrH
+z"main.<locals>.<listcomp>.<genexpr>
+dictr]
+splitro
+Sorted locations:z	Supports:)
+Z	fontToolsri
+print
+stderr
+exitrm
+endswithZ
+fontTools.designspaceLibrn
+readZ
+sources
+	normalize
+range
+ordr	
+argsri
+docZ
+locsZ
+modelr
+mainV
+__main__Nr
+__future__r
+fontTools.misc.py23
+__all__r
+objectr	
+doctestr{
+argvr}
+testmodZ
+failedr
+<module>

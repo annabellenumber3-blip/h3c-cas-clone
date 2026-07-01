@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.h3c.h3cloud.vmware.api.mapper.BackupStrategyVmMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.h3c.h3cloud.vmware.api.entity.BackupStrategyVm">
+        <id column="ID" property="id" />
+        <result column="BACKUP_STRATEGY_ID" property="backupStrategyId" />
+        <result column="VM_NAME" property="vmName" />
+        <result column="VM_KEY" property="vmKey" />
+        <result column="DEST_HOST_ID" property="destHostId" />
+        <result column="DEST_HOST_NAME" property="destHostName" />
+        <result column="DEST_HOST_IP" property="destHostIp" />
+        <result column="DEST_STORAGE_POOL_NAME" property="destStoragePoolName" />
+        <result column="DEST_STORAGE_POOL_TITLE" property="destStoragePoolTitle" />
+        <result column="PRIORITY" property="priority" />
+        <result column="NEXT_BACKUP_TIME" property="nextBackupTime" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        ID AS id, BACKUP_STRATEGY_ID AS backupStrategyId, VM_NAME AS vmName, VM_KEY AS vmKey, DEST_HOST_ID AS destHostId, DEST_HOST_NAME AS destHostName, DEST_HOST_IP AS destHostIp, DEST_STORAGE_POOL_NAME AS destStoragePoolName, DEST_STORAGE_POOL_TITLE AS destStoragePoolTitle, PRIORITY AS priority, NEXT_BACKUP_TIME AS nextBackupTime
+    </sql>
+
+    <select id="getBackupStrategyVmPageList" resultType="com.h3c.h3cloud.vmware.api.entity.BackupStrategyVm">
+        select * from
+        TBL_BACKUP_STRATEGY_VM
+        <where>
+            <if test="map.vmName!=null and map.vmName!=''">
+                and VM_NAME like  CONCAT('%',#{map.vmName},'%')
+            </if>
+            <if test="map.operatorGroupCode!=null and map.operatorGroupCode!=''">
+                and OP_GROUP_CODE like #{map.operatorGroupCode}
+            </if>
+            <if test="map.backupStrategyId!=null">
+                and BACKUP_STRATEGY_ID = #{map.backupStrategyId}
+            </if>
+        </where>
+        <if test="map.sortField!=null and map.sortField!=''">
+            order by ${map.sortField}
+        </if>
+        <if test="map.sortField!=null and map.sortField!='' and map.sortDir!=null and map.sortDir!=''">
+            ${map.sortDir}
+        </if>
+    </select>
+
+    <select id="getBackupStrategyVmsByPriority" resultType="com.h3c.h3cloud.vmware.api.entity.BackupStrategyVm">
+        select * from
+        TBL_BACKUP_STRATEGY_VM
+        <where>
+            <if test="map.name!=null and map.name!=''">
+                and NAME like #{map.name}
+            </if>
+            <if test="map.operatorGroupCode!=null and map.operatorGroupCode!=''">
+                and OP_GROUP_CODE like #{map.operatorGroupCode}
+            </if>
+            <if test="map.backupStrategyId!=null">
+                and BACKUP_STRATEGY_ID = #{map.backupStrategyId}
+            </if>
+        </where>
+        order by PRIORITY
+    </select>
+
+</mapper>

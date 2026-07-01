@@ -1,0 +1,619 @@
+Z!e D
+]vZ#e
+Z(e!
+j*d	e$d
+e(e(
+j,e(
+d d!g
+d"d#g
+d%d$d&g
+d(d)f
+d*d+d
+d-d,d.g
+d/d0f
+d1d2d
+j*e.e
+j*e0e
+j*e.e
+j*e0e
+j1d'd5g
+d6d7
+Z3d8d9
+Z4d:d;
+Z5d<d=
+Z6d>d?
+Z7d@dA
+Z8dBdC
+Z9dDdE
+Z:dFdG
+Z;dHdI
+Z<dJdK
+j$dLd)dM
+$dNdOg
+dPdPg
+d'dQg
+$dSdTg
+dPe?g
+$dNdOg
+dPdPg
+d'dQg
+dWdXg
+Ed[e>e?e@eAeBeCg
+d\d]
+ZFd^d_
+ZGd`da
+ZHdbdc
+Ed[e
+j$dNe
+d)dM
+$dee
+$dNdOg
+dfdfg
+$dig
+$dee
+$dNdOg
+dfdfg
+$dNe
+$dNeJf
+$dNdOg
+dfdfg
+dkdl
+ZKdmdn
+ZLdodp
+ZMdqdr
+ZPdudv
+ZQdwdx
+ZRdydz
+ZSd{d|
+ZTd}d~
+jDjZe
+jDj]d
+$dNdOg
+j$eJd
+$dNdOg
+$dSg
+j$eJi
+ Test the .npy file format.
+Set up:
+    >>> import sys
+    >>> from io import BytesIO
+    >>> from numpy.lib import format
+    >>>
+    >>> scalars = [
+    ...     np.uint8,
+    ...     np.int8,
+    ...     np.uint16,
+    ...     np.int16,
+    ...     np.uint32,
+    ...     np.int32,
+    ...     np.uint64,
+    ...     np.int64,
+    ...     np.float32,
+    ...     np.float64,
+    ...     np.complex64,
+    ...     np.complex128,
+    ...     object,
+    ... ]
+    >>>
+    >>> basic_arrays = []
+    >>>
+    >>> for scalar in scalars:
+    ...     for endian in '<>':
+    ...         dtype = np.dtype(scalar).newbyteorder(endian)
+    ...         basic = np.arange(15).astype(dtype)
+    ...         basic_arrays.extend([
+    ...             np.array([], dtype=dtype),
+    ...             np.array(10, dtype=dtype),
+    ...             basic,
+    ...             basic.reshape((3,5)),
+    ...             basic.reshape((3,5)).T,
+    ...             basic.reshape((3,5))[::-1,::2],
+    ...         ])
+    ...
+    >>>
+    >>> Pdescr = [
+    ...     ('x', 'i4', (2,)),
+    ...     ('y', 'f8', (2, 2)),
+    ...     ('z', 'u1')]
+    >>>
+    >>>
+    >>> PbufferT = [
+    ...     ([3,2], [[6.,4.],[6.,4.]], 8),
+    ...     ([4,3], [[7.,5.],[7.,5.]], 9),
+    ...     ]
+    >>>
+    >>>
+    >>> Ndescr = [
+    ...     ('x', 'i4', (2,)),
+    ...     ('Info', [
+    ...         ('value', 'c16'),
+    ...         ('y2', 'f8'),
+    ...         ('Info2', [
+    ...             ('name', 'S2'),
+    ...             ('value', 'c16', (2,)),
+    ...             ('y3', 'f8', (2,)),
+    ...             ('z3', 'u4', (2,))]),
+    ...         ('name', 'S2'),
+    ...         ('z2', 'b1')]),
+    ...     ('color', 'S2'),
+    ...     ('info', [
+    ...         ('Name', 'U8'),
+    ...         ('Value', 'c16')]),
+    ...     ('y', 'f8', (2, 2)),
+    ...     ('z', 'u1')]
+    >>>
+    >>>
+    >>> NbufferT = [
+    ...     ([3,2], (6j, 6., ('nn', [6j,4j], [6.,4.], [1,2]), 'NN', True), 'cc', ('NN', 6j), [[6.,4.],[6.,4.]], 8),
+    ...     ([4,3], (7j, 7., ('oo', [7j,5j], [7.,5.], [2,1]), 'OO', False), 'dd', ('OO', 7j), [[7.,5.],[7.,5.]], 9),
+    ...     ]
+    >>>
+    >>>
+    >>> record_arrays = [
+    ...     np.array(PbufferT, dtype=np.dtype(Pdescr).newbyteorder('<')),
+    ...     np.array(NbufferT, dtype=np.dtype(Ndescr).newbyteorder('<')),
+    ...     np.array(PbufferT, dtype=np.dtype(Pdescr).newbyteorder('>')),
+    ...     np.array(NbufferT, dtype=np.dtype(Ndescr).newbyteorder('>')),
+    ... ]
+Test the magic string writing.
+    >>> format.magic(1, 0)
+    '\x93NUMPY\x01\x00'
+    >>> format.magic(0, 0)
+    '\x93NUMPY\x00\x00'
+    >>> format.magic(255, 255)
+    '\x93NUMPY\xff\xff'
+    >>> format.magic(2, 5)
+    '\x93NUMPY\x02\x05'
+Test the magic string reading.
+    >>> format.read_magic(BytesIO(format.magic(1, 0)))
+    (1, 0)
+    >>> format.read_magic(BytesIO(format.magic(0, 0)))
+    (0, 0)
+    >>> format.read_magic(BytesIO(format.magic(255, 255)))
+    (255, 255)
+    >>> format.read_magic(BytesIO(format.magic(2, 5)))
+    (2, 5)
+Test the header writing.
+    >>> for arr in basic_arrays + record_arrays:
+    ...     f = BytesIO()
+    ...     format.write_array_header_1_0(f, arr)   # XXX: arr is not a dict, items gets called on it
+    ...     print(repr(f.getvalue()))
+    ...
+    "F\x00{'descr': '|u1', 'fortran_order': False, 'shape': (0,)}              \n"
+    "F\x00{'descr': '|u1', 'fortran_order': False, 'shape': ()}                \n"
+    "F\x00{'descr': '|u1', 'fortran_order': False, 'shape': (15,)}             \n"
+    "F\x00{'descr': '|u1', 'fortran_order': False, 'shape': (3, 5)}            \n"
+    "F\x00{'descr': '|u1', 'fortran_order': True, 'shape': (5, 3)}             \n"
+    "F\x00{'descr': '|u1', 'fortran_order': False, 'shape': (3, 3)}            \n"
+    "F\x00{'descr': '|u1', 'fortran_order': False, 'shape': (0,)}              \n"
+    "F\x00{'descr': '|u1', 'fortran_order': False, 'shape': ()}                \n"
+    "F\x00{'descr': '|u1', 'fortran_order': False, 'shape': (15,)}             \n"
+    "F\x00{'descr': '|u1', 'fortran_order': False, 'shape': (3, 5)}            \n"
+    "F\x00{'descr': '|u1', 'fortran_order': True, 'shape': (5, 3)}             \n"
+    "F\x00{'descr': '|u1', 'fortran_order': False, 'shape': (3, 3)}            \n"
+    "F\x00{'descr': '|i1', 'fortran_order': False, 'shape': (0,)}              \n"
+    "F\x00{'descr': '|i1', 'fortran_order': False, 'shape': ()}                \n"
+    "F\x00{'descr': '|i1', 'fortran_order': False, 'shape': (15,)}             \n"
+    "F\x00{'descr': '|i1', 'fortran_order': False, 'shape': (3, 5)}            \n"
+    "F\x00{'descr': '|i1', 'fortran_order': True, 'shape': (5, 3)}             \n"
+    "F\x00{'descr': '|i1', 'fortran_order': False, 'shape': (3, 3)}            \n"
+    "F\x00{'descr': '|i1', 'fortran_order': False, 'shape': (0,)}              \n"
+    "F\x00{'descr': '|i1', 'fortran_order': False, 'shape': ()}                \n"
+    "F\x00{'descr': '|i1', 'fortran_order': False, 'shape': (15,)}             \n"
+    "F\x00{'descr': '|i1', 'fortran_order': False, 'shape': (3, 5)}            \n"
+    "F\x00{'descr': '|i1', 'fortran_order': True, 'shape': (5, 3)}             \n"
+    "F\x00{'descr': '|i1', 'fortran_order': False, 'shape': (3, 3)}            \n"
+    "F\x00{'descr': '<u2', 'fortran_order': False, 'shape': (0,)}              \n"
+    "F\x00{'descr': '<u2', 'fortran_order': False, 'shape': ()}                \n"
+    "F\x00{'descr': '<u2', 'fortran_order': False, 'shape': (15,)}             \n"
+    "F\x00{'descr': '<u2', 'fortran_order': False, 'shape': (3, 5)}            \n"
+    "F\x00{'descr': '<u2', 'fortran_order': True, 'shape': (5, 3)}             \n"
+    "F\x00{'descr': '<u2', 'fortran_order': False, 'shape': (3, 3)}            \n"
+    "F\x00{'descr': '>u2', 'fortran_order': False, 'shape': (0,)}              \n"
+    "F\x00{'descr': '>u2', 'fortran_order': False, 'shape': ()}                \n"
+    "F\x00{'descr': '>u2', 'fortran_order': False, 'shape': (15,)}             \n"
+    "F\x00{'descr': '>u2', 'fortran_order': False, 'shape': (3, 5)}            \n"
+    "F\x00{'descr': '>u2', 'fortran_order': True, 'shape': (5, 3)}             \n"
+    "F\x00{'descr': '>u2', 'fortran_order': False, 'shape': (3, 3)}            \n"
+    "F\x00{'descr': '<i2', 'fortran_order': False, 'shape': (0,)}              \n"
+    "F\x00{'descr': '<i2', 'fortran_order': False, 'shape': ()}                \n"
+    "F\x00{'descr': '<i2', 'fortran_order': False, 'shape': (15,)}             \n"
+    "F\x00{'descr': '<i2', 'fortran_order': False, 'shape': (3, 5)}            \n"
+    "F\x00{'descr': '<i2', 'fortran_order': True, 'shape': (5, 3)}             \n"
+    "F\x00{'descr': '<i2', 'fortran_order': False, 'shape': (3, 3)}            \n"
+    "F\x00{'descr': '>i2', 'fortran_order': False, 'shape': (0,)}              \n"
+    "F\x00{'descr': '>i2', 'fortran_order': False, 'shape': ()}                \n"
+    "F\x00{'descr': '>i2', 'fortran_order': False, 'shape': (15,)}             \n"
+    "F\x00{'descr': '>i2', 'fortran_order': False, 'shape': (3, 5)}            \n"
+    "F\x00{'descr': '>i2', 'fortran_order': True, 'shape': (5, 3)}             \n"
+    "F\x00{'descr': '>i2', 'fortran_order': False, 'shape': (3, 3)}            \n"
+    "F\x00{'descr': '<u4', 'fortran_order': False, 'shape': (0,)}              \n"
+    "F\x00{'descr': '<u4', 'fortran_order': False, 'shape': ()}                \n"
+    "F\x00{'descr': '<u4', 'fortran_order': False, 'shape': (15,)}             \n"
+    "F\x00{'descr': '<u4', 'fortran_order': False, 'shape': (3, 5)}            \n"
+    "F\x00{'descr': '<u4', 'fortran_order': True, 'shape': (5, 3)}             \n"
+    "F\x00{'descr': '<u4', 'fortran_order': False, 'shape': (3, 3)}            \n"
+    "F\x00{'descr': '>u4', 'fortran_order': False, 'shape': (0,)}              \n"
+    "F\x00{'descr': '>u4', 'fortran_order': False, 'shape': ()}                \n"
+    "F\x00{'descr': '>u4', 'fortran_order': False, 'shape': (15,)}             \n"
+    "F\x00{'descr': '>u4', 'fortran_order': False, 'shape': (3, 5)}            \n"
+    "F\x00{'descr': '>u4', 'fortran_order': True, 'shape': (5, 3)}             \n"
+    "F\x00{'descr': '>u4', 'fortran_order': False, 'shape': (3, 3)}            \n"
+    "F\x00{'descr': '<i4', 'fortran_order': False, 'shape': (0,)}              \n"
+    "F\x00{'descr': '<i4', 'fortran_order': False, 'shape': ()}                \n"
+    "F\x00{'descr': '<i4', 'fortran_order': False, 'shape': (15,)}             \n"
+    "F\x00{'descr': '<i4', 'fortran_order': False, 'shape': (3, 5)}            \n"
+    "F\x00{'descr': '<i4', 'fortran_order': True, 'shape': (5, 3)}             \n"
+    "F\x00{'descr': '<i4', 'fortran_order': False, 'shape': (3, 3)}            \n"
+    "F\x00{'descr': '>i4', 'fortran_order': False, 'shape': (0,)}              \n"
+    "F\x00{'descr': '>i4', 'fortran_order': False, 'shape': ()}                \n"
+    "F\x00{'descr': '>i4', 'fortran_order': False, 'shape': (15,)}             \n"
+    "F\x00{'descr': '>i4', 'fortran_order': False, 'shape': (3, 5)}            \n"
+    "F\x00{'descr': '>i4', 'fortran_order': True, 'shape': (5, 3)}             \n"
+    "F\x00{'descr': '>i4', 'fortran_order': False, 'shape': (3, 3)}            \n"
+    "F\x00{'descr': '<u8', 'fortran_order': False, 'shape': (0,)}              \n"
+    "F\x00{'descr': '<u8', 'fortran_order': False, 'shape': ()}                \n"
+    "F\x00{'descr': '<u8', 'fortran_order': False, 'shape': (15,)}             \n"
+    "F\x00{'descr': '<u8', 'fortran_order': False, 'shape': (3, 5)}            \n"
+    "F\x00{'descr': '<u8', 'fortran_order': True, 'shape': (5, 3)}             \n"
+    "F\x00{'descr': '<u8', 'fortran_order': False, 'shape': (3, 3)}            \n"
+    "F\x00{'descr': '>u8', 'fortran_order': False, 'shape': (0,)}              \n"
+    "F\x00{'descr': '>u8', 'fortran_order': False, 'shape': ()}                \n"
+    "F\x00{'descr': '>u8', 'fortran_order': False, 'shape': (15,)}             \n"
+    "F\x00{'descr': '>u8', 'fortran_order': False, 'shape': (3, 5)}            \n"
+    "F\x00{'descr': '>u8', 'fortran_order': True, 'shape': (5, 3)}             \n"
+    "F\x00{'descr': '>u8', 'fortran_order': False, 'shape': (3, 3)}            \n"
+    "F\x00{'descr': '<i8', 'fortran_order': False, 'shape': (0,)}              \n"
+    "F\x00{'descr': '<i8', 'fortran_order': False, 'shape': ()}                \n"
+    "F\x00{'descr': '<i8', 'fortran_order': False, 'shape': (15,)}             \n"
+    "F\x00{'descr': '<i8', 'fortran_order': False, 'shape': (3, 5)}            \n"
+    "F\x00{'descr': '<i8', 'fortran_order': True, 'shape': (5, 3)}             \n"
+    "F\x00{'descr': '<i8', 'fortran_order': False, 'shape': (3, 3)}            \n"
+    "F\x00{'descr': '>i8', 'fortran_order': False, 'shape': (0,)}              \n"
+    "F\x00{'descr': '>i8', 'fortran_order': False, 'shape': ()}                \n"
+    "F\x00{'descr': '>i8', 'fortran_order': False, 'shape': (15,)}             \n"
+    "F\x00{'descr': '>i8', 'fortran_order': False, 'shape': (3, 5)}            \n"
+    "F\x00{'descr': '>i8', 'fortran_order': True, 'shape': (5, 3)}             \n"
+    "F\x00{'descr': '>i8', 'fortran_order': False, 'shape': (3, 3)}            \n"
+    "F\x00{'descr': '<f4', 'fortran_order': False, 'shape': (0,)}              \n"
+    "F\x00{'descr': '<f4', 'fortran_order': False, 'shape': ()}                \n"
+    "F\x00{'descr': '<f4', 'fortran_order': False, 'shape': (15,)}             \n"
+    "F\x00{'descr': '<f4', 'fortran_order': False, 'shape': (3, 5)}            \n"
+    "F\x00{'descr': '<f4', 'fortran_order': True, 'shape': (5, 3)}             \n"
+    "F\x00{'descr': '<f4', 'fortran_order': False, 'shape': (3, 3)}            \n"
+    "F\x00{'descr': '>f4', 'fortran_order': False, 'shape': (0,)}              \n"
+    "F\x00{'descr': '>f4', 'fortran_order': False, 'shape': ()}                \n"
+    "F\x00{'descr': '>f4', 'fortran_order': False, 'shape': (15,)}             \n"
+    "F\x00{'descr': '>f4', 'fortran_order': False, 'shape': (3, 5)}            \n"
+    "F\x00{'descr': '>f4', 'fortran_order': True, 'shape': (5, 3)}             \n"
+    "F\x00{'descr': '>f4', 'fortran_order': False, 'shape': (3, 3)}            \n"
+    "F\x00{'descr': '<f8', 'fortran_order': False, 'shape': (0,)}              \n"
+    "F\x00{'descr': '<f8', 'fortran_order': False, 'shape': ()}                \n"
+    "F\x00{'descr': '<f8', 'fortran_order': False, 'shape': (15,)}             \n"
+    "F\x00{'descr': '<f8', 'fortran_order': False, 'shape': (3, 5)}            \n"
+    "F\x00{'descr': '<f8', 'fortran_order': True, 'shape': (5, 3)}             \n"
+    "F\x00{'descr': '<f8', 'fortran_order': False, 'shape': (3, 3)}            \n"
+    "F\x00{'descr': '>f8', 'fortran_order': False, 'shape': (0,)}              \n"
+    "F\x00{'descr': '>f8', 'fortran_order': False, 'shape': ()}                \n"
+    "F\x00{'descr': '>f8', 'fortran_order': False, 'shape': (15,)}             \n"
+    "F\x00{'descr': '>f8', 'fortran_order': False, 'shape': (3, 5)}            \n"
+    "F\x00{'descr': '>f8', 'fortran_order': True, 'shape': (5, 3)}             \n"
+    "F\x00{'descr': '>f8', 'fortran_order': False, 'shape': (3, 3)}            \n"
+    "F\x00{'descr': '<c8', 'fortran_order': False, 'shape': (0,)}              \n"
+    "F\x00{'descr': '<c8', 'fortran_order': False, 'shape': ()}                \n"
+    "F\x00{'descr': '<c8', 'fortran_order': False, 'shape': (15,)}             \n"
+    "F\x00{'descr': '<c8', 'fortran_order': False, 'shape': (3, 5)}            \n"
+    "F\x00{'descr': '<c8', 'fortran_order': True, 'shape': (5, 3)}             \n"
+    "F\x00{'descr': '<c8', 'fortran_order': False, 'shape': (3, 3)}            \n"
+    "F\x00{'descr': '>c8', 'fortran_order': False, 'shape': (0,)}              \n"
+    "F\x00{'descr': '>c8', 'fortran_order': False, 'shape': ()}                \n"
+    "F\x00{'descr': '>c8', 'fortran_order': False, 'shape': (15,)}             \n"
+    "F\x00{'descr': '>c8', 'fortran_order': False, 'shape': (3, 5)}            \n"
+    "F\x00{'descr': '>c8', 'fortran_order': True, 'shape': (5, 3)}             \n"
+    "F\x00{'descr': '>c8', 'fortran_order': False, 'shape': (3, 3)}            \n"
+    "F\x00{'descr': '<c16', 'fortran_order': False, 'shape': (0,)}             \n"
+    "F\x00{'descr': '<c16', 'fortran_order': False, 'shape': ()}               \n"
+    "F\x00{'descr': '<c16', 'fortran_order': False, 'shape': (15,)}            \n"
+    "F\x00{'descr': '<c16', 'fortran_order': False, 'shape': (3, 5)}           \n"
+    "F\x00{'descr': '<c16', 'fortran_order': True, 'shape': (5, 3)}            \n"
+    "F\x00{'descr': '<c16', 'fortran_order': False, 'shape': (3, 3)}           \n"
+    "F\x00{'descr': '>c16', 'fortran_order': False, 'shape': (0,)}             \n"
+    "F\x00{'descr': '>c16', 'fortran_order': False, 'shape': ()}               \n"
+    "F\x00{'descr': '>c16', 'fortran_order': False, 'shape': (15,)}            \n"
+    "F\x00{'descr': '>c16', 'fortran_order': False, 'shape': (3, 5)}           \n"
+    "F\x00{'descr': '>c16', 'fortran_order': True, 'shape': (5, 3)}            \n"
+    "F\x00{'descr': '>c16', 'fortran_order': False, 'shape': (3, 3)}           \n"
+    "F\x00{'descr': 'O', 'fortran_order': False, 'shape': (0,)}              \n"
+    "F\x00{'descr': 'O', 'fortran_order': False, 'shape': ()}                \n"
+    "F\x00{'descr': 'O', 'fortran_order': False, 'shape': (15,)}             \n"
+    "F\x00{'descr': 'O', 'fortran_order': False, 'shape': (3, 5)}            \n"
+    "F\x00{'descr': 'O', 'fortran_order': True, 'shape': (5, 3)}             \n"
+    "F\x00{'descr': 'O', 'fortran_order': False, 'shape': (3, 3)}            \n"
+    "F\x00{'descr': 'O', 'fortran_order': False, 'shape': (0,)}              \n"
+    "F\x00{'descr': 'O', 'fortran_order': False, 'shape': ()}                \n"
+    "F\x00{'descr': 'O', 'fortran_order': False, 'shape': (15,)}             \n"
+    "F\x00{'descr': 'O', 'fortran_order': False, 'shape': (3, 5)}            \n"
+    "F\x00{'descr': 'O', 'fortran_order': True, 'shape': (5, 3)}             \n"
+    "F\x00{'descr': 'O', 'fortran_order': False, 'shape': (3, 3)}            \n"
+    "v\x00{'descr': [('x', '<i4', (2,)), ('y', '<f8', (2, 2)), ('z', '|u1')],\n 'fortran_order': False,\n 'shape': (2,)}         \n"
+    "\x16\x02{'descr': [('x', '<i4', (2,)),\n           ('Info',\n            [('value', '<c16'),\n             ('y2', '<f8'),\n             ('Info2',\n              [('name', '|S2'),\n               ('value', '<c16', (2,)),\n               ('y3', '<f8', (2,)),\n               ('z3', '<u4', (2,))]),\n             ('name', '|S2'),\n             ('z2', '|b1')]),\n           ('color', '|S2'),\n           ('info', [('Name', '<U8'), ('Value', '<c16')]),\n           ('y', '<f8', (2, 2)),\n           ('z', '|u1')],\n 'fortran_order': False,\n 'shape': (2,)}      \n"
+    "v\x00{'descr': [('x', '>i4', (2,)), ('y', '>f8', (2, 2)), ('z', '|u1')],\n 'fortran_order': False,\n 'shape': (2,)}         \n"
+    "\x16\x02{'descr': [('x', '>i4', (2,)),\n           ('Info',\n            [('value', '>c16'),\n             ('y2', '>f8'),\n             ('Info2',\n              [('name', '|S2'),\n               ('value', '>c16', (2,)),\n               ('y3', '>f8', (2,)),\n               ('z3', '>u4', (2,))]),\n             ('name', '|S2'),\n             ('z2', '|b1')]),\n           ('color', '|S2'),\n           ('info', [('Name', '>U8'), ('Value', '>c16')]),\n           ('y', '>f8', (2, 2)),\n           ('z', '|u1')],\n 'fortran_order': False,\n 'shape': (2,)}      \n"
+BytesIO)
+assert_
+assert_array_equal
+assert_raises
+assert_raises_regex
+assert_warns)
+formatz
+dtype
+Info)
+value
+c16)
+Info2)
+name
+colorr"
+info)
+NameZ
+Valuer
+NNTZ
+BytesIOSRandomSizeNc
+randomZ
+randint
+super
+read)
+self
+sizer3
+	__class__
+A/usr/lib64/python3.9/site-packages/numpy/lib/tests/test_format.pyr5
+BytesIOSRandomSize.read)
+__name__
+__module__
+__qualname__r5
+__classcell__r:
+allow_pickle
+write_array
+getvalue
+read_array
+arr2r:
+	roundtrip
+roundtrip_randsize
+roundtrip_truncated
+o2r:
+assert_equal_
+basic_arrays
+record_arraysrK
+test_roundtrip
+objectrM
+test_roundtrip_randsize
+ValueErrorrN
+test_roundtrip_truncated
+onesr
+strr
+BUFFER_SIZErK
+long_str_arrZ
+long_str_arr2r:
+test_long_str
+normalz
+.npyZ
+memmap
+moder
+shape
+fortran_order.
+	enumeraterP
+Z	hasobject
+path
+join
+openr
+flags
+f_contiguous
+c_contiguous
+open_memmapr`
+flushr5
+tmpdir
+nfnZ
+fpra
+normal_bytesZ
+memmap_bytesr:
+test_memmap_roundtrip
+compressed.npzrW
+)	rY
+randrf
+savez_compressed
+loadr
+npz_file
+arr1r:
+test_compressed_roundtrip
+i1, i4, i1)
+align
+names
+formats
+offsetsr.
+titles)
+itemsize
+aligned.npzrW
+)	rY
+zeros
+rangerf
+savezru
+test_load_padded_dtype
+win64python2.npy
+datar
+)	rf
+dirname
+__file__rY
+fnamerg
+%test_python2_python3_interoperability
+py2-objarr.npy
+py2-objarr.npzz
+py3-objarr.npyz
+py3-objarr.npz)
+bytes
+latin1T
+encodingz
+.npzr
+py2r
+fix_importsr
+arrayr
+endswith
+close
+startswithr
+isinstancer[
+encoder
+UnicodeError
+__getitem__
+ImportError)
+data_dirZ
+expectedr
+data_fr
+test_pickle_python2_python3
+pickle-disabled.npyr	
+saver
+test_pickle_disallowF
+descr_to_dtype
+descrrO
+dt1rx
+test_descr_to_dtypeU
+float
+.0rp
+<listcomp>
+z$test_version_2_0.<locals>.<listcomp>
+versionT
+record
+alwaysr
+warnings
+catch_warnings
+filterwarnings
+UserWarningr
+category
+seek
+readline
+ARRAY_ALIGNrE
+header
+test_version_2_0
+z+test_version_2_0_memmap.<locals>.<listcomp>r
+version2_01.npyz
+version2_02.npyr^
+tf1Z
+tf2rr
+test_version_2_0_memmap
+z we only support format version.*)
+aranger
+bad_versionsr
+test_write_version
+NUMPY
+NUMPY
+NUMPY
+NUMPY
+NUMPY
+NUMPY
+NUMPY
+NUMPY
+numpy
+MATLB
+NUMPY
+NUMPYr
+read_magicr
+tell
+	MAGIC_LEN)
+s2rG
+version1Z
+version2r:
+test_read_magic
+malformed_magicr
+magicrH
+test_read_magic_bad_magic
+bad_version_magicr
+test_read_version_1_0_bad_magic
+test_bad_magic_args
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxr
+write_array_header_1_0r
+test_large_header
+read_array_header_1_0r
+fortranr
+test_read_array_header_1_0#
+read_array_header_2_0r
+test_read_array_header_2_00
+extrakey)
+test_bad_header=
+t	yf
+win32
+cygwinz)Unknown if Windows has sparse filesystemsZ
+sparse_filer
+truncatez
+5368709120z
+Could not create 5GB large filer]
+platform
+pytest
+skiprf
+subprocessZ
+check_call
+	Exceptionri
+tf_nameZ
+sprH
+test_large_file_supportX
+test requires 64-bit system)
+reasonc
+)	N)
+Could not create large fileZ
+large_archiver]
+empty
+uint8
+MemoryErrorr
+new_ar:
+test_large_archiveq
+nothing.npz)
+npsr:
+test_empty_npz
+intu
+unicode.npyr]
+test_unicode_field_names
+dt, failZ
+some
+stuff)
+metadataZ
+subarrayr
+_has_metadata)
+numpy.lib.formatr
+failrG
+bufrJ
+test_metadata_dtype
+__doc__r
+shutilZ
+tempfiler
+numpyrY
+numpy.testingr
+Z	numpy.libr
+int8Z
+uint16Z
+int16Z
+uint32Z
+int32Z
+uint64Z
+int64Z
+float32Z
+float64Z	complex64Z
+complex128rT
+scalarsrP
+scalarZ
+endianr
+newbyteorderr
+astypeZ
+basic
+extendr
+reshape
+PdescrZ
+PbufferTZ
+NdescrZ
+NbufferTr
+dt2Z
+dt3Z
+dt4Z
+dt5Z
+dt6Z
+markZ
+parametrizer
+skipifZ
+intpr
+slowr
+<module>

@@ -1,0 +1,230 @@
+Define partial Python code Parser used by editor and hyperparser.
+Instances of ParseMap are used with str.translate.
+The following bound search and match functions are defined:
+_synchre - start of popular statement;
+_junkre - whitespace or comment line;
+_match_stringre: string, possibly without closer;
+_itemre - line that may have bracket structure start;
+_closere - line that must be followed by dedent.
+_chew_ordinaryre - non-special characters.
+    ^
+    [ \t]*
+    (?: while
+    |   else
+    |   def
+    |   return
+    |   assert
+    |   break
+    |   class
+    |   continue
+    |   elif
+    |   try
+    |   except
+    |   raise
+    |   import
+    |   yield
+    )
+    \b
+    [ \t]*
+    (?: \# \S .* )?
+    \n
+    \""" [^"\\]* (?:
+                     (?: \\. | "(?!"") )
+                     [^"\\]*
+                 )*
+    (?: \""" )?
+|   " [^"\\\n]* (?: \\. [^"\\\n]* )* "?
+|   ''' [^'\\]* (?:
+                   (?: \\. | '(?!'') )
+                   [^'\\]*
+                )*
+    (?: ''' )?
+|   ' [^'\\\n]* (?: \\. [^'\\\n]* )* '?
+    [ \t]*
+    [^\s#\\]    # if we match, m.end()-1 is the interesting char
+    \s*
+    (?: return
+    |   break
+    |   continue
+    |   raise
+    |   pass
+    )
+    \b
+    [^[\](){}#'"\\]+
+ParseMapap
+Dict subclass that maps anything not in dict to 'x'.
+    This is designed to be used with str.translate in study1.
+    Anything not specifically mapped otherwise becomes 'x'.
+    Example: replace everything except whitespace with 'x'.
+    >>> keepwhite = ParseMap((ord(c), ord(c)) for c in ' \t\n\r')
+    >>> "a + b\tc\nd".translate(keepwhite)
+    'x x x\tx\nx'
+    c
+self
+keyr
+'/usr/lib64/python3.9/idlelib/pyparse.py
+__missing__r
+ParseMap.__missing__N)
+__name__
+__module__
+__qualname__
+__doc__r	
+	<genexpr>x
+({[c
+)}]c
+Parserc
+indentwidth
+tabwidth)
+__init__
+Parser.__init__c
+code
+study_level)
+set_code
+Parser.set_codec
+        Return index of a good place to begin parsing, as close to the
+        end of the string as possible.  This will be the start of some
+        popular stmt like "if" or "def".  Return None if none found:
+        the caller should pass more prior context then, if possible, or
+        if not (the entire program text up until the point of interest
+        has already been tried) pass 0 to set_lo().
+        This will be reliable iff given a reliable is_char_in_string()
+        function, meaning that when it says "no", it's absolutely
+        guaranteed that the char is not in a string.
+        Nr
+range
+rfind
+_synchre
+start
+span)	r
+is_char_in_stringr
+limitZ
+tries
+find_good_parse_start
+Parser.find_good_parse_startc
+zx Throw away the start of the string.
+        Intended to be called with the result of find_good_parse_start().
+        r
+set_lo
+Parser.set_loc
+qP|	d
+Find the line numbers of non-continuation lines.
+        As quickly as humanly possible <wink>, find the line numbers (0-
+        based) of the non-continuation lines.
+        Creates self.{goodlines, continuation}.
+        r"
+xxxxxxxx
+xxxxZ
+	translate
+trans
+replace
+C_NONE
+	goodlines
+appendr#
+C_STRING_FIRST_LINE
+C_STRING_NEXT_LINES
+find
+C_BACKSLASH
+	C_BRACKET
+continuation)
+level
+lnor<
+Z	push_goodr+
+quoteZ
+firstlno
+_study1
+Parser._study1c
+get_continuation_typeO
+Parser.get_continuation_typec
+rn|	|
+        study1 was sufficient to determine the continuation status,
+        but doing more requires looking at every character.  study2
+        does this for the last interesting statement in the block.
+        Creates:
+            self.stmt_start, stmt_end
+                slice indices of last interesting stmt
+            self.stmt_bracketing
+                the bracketing structure of the last interesting stmt; for
+                example, for the statement "say(boo) or die",
+                stmt_bracketing will be ((0, 0), (0, 1), (2, 0), (2, 1),
+                (4, 0)). Strings and comments are treated as brackets, for
+                the matter.
+            self.lastch
+                last interesting character before optional trailing comment
+            self.lastopenbracketpos
+                if continuation is C_BRACKET, index of last open bracket
+        r3
+)]}r7
+_junkre
+stmt_start
+stmt_endr=
+_chew_ordinaryre
+_match_stringrer@
+lastch
+lastopenbracketpos
+tuple
+stmt_bracketing)
+nothingrV
+stackZ
+push_stackZ
+bracketingr,
+newprG
+_study2S
+Parser._study2c
+zpReturn number of spaces the next line should be indented.
+        Line continuation must be C_BRACKET.
+        r!
+_itemrerT
+expandtabsr
+origir+
+extrar
+compute_bracket_indent
+Parser.compute_bracket_indentc
+Return number of physical lines in last stmt.
+        The statement doesn't have to be an interesting statement.  This is
+        intended to be called when continuation is C_BACKSLASH.
+        r7
+get_num_lines_in_stmt
+Parser.get_num_lines_in_stmtc
+Return number of spaces the next line should be indented.
+        Line continuation must be C_BACKSLASH.  Also assume that the new
+        line is the first one following the initial line of the stmt.
+        r^
+=<>!z
+\s*\\NrM
+matchr#
+startpos
+endpos
+foundrD
+compute_backslash_indent
+Parser.compute_backslash_indentc
+z`Return the leading whitespace on the initial line of the last
+        interesting stmt.
+        r^
+get_base_indent_string0
+Parser.get_base_indent_stringc
+z<Return True if the last interesting statement opens a block.
+is_block_opener<
+Parser.is_block_openerc
+z=Return True if the last interesting statement closes a block.N)
+_closerer
+is_block_closerA
+Parser.is_block_closerc
+Return bracketing structure of the last interesting statement.
+        The returned tuple is in the format defined in _study2().
+        )
+get_last_stmt_bracketingF
+Parser.get_last_stmt_bracketingN)
+__main__)
+mainz
+idlelib.idle_test.test_pyparser3
+	verbosity)
+compile
+VERBOSE
+	MULTILINE
+searchr&
+DOTALLrU
+dictr
+fromkeysr9
+updater
+unittestrs
+<module>

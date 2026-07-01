@@ -1,0 +1,78 @@
+Module for testing automatic garbage collection of objects
+.. autosummary::
+   :toctree: generated/
+   set_gc_state - enable or disable garbage collection
+   gc_state - context manager for given state of garbage collector
+   assert_deallocated - context manager to check for circular references on object
+contextmanager)
+python_implementation)
+set_gc_state
+gc_state
+assert_deallocatedZ
+PyPyc
+ReferenceErrorN)
+__name__
+__module__
+__qualname__
+9/usr/lib64/python3.9/site-packages/scipy/_lib/_gcutils.pyr
+z! Set status of garbage collector N)
+	isenabledZ
+enableZ
+disable)
+stater
+ Context manager to set state of garbage collector to `state`
+    Parameters
+    ----------
+    state : bool
+        True for gc enabled, False for disabled
+    Examples
+    --------
+    >>> with gc_state(False):
+    ...     assert not gc.isenabled()
+    >>> with gc_state(True):
+    ...     assert gc.isenabled()
+    N)
+orig_stater
+Context manager to check that object is deallocated
+    This is useful for checking that an object can be freed directly by
+    reference counting, without requiring gc to break reference cycles.
+    GC is disabled inside the context manager.
+    This check is not available on PyPy.
+    Parameters
+    ----------
+    func : callable
+        Callable to create object to check
+    \*args : sequence
+        positional arguments to `func` in order to create object to check
+    \*\*kwargs : dict
+        keyword arguments to `func` in order to create object to check
+    Examples
+    --------
+    >>> class C(object): pass
+    >>> with assert_deallocated(C) as c:
+    ...     # do something
+    ...     del c
+    >>> class C(object):
+    ...     def __init__(self):
+    ...         self._circular = self # Make circular reference
+    >>> with assert_deallocated(C) as c: #doctest: +IGNORE_EXCEPTION_DETAIL
+    ...     # do something
+    ...     del c
+    Traceback (most recent call last):
+        ...
+    ReferenceError: Remaining reference(s) to object
+    z)assert_deallocated is unavailable on PyPyFNz Remaining reference(s) to object)
+IS_PYPY
+RuntimeErrorr
+weakref
+refr
+func
+args
+kwargs
+objr
+__doc__r
+contextlibr
+platformr
+__all__r
+AssertionErrorr
+<module>

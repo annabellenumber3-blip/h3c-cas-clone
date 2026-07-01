@@ -1,0 +1,385 @@
+m	Z	
+TempdirManager)
+Path)
+test_tools)
+support)
+assert_python_okZ
+PY_CFLAGS_NODISTZ
+PGO_PROF_USE_FLAGz+peg_generator test disabled under PGO buildZ
+peg_generator)
+GeneratedParser)
+parse_string
+generate_parser_c_extension
+generate_c_parser_source)
+ast_dumpa
+tmp_dir = {extension_path!r}
+import ast
+import traceback
+import sys
+import unittest
+from test import test_tools
+with test_tools.imports_under_tool("peg_generator"):
+    from pegen.ast_dump import ast_dump
+sys.path.insert(0, tmp_dir)
+import parse
+class Tests(unittest.TestCase):
+    def check_input_strings_for_grammar(
+        self,
+        valid_cases = (),
+        invalid_cases = (),
+    ):
+        if valid_cases:
+            for case in valid_cases:
+                parse.parse_string(case, mode=0)
+        if invalid_cases:
+            for case in invalid_cases:
+                with self.assertRaises(SyntaxError):
+                    parse.parse_string(case, mode=0)
+    def verify_ast_generation(self, stmt):
+        expected_ast = ast.parse(stmt)
+        actual_ast = parse.parse_string(stmt, mode=1)
+        self.assertEqual(ast_dump(expected_ast), ast_dump(actual_ast))
+    def test_parse(self):
+        {test_source}
+unittest.main()
+Z	d	d
+d!d"
+d#d$
+d%d&
+d'd(
+d)d*
+d+d,
+d-d.
+d/d0
+d1d2
+d3d4
+d5d6
+d7d8
+TestCParserc
+The %r command is not found)
+missing_compiler_executableZ
+skipTest
+superr
+setUpZ
+mkdtemp
+tmp_path
+change_cwd
+	__enter__Z
+addCleanup
+__exit__)
+self
+cmdr
+	__class__
+=/usr/lib64/python3.9/test/test_peg_generator/test_c_parser.pyr
+TestCParser.setUpc
+tearDown)
+TestCParser.tearDownc
+GrammarParserr	
+grammar_source
+grammarr
+build_extensionT
+TestCParser.build_extensionc
+        z
+extension_path
+test_source)
+textwrap
+indent
+dedentr
+TEST_TEMPLATE
+formatr
+run_testX
+TestCParser.run_testN)
+returnc
+        start[mod_ty]: a=stmt* $ { Module(a, NULL, p->arena) }
+        stmt[stmt_ty]: a=expr_stmt { a }
+        expr_stmt[stmt_ty]: a=expression NEWLINE { _Py_Expr(a, EXTRA) }
+        expression[expr_ty]: ( l=expression '+' r=term { _Py_BinOp(l, Add, r, EXTRA) }
+                            | l=expression '-' r=term { _Py_BinOp(l, Sub, r, EXTRA) }
+                            | t=term { t }
+                            )
+        term[expr_ty]: ( l=term '*' r=factor { _Py_BinOp(l, Mult, r, EXTRA) }
+                    | l=term '/' r=factor { _Py_BinOp(l, Div, r, EXTRA) }
+                    | f=factor { f }
+                    )
+        factor[expr_ty]: ('(' e=expression ')' { e }
+                        | a=atom { a }
+                        )
+        atom[expr_ty]: ( n=NAME { n }
+                    | n=NUMBER { n }
+                    | s=STRING { s }
+                    )
+        a
+        expressions = [
+            "4+5",
+            "4-5",
+            "4*5",
+            "1+4*5",
+            "1+4/5",
+            "(1+1) + (1+1)",
+            "(1+1) - (1+1)",
+            "(1+1) * (1+1)",
+            "(1+1) / (1+1)",
+        ]
+        for expr in expressions:
+            the_ast = parse.parse_string(expr, mode=1)
+            expected_ast = ast.parse(expr)
+            self.assertEqual(ast_dump(the_ast), ast_dump(expected_ast))
+        
+test_c_parser`
+TestCParser.test_c_parserc
+        start: NAME &NAME expr NEWLINE? ENDMARKER
+        expr: NAME | NUMBER
+        z
+        valid_cases = ["foo bar"]
+        invalid_cases = ["foo 34"]
+        self.check_input_strings_for_grammar(valid_cases, invalid_cases)
+        r(
+test_lookahead
+TestCParser.test_lookaheadc
+        start: NAME !NAME expr NEWLINE? ENDMARKER
+        expr: NAME | NUMBER
+        z
+        valid_cases = ["foo 34"]
+        invalid_cases = ["foo bar"]
+        self.check_input_strings_for_grammar(valid_cases, invalid_cases)
+        r(
+test_negative_lookahead
+z#TestCParser.test_negative_lookaheadc
+        start: X ~ Y Z | X Q S
+        X: 'x'
+        Y: 'y'
+        Z: 'z'
+        Q: 'q'
+        S: 's'
+        z
+        valid_cases = ["x y z"]
+        invalid_cases = ["x q s"]
+        self.check_input_strings_for_grammar(valid_cases, invalid_cases)
+        r(
+test_cut
+TestCParser.test_cutc
+        start: ';'.pass_stmt+ NEWLINE
+        pass_stmt: 'pass'
+        z
+        valid_cases = ["pass", "pass; pass"]
+        invalid_cases = ["pass;", "pass; pass;"]
+        self.check_input_strings_for_grammar(valid_cases, invalid_cases)
+        r(
+test_gather
+TestCParser.test_gatherc
+        start: expr NEWLINE
+        expr: ('-' term | expr '+' term | term)
+        term: NUMBER
+        z
+        valid_cases = ["-34", "34", "34 + 12", "1 + 1 + 2 + 3"]
+        self.check_input_strings_for_grammar(valid_cases)
+        r(
+test_left_recursion
+TestCParser.test_left_recursionc
+        start: NUMBER | sign start
+        sign: ['-']
+        zg
+        valid_cases = ["23", "-34"]
+        self.check_input_strings_for_grammar(valid_cases)
+        r(
+test_advanced_left_recursive
+z(TestCParser.test_advanced_left_recursivec
+        start: foo 'E'
+        foo: bar 'A' | 'B'
+        bar: foo 'C' | 'D'
+        zn
+        valid_cases = ["B E", "D A C A E"]
+        self.check_input_strings_for_grammar(valid_cases)
+        r(
+test_mutually_left_recursive
+z(TestCParser.test_mutually_left_recursivec
+        start: target '='
+        target: maybe '+' | NAME
+        maybe: maybe '-' | target
+        z
+        valid_cases = ["x ="]
+        invalid_cases = ["x - + ="]
+        self.check_input_strings_for_grammar(valid_cases, invalid_cases)
+        r(
+"test_nasty_mutually_left_recursive
+z.TestCParser.test_nasty_mutually_left_recursivec
+        start[mod_ty]: a=[statements] ENDMARKER { Module(a, NULL, p->arena) }
+        statements[asdl_seq*]: a=statement+ { a }
+        statement[stmt_ty]: simple_stmt
+        simple_stmt[stmt_ty]: small_stmt
+        small_stmt[stmt_ty]: return_stmt
+        return_stmt[stmt_ty]: a='return' NEWLINE { _Py_Return(NULL, EXTRA) }
+        zJ
+        stmt = "return"
+        self.verify_ast_generation(stmt)
+        r(
+test_return_stmt_noexpr_action
+z*TestCParser.test_return_stmt_noexpr_actionc
+        start[mod_ty]: a=';'.pass_stmt+ NEWLINE ENDMARKER { Module(a, NULL, p->arena) }
+        pass_stmt[stmt_ty]: a='pass' { _Py_Pass(EXTRA)}
+        zN
+        stmt = "pass; pass"
+        self.verify_ast_generation(stmt)
+        r(
+test_gather_action_ast
+z"TestCParser.test_gather_action_astc
+        start[mod_ty]: a=[statements] ENDMARKER { Module(a, NULL, p->arena) }
+        statements[asdl_seq*]: a=statement+ { a }
+        statement[stmt_ty]: simple_stmt
+        simple_stmt[stmt_ty]: small_stmt
+        small_stmt[stmt_ty]: pass_stmt
+        pass_stmt[stmt_ty]: a='pass' NEWLINE { _Py_Pass(EXTRA) }
+        
+        stmt = "pass"
+        self.verify_ast_generation(stmt)
+        r(
+test_pass_stmt_action
+z!TestCParser.test_pass_stmt_actionc
+        start[mod_ty]: a=[statements] ENDMARKER { Module(a, NULL, p->arena) }
+        statements[asdl_seq*]: a=statement+ { _PyPegen_seq_flatten(p, a) }
+        statement[asdl_seq*]:  a=compound_stmt { _PyPegen_singleton_seq(p, a) } | simple_stmt
+        simple_stmt[asdl_seq*]: a=small_stmt b=further_small_stmt* [';'] NEWLINE { _PyPegen_seq_insert_in_front(p, a, b) }
+        further_small_stmt[stmt_ty]: ';' a=small_stmt { a }
+        block: simple_stmt | NEWLINE INDENT a=statements DEDENT { a }
+        compound_stmt: if_stmt
+        if_stmt: 'if' a=full_expression ':' b=block { _Py_If(a, b, NULL, EXTRA) }
+        small_stmt[stmt_ty]: pass_stmt
+        pass_stmt[stmt_ty]: a='pass' { _Py_Pass(EXTRA) }
+        full_expression: NAME
+        r4
+test_if_stmt_action
+TestCParser.test_if_stmt_actionc
+        start[mod_ty]: a=import_from+ NEWLINE ENDMARKER { Module(a, NULL, p->arena)}
+        import_from[stmt_ty]: ( a='from' !'import' c=simple_name 'import' d=import_as_names_from {
+                                _Py_ImportFrom(c->v.Name.id, d, 0, EXTRA) }
+                            | a='from' '.' 'import' c=import_as_names_from {
+                                _Py_ImportFrom(NULL, c, 1, EXTRA) }
+                            )
+        simple_name[expr_ty]: NAME
+        import_as_names_from[asdl_seq*]: a=','.import_as_name_from+ { a }
+        import_as_name_from[alias_ty]: a=NAME 'as' b=NAME { _Py_alias(((expr_ty) a)->v.Name.id, ((expr_ty) b)->v.Name.id, p->arena) }
+        z
+        for stmt in ("from a import b as c", "from . import a as b"):
+            expected_ast = ast.parse(stmt)
+            actual_ast = parse.parse_string(stmt, mode=1)
+            self.assertEqual(ast_dump(expected_ast), ast_dump(actual_ast))
+        r(
+test_same_name_different_types1
+z*TestCParser.test_same_name_different_typesc
+        start[mod_ty]: a=[statements] ENDMARKER { Module(a, NULL, p->arena) }
+        statements[asdl_seq*]: a=statement+ { _PyPegen_seq_flatten(p, a) }
+        statement[asdl_seq*]: a=compound_stmt { _PyPegen_singleton_seq(p, a) }
+        compound_stmt[stmt_ty]: with_stmt
+        with_stmt[stmt_ty]: (
+            a='with' '(' b=','.with_item+ ')' ':' c=block {
+                _Py_With(b, _PyPegen_singleton_seq(p, c), NULL, EXTRA) }
+        )
+        with_item[withitem_ty]: (
+            e=NAME o=['as' t=NAME { t }] { _Py_withitem(e, _PyPegen_set_expr_context(p, o, Store), p->arena) }
+        )
+        block[stmt_ty]: a=pass_stmt NEWLINE { a } | NEWLINE INDENT a=pass_stmt DEDENT { a }
+        pass_stmt[stmt_ty]: a='pass' { _Py_Pass(EXTRA) }
+        a
+        stmt = "with (\n    a as b,\n    c as d\n): pass"
+        the_ast = parse.parse_string(stmt, mode=1)
+        self.assertTrue(ast_dump(the_ast).startswith(
+            "Module(body=[With(items=[withitem(context_expr=Name(id='a', ctx=Load()), optional_vars=Name(id='b', ctx=Store())), "
+            "withitem(context_expr=Name(id='c', ctx=Load()), optional_vars=Name(id='d', ctx=Store()))]"
+        ))
+        r(
+test_with_stmt_with_parenE
+z%TestCParser.test_with_stmt_with_parenc
+        start[mod_ty]: a=expr ENDMARKER { Module(a, NULL, p->arena) }
+        expr[asdl_seq*]: a=listcomp NEWLINE { _PyPegen_singleton_seq(p, _Py_Expr(a, EXTRA)) }
+        listcomp[expr_ty]: (
+            a='[' b=NAME c=for_if_clauses d=']' { _Py_ListComp(b, c, EXTRA) }
+        )
+        for_if_clauses[asdl_seq*]: (
+            a=(y=[ASYNC] 'for' a=NAME 'in' b=NAME c=('if' z=NAME { z })*
+                { _Py_comprehension(_Py_Name(((expr_ty) a)->v.Name.id, Store, EXTRA), b, c, (y == NULL) ? 0 : 1, p->arena) })+ { a }
+        )
+        zW
+        stmt = "[i for i in a if b]"
+        self.verify_ast_generation(stmt)
+        r(
+test_ternary_operator_
+z!TestCParser.test_ternary_operatorc
+        start: expr+ NEWLINE? ENDMARKER
+        expr: NAME
+        aa
+        for text in ("a b 42 b a", "\u540d \u540d 42 \u540d \u540d"):
+            try:
+                parse.parse_string(text, mode=0)
+            except SyntaxError as e:
+                tb = traceback.format_exc()
+            self.assertTrue('File "<string>", line 1' in tb)
+            self.assertTrue(f"SyntaxError: invalid syntax" in tb)
+        r(
+test_syntax_error_for_stringq
+	z(TestCParser.test_syntax_error_for_stringc
+        @header 'SOME HEADER'
+        @subheader 'SOME SUBHEADER'
+        @trailer 'SOME TRAILER'
+        start: expr+ NEWLINE? ENDMARKER
+        expr: x=NAME
+        z
+SOME HEADERz
+SOME SUBHEADERz
+SOME TRAILER)
+assertTrue
+parser_sourcer
+test_headers_and_trailer
+z$TestCParser.test_headers_and_trailerc
+        start: expr+ NEWLINE? ENDMARKER
+        expr: NAME {PyTuple_New(-1)}
+        zb
+        with self.assertRaises(SystemError):
+            parse.parse_string("a", mode=0)
+        r(
+test_error_in_rules
+TestCParser.test_error_in_rulesc
+        start: expr+ NEWLINE? ENDMARKER
+        expr: 'foo'
+        
+expect_soft_keyword
+test_no_soft_keywords
+z!TestCParser.test_no_soft_keywordsc
+        start: expr+ NEWLINE? ENDMARKER
+        expr: "foo"
+        r>
+test_soft_keywords
+TestCParser.test_soft_keywordsc
+        start: "if" expr '+' expr NEWLINE
+        expr: NAME
+        
+        valid_cases = ["if if + if"]
+        invalid_cases = ["if if"]
+        self.check_input_strings_for_grammar(valid_cases, invalid_cases)
+        r(
+test_soft_keywords_parse
+z$TestCParser.test_soft_keywords_parsec
+        start: &"if" "if" expr '+' expr NEWLINE
+        expr: NAME
+        rB
+test_soft_keywords_lookahead
+z(TestCParser.test_soft_keywords_lookahead)
+__name__
+__module__
+__qualname__r
+__classcell__r
+Z	sysconfigr 
+unittestZ
+distutils.tests.supportr
+pathlibr
+testr
+test.support.script_helperr
+get_config_varZ
+_py_cflags_nodistZ	_pgo_flagZ
+SkipTestZ
+skip_if_missingZ
+imports_under_toolZ
+pegen.grammar_parserr
+pegen.testutilr
+pegen.ast_dumpr
+TestCaser
+<module>

@@ -1,0 +1,746 @@
+d!d"
+d#d$
+dZd%d&
+Z d[d'd(
+Z!d\d)d*
+rZd+d,
+d-d.
+d/d0
+d0e$
+e'd1k
+l(Z(e(j)d2d3
+Z*e*j+d4d5d6d7d8
+e*j+d9d:d;d<d8
+e*j+d=d>d?e,d@e
+e*j+dBdCdDe,dEdA
+e*j+dFdGdHd
+dIdJ
+Z.e.j/Z/e.j
+sBe/d?k
+Z/e$e.j0e/dK
+e/d?k
+Z/e%e.j0e/dK
+Z1e1
+Z3dLe3v
+rxe1
+5e.j5
+Z6Z7Z8Z9Z:e;dMe:dNe7dOe8dPe9
+dQdR
+Z<e=e,e9
+e.j>
+Z8e1
+?e8e9
+Z6Z@e@D
+ZAZBe
+eBdT
+CdUdS
+eBdV
+ZEe,eBd
+ZFe;dW
+GeAe<eDdX
+e<eEdY
+An NNTP client class based on:
+- RFC 977: Network News Transfer Protocol
+- RFC 2980: Common NNTP Extensions
+- RFC 3977: Network News Transfer Protocol (version 2)
+Example:
+>>> from nntplib import NNTP
+>>> s = NNTP('news')
+>>> resp, count, first, last, name = s.group('comp.lang.python')
+>>> print('Group', name, 'has', count, 'articles, range', first, 'to', last)
+Group comp.lang.python has 51 articles, range 5770 to 5821
+>>> resp, subs = s.xhdr('subject', '{0}-{1}'.format(first, last))
+>>> resp = s.quit()
+Here 'resp' is the server response line.
+Error responses are turned into exceptions.
+To post an article from a file:
+>>> f = open(filename, 'rb') # file containing article, including header
+>>> resp = s.post(f)
+For descriptions of all methods, read the comments in the code below.
+Note that all arguments and return values representing article numbers
+are strings, not numbers, since they are rarely used for calculations.
+NFT)
+decode_header)
+_GLOBAL_DEFAULT_TIMEOUT)
+NNTP
+	NNTPError
+NNTPReplyError
+NNTPTemporaryError
+NNTPPermanentError
+NNTPProtocolError
+NNTPDataErrorr
+z%Base class for all nntplib exceptionsc
+No response given)
+	Exception
+__init__
+response
+IndexError)
+self
+args
+/usr/lib64/python3.9/nntplib.pyr
+NNTPError.__init__N)
+__name__
+__module__
+__qualname__
+__doc__r
+Unexpected [123]xx replyN
+4xx errorsNr
+5xx errorsNr
+z"Response does not begin with [1-5]Nr
+Error in response dataNr
+101Z
+211Z
+215Z
+231Z
+222Z
+225Z
+282Z
+230Z
+100Z
+224)
+subject
+from
+datez
+message-idZ
+references
+:bytes
+:linesr
+bytes
+lines
+	GroupInfo)
+group
+last
+first
+flag
+ArticleInfo)
+number
+message_idr!
+zvTakes a unicode string representing a munged header value
+    and decodes it as a (possibly non-ASCII) readable value.
+ascii
+_email_decode_header
+isinstancer 
+append
+decode
+join)
+header_str
+parts
+encr
+Parse a list of string representing the response to LIST OVERVIEW.FMT
+    and return a list of header/metadata names.
+    Raises NNTPDataError if the response is not compliant
+    (cf. RFC 3977, section 8.4).r
+Nz$LIST OVERVIEW.FMT response too shortz*LIST OVERVIEW.FMT redefines default fields)
+	partition
+lower
+_OVERVIEW_FMT_ALTERNATIVES
+getr.
+_DEFAULT_OVERVIEW_FMT
+lenr
+line
+name
+suffix
+defaultsr
+_parse_overview_fmt
+rLq6|
+zZParse the response to an OVER or XOVER command according to the
+    overview format `fmt`.
+: Nz?OVER/XOVER response doesn't include names of additional headers)	r;
+split
+	enumerate
+startswithr7
+data_process_funcZ
+n_defaultsZ
+overviewr=
+fieldsZ
+article_number
+tokens
+token
+field_nameZ
+is_metadata
+_parse_overview
+Parse a pair of (date, time) strings, and return a datetime object.
+    If only the date is given, it is assumed to be date and time
+    concatenated together (e.g. response to the DATE command).
+    Ni
+datetime)
+date_str
+time_strZ
+hoursZ
+minutesZ
+seconds
+yearZ
+monthZ
+dayr
+_parse_datetime
+Format a date or datetime object as a pair of (date, time) strings
+    in the format required by the NEWNEWS and NEWGROUPS commands.  If a
+    date object is passed, the time is assumed to be midnight (00h00).
+    The returned representation depends on the legacy flag:
+    * if legacy is False (the default):
+      date has the YYYYMMDD format and time the HHMMSS format
+    * if legacy is True:
+      date has the YYMMDD format and time the HHMMSS format.
+    RFC 3977 compliant servers should understand both formats; therefore,
+    legacy is only needed when talking to old servers.
+    Z
+000000z({0.hour:02d}{0.minute:02d}{0.second:02d}rT
+{0:02d}{1.month:02d}{1.day:02d}z
+{0:04d}{1.month:02d}{1.day:02d})
+formatrX
+legacyrW
+_unparse_datetime
+Wrap a socket in SSL/TLS. Arguments:
+        - sock: Socket to wrap
+        - context: SSL context to use for the encrypted connection
+        Returns:
+        - sock: New, encrypted socket.
+        N)
+server_hostname)
+sslZ
+_create_stdlib_contextZ
+wrap_socket)
+sock
+contextZ
+hostnamer
+_encrypt_on
+d d!
+dkd"d#
+dld$d%
+d&d'
+d(d)
+d*d+
+d-d.
+d/d0
+d1d2
+d3d4
+d5d6
+d7d8
+Z d9d:
+d;d<
+Z"d=d>
+Z#d?d@
+Z$dndAdB
+Z%dCdD
+Z&dEdF
+Z'dodGdH
+Z(dpd
+dIdJ
+Z)dqd
+dKdL
+Z*drd
+dMdN
+Z+dOdP
+dQdR
+dSdT
+dUdV
+Z/dWdX
+Z0dYdZ
+Z1d[d\
+Z2d]d^
+Z3d_d`
+Z4dadb
+Z5dsdcdd
+Z6dedf
+Z7e8
+dtdgdh
+utf-8
+surrogateescapeNFc
+Initialize an instance.  Arguments:
+        - host: hostname to connect to
+        - port: port to connect to (default the standard NNTP port)
+        - user: username to authenticate with
+        - password: password to use with username
+        - readermode: if true, send 'mode reader' command after
+                      connecting.
+        - usenetrc: allow loading username and password from ~/.netrc file
+                    if not specified explicitly
+        - timeout: timeout (in seconds) used for socket connections
+        readermode is sometimes necessary if you are connecting to an
+        NNTP server on the local machine and intend to call
+        reader-specific commands, such as `group'.  If you get
+        unexpected NNTPPermanentErrors, you might need to set
+        readermode.
+        N
+rwb)	
+host
+port
+_create_socketr^
+file
+makefile
+_base_init
+login
+close)
+user
+password
+readermode
+usenetrc
+timeoutr
+NNTP.__init__c
+z~Partial initialization for the NNTP protocol.
+        This instance method is extracted for supporting the test code.
+        r
+READER)	
+	debugging
+_getresp
+welcome
+_caps
+getcapabilities
+readermode_afterauth
+_setreadermode
+tls_on
+authenticated)
+NNTP._base_initc
+	__enter__}
+NNTP.__enter__c
+rZz6z
+hasattrr
+<lambda>
+NNTP.__exit__.<locals>.<lambda>)
+quit
+OSError
+EOFError
+_close)
+is_connectedr
+__exit__
+NNTP.__exit__c
+Nz0Non-blocking socket (timeout=0) is not supportedz
+nntplib.connect)
+ValueError
+auditrc
+socketZ
+create_connection)
+NNTP._create_socketc
+Get the welcome message from the server
+        (this is read and squirreled away by __init__()).
+        If the response code is 200, posting is allowed;
+        if it 201, posting is not allowed.z	*welcome*)
+print
+reprrs
+getwelcome
+NNTP.getwelcomec
+Get the server capabilities, as read by __init__().
+        If the CAPABILITIES command is not supported, an empty dict is
+        returned.Nr5
+VERSIONZ
+IMPLEMENTATION
+nntp_versionZ
+nntp_implementation
+capabilitiesr
+maprE
+resp
+capsr
+NNTP.getcapabilitiesc
+Set the debugging level.  Argument 'level' means:
+        0: no debugging output (default)
+        1: print commands and responses but not body text etc.
+        2: also print raw lines read and sent before stripping CR/LFN)
+levelr
+set_debuglevel
+NNTP.set_debuglevelc
+zfInternal: send one line to the server, appending CRLF.
+        The `line` must be a bytes-like object.z
+nntplib.putliner5
+*put*N)	r
+_CRLFrq
+write
+flush
+_putline
+NNTP._putlinec
+zkInternal: send one command to the server (through _putline()).
+        The `line` must be a unicode string.z
+*cmd*N)
+encode
+encoding
+errorsr
+_putcmd
+NNTP._putcmdTc
+Internal: return one line from the server, stripping _CRLF.
+        Raise EOFError if the connection is closed.
+        Returns a bytes object.r5
+line too longz
+*get*rR
+readline
+_MAXLINEr;
+strip_crlfr=
+_getline
+NNTP._getlinec
+rht	|
+Internal: get a response from the server.
+        Raise various errors if the response indicates an error.
+        Returns a unicode string.z
+*resp*Nr5
+123)
+NNTP._getrespc
+qZn8d
+)	aP
+Internal: get a response plus following text from the server.
+        Raise various errors if the response indicates an error.
+        Returns a (response, lines) tuple where `response` is a unicode
+        string and `lines` is a list of bytes objects.
+        If `file` is a file-like object, it must be open in binary mode.
+        N
+..r5
+strr 
+openrr
+	_LONGRESPr
+openedFiler
+terminatorsr=
+terminatorr
+_getlongresp
+NNTP._getlongrespc
+zWInternal: send a command and get the response.
+        Same return value as _getresp().)
+	_shortcmd
+NNTP._shortcmdc
+zoInternal: send a command and get the response plus following text.
+        Same return value as _getlongresp().
+_longcmd
+NNTP._longcmdc
+Internal: send a command and get the response plus following text.
+        Same as _longcmd() and _getlongresp(), except that the returned `lines`
+        are unicode strings rather than bytes objects.
+        c
+.0r=
+<listcomp>+
+z'NNTP._longcmdstring.<locals>.<listcomp>r
+listr
+_longcmdstring$
+NNTP._longcmdstringc
+zqInternal: get the overview format. Queries the server if not
+        already done, else returns the cached value.z
+LIST OVERVIEW.FMTN)
+_cachedoverviewfmt
+AttributeErrorr
+_getoverviewfmt.
+NNTP._getoverviewfmtc
+z#NNTP._grouplist.<locals>.<listcomp>r
+_grouplist?
+NNTP._grouplistc
+Process a CAPABILITIES command.  Not supported by all servers.
+        Return:
+        - resp: server response if successful
+        - caps: a dictionary mapping capability names to lists of tokens
+        (for example {'VERSION': ['2'], 'OVER': [], LIST: ['ACTIVE', 'HEADERS'] })
+        Z
+CAPABILITIES)
+NNTP.capabilities)
+Process a NEWGROUPS command.  Arguments:
+        - date: a date or datetime object
+        Return:
+        - resp: server response if successful
+        - list: list of newsgroup names
+        
+Athe date parameter must be a date or datetime object, not '{:40}'rO
+NEWGROUPS {0} {1})
+	TypeErrorrZ
+	__class__r
+cmdr
+	newgroupsQ
+NNTP.newgroupsc
+Process a NEWNEWS command.  Arguments:
+        - group: group name or '*'
+        - date: a date or datetime object
+        Return:
+        - resp: server response if successful
+        - list: list of message ids
+        r
+NEWNEWS {0} {1} {2})
+newnewsa
+NNTP.newnewsc
+Process a LIST or LIST ACTIVE command. Arguments:
+        - group_pattern: a pattern indicating which groups to query
+        - file: Filename string or file object to store the result in
+        Returns:
+        - resp: server response if successful
+        - list: list of (group, last, first, flag) (strings)
+        Nz
+LIST ACTIVE Z
+LIST)
+group_patternrf
+commandr
+z	NNTP.listc
+^(?P<group>[^ 	]+)[ 	]+(.*)$z
+LIST NEWSGROUPS r
+XGTITLE r5
+compiler
+search
+stripr$
+return_allZ
+line_patr
+groupsZ
+raw_line
+matchr>
+descr
+_getdescriptions
+NNTP._getdescriptionsc
+Get a description for a single group.  If more than one
+        group matches ('group' is a pattern), return the first.  If no
+        group matches, return an empty string.
+        This elides the response code from the server, since it can
+        only be '215' or '285' (for xgtitle) anyway.  If the response
+        code is needed, use the 'descriptions' method.
+        NOTE: This neither checks for a wildcard in 'group' nor does
+        it check whether the group actually exists.F
+description
+NNTP.descriptionc
+z'Get descriptions for a range of groups.Tr
+descriptions
+NNTP.descriptionsc
+Process a GROUP command.  Argument:
+        - group: the group name
+        Returns:
+        - resp: server response if successful
+        - count: number of articles
+        - first: first article number
+        - last: last article number
+        - name: the group name
+        z
+GROUP r
+words
+countr&
+NNTP.groupc
+Process a HELP command. Argument:
+        - file: Filename string or file object to store the result in
+        Returns:
+        - resp: server response if successful
+        - list: list of strings returned by the server in response to the
+                HELP command
+        Z
+HELP)
+help
+z	NNTP.helpc
+z_Internal: parse the response line of a STAT, NEXT, LAST,
+        ARTICLE, HEAD or BODY command.Z
+22r5
+art_numr)
+_statparse
+NNTP._statparsec
+z/Internal: process a STAT, NEXT or LAST command.)
+_statcmd
+NNTP._statcmdc
+Process a STAT command.  Argument:
+        - message_spec: article number or message id (if not specified,
+          the current article is selected)
+        Returns:
+        - resp: server response if successful
+        - art_num: the article number
+        - message_id: the message id
+        z
+STAT {0}Z
+STATN)
+message_specr
+stat
+z	NNTP.statc
+z;Process a NEXT command.  No arguments.  Return as for STAT.Z
+NEXT
+next
+z	NNTP.nextc
+z;Process a LAST command.  No arguments.  Return as for STAT.Z
+LASTr
+z	NNTP.lastc
+z2Internal: process a HEAD, BODY or ARTICLE command.)
+_artcmd
+NNTP._artcmdc
+Process a HEAD command.  Argument:
+        - message_spec: article number or message id
+        - file: filename string or file object to store the headers in
+        Returns:
+        - resp: server response if successful
+        - ArticleInfo: (article number, message id, list of header lines)
+        Nz
+HEAD {0}Z
+HEAD
+head
+z	NNTP.headc
+Process a BODY command.  Argument:
+        - message_spec: article number or message id
+        - file: filename string or file object to store the body in
+        Returns:
+        - resp: server response if successful
+        - ArticleInfo: (article number, message id, list of body lines)
+        Nz
+BODY {0}Z
+BODYr
+body
+z	NNTP.bodyc
+Process an ARTICLE command.  Argument:
+        - message_spec: article number or message id
+        - file: filename string or file object to store the article in
+        Returns:
+        - resp: server response if successful
+        - ArticleInfo: (article number, message id, list of article lines)
+        Nz
+ARTICLE {0}Z
+ARTICLEr
+article
+NNTP.articlec
+zYProcess a SLAVE command.  Returns:
+        - resp: server response if successful
+        Z
+SLAVE)
+slave!
+NNTP.slavec
+Process an XHDR command (optional server extension).  Arguments:
+        - hdr: the header type (e.g. 'subject')
+        - str: an article nr, a message id, or a range nr1-nr2
+        - file: Filename string or file object to store the result in
+        Returns:
+        - resp: server response if successful
+        - list: list of (nr, value) strings
+        z
+^([0-9]+) ?(.*)
+XHDR {0} {1}c
+patr
+remove_number2
+z NNTP.xhdr.<locals>.remove_numberc
+NNTP.xhdr.<locals>.<listcomp>)
+hdrr
+xhdr'
+z	NNTP.xhdrc
+Process an XOVER command (optional server extension) Arguments:
+        - start: start of range
+        - end: end of range
+        - file: Filename string or file object to store the result in
+        Returns:
+        - resp: server response if successful
+        - list: list of dicts containing the response fields
+        z
+XOVER {0}-{1})
+start
+endrf
+xover7
+NNTP.xoverc
+Process an OVER command.  If the command isn't supported, fall
+        back to XOVER. Arguments:
+        - message_spec:
+            - either a message id, indicating the article to fetch
+              information about
+            - or a (start, end) tuple, indicating a range of article numbers;
+              if end is None, information up to the newest message will be
+              retrieved
+            - or None, indicating the current article number must be used
+        - file: Filename string or file object to store the result in
+        Returns:
+        - resp: server response if successful
+        - list: list of dicts containing the response fields
+        NOTE: the "message id" form isn't supported by XOVER
+        Z
+OVERZ
+XOVERz
+ {0}-{1}r+
+tupler
+overE
+z	NNTP.overc
+Process the DATE command.
+        Returns:
+        - resp: server response if successful
+        - date: datetime object
+        Z
+DATEZ
+111rO
+elemr
+z	NNTP.datec
+	bytearray
+splitlines
+endswithr
+rstriprf
+_postq
+NNTP._postc
+Process a POST command.  Arguments:
+        - data: bytes object, iterable or file containing the article
+        Returns:
+        - resp: server response if successfulZ
+POST)
+datar
+post
+z	NNTP.postc
+Process an IHAVE command.  Arguments:
+        - message_id: message-id of the article
+        - data: file containing the article
+        Returns:
+        - resp: server response if successful
+        Note that if the server refuses the article an exception is raised.z	IHAVE {0})
+ihave
+NNTP.ihavec
+NNTP._closec
+zdProcess a QUIT command and close the socket.  Returns:
+        - resp: server response if successfulZ
+QUIT)
+z	NNTP.quitc
+Already logged in.z7At least one of `user` and `usenetrc` must be specifiedr
+authinfo user Z
+381z
+authinfo pass Z
+281rp
+netrcZ
+authenticatorsrc
+credentialsZ
+authr
+NNTP.loginc
+mode readerZ
+480T)
+NNTP._setreadermodec
+)	zzProcess a STARTTLS command. Arguments:
+            - context: SSL context to use for the encrypted connection
+            z
+TLS is already enabled.z+TLS cannot be started after authentication.
+STARTTLSZ
+382rb
+TLS failed to start.)
+starttls
+NNTP.starttls)
+NNT)
+N):r
+	NNTP_PORTr
+debugr
+	_have_sslr
+NNTP_SSLNFc	
+This works identically to NNTP.__init__, except for the change
+            in default port and the `ssl_context` argument for SSL connections.
+            N)
+ssl_context
+superr
+NNTP_SSL.__init__c
+NNTP_SSL._create_socket)
+NNTP_SSL_PORTr
+__classcell__r
+__main__zJ        nntplib built-in demo - display the latest articles in a newsgroup)
+--groupz
+gmane.comp.python.generalz3group to fetch messages from (default: %(default)s))
+defaultr
+--serverz
+news.gmane.ioz+NNTP server hostname (default: %(default)s)z
+--portr
+z#NNTP port number (default: %s / %s))
+typer
+--nb-articles
+z2number of articles to fetch (default: %(default)s)z
+--ssl
+store_truez
+use NNTP over SSL)
+actionr
+GroupZ
+hasz
+articles, range
+...)
+limr
+cut3
+{:7} {:20} {:42} ({})
+F)Ir
+collectionsrU
+ImportErrorr
+email.headerr
+__all__r
+namedtupler#
+argparse
+ArgumentParser
+parser
+add_argumentrE
+parse_argsr
+serverr
+nb_articlesr
+Z	overviewsZ
+artnumr
+authorr
+<module>

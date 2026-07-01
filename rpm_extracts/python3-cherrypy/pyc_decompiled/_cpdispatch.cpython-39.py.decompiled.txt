@@ -1,0 +1,335 @@
+CherryPy dispatchers.
+A 'dispatcher' is the object which looks up the 'page handler' callable
+and collects config for the current request based on the path_info, other
+request attributes, and the application architecture. The core calls the
+dispatcher as early as possible, passing it a 'path_info' argument.
+The default dispatcher discovers the page handler by matching path_info
+to a hierarchical arrangement of objects, starting at request.app.root.
+PageHandlerz"Callable which sets response.body.c
+callable
+args
+kwargs)
+selfr
+8/usr/lib/python3.9/site-packages/cherrypy/_cpdispatch.py
+__init__
+PageHandler.__init__c
+z?The ordered args should be accessible from post dispatch hooks.
+cherrypy
+serving
+requestr
+PageHandler.argsc
+z?The named kwargs should be accessible from post dispatch hooks.
+PageHandler.kwargsc
+t	yz
+	TypeError
+exc_info
+test_callable_specr
+	HTTPError
+	Exception)
+__call__4
+PageHandler.__call__N)
+__name__
+__module__
+__qualname__
+__doc__r
+propertyr
+setterr
+    Inspect callable and test to see if the given args are suitable for it.
+    When an error occurs during the handler's invoking stage there are 2
+    erroneous cases:
+    1.  Too many parameters passed to a function which doesn't define
+        one of *args or **kwargs.
+    2.  Too little parameters are passed to the function.
+    There are 3 sources of parameters to a cherrypy handler.
+    1.  query string parameters are passed as keyword parameters to the
+        handler.
+    2.  body parameters are also passed as keyword parameters.
+    3.  when partial matching occurs, the final path atoms are passed as
+        positional args.
+    Both the query string and path atoms are part of the URI.  If they are
+    incorrect, then a 404 Not Found should be raised. Conversely the body
+    parameters are part of the request; if they are invalid a 400 Bad Request.
+    
+show_mismatched_paramsFr
+argr	
+<listcomp>l
+z&test_callable_spec.<locals>.<listcomp>r
+Missing parameters: %s
+messagei
+z"Multiple values for parameters: %sz&Unexpected query string parameters: %s
+Unexpected body parameters: %s)
+getattrr
+getargspecr
+isinstance
+object
+hasattrr
+inspectZ
+ismethod
+dict
+	enumerate
+IndexError
+keys
+KeyError
+items
+append
+joinr
+body
+params
+intersection)
+callable_argsZ
+callable_kwargsr"
+varargsZ
+varkw
+defaultsZ	arg_usageZ
+vararg_usageZ
+varkw_usageZ
+extra_kwargs
+value
+keyZ
+args_with_defaults
+valZ
+missing_argsZ
+multiple_argsZ
+usager(
+body_paramsZ	qs_params
+errorZ
+extra_qs_paramsZ
+extra_body_paramsr	
+getfullargspecc
+LateParamPageHandlera
+When passing cherrypy.request.params to the page handler, we do not
+    want to capture that dict too early; we want to give tools like the
+    decoding tool a chance to modify the params dict in-between the lookup
+    of the handler and the actual calling of the handler. This subclass
+    takes that into account, and allows request.params to be 'bound late'
+    (it's more complicated than that, but that's the effect).
+    c
+z=Page handler kwargs (with cherrypy.request.params copied in).)
+copy
+_kwargs
+updater
+LateParamPageHandler.kwargsc
+z0The translate argument must be a str of len 256.)
+strr7
+ValueError
+validate_translator
+Nz&The translate argument must be a dict.)
+Dispatchera~
+CherryPy Dispatcher which walks a tree of objects to find a handler.
+    The tree is rooted at cherrypy.request.app.root, and each hierarchical
+    component in the path_info argument is matched to a corresponding nested
+    attribute of the root object. Matching handlers must have an 'exposed'
+    attribute which evaluates to True. The special method name "index"
+    matches a URI which ends in a slash ("/"). The special method name
+    "default" may match a portion of the path_info (but only when no longer
+    substring of the path_info matches some other object).
+    This is the default, built-in dispatcher for CherryPy.
+    Z
+_cp_dispatchNc
+	translate
+dispatch_method_name)
+Dispatcher.__init__c
+/Set handler and config for the current request.c
+replace
+z'Dispatcher.__call__.<locals>.<listcomp>N)
+find_handlerrF
+handler
+NotFound)
+	path_infor
+func
+vpathr	
+Dispatcher.__call__c
+}	|	
+r0|	d
+r(t	|
+r(|	
+qXt	|
+Return the appropriate page handler, plus any virtual path.
+        This will return two objects. The first will be a callable,
+        which can be used to generate page output. Any parameters from
+        the query string or request body will be sent to that callable
+        as keyword arguments.
+        The callable is found by traversing the application's tree,
+        starting from cherrypy.request.app.root, and matching path
+        components to successive objects in the tree. For example, the
+        URL "/path/to/handler" might return root.path.to.handler.
+        The second object returned will be a list of names which are
+        'virtual path' components: parts of the URL which are dynamic,
+        and were not used when looking up the handler.
+        These virtual path components are passed to the handler as
+        positional arguments.
+        c
+z+Dispatcher.find_handler.<locals>.<listcomp>rW
+index
+_cp_config
+rootNr
+exposedFr
+zlA vpath segment was added.  Custom dispatchers may only remove elements.  While trying to process {0} in {1}
+zKCollapse all object_trail config into cherrypy.request.config.
+            
+tools.staticdir.dirrW
+tools.staticdir.section)
+configrG
+base
+name
+conf
+segleft
+fullpathZ
+fullpath_lenZ
+object_trailr	
+set_conf
+z)Dispatcher.find_handler.<locals>.set_conf
+defaultT)
+apprc
+strip
+splitr7
+popr9
+CherryPyException
+formatr:
+rangerq
+insert
+endswithZ
+is_index)
+pathr
+dispatch_namerl
+nodeconfZ
+nodeZ	iternamesri
+objnameZ
+subnodeZ
+pre_len
+dispatchZ
+index_nameZ
+existing_len
+curpathZ
+new_segs
+segro
+num_candidatesr?
+	candidateZ
+defhandlerrk
+Dispatcher.find_handler)	r
+punctuation_to_underscoresr
+MethodDispatcherag
+Additional dispatch based on cherrypy.request.method.upper().
+    Methods named GET, POST, etc will be called on an exposed class.
+    The method names must be all caps; the appropriate Allow header
+    will be output showing all capitalized method names as allowable
+    HTTP verbs.
+    Note that the containing class must be exposed, not the methods.
+    c
+isupper)
+z-MethodDispatcher.__call__.<locals>.<listcomp>Z
+GETZ
+HEADr)
+AllowNrb
+dirr9
+sortr:
+response
+headers
+method
+upperr*
+resourcer`
+availZ
+methr_
+MethodDispatcher.__call__N)
+RoutesDispatcherz'A Routes based dispatcher for CherryPy.Fc
+        Routes dispatcher
+        Set full_result to True if you wish the controller
+        and the action to be passed on to the page handler
+        parameters. By default they won't be.
+        r
+routes
+full_result
+controllersZ
+Mapper
+mapperr4
+controller_scan)
+mapper_optionsr
+RoutesDispatcher.__init__c
+controller)
+connect)
+router
+RoutesDispatcher.connectc
+HTTPRedirect)
+urlr	
+redirect
+RoutesDispatcher.redirectc
+RoutesDispatcher.__call__c
+z4Find the right page handler, and set request.config.r
+wsgi_environ
+Hostr
+actionrd
+merge0
+z,RoutesDispatcher.find_handler.<locals>.mergerb
+z1RoutesDispatcher.find_handler.<locals>.<listcomp>) r
+request_configr
+environr
+host
+schemeZ
+protocolr
+matchZ
+mapper_dictrG
+	classtyper*
+resultr<
+atomsZ
+lastZ
+atomr\
+RoutesDispatcher.find_handlerN)
+F)	r
+xmlrpcutilc
+patched_path)
+next_dispatcherr
+xmlrpc_dispatchh
+z)XMLRPCDispatcher.<locals>.xmlrpc_dispatch)
+cherrypy.libr
+XMLRPCDispatchere
+    Select a different handler based on the Host header.
+    This can be useful when running multiple sites within one CP server.
+    It allows several domains to point to different parts of a single
+    website structure. For example::
+        http://www.domain.example  ->  root
+        http://www.domain2.example  ->  root/domain2/
+        http://www.domain2.example:443  ->  root/secure
+    can be accomplished via the following config::
+        [/]
+        request.dispatch = cherrypy.dispatch.VirtualHost(
+            **{'www.domain2.example': '/domain2',
+               'www.domain2.example:443': '/secure',
+              })
+    next_dispatcher
+        The next dispatcher object in the dispatch chain.
+        The VirtualHost dispatcher adds a prefix to the URL and calls
+        another dispatcher. Defaults to cherrypy.dispatch.Dispatcher().
+    use_x_forwarded_host
+        If True (the default), any "X-Forwarded-Host"
+        request header will be used instead of the "Host" header. This
+        is commonly added by HTTP servers (such as Apache) when proxying.
+    ``**domains``
+        A dict of {host header value: virtual prefix} pairs.
+        The incoming "Host" request header is looked up in this dict,
+        and, if a match is found, the corresponding "virtual prefix"
+        value will be prepended to the URL path before calling the
+        next dispatcher. Note that you often need separate entries
+        for "example.com" and "www.example.com". In addition, "Host"
+        headers may contain the port number.
+    r
+httputilc
+X-Forwarded-Hostrf
+urljoinrg
+headerZ
+domain
+prefixr
+section
+domainsr
+use_x_forwarded_hostr	
+vhost_dispatch
+z#VirtualHost.<locals>.vhost_dispatch)
+VirtualHostn
+stringr
+types
+typeZ	ClassTyper
+AttributeErrorr
+ImportErrorr+
+version_info
+	maketransZ
+punctuationr7
+<module>

@@ -1,0 +1,3919 @@
+############################################################################
+#    File Name: br_functions
+#  Description: The VM's backup and restore functions definitions container
+# Date Created: 2011-07-18
+#       Author: guozhonghua/02084
+#  Description: vm backup and restore shell functions container script
+#  Modification History
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+
+##############################################################################
+# funcion   : get current datetime
+##############################################################################
+brdate() {
+    date "+${__BR_DATEFMT}"
+}
+
+##############################################################################
+# funcion   : get current month, eg. 201106
+##############################################################################
+brCurrentMonth() {
+    date "+%Y%m"
+}
+ 
+##############################################################################
+#    Func Name: br_printlog
+# Date Created: 2011-07-21
+#       Author: guozhonghua
+#  Description: print log to a log file; if debug and we're connected to a tty,
+#               then output to stderr,otherwise, to logfile.
+#        usage: $0 $1 $2 $3
+#               $1 : the caller's name, usually, it is the shell name; must
+#               $2 : the log level, it must be one of {crit|err|warn|info|debug}; must
+#               $3 : the message string; must
+#       Output: None
+#       Return: 0
+#      Caution:
+#-----------------------------------------------------------------------------
+#  Modification History
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+br_printlog()
+{
+    # check the invalidity of the params.
+    if [ $# -lt 3 ]; then
+        br_printlog testshell err "Not enough arguments [$#] to ha_printlog."
+        return 0
+    fi
+
+    #save the parameters
+    __BR_LOG_FROM="$1"
+    shift
+    __BR_LOG_PRIO="$1"
+    shift
+    __BR_LOG_MSG="$*"
+
+    #format the log/debug level.
+    case "${__BR_LOG_PRIO}" in
+          crit)     __BR_LOG_PRIO="CRIT";;
+          err)      __BR_LOG_PRIO="ERROR";;
+          warn)     __BR_LOG_PRIO="WARNING";;
+          info)     __BR_LOG_PRIO="INFO";;
+          debug)    __BR_LOG_PRIO="DEBUG";;
+          *)        __BR_LOG_PRIO=`echo ${__BR_LOG_PRIO}| tr '[a-z]' '[A-Z]'`;;
+    esac
+
+    #make up the full message
+    __BR_HOSTNAME=`hostname`
+    __BR_LOG_MSG=`brdate`" ["${__BR_HOSTNAME}"]("${__BR_LOG_FROM}"): "${__BR_LOG_PRIO}":"${__BR_LOG_MSG}
+
+    #buildup the log file name
+    __BR_LOGFILE_DIR="/var/log/caslog/backup-restore/"
+    if [ ! -d ${__BR_LOGFILE_DIR} ];then
+        mkdir -p ${__BR_LOGFILE_DIR}
+    fi
+    __BR_LOGFILE="${__BR_LOGFILE_DIR}cas_br.log"
+    #echo ${__BR_LOGFILE}
+
+    # Write the log info into log files
+    # modified by shichangkuo: no matter with "DEBUG", all print to logfile. 2013-03-05
+    #if [ "${__BR_LOG_PRIO}" = "DEBUG" -a tty >/dev/null ]; then
+    #    echo ${__BR_LOG_MSG}
+    #else
+        echo -e ${__BR_LOG_MSG} >> ${__BR_LOGFILE}
+    #fi
+}
+
+#############################################################################
+#    Func Name: get_temp_dir
+# Date Created: 2011-07-18
+#       Author: guozhonghua/02084
+#  Description: get the temp directory to store the VMs' data file for backup
+#        usage: $0 $1 $2
+#               $1 : THE CURRENT TIME
+#               $2 : THE VM'S NAME
+#               $3 : The temp dir input from front
+#               $4 : The backup mode, sufix, 0,10/11,20/22,maybe empty
+#       OUTPUT: NONE
+#       RETURN: 0  : SUCCESS
+#               1  : FAILED
+#      CAUTION:
+#  MODIFICATION HISTORY
+#  DATE        NAME             DESCRIPTION
+#############################################################################
+get_temp_dir()
+{
+    # wrong parameters
+    if [ $# -lt 3 ]; then
+        return $BR_WRONG_PARAM
+    fi
+
+    # Module name for log
+    local MODULE_NAME=get_temp_dir
+
+    # get the current time
+    current_time=$1
+
+    # the vm's name
+    vm_name=$2
+
+    # set the default tmpdir with /
+    tmp_dir=$3
+
+    if [ "X$tmp_dir" = "X" ]; then
+        defaultsize=0
+
+        # Find out the maxium compacity disk of the host, the directory
+        for diskcapacity in $( $DF_CMD | awk 'NR>=2{if($1!="udev"&&$1!="tmpfs"&&$1!="none"){if(index($4, "%")>0){printf("%s=%s\n", $3,$5);} else{ printf("%s=%s\n", $4,$6);}}}' )
+        do
+            capacity=${diskcapacity%=*}
+            dirtemp=${diskcapacity#*=}
+
+            br_printlog $MODULE_NAME debug "The capacity=$capacity directory=$dirtemp"
+            if [ "X$dirtemp" = "X/" ] || [ "X$dirtemp" = "X/var/log" ]; then
+                br_printlog $MODULE_NAME debug "DONOT use $dirtemp directory, ingnored"
+                continue
+            fi
+            ## empty line, continue
+            if test -z $dirtemp || test -z $capacity
+            then
+                continue
+            fi
+
+            # Just look for the ext file system
+            is_ocfs2=false
+            for network_dir in $( mount | grep type[[:space:]]ext | awk '{print $3}' )
+            do
+                if [ "X$network_dir" = "X$dirtemp" ]; then
+                    local mds_disk=`echo $network_dir | grep '/opt/mds/disk/[[:digit:]]\{1,\}'`
+                    #br_printlog $MODULE_NAME debug "network file system: $network_dir, and get MDS path inf $mds_disk"
+
+                    # Wether MDS path
+                    if [ "X$mds_disk" != "X" ]; then
+                        br_printlog $MODULE_NAME debug "MDS path inf $mds_disk, will be filtered"
+                        break
+                    fi
+
+                    #br_printlog $MODULE_NAME debug "network file system: $network_dir, $dirtemp"
+                    is_ocfs2=true
+                    break
+                fi
+            done
+
+            if [ "X$is_ocfs2" = "Xfalse" ]; then
+                br_printlog $MODULE_NAME debug "The $dirtemp file system can not be used, continue"
+                continue
+            fi
+
+            if [ $capacity -ge $defaultsize ]; then
+                defaultsize=$capacity
+                tmp_dir=$dirtemp
+            fi
+        done
+
+        # if get the disk capacity failed
+        if [ $defaultsize -eq 0 ]; then
+            br_printlog $MODULE_NAME err "Get the capacity of the disks failed"
+            return $BR_DISK_SPACE_NO_ENOUGH
+        fi
+
+        #echo "Find the maxium capacity disk with the directory = "$tmp_dir
+        #br_printlog $MODULE_NAME debug "Find the dir $tmp_dir with capacity $defaultsize"
+
+        # if it is the root directory
+        if [ "$tmp_dir" = "/" ]; then
+            tmp_dir=""
+            return $BR_MAKE_DIRS
+        fi
+    fi
+    has_vmbackuptmp=`echo $tmp_dir | grep vmbackuptmp`
+    if [ "X$has_vmbackuptmp" = "X" ] ; then
+       tmp_dir=$tmp_dir"/vmbackuptmp"
+    fi
+
+    # Create one directory
+    vm_temp_dir=$tmp_dir"/"$vm_name"_"$current_time
+
+    if [ $# -ge 4 ]; then
+        vm_temp_dir=$tmp_dir"/"$vm_name"_"$current_time"_"$4
+    fi
+
+    mkdir -p $vm_temp_dir
+    if [ $? -ne 0 ]; then
+        br_printlog $MODULE_NAME err "Make temp directory failed"
+        return $BR_MAKE_DIRS
+    fi
+
+    if test -e $vm_temp_dir; then
+        echo $vm_temp_dir
+    else
+        return $BR_MAKE_DIRS
+    fi
+
+    # successfully
+    return $BR_SUCCESS
+}
+
+##############################################################################
+#    Func Name: cp_data_file
+# Date Created: 2011-07-18
+#       Author: guozhonghua/02084
+#  Description: cp file to another directory
+#        usage: $0 $1 $2
+#               $1 : the original directory
+#               $2 : the destination directory
+#       OUTPUT: NONE
+#       RETURN: 0  : SUCCESS
+#               1  : FAILED
+#      CAUTION:
+#-----------------------------------------------------------------------------
+#  MODIFICATION HISTORY
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+cp_data_file()
+{
+    # Module name for log
+    local MODULE_NAME=cp_data_file
+
+    # wrong parameters
+    if [ $# -lt 2 ]; then
+       br_printlog $MODULE_NAME err "Parameters error"
+       return $BR_WRONG_PARAM
+    fi
+
+    # get the original directory
+    original_dir="$1"
+
+    # move all file to directory $2
+    cp -r $original_dir $2
+    return_code=$?
+    if [ $return_code -ne 0 ]; then
+        br_printlog $MODULE_NAME err "Copy files failed with $return_code"
+        return $BR_COPY_FILE_FAILED
+    fi
+    return $BR_SUCCESS
+}
+
+##############################################################################
+#    Func Name: ftp_data_file_transfer
+# Date Created: 2011-07-18
+#       Author: guozhonghua/02084
+#  Description: transfer files through ftp
+#        usage: ftp_data_file_transfer 192.168.0.107 21 gzh 1q2w3e test get
+#               ftp_data_file_transfer 192.168.0.107 21 gzh 1q2w3e test put
+#            $1 server ip or host name
+#            $2 ftp server port
+#            $3 user name
+#            $4 user'a password
+#            $5 directory on the ftp server
+#            $6 the VM directory to be built
+#            $7 put or get
+#       OUTPUT: NONE
+#       RETURN: 0  : SUCCESS
+#               1  : FAILED
+#      CAUTION:
+#-----------------------------------------------------------------------------
+#  MODIFICATION HISTORY
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+ftp_data_file_transfer()
+{
+    # Module name for log
+    local MODULE_NAME=ftp_data_file_transfer
+
+    # echo $@
+    case $7 in
+        "put")
+            result_values=`ftp -n -i $1 $2 <<EOF
+            user $3 "$4"
+            cd $5
+            binary
+            mkdir $6
+            cd $6
+            #prompt
+            mput *.gz
+            mput *.conf
+            mput *.xml
+            mput info
+            mput backup_version
+            #added by zhanglianxiang
+            dir . backup_file_info
+            bye
+EOF`
+
+            return_code=$?
+            if [ $return_code -ne 0 ]; then
+                br_printlog $MODULE_NAME err "Execute FTP transfer put failed with return code $return_code"
+                return $return_code
+            fi
+
+            # Parse the error information
+            errorinfo=`echo $result_values | grep "Not connected"`
+            if [ "X$errorinfo" != "X" ]; then
+                return $BR_FTP_TRANSFER_1
+            fi
+
+            errorinfo=`echo $result_values | grep "Login failed"`
+            if [ "X$errorinfo" != "X" ]; then
+                return $BR_FTP_TRANSFER_2
+            fi
+
+            #use wftp32
+            errorinfo=`echo $result_values | grep "The disk is full"`
+            if [ "X$errorinfo" != "X" ]; then
+                return $BR_DISK_SPACE_NO_ENOUGH
+            fi
+
+            errorinfo=`echo $result_values | grep "$5"`
+            if [ "X$errorinfo" != "X" ]; then
+                return $BR_FTP_TRANSFER_3
+            fi
+
+            errorinfo=`echo $result_values | grep "$6"`
+            if [ "X$errorinfo" != "X" ]; then
+                return $BR_FTP_TRANSFER_3
+            fi
+
+            # no privileges
+            errorinfo=`echo $result_values | grep "Permission denied"`
+            if [ "X$errorinfo" != "X" ]; then
+                return $BR_FTP_TRANSFER_4
+            fi
+            ;;
+
+        "get")
+            result_values=`ftp -n -i $1 $2 <<EOF
+            user $3 "$4"
+            cd $5
+            binary
+            cd $6
+            #prompt
+            mget *
+            bye
+EOF`
+            echo "FTP result values="$result_values
+            return_code=$?
+            if [ $return_code -ne 0 ]; then
+                br_printlog $MODULE_NAME err "Execute FTP transfer get failed with return code $return_code"
+                return $return_code
+            fi
+
+            errorinfo=`echo $result_values | grep "Not connected"`
+            if [ "X$errorinfo" != "X" ]; then
+                return $BR_FTP_TRANSFER_1
+            fi
+
+            errorinfo=`echo $result_values | grep "Login failed"`
+            if [ "X$errorinfo" != "X" ]; then
+                return $BR_FTP_TRANSFER_2
+            fi
+
+            errorinfo=`echo $result_values | grep "$5"`
+            if [ "X$errorinfo" != "X" ]; then
+                return $BR_FTP_TRANSFER_3
+            fi
+
+            errorinfo=`echo $result_values | grep "$6"`
+            if [ "X$errorinfo" != "X" ]; then
+                return $BR_FTP_TRANSFER_3
+            fi
+
+            #added by zhanglianxiang
+            dir=`pwd`
+            check_up_backup_file_4_restore $dir
+            return_code=$?
+            if [ $return_code != 0 ]; then
+                br_printlog $MODULE_NAME err "FTP files failed with get with code $return_code"
+                return $return_code
+            fi
+            #end
+            ;;
+        *)
+            br_printlog $MODULE_NAME err "Unknown parameters for ftp transfer"
+            return $BR_FTP_UNSUPORTTED_OPERATION
+            ;;
+    esac
+    return $BR_SUCCESS
+}
+
+##############################################################################
+#    Func Name: utils_is_ipv6
+# Date Created: 2018-9-26
+#       Author: tuguoyi/14581
+#  Description: Check if it's ipv6 address
+#        usage:
+#       Input:
+#            $1 ip
+#       OUTPUT: NONE
+#       RETURN: the remote path string
+#      CAUTION:
+#-----------------------------------------------------------------------------
+#  MODIFICATION HISTORY
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+utils_is_ipv6()
+{
+    # set the module name
+    local ip=$1
+    
+    local count=`echo $ip | awk -F ':' '{print NF}'`
+    if [ $count -gt 1 ]; then
+        echo 1
+    else
+        echo 0
+    fi
+}
+
+##############################################################################
+#    Func Name: utils_get_compat_ip
+# Date Created: 2018-9-26
+#       Author: tuguoyi/14581
+#  Description: Provide a generic api to get ip addr. if IP is a link-local ipv6 address, 
+#               the interface name(vswitch0) will be append to it, otherwise the same ip will be returned
+#        usage:
+#       Input:
+#            $1 host ip
+#       OUTPUT: NONE
+#       RETURN: the remote path string
+#      CAUTION:
+#-----------------------------------------------------------------------------
+#  MODIFICATION HISTORY
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+utils_get_compat_ip()
+{
+    # set the module name
+    local MODULE_NAME=utils_get_compat_ip
+
+    local host_ip=$1
+    local compat_ip=`python3 $BR_SHELL_PATH"/"br_ipcompat_util.pyc get_compat_ip $host_ip`
+    if [ $? -ne 0 ]; then
+        br_printlog $MODULE_NAME err "Failed to get compat ip, return the ip directly. input params: $@"
+        compat_ip=$host_ip
+    fi
+    echo $compat_ip
+}
+
+##############################################################################
+#    Func Name: utils_get_scp_remote_path
+# Date Created: 2018-9-26
+#       Author: tuguoyi/14581
+#  Description: Generate IPv4/IPv6 compatible remote path with supplied arguments 
+#        usage:
+#       Input:
+#            $1 host ip
+#            $2 username
+#            $3 directory on the remote server
+#       OUTPUT: NONE
+#       RETURN: the remote path string
+#      CAUTION:
+#-----------------------------------------------------------------------------
+#  MODIFICATION HISTORY
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+utils_get_scp_remote_path()
+{
+    # set the module name
+    local MODULE_NAME=utils_get_scp_remote_path
+
+    br_printlog $MODULE_NAME debug "input params: $@"
+    local host_ip=$1
+    local username=$2
+    local path=$3
+
+    local scp_path=`python3 $BR_SHELL_PATH"/"br_ipcompat_util.pyc get_scp_path $host_ip $username "$path"`
+    if [ $? -ne 0 ]; then
+        br_printlog $MODULE_NAME err "Failed to get scp path. input params: $@"
+        scp_path=""
+    fi
+    echo $scp_path
+}
+
+
+##############################################################################
+#    Func Name: scp_data_file_transfer
+# Date Created: 2011-07-18
+#       Author: guozhonghua/02084
+#  Description: scp the backup directory to the remote server
+#        usage:
+#        Examples:
+#                 expect file_scp.exp ./temp/ftptest.sh root@192.168.0.5:/tmp/gzhtest 22 1q2w3e
+#                 expect file_scp.exp root@192.168.0.5:/root/gzh/* ./temp 22 1q2w3e
+#                 scp_data_file_transfer 192.168.0.5 22 root 1q2w3e /tmp/gzhtest /root/shell_test/temp/scptest get
+#                 scp_data_file_transfer 192.168.0.5 22 root 1q2w3e /tmp/gzhtest /root/shell_test/temp/scptest put
+#       Input:
+#            $1 server ip or host name
+#            $2 server port
+#            $3 user name
+#            $4 user'a password
+#            $5 directory on the remote server
+#            $6 local diretory
+#            $7 put or get
+#       OUTPUT: NONE
+#       RETURN: 0  : SUCCESS
+#               1  : FAILED
+#      CAUTION:
+#-----------------------------------------------------------------------------
+#  MODIFICATION HISTORY
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+scp_data_file_transfer()
+{
+    # set the module name
+    local MODULE_NAME=scp_data_file_transfer
+
+    #by caizhifeng for temp
+    br_printlog $MODULE_NAME info "input params: $1 $2 $3 @@@ $5 $6 $7"
+
+    local user="$3"
+    local passwd="$4"
+
+    # send file to remote server or get data file from remote server
+    case $7 in
+    "put")
+        expect $BR_SHELL_PATH"/"file_ssh_mkdir.exp "$user"@"$1" $2 $5 "$passwd" >/dev/null
+        return_code=$?
+        if [ $return_code -ne 0 ]; then
+            br_printlog $MODULE_NAME err "make directory failed $return_code"
+            return $return_code
+        fi
+
+        # send files, should do send it for every file
+        for files in `ls $6`
+        do
+            remote_path=`utils_get_scp_remote_path $1 $user $5`
+            expect $BR_SHELL_PATH"/"file_scp.exp $6"/"$files "$remote_path" $2 "$passwd" >/dev/null
+            return_code=$?
+            if [ $return_code -ne 0 ]; then
+                br_printlog $MODULE_NAME err "SCP files failed with put with code $return_code"
+                return $return_code
+                fi
+        done
+
+        #by caizhifeng for temp
+        br_printlog $MODULE_NAME info "PUT scp ok!!!"
+        ;;
+    "get")
+        # get all files from remote server
+        remote_path=`utils_get_scp_remote_path $1 $user "$5"`
+        expect $BR_SHELL_PATH"/"file_scp.exp "$remote_path" $6 $2 "$passwd" >/dev/null
+        return_code=$?
+        if [ $return_code -ne 0 ]; then
+            # log error
+            br_printlog $MODULE_NAME err "SCP files failed with get with code $return_code"
+            return $return_code
+        fi
+        ;;
+    *)
+        br_printlog $MODULE_NAME err "VM xml file define failed"
+        return $BR_SCP_UNSUPORTTED_OPERATION
+        ;;
+    esac
+    return $BR_SUCCESS
+}
+
+##############################################################################
+#    Func Name: vm_br_confg_valid_cp
+# Date Created: 2012-09-03
+#       Author: guozhonghua/02084
+#  Description: vm backup parameters validation test, local directory
+#        usage:
+#       Input: $1 directory on the remote server
+#       OUTPUT: NONE
+#       RETURN: 0      : SUCCESS
+#               Other  : FAILED,error code
+#      CAUTION:
+#-----------------------------------------------------------------------------
+#  MODIFICATION HISTORY
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+vm_br_confg_valid_cp()
+{
+    if ! test -d $1 ; then
+        return $BR_DIRECTORY_ERROR
+    fi
+
+    # the directory can not write
+    if ! test -w $1 ; then
+        return $BR_DIRECTORY_ERROR
+    fi
+    return $BR_SUCCESS
+}
+
+##############################################################################
+#    Func Name: vm_br_confg_valid_scp
+# Date Created: 2012-09-04
+#       Author: guozhonghua/02084
+#  Description: vm backup parameters validation test, scp configurations
+#        usage:
+#        Examples:
+#       Input:
+#            $1 server ip or host name
+#            $2 server port
+#            $3 user name
+#            $4 user'a password
+#            $5 directory on the remote server
+#       OUTPUT: NONE
+#       RETURN: 0  : SUCCESS
+#               1  : FAILED
+#      CAUTION:
+#-----------------------------------------------------------------------------
+#  MODIFICATION HISTORY
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+vm_br_confg_valid_scp()
+{
+    # set the module name
+    local MODULE_NAME=vm_br_confg_valid_scp
+
+    #by caizhifeng for temp
+    br_printlog $MODULE_NAME info "input params: $1 $2 $3 @@@ $5"
+
+    local user="$3"
+    local passwd="$4"
+
+    # send file to remote server or get data file from remote server
+    expect $BR_SHELL_PATH"/"dir_ssh_cd.exp "$user"@"$1" $2 $5 "$passwd" >/dev/null
+    return_code=$?
+    if [ $return_code -ne 0 ]; then
+        br_printlog $MODULE_NAME err "make directory failed $return_code"
+        return $return_code
+    fi
+    return $BR_SUCCESS
+}
+############################################################################
+#    File Name: make_up_backfile_info
+# Date Created: 2013-02-19
+#       Author: zhanglianxiang/09608
+#  Description: make up backup file information of VM
+#        Input: $1 backup file absolutely directory
+#        input: $2 the compress specification
+#       Output: error Code with some errors
+#       Return: 0 if succeffully, other with errors
+#      Caution:
+#-----------------------------------------------------------------------------
+#  Modification History
+#  DATE        NAME             DESCRIPTION
+# 2014-9-9     guozhonghua      changed for optimization
+##############################################################################
+make_up_backfile_info()
+{
+    local MODULE_NAME=make_up_backfile_info
+    local temp_path=$1
+    local compressed=$2
+
+    local current_path=`pwd`
+
+    # cd backup file directory
+    cd $temp_path
+    if [ -e info ]; then
+        rm -f info
+    fi
+
+    # compressed file
+    echo $compressed > compressed
+
+    #check
+    local all_files=`ls * 2>/dev/null`
+    local rtn=$?
+    if [ "X$all_files" = "X" ] || [ $rtn -ne 0 ]; then
+        br_printlog $MODULE_NAME err "can not find any files in dir $temp_path."
+        cd $current_path
+        return $BR_LIST_FILES
+    fi
+
+    br_printlog $MODULE_NAME debug "$temp_path: $all_files"
+
+    # get size of files and make up information
+    for tmp_gz in $all_files
+    do
+        # get name
+        br_printlog $MODULE_NAME info " tmp_gz = $tmp_gz "
+        echo -n "$tmp_gz" >> info
+
+        # get size
+        ls -l $tmp_gz | awk '{printf(" %s\n", $5)}' >> info
+    done
+    cd $current_path
+
+    return $BR_SUCCESS
+}
+
+############################################################################
+#    File Name: check_up_remote_disk_space
+# Date Created: 2013-02-19
+#       Author: zhanglianxiang/09608
+#  Description: check up remote size of free disk space
+#            $1 scp server ip or host name
+#            $2 scp server port
+#            $3 vm backup directory
+#            $4 user'a password
+#            $5 directory on the scp server
+#       Return: 0 if succeffully, other with errors
+#      Caution: only scp backup and only used in HA Cluster Manager
+#-----------------------------------------------------------------------------
+#  Modification History
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+check_up_remote_disk_space()
+{
+    local MODULE_NAME=check_up_remote_disk_space
+    local disk_info
+    br_printlog $MODULE_NAME info "all params = $1 $2 $3 $4 @@@ $6"
+
+    local user="$4"
+    local passwd="$5"
+
+    disk_info=`expect $BR_SHELL_PATH"/"get_disk_space_info.exp "$user"@"$1" $2 "$passwd" $6`
+    rt=$?
+    if [ $rt -ne 0 ]; then
+        br_printlog $MODULE_NAME err "get remote disk space info faild with $rt"
+        return $rt
+    fi
+
+    FREE_DISK_SPACE=`echo $disk_info | awk '{print $(NF - 2)}'`
+    return_code=$?
+    if [ $return_code -ne 0 ]; then
+        br_printlog $MODULE_NAME err "parse disk info failed with $return_code"
+        return $return_code
+    fi
+
+    cd $3
+    sum=0
+    if [ -e info ]; then
+        while read line;
+        do
+            size=`echo $line | awk '{printf("%s\n",$2)}'`
+            sum=`expr $sum + $size`
+        done < info
+    else
+        images=`ls *.gz`
+        for tmp_images in $images
+        do
+            gz=`ls -l $tmp_images | awk '{printf("%s ", $5)}'`
+            sum=`expr $sum + $gz`
+        done
+        conf=`ls -l | grep *.conf | awk '{printf("%s ", $5)}'`
+        sum=`expr $sum + $conf`
+        xml=`ls -l | grep *.xml | awk '{printf("%s ", $5)}'`
+        sum=`expr $sum + $xml`
+    fi
+
+    br_printlog $MODULE_NAME info "FREE_DISK_SPACE = $FREE_DISK_SPACE sum = $sum"
+    if [ $FREE_DISK_SPACE -lt $sum ]; then
+        br_printlog $MODULE_NAME err "check up remote disk space faild,NO ENOUGH SPACE!"
+        return $BR_DISK_SPACE_NO_ENOUGH
+    fi
+    return $BR_SUCCESS
+}
+
+############################################################################
+#    File Name: check_up_local_disk_space
+# Date Created: 2013-02-19
+#       Author: zhanglianxiang/09608
+#  Description: check-up remote size of free disk space
+#            $1 source directory
+#            $2 destination directory
+#       Return: 0 if succeffully, other with errors
+#      Caution: only scp backup and only used in HA Cluster Manager
+#-----------------------------------------------------------------------------
+#  Modification History
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+check_up_local_disk_space()
+{
+    local MODULE_NAME=check_up_local_disk_space
+
+    # check destination directory free space of disk
+    br_printlog $MODULE_NAME info "\$1 = $1,\$2 = $2"
+    cd $2
+
+    dest=`$DF_CMD -B1 "$2" | sed -n '2p' | awk '{printf("%s\n",$4)}'`
+    if [ $? != 0 ]; then
+        br_printlog $MODULE_NAME err "get destination directory free space of disk faild."
+    fi
+
+    # source directory
+    cd $1
+    sum=0
+    if [ -e info ]; then
+        while read line;
+        do
+            size=`echo $line | awk '{printf("%s\n",$2)}'`
+            sum=`expr $sum + $size`
+        done < info
+    else
+        list=`ls`
+        for tmp_size in $list
+        do
+            size=`ls -l $tmp_size | awk '{printf("%s\n", $5)}'`
+            sum=`expr $sum + $size`
+        done
+    fi
+
+    br_printlog $MODULE_NAME info "\$sum = $sum,\$dest = $dest."
+    if [ $dest -lt $sum ]; then
+        br_printlog $MODULE_NAME err "check up destination disk space faild,NO ENOUGH SPACE!"
+        return $BR_DISK_SPACE_NO_ENOUGH
+    fi
+    return $BR_SUCCESS
+}
+
+############################################################################
+#    File Name: check_files_after_trans_for_ftp
+# Date Created: 2013-02-19
+#       Author: zhanglianxiang/09608
+#  Description: check-up transfered files in ftp server
+# Date Created: 2013-02-19
+#        usage: check_files_after_trans_for_ftp 192.168.0.107 21 gzh 1q2w3e test dir
+#            $1 vm backup file name (.gz)
+#            $2 vm backup file name (.conf,.xml)
+#       OUTPUT: NONE
+#       RETURN: 0  : SUCCESS
+#               1  : FAILED
+#      CAUTION:
+#-----------------------------------------------------------------------------
+#  MODIFICATION HISTORY
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+check_files_after_trans_for_ftp()
+{
+    local MODULE_NAME=check_files_after_trans_for_ftp
+    cd $3
+    #check gz file size
+    if [ ! -e backup_version.bak ]; then
+        br_printlog $MODULE_NAME err "backup file info no exist!!!"
+        return $BR_VM_NO_FIND_BAKUP_VERSION
+    fi
+
+    diff backup_version backup_version.bak >/dev/null
+    if [ $? -ne 0 ]; then
+        return $BR_VM_NO_FIND_BAKUP_VERSION
+    fi
+
+    return $BR_SUCCESS
+}
+
+############################################################################
+#    File Name: delete_ftp_server_backup_file
+# Date Created: 2013-02-19
+#       Author: zhanglianxiang/09608
+#  Description: delete ftp server backup file if backup faild
+# Date Created: 2013-02-19
+#        usage: delete_ftp_server_backup_file 192.168.0.107 21 gzh 1q2w3e test dir
+#            $1 vm backup file name (.gz)
+#            $2 vm backup file name (.conf,.xml)
+#       OUTPUT: NONE
+#       RETURN: 0  : SUCCESS
+#               1  : FAILED
+#      CAUTION:
+#-----------------------------------------------------------------------------
+#  MODIFICATION HISTORY
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+delete_ftp_server_backup_file()
+{
+    local MODULE_NAME=delete_ftp_server_backup_file
+
+    result_values=`ftp -n -i $1 $2 <<EOF
+    user $3 "$4"
+    cd $5
+    cd $6
+    mdelete *
+    cd ..
+    rmdir "$6"
+    bye
+    EOF`
+
+    return_code=$?
+    if [ $return_code -ne 0 ]; then
+        br_printlog $MODULE_NAME err "login FTP failed with return code $return_code"
+        return $return_code
+    fi
+
+    # Parse the error information
+    errorinfo=`echo $result_values | grep "Not connected"`
+    if [ "X$errorinfo" != "X" ]; then
+        return $BR_FTP_TRANSFER_1
+    fi
+
+    errorinfo=`echo $result_values | grep "Login failed"`
+    if [ "X$errorinfo" != "X" ]; then
+        return $BR_FTP_TRANSFER_2
+    fi
+
+    errorinfo=`echo $result_values | grep "550"`
+    if [ "X$errorinfo" != "X" ]; then
+        return $BR_FTP_TRANSFER_3
+    fi
+    return $BR_SUCCESS
+}
+
+############################################################################
+#    File Name: check_up_backup_file_4_restore
+# Date Created: 2013-02-19
+#       Author: zhanglianxiang/09608
+#  Description: check-up backup file for restore in scp or ftp after transfer backup files
+# Date Created: 2013-02-19
+#        usage: check_up_backup_file_4_restore restore dir
+#            $1 dir for restore tmp directory
+#       OUTPUT: NONE
+#       RETURN: 0  : SUCCESS
+#               1  : FAILED
+#      CAUTION:
+#-----------------------------------------------------------------------------
+#  MODIFICATION HISTORY
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+check_up_backup_file_4_restore()
+{
+    local MODULE_NAME=check_up_backup_file_4_restore
+    cd $1
+    if [ ! -e info ]; then
+        br_printlog $MODULE_NAME err "info file no exist in $1"
+        return $BR_INFO_FILE_NO_EXIST
+    fi
+
+    tmp_files=`ls *`
+    for files in $tmp_files
+    do
+        #read info
+        size1=`cat info | grep "$files" | awk '{printf("%s\n",$2)}'`
+
+        #read backup file information
+        size2=`ls -l | grep "$files" | awk '{printf("%s\n",$5)}'`
+
+        #compare
+        if [ $size1 -ne $size2 ]; then
+            br_printlog $MODULE_NAME err "$files is something wrong"
+            return $BR_FTP_SERVER_NOT_RESP
+        fi
+    done
+
+    return $BR_SUCCESS
+}
+
+##############################################################################
+#    Func Name: make_info_4_old_version_ftp
+# Date Created: 2013-03-13
+#       Author: zhanglianxiang/09608
+#  Description: make info file for old version backup vm when restoring vm in new version
+#        usage: make_info_4_old_version $1 $2 $3 $4 $5 $6 info
+#            $1 server ip or host name
+#            $2 ftp server port
+#            $3 user name
+#            $4 user'a password
+#            $5 directory on the ftp server
+#            $6 the VM directory to be built
+#       OUTPUT: NONE
+#       RETURN: 0  : SUCCESS
+#               1  : FAILED
+#      CAUTION:
+#-----------------------------------------------------------------------------
+#  MODIFICATION HISTORY
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+make_info_4_old_version_ftp()
+{
+    # Module name for log
+    local MODULE_NAME=make_info_4_old_version_ftp
+    br_printlog $MODULE_NAME info "@ = $1 $2 $3 @@@ $5 $6"
+    result_values=`ftp -n -i $1 $2 <<EOF
+    user $3 "$4"
+    cd $5
+    binary
+    cd $6
+    #prompt
+    dir . tmp_info
+    bye
+EOF`
+    gz_list=`cat tmp_info | grep "gz"`
+    for gz in $gz_list
+    do
+        echo $gz | awk '{printf("%s %s\n",$9,$5)}'>>info
+    done
+
+    conf_list=`cat tmp_info | grep "conf"`
+    for conf in $conf_list
+    do
+        echo $conf | awk '{printf("%s %s\n",$9,$5)}'>>info
+    done
+
+    xml_list=`cat tmp_info | grep "xml"`
+    for xml in $xml_list
+    do
+        echo $xml | awk '{printf("%s %s",$9,$5)}'>>info
+    done
+    rm -f tmp_info
+    return $BR_SUCCESS
+}
+
+##############################################################################
+#    Func Name: ftp_get_file
+# Date Created: 2013-03-06
+#       Author: zhanglianxiang/09608
+#  Description: get files through ftp (info conf)
+#        usage: ftp_get_file 192.168.0.107 21 gzh 1q2w3e test test1 info
+#            $1 server ip or host name
+#            $2 ftp server port
+#            $3 user name
+#            $4 user'a password
+#            $5 directory on the ftp server
+#            $6 the VM directory to be built
+#            $7 file name
+#       OUTPUT: NONE
+#       RETURN: 0  : SUCCESS
+#               1  : FAILED
+#      CAUTION:
+#-----------------------------------------------------------------------------
+#  MODIFICATION HISTORY
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+ftp_get_file()
+{
+    # Module name for log
+    local MODULE_NAME=ftp_get_file
+    br_printlog $MODULE_NAME info "@ = $1 $2 $3 @@@ $5 $6"
+    result_values=`ftp -n -i $1 $2 <<EOF
+        user $3 "$4"
+        cd $5
+        binary
+        cd $6
+        #prompt
+        mget $7
+        bye
+EOF`
+
+    echo "FTP result values="$result_values
+    return_code=$?
+    if [ $return_code -ne 0 ]; then
+        br_printlog $MODULE_NAME err "Execute FTP transfer get failed with return code $return_code"
+        return $return_code
+    fi
+
+    errorinfo=`echo $result_values | grep "Not connected"`
+    if [ "X$errorinfo" != "X" ]; then
+        return $BR_FTP_TRANSFER_1
+    fi
+
+    errorinfo=`echo $result_values | grep "Login failed"`
+    if [ "X$errorinfo" != "X" ]; then
+        return $BR_FTP_TRANSFER_2
+    fi
+
+    errorinfo=`echo $result_values | grep "$5"`
+    if [ "X$errorinfo" != "X" ]; then
+        return $BR_FTP_TRANSFER_3
+    fi
+
+    errorinfo=`echo $result_values | grep "$6"`
+    if [ "X$errorinfo" != "X" ]; then
+        return $BR_FTP_TRANSFER_3
+    fi
+
+    dir=`pwd`
+    br_printlog $MODULE_NAME info "FTP dir = $dir"
+    #check_up_backup_file_4_restore $dir
+    if [ ! -e $dir/info ]; then
+        #make a new info file
+        make_info_4_old_version_ftp $1 $2 $3 $4 $5 $6
+        return_code=$?
+        if [ $return_code != 0 ]; then
+            br_printlog $MODULE_NAME err "FTP make new info file failed with $return_code"
+            return $return_code
+        fi
+    fi
+
+    return $BR_SUCCESS
+}
+
+##############################################################################
+#    Func Name: version_for_backup
+# Date Created: 2013-03-14
+#       Author: zhanglianxiang/09608
+#  Description: recode version for backup
+#        usage: version_for_backup $1
+#            $1 directory of backup file
+#            $2 backup method. "cbt" or "convertsum"
+#            $3 new backup
+#            $4 backup disk
+#       OUTPUT: NONE
+#       RETURN: 0  : SUCCESS
+#               1  : FAILED
+#      CAUTION:
+#-----------------------------------------------------------------------------
+#  MODIFICATION HISTORY
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+version_for_backup()
+{
+    local MODULE_NAME=version_for_backup
+    br_printlog $MODULE_NAME info "@ = $@"
+    if [ ! -d $1 ]; then
+        br_printlog $MODULE_NAME eer "$1 not a directory"
+        return $BR_DIRECTORY_ERROR
+    fi
+
+    if [ -e /etc/cas_cvk-version ]; then
+        cp /etc/cas_cvk-version $1/backup_version
+    fi
+
+    if [ $# -gt 1 ]; then
+        local version_backup="backup_version $2"
+        echo "$version_backup" >> $1/backup_version
+    fi
+
+    if [ $# -gt 2 ]; then
+        local backup_disk=$3
+        if [ $backup_disk == "0" ]; then
+            local disk_backup_type=0
+        else
+            local disk_backup_type=1
+        fi
+
+        local disk_backup_value="disk_backup_type $disk_backup_type"
+        echo "$disk_backup_value" >> $1/backup_version
+    fi
+
+    if [ $# -gt 3 ]; then
+        local backup_method="backup_method $4"
+        echo "$backup_method" >> $1/backup_version
+    fi
+
+    br_printlog $MODULE_NAME info "copy version file (and new backup) to $1"
+    return $BR_SUCCESS
+
+}
+
+##############################################################################
+#    Func Name: clean_backup_file_local
+# Date Created: 2013-03-25
+#       Author: zhanglianxiang/09608
+#  Description: clean local backup file
+#        usage: clean_backup_file_local $1
+#            $1 directory of local backup file
+#       OUTPUT: NONE
+#       RETURN: NULL
+#      CAUTION:
+#-----------------------------------------------------------------------------
+#  MODIFICATION HISTORY
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+clean_backup_file_local()
+{
+    local MODULE_NAME=clean_backup_file_local
+    local vm_bakup_dir=$1
+    # remove all temp dir
+    br_printlog $MODULE_NAME debug "Remove the temp directory $vm_bakup_dir"
+    rm -rf $vm_bakup_dir
+    local rtn_code=$?
+    if [ $? -ne 0 ]; then
+        br_printlog $MODULE_NAME err "Remove the temp dir failed with error code $rtn_code"
+    fi
+}
+
+##############################################################################
+#    Func Name: clean_temp_file_local()
+# Date Created: 2015-01-07
+#       Author: linjunsheng/kf5383
+#  Description: clean local clean_temp_file_local file
+#        usage: clean_temp_file_local $1
+#            $1 directory of local template file
+#       OUTPUT: NONE
+#       RETURN: NULL
+#      CAUTION:
+#-----------------------------------------------------------------------------
+#  MODIFICATION HISTORY
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+clean_temp_file_local()
+{
+    local MODULE_NAME=clean_temp_file_local
+    local temp_file_local=$1
+    # remove all temp dir
+    br_printlog $MODULE_NAME debug "$LINENO:Remove the temp file $temp_file_local"
+    rm -f $temp_file_local
+    local rtn_code=$?
+    if [ $? -ne 0 ]; then
+        br_printlog $MODULE_NAME err "$LINENO:Remove the temp file failed with error code $rtn_code"
+    fi
+}
+
+##############################################################################
+#    Func Name: extract_tar_file()
+# Date Created: 2015-01-07
+#       Author: linjunsheng/kf5383
+#  Description: extract the tar  file
+#        usage: extract_tar_file -xf file
+#            $1 filename
+#       OUTPUT: NONE
+#       RETURN: NULL
+#      CAUTION:
+#-----------------------------------------------------------------------------
+#  MODIFICATION HISTORY
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+extract_tar_file()
+{
+    local MODULE_NAME=extract_tar_file
+    local file_for_extract=$1
+    file_for_extract=${file_for_extract##*/}
+    # extract the tar file
+    br_printlog $MODULE_NAME debug "$LINENO:extract the tar file $file_for_extract"
+    tar -xf $file_for_extract
+    local rtn_code=$?
+    if [ $rtn_code -ne 0 ]; then
+        br_printlog $MODULE_NAME err "$LINENO:extract the file failed with error code $rtn_code"
+        local dir=${file_for_extract%.*}
+        clean_backup_file_local $file_for_extract
+        clean_backup_file_local $dir
+        exit $BR_TAR_X
+    fi
+    clean_backup_file_local $file_for_extract
+    br_printlog $MODULE_NAME debug "$LINENO:remove the tar file $file_for_extract"
+}
+
+###########################################################################
+#  Name   : check_store_type
+#  Author : zhanglianxiang/09608
+#  Create : 2013-05-21
+#  Desp   : check multi backing file of disk in vm conf file when restore.
+#
+#       $1: conf file
+#       RETURN: 0  : store type is iscsi or lvm or raw
+#               1  : store type is qcow
+#               2  : store type failed
+#      CAUTION:
+#-----------------------------------------------------------------------------
+#  MODIFICATION HISTORY
+#  DATE        NAME             DESCRIPTION
+############################################################################
+check_store_type()
+{
+    local module_name=check_store_type
+    local type=""
+    local type_tmp=""
+    local conf=""
+    conf=$1
+    br_printlog $module_name info "conf = $conf, pwd =`pwd`,all file = `ls` "
+    type=`cat $conf | awk '{print $2}'`
+    br_printlog $module_name info "type = $type"
+    if [ "X$type" != "X" ]; then
+        type_tmp=`echo $type | grep -E "ISCSI|RAW|LVM"`
+        if [ "X$type_tmp" != "X" ]; then
+            return $BR_BACKUP_NOT_QCOW
+        else
+            return $BR_BACKUP_QCOW
+        fi
+    else
+        return $BR_UNKNOWN_DATA_FILE_FORMAT
+    fi
+}
+
+###########################################################################
+#   Name  : check_disk_space
+#  Author : zhanglianxiang/09608
+#  Create : 2013-05-21
+#  Desp   : check destination disk space for VM incr restored
+#       $1: para shift
+#       $2: temp dir for restore
+#       $3: destination data file directory, using * as separetor, such as: data_file=/var/lib/libvirt/imagas
+#       $4: destination data file directory, using * as separetor, such as: data_file=/var/lib/libvirt/imagas... ...
+#       RETURN: 0  : SUCCESS
+#          others  : FAILED
+#      CAUTION:
+#-----------------------------------------------------------------------------
+#  MODIFICATION HISTORY
+#  DATE        NAME             DESCRIPTION
+############################################################################
+check_disk_space()
+{
+    # Module name for log
+    local MODULE_NAME=check_disk_space
+
+    # arrays for dir_size recodes size of images
+    declare -A dir_size
+    declare -A dir0
+    declare -A cur_ndisk
+    declare -A final_ndisk
+    declare -A now_ndisk
+
+    local dir_tmp_restore=$1
+
+    # parse the VM's conf file
+    local vm_name=$4
+    local vm_date_backup=$5
+    local name=$8
+    local limited_coe=${10}
+    if [ "$2" = "cp" ]; then
+        br_printlog $MODULE_NAME info "all params = $@"
+        shift 10
+    else
+        br_printlog $MODULE_NAME info "all params part 1= $1 $2 $3 $4 $5 @@@ $7 $8 $9 ${10} ${11} ${12} ${13} ${14}"
+        vm_name=$8
+        vm_date_backup=$9
+        name=${12}
+        limited_coe=${14}
+        shift 14
+        br_printlog $MODULE_NAME info "all params part 2= $@"
+    fi
+
+    # change the directory to the original path
+    cd $dir_tmp_restore
+    return_code=$?
+    if [ $return_code -ne 0 ]; then
+        br_printlog $MODULE_NAME err "$LINENO: change to $dir_tmp_restore directory failed  with code $return_code"
+        return $BR_CHANGE_DIR_FAILED
+    fi
+
+    #check operation is restore or import
+    check_restore_mode $vm_name
+    if [ $? -eq 0 ]; then
+        mode=0
+    else
+        mode=1
+        if [ "X$name" != "X0" ]; then
+            check_restore_mode $name
+            if [ $? -eq 0 ]; then
+                mode=0
+            fi
+        fi
+    fi
+
+    br_printlog $MODULE_NAME info "$LINENO: mode is $mode. 0(restore),1(import)"
+
+    if [ $mode -eq 0 ]; then
+        if [ "X$name" != "X0" ]; then
+            vm_xml_file=$VMXML_PATH"/"$name".xml"
+        else
+            vm_xml_file=$VMXML_PATH"/"$vm_name".xml"
+        fi
+        local all_data_files=`python3 $BR_SHELL_PATH/vm_xml_data_file_print.pyc $vm_xml_file`
+        br_printlog $MODULE_NAME info "$LINENO: all_data_files=$all_data_files"
+        local cur_tmp_disk=""
+        for vm_data_file in $all_data_files
+        do
+            cur_tmp_disk=`python3 $BR_SHELL_PATH/find_disk.pyc $vm_xml_file $vm_data_file`
+            if [ $? -ne 0 -o "$cur_tmp_disk" = "" ]; then
+                br_printlog $MODULE_NAME err "$LINENO: get $cur_tmp_disk of $vm_data_file failed"
+                return $BR_XML_REPLACE_FAILED
+            fi
+            cur_ndisk[$cur_tmp_disk]=$vm_data_file
+            br_printlog $MODULE_NAME info "$LINENO: cur_ndisk[$cur_tmp_disk] = $vm_data_file"
+        done
+    fi
+
+    local now_all_data_files=`python3 $BR_SHELL_PATH/vm_xml_data_file_print.pyc *.xml`
+    local now_tmp_disk=""
+    for vm_data_file in $now_all_data_files
+    do
+        now_tmp_disk=`python3 $BR_SHELL_PATH/find_disk.pyc *.xml $vm_data_file`
+        if [ $? -ne 0 -o "$now_tmp_disk" = "" ]; then
+            br_printlog $MODULE_NAME err "$LINENO: get $now_tmp_disk of $vm_data_file failed"
+            return $BR_XML_REPLACE_FAILED
+        fi
+        now_ndisk[$now_tmp_disk]=$vm_data_file
+        br_printlog $MODULE_NAME info "$LINENO: now_ndisk[$now_tmp_disk] = $vm_data_file"
+    done
+    # process every data file
+    for org_file_name in $@
+    do
+        if [ "$org_file_name" = "$BACKUP_SUFFIX_INC_ALL" ] || [ "$org_file_name" = "$BACKUP_SUFFIX_INC" ]; then
+            continue
+        fi
+
+        if [ "$org_file_name" = "$BACKUP_SUFFIX_DIFF_ALL" ] || [ "$org_file_name" = "$BACKUP_SUFFIX_DIFF" ]; then
+            continue
+        fi
+
+        local regions=`echo $org_file_name | awk -F "=" '{print NF}'`
+        if [ $regions -eq 2 ]; then
+            region_nb=1
+        else
+            region_nb=`echo $org_file_name | awk -F ";" '{print NF}'`
+        fi
+
+        # log regions, region_nb
+        br_printlog $MODULE_NAME debug "$LINENO: $org_file_name, parsed result: $regions, $region_nb"
+
+        if [ $region_nb -eq 1 ]; then
+            if [ $regions -eq 2 ]; then
+                r1=$org_file_name
+            else
+                r1=`echo $org_file_name | awk -F ";" '{print $1}'`
+            fi
+
+            src_path=${r1%=*}
+            src_name=${src_path##*/}
+            dest_path=${r1#*=}
+            if [ "X$src_path" = "X" ] || [ "X$dest_path" = "X" ]; then
+                br_printlog $MODULE_NAME err "$LINENO: Get info: src_path=$src_path dest_path=$dest_path, failed"
+                return $BR_WRONG_PARAM
+            fi
+            br_printlog $MODULE_NAME debug "$LINENO: src_path=$src_path dest_path=$dest_path"
+        elif [ $region_nb -eq 2 ]; then
+            r2=`echo $org_file_name | awk -F ";" '{print $2}'`
+            backing_src_path=${r2%=*}
+            backing_dest_path=${r2#*=}
+            if [ "X$backing_src_path" = "X" ] || [ "X$backing_dest_path" = "X" ]; then
+                br_printlog $MODULE_NAME err "$LINENO: Get info: backing_org=$backing_src_path backing_dest_path=$backing_dest_path failed."
+                return $BR_WRONG_PARAM
+            fi
+            br_printlog $MODULE_NAME debug "$LINENO: backing_org=$backing_src_path backing_dest_path=$backing_dest_path"
+
+            r1=`echo $org_file_name | awk -F ";" '{print $1}'`
+            src_path=${r1%=*}
+            src_name=${src_path##*/}
+            dest_path=${r1#*=}
+            if [ "X$src_path" = "X" ] || [ "X$dest_path" = "X" ]; then
+                br_printlog $MODULE_NAME err "$LINENO: Get info: src_path=$src_path dest_path=$dest_path failed"
+                return $BR_WRONG_PARAM
+            fi
+            br_printlog $MODULE_NAME debug "$LINENO: Get info: src_path=$src_path dest_path=$dest_path "
+        elif [ $region_nb -eq 3 ]; then
+            r3=`echo $org_file_name | awk -F ";" '{print $3}'`
+            double_backing_src_path=${r3%=*}
+            double_backing_dest_path=${r3#*=}
+            if [ "X$double_backing_src_path" = "X" ] || [ "X$double_backing_dest_path" = "X" ]; then
+                br_printlog $MODULE_NAME err "$LINENO: double_backing_src_path=$double_backing_src_path double_backing_dest_path=$double_backing_dest_path"
+                return $BR_WRONG_PARAM
+            fi
+            br_printlog $MODULE_NAME debug "$LINENO: Get info: double_backing_src_path=$double_backing_src_path double_backing_dest_path=$double_backing_dest_path"
+
+            r2=`echo $org_file_name | awk -F ";" '{print $2}'`
+            #NOTE:backing_src_path=/vms/images/backing,backing_dest_path=/vms/images
+            backing_src_path=${r2%=*}
+            backing_dest_path=${r2#*=}
+            if [ "X$backing_src_path" = "X" ] || [ "X$backing_dest_path" = "X" ]; then
+                br_printlog $MODULE_NAME err "$LINENO: Get info: backing_org=$backing_src_path backing_dest_path=$backing_dest_path failed"
+                return $BR_WRONG_PARAM
+            fi
+            br_printlog $MODULE_NAME debug "$LINENO: Get info: backing_org=$backing_src_path backing_dest_path=$backing_dest_path OK"
+
+            r1=`echo $org_file_name | awk -F ";" '{print $1}'`
+            src_path=${r1%=*}
+            src_name=${src_path##*/}
+            dest_path=${r1#*=}
+            if [ "X$src_path" = "X" ] || [ "X$dest_path" = "X" ]; then
+                br_printlog $MODULE_NAME err "$LINENO: Get info: src_path=$src_path dest_path=$dest_path failed"
+                return $BR_WRONG_PARAM
+            fi
+            br_printlog $MODULE_NAME debug "$LINENO: Get info: src_path=$src_path dest_path=$dest_path OK"
+        else
+            br_printlog $MODULE_NAME err "$LINENO: Parse the image files info failed"
+            return $BR_WRONG_PARAM
+        fi
+
+        local src_disk=""
+        src_disk=`python3 $BR_SHELL_PATH/find_disk.pyc "/tmp/br_vm_xml/"$vm_name"_"$vm_date_backup".xml" $src_path`
+        if [ $? -ne 0 -o "$src_disk" = "" ]; then
+            br_printlog $MODULE_NAME err "$LINENO: get $src_disk of $src_path failed"
+            return $BR_XML_REPLACE_FAILED
+        fi
+
+        is_rbd=`echo $dest_path | egrep '^rbd:'`
+        if [ "X$is_rbd" != "X" ]; then
+            image_name=${dest_path#*:}
+            pool_name=${image_name%%/*}
+            config_file=`python3 /opt/bin/get_conf_for_rbd_by_pool.pyc $pool_name`
+            if [ $? -ne 0 -o "$config_file" = "" ]; then
+                br_printlog $MODULE_NAME err "$LINENO: find config file err for pool:$pool_name."
+                return $BR_FAILED
+            fi
+            data_pool_name=`virsh pool-dumpxml $pool_name | xargs | grep -E -o -e "<source>.*</source>" | grep -E -o -e  "<name>.+</name>" | awk -F ">" '{print $2}' | awk -F "<" '{print $1}'`
+            meta_pool_name=`virsh pool-dumpxml $pool_name | xargs | grep -E -o -e  "<metadatapool>.+</metadatapool>" | awk -F ">" '{print $2}' | awk -F "<" '{print $1}'`
+        fi
+
+
+        if [ $mode -eq 0 ] && [ "X$name" = "X0" ]; then
+            cur_path=${cur_ndisk[$src_disk]}
+            br_printlog $MODULE_NAME info "$LINENO: cur_path=$cur_path, src_disk=$src_disk"
+            if [ "X$cur_path" = "X" ]; then
+                br_printlog $MODULE_NAME info "$LINENO: PAY ATTATION!!! There is no disk $src_disk for restore!"
+                file_format=`echo $src_path | egrep '\-iscsi\-|dm-name-'`
+                br_printlog $MODULE_NAME debug "$LINENO: file_format=$file_format"
+                if [ "X$file_format" != "X" ]; then
+                    br_printlog $MODULE_NAME err "$LINENO: $src_disk is a block device, but this disk is removed!"
+                    return $BR_NO_BLOCK_DEVICE
+                else
+                    is_rbd=`echo $dest_path | egrep '^rbd:'`
+                    if [ "X$is_rbd" != "X" ]; then
+                        image_name=${dest_path#*:}
+                        pool_name=${image_name%/*}
+                        image_only_name=${image_name##*/}
+
+                        rbd_type=`cat $RBD_INST_FILE | awk -F " " '{print $1}'`
+                        if [ "$rbd_type" = "onestor" ]; then
+                            is_rbd_exist=`$RBD_CMD ls --conf $config_file $data_pool_name | egrep "^"$image_only_name"\$"`
+                        else
+                            is_rbd_exist=`$RBD_CMD ls $data_pool_name | egrep "^"$image_only_name"\$"`
+                        fi
+                        if [ "X$is_rbd_exist" != "X" ];then
+                            br_printlog $MODULE_NAME err "$LINENO: ATTATION!!!dest_path=$dest_path is exist, please check whether $dest_path has been used by other vm."
+                            return $BR_BACKUP_FILE_EXIST
+                        fi
+                    else
+                        test -e $dest_path
+                        if [ $? -eq 0 ]; then
+                            br_printlog $MODULE_NAME err "$LINENO: ATTATION!!!dest_path=$dest_path is exist, please check whether $dest_path has been used by other vm."
+                            return $BR_BACKUP_FILE_EXIST
+                        fi
+                    fi
+                fi
+            else
+                # fix by f18671: disk may be imported as cur_name when the backup import as another vm
+                snap_type=`get_snaptype_by_file`
+                if [ "$snap_type" = "external" ]; then
+                    cur_base_path=`python3 /opt/bin/find_disk_external.pyc base $vm_xml_file $cur_path`
+                    if [ "X$cur_base_path" = "X" -o $? -ne 0 ]; then
+                        br_printlog $MODULE_NAME err "$LINENO: Get current base path of $cur_path failed."
+                        return $BR_GET_DISK_INFO
+                    fi
+                    src_base_path=`grep -F "$src_disk" vm_backing_info | awk '{print $NF}'`
+                    cur_base_name=${cur_base_path##*/}
+                    src_base_name=${src_base_path##*/}
+                    cur_name=${cur_path##*/}
+                    cur_exist=`grep -w "$cur_base_name" vm_backing_info`
+                    if [ "$cur_base_name" != "$src_base_name" ] && [ "${src_name%_inc_*}" != "${cur_base_name%_inc_*}" ] && \
+                    [ "$cur_name" != "$src_name" ] && [ "${cur_name%_inc_*}" != "${src_name%_inc_*}" ] && [ "X$cur_exist" = "X" ] && [ "${cur_name%_base_1}" != "${src_name%_base_*}" ]; then
+                        br_printlog $MODULE_NAME err "$LINENO: $src_disk file between backup base file $src_base_name or $src_name and current base file $cur_base_name are not the same."
+                        return $BR_DISK_CHANGED
+                    fi
+                else
+                    cur_name=${cur_path##*/}
+                    if [ "$cur_name" != "$src_name" ] && [ "${cur_name%_inc_*}" != "${src_name%_inc_*}" ] && [ "${cur_name%_base_1}" != "${src_name%_base_*}" ]; then
+                        br_printlog $MODULE_NAME err "$LINENO: $src_disk file between backup file $src_name and current file $cur_name are not the same."
+                        return $BR_DISK_CHANGED
+                    fi
+                fi
+                dest_path=$cur_path
+                if [ "$dest_path" != "$cur_path" ];then
+                    br_printlog $MODULE_NAME info "$LINENO:The vm=$vm_name'disk had migrated or changed, change the destination to dest_path=$dest_path"
+                fi
+            fi
+        fi
+
+        now_path=${now_ndisk[$src_disk]}
+        now_name=${now_path##*/}
+        br_printlog $MODULE_NAME info "$LINENO:now_path=$now_path,now_name=$now_name"
+        if [ "$src_path" != "$now_path" ]; then
+            src_path=$now_path
+            br_printlog $MODULE_NAME info "$LINENO:The vm=$vm_name had migrated, src_path=$src_path,now_path=$now_path"
+        fi
+
+        is_rbd=`echo $dest_path | egrep '^rbd:'`
+        if [ $mode -eq 1 ]; then
+            if [ "X$is_rbd" != "X" ]; then
+                image_name=${dest_path#*:}
+                pool_name=${image_name%/*}
+                image_only_name=${image_name##*/}
+
+                rbd_type=`cat $RBD_INST_FILE | awk -F " " '{print $1}'`
+                if [ "$rbd_type" = "onestor" ]; then
+                    is_rbd_exist=`$RBD_CMD ls --conf $config_file $data_pool_name | egrep "^"$image_only_name"\$"`
+                else
+                    is_rbd_exist=`$RBD_CMD ls $data_pool_name | egrep "^"$image_only_name"\$"`
+                fi
+                if [ "X$is_rbd_exist" != "X" ];then
+                    br_printlog $MODULE_NAME err "$LINENO: ATTATION!!!dest_path=$dest_path is exist, please check whether $dest_path has been used by other vm."
+                    return $BR_BACKUP_FILE_EXIST
+                fi
+            else
+                test -e $dest_path
+                if [ $? -eq 0 ]; then
+                    br_printlog $MODULE_NAME err "$LINENO: ATTATION!!!dest_path=$dest_path is exist, please check whether $dest_path has been used by other vm."
+                    return $BR_BACKUP_FILE_EXIST
+                fi
+            fi
+        fi
+
+        # The file format type
+        file_type=`grep -F "$src_path " *.conf | awk '{printf("%s\n", $2)}'`
+        if [ "X$file_type" = "X" ]; then
+            br_printlog $MODULE_NAME err "Error index file type for $src_path"
+            return $BR_ERROR_FILE_FORMAT
+        fi
+
+        # get inc file size
+        if [ "X$is_rbd" != "X" ]; then
+            image_name=${dest_path#*:}
+            pool_name=${image_name%/*}
+            image_only_name=${image_name##*/}
+
+            rbd_type=`cat $RBD_INST_FILE | awk -F " " '{print $1}'`
+            if [ "$rbd_type" = "onestor" ]; then
+                is_rbd_exist=`$RBD_CMD ls --conf $config_file $data_pool_name | egrep "^"$image_only_name"\$"`
+            else
+                is_rbd_exist=`$RBD_CMD ls $data_pool_name | egrep "^"$image_only_name"\$"`
+            fi
+            if [ "X$is_rbd_exist" = "X" ];then
+                # rbd not exist
+                file_size_original=`grep -F "$src_path " *.conf | awk '{printf("%s\n", $3)}'`
+                mp="rbd"
+                dir0[$mp]="$mp"
+                dir_size[$mp]=`expr ${dir_size[$mp]} + $file_size_original`
+                br_printlog $MODULE_NAME info "$LINENO: dest_path = $dest_path dir_size[$mp] = ${dir_size[$mp]}"
+            fi
+        else
+            if [ ! -e $dest_path ]; then
+                tmp_dir=${dest_path%/*}
+
+                file_size_original=`grep -F "$src_path " *.conf | awk '{printf("%s\n", $3)}'`
+                mp=`$DF_CMD $tmp_dir | sed -n '$p' | awk '{printf("%s\n",$6)}'`
+                dir0[$mp]="$mp"
+                dir_size[$mp]=`expr ${dir_size[$mp]} + $file_size_original`
+                br_printlog $MODULE_NAME info "$LINENO: dest_path = $dest_path tmp_dir = $tmp_dir dir_size[$mp] = ${dir_size[$mp]}"
+            fi
+        fi
+    done
+
+    # orig dir VS dest dir
+    if [ ${#dir0[@]} != 0 ]; then
+        for d in ${dir0[*]}
+        do
+            if [ "$d" = "rbd" ]; then
+                # all ceph rbd pool share the same space
+                rbd_type=`cat $RBD_INST_FILE | awk -F " " '{print $1}'`
+                if [ "$rbd_type" = "onestor" ]; then
+                    capacity_info=`/opt/bin/util_ceph_pool_stat.sh $meta_pool_name $data_pool_name $config_file`
+                else
+                    capacity_info=`/opt/bin/util_ceph_pool_stat.sh $data_pool_name`
+                fi
+                dest_disk_space=`echo $capacity_info | awk -F "\"max_avail\":" '{print $2}' | awk -F '}' '{print $1}'`
+                dest_disk_space=`expr $dest_disk_space \* 1024`
+            else
+                dest_disk_space=`$DF_CMD -B1 $d | sed -n '$p' | awk '{printf("%s\n",$4)}'`
+                total_space=`$DF_CMD -B1 $d | sed -n '$p' | awk '{printf("%s\n",$2)}'`
+                pool_info=`python3 /opt/bin/check_share_stor_by_path.pyc $d`
+                if [ $? -ne 0 ]; then
+                    br_printlog $MODULE_NAME debug "$LINENO: Check pool $d type failed."
+                else
+                    pool_type=${pool_info%,*}
+                    if [ "$pool_type" = "share" -a $limited_coe -ge 0 ]; then
+                        pool_used=${pool_info#*,}
+                        dest_disk_space=`echo "$total_space * (1 + $limited_coe) - $pool_used" | bc`
+                    fi
+                fi
+            fi
+            if [ "X$dest_disk_space" = "X" ]; then
+                br_printlog $MODULE_NAME err "$LINENO: The $d does not have any space"
+                return $BR_DISK_SPACE_NO_ENOUGH
+            fi
+
+            br_printlog $MODULE_NAME info "$LINENO: dest_disk_space = $dest_disk_space,dir_size[$d] = ${dir_size[$d]}"
+            if [ $dest_disk_space -lt ${dir_size[$d]} ]; then
+                br_printlog $MODULE_NAME err "$LINENO: $dest_disk_space -lt ${dir_size[$d]},not enough disk space."
+                return $BR_DISK_SPACE_NO_ENOUGH
+            fi
+        done
+    fi
+
+    return $BR_SUCCESS
+}
+
+###########################################################################
+#  Name   : create_inc_xml
+#  Author : zhanglianxiang/09608
+#  Create : 2013-05-21
+#  Desp   : check destination disk space for VM incr restored
+#       $1: vm xml
+#       $2: vm name
+#       $3: mode
+#       $4: suffix
+#       RETURN: 0  : SUCCESS
+#          others  : FAILED
+#      CAUTION:
+#-----------------------------------------------------------------------------
+#  MODIFICATION HISTORY
+#  DATE        NAME             DESCRIPTION
+############################################################################
+create_inc_xml()
+{
+    local MODULE_NAME=create_inc_xml
+    local xml=$1
+    local vm_name=$2
+    local mode=$3
+    if [ "X$4" != "X" ]; then
+        local suffix="_$4"
+    else
+        local suffix=""
+    fi
+    br_printlog $MODULE_NAME info "$xml $vm_name $mode $suffix"
+    python3 $BR_SHELL_PATH/vm_new_incrementXML.pyc $xml $vm_name $mode $suffix
+    rtn_code=$?
+    if [ $rtn_code != 0 ]; then
+        br_printlog $MODULE_NAME err "create incrmental xml file $VM_NAME failed"
+        virsh resume $VM_NAME
+        if [ $? != 0 ]; then
+            br_printlog $MODULE_NAME err "virsh resume $VM_NAME failed"
+        fi
+        return $BR_CREATE_SNAPSHOT_XML
+    fi
+
+    if [ ! -f $vm_inc_xml ]; then
+        virsh resume $VM_NAME
+        if [ $? != 0 ]; then
+            br_printlog $MODULE_NAME err "create incrmental xml file $VM_NAME failed"
+        fi
+        return $BR_CREATE_SNAPSHOT_XML
+    fi
+
+    return $BR_SUCCESS
+}
+
+###########################################################################
+#  Name   : is_unique_name
+#  Author : zhanglianxiang/09608
+#  Create : 2013-05-21
+#  Desp   : check name unique
+#       $1: vm disk name
+#       RETURN: 0  : SUCCESS
+#          others  : FAILED
+#      CAUTION:
+#-----------------------------------------------------------------------------
+#  MODIFICATION HISTORY
+#  DATE        NAME             DESCRIPTION
+############################################################################
+is_unique_name()
+{
+    local MODULE_NAME=is_unique_name
+    local name=$1
+
+    ls $name
+    if [ $? -ne 0 ]; then
+        return $BR_FAILED
+    else
+        return $BR_SUCCESS
+    fi
+}
+###########################################################################
+#  Name   : change_disk_name
+#  Author : zhanglianxiang/09608
+#  Create : 2013-05-21
+#  Desp   : change disk name in xml
+#       $1: vm disk name
+#       RETURN: 0  : SUCCESS
+#          others  : FAILED
+#      CAUTION:
+#-----------------------------------------------------------------------------
+#  MODIFICATION HISTORY
+#  DATE        NAME             DESCRIPTION
+############################################################################
+change_disk_name()
+{
+    local MODULE_NAME=change_disk_name
+    local vm_name=$1
+
+    # get all vm's data files
+    all_disk=`python3 $BR_SHELL_PATH/vm_xml_data_file_print.pyc $VMXML_PATH"/"$vm_name".xml"`
+    if [ $? -ne 0 ]; then
+        br_printlog $MODULE_NAME err "Parse the VM xml file failed"
+        return $BR_PARSE_VM_XML_FAILED
+    fi
+
+    # if it is empty
+    if [ "$all_disk" = "" ]; then
+        br_printlog $MODULE_NAME err "Get data file list from xml file failed."
+        return $BR_GET_VM_DATA_FILE_LIST
+    fi
+
+    br_printlog $MODULE_NAME info "all disk = $all_disk"
+    for disk in $all_disk
+    do
+        tmp_disk=""
+        tmp_disk=`python3 $BR_SHELL_PATH/find_disk.pyc $VMXML_PATH"/"$vm_name".xml" $disk `
+        if [ $? -ne 0 -o "$tmp_disk" = "" ]; then
+            br_printlog $MODULE_NAME err "can not fine disk."
+            return $BR_XML_REPLACE_FAILED
+        fi
+        #indisk[$disk]=$tmp_disk
+        br_printlog $MODULE_NAME info "tmp_disk = $tmp_disk"
+
+        #find backing file
+        l1_backing=`qemu-img info $disk | grep "backing" | awk -F ": " '{print $NF}'`
+        if [ $? -ne 0 -o "$l1_backing" = "" ]; then
+            br_printlog $MODULE_NAME err "find l1 backing file failed"
+            return $BR_XML_REPLACE_FAILED
+        fi
+
+        l2_backing=`qemu-img info $l1_backing | grep "backing" | awk -F ": " '{print $NF}'`
+        if [ $? -ne 0 -o "$l2_backing" = "" ]; then
+            br_printlog $MODULE_NAME err "find l2 backing file failed"
+            return $BR_XML_REPLACE_FAILED
+        fi
+
+        #change disk
+        mv $l2_backing $l2_backing"_L2"
+        if [ $? -ne 0 ]; then
+            br_printlog $MODULE_NAME err "mv $l2_backing to $l2_backing"_L2" failed"
+            return $BR_XML_REPLACE_FAILED
+        fi
+
+        mv $disk $l2_backing
+        if [ $? -ne 0 ]; then
+            br_printlog $MODULE_NAME err "mv $disk to $l2_backing failed"
+            return $BR_XML_REPLACE_FAILED
+        fi
+        br_printlog $MODULE_NAME info "disk = $disk l1_backing l2_backing = $l2_backing tmp_disk = $tmp_disk"
+
+        #replace disk
+        python3 $BR_SHELL_PATH/vm_xml_replace.pyc $VMXML_PATH"/"$vm_name".xml" $disk $l2_backing $tmp_disk 1
+        if [ $? -ne 0 ]; then
+            br_printlog $MODULE_NAME err "replace disk $disk failed"
+            return $BR_XML_REPLACE_FAILED
+        fi
+    done
+
+    # rebase
+    br_printlog $MODULE_NAME info "l1_backing = $l1_backing l2_backing_L2 = $l2_backing"_L2""
+    qemu-img rebase -f qcow2 -u -b $l2_backing"_L2" -F qcow2 $l1_backing
+    if [ $? -ne 0 ]; then
+        br_printlog $MODULE_NAME err "rebase $l1_backing to $l2_backing"_L2" failed "
+        return $BR_XML_REPLACE_FAILED
+    fi
+    br_printlog $MODULE_NAME info "l1_backing = $l1_backing l2_backing = $l2_backing"
+    qemu-img rebase -f qcow2 -u -b $l1_backing -F qcow2 $l2_backing
+    if [ $? -ne 0 ]; then
+        br_printlog $MODULE_NAME err "rebase $l2_backing to $l2_backing failed"
+        return $BR_XML_REPLACE_FAILED
+    fi
+
+    br_printlog $MODULE_NAME info "$VMXML_PATH"/"$vm_name".xml""
+    result=$(virsh define $VMXML_PATH"/"$vm_name".xml" 2>&1)
+    if [ $? -ne 0 ]; then
+        br_printlog $MODULE_NAME err "redefine $vm_name failed"
+        arch=`echo $result | grep arch`
+        if [ "X$arch" != "X" ]; then
+            return $BR_REDEFINE_XML_DIFSYS
+        fi
+        return $BR_XML_REPLACE_FAILED
+    fi
+
+    return $BR_SUCCESS
+}
+
+###########################################################################
+#  Name   : block_pull
+#  Author : zhanglianxiang/09608
+#  Create : 2013-05-21
+#  Desp   : change disk name in xml
+#       $1: vm disk name
+#       RETURN: 0  : SUCCESS
+#          others  : FAILED
+#      CAUTION:
+#-----------------------------------------------------------------------------
+#  MODIFICATION HISTORY
+#  DATE        NAME             DESCRIPTION
+############################################################################
+block_pull()
+{
+    local MODULE_NAME=block_pull
+    local vm_name=$1
+
+    # get all vm's data files
+    all_disk=`python3 $BR_SHELL_PATH/vm_xml_data_file_print.pyc $VMXML_PATH"/"$vm_name".xml"`
+    if [ $? -ne 0 ]; then
+        br_printlog $MODULE_NAME err "Parse the VM xml file failed"
+        return $BR_PARSE_VM_XML_FAILED
+    fi
+
+    # if it is empty
+    if [ "$all_disk" = "" ]; then
+        br_printlog $MODULE_NAME err "Get data file list from xml file failed."
+        return $BR_GET_VM_DATA_FILE_LIST
+    fi
+    br_printlog $MODULE_NAME info "all disk = $all_disk"
+
+    for disk in $all_disk
+    do
+        virsh blockpull $vm_name $disk
+        if [ $? -ne 0 ]; then
+            br_printlog $MODULE_NAME err "blockpull $disk failed"
+            return $BR_GET_VM_DATA_FILE_LIST
+        fi
+    done
+
+    return $BR_SUCCESS
+}
+
+###########################################################################
+#  Name   : name_need_to_change
+#  Author : zhanglianxiang/09608
+#  Create : 2013-05-21
+#  Desp   : just if name is same
+#       $1: dest name
+#       $2: backing file name
+#       $3: md5 in conf
+#       $4: size of backing file
+#       RETURN: 0  : do not need to change name
+#               1  : need to change name
+#      CAUTION:
+#-----------------------------------------------------------------------------
+#  MODIFICATION HISTORY
+#  DATE        NAME             DESCRIPTION
+############################################################################
+name_need_to_change()
+{
+    local MODULE_NAME=name_need_to_change
+    local DEST_NAME=$1
+    local MD5=$2
+    local SIZE=$3
+    br_printlog $MODULE_NAME info "all params = $@"
+    #if has not backing file in dest dir
+    if [ ! -e $DEST_NAME ]; then
+        return 0
+    fi
+
+    #whether check md5 value
+    if [ $MD5 -eq 0 ]; then
+        return 0
+    fi
+
+    #if has backing file and just the same one,just size
+    size_dest=`ls -l $DEST_NAME | awk '{print $5}'`
+    if [ "$size_dest" = "$SIZE" ]; then
+        md5_dest=`md5sum $DEST_NAME | awk '{print $1}'`
+        if [ "$md5_dest" = "$MD5" ]; then
+            return 0
+        fi
+    fi
+    return 1
+}
+
+#########################################################################################
+#  Author : guozhonghua/02084
+#  Create : 2013-9-13
+#  Desp   : Get one dest file, size and md5 check and whether the name should change
+#       $1: the absolute path of the dest filetemp directory of the data file
+#       $2: MD5 sum of the file
+#       $3: Size of the file
+###########################################################################################
+vm_unzip_dest_file()
+{
+    # Module name for log
+    local MODULE_NAME=vm_unzip_dest_file
+    br_printlog $MODULE_NAME info "Input parameters: $@"
+
+    local dest_file=$1
+    local md5_value=$2
+    local dest_file_size=$3
+    local need_unzip=1
+    local dest_name_change=0
+
+    # if has not backing file in dest dir
+    if test -e $dest_file ; then
+        # if has backing file and just the same one,just size
+        local size_dest=`stat -c %s $dest_file 2>/dev/null`
+        br_printlog $MODULE_NAME info "$dest_file has existed and its size: $size_dest"
+
+        # whether they are same size
+        if [ $size_dest -eq $dest_file_size ]; then
+            # md5 check
+            br_printlog $MODULE_NAME info "$LINENO:md5_value=$md5_value"
+            if [ "$md5_value" != "0" ]; then
+                md5_dest=`md5sum $dest_file | awk '{print $1}'`
+                br_printlog $MODULE_NAME info "Getting $dest_file md5sum: $md5_dest"
+            else
+                md5_dest=$md5_value
+            fi
+
+            if [ "$md5_dest" = "$md5_value" ]; then
+                need_unzip=0
+                br_printlog $MODULE_NAME info "Getting $dest_file $md5_dest == $md5_value, need not unzip the dest file"
+            else
+                br_printlog $MODULE_NAME info "Getting $dest_file $md5_dest != $md5_value, need change the name and unzip the dest file"
+                dest_name_change=1
+            fi
+        else
+            br_printlog $MODULE_NAME info "$size_dest != $dest_file_size, need change the name and unzip the dest file"
+            dest_name_change=1
+        fi
+    fi
+
+    # whether change the destination file name
+    if [ $dest_name_change -eq 1 ]; then
+        # rename dest backing file name
+        while true
+        do
+            local suffix=$(date +%N)
+            local tmp_dest=$dest_file"_$suffix"
+            if [ ! -e $tmp_dest ]; then
+                br_printlog $MODULE_NAME info "Find one file does not exist $tmp_dest"
+                echo $tmp_dest
+                break
+            fi
+        done
+    else
+        echo $dest_file
+    fi
+
+    return $need_unzip
+}
+
+###########################################################################
+#  Name   : print_params
+#  Author : zhanglianxiang/09608
+#  Create : 2013-05-21
+#  Desp   : show params to the front
+#       $1: conf file
+#       RETURN: 0  : ok, process successfully
+#               1  : failed
+#      CAUTION:
+#-----------------------------------------------------------------------------
+#  MODIFICATION HISTORY
+#  DATE        NAME             DESCRIPTION
+############################################################################
+print_params()
+{
+    local MODULE_NAME=print_params
+    local conf=$1
+
+    while read line
+    do
+        count=`echo $line 2>/dev/null | wc -w `
+        if [ $count = 4 ]; then
+            echo $line
+            rt=$?
+            if [ $rt -ne 0 ]; then
+                br_printlog $MODULE_NAME err "cat the configure files with code eq $rt"
+                return 1
+            fi
+        elif [ $count = 8 ]; then
+            var=`echo $line 2>/dev/null | awk '{print $1 $2 $3 $4}'`
+            echo $var
+            rt=$?
+            if [ $rt -ne 0 ]; then
+                br_printlog $MODULE_NAME err "cat the configure files with code eq $rt"
+                return 1
+            fi
+        fi
+    done < $conf
+    return 0
+}
+
+###########################################################################
+#  Name   : backup_suffix_info
+#  Author : zhanglianxiang/09608
+#  Create : 2013-07-17
+#  Desp   : Get the suffix of the backup dir
+#        Input: $1 Type of transfer, cp, ftp or scp
+#           1. with type of copy:
+#               $2, the destination directory
+#               $3, VM's name
+#           2. with type of ftp:
+#               $2, ftp server
+#               $3, port, front known this port
+#               $4, user name
+#               $5, user's password
+#               $6, data file directory, ~ means the defaults directory of the ftp user
+#               $7, VM name
+#           3. with type of scp:
+#               $2, scp server
+#               $3, port, front shoul knows the port
+#               $4, user name
+#               $5, user's password
+#               $6, user's directory
+#               $7, VM name
+#       RETURN: 0  : ok
+#           others : error
+#      CAUTION:
+#-----------------------------------------------------------------------------
+#  MODIFICATION HISTORY
+#  DATE        NAME             DESCRIPTION
+#  2013-09-06  guozhonghua/02084 Changed the getting suffix way and error code
+############################################################################
+backup_suffix_info()
+{
+    local MODULE_NAME=backup_suffix_info
+    local backup_style=$1
+    local backup_dir=$2
+    local vm_name=$3
+    local backup_mode=$4
+    local backup_disk=${11}
+
+    if [ "$backup_style" != "cp" ]; then
+        local server_ip=$2
+        local port=$3
+        local login_name="$4"
+        local passwd="$5"
+        local backup_dir=$6
+        local vm_name=$7
+        local backup_mode=$8
+        local backup_disk=${15}
+        br_printlog $MODULE_NAME info "all params = $1 $2 $3 $4 @@@ $6 $7 $8 $9 ${10} ${11} ${12} ${13} ${14} ${15}"
+    else
+        br_printlog $MODULE_NAME info "all params = $@"
+    fi
+
+    if [ $backup_disk == "0" ]; then
+        backup_pre=$vm_name
+    else
+        backup_pre=$backup_disk"_"$vm_name
+    fi
+
+    local cur_pwd=`pwd`
+
+    # init br_dirs
+    local dirs=""
+    case $backup_style in
+    "cp")
+        #get all backup dir,newest backup dir is the last one
+        dirs=`ls $backup_dir | grep -F "$backup_pre" | grep "^$backup_pre"_[2][0]"[0-9]\{12\}" | sort`
+        ;;
+    "ftp")
+        dirs=`python3 $BR_SHELL_PATH/ftp_list_fils.pyc $server_ip $port "$login_name" "$passwd" $backup_dir | awk '{print $NF}' | grep -F "$backup_pre" | grep "^$backup_pre"_[2][0]"[0-9]\{12\}" | sort`
+        ;;
+    "scp")
+        br_printlog $MODULE_NAME debug ""$login_name"@"$server_ip" $port @@@ $backup_dir"/"$backup_pre"_20[0-9]*_*""
+        expect $BR_SHELL_PATH/dir_list.exp "$login_name"@"$server_ip" $port "$passwd" $backup_dir"/"$backup_pre"_20[0-9]*_*" -d | grep $vm_name_[2][0]"[0-9]\{12\}" > br_file
+        while read line
+        do
+            line=`echo $line | awk -F "\n" '{print $1}' | awk -F "\r" '{print $1}' | awk -F "\t" '{print $1}'`
+            dirs="$dirs $line "
+        done < br_file
+        rm -f br_file
+        ;;
+    esac
+
+    br_printlog $MODULE_NAME debug "Get dirs $dirs"
+    if [ "X$dirs" = "X" ]; then
+        br_printlog $MODULE_NAME debug "Get dirs is empty and return backup mode"
+        if [ "$backup_mode" = "$BACKUP_INCREMENTAL" ]; then
+            echo "$BACKUP_SUFFIX_INC_ALL"
+        elif [ "$backup_mode" = "$BACKUP_DIFF" ]; then
+            echo "$BACKUP_SUFFIX_DIFF_ALL"
+        else
+            echo "$BACKUP_ALL"
+        fi
+        return $BR_SUCCESS
+    fi
+
+    local newst_dir=`echo $dirs | awk '{print $NF}'`
+    local is_tar=""
+    is_tar=`echo $newst_dir | grep ".tar$"`
+    local suffix=`echo $newst_dir | awk -F "_" '{print $NF}'`
+    #if dir is a .tar file, delete the string '.tar'
+    suffix=${suffix%.*}
+    br_printlog $MODULE_NAME info "$LINENO:newst_dir=$newst_dir, suffix=$suffix, backup_mode=$backup_mode"
+
+    # if backup_ver=0(NEW_BACKUP_RAW), 1(NEW_BACKUP), 2(OLD_BACKUP_FORMAT)
+    # if backup_ver=2, the version had updated, need make a full backup.
+    # modified for 201605050096
+    if [ "$is_tar" = "" ]; then
+        case $backup_style in
+        "cp")
+            check_new_backup $backup_dir"/"$newst_dir
+            backup_ver=$?
+            ;;
+        "ftp")
+            python3 $BR_SHELL_PATH/ftp_trans_tar_file.pyc $server_ip $port "$login_name" "$passwd" $backup_dir"/"$newst_dir "backup_version" "down"
+            return_code=$?
+            if [ $return_code -ne 0 ];then
+                br_printlog $MODULE_NAME err "ftp get backup_version file from server failed with code $return_code"
+                exit $return_code
+            fi
+            check_new_backup $cur_pwd
+            backup_ver=$?
+            ;;
+        "scp")
+            remote_path=`utils_get_scp_remote_path $server_ip $login_name $newst_dir/backup_version`
+            br_printlog $MODULE_NAME info "remote_path = $remote_path"
+            expect $BR_SHELL_PATH"/"file_scp.exp "$remote_path" $cur_pwd $port "$passwd" >/dev/null
+            return_code=$?
+            if [ $return_code -ne 0 ];then
+                br_printlog $MODULE_NAME err "SCP backup_version file from server failed with code $return_code"
+                exit $return_code
+            fi
+            check_new_backup $cur_pwd
+            backup_ver=$?
+            ;;
+        esac
+    fi
+
+    local need_full_backup=0
+    if [ "$is_tar" != "" ] || [ $backup_ver -eq 2 ]; then
+        need_full_backup=1
+    fi
+    br_printlog $MODULE_NAME info "$LINENO: is_tar=$is_tar, backup_ver=$backup_ver, need_full_backup=$need_full_backup"
+
+    if [ "$backup_mode" = "$BACKUP_INCREMENTAL" ]; then
+        if [ $need_full_backup -eq 1 ]; then
+            echo "$BACKUP_SUFFIX_INC_ALL"
+        else
+            if [ "$suffix" = "$BACKUP_SUFFIX_INC_ALL" ] || [ "$suffix" = "$BACKUP_SUFFIX_INC" ]; then
+                echo "$BACKUP_SUFFIX_INC"
+            else
+                echo "$BACKUP_SUFFIX_INC_ALL"
+            fi
+        fi
+    elif [ "$backup_mode" = "$BACKUP_DIFF" ]; then
+        if [ $need_full_backup -eq 1 ]; then
+            echo "$BACKUP_SUFFIX_DIFF_ALL"
+        else
+            if [ "$suffix" = "$BACKUP_SUFFIX_DIFF_ALL" ] || [ "$suffix" = "$BACKUP_SUFFIX_DIFF" ]; then
+                echo "$BACKUP_SUFFIX_DIFF"
+            else
+                echo "$BACKUP_SUFFIX_DIFF_ALL"
+            fi
+        fi
+    else
+        echo "$BACKUP_ALL"
+    fi
+
+    return $BR_SUCCESS
+}
+
+###########################################################################
+#  Name   : check_restore_mode
+#  Author : zhanglianxiang/09608
+#  Create : 2013-12-13
+#  Desp   : check to operation whether restore or import
+#       RETURN: 0  : check_restore_mode
+#               1  : vm name
+#           others : 0:restore
+#                  : 1:import
+#      CAUTION:
+#-----------------------------------------------------------------------------
+#  MODIFICATION HISTORY
+#  DATE        NAME             DESCRIPTION
+############################################################################
+check_restore_mode()
+{
+    local MODULE_NAME=check_restore_mode
+    br_printlog $MODULE_NAME info "all params = $@"
+    local vm=$1
+    local out=""
+
+    out=`virsh list --all | grep -F " $vm "`
+    if [ "X$out" != "X" ]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+###########################################################################
+#  Name   : is_managed_vm
+#  Author : tuguoyi/14581
+#  Create : 2019-01-19
+#  Desp   : Check if the vm is managed by cas
+#           $1: vm name
+#  RETURN: 0  : If vm is managed by cas
+#          1  : if not
+#  CAUTION:
+#-----------------------------------------------------------------------------
+#  MODIFICATION HISTORY
+#  DATE        NAME             DESCRIPTION
+############################################################################
+is_managed_vm()
+{
+    local MODULE_NAME=is_managed_vm
+    br_printlog $MODULE_NAME info "all params = $@"
+    local vm_name=$1
+    local out=""
+
+    out=`virsh list --all | grep -w " $vm_name "`
+    if [ $? -eq 0 ] && [ "X$out" != "X" ]; then
+        return 0
+    fi
+    return 1
+}
+
+###########################################################################
+#  Name   : restore_existing_vm
+#  Author : tuguoyi/14581
+#  Create : 2019-01-19
+#  Desp   : Check if restore an existing vm or import a new vm
+#           $1: the backup vm name
+#           $2: new vm name
+#           $3: new vm uuid
+#  RETURN: 0  : if restore an existing vm
+#          1  : if import a new vm
+#  CAUTION:
+#-----------------------------------------------------------------------------
+#  MODIFICATION HISTORY
+#  DATE        NAME             DESCRIPTION
+############################################################################
+restore_existing_vm()
+{
+    local MODULE_NAME=restore_existing_vm
+    br_printlog $MODULE_NAME info "all params = $@"
+    local backup_vm=$1
+    local new_vm_name=$2
+    local new_vm_uuid=$3
+    local out=""
+
+    if [ "$new_vm_uuid" != "0" ]; then
+        return 1
+    fi
+    if ! is_managed_vm $backup_vm; then
+        return 1
+    fi
+    return 0
+}
+
+###########################################################################
+#  Name   : update_vm_name_and_uuid
+#  Author : tuguoyi/14581
+#  Create : 2019-01-19
+#  Desp   : Update vm name and uuid
+#           $1: path of vm xml
+#           $2: new vm name
+#           $3: new vm uuid
+#  RETURN: 0  : if restore an existing vm
+#          1  : if import a new vm
+#  CAUTION:
+#-----------------------------------------------------------------------------
+#  MODIFICATION HISTORY
+#  DATE        NAME             DESCRIPTION
+############################################################################
+update_vm_name_and_uuid()
+{
+    local MODULE_NAME=update_vm_name_and_uuid
+    br_printlog $MODULE_NAME info "all params = $@"
+    local vm_xml_file=$1
+    local new_vm_name=$2
+    local new_vm_uuid=$3
+
+    python3 $BR_SHELL_PATH/vm_xml_name_replace.pyc $vm_xml_file $new_vm_name
+    if [ $? -ne 0 ]; then
+        br_printlog $MODULE_NAME err "$LINENO: change name failed"
+        return $BR_REDEINE_XML
+    fi
+
+    # replace uuid
+    python3 $BR_SHELL_PATH/vm_xml_uuid_replace.pyc $vm_xml_file $new_vm_uuid
+    if [ $? -ne 0 ]; then
+        br_printlog $MODULE_NAME err "$LINENO: change uuid failed"
+        return $BR_REDEFINE_XML
+    fi
+    return $BR_SUCCESS
+}
+
+
+###########################################################################
+#  Name   : delete_backup_of_all
+#  Author : zhanglianxiang/09608
+#  Create : 2014-02-20
+#  Desp   : delete backup of all according to given number
+#   parms : cp:
+#           $1  : given number
+#           $2  : type of backup
+#           $3  : backup_dir
+#           $4  : vm's name
+#           ftp(scp):
+#           $1  : given number
+#           $2  : type of backup
+#           $3  : server ip
+#           $4  : login name
+#           $5  : password
+#           $6  : backup directory
+#           $7  : vm's name
+#       RETURN: 0  : ok
+#           others : failed
+#      CAUTION:
+#-----------------------------------------------------------------------------
+#  MODIFICATION HISTORY
+#  DATE        NAME             DESCRIPTION
+############################################################################
+delete_backup_of_all()
+{
+    local MODULE_NAME=delete_backup_of_all
+
+    local number=$1
+    local type=$2
+    local backup_dir=$3
+    local vm_name=$4
+    if [ "$type" != "cp" ]; then
+        local server_ip=$3
+        local port=$4
+        local login_name="$5"
+        local passwd="$6"
+        local backup_dir=$7
+        local vm_name=$8
+        br_printlog $MODULE_NAME info "$LINENO:all params = $1 $2 $3 $4 $5 @@@ $7 $8"
+    else
+        br_printlog $MODULE_NAME info "$LINENO:all params part 1= $@"
+    fi
+
+    if [ "$type" = "cp" ]; then
+        shift 4
+    else
+        shift 8
+        br_printlog $MODULE_NAME info "$LINENO:all params part 2= $@"
+    fi
+    backup_str=$@
+    #check DEL_NUM
+    if [ $number -lt 0 ]; then
+        br_printlog $MODULE_NAME err "$LINENO:number = $number is less than 0"
+        return $BR_WRONG_PARAM
+    fi
+
+    if [ $number -eq 0 ]; then
+        if [ "$type" = "cp" ]; then
+            br_printlog $MODULE_NAME info "$LINENO: python3 $BR_SHELL_PATH/br_back_info_print.pyc "" "" $vm_name $type $backup_dir "$backup_str""
+            python3 $BR_SHELL_PATH/br_back_info_print.pyc "" "" $vm_name $type $backup_dir "$backup_str"
+        else
+            python3 $BR_SHELL_PATH/br_back_info_print.pyc "" "" $vm_name $type $server_ip $port "$login_name" "$passwd" $backup_dir "$backup_str"
+        fi
+        return_code=$?
+        if [ $return_code -ne 0 ]; then
+            br_printlog $MODULE_NAME err "$LINENO change the delete message to xml failed"
+            return $BR_PRINT_MSG_ERROR
+        fi
+        br_printlog $MODULE_NAME info "$LINENO:no need to delete backup."
+        return $BR_SUCCESS
+    fi
+    local return_code=0
+    local dir_del_err_code=""
+    local del_dir_date=""
+    local del_num=0
+    case $type in
+    "cp")
+        local reg=$backup_dir"/"$vm_name"_20[0-9]\{12\}_0"
+        local dir_list=`ls -d $backup_dir"/"$vm_name"_"* | grep $reg | grep -F $vm_name | sort`
+        if [ "X$dir_list" != "X" ]; then
+            local s=`echo $dir_list | wc -w`
+            if [ $s -gt $number ]; then
+                local del_num=`expr $s - $number`
+                local del_dir=`echo $dir_list | cut -d " " -f 1-$del_num`
+                br_printlog $MODULE_NAME info "$LINENO:need to delete $del_dir"
+                for each_dir in $del_dir
+                do
+                    d_date=${each_dir%_*}
+                    d_date=${d_date##*_}
+                    del_dir_date="$del_dir_date $d_date"
+                    rm -fr $each_dir
+                    return_code=$?
+                    br_printlog $MODULE_NAME info "$LINENO:delete $del_dir with error code $return_code"
+                    dir_del_err_code="$dir_del_err_code $return_code"
+                done
+            fi
+        fi
+        ;;
+    "ftp")
+        br_printlog $MODULE_NAME info "$LINENO:ftp: begin to delete backup of all ..."
+        local dir_list=`python3 $BR_SHELL_PATH/ftp_list_fils.pyc $server_ip $port "$login_name" "$passwd" $backup_dir | awk '{print $NF}' | grep "^$vm_name"_[2][0]"[0-9]\{12\}"_0  | grep -F $vm_name | sort`
+        br_printlog $MODULE_NAME info "$LINENO: dir_list=$dir_list"
+        if [ "X$dir_list" != "X" ]; then
+            local s=`echo $dir_list | wc -w`
+            if [ $s -gt $number ]; then
+                local del_num=`expr $s - $number`
+                local del_dir=`echo $dir_list | cut -d " " -f 1-$del_num`
+                br_printlog $MODULE_NAME info "$LINENO:need to delete $del_dir"
+                for dir in $del_dir
+                do
+                    d_date=${dir%_*}
+                    d_date=${d_date##*_}
+                    del_dir_date="$del_dir_date $d_date"
+                    is_tar=`echo $dir | grep .tar$`
+                    if [ "X$is_tar" == "X" ]; then
+                        python3 $BR_SHELL_PATH/ftp_delete.pyc $server_ip $port "$login_name" "$passwd" $backup_dir $dir "directory"
+                    else
+                        python3 $BR_SHELL_PATH/ftp_delete.pyc $server_ip $port "$login_name" "$passwd" $backup_dir $dir "file"
+                    fi
+                    return_code=$?
+                    br_printlog $MODULE_NAME err "$LINENO:delete $dir with error code $return_code"
+                    dir_del_err_code="$dir_del_err_code $return_code"
+                done
+            fi
+        fi
+        br_printlog $MODULE_NAME info "$LINENO:ftp: delete backup of all OK"
+        ;;
+    "scp")
+        local output=""
+        local dir=`expect $BR_SHELL_PATH/dir_list.exp "$login_name"@"$server_ip" $port "$passwd" $backup_dir -a`
+        return_code=$?
+        if [ $return_code -ne 0 ]; then
+            br_printlog $MODULE_NAME err "$LINENO:SCP get the files wanted to delete failed with error code $return_code"
+            return $return_code
+        fi
+
+        if [ "X$dir" != "X" ]; then
+            for dir_tmp in $dir
+            do
+                local tmp_dir=`echo $dir_tmp | tr -d '\r'`
+                local flag1=`echo $tmp_dir | awk -F "_" '{print $NF}'`
+                local flag2=`echo $tmp_dir | grep "^$vm_name"_[2][0]"[0-9]\{12\}"_0 | grep -F $vm_name`
+                if [ "$flag1" = "0" -o "$flag1" = "0.tar" ] && [ "X$flag2" != "X" ]; then
+                    output="$output $tmp_dir"
+                    i=`expr $i + 1`
+                fi
+            done
+
+            if [ $i -le $number ]; then
+                br_printlog $MODULE_NAME debug "$LINENO:scp: number of vm($vm_name)'s backup is $i that is less than reserve number($number)"
+                if [ "$type" = "cp" ]; then
+                    python3 $BR_SHELL_PATH/br_back_info_print.pyc "" "" $vm_name $type $backup_dir "$backup_str"
+                else
+                    python3 $BR_SHELL_PATH/br_back_info_print.pyc "" "" $vm_name $type $server_ip $port "$login_name" "$passwd" $backup_dir "$backup_str"
+                fi
+                return_code=$?
+                if [ $return_code -ne 0 ]; then
+                    br_printlog $MODULE_NAME err "$LINENO change the delete message to xml failed"
+                    return $BR_PRINT_MSG_ERROR
+                fi
+                br_printlog $MODULE_NAME info "$LINENO:no need to delete backup."
+                return $BR_SUCCESS
+            fi
+
+            local del_num=`expr $i - $number`
+            local del_dir=`echo $output | cut -d " " -f 1-$del_num`
+
+            for d in $del_dir
+            do
+                if [ "X$d" = "X" ]; then
+                    continue
+                fi
+                expect $BR_SHELL_PATH/br_scp_path_del.exp "$login_name"@"$server_ip" $port "$passwd" $backup_dir"/"$d
+                return_code=$?
+                d_date=${d%_*}
+                d_date=${d_date##*_}
+                del_dir_date="$del_dir_date $d_date"
+                dir_del_err_code="$dir_del_err_code $return_code"
+                if [ $return_code -ne 0 ]; then
+                    br_printlog $MODULE_NAME err "$LINENO:SCP delete backup of all failed with error code $return_code"
+                    continue
+                fi
+                br_printlog $MODULE_NAME info "$LINENO:SCP delete backup dir($backup_dir"/"$d) OK"
+            done
+        fi
+        ;;
+     esac
+    #return message to front
+    if [ "X$del_dir" = "X" ]; then
+        if [ "$type" = "cp" ]; then
+            python3 $BR_SHELL_PATH/br_back_info_print.pyc "" "" $vm_name $type $backup_dir "$backup_str"
+        else
+            python3 $BR_SHELL_PATH/br_back_info_print.pyc "" "" $vm_name $type $server_ip $port "$login_name" "$passwd" $backup_dir "$backup_str"
+        fi
+    else
+        if [ "$type" = "cp" ]; then
+            python3 $BR_SHELL_PATH/br_back_info_print.pyc "$del_dir_date" "$dir_del_err_code" $vm_name $type $backup_dir "$backup_str"
+        else
+            python3 $BR_SHELL_PATH/br_back_info_print.pyc "$del_dir_date" "$dir_del_err_code" $vm_name $type $server_ip $port "$login_name" "$passwd" $backup_dir "$backup_str"
+        fi
+    fi
+    return_code=$?
+    if [ $return_code -ne 0 ]; then
+        br_printlog $MODULE_NAME err "$LINENO change the delete message to xml failed"
+        return $BR_PRINT_MSG_ERROR
+    fi
+
+    return $BR_SUCCESS
+}
+
+###########################################################################
+#  Name   : delete_backup_of_inc
+#  Author : linjunsheng/kf5383
+#  Create : 2016-01-30
+#  Desp   : delete backup of incremetal or differental according to given number
+#   parms : cp:
+#           $1  : given number
+#           $2  : type of backup
+#           $3  : backup_dir
+#           $4  : vm's name
+#           ftp(scp):
+#           $1  : given number
+#           $2  : type of backup
+#           $3  : server ip
+#           $4  : login name
+#           $5  : password
+#           $6  : backup directory
+#           $7  : vm's name
+#       RETURN: 0  : ok
+#           others : failed
+#      CAUTION:
+#-----------------------------------------------------------------------------
+#  MODIFICATION HISTORY
+#  DATE        NAME             DESCRIPTION
+############################################################################
+delete_backup_of_inc()
+{
+    local MODULE_NAME=delete_backup_of_inc
+
+    local number=$1
+    local type=$2
+    local backup_dir=$3
+    local vm_name=$4
+    local backup_mode=$5
+    if [ "$type" != "cp" ]; then
+        local server_ip=$3
+        local port=$4
+        local login_name="$5"
+        local passwd="$6"
+        local backup_dir=$7
+        local vm_name=$8
+        local backup_mode=$9
+        br_printlog $MODULE_NAME info "$LINENO:all params = $1 $2 $3 $4 $5 @@@ $7 $8 $9"
+    else
+        br_printlog $MODULE_NAME info "$LINENO:all params = $@"
+    fi
+
+    if [ "$type" = "cp" ]; then
+        shift 5
+    else
+        shift 9
+        br_printlog $MODULE_NAME info "$LINENO:all params = $@"
+    fi
+    backup_str=$@
+    #check DEL_NUM
+    if [ $number -lt 0 ]; then
+        br_printlog $MODULE_NAME err "$LINENO:number = $number is less than 0"
+        return $BR_WRONG_PARAM
+    fi
+
+    if [ $number -eq 0 ]; then
+        if [ "$type" = "cp" ]; then
+            python3 $BR_SHELL_PATH/br_back_info_print.pyc "" "" $vm_name $type $backup_dir "$backup_str"
+        else
+            python3 $BR_SHELL_PATH/br_back_info_print.pyc "" "" $vm_name $type $server_ip $port "$login_name" "$passwd" $backup_dir "$backup_str"
+        fi
+        return_code=$?
+        if [ $return_code -ne 0 ]; then
+            br_printlog $MODULE_NAME err "$LINENO change the delete message to xml failed"
+            return $BR_PRINT_MSG_ERROR
+        fi
+        br_printlog $MODULE_NAME info "$LINENO:no need to delete backup."
+        return $BR_SUCCESS
+    fi
+    local del_dir=""
+    local return_code=0
+    local dir_del_err_code=""
+    local del_dir_date=""
+    local del_num=0
+    case $type in
+    "cp")
+        local reg=""
+        if [ $backup_mode -eq 1 ]; then
+            reg=$backup_dir"/"$vm_name"_20[0-9]\{12\}_10"
+            local dir_list_all=`ls -d $backup_dir"/"$vm_name"_"* | grep $reg | grep -F $vm_name | sort`
+            reg=$backup_dir"/"$vm_name"_20[0-9]\{12\}_1"
+            local all_br_file=`ls -d $backup_dir"/"$vm_name"_"* | grep $reg | grep -F $vm_name | sort`
+        fi
+        if [ $backup_mode -eq 2 ]; then
+            reg=$backup_dir"/"$vm_name"_20[0-9]\{12\}_20"
+            local dir_list_all=`ls -d $backup_dir"/"$vm_name"_"* | grep $reg | grep -F $vm_name | sort`
+            reg=$backup_dir"/"$vm_name"_20[0-9]\{12\}_2"
+            local all_br_file=`ls -d $backup_dir"/"$vm_name"_"* | grep $reg | grep -F $vm_name | sort`
+        fi
+            
+        # if you have 6 backup, and reserve number is 2, so you must delete 4 backup file. The first you should find all BACKUP_SUFFIX_INC_ALL(10)
+        # backup and sort by time from old to new, which is available "all_br_file", and find out all incremental backup files(10 and 11), which is
+        # available "dir_list_all". For finding out delete_directory, you should find the 4th available in available "dir_list_all" as "compare_br_file"
+        # each backup file in "all_br_file" less than "compare_br_file" is to delete and send it to "del_dir".
+        local s=`echo $dir_list_all | wc -w`
+        if [ $s -gt $number ]; then
+            local del_num=`expr $s - $number`
+            local compare_num=`expr $del_num + 1`
+            local compare_br_file=`echo $dir_list_all | cut -d " " -f $compare_num`
+            br_printlog $MODULE_NAME info "########del_num=$del_num, compare_num=$compare_num, compare_br_file=$compare_br_file"
+            for each in $all_br_file
+            do
+                if [ $each \< $compare_br_file ]; then
+                    del_dir="$del_dir $each"
+                    br_printlog $MODULE_NAME info "$LINENO delete the backup file $each"
+                fi
+            done
+
+            for each_dir in $del_dir
+            do
+                d_date=${each_dir%_*}
+                d_date=${d_date##*_}
+                del_dir_date="$del_dir_date $d_date"
+                rm -fr $each_dir
+                return_code=$?
+                br_printlog $MODULE_NAME info "$LINENO:delete $del_dir with error code $return_code"
+                dir_del_err_code="$dir_del_err_code $return_code"
+            done
+        fi
+        ;;
+    "ftp")
+        br_printlog $MODULE_NAME info "$LINENO:ftp: begin to delete backup of all ..."
+        local dir_list=`python3 $BR_SHELL_PATH/ftp_list_fils.pyc $server_ip $port "$login_name" "$passwd" $backup_dir | awk '{print $NF}' | grep "^$vm_name"_[2][0]"[0-9]\{12\}"_  | grep -F $vm_name | sort`
+        br_printlog $MODULE_NAME info "dir_list=$dir_list"
+        if [ $backup_mode -eq 1 ]; then
+            #local all_br_file=`echo $dir_list | grep "$vm_name"_[2][0]"[0-9]\{12\}"_1`
+            #local dir_list_all=`echo $dir_list | grep "$vm_name"_[2][0]"[0-9]\{12\}"_10`
+            local all_br_file=`python3 $BR_SHELL_PATH/ftp_list_fils.pyc $server_ip $port "$login_name" "$passwd" $backup_dir | awk '{print $NF}' | grep "^$vm_name"_[2][0]"[0-9]\{12\}"_1  | grep -F $vm_name | sort`
+            local dir_list_all=`python3 $BR_SHELL_PATH/ftp_list_fils.pyc $server_ip $port "$login_name" "$passwd" $backup_dir | awk '{print $NF}' | grep "^$vm_name"_[2][0]"[0-9]\{12\}"_10  | grep -F $vm_name | sort`
+        fi
+        if [ $backup_mode -eq 2 ]; then
+            #local all_br_file=`echo $dir_list | grep "$vm_name"_[2][0]"[0-9]\{12\}"_2`
+            #local dir_list_all=`echo $dir_list | grep "$vm_name"_[2][0]"[0-9]\{12\}"_20`
+            local all_br_file=`python3 $BR_SHELL_PATH/ftp_list_fils.pyc $server_ip $port "$login_name" "$passwd" $backup_dir | awk '{print $NF}' | grep "^$vm_name"_[2][0]"[0-9]\{12\}"_2  | grep -F $vm_name | sort`
+            local dir_list_all=`python3 $BR_SHELL_PATH/ftp_list_fils.pyc $server_ip $port "$login_name" "$passwd" $backup_dir | awk '{print $NF}' | grep "^$vm_name"_[2][0]"[0-9]\{12\}"_20  | grep -F $vm_name | sort`
+        fi
+
+        br_printlog $MODULE_NAME info "all_br_file=$all_br_file, dir_list_all=$dir_list_all"
+        local s=`echo $dir_list_all | wc -w`
+        if [ $s -gt $number ]; then
+
+            local del_num=`expr $s - $number`
+            local compare_num=`expr $del_num + 1`
+            local compare_br_file=`echo $dir_list_all | cut -d " " -f $compare_num`
+            br_printlog $MODULE_NAME info "########del_num=$del_num, compare_num=$compare_num, compare_br_file=$compare_br_file"
+            for each in $all_br_file
+            do
+                if [ $each \< $compare_br_file ]; then
+                    del_dir="$del_dir $each"
+                    br_printlog $MODULE_NAME info "$LINENO delete the backup file $each"
+                fi
+            done
+
+            for dir in $del_dir
+            do
+                d_date=${dir%_*}
+                d_date=${d_date##*_}
+                del_dir_date="$del_dir_date $d_date"
+                is_tar=`echo $dir | grep .tar$`
+                if [ "X$is_tar" == "X" ]; then
+                    python3 $BR_SHELL_PATH/ftp_delete.pyc $server_ip $port "$login_name" "$passwd" $backup_dir $dir "directory"
+                else
+                    python3 $BR_SHELL_PATH/ftp_delete.pyc $server_ip $port "$login_name" "$passwd" $backup_dir $dir "file"
+                fi
+                return_code=$?
+                br_printlog $MODULE_NAME info "$LINENO:delete $dir with error code $return_code"
+                dir_del_err_code="$dir_del_err_code $return_code"
+            done
+        fi
+        br_printlog $MODULE_NAME info "$LINENO:ftp: delete backup of all OK"
+        ;;
+    "scp")
+        local output=""
+        local all_br_file=""
+        local dir_list_all=""
+        expect $BR_SHELL_PATH/dir_list.exp "$login_name"@"$server_ip" $port "$passwd" $backup_dir -a > br_file
+        while read line
+        do
+            line=`echo $line | awk -F "\n" '{print $1}' | awk -F "\r" '{print $1}' | awk -F "\t" '{print $1}'`
+            line=${line##*/}
+             br_printlog $MODULE_NAME info "line=$line"
+            if [ $backup_mode -eq 1 ]; then
+                local all_br_file_exist=`echo $line | grep "^$vm_name"_[2][0]"[0-9]\{12\}"_1`
+                if [ "$all_br_file_exist" != "" ]; then
+                    all_br_file="$all_br_file $all_br_file_exist"
+                fi
+                local dir_list_all_exist=`echo $line | grep "^$vm_name"_[2][0]"[0-9]\{12\}"_10`
+                if [ "$dir_list_all_exist" != "" ]; then
+                    dir_list_all="$dir_list_all $dir_list_all_exist"
+                fi
+            fi
+            if [ $backup_mode -eq 2 ]; then
+                local all_br_file_exist=`echo $line | grep "^$vm_name"_[2][0]"[0-9]\{12\}"_2`
+                if [ "$all_br_file_exist" != "" ]; then
+                    all_br_file="$all_br_file $all_br_file_exist"
+                fi
+                local dir_list_all_exist=`echo $line | grep "^$vm_name"_[2][0]"[0-9]\{12\}"_20`
+                if [ "$dir_list_all_exist" != "" ]; then
+                    dir_list_all="$dir_list_all $dir_list_all_exist"
+                fi
+            fi
+        done < br_file
+
+        br_printlog $MODULE_NAME info "all_br_file=$all_br_file, dir_list_all=$dir_list_all"
+        local s=`echo $dir_list_all | wc -w`
+        if [ $s -gt $number ]; then
+            local del_num=`expr $s - $number`
+            local compare_num=`expr $del_num + 1`
+            local compare_br_file=`echo $dir_list_all | cut -d " " -f $compare_num`
+            br_printlog $MODULE_NAME info "########del_num=$del_num, compare_num=$compare_num, compare_br_file=$compare_br_file"
+            for each in $all_br_file
+            do
+                if [ $each \< $compare_br_file ]; then
+                    del_dir="$del_dir $each"
+                    br_printlog $MODULE_NAME info "$LINENO delete the backup file $each"
+                fi
+            done
+
+            for d in $del_dir
+            do
+                if [ "X$d" = "X" ]; then
+                    continue
+                fi
+                expect $BR_SHELL_PATH/br_scp_path_del.exp "$login_name"@"$server_ip" $port "$passwd" $backup_dir"/"$d
+                return_code=$?
+                d_date=${d%_*}
+                d_date=${d_date##*_}
+                del_dir_date="$del_dir_date $d_date"
+                dir_del_err_code="$dir_del_err_code $return_code"
+                if [ $return_code -ne 0 ]; then
+                    br_printlog $MODULE_NAME info "$LINENO:SCP delete backup of all failed with error code $return_code"
+                    continue
+                fi
+                br_printlog $MODULE_NAME info "$LINENO:SCP delete backup dir($backup_dir"/"$d) OK"
+            done
+        fi
+        ;;
+     esac
+    #return message to front
+    if [ "X$del_dir" = "X" ]; then
+        if [ "$type" = "cp" ]; then
+            python3 $BR_SHELL_PATH/br_back_info_print.pyc "" "" $vm_name $type $backup_dir "$backup_str"
+        else
+            python3 $BR_SHELL_PATH/br_back_info_print.pyc "" "" $vm_name $type $server_ip $port "$login_name" "$passwd" $backup_dir "$backup_str"
+        fi
+        br_printlog $MODULE_NAME info "$LINENO:no need to delete backup."
+    else
+        if [ "$type" = "cp" ]; then
+            python3 $BR_SHELL_PATH/br_back_info_print.pyc "$del_dir_date" "$dir_del_err_code" $vm_name $type $backup_dir "$backup_str"
+        else
+            python3 $BR_SHELL_PATH/br_back_info_print.pyc "$del_dir_date" "$dir_del_err_code" $vm_name $type $server_ip $port "$login_name" "$passwd" $backup_dir "$backup_str"
+        fi
+    fi
+    return_code=$?
+    if [ $return_code -ne 0 ]; then
+        br_printlog $MODULE_NAME err "$LINENO change the delete message to xml failed"
+        return $BR_PRINT_MSG_ERROR
+    fi
+
+    return $BR_SUCCESS
+}
+
+###########################################################################
+#  Name   : check_new_backup
+#  Author : linjunsheng/kf5383
+#  Create : 2015-07-08
+#  Desp   : check up the restore need to use new backup or not
+#       RETURN: 0  : New Version, but RAW format
+#               1  : New backup version, qcow format image files
+#               2  : Old Version, with gz compress format
+#      CAUTION:
+#-----------------------------------------------------------------------------
+#  MODIFICATION HISTORY
+#  DATE        NAME             DESCRIPTION
+# 20150926   guozhonghua/02084  New version, but RAW format, return 2
+############################################################################
+check_new_backup()
+{
+    local MODULE_NAME=check_new_backup
+    local dir_tmp_restore=$1
+    br_printlog $MODULE_NAME info "parameter=$@"
+    local cur_pwd=`pwd`
+    cd $dir_tmp_restore
+
+    local version_file=$dir_tmp_restore"/backup_version"
+    version=`cat $version_file | grep backup_version | awk '{print $NF}'`
+    br_printlog $MODULE_NAME info "$LINENO: the backup version is $version"
+    if [ "X$version" = "X$NEW_BACKUP" ] ; then
+        br_printlog $MODULE_NAME info "return 1(new_backup)"
+        cd $cur_pwd
+        return $NEW_BACKUP
+    fi
+
+    # New version, but with RAW
+    if [ "X$version" = "X$NEW_BACKUP_RAW" ] ; then
+        br_printlog $MODULE_NAME info "return 0(New version, RAW format)"
+        cd $cur_pwd
+        return $NEW_BACKUP_RAW
+    fi
+
+    cd $cur_pwd
+    return $OLD_BACKUP_FORMAT
+}
+
+###########################################################################
+#  Name   : size_of_images_backup
+#  Author : linjunsheng/kf5383
+#  Create : 2015-07-22
+#  Desp   : calculate the size of converted image about full backup in new backup
+#   parms :
+#           $1  : vm name
+#           $2  : snapshot name
+#           $3 : vm convert backup path
+#           $4  : read ratio
+#           $5  : write ratio
+#           $6  : backup mode
+#       RETURN: 0  : successful
+#           others : failed
+#      CAUTION:
+#-----------------------------------------------------------------------------
+#  MODIFICATION HISTORY
+#  DATE        NAME             DESCRIPTION
+############################################################################
+size_of_images_backup()
+{
+    local MODULE_NAME=size_of_images_backup
+    br_printlog $MODULE_NAME info "all params = $@"
+    local vm_name=$1
+    local snap_name=$2
+    local vm_tmp_path=$3
+    local read_ratio=$4
+    local write_ratio=$5
+    local backup_mode=$6
+
+    local all_data_files=`python3 $BR_SHELL_PATH/vm_xml_data_file_print.pyc $VMXML_PATH"/"$vm_name".xml"`
+    if [ $? != 0 ]; then
+        br_printlog $MODULE_NAME err "Parse the VM $VM_NAME xml file failed"
+        exit $BR_PARSE_VM_XML_FAILED
+    fi
+    br_printlog $MODULE_NAME info "all_data_files = $all_data_files"
+
+    if [ "$backup_mode" = "full" ]; then
+        local cluster_sum=0
+        local sum_file_index=0
+        local sum_file=""
+        for vm_data_file in $all_data_files
+        do
+            sum_file=$vm_convert_backup_path"/"$vm_name"_old_"$sum_file_index".sum"
+            br_printlog $MODULE_NAME info "sum_file=$sum_file"
+            sum_file_index=$(($sum_file_index+1))
+
+            qemu-img sum -s $snap_name -r $read_ratio -w $write_ratio -t directsync $vm_data_file $sum_file 1>/dev/null 2>/dev/null
+            return_code=$?
+
+            if [ $return_code -ne 0 ]; then
+                br_printlog $MODULE_NAME err "qemu-img sum running error with error code $return_code"
+                return $return_code
+            fi
+            each_disk_cluster_num=`cat $sum_file | wc -l`
+            br_printlog $MODULE_NAME info "each_disk_cluster_num=$each_disk_cluster_num"
+            cluster_sum=$(($cluster_sum+$each_disk_cluster_num+5))
+        done
+
+        local images_size_M=`expr $cluster_sum \* 2`
+        local images_size_K=`expr $images_size_M \* 1024`
+    elif [ "$backup_mode" = "inc" ]; then
+        local current_path=`pwd`
+        br_printlog $MODULE_NAME info "current_path=$current_path"
+        cd $vm_tmp_src_path
+        if [ $? -ne 0 ]; then
+            br_printlog $MODULE_NAME err "change the path to $vm_tmp_src_path faild"
+            return $BR_DIRECTORY_ERROR
+        fi
+
+        local cluster_sum=0
+        for vm_data_file in $all_data_files
+        do
+            local index_file_name=`cat *.conf | grep "^$vm_data_file " | awk '{print $NF}'`
+            br_printlog $MODULE_NAME info "index_file_name=$index_file_name"
+            local each_old_sum_file=$index_file_name".sum"
+            local each_new_sum_file=$vm_tmp_src_path"/"$index_file_name"_new.sum"
+
+            qemu-img sum -s $snap_name -r $read_ratio -w $write_ratio -t directsync $vm_data_file $each_new_sum_file 1>/dev/null 2>/dev/null
+            return_code=$?
+
+            if [ $return_code -ne 0 ]; then
+                br_printlog $MODULE_NAME err "qemu-img sum running error with error code $return_code"
+                return $return_code
+            fi
+            local common_cluster_num=`grep -Ff $each_new_sum_file $each_old_sum_file | wc -l`
+            local new_image_cluster_num=`cat $each_new_sum_file | wc -l`
+            diff_cluster_num=$(($new_image_cluster_num-$common_cluster_num))
+            cluster_sum=$(($cluster_sum+$diff_cluster_num+5))
+            br_printlog $MODULE_NAME info "images vm_data_file=$vm_data_file, cluster_sum=$cluster_sum"
+        done
+
+        local images_size_M=`expr $cluster_sum \* 2`
+        local images_size_K=`expr $images_size_M \* 1024`
+
+        cd $current_path
+        if [ $? -ne 0 ]; then
+            br_printlog $MODULE_NAME err "change the path to $current_path faild"
+            return $BR_DIRECTORY_ERROR
+        fi
+    fi
+    br_printlog $MODULE_NAME info "the size of the backup images is about $images_size_K Byte."
+    echo $images_size_K
+    return $BR_SUCCESS
+}
+
+#############################################################################
+#    Func Name: get_restore_dir
+# Date Created: 2016-05-13
+#       Author: linjunsheng/kf5383
+#  Description: get the temp directory to store the VMs' data file for backup
+#       OUTPUT: NONE
+#       RETURN: 0  : SUCCESS
+#               1  : FAILED
+#      CAUTION:
+#  MODIFICATION HISTORY
+#  DATE        NAME             DESCRIPTION
+#############################################################################
+get_restore_dir()
+{
+    # Module name for log
+    local MODULE_NAME=get_restore_dir
+    br_printlog $MODULE_NAME info "all params = $@"
+
+    declare -A pool_size
+
+    local pool_list=`virsh pool-list | awk 'NR>=3{print $1}'`
+    br_printlog $MODULE_NAME info "the pool list is $pool_list"
+
+    local defaultsize=0
+    for each_pool in $pool_list
+    do
+        pool_path=`virsh pool-dumpxml $each_pool | grep "<path>"`
+        br_printlog $MODULE_NAME debug "$LINENO:the pool $each_pool's path is $pool_path"
+        pool_path=${pool_path#*>}
+        pool_path=${pool_path%<*}
+        br_printlog $MODULE_NAME info "$LINENO:the pool $each_pool's path is $pool_path"
+
+        local capacity=`$DF_CMD $pool_path | awk 'NR>=2{print $4}'`
+        pool_size[$each_pool]=$capacity
+        br_printlog $MODULE_NAME info "pool_size[$each_pool]=$capacity"
+
+        if [ $capacity -gt $defaultsize ]; then
+            defaultsize=$capacity
+            restore_dir=$pool_path
+        fi
+    done
+
+    if test -e $restore_dir; then
+        echo $restore_dir
+    else
+        return $BR_MAKE_DIRS
+    fi
+
+    # successfully
+    return $BR_SUCCESS
+}
+
+#############################################################################
+#    Func Name: get_backup_method_from_version_file
+# Date Created: 2018-08-02
+#       Author: tuguoyi 14581
+#  Description: get bacukp method from backup version file, 
+#               if keyword 'backup_method' is found, return the corresponding value;
+#               if not found a default value $BACKUP_METHOD_DEFAULT will be returned
+#        INPUT: $1: path of backup version file 
+#       OUTPUT: NONE
+#       RETURN: backup method 
+#      CAUTION:
+#  MODIFICATION HISTORY
+#  DATE        NAME             DESCRIPTION
+#############################################################################
+get_backup_method_from_version_file()
+{
+    local MODULE_NAME=get_backup_method_from_version_file
+    br_printlog $MODULE_NAME info "all params = $@"
+
+    local backup_method=`cat $1 | grep "backup_method" | awk '{print $NF}'`
+    if [ "X$backup_method" = "X" ]; then
+        br_printlog $MODULE_NAME info "keyword <backup method> not found in file[$1], set to backup version to the default value[$BACKUP_METHOD_DEFAULT]"
+        backup_method=$BACKUP_METHOD_DEFAULT
+    fi
+    br_printlog $MODULE_NAME info "get backup_method: $backup_method"
+    echo $backup_method
+}
+
+#############################################################################
+#    Func Name: delete_given_rbd_snapshot
+# Date Created: 2018-10-26
+#       Author: wangtao/14407
+#  Description: delete rbd snapshot of the given name
+#       OUTPUT: NONE
+#       RETURN: 0  : SUCCESS
+#               1  : FAILED
+#      CAUTION:
+#  MODIFICATION HISTORY
+#  DATE        NAME             DESCRIPTION
+#############################################################################
+delete_given_rbd_snapshot()
+{
+    local MODULE_NAME=delete_given_rbd_snapshot
+    br_printlog $MODULE_NAME info "all params = $@"
+
+    local image_path=$1
+    local snap_name=$2
+    local pool_name=${image_path%%/*}
+
+    config_file=`python3 /opt/bin/get_conf_for_rbd_by_pool.pyc $pool_name`
+    if [ $? -ne 0 -o "$config_file" = "" ]; then
+        br_printlog $MODULE_NAME err "$LINENO: find config file err for pool:$pool_name."
+        return $BR_FAILED
+    fi
+
+    local image_name=${image_path#/*}
+    pool_name=${image_name%/*}
+
+    rbd_type=`cat $RBD_INST_FILE | awk -F " " '{print $1}'`
+    if [ "$rbd_type" = "onestor" ]; then
+        local snaps=`$RBD_CMD snap ls --conf $config_file $image_name | egrep $snap_name | awk '{printf("%s\n", $2)}'`
+    else
+        local snaps=`$RBD_CMD snap ls $image_name | egrep $snap_name | awk '{printf("%s\n", $2)}'`
+    fi
+    if [ "X$snaps" != "X" ];then
+        for snap in $snaps
+        do
+            if [ "X$snap" = "X$snap_name" ];then
+                br_printlog $MODULE_NAME info "$LINENO: $image_name has snapshot $snap_name, going to remove it."
+                if [ "$rbd_type" = "onestor" ]; then
+                    $RBD_CMD snap rm --conf $config_file $image_name"@"$snap_name
+                else
+                    $RBD_CMD snap rm $image_name"@"$snap_name
+                fi
+                rtn=$?
+                if [ $rtn -ne 0 ];then
+                    br_printlog $MODULE_NAME err "$LINENO: Delete snapshot $snap_name of $image_name failed with error code $rtn."
+                    return $BR_FAILED
+                fi
+                br_printlog $MODULE_NAME info "$LINENO: Snapshot $snap_name of $image_name has been removed."
+                return $BR_SUCCESS
+            fi
+        done
+    fi
+
+    br_printlog $MODULE_NAME info "$LINENO: $image_name has no snapshot named $snap_name."
+    return $BR_SUCCESS
+}
+
+#############################################################################
+#    Func Name: delete_reg_rbd_snapshots
+# Date Created: 2018-10-26
+#       Author: wangtao/14407
+#  Description: delete rbd snapshot of the specified regex
+#       OUTPUT: NONE
+#       RETURN: 0  : SUCCESS
+#               1  : FAILED
+#      CAUTION:
+#  MODIFICATION HISTORY
+#  DATE        NAME             DESCRIPTION
+#############################################################################
+delete_reg_rbd_snapshots()
+{
+    local MODULE_NAME=delete_reg_rbd_snapshots
+    br_printlog $MODULE_NAME info "all params = $@"
+
+    local image_path=$1
+    local snap_reg=$2
+    local pool_name=${image_path%%/*}
+
+    config_file=`python3 /opt/bin/get_conf_for_rbd_by_pool.pyc $pool_name`
+    if [ $? -ne 0 -o "$config_file" = "" ]; then
+        br_printlog $MODULE_NAME err "$LINENO: find config file err for pool:$pool_name."
+        return $BR_FAILED
+    fi
+
+    local image_name=${image_path#/*}
+    pool_name=${image_name%/*}
+
+    rbd_type=`cat $RBD_INST_FILE | awk -F " " '{print $1}'`
+    if [ "$rbd_type" = "onestor" ]; then
+        snaps=`$RBD_CMD snap ls --conf $config_file $image_name | egrep $snap_reg | awk '{printf("%s\n", $2)}'`
+    else
+        snaps=`$RBD_CMD snap ls $image_name | egrep $snap_reg | awk '{printf("%s\n", $2)}'`
+    fi
+    if [ "X$snaps" != "X" ];then
+        br_printlog $MODULE_NAME info "$LINENO: Snapshots of $image_name of regex $snap_reg are $snaps, going to remove it."
+        for snap in $snaps
+        do
+            br_printlog $MODULE_NAME info "$LINENO: $image_name has snapshot $snap, going to remove it."
+            if [ "$rbd_type" = "onestor" ]; then
+                $RBD_CMD snap rm --conf $config_file $image_name"@"$snap
+            else
+                $RBD_CMD snap rm $image_name"@"$snap
+            fi
+            rtn=$?
+            if [ $rtn -ne 0 ];then
+                br_printlog $MODULE_NAME err "$LINENO: Delete snapshot $snap of $image_name failed with error code $rtn."
+                return $BR_FAILED
+            fi
+            br_printlog $MODULE_NAME info "$LINENO: Snapshot $snap of $image_name has been removed."
+        done
+    fi
+    return $BR_SUCCESS
+}
+
+#############################################################################
+#    Func Name: delete_rbd_snapshots
+# Date Created: 2018-08-15
+#       Author: wangtao/14407
+#  Description: delete rbd snapshots used in backup and restore
+#       OUTPUT: NONE
+#       RETURN: 0  : SUCCESS
+#               1  : FAILED
+#      CAUTION:
+#  MODIFICATION HISTORY
+#  DATE        NAME             DESCRIPTION
+#############################################################################
+delete_rbd_snapshots()
+{
+    local MODULE_NAME=delete_rbd_snapshots
+    br_printlog $MODULE_NAME info "all params = $@"
+    
+    local image_name=$1
+
+    delete_given_rbd_snapshot $image_name $RBD_FULL_SNAP
+    rtn=$?
+    if [ $rtn -ne 0 ];then
+        return $BR_FAILED
+    fi
+
+    delete_given_rbd_snapshot $image_name $RBD_DISK_FULL_SNAP
+    rtn=$?
+    if [ $rtn -ne 0 ];then
+        return $BR_FAILED
+    fi
+
+    delete_given_rbd_snapshot $image_name $RBD_INCR_FULL_SNAP
+    rtn=$?
+    if [ $rtn -ne 0 ];then
+        return $BR_FAILED
+    fi
+
+    delete_given_rbd_snapshot $image_name $RBD_DISK_INCR_FULL_SNAP
+    rtn=$?
+    if [ $rtn -ne 0 ];then
+        return $BR_FAILED
+    fi
+
+    delete_given_rbd_snapshot $image_name $RBD_DIFF_FULL_SNAP
+    rtn=$?
+    if [ $rtn -ne 0 ];then
+        return $BR_FAILED
+    fi
+
+    delete_given_rbd_snapshot $image_name $RBD_DISK_DIFF_FULL_SNAP
+    rtn=$?
+    if [ $rtn -ne 0 ];then
+        return $BR_FAILED
+    fi
+
+    delete_reg_rbd_snapshots $image_name $RBD_INCR_SNAP_REG
+    rtn=$?
+    if [ $rtn -ne 0 ];then
+        return $BR_FAILED
+    fi
+
+    delete_reg_rbd_snapshots $image_name $RBD_DISK_INCR_SNAP_REG
+    rtn=$?
+    if [ $rtn -ne 0 ];then
+        return $BR_FAILED
+    fi
+
+    return $BR_SUCCESS
+}
+
+############################################################################
+#  Author : wangtao/14407
+#  Create : 2018-10-25
+#  Desc   : Import rbd image
+#       $1: last round
+#       $2: rbd snap name
+#       $3: the temp directory of the data file
+#       $4: index file name
+#       $5: dest path
+############################################################################
+function import_rbd_image()
+{
+    local MODULE_NAME=import_rbd_image
+    br_printlog $MODULE_NAME info "$LINENO: all para = $@"
+
+    local last_round=$1
+    local rbd_snap_name=$2
+    local data_file_path=$3
+    local index_file_name=$4
+    local dest_path=$5
+
+    local image_name=${dest_path#*:}
+    local pool_name=${image_name%%/*}
+    local disk_pool_name=${image_name%/*}
+    disk_pool_name=${disk_pool_name#*/}
+    local image_only_name=${image_name##*/}
+
+    config_file=`python3 /opt/bin/get_conf_for_rbd_by_pool.pyc $pool_name`
+    if [ $? -ne 0 -o "$config_file" = "" ]; then
+        br_printlog $MODULE_NAME err "$LINENO: find config file err for pool:$pool_name."
+        return $BR_FAILED
+    fi
+    local data_pool_name=`virsh pool-dumpxml $pool_name | xargs | grep -E -o -e "<source>.*</source>" | grep -E -o -e  "<name>.+</name>" | awk -F ">" '{print $2}' | awk -F "<" '{print $1}'`
+    rbd_type=`cat $RBD_INST_FILE | awk -F " " '{print $1}'`
+    if [ "$rbd_type" = "onestor" ]; then
+        local is_rbd_exist=`$RBD_CMD ls --conf $config_file $data_pool_name | egrep "^"$image_only_name"\$"`
+    else
+        local is_rbd_exist=`$RBD_CMD ls $data_pool_name | egrep "^"$image_only_name"\$"`
+    fi
+    if [ "X$is_rbd_exist" != "X" ];then
+        # rbd exist
+        if [ "$rbd_type" = "onestor" ]; then
+            is_image_exist=`$RBD_CMD snap ls --conf $config_file $disk_pool_name/$image_only_name`
+            if [ "X$is_image_exist" != "X" ]; then
+                $RBD_CMD snap purge --conf $config_file $disk_pool_name/$image_only_name
+            fi
+        else
+            is_image_exist=`$RBD_CMD snap ls $disk_pool_name/$image_only_name`
+            if [ "X$is_image_exist" != "X" ]; then
+                $RBD_CMD snap purge $disk_pool_name/$image_only_name
+            fi
+        fi
+        return_code=$?
+        if [ $return_code -ne 0 ]; then
+            br_printlog $MODULE_NAME err "$LINENO: Delete rbd:$disk_pool_name/$image_only_name's snapshots failed with error code $return_code."
+            return $BR_DATA_FILE_RESTORE
+        fi
+        br_printlog $MODULE_NAME info "$LINENO: rbd:$disk_pool_name/$image_only_name's snapshots deleted."
+
+        if [ "$rbd_type" = "onestor" ]; then
+            $RBD_CMD remove --conf $config_file $disk_pool_name"/"$image_only_name
+        else
+            $RBD_CMD rm $disk_pool_name"/"$image_only_name
+        fi
+        return_code=$?
+        if [ $return_code -ne 0 ]; then
+            br_printlog $MODULE_NAME err "$LINENO: Delete rbd:$image_name failed with error code $return_code."
+            return $BR_DATA_FILE_RESTORE
+        fi
+        br_printlog $MODULE_NAME info "$LINENO: rbd:$image_name deleted."
+    fi
+
+    if [ "$rbd_type" = "onestor" ]; then
+        $RBD_CMD import --conf $config_file $data_file_path"/"$index_file_name --data-pool $data_pool_name $disk_pool_name"/"$image_only_name
+    else
+        $RBD_CMD import $data_file_path"/"$index_file_name $disk_pool_name"/"$image_only_name
+    fi
+    return_code=$?
+    if [ $return_code -ne 0 ]; then
+        br_printlog $MODULE_NAME err "$LINENO: Import $data_file_path"/"$index_file_name to $image_name failed with error code $return_code"
+        return $BR_DATA_FILE_RESTORE
+    fi
+    br_printlog $MODULE_NAME info "$LINENO: Import $data_file_path"/"$index_file_name to $image_name success"
+
+    if [ "$last_round" = "1" ]; then
+        delete_rbd_snapshots $pool_name"/"$disk_pool_name"/"$image_only_name
+        return_code=$?
+        if [ $return_code -ne 0 ]; then
+            br_printlog $MODULE_NAME err "$LINENO: Delete snapshots for $disk_pool_name"/"$image_only_name failed with error code $return_code"
+            return $BR_DATA_FILE_RESTORE
+        fi
+        br_printlog $MODULE_NAME info "$LINENO: Delete snapshots for $disk_pool_name"/"$image_only_name success"
+    else
+        if [ "$rbd_type" = "onestor" ]; then
+            $RBD_CMD snap create --conf $config_file $disk_pool_name/$image_only_name@$rbd_snap_name
+        else
+            $RBD_CMD snap create $disk_pool_name/$image_only_name@$rbd_snap_name
+        fi
+        return_code=$?
+        if [ $return_code -ne 0 ]; then
+            br_printlog $MODULE_NAME err "$LINENO: Create snapshot $rbd_snap_name for $disk_pool_name/$image_only_name failed with error code $return_code"
+            return $BR_DATA_FILE_RESTORE
+        fi
+        br_printlog $MODULE_NAME info "$LINENO: Create snapshot $rbd_snap_name for $disk_pool_name/$image_only_name success"
+    fi
+    return $BR_SUCCESS
+}
+
+############################################################################
+#  Author : wangtao/14407
+#  Create : 2018-10-25
+#  Desc   : post data file restore process
+#       $1: date suffix
+#       $2: need rename
+#       $3: last round
+#       $4: pre return code
+#       $5: current path, must be the last param, it may be empty
+############################################################################
+function post_data_file_restore()
+{
+    local MODULE_NAME=post_data_file_restore
+    br_printlog $MODULE_NAME info "$LINENO: all para = $@"
+
+    local date_suffix=$1
+    local need_rename=$2
+    local last_round=$3
+    local pre_code=$4
+    local snap_type=$5
+    local dest_path=$6
+    local cur_path=$7
+    local cur_vm_path=$8
+
+    local is_cur_rbd=`echo $cur_path | egrep '^rbd:'`
+    if [ "X$is_cur_rbd" != "X" ];then
+        cur_image=${cur_path#*:}
+        cur_image_name=${cur_image#*/}
+        pool_name=${cur_image%%/*}
+        cur_disk_pool_name=${cur_image_name%/*}
+        cur_image_only_name=${cur_image_name##*/}
+        config_file=`python3 /opt/bin/get_conf_for_rbd_by_pool.pyc $pool_name`
+        if [ $? -ne 0 -o "$config_file" = "" ]; then
+            br_printlog $MODULE_NAME err "$LINENO: find config file err for pool:$pool_name."
+            return $BR_FAILED
+        fi
+        local data_pool_name=`virsh pool-dumpxml $pool_name | xargs | grep -E -o -e "<source>.*</source>" | grep -E -o -e  "<name>.+</name>" | awk -F ">" '{print $2}' | awk -F "<" '{print $1}'`
+        rbd_type=`cat $RBD_INST_FILE | awk -F " " '{print $1}'`
+        if [ "$rbd_type" = "onestor" ]; then
+            is_cur_rbd_rename_exist=`$RBD_CMD ls --conf $config_file $data_pool_name | egrep "^"$cur_image_only_name$date_suffix"\$"`
+        else
+            is_cur_rbd_rename_exist=`$RBD_CMD ls $data_pool_name | egrep "^"$cur_image_only_name$date_suffix"\$"`
+        fi
+    fi
+
+    if [ $pre_code -ne 0 ]; then
+        # import rbd failed, going to recover cur_path
+        if [ $need_rename = "1" -a  "X$cur_path" != "X" ]; then
+            if [ "X$is_cur_rbd" != "X" ];then
+                if [ "X$is_cur_rbd_rename_exist" != "X" ];then
+                    if [ "$rbd_type" = "onestor" ]; then
+                        $RBD_CMD rename --conf $config_file $cur_image_name$date_suffix $cur_image_name
+                    else
+                        $RBD_CMD rename $cur_image_name$date_suffix $cur_image_name
+                    fi
+                    tmp_return_code=$?
+                    if [ $tmp_return_code -ne 0 ]; then
+                        br_printlog $MODULE_NAME err "$LINENO: Rename rbd image $cur_disk_pool_name $cur_image_only_name$date_suffix to $cur_image_only_name failed with error code $return_code."
+                    else
+                        br_printlog $MODULE_NAME info "$LINENO: Rename rbd image $cur_disk_pool_name $cur_image_only_name$date_suffix to $cur_image_only_name success."
+                    fi
+                fi
+            else
+                mv -f $cur_path$date_suffix $cur_path
+                tmp_return_code=$?
+                if [ $tmp_return_code -ne 0 ]; then
+                    br_printlog $MODULE_NAME err "$LINENO: Rename $cur_path$date_suffix to $cur_path failed with error code $return_code."
+                else
+                    br_printlog $MODULE_NAME info "$LINENO: Rename $cur_path$date_suffix to $cur_path success."
+                fi
+            fi
+        fi
+    else
+        if [ $need_rename = "1" -a  "X$cur_path" != "X" -a "$last_round" = "1" ]; then
+            # import rbd success, going to remove $cur_path$date_suffix
+            # only for last round
+            if [ "X$is_cur_rbd" != "X" ];then
+                if [ "X$is_cur_rbd_rename_exist" != "X" ];then
+                    if [ "$rbd_type" = "onestor" ]; then
+                        $RBD_CMD snap purge --conf $config_file $cur_image_name$date_suffix
+                    else
+                        $RBD_CMD snap purge $cur_image_name$date_suffix
+                    fi
+                    tmp_return_code=$?
+                    if [ $tmp_return_code -ne 0 ]; then
+                        br_printlog $MODULE_NAME warn "$LINENO: Delete rbd:$cur_image_name$date_suffix's snapshots failed with error code $tmp_return_code."
+                    else
+                        br_printlog $MODULE_NAME info "$LINENO: rbd:$cur_image_name$date_suffix's snapshots deleted."
+                    fi
+                    if [ "$rbd_type" = "onestor" ]; then
+                        $RBD_CMD remove --conf $config_file $cur_image_name$date_suffix
+                    else
+                        $RBD_CMD rm $cur_image_name$date_suffix
+                    fi
+                    tmp_return_code=$?
+                    if [ $tmp_return_code -ne 0 ]; then
+                        br_printlog $MODULE_NAME err "$LINENO: Delete rbd:$cur_image_name$date_suffix failed with error code $return_code."
+                    else
+                        br_printlog $MODULE_NAME info "$LINENO: rbd:$cur_image_name$date_suffix deleted."
+                    fi
+                fi
+                # rm rename img
+                if [ -f $cur_vm_path$date_suffix ]; then
+                    rm -f $cur_vm_path$date_suffix
+                    br_printlog $MODULE_NAME info "$LINENO: Remove $cur_vm_path$date_suffix success."
+                fi
+            else
+                rm -f $cur_vm_path$date_suffix
+                tmp_return_code=$?
+                if [ $tmp_return_code -ne 0 ]; then
+                    br_printlog $MODULE_NAME err "$LINENO: Remove $cur_vm_path$date_suffix failed with error code $tmp_return_code."
+                else
+                    br_printlog $MODULE_NAME info "$LINENO: Remove $cur_vm_path$date_suffix success."
+                fi
+                # rm all images except for base image
+                shift 7
+                backing_list_file_name=${cur_path//'/'/'_'}
+                tmp_file_name=${backing_list_file_name#*_}"_backing_list"
+                if [ -e /tmp/$tmp_file_name ]; then
+                    for vm_data_file in `cat /tmp/$tmp_file_name`
+                    do
+                        if [ $vm_data_file != $dest_path ]; then
+                            rm -f $vm_data_file
+                            tmp_return_code=$?
+                            if [ $tmp_return_code -ne 0 ]; then
+                                br_printlog $MODULE_NAME err "$LINENO: Remove $vm_data_file failed with error code $tmp_return_code."
+                            else
+                                br_printlog $MODULE_NAME info "$LINENO: Remove $vm_data_file success."
+                            fi
+                        fi
+                    done
+                    rm -f /tmp/$tmp_file_name
+                    tmp_return_code=$?
+                    if [ $tmp_return_code -ne 0 ]; then
+                        br_printlog $MODULE_NAME err "$LINENO: Remove /tmp/$tmp_file_name failed with error code $tmp_return_code."
+                    fi
+                fi
+            fi
+        fi
+    fi
+}
+
+############################################################################
+#  Author : wangtao/14407
+#  Create : 2018-10-25
+#  Desc   : Do vm data file restore
+#       #1: date suffix
+#       $2: need rename
+#       $3: last round
+#       $4: rbd snap name
+#       $5: data file path
+#       $6: index file name
+#       $7: dest path
+#       $8: src path
+#       $9: backup vm xml
+#       ${10}: backup version file
+#       ${11}: current path, must be the last param, it may be empty
+############################################################################
+function do_vm_data_file_restore()
+{
+    local MODULE_NAME=do_vm_data_file_restore
+    br_printlog $MODULE_NAME info "$LINENO: all para = $@"
+
+    local date_suffix=$1
+    local need_rename=$2
+    local last_round=$3
+    local rbd_snap_name=$4
+    local data_file_path=$5
+    local index_file_name=$6
+    local dest_path=$7
+    local src_path=$8
+    local backup_vm_xml=$9
+    local backup_version_file=${10}
+    local cur_path=${11}
+
+    local is_dest_rbd=`echo $dest_path | egrep '^rbd:'`
+    local is_cur_rbd=`echo $cur_path | egrep '^rbd:'`
+    if [ "X$is_cur_rbd" != "X" ];then
+        cur_image_name=${cur_path#*:}
+        cur_disk_pool_name=${cur_image_name%/*}
+        cur_image_only_name=${cur_image_name##*/}
+        cur_image_path=${dest_path#*:}
+        cur_pool_name=${cur_image_path%%/*}
+        config_file=`python3 /opt/bin/get_conf_for_rbd_by_pool.pyc $cur_pool_name`
+        if [ $? -ne 0 -o "$config_file" = "" ]; then
+            br_printlog $MODULE_NAME err "$LINENO: find config file err for pool:$cur_pool_name."
+            return $BR_FAILED
+        fi
+        local data_pool_name=`virsh pool-dumpxml $pool_name | xargs | grep -E -o -e "<source>.*</source>" | grep -E -o -e  "<name>.+</name>" | awk -F ">" '{print $2}' | awk -F "<" '{print $1}'`
+        rbd_type=`cat $RBD_INST_FILE | awk -F " " '{print $1}'`
+        if [ "$rbd_type" = "onestor" ]; then
+            is_cur_rbd_exist=`$RBD_CMD ls --conf $config_file $data_pool_name | egrep "^"$cur_image_only_name"\$"`
+        else
+            is_cur_rbd_exist=`$RBD_CMD ls $data_pool_name | egrep "^"$cur_image_only_name"\$"`
+        fi
+    fi
+
+    if [ $need_rename = "1" -a "X$cur_path" != "X" ]; then
+        if [ "X$is_cur_rbd" != "X" ];then
+            rbd_type=`cat $RBD_INST_FILE | awk -F " " '{print $1}'`
+            if [ "X$is_cur_rbd_exist" != "X" ];then
+                if [ "$rbd_type" = "onestor" ]; then
+                    $RBD_CMD rename --conf $config_file $cur_disk_pool_name"/"$cur_image_only_name $cur_disk_pool_name"/"$cur_image_only_name$date_suffix
+                else
+                    $RBD_CMD rename $cur_disk_pool_name"/"$cur_image_only_name $cur_disk_pool_name"/"$cur_image_only_name$date_suffix
+                fi
+                return_code=$?
+                if [ $return_code -ne 0 ]; then
+                    br_printlog $MODULE_NAME err "$LINENO: Rename rbd image $cur_disk_pool_name $cur_image_only_name to $cur_image_only_name$date_suffix failed with error code $return_code."
+                    return $BR_DATA_FILE_RESTORE
+                fi
+                br_printlog $MODULE_NAME info "$LINENO: Rename rbd image $cur_disk_pool_name $cur_image_only_name to $cur_image_only_name$date_suffix success."
+            fi
+        else
+            mv -f $cur_path $cur_path$date_suffix
+            return_code=$?
+            if [ $return_code -ne 0 ]; then
+                br_printlog $MODULE_NAME err "$LINENO: Rename $cur_path to $cur_path$date_suffix failed with error code $return_code."
+                return $BR_DATA_FILE_RESTORE
+            fi
+            br_printlog $MODULE_NAME info "$LINENO: Rename $cur_path to $cur_path$date_suffix success."
+        fi
+    fi
+    if [ "X$is_dest_rbd" != "X" ];then
+        import_rbd_image $last_round $rbd_snap_name $data_file_path $index_file_name $dest_path
+        return_code=$?
+    else
+        local xml_disk=`python3 $BR_SHELL_PATH/find_disk.pyc $backup_vm_xml $src_path`
+        if [ $? -ne 0 -o "X$xml_disk" = "X" ]; then
+            br_printlog $MODULE_NAME err "$LINENO: get disk name of $src_path from backup xml failed"
+            return $BR_XML_REPLACE_FAILED
+        fi
+        br_printlog $MODULE_NAME info "$LINENO: xml_disk=$xml_disk"
+
+        local backup_method=`cat $backup_version_file | grep backup_method`
+        local prealloc_data=`python3 $BR_SHELL_PATH/br_find_prealloc_data.pyc $backup_vm_xml $xml_disk`
+        local encrypted_flag=`qemu-img info $data_file_path"/"$index_file_name | grep -w encrypted | awk '{print $2}' | xargs`
+        br_printlog $MODULE_NAME info "$LINENO: backup_method=$backup_method prealloc_data=$prealloc_data encrypted_flag=$encrypted_flag"
+        if [ "X$backup_method" != "X" -a "X$prealloc_data" != "X" -a "X$encrypted_flag" != "Xyes" ]; then
+            local cluster_size=`qemu-img info $data_file_path"/"$index_file_name | grep cluster_size | awk '{print $NF}'`
+            br_printlog $MODULE_NAME info "$LINENO: preallocation=$prealloc_data dest_path=$dest_path cluster_size=$cluster_size"
+
+            qemu-img convert -O qcow2 -o cluster_size=$cluster_size,preallocation=$prealloc_data $data_file_path"/"$index_file_name $dest_path
+            return_code=$?
+            if [ $return_code -ne 0 ]; then
+                br_printlog $MODULE_NAME err "$LINENO: convert restore file $data_file_path"/"$index_file_name failed with code $return_code"
+                return $BR_DATA_FILE_RESTORE
+            fi
+            br_printlog $MODULE_NAME info "$LINENO: convert restore file $data_file_path"/"$index_file_name to format:$prealloc_data ok"
+        else
+            cp $data_file_path"/"$index_file_name $dest_path
+            return_code=$?
+            if [ $return_code -ne 0 ]; then
+                br_printlog $MODULE_NAME err "$LINENO: Move $data_file_path/$index_file_name to $dest_path failed with error code $return_code."
+                return_code=$BR_DATA_FILE_RESTORE
+            fi
+        fi
+    fi
+    return $return_code
+}
+
+##############################################################################
+#    Func Name: get_snaptype_by_file
+# Date Created: 2020-3-25
+#       Author: fengxiaojun/18671
+#  Description: Get snapshot type by file vm_snaptype_info
+#        usage:
+#       Input:
+#       OUTPUT: NONE
+#       RETURN: the snap_type
+#      CAUTION:
+#-----------------------------------------------------------------------------
+#  MODIFICATION HISTORY
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+function get_snaptype_by_file()
+{
+    # set the module name
+    local MODULE_NAME=get_snaptype_by_file
+
+    if [ -f vm_snaptype_info ]; then
+        snap_type=`cat vm_snaptype_info`
+    else
+        snap_type="internal"
+    fi
+    echo $snap_type
+}
+
+##############################################################################
+#    Func Name: rm_rbd_snapshot
+# Date Created: 2020-3-27
+#       Author: fengxiaojun/18671
+#  Description: Remove snapshot of rbd
+#        usage:
+#       Input:
+#       OUTPUT: NONE
+#       RETURN: the snap_type
+#      CAUTION:
+#-----------------------------------------------------------------------------
+#  MODIFICATION HISTORY
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+function rm_rbd_snapshot()
+{
+    # set the module name
+    local MODULE_NAME=rm_rbd_snapshot
+    br_printlog $MODULE_NAME info "$LINENO: all para = $@"
+    local rbd_type=$1
+    local image_name=$2
+    local snap_name=$3
+    local config_file=$4
+
+    if [ "$rbd_type" = "onestor" ]; then
+        $RBD_CMD snap rm --conf $config_file $image_name"@"$snap_name
+    else
+        $RBD_CMD snap rm $image_name"@"$snap_name
+    fi
+
+    return $?
+}
+
+##############################################################################
+#    Func Name: is_alive_backup_process
+# Date Created: 2019-05-13
+#       Author: tuguoyi
+#  Description: Check whether the process which specified by pid is backup process
+#        usage: $1 the pid
+#       Output: None
+#       Return: 0 if it's backup process; 1 if not
+#      Caution:
+#-----------------------------------------------------------------------------
+#  Modification History
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+is_alive_backup_process()
+{
+    if [ $@ -lt 1 ]; then
+        return 1
+    fi
+    script=`ps -p $1 -o pid,command | awk '{if (NR==2){print $2,$3}}'`
+    if [[  $script == *"/opt/bin/vm_backup.sh"* ]]; then
+        return 0
+    fi
+    return 1
+}
+
+##############################################################################
+#    Func Name: cleanup_cgroup_resource
+# Date Created: 2019-04-15
+#       Author: tuguoyi
+#  Description: Clean up all the cgroup resource that didn't release properly when
+#               host crash or some other fatal error occured
+#        usage:
+#       Output: None
+#       Return: None
+#      Caution:
+#-----------------------------------------------------------------------------
+#  Modification History
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+cleanup_cgroup_resource()
+{
+    local MODULE_NAME=cleanup_cgroup_resource
+    local cgdirs=`ls -d $CGROUP_HOME/${CGROUP_SUBDIR_PREFIX}*`
+
+    br_printlog $MODULE_NAME debug "$LINENO: Try to cleanup cgroup resources, cgdirs='$cgdirs'"
+
+    if [ -d $CGROUP_HOME_OLD ]; then
+        br_printlog $MODULE_NAME info "$LINENO: Remove the older cgroup resources, cgdir='$CGROUP_HOME_OLD'"
+        rmdir $CGROUP_HOME_OLD
+    fi
+
+    for cgdir in $cgdirs
+    do
+        pid=${cgdir##*_}
+        if is_alive_backup_process $pid; then
+            br_printlog $MODULE_NAME debug "$LINENO: pid $pid is an alive backup process, ignore it"
+            continue
+        fi
+        pidnum=`cat $CGROUP_HOME/$cgdir/cgroup.procs | wc -l`
+        if [ $pidnum -eq 0 ]; then
+            br_printlog $MODULE_NAME debug "$LINENO: Try to cleanup cgroup resources cgdir='$cgdir'"
+            rmdir  $cgdir
+            if [ $? -ne 0 ]; then
+                br_printlog $MODULE_NAME warn "$LINENO: Failed to release cgroup resourcesi cgdir='$cgdir'"
+            fi
+        fi
+    done
+}
+
+##############################################################################
+#    Func Name: unset_cgroup
+# Date Created: 2019-04-15
+#       Author: tuguoyi
+#  Description: unset backup resource limit
+#        usage:
+#       Output: None
+#       Return: None
+#      Caution:
+#-----------------------------------------------------------------------------
+#  Modification History
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+unset_cgroup()
+{
+    local MODULE_NAME=unset_cgroup
+
+    if [ "x${MY_CGDIR}" != "x" ]; then
+        rmdir ${MY_CGDIR}
+        if [ $? -ne 0 ]; then
+            br_printlog $MODULE_NAME warn "$LINENO: Failed to unset cgroup for this process MY_CGDIR=${MY_CGDIR}"
+        fi
+    fi
+}
+
+##############################################################################
+#    Func Name: set_cgroup
+# Date Created: 2015-06-06
+#       Author: zhangzijian
+#  Description: set backup resource limit
+#        usage:
+#       Output: None
+#       Return: None
+#      Caution:
+#-----------------------------------------------------------------------------
+#  Modification History
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+set_cgroup()
+{
+    local MODULE_NAME=set_cgroup
+    local current_pid=$$
+    local mem=`free -b | grep ^Mem | awk '{print $4,$7}'`
+    local mem_free=`echo $mem | awk '{print $1}'`
+    local mem_cached=`echo $mem | awk '{print $2}'`
+    local mem_limit=mem_free
+    local percent=80
+    local threshold=1073741824
+    local rtn=0
+
+    if [ ! -d $CGROUP_HOME ]; then
+        mkdir $CGROUP_HOME
+    fi
+
+    if [ $mem_free -lt $threshold -a $mem_cached -lt $threshold ]; then
+        br_printlog $MODULE_NAME err "$LINENO: Memory free: $mem_free, Memory cached: $mem_cached, both less than 1GB."
+        exit $BR_FAILED
+    fi
+
+    if [ -f $CGROUP_CONF ]; then
+        percent=`grep "^mem_limit" $CGROUP_CONF | awk -F "=" '{print $2}'`
+    fi
+
+    MY_CGDIR=$CGROUP_HOME/${CGROUP_SUBDIR_PREFIX}${current_pid}
+    if [ ! -d ${MY_CGDIR} ]; then
+        mkdir ${MY_CGDIR}
+    fi
+
+    mem_limit=`expr $mem_free / 100 \* $percent`
+
+    if [ ! -d $CGROUP_HOME ]; then
+        mkdir $CGROUP_HOME
+    fi
+
+    br_printlog $MODULE_NAME debug "$LINENO: Memory free: $mem_free, Memory cached: $mem_cached, Memory limit: $mem_limit, percent: $percent."
+
+    echo $current_pid > ${MY_CGDIR}/cgroup.procs
+    rtn=$?
+    if [ $rtn -ne 0 ]; then
+        br_printlog $MODULE_NAME err "$LINENO: Setting tasks error."
+        exit $rtn
+    fi
+    sleep 1
+    echo $mem_limit > ${MY_CGDIR}/memory.limit_in_bytes
+    rtn=$?
+    if [ $rtn -ne 0 ]; then
+        br_printlog $MODULE_NAME err "$LINENO: Setting mem_limit error."
+        exit $rtn
+    fi
+}
+
+##############################################################################
+#    Func Name: create_sec_level_dir
+# Date Created: 2020-11-09
+#       Author: fengxiaojun
+#  Description: create second level directory if not exist
+#        usage:
+#       Output: None
+#       Return: 0 if success else 1
+#      Caution:
+#-----------------------------------------------------------------------------
+#  Modification History
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+create_sec_level_dir()
+{
+    backup_style=$1
+    if [ "$backup_style" = "cp" ]; then
+        shift 9
+    else
+        shift 13
+    fi
+
+    for org_file_name in $@
+    do
+        for index_file_name in ${org_file_name//;/ }
+        do
+            # the destination dir name
+            dest_path=${index_file_name#*=}
+
+            dest_dir=${dest_path%/*}
+            if [ ! -x $dest_dir ]; then
+                mkdir -p $dest_dir
+                if [ $? -ne 0 ]; then
+                    br_printlog $MODULE_NAME err "$LINENO: Mkdir $dest_dir failed."
+                    return $BR_FAILED
+                fi
+            fi
+        done
+    done
+
+    return $BR_SUCCESS
+}
+
+##############################################################################
+#    Func Name: clean_sec_level_dir
+# Date Created: 2020-11-09
+#       Author: fengxiaojun
+#  Description: clean second level directory
+#        usage:
+#       Output: None
+#       Return: None
+#      Caution:
+#-----------------------------------------------------------------------------
+#  Modification History
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+clean_sec_level_dir()
+{
+    backup_style=$1
+    if [ "$backup_style" = "cp" ]; then
+        shift 9
+    else
+        shift 13
+    fi
+
+    for org_file_name in $@
+    do
+        for index_file_name in ${org_file_name//;/ }
+        do
+            # the destination dir name
+            dest_path=${index_file_name#*=}
+
+            dest_dir=${dest_path%/*}
+
+            local level=`echo $dest_path | awk -F '/' '{print NF}'`
+            if [ -x $dest_dir ] && [ "X$level" = "X5" ] && [ `ls -A $dest_dir` = "" ]; then
+                rm -rf $dest_dir
+            fi
+        done
+    done
+}

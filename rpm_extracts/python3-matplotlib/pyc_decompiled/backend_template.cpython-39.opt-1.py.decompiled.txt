@@ -1,0 +1,150 @@
+m	Z	
+A fully functional, do-nothing backend intended as a template for backend
+writers.  It is fully functional in that you can select it as a backend e.g.
+with ::
+    import matplotlib
+    matplotlib.use("template")
+and your program will (should!) run without error, though no output is
+produced.  This provides a starting point for backend writers; you can
+selectively implement drawing methods (`~.RendererTemplate.draw_path`,
+`~.RendererTemplate.draw_image`, etc.) and slowly see your figure come to life
+instead having to have a full blown implementation before getting any results.
+Copy this file to a directory outside of the Matplotlib source tree, somewhere
+where Python can import it (by adding the directory to your ``sys.path`` or by
+packaging it as a normal Python package); if the backend is importable as
+``import my.backend`` you can then select it using ::
+    import matplotlib
+    matplotlib.use("module://my.backend")
+If your backend implements support for saving figures (i.e. has a `print_xyz`
+method), you can register it as the default handler for a given file type::
+    from matplotlib.backend_bases import register_backend
+    register_backend('xyz', 'my_backend', 'XYZ File Format')
+    ...
+    plt.savefig("figure.xyz")
+_api)
+Gcf)
+FigureCanvasBase
+FigureManagerBase
+GraphicsContextBase
+RendererBase)
+Figurec
+RendererTemplatez
+    The renderer handles drawing/rendering operations.
+    This is a minimal do-nothing class that can be used to get started when
+    writing a new backend.  Refer to `.backend_bases.RendererBase` for
+    documentation of the methods.
+    c
+super
+__init__
+dpi)
+selfr
+	__class__
+J/usr/lib64/python3.9/site-packages/matplotlib/backends/backend_template.pyr
+RendererTemplate.__init__Nc
+pathZ	transformZ
+rgbFacer
+	draw_path4
+RendererTemplate.draw_pathc
+draw_imageO
+RendererTemplate.draw_imageFc	
+propZ
+angle
+ismathZ
+mtextr
+	draw_textR
+RendererTemplate.draw_textc
+flipyU
+RendererTemplate.flipyc
+get_canvas_width_heightY
+z(RendererTemplate.get_canvas_width_heightc
+get_text_width_height_descent]
+z.RendererTemplate.get_text_width_height_descentc
+GraphicsContextTemplater
+new_gc`
+RendererTemplate.new_gcc
+pointsr
+points_to_pixelsd
+z!RendererTemplate.points_to_pixels)
+__name__
+__module__
+__qualname__
+__doc__r
+__classcell__r
+    The graphics context provides the color, line styles, etc.  See the cairo
+    and postscript backends for examples of mapping the graphics context
+    attributes (cap styles, join styles, line widths, colors) to a particular
+    backend.  In cairo this is done by wrapping a cairo.Context object and
+    forwarding the appropriate calls to it using a dictionary mapping styles
+    to gdk constants.  In Postscript, all the work is done by the renderer,
+    mapping line styles to postscript calls.
+    If it's more appropriate to do the mapping at the renderer level (as in
+    the postscript backend), you don't need to override any of the GC methods.
+    If it's more appropriate to wrap an instance (as in the cairo backend) and
+    do the mapping here, you'll need to override several of the setter
+    methods.
+    The base GraphicsContext stores colors as a RGB tuple on the unit
+    interval, e.g., (0.5, 0.0, 1.0). You may need to map this to colors
+    appropriate for your backend.
+    N
+blockc
+    For image backends - is not required.
+    For GUI backends - show() is usually the last line of a pyplot script and
+    tells the backend that it is time to draw.  In interactive mode, this
+    should do nothing.
+    N)
+get_all_fig_managers)
+managerr
+show
+FigureManagerTemplatez
+    Helper class for pyplot mode, wraps everything up into a neat bundle.
+    For non-interactive backends, the base class is sufficient.
+    Nr+
+FigureCanvasTemplatea1
+    The canvas the figure renders into.  Calls the draw and print fig
+    methods, creates the renderers, etc.
+    Note: GUI templates will want to connect events for button presses,
+    mouse movements and key presses to functions that call the base
+    class methods button_press_event, button_release_event,
+    motion_notify_event, key_press_event, and key_release_event.  See the
+    implementations of the interactive backends for examples.
+    Attributes
+    ----------
+    figure : `matplotlib.figure.Figure`
+        A high-level Figure instance
+    c
+        Draw the figure using the renderer.
+        It is important that this method actually walk the artist tree
+        even if not output is produced because this will trigger
+        deferred work (like computing limits auto-limits and tick
+        values) that users may want access to before saving to disk.
+        N)
+figurer
+draw)
+rendererr
+FigureCanvasTemplate.draw
+fooz
+My magic Foo formatz
+argsc
+        Write out format foo.
+        This method is normally called via `.Figure.savefig` and
+        `.FigureCanvasBase.print_figure`, which take care of setting the figure
+        facecolor, edgecolor, and dpi to the desired output values, and will
+        restore them to the original values.  Therefore, `print_foo` does not
+        need to handle these settings.
+        N)
+filenamer2
+kwargsr
+	print_foo
+FigureCanvasTemplate.print_fooc
+get_default_filetype
+z)FigureCanvasTemplate.get_default_filetypeN)
+manager_classr0
+Z	filetypesr
+delete_parameterr5
+matplotlibr
+matplotlib._pylab_helpersr
+matplotlib.backend_basesr
+matplotlib.figurer
+FigureCanvasZ
+FigureManagerr
+<module>

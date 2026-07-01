@@ -1,0 +1,228 @@
+Loss functions for linear models with raw_prediction = X @ coef
+sparse
+squared_normc
+LinearModelLossa
+General class for loss functions with raw_prediction = X @ coef + intercept.
+    Note that raw_prediction is also known as linear predictor.
+    The loss is the sum of per sample losses and includes a term for L2
+    regularization::
+        loss = sum_i s_i loss(y_i, X_i @ coef + intercept)
+               + 1/2 * l2_reg_strength * ||coef||_2^2
+    with sample weights s_i=1 if sample_weight=None.
+    Gradient and hessian, for simplicity without intercept, are::
+        gradient = X.T @ loss.gradient + l2_reg_strength * coef
+        hessian = X.T @ diag(loss.hessian) @ X + l2_reg_strength * identity
+    Conventions:
+        if fit_intercept:
+            n_dof =  n_features + 1
+        else:
+            n_dof = n_features
+        if base_loss.is_multiclass:
+            coef.shape = (n_classes, n_dof) or ravelled (n_classes * n_dof,)
+        else:
+            coef.shape = (n_dof,)
+        The intercept term is at the end of the coef array:
+        if base_loss.is_multiclass:
+            if coef.shape (n_classes, n_dof):
+                intercept = coef[:, -1]
+            if coef.shape (n_classes * n_dof,)
+                intercept = coef[n_features::n_dof] = coef[(n_dof-1)::n_dof]
+            intercept.shape = (n_classes,)
+        else:
+            intercept = coef[-1]
+    Note: If coef has shape (n_classes * n_dof,), the 2d-array can be reconstructed as
+        coef.reshape((n_classes, -1), order="F")
+    The option order="F" makes coef[:, i] contiguous. This, in turn, makes the
+    coefficients without intercept, coef[:, :-1], contiguous and speeds up
+    matrix-vector computations.
+    Note: If the average loss per sample is wanted instead of the sum of the loss per
+    sample, one can simply use a rescaled sample_weight such that
+    sum(sample_weight) = 1.
+    Parameters
+    ----------
+    base_loss : instance of class BaseLoss from sklearn._loss.
+    fit_intercept : bool
+    c
+	base_loss
+fit_intercept)
+selfr
+G/usr/lib64/python3.9/site-packages/sklearn/linear_model/_linear_loss.py
+__init__B
+LinearModelLoss.__init__c
+Helper function to get coefficients, intercept and raw_prediction.
+        Parameters
+        ----------
+        coef : ndarray of shape (n_dof,), (n_classes, n_dof) or (n_classes * n_dof,)
+            Coefficients of a linear model.
+            If shape (n_classes * n_dof,), the classes of one feature are contiguous,
+            i.e. one reconstructs the 2d-array via
+            coef.reshape((n_classes, -1), order="F").
+        X : {array-like, sparse matrix} of shape (n_samples, n_features)
+            Training data.
+        Returns
+        -------
+        weights : ndarray of shape (n_features,) or (n_classes, n_features)
+            Coefficients without intercept term.
+        intercept : float or ndarray of shape (n_classes,)
+            Intercept terms.
+        raw_prediction : ndarray of shape (n_samples,) or             (n_samples, n_classes)
+        
+order)
+is_multiclassr
+ndim
+reshape
+	n_classes
+coef
+	intercept
+weights
+raw_predictionr	
+_w_intercept_rawF
+z LinearModelLoss._w_intercept_rawNr
+Compute the loss as sum over point-wise losses.
+        Parameters
+        ----------
+        coef : ndarray of shape (n_dof,), (n_classes, n_dof) or (n_classes * n_dof,)
+            Coefficients of a linear model.
+            If shape (n_classes * n_dof,), the classes of one feature are contiguous,
+            i.e. one reconstructs the 2d-array via
+            coef.reshape((n_classes, -1), order="F").
+        X : {array-like, sparse matrix} of shape (n_samples, n_features)
+            Training data.
+        y : contiguous array of shape (n_samples,)
+            Observed, true target values.
+        sample_weight : None or contiguous array of shape (n_samples,), default=None
+            Sample weights.
+        l2_reg_strength : float, default=0.0
+            L2 regularization strength
+        n_threads : int, default=1
+            Number of OpenMP threads to use.
+        Returns
+        -------
+        loss : float
+            Sum of losses per sample plus penalty.
+        
+y_truer
+sample_weight
+	n_threadsr
+loss
+sumr
+l2_reg_strengthr
+norm2_wr	
+LinearModelLoss.lossc
+Computes the sum of loss and gradient w.r.t. coef.
+        Parameters
+        ----------
+        coef : ndarray of shape (n_dof,), (n_classes, n_dof) or (n_classes * n_dof,)
+            Coefficients of a linear model.
+            If shape (n_classes * n_dof,), the classes of one feature are contiguous,
+            i.e. one reconstructs the 2d-array via
+            coef.reshape((n_classes, -1), order="F").
+        X : {array-like, sparse matrix} of shape (n_samples, n_features)
+            Training data.
+        y : contiguous array of shape (n_samples,)
+            Observed, true target values.
+        sample_weight : None or contiguous array of shape (n_samples,), default=None
+            Sample weights.
+        l2_reg_strength : float, default=0.0
+            L2 regularization strength
+        n_threads : int, default=1
+            Number of OpenMP threads to use.
+        Returns
+        -------
+        loss : float
+            Sum of losses per sample plus penalty.
+        gradient : ndarray of shape coef.shape
+             The gradient of the loss.
+        r
+dtypeNr
+axisr
+shaper
+intr
+loss_gradientr"
+empty_liker&
+emptyr
+ravel)
+n_featuresr
+n_dofr
+grad_per_sample
+gradr	
+LinearModelLoss.loss_gradientc
+Computes the gradient w.r.t. coef.
+        Parameters
+        ----------
+        coef : ndarray of shape (n_dof,), (n_classes, n_dof) or (n_classes * n_dof,)
+            Coefficients of a linear model.
+            If shape (n_classes * n_dof,), the classes of one feature are contiguous,
+            i.e. one reconstructs the 2d-array via
+            coef.reshape((n_classes, -1), order="F").
+        X : {array-like, sparse matrix} of shape (n_samples, n_features)
+            Training data.
+        y : contiguous array of shape (n_samples,)
+            Observed, true target values.
+        sample_weight : None or contiguous array of shape (n_samples,), default=None
+            Sample weights.
+        l2_reg_strength : float, default=0.0
+            L2 regularization strength
+        n_threads : int, default=1
+            Number of OpenMP threads to use.
+        Returns
+        -------
+        gradient : ndarray of shape coef.shape
+             The gradient of the loss.
+        r
+gradientr
+LinearModelLoss.gradientc
+Computes gradient and hessp (hessian product function) w.r.t. coef.
+        Parameters
+        ----------
+        coef : ndarray of shape (n_dof,), (n_classes, n_dof) or (n_classes * n_dof,)
+            Coefficients of a linear model.
+            If shape (n_classes * n_dof,), the classes of one feature are contiguous,
+            i.e. one reconstructs the 2d-array via
+            coef.reshape((n_classes, -1), order="F").
+        X : {array-like, sparse matrix} of shape (n_samples, n_features)
+            Training data.
+        y : contiguous array of shape (n_samples,)
+            Observed, true target values.
+        sample_weight : None or contiguous array of shape (n_samples,), default=None
+            Sample weights.
+        l2_reg_strength : float, default=0.0
+            L2 regularization strength
+        n_threads : int, default=1
+            Number of OpenMP threads to use.
+        Returns
+        -------
+        gradient : ndarray of shape coef.shape
+             The gradient of the loss.
+        hessp : callable
+            Function that takes in a vector input of shape of gradient and
+            and returns matrix-vector product with hessian.
+        r
+issparser
+linalgZ	multi_dotr
+ret)
+hX_sum
+hessian_sumr$
+hesspP
+z7LinearModelLoss.gradient_hessian_product.<locals>.hesspr
+newaxisr.
+s_intercept
+tmpZ	hess_prod)
+probar
+gradient_hessianr,
+dia_matrixr<
+squeezeZ
+asarrayZ
+gradient_probar.
+Z	n_samplesr
+hessianr3
+gradient_hessian_product
+z(LinearModelLoss.gradient_hessian_product)
+__name__
+__module__
+__qualname__
+__doc__r
+numpyr,
+scipyr
+utils.extmathr
+<module>

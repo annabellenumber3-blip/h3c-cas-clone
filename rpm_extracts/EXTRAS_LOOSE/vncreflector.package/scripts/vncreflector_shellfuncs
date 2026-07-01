@@ -1,0 +1,69 @@
+##############################################################################
+# funcion   : get current datetime
+##############################################################################
+vncreflectordate() {
+    date "+${__VNCREFLECTOR_DATEFMT}"
+}
+
+##############################################################################
+# funcion   : get current month, eg. 201106
+##############################################################################
+vncreflectorCurrentMonth() {
+    date "+%Y%m"
+}
+
+##############################################################################
+#    Func Name: vncreflector_printlog
+# Date Created: 2011-16-16 
+#       Author:  
+#  Description: print log to a log file; if debug and we're connected to a tty,
+#               then output to stderr,otherwise, to logfile.
+#        usage: $0 $1 $2 $3  
+#               $1 : the caller's name, usually, it is the shell name; must 
+#               $2 : the log level, it must be one of {crit|err|warn|info|debug}; must
+#               $3 : the message string; must
+#       Output: None
+#       Return: 0
+#      Caution: 
+#-----------------------------------------------------------------------------
+#  Modification History 
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+vncreflector_printlog() {
+    # check the invalidity of the params.
+    if [ $# -lt 3 ]; then
+        vncreflector_printlog testshell err "Not enough arguments [$#] to vncreflector_printlog."
+        return 0
+    fi
+    
+    #save the parameters
+    __VNCREFLECTOR_LOG_FROM="$1"
+    shift    
+    __VNCREFLECTOR_LOG_PRIO="$1"
+    shift
+    __VNCREFLECTOR_LOG_MSG="$*"
+
+    #format the log/debug level.
+    case "${__VNCREFLECTOR_LOG_PRIO}" in
+          crit)     __VNCREFLECTOR_LOG_PRIO="CRIT";;
+          err)      __VNCREFLECTOR_LOG_PRIO="ERROR";;
+          warn)     __VNCREFLECTOR_LOG_PRIO="WARNING";;
+          info)     __VNCREFLECTOR_LOG_PRIO="INFO";;
+          debug)    __VNCREFLECTOR_LOG_PRIO="DEBUG";;
+          *)        __VNCREFLECTOR_LOG_PRIO=`echo ${__VNCREFLECTOR_LOG_PRIO}| tr '[a-z]' '[A-Z]'`;;
+    esac
+    
+    #make up the full message
+    __VNCREFLECTOR_HOSTNAME=`hostname`
+    __VNCREFLECTOR_LOG_MSG=`vncreflectordate`" ["${__VNCREFLECTOR_HOSTNAME}"]("${__VNCREFLECTOR_LOG_FROM}"): "${__VNCREFLECTOR_LOG_PRIO}":"${__VNCREFLECTOR_LOG_MSG}
+
+    #buildup the log file name
+    __VNCREFLECTOR_LOGFILE="/var/log/vncreflector_shell_"`vncreflectorCurrentMonth`".log"    
+
+    echo -e ${__VNCREFLECTOR_LOG_MSG} >> ${__VNCREFLECTOR_LOGFILE}    
+}
+
+###############################################################################
+## end of file
+###############################################################################
+

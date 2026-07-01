@@ -1,0 +1,911 @@
+m	Z	m
+Z#dHd
+Z$e#e$
+dId!d"
+d#d$
+d$e&
+d%d&
+d&e&
+d'd(
+d(e&
+Z)d)d*
+d+d,
+d,e(
+d-d.
+d.e&
+Z,d/
+e"d0<
+d1d2
+d2e+
+d3d4
+d4e-
+d5d6
+d6e+
+d7d8
+d8e+
+d9d:
+d:e+
+d;d<
+d<e+
+d=d>
+d>e(
+Z3d?d@
+Z4e4dAe-
+Z5e4dBe.
+Z6e4dCe/
+Z7e4dDe1
+Z8e4dEe0
+Z9e4dFe2
+Z:e4dGe3
+Nonlinear solvers
+-----------------
+.. currentmodule:: scipy.optimize
+This is a collection of general-purpose nonlinear multidimensional
+solvers. These solvers find *x* for which *F(x) = 0*. Both *x*
+and *F* can be multidimensional.
+Routines
+~~~~~~~~
+Large-scale nonlinear solvers:
+.. autosummary::
+   newton_krylov
+   anderson
+General nonlinear solvers:
+.. autosummary::
+   broyden1
+   broyden2
+Simple iterations:
+.. autosummary::
+   excitingmixing
+   linearmixing
+   diagbroyden
+Examples
+~~~~~~~~
+**Small problem**
+>>> def F(x):
+...    return np.cos(x) + x[::-1] - [1, 2, 3, 4]
+>>> import scipy.optimize
+>>> x = scipy.optimize.broyden1(F, [1,1,1,1], f_tol=1e-14)
+>>> x
+array([ 4.04674914,  3.91158389,  2.71791677,  1.61756251])
+>>> np.cos(x) + x[::-1]
+array([ 1.,  2.,  3.,  4.])
+**Large problem**
+Suppose that we needed to solve the following integrodifferential
+equation on the square :math:`[0,1]\times[0,1]`:
+.. math::
+   \nabla^2 P = 10 \left(\int_0^1\int_0^1\cosh(P)\,dx\,dy\right)^2
+with :math:`P(x,1) = 1` and :math:`P=0` elsewhere on the boundary of
+the square.
+The solution can be found using the `newton_krylov` solver:
+.. plot::
+   import numpy as np
+   from scipy.optimize import newton_krylov
+   from numpy import cosh, zeros_like, mgrid, zeros
+   # parameters
+   nx, ny = 75, 75
+   hx, hy = 1./(nx-1), 1./(ny-1)
+   P_left, P_right = 0, 0
+   P_top, P_bottom = 1, 0
+   def residual(P):
+       d2x = zeros_like(P)
+       d2y = zeros_like(P)
+       d2x[1:-1] = (P[2:]   - 2*P[1:-1] + P[:-2]) / hx/hx
+       d2x[0]    = (P[1]    - 2*P[0]    + P_left)/hx/hx
+       d2x[-1]   = (P_right - 2*P[-1]   + P[-2])/hx/hx
+       d2y[:,1:-1] = (P[:,2:] - 2*P[:,1:-1] + P[:,:-2])/hy/hy
+       d2y[:,0]    = (P[:,1]  - 2*P[:,0]    + P_bottom)/hy/hy
+       d2y[:,-1]   = (P_top   - 2*P[:,-1]   + P[:,-2])/hy/hy
+       return d2x + d2y - 10*cosh(P).mean()**2
+   # solve
+   guess = zeros((nx, ny), float)
+   sol = newton_krylov(residual, guess, method='lgmres', verbose=1)
+   print('Residual: %g' % abs(residual(sol)).max())
+   # visualize
+   import matplotlib.pyplot as plt
+   x, y = mgrid[0:1:(nx*1j), 0:1:(ny*1j)]
+   plt.pcolormesh(x, y, sol, shading='gouraud')
+   plt.colorbar()
+   plt.show()
+norm
+solve
+LinAlgError)
+asarray
+vdot)
+get_blas_funcs)
+getfullargspec_no_self
+scalar_search_wolfe1
+scalar_search_armijo)
+broyden1
+broyden2
+anderson
+linearmixing
+diagbroyden
+excitingmixing
+newton_krylovc
+NoConvergenceN)
+__name__
+__module__
+__qualname__
+;/usr/lib64/python3.9/site-packages/scipy/optimize/nonlin.pyr
+absolute
+maxnorm
+z:Return `x` as an array, of either floats or complex floats
+dtype)
+issubdtyper%
+inexact
+float_r!
+_as_inexact
+z;Return ndarray `x` as same array subclass and shape as `x0`
+__array_wrap__)
+reshape
+shape
+getattrr(
+wrapr
+_array_like
+isfinite
+array
+infr
+_safe_norm
+    F : function(x) -> f
+        Function whose root to find; should take and return an array-like
+        object.
+    xin : array_like
+        Initial guess for the solution
+    a
+    iter : int, optional
+        Number of iterations to make. If omitted (default), make as many
+        as required to meet tolerances.
+    verbose : bool, optional
+        Print status to stdout on every iteration.
+    maxiter : int, optional
+        Maximum number of iterations to make. If more are needed to
+        meet convergence, `NoConvergence` is raised.
+    f_tol : float, optional
+        Absolute tolerance (in max-norm) for the residual.
+        If omitted, default is 6e-6.
+    f_rtol : float, optional
+        Relative tolerance for the residual. If omitted, not used.
+    x_tol : float, optional
+        Absolute minimum step size, as determined from the Jacobian
+        approximation. If the step size is smaller than this, optimization
+        is terminated as successful. If omitted, not used.
+    x_rtol : float, optional
+        Relative minimum step size. If omitted, not used.
+    tol_norm : function(vector) -> scalar, optional
+        Norm to use in convergence check. Default is the maximum norm.
+    line_search : {None, 'armijo' (default), 'wolfe'}, optional
+        Which type of a line search to use to determine the step size in the
+        direction given by the Jacobian approximation. Defaults to 'armijo'.
+    callback : function, optional
+        Optional callback function. It is called on every iteration as
+        ``callback(x, f)`` where `x` is the current solution and `f`
+        the corresponding residual.
+    Returns
+    -------
+    sol : ndarray
+        An array (of similar array type as `x0`) containing the final solution.
+    Raises
+    ------
+    NoConvergence
+        When a solution was not found.
+    )
+params_basicZ
+params_extrac
+__doc__
+_doc_parts)
+objr
+_set_doc
+krylovF
+armijoTc
+    Find a root of a function, in a way suitable for large-scale problems.
+    Parameters
+    ----------
+    %(params_basic)s
+    jacobian : Jacobian
+        A Jacobian approximation: `Jacobian` object or something that
+        `asjacobian` can transform to one. Alternatively, a string specifying
+        which of the builtin Jacobian approximations to use:
+            krylov, broyden1, broyden2, anderson
+            diagbroyden, linearmixing, excitingmixing
+    %(params_extra)s
+    full_output : bool
+        If true, returns a dictionary `info` containing convergence
+        information.
+    raise_exception : bool
+        If True, a `NoConvergence` exception is raise if no solution is found.
+    See Also
+    --------
+    asjacobian, Jacobian
+    Notes
+    -----
+    This algorithm implements the inexact Newton method, with
+    backtracking or full line searches. Several Jacobian
+    approximations are available, including Krylov and Quasi-Newton
+    methods.
+    References
+    ----------
+    .. [KIM] C. T. Kelley, "Iterative Methods for Linear and Nonlinear
+       Equations". Society for Industrial and Applied Mathematics. (1995)
+       https://archive.siam.org/books/kelley/fr16/
+    N)
+f_tol
+f_rtol
+x_tol
+x_rtol
+iterr
+flatten)
+<lambda>
+nonlin_solve.<locals>.<lambda>r
+wolfez
+Invalid line searchg
+MbP?)
+tolr
+z[Jacobian inversion yielded zero vector. This indicates a bug in the Jacobian approximation.
+%d:  |F(x)| = %g; step %g
+z0A solution was found at the specified tolerance.z:The maximum number of iterations allowed has been reached.)
+nitZ
+status
+success
+message)
+TerminationConditionr'
+Z	full_liker0
+asjacobian
+setup
+copy
+size
+ValueError
+range
+check
+minr
+_nonlin_line_search
+updater 
+stdout
+write
+flushr
+	iteration) rB
+jacobianr>
+verbose
+maxiterr:
+tol_normZ
+line_search
+callbackZ
+full_outputZ
+raise_exceptionZ	condition
+funcr"
+Fx_norm
+gammaZ
+eta_maxZ
+eta_tresholdZ
+Fx_norm_newZ
+eta_A
+infor
+nonlin_solve
+storeZ
+xtr2
+tmp_Fx
+tmp_phi
+tmp_sr"
+phiy
+z _nonlin_line_search.<locals>.phic
+abs)
+rdiff
+s_normr
+derphi
+z#_nonlin_line_search.<locals>.derphirF
+xtol
+aminr9
+search_typert
+sminrv
+phi1Z
+phi0rd
+)	rb
+    Termination condition for an iteration. It is terminated if
+    - |F| < f_rtol*|F_0|, AND
+    - |F| < f_tol
+    AND
+    - |dx| < x_rtol*|x|, AND
+    - |dx| < x_tol
+    Nc
+NgUUUUUU
+finfor&
+epsr0
+f0_normr\
+selfr:
+__init__
+TerminationCondition.__init__c
+)	r\
+intr:
+f_normZ
+x_norm
+dx_normr
+TerminationCondition.check)
+Jacobiana
+    Common interface for Jacobians or Jacobian approximations.
+    The optional methods come useful when implementing trust region
+    etc., algorithms that often require evaluating transposes of the
+    Jacobian.
+    Methods
+    -------
+    solve
+        Returns J^-1 * v
+    update
+        Updates Jacobian to point `x` (where the function has residual `Fx`)
+    matvec : optional
+        Returns J * v
+    rmatvec : optional
+        Returns A^H * v
+    rsolve : optional
+        Returns A^-H * v
+    matmat : optional
+        Returns A * V, where V is a dense matrix with dimensions (N,K).
+    todense : optional
+        Form the dense Jacobian matrix. Necessary for dense trust region
+        algorithms, and useful for testing.
+    Attributes
+    ----------
+    shape
+        Matrix dimensions (M, N)
+    dtype
+        Data type of the matrix.
+    func : callable, optional
+        Function the Jacobian corresponds to
+    c
+N)	r
+matvec
+rmatvec
+rsolveZ
+matmat
+todenser)
+Unknown keyword argument %sr
+z#Jacobian.__init__.<locals>.<lambda>)
+itemsrR
+setattr
+hasattr
+	__array__)
+names
+name
+valuer
+Jacobian.__init__c
+InverseJacobianr
+aspreconditioner
+Jacobian.aspreconditionerr
+NotImplementedError
+Jacobian.solvec
+Jacobian.updatec
+	__class__rO
+Jacobian.setupN)
+InverseJacobian.__init__c
+InverseJacobian.shapec
+InverseJacobian.dtypeN)
+propertyr)
+    Convert given object to one suitable for use as a Jacobian.
+    rI
+array must have rank <= 2r
+array must be squarec
+asjacobian.<locals>.<lambda>c
+conj
+matrix must be squarec
+spsolver
+asjacobian.<locals>.Jacc
+asjacobian.<locals>.Jac.updater
+Unknown matrix type)	r"
+isinstancer
+ndarrayr
+scipy
+sparse
+isspmatrixrR
+asjacobian.<locals>.Jac.solvec
+)	r"
+asjacobian.<locals>.Jac.matvecc
+asjacobian.<locals>.Jac.rsolvec
+asjacobian.<locals>.Jac.rmatvecN)
+Jac^
+z#Cannot convert object to a JacobianN) r
+linalgr
+inspectZ
+isclass
+issubclassr
+ndimrR
+atleast_2dr
+callable
+dict
+BroydenFirst
+BroydenSecond
+Anderson
+DiagBroyden
+LinearMixing
+ExcitingMixing
+KrylovJacobian
+	TypeError)
+GenericBroydenc
+alpha
+last_f
+last_xr
+f0ra
+normf0r
+GenericBroyden.setupc
+df_normr
+_update
+GenericBroyden._updatec
+GenericBroyden.updateN)
+LowRankMatrixz
+    A matrix represented as
+    .. math:: \alpha I + \sum_{n=0}^{n=M} c_n d_n^\dagger
+    However, if the rank of the matrix reaches the dimension of the vectors,
+    full matrix representation will be used thereon.
+    c
+csrs
+	collapsed)
+LowRankMatrix.__init__c
+axpy
+scal
+dotcr
+ziprQ
+_matvec
+LowRankMatrix._matvecc
+qlq\t
+Evaluate w = M^-1 vr
+lenr
+identityr%
+	enumerate
+zerosr
+_solve
+LowRankMatrix._solvec
+Evaluate w = M vN)
+LowRankMatrix.matvecc
+Evaluate w = M^H vN)
+LowRankMatrix.rmatvecr
+LowRankMatrix.solvec
+Evaluate w = M^-H vN)
+LowRankMatrix.rsolvec
+appendrs
+collapse)
+LowRankMatrix.appendc
+LowRankMatrix.__array__c
+z0Collapse the low-rank matrix to a full-rank one.N)
+LowRankMatrix.collapsec
+        Reduce the rank of the matrix by dropping all vectors.
+        Nr
+rankr
+restart_reduce
+LowRankMatrix.restart_reducec
+        Reduce the rank of the matrix by dropping oldest vectors.
+        Nr
+simple_reduce'
+LowRankMatrix.simple_reduceNc
+        Reduce the rank of the matrix by retaining some SVD components.
+        This corresponds to the "Broyden Rank Reduction Inverse"
+        algorithm described in [1]_.
+        Note that the SVD decomposition can be done by solving only a
+        problem whose size is the effective rank of this matrix, which
+        is viable even for large problems.
+        Parameters
+        ----------
+        max_rank : int
+            Maximum rank of this matrix after reduction.
+        to_retain : int, optional
+            Number of SVD components to retain when reduction is done
+            (ie. rank > max_rank). Default is ``max_rank - 2``.
+        References
+        ----------
+        .. [1] B.A. van der Rotten, PhD thesis,
+           "A limited memory Broyden method to solve high-dimensional
+           systems of nonlinear equations". Mathematisch Instituut,
+           Universiteit Leiden, The Netherlands (2003).
+           https://web.archive.org/web/20161022015821/http://www.math.leidenuniv.nl/scripties/Rotten.pdf
+        NrI
+economic)
+modeFT)
+full_matricesZ
+compute_uv)
+max_rankZ	to_retainrm
+svd_reduce2
+LowRankMatrix.svd_reduce)
+staticmethodr
+    alpha : float, optional
+        Initial guess for the Jacobian is ``(-1/alpha)``.
+    reduction_method : str or tuple, optional
+        Method used in ensuring that the rank of the Broyden matrix
+        stays low. Can either be a string giving the name of the method,
+        or a tuple of the form ``(method, param1, param2, ...)``
+        that gives the name of the method and values for additional parameters.
+        Methods available:
+            - ``restart``: drop all matrix columns. Has no extra parameters.
+            - ``simple``: drop oldest matrix column. Has no extra parameters.
+            - ``svd``: keep only the most significant SVD components.
+              Takes an extra parameter, ``to_retain``, which determines the
+              number of SVD components to retain when rank reduction is done.
+              Default is ``max_rank - 2``.
+    max_rank : int, optional
+        Maximum rank for the Broyden matrix.
+        Default is infinity (i.e., no rank reduction).
+    Z
+broyden_paramsc
+    Find a root of a function, using Broyden's first Jacobian approximation.
+    This method is also known as \"Broyden's good method\".
+    Parameters
+    ----------
+    %(params_basic)s
+    %(broyden_params)s
+    %(params_extra)s
+    See Also
+    --------
+    root : Interface to root finding algorithms for multivariate
+           functions. See ``method=='broyden1'`` in particular.
+    Notes
+    -----
+    This algorithm implements the inverse Jacobian Quasi-Newton update
+    .. math:: H_+ = H + (dx - H df) dx^\dagger H / ( dx^\dagger H df)
+    which corresponds to Broyden's first Jacobian update
+    .. math:: J_+ = J + (df - J dx) dx^\dagger / dx^\dagger dx
+    References
+    ----------
+    .. [1] B.A. van der Rotten, PhD thesis,
+       \"A limited memory Broyden method to solve high-dimensional
+       systems of nonlinear equations\". Mathematisch Instituut,
+       Universiteit Leiden, The Netherlands (2003).
+       https://web.archive.org/web/20161022015821/http://www.math.leidenuniv.nl/scripties/Rotten.pdf
+    Examples
+    --------
+    The following functions define a system of nonlinear equations
+    >>> def fun(x):
+    ...     return [x[0]  + 0.5 * (x[0] - x[1])**3 - 1.0,
+    ...             0.5 * (x[1] - x[0])**3 + x[1]]
+    A solution can be obtained as follows.
+    >>> from scipy import optimize
+    >>> sol = optimize.broyden1(fun, [0, 0])
+    >>> sol
+    array([0.84116396, 0.15883641])
+    N
+restartc
+_	n@|
+_	n&|
+reduce_paramsr{
+z'BroydenFirst.__init__.<locals>.<lambda>
+simplec
+z"Unknown rank reduction method '%s')
+_reducerR
+reduction_methodr
+BroydenFirst.__init__c
+BroydenFirst.setupc
+BroydenFirst.todenser
+BroydenFirst.solvec
+BroydenFirst.matvecc
+BroydenFirst.rsolvec
+BroydenFirst.rmatvecc
+BroydenFirst._update)
+    Find a root of a function, using Broyden's second Jacobian approximation.
+    This method is also known as "Broyden's bad method".
+    Parameters
+    ----------
+    %(params_basic)s
+    %(broyden_params)s
+    %(params_extra)s
+    See Also
+    --------
+    root : Interface to root finding algorithms for multivariate
+           functions. See ``method=='broyden2'`` in particular.
+    Notes
+    -----
+    This algorithm implements the inverse Jacobian Quasi-Newton update
+    .. math:: H_+ = H + (dx - H df) df^\dagger / ( df^\dagger df)
+    corresponding to Broyden's second method.
+    References
+    ----------
+    .. [1] B.A. van der Rotten, PhD thesis,
+       "A limited memory Broyden method to solve high-dimensional
+       systems of nonlinear equations". Mathematisch Instituut,
+       Universiteit Leiden, The Netherlands (2003).
+       https://web.archive.org/web/20161022015821/http://www.math.leidenuniv.nl/scripties/Rotten.pdf
+    Examples
+    --------
+    The following functions define a system of nonlinear equations
+    >>> def fun(x):
+    ...     return [x[0]  + 0.5 * (x[0] - x[1])**3 - 1.0,
+    ...             0.5 * (x[1] - x[0])**3 + x[1]]
+    A solution can be obtained as follows.
+    >>> from scipy import optimize
+    >>> sol = optimize.broyden2(fun, [0, 0])
+    >>> sol
+    array([0.84116365, 0.15883529])
+    c
+BroydenSecond._updateN)
+    Find a root of a function, using (extended) Anderson mixing.
+    The Jacobian is formed by for a 'best' solution in the space
+    spanned by last `M` vectors. As a result, only a MxM matrix
+    inversions and MxN multiplications are required. [Ey]_
+    Parameters
+    ----------
+    %(params_basic)s
+    alpha : float, optional
+        Initial guess for the Jacobian is (-1/alpha).
+    M : float, optional
+        Number of previous vectors to retain. Defaults to 5.
+    w0 : float, optional
+        Regularization parameter for numerical stability.
+        Compared to unity, good values of the order of 0.01.
+    %(params_extra)s
+    See Also
+    --------
+    root : Interface to root finding algorithms for multivariate
+           functions. See ``method=='anderson'`` in particular.
+    References
+    ----------
+    .. [Ey] V. Eyert, J. Comp. Phys., 124, 271 (1996).
+    Examples
+    --------
+    The following functions define a system of nonlinear equations
+    >>> def fun(x):
+    ...     return [x[0]  + 0.5 * (x[0] - x[1])**3 - 1.0,
+    ...             0.5 * (x[1] - x[0])**3 + x[1]]
+    A solution can be obtained as follows.
+    >>> from scipy import optimize
+    >>> sol = optimize.anderson(fun, [0, 0])
+    >>> sol
+    array([0.84116588, 0.15883789])
+    Nrk
+Anderson.__init__r
+emptyr%
+)	r{
+df_fr
+Anderson.solvec
+q|qpt
+Anderson.matvecc
+]R}	t	|	|
+popr
+triur
+Anderson._update)
+    Find a root of a function, using diagonal Broyden Jacobian approximation.
+    The Jacobian approximation is derived from previous iterations, by
+    retaining only the diagonal of Broyden matrices.
+    .. warning::
+       This algorithm may be useful for specific problems, but whether
+       it will work may depend strongly on the problem.
+    Parameters
+    ----------
+    %(params_basic)s
+    alpha : float, optional
+        Initial guess for the Jacobian is (-1/alpha).
+    %(params_extra)s
+    See Also
+    --------
+    root : Interface to root finding algorithms for multivariate
+           functions. See ``method=='diagbroyden'`` in particular.
+    Examples
+    --------
+    The following functions define a system of nonlinear equations
+    >>> def fun(x):
+    ...     return [x[0]  + 0.5 * (x[0] - x[1])**3 - 1.0,
+    ...             0.5 * (x[1] - x[0])**3 + x[1]]
+    A solution can be obtained as follows.
+    >>> from scipy import optimize
+    >>> sol = optimize.diagbroyden(fun, [0, 0])
+    >>> sol
+    array([0.84116403, 0.15883384])
+    Nc
+DiagBroyden.__init__c
+fullr)
+DiagBroyden.setupr
+DiagBroyden.solvec
+DiagBroyden.matvecc
+DiagBroyden.rsolvec
+DiagBroyden.rmatvecc
+diagr
+DiagBroyden.todensec
+DiagBroyden._update)
+    Find a root of a function, using a scalar Jacobian approximation.
+    .. warning::
+       This algorithm may be useful for specific problems, but whether
+       it will work may depend strongly on the problem.
+    Parameters
+    ----------
+    %(params_basic)s
+    alpha : float, optional
+        The Jacobian approximation is (-1/alpha).
+    %(params_extra)s
+    See Also
+    --------
+    root : Interface to root finding algorithms for multivariate
+           functions. See ``method=='linearmixing'`` in particular.
+    Nc
+LinearMixing.__init__r
+LinearMixing.solvec
+LinearMixing.matvecc
+LinearMixing.rsolvec
+LinearMixing.rmatvecc
+LinearMixing.todensec
+LinearMixing._update)
+    Find a root of a function, using a tuned diagonal Jacobian approximation.
+    The Jacobian matrix is diagonal and is tuned on each iteration.
+    .. warning::
+       This algorithm may be useful for specific problems, but whether
+       it will work may depend strongly on the problem.
+    See Also
+    --------
+    root : Interface to root finding algorithms for multivariate
+           functions. See ``method=='excitingmixing'`` in particular.
+    Parameters
+    ----------
+    %(params_basic)s
+    alpha : float, optional
+        Initial Jacobian approximation is (-1/alpha).
+    alphamax : float, optional
+        The entries of the diagonal Jacobian are kept in the range
+        ``[alpha, alphamax]``.
+    %(params_extra)s
+    NrH
+alphamax
+beta)
+ExcitingMixing.__init__c
+ExcitingMixing.setupr
+ExcitingMixing.solvec
+ExcitingMixing.matvecc
+ExcitingMixing.rsolvec
+ExcitingMixing.rmatvecc
+ExcitingMixing.todensec
+out)
+clipr
+incrr
+ExcitingMixing._update)
+    Find a root of a function, using Krylov approximation for inverse Jacobian.
+    This method is suitable for solving large-scale problems.
+    Parameters
+    ----------
+    %(params_basic)s
+    rdiff : float, optional
+        Relative step size to use in numerical differentiation.
+    method : {'lgmres', 'gmres', 'bicgstab', 'cgs', 'minres'} or function
+        Krylov method to use to approximate the Jacobian.
+        Can be a string, or a function implementing the same interface as
+        the iterative solvers in `scipy.sparse.linalg`.
+        The default is `scipy.sparse.linalg.lgmres`.
+    inner_maxiter : int, optional
+        Parameter to pass to the "inner" Krylov solver: maximum number of
+        iterations. Iteration will stop after maxiter steps even if the
+        specified tolerance has not been achieved.
+    inner_M : LinearOperator or InverseJacobian
+        Preconditioner for the inner Krylov iteration.
+        Note that you can use also inverse Jacobians as (adaptive)
+        preconditioners. For example,
+        >>> from scipy.optimize.nonlin import BroydenFirst, KrylovJacobian
+        >>> from scipy.optimize.nonlin import InverseJacobian
+        >>> jac = BroydenFirst()
+        >>> kjac = KrylovJacobian(inner_M=InverseJacobian(jac))
+        If the preconditioner has a method named 'update', it will be called
+        as ``update(x, f)`` after each nonlinear step, with ``x`` giving
+        the current point, and ``f`` the current function value.
+    outer_k : int, optional
+        Size of the subspace kept across LGMRES nonlinear iterations.
+        See `scipy.sparse.linalg.lgmres` for details.
+    inner_kwargs : kwargs
+        Keyword parameters for the "inner" Krylov solver
+        (defined with `method`). Parameter names must start with
+        the `inner_` prefix which will be stripped before passing on
+        the inner method. See, e.g., `scipy.sparse.linalg.gmres` for details.
+    %(params_extra)s
+    See Also
+    --------
+    root : Interface to root finding algorithms for multivariate
+           functions. See ``method=='krylov'`` in particular.
+    scipy.sparse.linalg.gmres
+    scipy.sparse.linalg.lgmres
+    Notes
+    -----
+    This function implements a Newton-Krylov solver. The basic idea is
+    to compute the inverse of the Jacobian with an iterative Krylov
+    method. These methods require only evaluating the Jacobian-vector
+    products, which are conveniently approximated by a finite difference:
+    .. math:: J v \approx (f(x + \omega*v/|v|) - f(x)) / \omega
+    Due to the use of iterative matrix inverses, these methods can
+    deal with large nonlinear problems.
+    SciPy's `scipy.sparse.linalg` module offers a selection of Krylov
+    solvers to choose from. The default here is `lgmres`, which is a
+    variant of restarted GMRES iteration that reuses some of the
+    information obtained in the previous Newton steps to invert
+    Jacobians in subsequent steps.
+    For a review on Newton-Krylov methods, see for example [1]_,
+    and for the LGMRES sparse inverse method, see [2]_.
+    References
+    ----------
+    .. [1] D.A. Knoll and D.E. Keyes, J. Comp. Phys. 193, 357 (2004).
+           :doi:`10.1016/j.jcp.2003.08.010`
+    .. [2] A.H. Baker and E.R. Jessup and T. Manteuffel,
+           SIAM J. Matrix Anal. Appl. 26, 962 (2005).
+           :doi:`10.1137/S0895479803422014`
+    Examples
+    --------
+    The following functions define a system of nonlinear equations
+    >>> def fun(x):
+    ...     return [x[0] + 0.5 * x[1] - 1.0,
+    ...             0.5 * (x[1] - x[0]) ** 2]
+    A solution can be obtained as follows.
+    >>> from scipy import optimize
+    >>> sol = optimize.newton_krylov(fun, [0, 0])
+    >>> sol
+    array([0.66731771, 0.66536458])
+    N
+lgmres
+bicgstab
+gmresr	
+minres)
+restrtr
+atolr
+outer_kZ
+outer_vZ
+prepend_outer_vTZ
+store_outer_AvFZ
+inner_z
+Unknown parameter %s
+preconditionerrt
+method
+	method_kw
+setdefaultZ
+gcrotmkr
+startswithrR
+)	r{
+inner_maxiterZ
+inner_Mr
+keyr
+KrylovJacobian.__init__c
+omega)
+_update_diff_step
+z KrylovJacobian._update_diff_stepc
+z$Function returned non-finite results)	r
+KrylovJacobian.matvecr
+rhsrG
+solrh
+KrylovJacobian.solvec
+KrylovJacobian.updatec
+aslinearoperatorr
+KrylovJacobian.setup)
+    Construct a solver wrapper with given name and Jacobian approx.
+    It inspects the keyword arguments of ``jac.__init__``, and allows to
+    use the same arguments in the wrapper function, in addition to the
+    keyword arguments of `nonlin_solve`
+    Nz
+%s=%rr
+<listcomp>V
+z#_nonlin_wrapper.<locals>.<listcomp>c
+%s=%sr
+Unexpected signature %sa
+def %(name)s(F, xin, iter=None %(kw)s, verbose=False, maxiter=None,
+             f_tol=None, f_rtol=None, x_tol=None, x_rtol=None,
+             tol_norm=None, line_search='armijo', callback=None, **kw):
+    jac = %(jac)s(%(kwkw)s **kw)
+    return nonlin_solve(F, xin, jac, iter, verbose, maxiter,
+                        f_tol, f_rtol, x_tol, x_rtol, tol_norm, line_search,
+                        callback)
+jacZ
+kwkw)
+_getfullargspecr|
+listr
+joinrR
+globals
+execr4
+Z	signature
+argsZ
+varargsZ
+varkw
+defaults
+kwonlyargs
+kwdefaults
+kwargsZ
+kw_strZ
+kwkw_str
+wrapper
+nsra
+_nonlin_wrapperJ
+NFNNNNNNr9
+NFT)
+)<r4
+numpyr
+scipy.linalgr
+scipy.sparse.linalgr
+scipy.sparser
+scipy._lib._utilr
+linesearchr
+__all__
+	Exceptionr
+stripr5
+objectrM
+<module>

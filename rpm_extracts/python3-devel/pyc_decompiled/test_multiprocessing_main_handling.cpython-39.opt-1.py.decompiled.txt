@@ -1,0 +1,202 @@
+l	Z	d
+Z#e$d
+supportZ
+_multiprocessingN)
+make_pkg
+make_script
+make_zip_pkg
+make_zip_script
+assert_python_okz
+test is not helpful for PGOa
+# multiprocessing includes all sorts of shenanigans to make __main__
+# attributes accessible in the subprocess in a pickle compatible way.
+# We run the "doesn't work in the interactive interpreter" example from
+# the docs to make sure it *does* work from an executed __main__,
+# regardless of the invocation mechanism
+import sys
+import time
+from multiprocessing import Pool, set_start_method
+# We use this __main__ defined function in the map call below in order to
+# check that multiprocessing in correctly running the unguarded
+# code in child processes and then making it available as __main__
+def f(x):
+    return x*x
+# Check explicit relative imports
+if "check_sibling" in __file__:
+    # We're inside a package and not in a __main__.py file
+    # so make sure explicit relative imports work correctly
+    from . import sibling
+if __name__ == '__main__':
+    start_method = sys.argv[1]
+    set_start_method(start_method)
+    results = []
+    with Pool(5) as pool:
+        pool.map_async(f, [1, 2, 3], callback=results.extend)
+        start_time = time.monotonic()
+        while not results:
+            time.sleep(0.05)
+            # up to 1 min to report the results
+            dt = time.monotonic() - start_time
+            if dt > 60.0:
+                raise RuntimeError("Timed out waiting for results (%.1f sec)" % dt)
+    results.sort()
+    print(start_method, "->", results)
+    pool.join()
+# __main__.py files have an implied "if __name__ == '__main__'" so
+# multiprocessing should always skip running them in child processes
+# This means we can't use __main__ defined functions in child processes,
+# so we just use "int" as a passthrough operation below
+if __name__ != "__main__":
+    raise RuntimeError("Should only be called as __main__!")
+import sys
+import time
+from multiprocessing import Pool, set_start_method
+start_method = sys.argv[1]
+set_start_method(start_method)
+results = []
+with Pool(5) as pool:
+    pool.map_async(int, [1, 4, 9], callback=results.extend)
+    start_time = time.monotonic()
+    while not results:
+        time.sleep(0.05)
+        # up to 1 min to report the results
+        dt = time.monotonic() - start_time
+        if dt > 60.0:
+            raise RuntimeError("Timed out waiting for results (%.1f sec)" % dt)
+results.sort()
+print(start_method, "->", results)
+pool.join()
+check_siblingZ
+sibling
+	importlib
+invalidate_caches)
+script_dir
+script_basename
+source
+omit_suffix
+	to_return
+?/usr/lib64/python3.9/test/test_multiprocessing_main_handling.py
+_make_test_scriptm
+zip_dirZ
+zip_basenameZ
+pkg_namer
+depthr
+_make_test_zip_pkgw
+zPimport sys, os.path, runpy
+sys.path.insert(0, %s)
+runpy._run_module_as_main(%r)
+os.path.dirname(__file__))
+repr
+launch_sourcer
+module_name
+pathr
+_make_launch_script
+d d!
+MultiProcessingCmdLineMixinNc
+%r start method not available)
+start_method
+AVAILABLE_START_METHODSZ
+skipTest)
+selfr
+setUp
+z!MultiProcessingCmdLineMixin.setUpc
+Output from test script %r:r
+utf-8r	
+%s -> [1, 4, 9])
+verbose
+printr
+assertEqual
+decoder
+strip)
+script_nameZ	exit_code
+errZ
+expected_resultsr
+_check_output
+z)MultiProcessingCmdLineMixin._check_outputc
+__isolatedF)
+flags
+optimizer
+cmd_line_switchesZ
+run_argsZ
+rcr&
+_check_script
+z)MultiProcessingCmdLineMixin._check_scriptc
+script
+temp_dirr
+test_basic_script
+z-MultiProcessingCmdLineMixin.test_basic_scriptc
+test_basic_script_no_suffix
+z7MultiProcessingCmdLineMixin.test_basic_script_no_suffixc
+ipython
+$test_source_main_skipped_in_childrenr
+script_no_suffixr
+test_ipython_workaround
+z3MultiProcessingCmdLineMixin.test_ipython_workaroundc
+doraise)	r
+py_compile
+compile
+remove
+make_legacy_pycr.
+pyc_filer
+test_script_compiled
+z0MultiProcessingCmdLineMixin.test_script_compiledc
+__main__r5
+main_in_children_sourcer
+test_directory
+z*MultiProcessingCmdLineMixin.test_directoryc
+test_directory_compiled
+z3MultiProcessingCmdLineMixin.test_directory_compiledc
+test_zip)
+zip_name
+run_namer
+test_zipfile
+z(MultiProcessingCmdLineMixin.test_zipfilec
+compiled_namerF
+test_zipfile_compiled
+z1MultiProcessingCmdLineMixin.test_zipfile_compiledc
+test_pkgr
+launchz
+test_pkg.check_sibling)	r
+joinr
+pkg_dirr%
+launch_namer
+test_module_in_package
+z2MultiProcessingCmdLineMixin.test_module_in_packagec
+test_pkg.script
+!test_module_in_package_in_zipfile
+z=MultiProcessingCmdLineMixin.test_module_in_package_in_zipfilec
+test_pkg.test_pkg.scriptrQ
+$test_module_in_subpackage_in_zipfile
+z@MultiProcessingCmdLineMixin.test_module_in_subpackage_in_zipfilec
+test_package
+z(MultiProcessingCmdLineMixin.test_packagec
+test_package_compiled
+z1MultiProcessingCmdLineMixin.test_package_compiled)
+__name__
+__module__
+__qualname__Z
+maxDiffr 
+SpawnCmdLineTestZ
+spawnN
+ForkCmdLineTest
+forkN)
+test_sourcerB
+ForkServerCmdLineTestZ
+forkserverNr\
+reap_childrenr
+tearDownModule'
+testr
+import_moduler
+importlib.machineryZ
+unittestr+
+os.pathr:
+test.support.script_helperr
+PGOZ
+SkipTestZ
+multiprocessing
+setZ
+get_all_start_methodsr
+Z*skip_if_broken_multiprocessing_synchronizer!
+TestCaser[
+mainr
+<module>

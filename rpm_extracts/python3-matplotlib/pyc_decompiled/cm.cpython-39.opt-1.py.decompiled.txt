@@ -1,0 +1,493 @@
+m	Z	m
+d!d"
+j"j#j
+d#d$d%d&
+d'd(
+Builtin colormaps, colormap handling utilities, and the `ScalarMappable` mixin.
+.. seealso::
+  :doc:`/gallery/color/colormap_reference` for a list of builtin colormaps.
+  :doc:`/tutorials/colors/colormap-manipulation` for examples of how to
+  make colormaps.
+  :doc:`/tutorials/colors/colormaps` an in-depth discussion of
+  choosing colormaps.
+  :doc:`/tutorials/colors/colormapnorms` for more details about data
+  normalization.
+MappingN)
+_api
+colors
+cbook
+scale)
+datad)
+cmapsc
+__getattr__
+rcParams['image.lut'])
+obj_type
+alternativec
+_LUTSIZE
+self
+3/usr/lib64/python3.9/site-packages/matplotlib/cm.py
+<lambda>"
+__getattr__.<lambda>N)
+__name__
+__module__
+__qualname__r
+deprecated
+propertyZ
+LUTSIZEr
+z	image.lutc
+    Generate a dict mapping standard colormap names to standard colormaps, as
+    well as the reversed colormaps.
+    Z
+redZ
+listed)
+cmaps_listedr
+itemsr
+LinearSegmentedColormapr
+ListedColormap
+	from_list
+list
+values
+reversed
+name)
+cmap_dr!
+spec
+cmapZ
+rmapr
+_gen_cmap_registry(
+ColormapRegistryah
+    Container for colormaps that are known to Matplotlib by name.
+    The universal registry instance is `matplotlib.colormaps`. There should be
+    no need for users to instantiate `.ColormapRegistry` themselves.
+    Read access uses a dict-like interface mapping names to `.Colormap`\s::
+        import matplotlib as mpl
+        cmap = mpl.colormaps['viridis']
+    Returned `.Colormap`\s are copies, so that their modification does not
+    change the global definition of the colormap.
+    Additional colormaps can be added via `.ColormapRegistry.register`::
+        mpl.colormaps.register(my_colormap)
+    c
+_cmaps
+tuple
+_builtin_cmaps
+_allow_override_builtin)
+__init__O
+ColormapRegistry.__init__c
+ is not a known colormap name)
+copy
+KeyError)
+itemr
+__getitem__U
+ColormapRegistry.__getitem__c
+iterr&
+__iter__[
+ColormapRegistry.__iter__c
+lenr&
+__len__^
+ColormapRegistry.__len__c
+Nz'ColormapRegistry; available colormaps:
+.0r!
+	<genexpr>c
+z+ColormapRegistry.__str__.<locals>.<genexpr>)
+joinr
+__str__a
+ColormapRegistry.__str__c
+        Return a list of the registered colormap names.
+        This exists only for backward-compatibility in `.pyplot` which had a
+        ``plt.colormaps()`` method. The recommended way to get this list is
+        now ``list(colormaps)``.
+        )
+__call__e
+ColormapRegistry.__call__NF
+forcec
+        Register a new colormap.
+        The colormap name can then be used as a string argument to any ``cmap``
+        parameter in Matplotlib. It is also available in ``pyplot.get_cmap``.
+        The colormap registry stores a copy of the given colormap, so that
+        future changes to the original colormap instance do not affect the
+        registered colormap. Think of this as the registry taking a snapshot
+        of the colormap at registration.
+        Parameters
+        ----------
+        cmap : matplotlib.colors.Colormap
+            The colormap to register.
+        name : str, optional
+            The name for the colormap. If not given, ``cmap.name`` is used.
+        force : bool, default: False
+            If False, a ValueError is raised if trying to overwrite an already
+            registered name. True supports overwriting registered colormaps
+            other than the builtin colormaps.
+        
+A colormap named "z
+" is already registered.z Re-registering the builtin cmap z
+ is not allowed.z
+Overwriting the cmap z" that was already in the registry.N)
+check_isinstancer
+Colormapr!
+ValueErrorr(
+warn_externalr+
+registero
+ColormapRegistry.registerc
+        Remove a colormap from the registry.
+        You cannot remove built-in colormaps.
+        If the named colormap is not registered, returns with no error, raises
+        if you try to de-register a default colormap.
+        .. warning::
+            Colormap names are currently a shared namespace that may be used
+            by multiple packages. Use `unregister` only if you know you
+            have registered that name before. In particular, do not
+            unregister just in case to clean the name before registering a
+            new colormap.
+        Parameters
+        ----------
+        name : str
+            The name of the colormap to be removed.
+        Raises
+        ------
+        ValueError
+            If you try to remove a default built-in colormap.
+        z
+cannot unregister z
+ which is a builtin colormap.N)
+pop)
+unregister
+ColormapRegistry.unregisterc
+        Return a color map specified through *cmap*.
+        Parameters
+        ----------
+        cmap : str or `~matplotlib.colors.Colormap` or None
+            - if a `.Colormap`, return it
+            - if a string, look it up in ``mpl.colormaps``
+            - if None, return the Colormap defined in :rc:`image.cmap`
+        Returns
+        -------
+        Colormap
+        N
+image.cmapr<
+z<get_cmap expects None or an instance of a str or Colormap . z
+you passed z	 of type )
+rcParams
+isinstancer
+strr
+check_in_list
+sorted
+_colormaps
+	TypeError
+type)
+get_cmap
+ColormapRegistry.get_cmap)
+__doc__r*
+3.6Tz'``matplotlib.colormaps.register(name)``)
+pendingr
+override_builtinc
+    Add a colormap to the set recognized by :func:`get_cmap`.
+    Register a new colormap to be accessed by name ::
+        LinearSegmentedColormap('swirly', data, lut)
+        register_cmap(cmap=swirly_cmap)
+    Parameters
+    ----------
+    name : str, optional
+       The name that can be used in :func:`get_cmap` or :rc:`image.cmap`
+       If absent, the name will be the :attr:`~matplotlib.colors.Colormap.name`
+       attribute of the *cmap*.
+    cmap : matplotlib.colors.Colormap
+       Despite being the second argument and having a default value, this
+       is a required argument.
+    override_builtin : bool
+        Allow built-in colormaps to be overridden by a user-supplied
+        colormap.
+        Please do not use this unless you are sure you need it.
+    N
+z+Arguments must include a name or a Colormapr:
+F)	r
+AttributeErrorr?
+errr
+register_cmap
+    Get a colormap instance, defaulting to rc values if *name* is None.
+    Parameters
+    ----------
+    name : `matplotlib.colors.Colormap` or str or None, default: None
+        If a `.Colormap` instance, it will be returned. Otherwise, the name of
+        a colormap known to Matplotlib, which will be resampled by *lut*. The
+        default, None, means :rc:`image.cmap`.
+    lut : int or None, default: None
+        If *name* is not already a Colormap instance and *lut* is not None, the
+        colormap will be resampled to have *lut* entries in the lookup table.
+    Returns
+    -------
+    Colormap
+    NrC
+Z	resampled)
+lutr
+	_get_cmap
+zH``matplotlib.colormaps[name]`` or ``matplotlib.colormaps.get_cmap(obj)``)
+z)``matplotlib.colormaps.unregister(name)``c
+    Remove a colormap recognized by :func:`get_cmap`.
+    You may not remove built-in colormaps.
+    If the named colormap is not registered, returns with no error, raises
+    if you try to de-register a default colormap.
+    .. warning::
+      Colormap names are currently a shared namespace that may be used
+      by multiple packages. Use `unregister_cmap` only if you know you
+      have registered that name before. In particular, do not
+      unregister just in case to clean the name before registering a
+      new colormap.
+    Parameters
+    ----------
+    name : str
+        The name of the colormap to be un-registered
+    Returns
+    -------
+    ColorMap or None
+        If the colormap was registered, return it if not return `None`
+    Raises
+    ------
+    ValueError
+       If you try to de-register a default built-in colormap.
+    N)
+getrB
+unregister_cmap?
+    Automatically generate a norm class from *scale_cls*.
+    This differs from `.colors.make_norm_from_scale` in the following points:
+    - This function is not a class decorator, but directly returns a norm class
+      (as if decorating `.Normalize`).
+    - The scale is automatically constructed with ``nonpositive="mask"``, if it
+      supports such a parameter, to work around the difference in defaults
+      between standard scales (which use "clip") and norms (which use "mask").
+    Note that ``make_norm_from_scale`` caches the generated norm classes
+    (not the instances) and reuses them for later calls.  For example,
+    ``type(_auto_norm_from_scale("log")) == LogNorm``.
+    
+mask)
+nonpositive)
+make_norm_from_scale
+	functools
+partial
+	NormalizerK
+	scale_cls
+normr
+_auto_norm_from_scalei
+Z	d*d
+d!d"
+d#d$
+d%d&
+d'd(
+ScalarMappablez
+    A mixin class to map scalar data to RGBA.
+    The ScalarMappable applies data normalization before returning RGBA colors
+    from the given colormap.
+    Nc
+        Parameters
+        ----------
+        norm : `.Normalize` (or subclass thereof) or str or None
+            The normalizing object which scales data, typically into the
+            interval ``[0, 1]``.
+            If a `str`, a `.Normalize` subclass is dynamically generated based
+            on the scale with the corresponding name.
+            If *None*, *norm* defaults to a *colors.Normalize* object which
+            initializes its scaling based on the first data processed.
+        cmap : str or `~matplotlib.colors.Colormap`
+            The colormap used to map normalized data values to RGBA colors.
+        N
+changed)
+signals)	
+_norm
+set_normr#
+set_cmapZ
+colorbarr
+CallbackRegistry
+	callbacks)
+ScalarMappable.__init__r
+ScalarMappable.<lambda>c
+        Helper for initial scaling.
+        Used by public functions that create a ScalarMappable and support
+        parameters *vmin*, *vmax* and *norm*. This makes sure that a *norm*
+        will take precedence over *vmin*, *vmax*.
+        Note that this method does not set the norm.
+        Nz
+Passing a Normalize instance simultaneously with vmin/vmax is not supported.  Please pass vmin/vmax directly to the norm when creating it.)
+set_climrF
+autoscale_None)
+vmin
+vmaxr
+_scale_norm
+ScalarMappable._scale_normFTc
+        Return a normalized rgba array corresponding to *x*.
+        In the normal case, *x* is a 1D or 2D sequence of scalars, and
+        the corresponding ndarray of rgba values will be returned,
+        based on the norm and colormap set for this ScalarMappable.
+        There is one special case, for handling images that are already
+        rgb or rgba, such as might have been read from an image file.
+        If *x* is an ndarray with 3 dimensions,
+        and the last dimension is either 3 or 4, then it will be
+        treated as an rgb or rgba array, and no mapping will be done.
+        The array can be uint8, or it can be floating point with
+        values in the 0-1 range; otherwise a ValueError will be raised.
+        If it is a masked array, the mask will be ignored.
+        If the last dimension is 3, the *alpha* kwarg (defaulting to 1)
+        will be used to fill in the transparency.  If the last dimension
+        is 4, the *alpha* kwarg is ignored; it does not
+        replace the preexisting alpha.  A ValueError will be raised
+        if the third dimension is other than 3 or 4.
+        In either case, if *bytes* is *False* (default), the rgba
+        array will be floats in the 0-1 range; if it is *True*,
+        the returned rgba array will be uint8 in the 0 to 255 range.
+        If norm is False, no normalization of the input data is
+        performed, and it is assumed to be in the range (0-1).
+        
+shape
+dtypez
+Third dimension must be 3 or 4
+z:Floating point image RGB values must be in the 0..1 range.z9Image RGB array must be uint8 or floating point; found %s)
+alpha
+bytes)
+ndimrq
+uint8
+emptyr?
+kind
+minZ
+astypeZ
+float32rR
+asarrayr^
+rgbar
+to_rgba
+ScalarMappable.to_rgbac
+        Set the value array from array-like *A*.
+        Parameters
+        ----------
+        A : array-like or None
+            The values that are mapped to colors.
+            The base class `.ScalarMappable` does not make any assumptions on
+            the dimensionality and shape of the value array *A*.
+        NT)
+Z	same_kindz
+Image data of dtype z
+ cannot be converted to float)
+safe_masked_invalidrw
+can_castrr
+floatrK
+	set_array
+ScalarMappable.set_arrayc
+        Return the array of values, that are mapped to colors.
+        The base class `.ScalarMappable` does not make any assumptions on
+        the dimensionality and shape of the array.
+        )
+	get_array
+ScalarMappable.get_arrayc
+z Return the `.Colormap` instance.r<
+ScalarMappable.get_cmapc
+        Return the values (min, max) that are mapped to the colormap limits.
+        )
+get_clim'
+ScalarMappable.get_climc
+        Set the norm limits for image scaling.
+        Parameters
+        ----------
+        vmin, vmax : float
+             The limits.
+             The limits may also be passed as a tuple (*vmin*, *vmax*) as a
+             single positional argument.
+             .. ACCEPTS: (vmin: float, vmax: float)
+        N)
+_sanitize_extremar^
+ScalarMappable.set_climc
+        Returns
+        -------
+        float
+            Always returns 1.
+        g
+	get_alphaG
+ScalarMappable.get_alphac
+        Set the colormap for luminance data.
+        Parameters
+        ----------
+        cmap : `.Colormap` or str or None
+        N)
+_ensure_cmapra
+in_initr
+ScalarMappable.set_cmapc
+ScalarMappable.normc
+z=Invalid norm str name; the following values are supported: {}r3
+_scale_mappingr,
+formatr7
+disconnectZ
+_id_normrc
+connectra
+        Set the normalization instance.
+        Parameters
+        ----------
+        norm : `.Normalize` or str or None
+        Notes
+        -----
+        If there are any colorbars using the mappable for this norm, setting
+        the norm of the mappable will reset the norm, locator, and formatters
+        on the colorbar to default.
+        Nr
+ScalarMappable.set_normc
+        Autoscale the scalar limits on the norm instance using the
+        current array
+        N
+%You must first set_array for mappable)
+	autoscaler
+ScalarMappable.autoscalec
+        Autoscale the scalar limits on the norm instance using the
+        current array, changing only limits that are None
+        Nr
+ScalarMappable.autoscale_Nonec
+        Call this whenever the mappable is changed to notify all the
+        callbackSM listeners to the 'changed' signal.
+        ra
+processZ
+staler
+ScalarMappable.changed)
+NFT)
+callbacksSMrk
+setterrd
+cmap : str or `~matplotlib.colors.Colormap`, default: :rc:`image.cmap`
+    The Colormap instance or registered colormap name used to map scalar data
+    to colors.a
+norm : str or `~matplotlib.colors.Normalize`, optional
+    The normalization method used to scale scalar data to the [0, 1] range
+    before mapping to colors using *cmap*. By default, a linear scaling is
+    used, mapping the lowest value to 0 and the highest to 1.
+    If given, this can be one of the following:
+    - An instance of `.Normalize` or one of its subclasses
+      (see :doc:`/tutorials/colors/colormapnorms`).
+    - A scale name, i.e. one of "linear", "log", "symlog", "logit", etc.  For a
+      list of available scales, call `matplotlib.scale.get_scale_names()`.
+      In that case, a suitable `.Normalize` subclass is dynamically generated
+      and instantiated.a
+vmin, vmax : float, optional
+    When using scalar data and no explicit *norm*, *vmin* and *vmax* define
+    the data range that the colormap covers. By default, the colormap covers
+    the complete value range of the supplied data. It is an error to use
+    *vmin*/*vmax* when a *norm* instance is given (but using a `str` *norm*
+    name together with *vmin*/*vmax* is acceptable).)
+cmap_docZ
+norm_docZ
+vmin_vmax_docc
+    Ensure that we have a `.Colormap` object.
+    For internal use to preserve type stability of errors.
+    Parameters
+    ----------
+    cmap : None, str, Colormap
+        - if a `Colormap`, return it
+        - if a string, look it up in mpl.colormaps
+        - if None, look up the default color map in mpl.colormaps
+    Returns
+    -------
+    Colormap
+    NrC
+Z	colormaps)
+Z	cmap_namer
+NN)%rN
+collections.abcr
+numpyrw
+matplotlibrD
+matplotlib._cmr
+matplotlib._cm_listedr	
+caching_module_getattrr
+globals
+updater
+_docstringZ
+interpdr
+<module>

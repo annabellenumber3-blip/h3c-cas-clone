@@ -1,0 +1,1516 @@
+m	Z	m
+m Z m!Z!m"Z"
+m#Z#
+Z.dSd"d#
+d$d%
+d%e*
+Z0e1d&
+d(d)
+Z2e1d*
+d+d,
+Z3d-d.
+d/d0
+d0e.
+d1d2
+d2e5
+d3d4
+d4e5
+d5d6
+d6e7
+d7d8
+d8e7
+d9d:
+d:e7
+d;d<
+d<e7
+d=d>
+d>e7
+d?d@
+d@e7e6
+dAdB
+dBe;
+dCdD
+dDe7
+dEdF
+dFe7
+dGdH
+dHe5
+dIdJ
+dJe.
+dKdL
+dLeB
+dMdN
+dNeC
+dOdP
+dPeC
+dQdR
+dRe.
+ZFe5e8e9e:e;e<e?e>e@eBeDeEeAe6e=f
+This is the ``docutils.parsers.rst.states`` module, the core of
+the reStructuredText parser.  It defines the following:
+:Classes:
+    - `RSTStateMachine`: reStructuredText parser's entry point.
+    - `NestedStateMachine`: recursive StateMachine.
+    - `RSTState`: reStructuredText State superclass.
+    - `Inliner`: For parsing inline markup.
+    - `Body`: Generic classifier of the first line of a block.
+    - `SpecializedBody`: Superclass for compound element members.
+    - `BulletList`: Second and subsequent bullet_list list_items
+    - `DefinitionList`: Second+ definition_list_items.
+    - `EnumeratedList`: Second+ enumerated_list list_items.
+    - `FieldList`: Second+ fields.
+    - `OptionList`: Second+ option_list_items.
+    - `RFC2822List`: Second+ RFC2822-style fields.
+    - `ExtensionOptions`: Parses directive option fields.
+    - `Explicit`: Second+ explicit markup constructs.
+    - `SubstitutionDef`: For embedded directives in substitution definitions.
+    - `Text`: Classifier of second line of a text block.
+    - `SpecializedText`: Superclass for continuation lines of Text-variants.
+    - `Definition`: Second line of potential definition_list_item.
+    - `Line`: Second line of overlined section title or transition marker.
+    - `Struct`: An auxiliary collection class.
+:Exception classes:
+    - `MarkupError`
+    - `ParserError`
+    - `MarkupMismatch`
+:Functions:
+    - `escape2null()`: Return a string, escape-backslashes converted to nulls.
+    - `unescape()`: Return a string, nulls removed or restored to backslashes.
+:Attributes:
+    - `state_classes`: set of State classes used with `RSTStateMachine`.
+Parser Overview
+===============
+The reStructuredText parser is implemented as a recursive state machine,
+examining its input one line at a time.  To understand how the parser works,
+please first become familiar with the `docutils.statemachine` module.  In the
+description below, references are made to classes defined in this module;
+please see the individual classes for details.
+Parsing proceeds as follows:
+1. The state machine examines each line of input, checking each of the
+   transition patterns of the state `Body`, in order, looking for a match.
+   The implicit transitions (blank lines and indentation) are checked before
+   any others.  The 'text' transition is a catch-all (matches anything).
+2. The method associated with the matched transition pattern is called.
+   A. Some transition methods are self-contained, appending elements to the
+      document tree (`Body.doctest` parses a doctest block).  The parser's
+      current line index is advanced to the end of the element, and parsing
+      continues with step 1.
+   B. Other transition methods trigger the creation of a nested state machine,
+      whose job is to parse a compound construct ('indent' does a block quote,
+      'bullet' does a bullet list, 'overline' does a section [first checking
+      for a valid section header], etc.).
+      - In the case of lists and explicit markup, a one-off state machine is
+        created and run to parse contents of the first item.
+      - A new state machine is created and its initial state is set to the
+        appropriate specialized state (`BulletList` in the case of the
+        'bullet' transition; see `SpecializedBody` for more detail).  This
+        state machine is run to parse the compound element (or series of
+        explicit markup elements), and returns as soon as a non-member element
+        is encountered.  For example, the `BulletList` state machine ends as
+        soon as it encounters an element which is not a list item of that
+        bullet list.  The optional omission of inter-element blank lines is
+        enabled by this nested state machine.
+      - The current line index is advanced to the end of the elements parsed,
+        and parsing continues with step 1.
+   C. The result of the 'text' transition depends on the next line of text.
+      The current state is changed to `Text`, under which the second line is
+      examined.  If the second line is:
+      - Indented: The element is a definition list item, and parsing proceeds
+        similarly to step 2.B, using the `DefinitionList` state.
+      - A line of uniform punctuation characters: The element is a section
+        header; again, parsing proceeds as in step 2.B, and `Body` is still
+        used.
+      - Anything else: The element is a paragraph, which is examined for
+        inline markup and appended to the parent element.  Processing
+        continues with step 1.
+reStructuredText
+FunctionType
+MethodType)
+nodes
+statemachine
+utils)
+ApplicationError
+	DataError)
+StateMachineWS
+StateWS)
+fully_normalize_name)
+whitespace_normalize_name)
+directives
+	languages
+tableparser
+roles)
+escape2null
+unescape
+column_width)
+punctuation_chars
+roman
+urischemes)
+split_escaped_whitespacec
+MarkupErrorN
+__name__
+__module__
+__qualname__
+?/usr/lib/python3.9/site-packages/docutils/parsers/rst/states.pyr
+UnknownInterpretedRoleErrorNr
+"InterpretedRoleNotImplementedErrorNr
+ParserErrorNr
+MarkupMismatchNr
+Structz3Stores data attributes for dotted-attribute access.c
+__dict__
+update)
+selfZ
+keywordargsr
+__init__
+Struct.__init__N)
+__doc__r*
+RSTStateMachinezy
+    reStructuredText's master StateMachine.
+    The entry point to reStructuredText parsing is the `run()` method.
+    r
+        Parse `input_lines` and modify the `document` node in place.
+        Extend `StateMachineWS.run()`: set up parse-global data and
+        run the StateMachine.
+        Nr
+document
+reporter
+language
+title_styles
+section_level
+section_bubble_up_kludge
+inliner
+source)
+input_source)
+get_language
+settingsZ
+language_coder.
+match_titles
+Inliner
+init_customizationsr%
+memor-
+attach_observer
+note_source
+noder	
+run)
+input_linesr-
+input_offsetr6
+resultsr
+RSTStateMachine.run)
+NestedStateMachinezh
+    StateMachine run from within other StateMachine runs, to parse nested
+    document structures.
+    Tc
+        Parse `input_lines` and populate a `docutils.nodes.document` instance.
+        Extend `StateMachineWS.run()`: set up document-wide data.
+        )
+NestedStateMachine.runN)
+Z	d	d
+RSTStatez`
+    reStructuredText State superclass.
+    Contains methods used by all State subclasses.
+    Fc
+Body
+state_classes
+initial_state)
+nested_sm_kwargsr
+state_machine
+debugr
+RSTState.__init__c
+get_source_and_line)
+runtime_initrJ
+parent
+hasattrrL
+RSTState.runtime_initc
+        Jump to input line `abs_line_offset`, ignoring jumps past the end.
+        N)
+	goto_line
+EOFError)
+abs_line_offsetr
+RSTState.goto_linec
+        Override `StateWS.no_match` to generate a system message.
+        This code should never be run.
+        zjInternal error: no transition pattern match.  State: "%s"; transitions: %s; context: %s; current line: %r.N)
+severe
+	__class__r
+line)
+context
+transitionsr
+no_match
+RSTState.no_matchc
+Called at beginning of file.r
+RSTState.bofNc
+|	s~|
+}	|	j
+        Create a new StateMachine rooted at `node` and run it over the input
+        `block`.
+        r
+	nested_smrH
+nested_sm_cache
+IndexErrorrK
+append
+unlinkrR
+	next_line)
+blockr?
+state_machine_class
+state_machine_kwargsZ
+use_defaultZ
+block_lengthrJ
+new_offsetr
+nested_parse
+RSTState.nested_parsec
+        Create a new StateMachine rooted at `node` and run it over the input
+        `block`. Also keep track of optional intermediate blank lines and the
+        required final one.
+        NrG
+copyrK
+states
+blank_finish
+items
+setattrr=
+blank_finish_state
+extra_settingsr6
+valuer
+nested_list_parse&
+RSTState.nested_list_parsec
+z=Check for a valid subsection and create one if it checks out.N)
+check_subsection
+new_subsection)
+titler4
+style
+lineno
+messagesr
+sectionD
+RSTState.sectionc
+        Check for a valid subsection header.  Return 1 (true) or None (false).
+        When a new section is reached that isn't a subsection of the current
+        section, back up the line count (use ``previous_line(-x)``), then
+        ``raise EOFError``.  The current StateMachine will finish, then the
+        calling StateMachine can re-examine the title.  This will work its way
+        back up the calling chain until the correct section level isreached.
+        @@@ Alternative: Evaluate the title, store the title info & level, and
+        back up the chain until that level is reached.  Store in memo? Or
+        return in results?
+        :Exception: `EOFError` when a sibling or supersection encountered.
+        r[
+index
+ValueErrorr_
+title_inconsistentr2
+previous_linerQ
+mylevel
+levelr
+RSTState.check_subsectionc
+Title level inconsistent:
+literal_block)
+sourcetextrw
+errorr
+RSTState.title_inconsistentc
+z?Append new subsection to document tree. On return, check level.r[
+namesNT)
+inline_textru
+normalize_name
+astextrc
+note_implicit_targetrJ
+line_offsetrR
+section_node
+	textnodesZ
+title_messagesZ	titlenode
+name
+offsetZ	absoffsetZ
+newabsoffsetr
+RSTState.new_subsectionc
+        Return a list (paragraph & messages) & a boolean: literal_block next?
+        
+(?<!\\)(\\\\)*::$r\
+join
+rstrip
+searchr_
+	paragraphrJ
+)	r)
+linesrw
+data
+text
+literalnextr
+RSTState.paragraphc
+        Return 2 lists: nodes (text and inline elements), and system_messages.
+        )
+parser9
+RSTState.inline_textc
+z2%s ends without a blank line; unexpected unindent.r
+abs_line_numberr.
+warning)
+Z	node_namerw
+unindent_warning
+RSTState.unindent_warning)
+FNN)
+    Build, compile and return a regular expression based on `definition`.
+    :Parameter: `definition`: a 4-tuple (group name, prefix, suffix, parts),
+        where "parts" is a list of regular expressions and/or regular
+        expression definitions to be joined into an or-group.
+    N
+|z.%(prefix)s(?P<%(name)s>%(or_group)s)%(suffix)s)	
+isinstance
+tuplerc
+build_regexpr
+localsr
+compile
+UNICODE)
+definitionr
+prefix
+suffix
+partsZ
+part_strings
+partZ
+or_groupZ
+regexpr
+d>d!d"
+d#d$
+d%d&
+d'd(
+d)d*
+d+d,
+d-d.
+d?d/d0
+Z d1d2
+Z!d3d4
+Z"d5d6
+Z#d7Z$d8d9
+Z%d:d;
+e e!d<
+	Z'd S
+)@r7
+    Parse inline markup; call the `parse()` method.
+    c
+implicit_dispatch)
+Inliner.__init__c
+)#NZ
+character_level_inline_markupFz
+(^|(?<!
+(^|(?<=\s|[%s%s]))z
+($|(?=\s|[
+%s%s%s]))Z
+initial_inline
+start)
+\*\*z
+\*(?!\*)
+\|(?!\|)
+wholez
+(?P<refname>%s)(?P<refend>__?)
+footnotelabelz
+(?P<fnend>\]_)
+[0-9]+z
+\#(%s)?z
+(?P<citationlabel>%s)
+	backquotez
+(?P<role>(:%s:)?)z
+`(?!`)z
+(\*)z
+(\*\*)a
+              %(non_unescaped_whitespace_escape_before)s
+              (
+                `
+                (?P<suffix>
+                  (?P<role>:%(simplename)s:)?
+                  (?P<refend>__?)?
+                )
+              )
+              %(end_string_suffix)s
+              a
+              (
+                (?:[ \n]+|^)            # spaces or beginning of line/string
+                <                       # open bracket
+                %(non_whitespace_after)s
+                (([^<>]|\x00[<>])+)     # anything but unescaped angle brackets
+                %(non_whitespace_escape_before)s
+                >                       # close bracket
+              )
+              $                         # end of string
+              z
+(``)z
+(`)z
+(\|_{0,2})
+                %(start_string_prefix)s
+                (?P<whole>
+                  (?P<absolute>           # absolute URI
+                    (?P<scheme>             # scheme (http, ftp, mailto)
+                      [a-zA-Z][a-zA-Z0-9.+-]*
+                    )
+                    :
+                    (
+                      (                       # either:
+                        (//?)?                  # hierarchical URI
+                        %(uric)s*               # URI characters
+                        %(uri_end)s             # final URI char
+                      )
+                      (                       # optional query
+                        \?%(uric)s*
+                        %(uri_end)s
+                      )?
+                      (                       # optional fragment
+                        \#%(uric)s*
+                        %(uri_end)s
+                      )?
+                    )
+                  )
+                |                       # *OR*
+                  (?P<email>              # email address
+                    z]
+                  )
+                )
+                %(end_string_suffix)s
+                a
+                %(start_string_prefix)s
+                (
+                  (pep-(?P<pepnum1>\d+)(.txt)?) # reference to source file
+                |
+                  (PEP\s+(?P<pepnum2>\d+))      # reference by name
+                )
+                %(end_string_suffix)sz{
+                %(start_string_prefix)s
+                (RFC(-|\s+)?(?P<rfcnum>\d+))
+                %(end_string_suffix)s)
+initial
+emphasis
+strong
+interpreted_or_phrase_ref
+embedded_link
+literal
+target
+substitution_ref
+email
+rfc)$
+getattrr
+openersZ
+delimitersZ
+closing_delimitersZ
+closersr
+varsrT
+non_whitespace_after
+simplename
+start_string_prefix
+end_string_suffixr
+non_whitespace_escape_beforer
+VERBOSE
+non_whitespace_before
+email_pattern
+patternsr
+standalone_uriZ
+pep_referencesr
+pep_referenceZ
+rfc_referencesr
+rfc_reference)
+argsr
+Inliner.init_customizationsc
+}	qBq
+        Return 2 lists: nodes (text and inline elements), and system_messages.
+        Using `self.patterns.initial`, a pattern which matches start-strings
+        (emphasis, strong, interpreted, phrase reference, literal,
+        substitution reference, and inline target) and complete constructs
+        (simple reference, footnote reference), search for a candidate.  When
+        one is found, check for validity (e.g., not a quoted '*' character).
+        If valid, search for the corresponding end string if applicable, and
+        check it for validity.  If not found or invalid, generate a warning
+        and ignore the start-string.  Implicit inline markup (e.g. standalone
+        URIs) is found last.
+        r
+refendZ
+fnendr
+dispatchr
+	groupdictrc
+implicit_inliner
+pattern_searchr
+	remainingZ	processedZ
+unprocessedrx
+match
+groups
+method
+before
+inlines
+sysmessagesr
+Inliner.parsez
+(?<!\s)z
+(?<![\s\x00])z
+(?<!(?<!\x00)[\s\x00])z
+(?!\s)z$(?:(?!_)\w)+(?:[-._+:](?:(?!_)\w)+)*z%[-_.!~*'()[\];/:@&=+$,%a-zA-Z0-9\x00]z
+[>]z
+[_~*/=+a-zA-Z0-9]z-(?:%(urilast)s|%(uric)s(?=%(uri_end_delim)s))z"[-_!~*'{|}/#?^`&=+$%a-zA-Z0-9\x00]z
+          %(emailc)s+(?:\.%(emailc)s+)*   # name
+          (?<!\x00)@                      # at
+          %(emailc)s+(?:\.%(emailc)s*)*   # host
+          %(uri_end)s                     # final URI char
+          c
+Test if inline markup start-string is 'quoted'.
+        'Quoted' in this context means the start-string is enclosed in a pair
+        of matching opening/closing delimiters (not necessarily quotes)
+        or at the end of the match.
+        r
+stringr
+endrb
+match_chars)
+prestartZ	poststartr
+quoted_start
+Inliner.quoted_startFc
+}	|	r
+Tz*Inline %s start-string without end-string.r
+groupr.
+problematic)
+end_patternZ	nodeclass
+restore_backslashesr
+matchstart
+matchend
+endmatchr
+textend
+	rawsourcer<
+prbr
+inline_obj
+Inliner.inline_objc
+refid)
+set_idrN
+add_backref)
+messageZ
+msgidr
+prbidr
+Inliner.problematicc
+	endstringr
+Inliner.emphasisc
+Inliner.strongc
+}	n&|
+roler
+zVMultiple roles in interpreted text (both prefix and suffix present; only one allowed).r
+_z=Mismatch: both interpreted text role %s and reference suffix.zLInline interpreted text or phrase reference start-string without end-string.)
+phrase_ref
+interpreted)
+Z	rolestartr
+positionr
+escapedr
+nodelistrx
+z!Inliner.interpreted_or_phrase_refNc
+refnamer
+split
+	<genexpr>5
+z%Inliner.phrase_ref.<locals>.<genexpr>
+refuriz
+problem with embedded link: %r
+	anonymousr
+endswithr
+indirect_reference_namer
+adjust_uriZ
+referencedr
+	referencer
+note_refnamerc
+note_indirect_target
+note_explicit_targetrN
+afterr
+Z	unescapedZ
+rawtextZ	aliastextZ
+rawaliastextZ
+underscore_escapedZ	aliastype
+aliasr
+alias_partsr
+	node_listr
+Inliner.phrase_refc
+mailto:)
+Inliner.adjust_uric
+Nz#Unknown interpreted text role "%s".r
+role_fnrx
+Z	messages2r
+Inliner.interpretedc
+Inliner.literalc
+inline_internal_target
+Inliner.inline_internal_targetc
+|%s%sr
+substitution_referencer_
+note_substitution_refr
+subref_nodeZ
+subref_textZ
+reference_noder
+Inliner.substitution_referencec
+        Handles `nodes.footnote_reference` and `nodes.citation_reference`
+        elements.
+        r
+citationlabelz
+[%s]_r
+auto
+citation_reference
+Textr-
+note_citation_ref
+footnote_referenceZ
+note_autofootnote_refZ
+note_symbol_footnote_refZ
+note_footnote_refr
+get_trim_footnote_ref_spacer5
+)	r)
+labelr
+refnoder
+Inliner.footnote_referencec
+referencenamer
+referencenoder
+Inliner.referencec
+anonymous_reference
+Inliner.anonymous_referencec
+schemer
+lowerr
+schemesr
+Z	addschemer
+Inliner.standalone_uric
+pep-Z
+pepnum1Z
+PEPZ
+pepnum2Tr
+startswith
+intr
+pep_base_urlZ
+pep_file_url_templater
+pepnum
+refr
+Inliner.pep_referencez
+rfc%d.htmlc
+rfcnumTr
+rfc_base_url
+rfc_urlr$
+Inliner.rfc_referencec
+        Check each of the patterns in `self.implicit_dispatch` for a match,
+        and dispatch to the stored method for the pattern.  Recursively check
+        the text before and after the match.  Return a list of `nodes.Text`
+        and inline element nodes.
+        NT)	r
+patternr
+Inliner.implicit_inline)	r
+F)(r
+Z&non_unescaped_whitespace_escape_beforer
+uricZ
+uri_end_delimZ
+urilastr
+uri_endZ
+emailcr
+_zeror
+_loweralpha_to_int#
+_upperalpha_to_int&
+	fromRoman
+upper)
+_lowerroman_to_int)
+qJd*d+e
+d,d-e
+d.d/e
+d0d1d2e
+Z"d3Z#d4d5
+Z$d6d7
+Z&d9d:
+Z'd;d<
+Z(d=d>
+Z)d?d@
+Z*dAdB
+Z+dCdD
+dFdG
+Z-dHdI
+Z.dJdK
+Z/dLdM
+Z0dNdO
+Z1dPdQ
+Z2dRdS
+Z3dTdU
+Z4dVdW
+Z5dXdY
+Z6dZd[
+Z7d\d]
+Z8d^d_
+Z9d`da
+Z:dbdc
+Z;ddde
+Z<dfdg
+Z=dhdi
+Z>djdk
+Z?dldm
+Z@dndo
+dpdq
+drds
+ZCdtdu
+dveFeG
+dweFeG
+dxeFeG
+eE_"dzd{
+ZId|d}
+ZJd~d
+ZYeIe
+eGjZ
+eGjZ
+eGjZ
+eE_[d
+ZbdES
+    Generic classifier of the first line of a block.
+    
+parensZ
+rparenZ
+period)
+arabicZ
+loweralphaZ
+upperalpha
+lowerroman
+upperromanr
+[a-z]z
+[A-Z]z
+[ivxlcdm]+z
+[IVXLCDM]+r
+\+-[-+]+-\+ *$z
+=+( +=+)+ *$z
+=+[ =]*$z
+[!-/:-@[-`{-~]Z
+nonalphanum7bitz
+[a-zA-Z]
+alphaz
+[a-zA-Z0-9]Z
+alphanumz
+[a-zA-Z0-9_-]Z
+alphanumpluszJ(%(arabic)s|%(loweralpha)s|%(upperalpha)s|%(lowerroman)s|%(upperroman)s|#)
+enumz
+%(alphanum)s%(alphanumplus)s*Z
+optnamez%(%(alpha)s%(alphanumplus)s*|<[^<>]+>)Z
+optargz!(-|\+)%(alphanum)s( ?%(optarg)s)?Z
+shortoptz"(--|/)%(optname)s([ =]%(optarg)s)?Z
+longoptz
+(%(shortopt)s|%(longopt)s)
+optionz
+(?P<%s>%s%s%s)u
+[-+*
+]( +|$)z((%(parens)s|%(rparen)s|%(period)s)( +|$)z1:(?![: ])([^:\\]|\\.|:(?!([ `]|$)))*(?<! ):( +|$)z"%(option)s(, %(option)s)*(  +| ?$)z	>>>( +|$)z
+\|( +|$)z
+\.\.( +|$)z
+__( +|$)z
+(%(nonalphanum7bit)s)\1* *$)
+bullet
+enumerator
+field_marker
+option_marker
+doctest
+line_block
+grid_table_top
+simple_table_top
+explicit_markupr
+Block quote.z
+Block quote)
+get_indented
+block_quoterN
+)	r)
+next_state
+indented
+indentr
+elementsr
+Body.indentc
+split_attributionr
+parse_attribution)
+blockquote_linesZ
+attribution_linesZ
+attribution_offset
+new_line_offsetZ
+blockquote
+attributionrx
+Body.block_quoteu
+(---?(?!-)|
+) *(?=[^ \n])c
+        Check for a block quote attribution and split it off:
+        * First line after a blank line must begin with a dash ("--", "---",
+          em-dash; matches `self.attribution_pattern`).
+        * Every line after that must have consistent indentation.
+        * Attributions must be preceded by block quote content.
+        Return a tuple of: (block quote content lines, content offset,
+        attribution lines, attribution offset, remaining indented lines).
+        NFr[
+ranger_
+attribution_patternr
+check_attributionZ	trim_leftr
+blankZ
+nonblank_seen
+attribution_endr<
+a_linesr
+Body.split_attributionc
+        Check attribution shape.
+        Return the index past the end of the attribution, and the indent.
+        Nr[
+lstrip)
+attribution_startr<
+Body.check_attributionc
+Body.parse_attributionc
+Bullet list item.r
+BulletList
+Bullet list)
+bullet_listrJ
+	list_itemr
+)	r)
+bulletlistrF
+Body.bulletc
+get_known_indented
+get_first_known_indentedr
+listitemr
+Body.list_itemc
+Enumerated List Itemr
+enumtyper
+z<Enumerated list start value not ordinal-1: "%s" (ordinal %s)N
+EnumeratedList)
+lastordinal
+formatr
+Enumerated list)
+parse_enumerator
+is_enumerated_list_itemr
+TransitionCorrectionr
+enumerated_listrN
+formatinfor
+inforK
+sequencer
+ordinalZ
+enumlistr
+newline_offsetr
+Body.enumeratorNc
+        Analyze an enumerator and return the results.
+        :Return:
+            - the enumerator format ('period', 'parens', or 'rparen'),
+            - the sequence used ('arabic', 'loweralpha', 'upperroman', etc.),
+            - the text of the enumerator, stripped of formatting, and
+            - the ordinal value of the enumerator ('a' -> 1, 'ii' -> 2, etc.;
+              ``None`` is returned for invalid enumerator text).
+        The enumerator format has already been determined by the regular
+        expression match. If `expected_sequence` is given, that sequence is
+        tried first. If not, we check for Roman numeral 1. This way,
+        single-character Roman numerals (which are also alphabetical) can be
+        matched. If no sequence has been matched, all sequences are checked in
+        order.
+        r
+enumerator format not matchedr
+unknown enumerator sequence: %srF
+enumerator sequence not matchedr[
+formatsr#
+sequenceregexpsr
+KeyError
+	sequences
+convertersr
+InvalidRomanNumeralError)
+expected_sequencer
+Body.parse_enumeratorc
+        Check validity based on the ordinal value and the second line.
+        Return true if the ordinal is valid and the second line is blank,
+        indented, or starts with the next enumerator or an auto-enumerator.
+        Nr[
+strip
+make_enumeratorr
+	TypeError)
+result
+next_enumerator
+auto_enumeratorr
+Body.is_enumerated_list_itemc
+        Construct and return the next enumerated list item marker, and an
+        auto-enumerator ("#" instead of the regular enumerator).
+        Return ``None`` for invalid (out of range) ordinals.
+        r
+z!unknown enumerator sequence: "%s"r
+strr
+chrr
+toRomanZ
+RomanErrorr#
+Body.make_enumeratorc
+Field list item.r[
+	FieldListrJ
+Field list)
+field_listrN
+fieldrJ
+)	r)
+Body.field_markerc
+parse_field_markerrJ
+field_name
+field_bodyr
+parse_field_body)
+srclinerw
+field_nodeZ
+name_nodesZ
+name_messagesro
+Body.fieldc
+z6Extract & return field name from a field marker match.r[
+rfind)
+Body.parse_field_markerc
+Body.parse_field_bodyc
+Option list item.z
+Invalid option list marker: %sz
+Option listNr[
+OptionListrJ
+option_listrJ
+option_list_itemr
+optionlistrN
+Body.option_markerc
+parse_option_markerrM
+option_group
+descriptionr
+optionsr;
+Body.option_list_itemc
+        Return a list of `node.option` and `node.option_argument` objects,
+        parsed from an option marker match.
+        :Exception: `MarkupError` for invalid option markers.
+        z
+	delimiterz;wrong number of option tokens (=%s), should be 1 or 2: "%s")
+option_stringZ
+option_argumentrc
+)	r)
+optlistZ
+optionstringsZ
+optionstring
+tokensr
+firstoptr.
+Body.parse_option_markerc
+get_text_blockrN
+doctest_block)
+Body.doctestc
+First line of a line block.r[
+	LineBlockr
+z%Line block ends without a blank line.r
+line_block_liner
+nest_line_block_lines)
+Body.line_blockc
+rlt	|
+z(Return one line element of a line_block.T
+until_blankr
+text_nodesrx
+Body.line_block_linec
+nest_line_block_segment)
+Body.nest_line_block_linesc
+itemr
+<listcomp>b
+z0Body.nest_line_block_segment.<locals>.<listcomp>)
+minr
+indentsZ
+leastZ	new_itemsZ	new_blockr
+Body.nest_line_block_segmentc
+Top border of a full table.)
+	table_top
+isolate_grid_tabler
+GridTableParser
+Body.grid_table_topc
+Top border of a simple table.)
+isolate_simple_tabler
+SimpleTableParserr
+Body.simple_table_topc
+Top border of a generic table.z Blank line required after table.r[
+tablerN
+)	r)
+isolate_function
+parser_classr
+Body.table_topc
+}	|	g
+Parse a table.r[
+build_tabler
+TableMarkupError
+malformed_tabler
+parser
+	tabledata
+	tableliner
+errr
+Body.tablec
+flush_left
+Unexpected indentation.
+UnexpectedIndentationErrorr
+disconnect
+pad_double_width
+double_width_pad_charr_
+grid_table_top_patr
+extendr
+)	r)
+widthrF
+Body.isolate_grid_tablec
+z5Bottom/header table border does not match top border.r\
+z$ or no blank line after table bottomr
+No bottom table border found%s.)
+simple_table_border_patr
+limitZ
+toplenZ
+pattern_match
+foundZ
+found_atrF
+extrarf
+Body.isolate_simple_tablec
+Malformed table.r[
+replacer
+detailr
+	startliner
+Body.malformed_tablec
+}	q`|
+)	Nr
+classesz
+colwidths-autoz
+colwidths-given)
+cols)
+colwidthr[
+stub)	r
+tgroupr_
+colspec
+attributes
+thead
+build_table_row
+tbody)
+stub_columnsZ
+widthsZ	colwidthsZ
+headrowsZ
+bodyrowsr
+rowr
+Body.build_tablec
+morerows
+morecolsr
+entryr
+rowdatar
+cellr
+Z	cellblockr
+Body.build_table_rowa?
+                            (
+                              _               # anonymous target
+                            |               # *OR*
+                              (?!_)           # no underscore at the beginning
+                              (?P<quote>`?)   # optional open quote
+                              (?![ `])        # first char. not space or
+                                              # backquote
+                              (?P<name>       # reference name
+                                .+?
+                              )
+                              %(non_whitespace_escape_before)s
+                              (?P=quote)      # close quote if open quote used
+                            )
+                            (?<!(?<!\x00):) # no unescaped colon at end
+                            %(non_whitespace_escape_before)s
+                            [ ]?            # optional space
+                            :               # end of reference name
+                            ([ ]+|$)        # followed by whitespace
+                            a
+                               (
+                                 (?P<simple>%(simplename)s)_
+                               |                  # *OR*
+                                 `                  # open backquote
+                                 (?![ ])            # not space
+                                 (?P<phrase>.+?)    # hyperlink phrase
+                                 %(non_whitespace_escape_before)s
+                                 `_                 # close backquote,
+                                                    # reference mark
+                               )
+                               $                  # end of string
+                               a
+                                  (
+                                    (?![ ])          # first char. not space
+                                    (?P<name>.+?)    # substitution text
+                                    %(non_whitespace_escape_before)s
+                                    \|               # close delimiter
+                                  )
+                                  ([ ]+|$)           # followed by whitespace
+                                  )
+substitutionc
+nL|	d
+footnoter
+note_autofootnoteZ
+note_symbol_footnoter
+note_footnoter
+Body.footnotec
+citationr
+note_citationr
+Body.citationc
+NTF)
+strip_indentr
+z)Body.hyperlink_target.<locals>.<listcomp>r
+malformed hyperlink target.r
+explicitr
+make_targetr
+	blocktextr
+blockindexZ
+targetmatchr
+hyperlink_target
+Body.hyperlink_targetc
+parse_targetr
+add_targetr-
+block_textrw
+target_nameZ
+target_typer
+Body.make_targetc
+        Determine the type of reference of a target.
+        :Return: A 2-tuple, one of:
+            - 'refname' and the indirect reference name
+            - 'refuri' and the URI
+            - 'malformed' and a system_message node
+        r
+z%Body.parse_target.<locals>.<listcomp>r
+z$Body.parse_target.<locals>.<genexpr>r
+is_referencer
+Z	ref_partsr
+Body.parse_targetc
+simple
+phrase)
+Body.is_referencec
+problem with URI: %rr[
+note_anonymous_target)
+targetnamer
+Body.add_targetc
+|	|	
+|	|	
+|	|	
+z"malformed substitution definition.r
+z.Substitution definition "%s" missing contents.r
+SubstitutionDefrJ
+z6Substitution definition contains illegal element <%s>:z.Substitution definition "%s" empty or invalid.))r
+substitution_definitionr4
+Inliner
+traverse
+Element
+*disallowed_inside_substitution_definitions
+pformatr
+tagnamer-
+note_substitution_def)
+subdefmatchZ
+subnameZ
+substitution_noder
+new_abs_offsetrF
+substitution_def
+Body.substitution_defc
+idsr
+getr
+z/Body.disallowed_inside_substitution_definitionsc
+z?Returns a 2-tuple: list of nodes, and a "blank finish" boolean.r[
+N)	r
+	directiver9
+run_directive
+unknown_directive)
+option_presets
+	type_nameZ
+directive_classrx
+Body.directivec
+        Parse a directive then run its directive function.
+        Parameters:
+        - `directive`: The class implementing the directive.  Must be
+          a subclass of `rst.Directive`.
+        - `match`: A regular expression match object which matched the first
+          line of the directive.
+        - `type_name`: The directive name, as used in the source text.
+        - `option_presets`: A dictionary of preset options, defaults for the
+          directive options.  Currently, only an "alt" option is passed by
+          substitution definitions (value: the substitution name), which may
+          be used by an embedded image directive.
+        Returns a 2-tuple: list of nodes, and a "blank finish" boolean.
+        r
+convert_directive_function)
+Z	strip_topr
+Error in "%s" directive:
+%s.r
+docutils.parsers.rstr
+parse_directive_blockr
+docutilsZ
+parsersZ
+rstZ
+DirectiveErrorZ
+system_messager
+is_next_line_blank)
+initial_line_offsetr;
+	argumentsr{
+content
+content_offsetr
+directive_instancerd
+msg_noderF
+Body.run_directivec
+no content permitted)
+option_spec
+has_contentra
+trim_start
+trim_end
+required_arguments
+optional_arguments
+	enumerate
+parse_directive_options
+parse_directive_argumentsr
+	arg_blockr
+Body.parse_directive_blockc
+)	rj
+parse_extension_optionsr(
+Z	opt_block
+successr
+Body.parse_directive_optionsc
+z$%s argument(s) required, %s suppliedr[
+z+maximum %s argument(s) allowed, %s supplied)
+final_argument_whitespace)
+requiredZ
+optionalZ
+arg_textr
+Body.parse_directive_argumentsc
+        Parse `datalines` for a field list containing extension options
+        matching `option_spec`.
+        :Parameters:
+            - `option_spec`: a mapping of option name to conversion
+              function, which should raise an exception on bad input.
+            - `datalines`: a list of input strings.
+        :Return:
+            - Success value, 1 or 0.
+            - An option dictionary on success, an error string on failure.
+        r
+ExtensionOptionsT)
+invalid option blockz
+unknown option: "%s"Nz
+invalid option value: %sr
+invalid option data: %sr[
+option data incompletely parsed)
+extract_extension_optionsr^
+ExtensionOptionError)
+Z	datalinesr<
+Body.parse_extension_optionsc
+Unknown directive type "%s".r
+)	r)
+Body.unknown_directivec
+commentrM
+Body.commenta
+                      \.\.[ ]+          # explicit markup start
+                      \[
+                      (                 # footnote label:
+                          [0-9]+          # manually numbered footnote
+                        |               # *OR*
+                          \#              # anonymous auto-numbered footnote
+                        |               # *OR*
+                          \#%s            # auto-number ed?) footnote label
+                        |               # *OR*
+                          \*              # auto-symbol footnote
+                      )
+                      \]
+                      ([ ]+|$)          # whitespace or end of line
+                      z
+                      \.\.[ ]+          # explicit markup start
+                      \[(%s)\]          # citation label
+                      ([ ]+|$)          # whitespace or end of line
+                      z
+                      \.\.[ ]+          # explicit markup start
+                      _                 # target indicator
+                      (?![ ]|$)         # first char. not space or EOL
+                      z
+                      \.\.[ ]+          # explicit markup start
+                      \|                # substitution indicator
+                      (?![ ]|$)         # first char. not space or EOL
+                      aK
+                      \.\.[ ]+          # explicit markup start
+                      (%s)              # directive name
+                      [ ]?              # optional space
+                      ::                # directive delimiter
+                      ([ ]+|$)          # whitespace or end of line
+                      c
+z3Footnotes, hyperlink targets, directives, comments.)
+explicit_constructrN
+explicit_list
+Body.explicit_markupc
+z>Determine which explicit construct this is, parse & return it.r
+constructsr
+errorsr
+expmatchr
+Body.explicit_constructc
+        Create a nested state machine for a series of explicit markup
+        constructs (including anonymous hyperlink targets).
+        r[
+Explicit)
+Explicit markup)	rJ
+Body.explicit_listc
+Anonymous hyperlink targets.)
+anonymous_targetrN
+Body.anonymousc
+z)Body.anonymous_target.<locals>.<listcomp>r
+)	r)
+Body.anonymous_targetc
+)	z,Section title overline or transition marker.
+Line
+zeUnexpected possible title overline or transition.
+Treating it as ordinary text because it's so short.r
+z'Unexpected section title or transition.N)
+z	Body.linec
+z%Titles, definition lists, paragraphs.r
+z	Body.text)
+N)cr
+TableParserr
+keysr\
+sequencepatsr
+simple_table_top_patr
+patsrR
+escaper
+initial_transitionsr<
+RFC2822Bodyz
+    RFC2822 headers are only valid as the first constructs in documents.  As
+    soon as anything else appears, the `Body` state should take over.
+    z
+[!-9;-~]+:( +|$)
+rfc2822c
+RFC2822Body.<listcomp>r
+RFC2822-style field list item.r
+RFC2822ListrJ
+RFC2822-style field list)
+rfc2822_fieldrJ
+)	r)
+Z	fieldlistrl
+RFC2822Body.rfc2822c
+findrJ
+)	r)
+Z	fieldnodeZ	fieldbodyr
+RFC2822Body.rfc2822_fieldN)
+insertr
+SpecializedBodya
+    Superclass for second and subsequent compound element members.  Compound
+    elements are lists and list-like constructs.
+    All transition methods are disabled (redefined as `invalid_input`).
+    Override individual methods in subclasses to re-enable.
+    For example, once an initial bullet list item, say, is recognized, the
+    `BulletList` subclass takes over, with a "bullet_list" node as its
+    container.  Upon encountering the initial bullet list item, `Body.bullet`
+    calls its ``self.nested_list_parse`` (`RSTState.nested_list_parse`), which
+    starts up a nested parsing session with `BulletList` as the initial state.
+    Only the ``bullet`` transition method is enabled in `BulletList`; as long
+    as only bullet list items are encountered, they are parsed and inserted
+    into the container.  The first construct which is *not* a bullet list item
+    triggers the `invalid_input` method, which ends the nested parse and
+    closes the container.  `BulletList` needs to recognize input that is
+    invalid in the context of a bullet list, which means everything *other
+    than* bullet list items, so it inherits the transition list created in
+    `Body`.
+    Nc
+z8Not a compound element member. Abort this state machine.N)
+invalid_input
+SpecializedBody.invalid_input)
+NNN)
+z-Second and subsequent bullet_list list_items.c
+BulletList.bulletN)
+DefinitionListz,Second and subsequent definition_list_items.c
+Definition lists.
+Definitionr
+DefinitionList.textN)
+z1Second and subsequent enumerated_list list_items.c
+Enumerated list item.rO
+EnumeratedList.enumeratorN)
+z(Second and subsequent field_list fields.c
+Field list field.)
+FieldList.field_markerN)
+z4Second and subsequent option_list option_list_items.c
+OptionList.option_markerN)
+z6Second and subsequent RFC2822-style field_list fields.c
+RFC2822List.rfc2822N)
+    Parse field_list fields for extension options.
+    No nested parsing is done (including inline markup parsing).
+    c
+z5Override `Body.parse_field_body` for simpler parsing.r
+listra
+z!ExtensionOptions.parse_field_bodyN)
+z,Second and subsequent lines of a line_block.c
+New line of line block.)
+LineBlock.line_blockN)
+z0Second and subsequent explicit markup construct.c
+Explicit.explicit_markupc
+Explicit.anonymousN)	r
+    Parser for the contents of a substitution_definition element.
+    z
+(%s)::( +|$)r
+embedded_directiver
+alt)
+at_eofrk
+z"SubstitutionDef.embedded_directivec
+SubstitutionDef.textN)
+    Classifier of second line of a text block.
+    Could be a paragraph, a definition list item, or a title.
+    rU
+	underliner
+End of paragraph.r[
+Text.blankc
+Text.eofc
+Definition list item.r[
+Definition listrD
+definition_list
+definition_list_itemrN
+)	r)
+definitionlistZ
+definitionlistitemrk
+Text.indentc
+j	|	7
+j	|	7
+Section title.r
+zfPossible title underline, too short for the title.
+Treating it as ordinary text because it's so short.r
+Title underline too short.z
+Unexpected section title.r
+Text.underlinec
+Paragraph.r[
+z	Text.textc
+Return a list of nodes.r
+Literal block)
+quoted_literal_blockr
+Text.literal_blockc
+QuotedLiteralBlockrE
+children)
+parent_noder
+Text.quoted_literal_blockc
+z`Blank line missing before literal block (after the "::")? Interpreted as a definition list item.r
+termr
+termliner;
+itemnoderw
+termlistrx
+Text.definition_list_itemz
+ +: +c
+z9Return a definition_list's term and optional classifiers.r
+classifier_delimiterr
+classifierr
+Z	term_noder
+textnoder
+z	Text.termN)
+SpecializedTextz
+    Superclass for second and subsequent lines of Text-variants.
+    All transition methods are disabled. Override individual methods in
+    subclasses to re-enable.
+    c
+Incomplete construct.r
+SpecializedText.eofNc
+SpecializedText.invalid_input)
+NNN)
+z.Second line of potential definition_list_item.c
+Not a definition.r\
+Definition.eofc
+Definition.indentN)
+    Second line of over- & underlined section title or transition marker.
+    r[
+z0Transition marker at end of section or document.r
+state_correction
+eofcheckrJ
+transitionr4
+markerrq
+Line.eofc
+Transition marker.r
+Line.blankc
+z#Potential over- & underlined title.r[
+Incomplete section title.r
+z6Missing matching underline for section title overline.z$Title overline & underline mismatch.z
+Title overline too short.)
+short_overliner.
+overlineru
+z	Line.textc
+z+Invalid section title or transition marker.r
+Line.underlinec
+Nz`Possible incomplete section title.
+Treating the overline as ordinary text because it's so short.r
+Line.short_overlinec
+StateCorrection)
+Line.state_correctionN)
+    Nested parse handler for quoted (unindented) literal blocks.
+    Special-purpose.  Not for inclusion in `state_classes`.
+    z
+(%(nonalphanum7bit)s)r
+initial_quotedr
+initial_linenorI
+QuotedLiteralBlock.__init__c
+QuotedLiteralBlock.blankc
+z#Literal block expected; none found.r
+QuotedLiteralBlock.eofc
+QuotedLiteralBlock.indentc
+z7Match arbitrary quote character on the first line only.r
+quoted)
+remove_transitionr
+add_transitionr!
+quoter
+z!QuotedLiteralBlock.initial_quotedc
+z,Match consistent quotes on subsequent lines.)
+QuotedLiteralBlock.quotedc
+Nz#Inconsistent literal block quoting.r
+QuotedLiteralBlock.textN)
+T)Hr+
+__docformat__
+sysr
+typesr
+docutils.statemachiner	
+docutils.nodesr
+docutils.parsers.rst.languagesr
+_fallback_language_moduleZ
+docutils.utilsr
+	Exceptionr$
+objectr%
+<module>

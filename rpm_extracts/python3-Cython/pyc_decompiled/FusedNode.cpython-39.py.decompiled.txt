@@ -1,0 +1,581 @@
+m	Z	
+absolute_importN
+	ExprNodes
+PyrexTypes
+MemoryView
+ParseTreeTransforms
+StringEncoding
+Errors)
+	CloneNode
+	ProxyNode
+	TupleNode)
+FuncDefNode
+CFuncDefNode
+StatListNode
+DefNode
+OrderedSetc
+d d!
+d"d#
+d$d%
+d&d'
+d(d)
+d*d+
+d,d-
+Z d.d/
+Z!d0d1
+Z"d2d3
+Z#d4d5
+Z$d6d7
+Z%d8d9
+FusedCFuncDefNodea
+    This node replaces a function with fused arguments. It deep-copies the
+    function for every permutation of fused types, and allocates a new local
+    scope for it. It keeps track of the original function in self.node, and
+    the entry of the original function in the symbol table is given the
+    'fused_cfunction' attribute which points back to us.
+    Then when a function lookup occurs (to e.g. call it), the call can be
+    dispatched to the right function.
+    node    FuncDefNode    the original function
+    nodes   [FuncDefNode]  list of copies of node with different specific types
+    py_func DefNode        the fused python function subscriptable from
+                           Python space
+    __signatures__         A DictNode mapping signature specialization strings
+                           to PyCFunction nodes
+    resulting_fused_function  PyCFunction for the fused DefNode that delegates
+                              to specializations
+    fused_func_assignment   Assignment of the fused function to the function name
+    defaults_tuple          TupleNode of defaults (letting PyCFunctionNode build
+                            defaults would result in many different tuples)
+    specialized_pycfuncs    List of synthesized pycfunction nodes for the
+                            specializations
+    code_object             CodeObjectNode shared by all specializations and the
+                            fused function
+    fused_compound_types    All fused (compound) types (e.g. floating[:])
+    N)
+__signatures__
+resulting_fused_function
+fused_func_assignmentc
+superr
+__init__
+nodes
+node
+isinstancer
+copy_def
+	copy_cdef
+entry
+type
+is_fused
+local_scope
+return_type
+cfunc_declarator
+optional_arg_countZ
+op_arg_struct
+fused_cfunction
+stats)
+selfr
+is_def
+	__class__
+?/usr/lib64/python3.9/site-packages/Cython/Compiler/FusedNode.pyr
+FusedCFuncDefNode.__init__c
+        Create a copy of the original def or lambda function for specialized
+        versions.
+        c
+argr/
+<listcomp>U
+z.FusedCFuncDefNode.copy_def.<locals>.<listcomp>T
+uniquer
+args
+_get_fused_base_types
+ get_all_specialized_permutations
+fused_compound_typesr 
+pyfunc_entries
+remove
+copy
+deepcopyZ	signature
+_specialize_function_argsr$
+specialize
+analyse_declarations
+create_new_local_scope
+specialize_copied_def
+specialize_entry
+used
+entries
+name
+replace_fused_typechecks
+orig_py_func
+make_fused_cpdef
+py_func)
+fused_types
+permutations
+cname
+fused_to_specific
+copied_noder/
+FusedCFuncDefNode.copy_defc
+        Create a copy of the original c(p)def function for all specialized
+        versions.
+        N)
+fused_cnamer
+get_fused_typesr<
+	enumerateZ
+cfunc_entriesrP
+same_as_resolved_type
+func_cname
+appendrG
+defined_in_pxdZ
+is_c_class_scopeZ
+is_cmethodr%
+declare_optional_arg_structr$
+declare_cpdef_wrapperrE
+as_variablerJ
+index
+ValueError
+extendrL
+new_cfunc_entriesrP
+orig_entryZ
+cindexr/
+FusedCFuncDefNode.copy_cdefc
+        Get a list of unique basic fused types, from a list of
+        (possibly) compound fused types.
+        )
+result
+seen)
+setrS
+base_typesr]
+fused_typer/
+z'FusedCFuncDefNode._get_fused_base_typesc
+is_memoryviewsliceZ
+validate_memslice_dtyper
+z+FusedCFuncDefNode._specialize_function_argsc
+        Create a new local scope for the copied node and append it to
+        self.nodes. A new local scope is needed because the arguments with the
+        fused types are already in the local scope, and we need the specialized
+        entries created after analyse_declarations on each specialized version
+        of the (CFunc)DefNode.
+        f2s is a dict mapping each fused type to its specialized version
+        FN)
+create_local_scoper#
+has_fused_argumentsr
+f2sr/
+z(FusedCFuncDefNode.create_new_local_scopec
+zwSpecialize the copy of a DefNode given the copied node,
+        the specialization cname and the original DefNode entryc
+specialization_signature_string)
+z;FusedCFuncDefNode.specialize_copied_def.<locals>.<listcomp>
+|N)	r:
+join
+specialized_signature_stringr
+get_fused_cnamer 
+pymethdef_cname
+	doc_cname)
+py_entryra
+type_stringsr/
+z'FusedCFuncDefNode.specialize_copied_defc
+        Branch-prune fused type checks like
+            if fused_t is int:
+                ...
+        Returns whether an error was issued and whether we should stop in
+        in order to prevent a flood of errors.
+        FT)
+num_errorsr
+ReplaceFusedTypeChecksr#
+Z	transformr/
+z*FusedCFuncDefNode.replace_fused_typechecksc
+        Generate Cython code for instance checks, matching an object to
+        specialized types.
+        )
+py_type_name
+specialized_type_namez
+                    if isinstance(arg, {{py_type_name}}):
+                        dest_sig[{{dest_sig_idx}}] = '{{specialized_type_name}}'; break
+                N)
+context
+updaterj
+specialization_string
+	put_chunk)
+normal_types
+pyx_coder*
+specialized_typer/
+_fused_instance_checks
+z(FusedCFuncDefNode._fused_instance_checksc
+Nz	___pyx_%s
+is_typedef
+replace
+dtyper/
+_dtype_name&
+FusedCFuncDefNode._dtype_namec
+_dtype_type+
+FusedCFuncDefNode._dtype_typec
+sizeof(void *)z
+sizeof(%s))
+is_pyobjectr|
+_sizeof_dtype0
+FusedCFuncDefNode._sizeof_dtypec
+z?Setup some common cases to match dtypes against specializationsz
+if kind in b'iu':
+pass
+	dtype_intz
+elif kind == b'f':
+dtype_floatz
+elif kind == b'c':
+dtype_complexz
+elif kind == b'O':Z
+dtype_objectN)
+indenter
+putln
+named_insertion_point
+dedent
+%_buffer_check_numpy_dtype_setup_cases6
+z7FusedCFuncDefNode._buffer_check_numpy_dtype_setup_casesz8dest_sig[{{dest_sig_idx}}] = '{{specialized_type_name}}'z!dest_sig[{{dest_sig_idx}}] = Nonec
+r||	
+        Match a numpy dtype object to the individual specializations.
+        z
+ == itemsizez!not (%s_is_signed ^ dtype_signed))
+itemsize_matchZ
+signed_matchrz
+z3{{itemsize_match}} and (<Py_ssize_t>arg.ndim) == %dz
+ and {{signed_match}}z
+ and arg_is_pythran_compatiblez
+if %s:
+breakN)
+is_pythran_expr
+org_bufferrz
+is_intr
+is_floatr
+is_complexr
+ndimr
+matchr
+specialized_buffer_types
+pythran_typesrr
+final_typerz
+dtypesZ
+dtype_categoryZ
+codewriterZ
+condr/
+_buffer_check_numpy_dtypeN
+z+FusedCFuncDefNode._buffer_check_numpy_dtypec
+        For each specialized type, try to coerce the object to a memoryview
+        slice of that type. This means obtaining a buffer and parsing the
+        format string.
+        TODO: separate buffer acquisition from format parsing
+        )
+directZ
+strided)
+coerce_from_py_funcrz
+z;{{memviewslice_cname}} {{coerce_from_py_func}}(object, int))
+sizeof_dtypea
+                # try {{dtype}}
+                if itemsize == -1 or itemsize == {{sizeof_dtype}}:
+                    memslice = {{coerce_from_py_func}}(arg, 0)
+                    if memslice.memview:
+                        __PYX_XDEC_MEMVIEW(&memslice, 1)
+                        # print 'found a match for the buffer through format parsing'
+                        %s
+                        break
+                    else:
+                        __pyx_PyErr_Clear()
+            N)
+	is_bufferr
+axesr
+MemoryViewSliceTypeZ
+create_from_py_utility_coderl
+from_py_functionr
+	decl_coderr
+memslice_typer/
+!_buffer_parse_format_string_checku
+z3FusedCFuncDefNode._buffer_parse_format_string_checkc
+        Generate Cython code to match objects to buffer specializations.
+        First try to get a numpy dtype object and match it against the individual
+        specializations. If that fails, try naively to coerce the object
+        to each specialization, which obtains the buffer each time and tries
+        to match the format string.
+        z
+                z!arg_is_pythran_compatible = False
+                if ndarray is not None:
+                    if isinstance(arg, ndarray):
+                        dtype = arg.dtype
+                        z arg_is_pythran_compatible = TrueaC
+                    elif __pyx_memoryview_check(arg):
+                        arg_base = arg.base
+                        if isinstance(arg_base, ndarray):
+                            dtype = arg_base.dtype
+                        else:
+                            dtype = None
+                    else:
+                        dtype = None
+                    itemsize = -1
+                    if dtype is not None:
+                        itemsize = dtype.itemsize
+                        kind = ord(dtype.kind)
+                        dtype_signed = kind == 'i'
+            r
+                        # Pythran only supports the endianness of the current compiler
+                        byteorder = dtype.byteorder
+                        if byteorder == "<" and not __Pyx_Is_Little_Endian():
+                            arg_is_pythran_compatible = False
+                        elif byteorder == ">" and __Pyx_Is_Little_Endian():
+                            arg_is_pythran_compatible = False
+                        if arg_is_pythran_compatible:
+                            cur_stride = itemsize
+                            shape = arg.shape
+                            strides = arg.strides
+                            for i in range(arg.ndim-1, -1, -1):
+                                if (<Py_ssize_t>strides[i]) != cur_stride:
+                                    arg_is_pythran_compatible = False
+                                    break
+                                cur_stride *= <Py_ssize_t> shape[i]
+                            else:
+                                arg_is_pythran_compatible = not (arg.flags.f_contiguous and (<Py_ssize_t>arg.ndim) > 1)
+                Z
+numpy_dtype_checksN)
+indentr
+buffer_typesr
+_buffer_checks
+z FusedCFuncDefNode._buffer_checksc
+)	zr
+        If we have any buffer specializations, write out some variable
+        declarations and imports.
+        z
+                ctypedef struct {{memviewslice_cname}}:
+                    void *memview
+                void __PYX_XDEC_MEMVIEW({{memviewslice_cname}} *, int have_gil)
+                bint __pyx_memoryview_check(object)
+            z
+                cdef {{memviewslice_cname}} memslice
+                cdef Py_ssize_t itemsize
+                cdef bint dtype_signed
+                cdef char kind
+                itemsize = -1
+            zl
+                cdef bint arg_is_pythran_compatible
+                cdef Py_ssize_t cur_stride
+            zq
+                cdef type ndarray
+                ndarray = __Pyx_ImportNumPyArrayTypeIfAvailable()
+            z
+ctypedef %s %s "%s")
+dtype_nameZ
+dtype_typez
+                            cdef bint {{dtype_name}}_is_signed
+                            {{dtype_name}}_is_signed = not (<{{dtype_type}}> -1 > 0)
+                        N)
+local_variable_declarations
+importsr^
+addr
+resolveZ
+empty_declaration_coder
+all_buffer_typesr
+seen_typedefsZ
+seen_int_dtypesZ
+buffer_typerz
+_buffer_declarations
+z&FusedCFuncDefNode._buffer_declarationsc
+}	|	rp|	|
+rLq2|
+        Specialize fused types and split into normal types and buffer types.
+        F
+objectT)
+get_specialized_typesr!
+sortr^
+specialized_typesZ
+seen_py_type_namesrp
+has_object_fallbackrr
+_split_fused_types
+z$FusedCFuncDefNode._split_fused_typesc
+                # PROCESSING ARGUMENT {{arg_tuple_idx}}
+                if {{arg_tuple_idx}} < len(<tuple>args):
+                    arg = (<tuple>args)[{{arg_tuple_idx}}]
+                elif kwargs is not None and '{{arg.name}}' in <dict>kwargs:
+                    arg = (<dict>kwargs)['{{arg.name}}']
+                else:
+                {{if arg.default}}
+                    arg = (<tuple>defaults)[{{default_idx}}]
+                {{else}}
+                    {{if arg_tuple_idx < min_positional_args}}
+                        raise TypeError("Expected at least %d argument%s, got %d" % (
+                            {{min_positional_args}}, {{'"s"' if min_positional_args != 1 else '""'}}, len(<tuple>args)))
+                    {{else}}
+                        raise TypeError("Missing keyword-only argument: '%s'" % "{{arg.default}}")
+                    {{endif}}
+                {{endif}}
+            )
+_unpack_argument2
+z"FusedCFuncDefNode._unpack_argumentc
+|	j#j
+)|	|
+l+m,}
+_5t6|
+j8d d 
+)"a!
+        This creates the function that is indexable from Python and does
+        runtime dispatch based on the argument types. The function gets the
+        arg tuple and kwargs dict (or None) and the defaults tuple
+        as arguments from the Binding Fused Function's tp_call.
+        r
+TreeFragment
+Code
+UtilityCodec
+z6FusedCFuncDefNode.make_fused_cpdef.<locals>.<listcomp>c
+defaultr2
+	<genexpr>Z
+z5FusedCFuncDefNode.make_fused_cpdef.<locals>.<genexpr>)
+memviewslice_cnameZ	func_argsZ
+n_fusedZ
+min_positional_argsrI
+                cdef extern from *:
+                    void __pyx_PyErr_Clear "PyErr_Clear" ()
+                    type __Pyx_ImportNumPyArrayTypeIfAvailable()
+                    int __Pyx_Is_Little_Endian()
+            a
+                def __pyx_fused_cpdef(signatures, args, kwargs, defaults):
+                    # FIXME: use a typed signature - currently fails badly because
+                    #        default arguments inherit the types we specify here!
+                    dest_sig = [None] * {{n_fused}}
+                    if kwargs is not None and not kwargs:
+                        kwargs = None
+                    cdef Py_ssize_t i
+                    # instance check body
+            r
+Z	func_defsr
+zODetermination of more than one fused base type per argument is not implemented.)
+arg_tuple_idxr4
+dest_sig_idx
+default_idxz
+while 1:Z
+IsLittleEndianz
+ModuleSetupCode.cr
+tyr/
+Importz
+ImportExport.cZ
+ImportNumPyArraya
+                candidates = []
+                for sig in <dict>signatures:
+                    match_found = False
+                    src_sig = sig.strip('()').split('|')
+                    for i in range(len(dest_sig)):
+                        dst_type = dest_sig[i]
+                        if dst_type is not None:
+                            if src_sig[i] == dst_type:
+                                match_found = True
+                            else:
+                                match_found = False
+                                break
+                    if match_found:
+                        candidates.append(sig)
+                if not candidates:
+                    raise TypeError("No matching signature found")
+                elif len(candidates) > 1:
+                    raise TypeError("Function call with ambiguous argument types")
+                else:
+                    return (<dict>signatures)[candidates[0]]
+            )
+ConstantFolding
+module)
+levelZ
+pipeline
+lenZ
+num_required_argsZ
+num_required_kw_args
+sumr 
+PyxCodeWriterro
+NotImplementedErrorr
+use_utility_codeZ
+load_cachedr
+no_matchr
+getvalueZ
+Optimizer
+SetPosTransformr
+rootZ
+declare_declarations_in_scopeZ
+global_scope
+scoperC
+fragment_scoper
+specialized_cpdefs)
+fused_indexr
+seen_fused_typesr[
+arg_fused_typesr_
+fragment_coder
+fragment
+astrM
+z"FusedCFuncDefNode.make_fused_cpdefc
+pyfunc_cnamerf
+Z	is_memberr
+__pyx_fused_cpdef)
+setattr
+getattrrK
+popr
+fused_py_func
+synthesize_defnodesr(
+copy_attributesr 
+attrr
+update_fused_defnode_entry
+z,FusedCFuncDefNode.update_fused_defnode_entryc
+}	|	d
+        Analyse the expressions. Take care to only evaluate default arguments
+        once and clone the result for all specializations
+        Nc
+z9FusedCFuncDefNode.analyse_expressions.<locals>.<listcomp>)
+skip_childrenr
+) r<
+typesr
+create_declaration_utility_coderM
+analyse_expressionsr
+defaultsr
+zipr
+Z	coerce_tor!
+defaults_tupleZ
+analyse_typesZ
+coerce_to_pyobject
+specialized_pycfuncs
+code_objectr4
+fused_compound_typer_
+specialization_typer
+statr
+fused_funcZ
+pycfuncr/
+z%FusedCFuncDefNode.analyse_expressionsc
+)	zT
+        Create the __signatures__ dict of PyCFunctionNode specializations.
+        r
+z9FusedCFuncDefNode.synthesize_defnodes.<locals>.<listcomp>c
+EncodedStringre
+value)
+StringNoder
+sigr/
+binding)
+PyCFunctionNodeZ
+from_defnoder
+DictNodeZ
+from_pairsr
+is_specialization)
+signatures
+keys
+valuesZ
+pycfuncnoder/
+z%FusedCFuncDefNode.synthesize_defnodesc
+pymethdef_requiredr
+generate_function_definitionsr(
+mark_posr
+coder
+z/FusedCFuncDefNode.generate_function_definitionsc
+Nz8((__pyx_FusedFunctionObject *) %s)->__signatures__ = %s;)
+generate_evaluation_coderM
+ExprNode
+generate_execution_coder
+put_giverefZ
+generate_post_assignment_codeZ
+free_tempsr
+generate_disposal_code)
+z)FusedCFuncDefNode.generate_execution_codec
+annotate)
+FusedCFuncDefNode.annotate)(
+__name__
+__module__
+__qualname__
+__doc__r
+decoratorsr
+child_attrsr
+__classcell__r/
+__future__r
+Nodesr
+Utilsr
+<module>

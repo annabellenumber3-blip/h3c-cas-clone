@@ -1,0 +1,417 @@
+m	Z	
+d!d"
+d=d#d$
+d>d%d&
+d?d(d)
+d@d*d+
+dAd,d-
+dBd.d/
+d0d1
+Z"dCd2d3
+Z#e$d4f
+d5d6
+)Dz%Functions for builtin CherryPy tools.
+md5)
+text_or_bytes)
+httputil)
+is_iteratorFc
+	d	|
+Validate the current ETag against If-Match, If-None-Match headers.
+    If autotags is True, an ETag response-header value will be provided
+    from an MD5 hash of the response body (unless some other code has
+    already provided an ETag header). If False (the default), the ETag
+    will not be automatic.
+    WARNING: the autotags feature is not designed for URL's which allow
+    methods other than GET. For example, if a POST to the same URL returns
+    no content, the automatic ETag will be incorrect, breaking a fundamental
+    use for entity tags in a possibly destructive fashion. Likewise, if you
+    raise 304 Not Modified, the response body will be empty, the ETag hash
+    will be incorrect, and your application will break.
+    See :rfc:`2616` Section 14.24.
+    
+ETagNz
+ETag already set: %sz
+TOOLS.ETAGSz
+Autotags off
+Status not 200z
+"%s"z
+Setting ETag: %sz
+Status: %s
+If-Matchc
+8/usr/lib/python3.9/site-packages/cherrypy/lib/cptools.py
+<listcomp>F
+z"validate_etags.<locals>.<listcomp>z
+If-Match conditions: %s
+z)If-Match failed: ETag %r did not match %rz
+If-None-Matchc
+If-None-Match conditions: %sz
+request.method: %s
+HEAD
+z(If-None-Match failed: ETag %r matched %r)
+cherrypy
+serving
+response
+hasattr
+	_httputil
+valid_status
+status
+headers
+logZ
+collapse_bodyr
+Z	hexdigestr
+request
+elements
+repr
+	HTTPError
+method
+HTTPRedirect)	Z
+autotags
+debugr
+reason
+msgZ
+etagr"
+conditionsr	
+validate_etags
+Validate the current Last-Modified against If-Modified-Since headers.
+    If no code has set the Last-Modified response header, then no validation
+    will be performed.
+    z
+Last-Modifiedz
+If-Unmodified-Sincer
+If-Modified-Sincer
+lastmodr
+sincer	
+validate_since^
+Raise 405 if request.method not in methods (default ['GET', 'HEAD']).
+    The given methods are case-insensitive, and may be in any order.
+    If only one method is allowed, you may supply a single string;
+    if more than one, supply a list of strings.
+    Regardless of whether the current method is allowed or not, this
+    also emits an 'Allow' response header, containing the given methods.
+    c
+upper)
+allow.<locals>.<listcomp>r
+Allowz#request.method %r not in methods %rz
+TOOLS.ALLOW
+request.method %r in methods %rN)
+isinstance
+tuple
+list
+append
+joinr
+methodsr(
+allow{
+X-Forwarded-Host
+X-Forwarded-For
+X-Forwarded-Protoc
+}	|	|
+Change the base URL (scheme://host[:port][/path]).
+    For running a CP server behind Apache, lighttpd, or other HTTP server.
+    For Apache and lighttpd, you should leave the 'local' argument at the
+    default value of 'X-Forwarded-Host'. For Squid, you probably want to set
+    tools.proxy.local = 'Origin'.
+    If you want the new request.base to include path info (not just the host),
+    you must explicitly set base to the full base path, and ALSO set 'local'
+    to '', so that the X-Forwarded-Host request header (which never includes
+    path info) does not override it. Regardless, the value for 'base' MUST
+    NOT end in a slash.
+    cherrypy.request.remote.ip (the IP address of the client) will be
+    rewritten if the header specified by the 'remote' arg is valid.
+    By default, 'remote' is set to 'X-Forwarded-For'. If you do not
+    want to rewrite remote.ip, set the 'remote' arg to an empty string.
+    Nz
+Testing scheme %r:%rz
+TOOLS.PROXYZ
+httpsz
+://z
+Testing local %r:%r
+Host
+Testing remote %r:%rr:
+strip)
+ipr	
+	<genexpr>
+proxy.<locals>.<genexpr>)
+lower
+base
+find
+split
+urllib
+parse
+urlparse
+netloc
+next
+remoterA
+localrL
+schemer(
+lbase
+defaultZ
+xffr	
+proxy
+Rangec
+Delete request headers whose field names are included in 'headers'.
+    This is a useful tool for working behind certain HTTP servers;
+    for example, Apache duplicates the work that CP does for 'Range'
+    headers, and will doubly-truncate the response.
+    z
+Ignoring request header %rz
+TOOLS.IGNORE_HEADERSN)
+namer	
+ignore_headers
+Set headers on the response.z
+Setting response headers: %sz
+TOOLS.RESPONSE_HEADERSN)
+valuer	
+response_headers
+Forbidden Referer header.c
+Raise HTTPError if Referer header does/does not match the given pattern.
+    pattern
+        A regular expression pattern to test against the Referer.
+    accept
+        If True, the Referer must match the pattern; if False,
+        the Referer must NOT match the pattern.
+    accept_missing
+        If True, permit requests with no Referer header.
+    error
+        The HTTP error code to return to the client on failure.
+    message
+        A string to include in the response body on failure.
+    Z
+Refererz
+Referer %r matches %rz
+TOOLS.REFERERNz
+No Referer header)
+bool
+matchr!
+KeyErrorr%
+pattern
+acceptZ
+accept_missing
+error
+messager(
+refrZ
+referer
+SessionAuthz"Assert that the user is logged in.
+usernameFc
+selfrc
+passwordr	
+check_username_and_password"
+z'SessionAuth.check_username_and_passwordc
+z2Provide a temporary user name for anonymous users.Nr	
+	anonymous%
+SessionAuth.anonymousc
+on_login)
+SessionAuth.on_loginc
+	on_logout,
+SessionAuth.on_logoutc
+on_check/
+SessionAuth.on_check
+<html><body>
+Message: %(error_msg)s
+<form method="post" action="do_login">
+    Login: <input type="text" name="username" value="%(username)s" size="10" />
+    <br />
+    Password: <input type="password" name="password" size="10" />
+    <br />
+    <input type="hidden" name="from_page" value="%(from_page)s" />
+    <br />
+    <input type="submit" />
+</form>
+</body></html>z
+utf-8)
+vars
+encode)
+	from_pagerc
+	error_msg
+kwargsr	
+login_screen2
+SessionAuth.login_screenc
+z=Login. May raise redirect, or return True if request handled.
+Content-LengthT
+bodyr
+login
+session
+session_keyrj
+do_loginA
+SessionAuth.do_loginc
+z>Logout. May raise redirect, or return True if request handled.N)	r
+sessrc
+	do_logoutR
+SessionAuth.do_logoutc
+zLAssert username. Raise redirect, or return True if request handled.
+        z&No session[username], trying anonymous)
+qsz;No username, routing to login_screen with from_page %(url)rru
+Tz%Setting request.login to %(username)rN)
+_debug_message
+query_string
+localsrt
+do_check\
+SessionAuth.do_checkc
+TOOLS.SESSAUTH)
+template
+contextr	
+SessionAuth._debug_messagec
+z routing %(path)r to login_screenTr{
+POSTr0
+do_login requires POSTr1
+routing %(path)r to do_loginr}
+routing %(path)r to do_logoutz!No special path, running do_check)
+	path_info
+endswithr
+paramsr}
+pathr	
+run{
+SessionAuth.runN)
+__name__
+__module__
+__qualname__
+__doc__rz
+Session authentication hook.
+    Any attribute of the SessionAuth class may be overridden
+    via a keyword arg to this function:
+    z
+    c
+{!s}: {!s}N)
+startswith
+format
+type
+getattrrb
+session_auth.<locals>.<genexpr>)
+dirrb
+items
+setattrr
+session_auth
+z;Write the last error's traceback to the cherrypy error log.rn
+HTTPT)
+severity
+	tracebackN)
+log_traceback
+z0Write request headers to the cherrypy error log.c
+  %s: %sr	
+z'log_request_headers.<locals>.<listcomp>z
+Request Headers:
+header_listr!
+log_request_headers
+qpqDt
+z.Write request.hooks to the cherrypy error log.r
+_cprequestz
+    %s:z
+        %rz
+Request Hooks for z
+hookpoints
+hooks
+keysr5
+sortr!
+pointsr
+	log_hooks
+z8Raise InternalRedirect or HTTPRedirect to the given url.z
+Redirecting %sto: %sz	internal rn
+TOOLS.REDIRECTN)
+InternalRedirectr'
+internalr(
+redirect
+z9Redirect if path_info has (missing|extra) trailing slash.z3is_index: %r, missing: %r, extra: %r, path_info: %rz
+TOOLS.TRAILING_SLASHTrv
+FNr>
+is_indexr
+missingZ
+extrar
+new_urlr	
+trailing_slash
+Wrap response.body in a generator that recursively iterates over body.
+    This allows cherrypy.response.body to consist of 'nested generators';
+    that is, a set of generators that yield generators.
+    c
+Flattened %d chunksz
+TOOLS.FLATTEN)
+inputZ	numchunksr
+	flattenerr	
+flatten.<locals>.flattenerN)
+flatten
+Return the client's preferred media-type (from the given Content-Types).
+    If 'media' is None (the default), no test will be performed.
+    If 'media' is provided, it should be the Content-Type value (as a string)
+    or values (as a list or tuple of strings) which the current resource
+    can emit. The client's acceptable media ranges (as declared in the
+    Accept request header) will be matched in order to these Content-Type
+    values; the first such string is returned. That is, the return value
+    will always be one of the strings provided in the 'media' arg (or None
+    if 'media' is None).
+    If no match is found, then HTTPError 406 (Not Acceptable) is raised.
+    Note that most web browsers send */* as a (low-quality) acceptable
+    media range, which should match any Content-Type. In addition, "...if
+    no Accept header field is present, then it is assumed that the client
+    accepts all media types."
+    Matching types are checked in order of client preference first,
+    and then in the order of the given 'media' values.
+    Note that this function does not honor accept-params (other than "q").
+    NZ
+Acceptz
+No Accept header elementsz
+TOOLS.ACCEPTr
+*/*z
+Match due to */*z
+/*r>
+Match due to %sz*Your client did not send an Accept header.z(Your client sent this Accept header: %s.z4 But this resource only emits these media types: %s.r/
+qvaluerT
+mediar(
+rangesZ
+elementZ
+mtyper.
+ahr*
+MonitoredHeaderMapc
+accessed_headers
+superr
+transform_key)
+	__class__r	
+z MonitoredHeaderMap.transform_keyc
+setr
+__init__rg
+MonitoredHeaderMap.__init__)
+__classcell__r	
+zKAuto-populate the Vary response header based on request.header access.
+    N)
+Content-Dispositionru
+Content-Typec
+z9autovary.<locals>.set_response_header.<locals>.<listcomp>Z
+Varyz
+Accessed headers: %sz
+TOOLS.AUTOVARYr/
+union
+differencer4
+resp_hr
+ignorer"
+set_response_headera
+z%autovary.<locals>.set_response_headerZ
+before_finalize
+updater
+attach)
+req_hr
+autovaryV
+Convert request params based on function annotations, with error handling.
+    exception
+        Exception class to catch.
+    status
+        The HTTP error code to return to the client on failure.
+    N)
+handler
+callable
+__annotations__r%
+handler
+intersectionr
+	exceptionr^
+typesr
+convert_paramsp
+TFrV
+TFNF)
+NF)&r
+loggingrY
+hashlibr
+urllib.parserG
+cherrypy._cpcompatr
+cherrypy.libr
+failsafera
+objectrb
+ERRORr
+Z	HeaderMapr
+ValueErrorr
+<module>

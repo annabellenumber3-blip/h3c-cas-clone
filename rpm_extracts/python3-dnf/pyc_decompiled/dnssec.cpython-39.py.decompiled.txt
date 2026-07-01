@@ -1,0 +1,205 @@
+l	Z	d
+print_function)
+absolute_import)
+unicode_literals)
+EnumN
+DnssecErrorz-
+    Exception used in the dnssec module
+    c
+<DnssecError, value='{}'>z
+Not specified)
+format
+value
+self
+./usr/lib/python3.9/site-packages/dnf/dnssec.py
+__repr__-
+DnssecError.__repr__N)
+__name__
+__module__
+__qualname__
+__doc__r
+_openpgpkeyc
+    Implements RFC 7929, section 3
+    https://tools.ietf.org/html/rfc7929#section-3
+    :param email_address:
+    :param tag:
+    :return:
+    
+z0Email address must contain exactly one '@' sign.r
+utf-8
+rsplit
+lenr
+hashlibZ
+sha256
+update
+encode
+base64Z	b16encode
+digest
+decode
+lower)
+email_address
+split
+msgZ
+localZ
+domain
+hashr"
+email2location2
+Validityz
+    Output of the verification algorithm.
+    TODO: this type might be simplified in order to less reflect the underlying DNS layer.
+    TODO: more specifically the variants from 3 to 5 should have more understandable names
+    r
+VALID
+REVOKED
+PROVEN_NONEXISTENCE
+RESULT_NOT_SECURE
+BOGUS_RESULT
+ERRORr
+NoKeyz
+    This class represents an absence of a key in the cache. It is an expression of non-existence
+    using the Python's type system.
+    N)
+KeyInfozv
+    Wrapper class for email and associated verification key, where both are represented in
+    form of a string.
+    Nc
+email
+key)
+__init__e
+KeyInfo.__init__c
+KeyInfo("{}", "{}...")
+ascii
+KeyInfo.__repr__c
+qHd	
+        Since dnf uses different format of the key than the one used in DNS RR, I need to convert
+        the former one into the new one.
+        
+	<(.*@.*)>Nr
+z$-----BEGIN PGP PUBLIC KEY BLOCK-----z"-----END PGP PUBLIC KEY BLOCK-----
+searchr
+groupr#
+ranger
+joinr 
+useridZ
+raw_keyZ
+input_emailr7
+start
+stop
+cat_keyr
+from_rpm_key_objectl
+KeyInfo.from_rpm_key_object)
+staticmethodrG
+DNSSECKeyVerificationz
+    The main class when it comes to verification itself. It wraps Unbound context and a cache with
+    already obtained results.
+    c
+        Compare the key in case it was found in the cache.
+        z
+Cache hit, valid keyz
+Cache hit, proven non-existencez
+Key in cache: {}
+Input key   : {}N)
+logger
+debugr*
+	key_unionZ
+input_key_stringr
+_cache_hit
+z DNSSECKeyVerification._cache_hitc
+rnt	
+s t	
+sNt	
+snt	
+        In case the key was not found in the cache, create an Unbound context and contact the DNS
+        system
+        r
+NzLConfiguration option 'gpgkey_dns_verification' requires python3-unbound ({})z
+verbosity:
+0z(Unbound context: Failed to set verbosityz
+qname-minimisation:Z
+yesz1Unbound context: Failed to set qname minimisationz+Unbound context: Failed to read resolv.confz
+/var/lib/unbound/root.keyz0Unbound context: Failed to add trust anchor filez%Communication with DNS servers failedz DNSSEC signatures are wrong ({})z!Result is not secured with DNSSECz1Non-existence of this record was proven by DNSSECz&Unknown error in DNS communication: {}z
+Key from DNS: {}rJ
+unbound
+ImportErrorr
+exceptions
+ErrorZ
+ub_ctxZ
+set_optionrK
+resolvconfZ
+add_ta_file
+resolver)
+RR_TYPE_OPENPGPKEYZ
+RR_CLASS_INr*
+bogusZ	why_bogusr3
+securer2
+nxdomainZ
+rcodeZ
+RCODE_NOERRORZ
+havedatar1
+Z	rcode_str
+dataZ
+as_raw_datar!
+Z	b64encoder8
+	input_keyrP
+ctxZ
+status
+resultrV
+dns_data_b64r
+_cache_miss
+z!DNSSECKeyVerification._cache_missc
+        Public API. Use this method to verify a KeyInfo object.
+        z(Running verification for key with id: {}N)
+_cache
+getrN
+verify
+DNSSECKeyVerification.verifyN)	r
+    Inform the user about key validity in a human readable way.
+    z
+DNSSEC extension: Key for user 
+ z	is valid.z
+has unknown status.N)
+prefixr
+nice_user_msg
+    Label any given message with DNSSEC extension tag
+    z
+DNSSEC extension: r
+any_msg
+RpmImportedKeysaQ
+    Wrapper around keys, that are imported in the RPM database.
+    The keys are stored in packages with name gpg-pubkey, where the version and
+    release is different for each of them. The key content itself is stored as
+    an ASCII armored string in the package description, so it needs to be parsed
+    before it can be used.
+    c
+namez
+gpg-pubkey
+packagerr<
+descriptionr=
+rpmZ
+transactionZ
+TransactionWrapperZ
+dbMatchZ	getheaderr?
+transaction_setZ
+packagesZ
+return_listZ
+pkgrg
+Z	key_linesZ
+key_strr
+_query_db_for_gpg_keys
+z&RpmImportedKeys._query_db_for_gpg_keysc
+Nz1Testing already imported keys for their validity.z%DNSSEC extension error (email={}): {}z
+GPG Key {} is validz,GPG Key {} does not support DNS verificationz
+GPG Key {} could not be verified, because DNSSEC signatures are bogus. Possible causes: wrong configuration of the DNS server, MITM attackz=GPG Key {} has been revoked and should be removed immediatelyz
+GPG Key {} could not be tested)
+inford
+warningr
+keysr8
+check_imported_keys_validity
+z,RpmImportedKeys.check_imported_keys_validityN)
+__future__r
+enumr
+loggingr?
+dnf.i18nr
+dnf.rpmr
+dnf.exceptionsZ	getLoggerrK
+<module>

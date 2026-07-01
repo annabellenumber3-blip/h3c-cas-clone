@@ -1,0 +1,323 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.h3c.h3cloud.performance.monitor.service.mapper.clickhouse.HostCpuMemDetailAggregation1hMapper">
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.h3c.h3cloud.performance.monitor.service.module.clickhouse.Host.HostCpuMemDetailAggregation">
+        <result column="TIME" property="time" />
+        <result column="HOST_POOL_ID" property="hostPoolId" />
+        <result column="CLUSTER_ID" property="clusterId" />
+        <result column="HOST_ID" property="hostId" />
+        <result column="OP_GROUP_CODE" property="operatorGroupCode" />
+        <result column="OP_GROUP_ID" property="operatorGroupId" />
+        <result column="CPU_RATE_MAX" property="cpuRateMax" />
+        <result column="CPU_RATE_MIN" property="cpuRateMin" />
+        <result column="CPU_RATE_AVG" property="cpuRateAvg" />
+        <result column="MEMORY_RATE_MAX" property="memoryRateMax" />
+        <result column="MEMORY_RATE_MIN" property="memoryRateMin" />
+        <result column="MEMORY_RATE_AVG" property="memoryRateAvg" />
+        <result column="BUFFER_RATE_MAX" property="bufferRateMax" />
+        <result column="BUFFER_RATE_MIN" property="bufferRateMin" />
+        <result column="BUFFER_RATE_AVG" property="bufferRateAvg" />
+        <result column="CACHED_RATE_MAX" property="cachedRateMax" />
+        <result column="CACHED_RATE_MIN" property="cachedRateMin" />
+        <result column="CACHED_RATE_AVG" property="cachedRateAvg" />
+        <result column="SWAP_RATE_MAX" property="swapRateMax" />
+        <result column="SWAP_RATE_MIN" property="swapRateMin" />
+        <result column="SWAP_RATE_AVG" property="swapRateAvg" />
+        <result column="FLOW_STAT_MAX" property="flowRateMax" />
+        <result column="FLOW_STAT_MIN" property="flowRateMin" />
+        <result column="FLOW_STAT_AVG" property="flowRateAvg" />
+        <result column="HUGEPAGE_MEM_RATE_MAX" property="hugepageMemRateMax" />
+        <result column="HUGEPAGE_MEM_RATE_MIN" property="hugepageMemRateMin" />
+        <result column="HUGEPAGE_MEM_RATE_AVG" property="hugepageMemRateAvg" />
+        <result column="VM_GROUP_MEM_RATE_MAX" property="vmGroupMemRateMax" />
+        <result column="VM_GROUP_MEM_RATE_MIN" property="vmGroupMemRateMin" />
+        <result column="VM_GROUP_MEM_RATE_AVG" property="vmGroupMemRateAvg" />
+        <result column="OVS_GROUP_MEM_RATE_MAX" property="ovsGroupMemRateMax" />
+        <result column="OVS_GROUP_MEM_RATE_MIN" property="ovsGroupMemRateMin" />
+        <result column="OVS_GROUP_MEM_RATE_AVG" property="ovsGroupMemRateAvg" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+      TIME,
+      HOST_POOL_ID,
+      CLUSTER_ID,
+      HOST_ID,
+      OP_GROUP_ID,
+      OP_GROUP_CODE,
+      maxMerge(CPU_RATE_MAX) AS CPU_RATE_MAX,
+      minMerge(CPU_RATE_MIN) AS CPU_RATE_MIN,
+      avgMerge(CPU_RATE_AVG) AS CPU_RATE_AVG,
+      maxMerge(MEMORY_RATE_MAX) AS MEMORY_RATE_MAX,
+      minMerge(MEMORY_RATE_MIN) AS MEMORY_RATE_MIN,
+      avgMerge(MEMORY_RATE_AVG) AS MEMORY_RATE_AVG,
+      maxMerge(BUFFER_RATE_MAX) AS BUFFER_RATE_MAX,
+      minMerge(BUFFER_RATE_MIN) AS BUFFER_RATE_MIN,
+      avgMerge(BUFFER_RATE_AVG) AS BUFFER_RATE_AVG,
+      maxMerge(CACHED_RATE_MAX) AS CACHED_RATE_MAX,
+      minMerge(CACHED_RATE_MIN) AS CACHED_RATE_MIN,
+      avgMerge(CACHED_RATE_AVG) AS CACHED_RATE_AVG,
+      maxMerge(SWAP_RATE_MAX) AS SWAP_RATE_MAX,
+      minMerge(SWAP_RATE_MIN) AS SWAP_RATE_MIN,
+      avgMerge(SWAP_RATE_AVG) AS SWAP_RATE_AVG,
+      maxMerge(FLOW_STAT_MAX) AS FLOW_STAT_MAX,
+      minMerge(FLOW_STAT_MIN) AS FLOW_STAT_MIN,
+      avgMerge(FLOW_STAT_AVG) AS FLOW_STAT_AVG,
+      maxMerge(HUGEPAGE_MEM_RATE_MAX) AS HUGEPAGE_MEM_RATE_MAX,
+      minMerge(HUGEPAGE_MEM_RATE_MIN) AS HUGEPAGE_MEM_RATE_MIN,
+      avgMerge(HUGEPAGE_MEM_RATE_AVG) AS HUGEPAGE_MEM_RATE_AVG,
+      maxMerge(VM_GROUP_MEM_RATE_MAX) AS VM_GROUP_MEM_RATE_MAX,
+      minMerge(VM_GROUP_MEM_RATE_MIN) AS VM_GROUP_MEM_RATE_MIN,
+      avgMerge(VM_GROUP_MEM_RATE_AVG) AS VM_GROUP_MEM_RATE_AVG,
+      maxMerge(OVS_GROUP_MEM_RATE_MAX) AS OVS_GROUP_MEM_RATE_MAX,
+      minMerge(OVS_GROUP_MEM_RATE_MIN) AS OVS_GROUP_MEM_RATE_MIN,
+      avgMerge(OVS_GROUP_MEM_RATE_AVG) AS OVS_GROUP_MEM_RATE_AVG
+    </sql>
+    <select id="readByCondition" resultType="com.h3c.h3cloud.common.model.performance.HostCpuMemDetailData">
+        SELECT TIME as time,
+        round(avgMerge(CPU_RATE_AVG),2) as cpuRate,
+        round(avgMerge(CPU_USAGE_MHZ_AVG),2) as cpuUsage,
+        round(avgMerge(MEMORY_RATE_AVG),2) as memoryRate,
+        HOST_ID as hostId, HOST_POOL_ID as hostpoolId,
+        CLUSTER_ID as clusterId,OP_GROUP_CODE as operatorGroupCode, OP_GROUP_ID as operatorGroupId,
+        round(avgMerge(FLOW_STAT_AVG),2) as  flowStat,  round(avgMerge(BUFFER_RATE_AVG),2) as bufferRate,
+        round(avgMerge(CACHED_RATE_AVG),2) as cachedRate,  round(avgMerge(SWAP_RATE_AVG),2) as swapRate,
+        round(avgMerge(HUGEPAGE_MEM_RATE_AVG),2) as  hugepageMemRate,  round(avgMerge(VM_GROUP_MEM_RATE_AVG),2) as vmGroupMemRate,
+        round(avgMerge(OVS_GROUP_MEM_RATE_AVG),2) as  ovsGroupMemRate, round(avgMerge(FLEXIBLE_HUGEPAGE_MEM_RATE_AVG),2) as flexibleHugepageMemoryRate
+        FROM AGG_HOST_CPU_MEM_DETAIL_1H  WHERE TIME BETWEEN ${startTime} AND ${endTime} AND HOST_ID=${hostId}
+        <if test="hostIds!=null and hostIds!=''">
+            AND HOST_ID in (${hostIds})
+        </if>
+        <if test="clusterIds!=null and clusterIds!=''">
+            AND CLUSTER_ID in (${clusterIds})
+        </if>
+        GROUP BY TIME, HOST_POOL_ID, CLUSTER_ID, HOST_ID, OP_GROUP_ID, OP_GROUP_CODE
+        <if test='sort!=null and sort=="0"'>
+            ORDER BY ${sortField} ASC
+        </if>
+        <if test='sort!=null and sort=="1"'>
+            ORDER BY ${sortField} DESC
+        </if>
+    </select>
+    <select id="selectWithinTime" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+        FROM AGG_HOST_CPU_MEM_DETAIL_1H
+        <where>
+            <if test="startTime!=null and startTime!=''">
+                and TIME &gt;= #{startTime}
+            </if>
+            <if test="endTime!=null and endTime!=''">
+                and TIME &lt;= #{endTime}
+            </if>
+        </where>
+        GROUP BY TIME, HOST_POOL_ID, CLUSTER_ID, HOST_ID, OP_GROUP_ID, OP_GROUP_CODE
+        <if test="sortField!=null and sortField!=''">
+            order by #{sortField}
+        </if>
+        <if test="sortField!=null and sortField!='' and sortDir!=null and sortDir!=''">
+            #{sortDir}
+        </if>
+    </select>
+    <select id="readHostPrefDaily" resultType="com.h3c.h3cloud.common.model.performance.HostCpuMemStatisticsData">
+        SELECT HOST_ID as hostId, HOST_POOL_ID as hostPoolId, CLUSTER_ID as clusterId, TIME as time,
+         ROUND(avgMerge(CPU_RATE_AVG),2) as cpuRateAvg , maxMerge(CPU_RATE_MAX) as cpuRateMax, minMerge(CPU_RATE_MIN) as cpuRateMin,
+         ROUND(avgMerge(MEMORY_RATE_AVG),2) as memoryRateAvg , maxMerge(MEMORY_RATE_MAX) as memoryRateMax, minMerge(MEMORY_RATE_MIN) as memoryRateMin
+         FROM AGG_HOST_CPU_MEM_DETAIL_1H
+        WHERE TIME BETWEEN ${startTime} AND ${endTime} GROUP BY TIME, HOST_POOL_ID, CLUSTER_ID, HOST_ID
+    </select>
+    <select id="queryClusterAvgTrendByCondition" resultType="com.h3c.h3cloud.common.model.performance.HostCpuMemDetailData">
+        select d.TIME as time,
+        <choose>
+            <when test="type!=null and type=='cpu'">
+                round(SUM(d.cpuUSED)/SUM(d.cpuWHOLE),2) as cpuRate
+            </when>
+            <when test="type!=null and type=='reservedHugepageMemory'">
+                if (SUM(d.hugepageMemoryWHOLE) == 0, 0, ROUND(SUM(d.hugepageMemoryUSED) / SUM(d.hugepageMemoryWHOLE), 2)) AS hugepageMemRate, SUM(d.hugepageMemoryWHOLE) as hugepageMemoryTotal
+            </when>
+            <when test="type!=null and type=='flexibleHugepageMemory'">
+                if (SUM(d.flexibleHugepageMemoryWHOLE) == 0, 0, ROUND(SUM(d.flexibleHugepageMemoryUSED) / SUM(d.flexibleHugepageMemoryWHOLE), 2)) AS flexibleHugepageMemoryRate, SUM(d.flexibleHugepageMemoryWHOLE) as flexibleHugepageMemoryTotal
+            </when>
+            <otherwise>
+                round(SUM(d.memoryUSED)/SUM(d.memoryWHOLE),2) as memoryRate
+            </otherwise>
+        </choose>
+        FROM  (select detail.TIME as TIME,
+        <choose>
+            <when test="type!=null and type=='cpu'">
+                detail.CPU_RATE* host.cpu cpuUSED, host.cpu cpuWHOLE,
+            </when>
+            <when test="type!=null and type=='reservedHugepageMemory'">
+                detail.HUGEPAGE_MEM_RATE* detail.HUGEPAGE_MEMORY_TOTAL hugepageMemoryUSED, detail.HUGEPAGE_MEMORY_TOTAL hugepageMemoryWHOLE,
+            </when>
+            <when test="type!=null and type=='flexibleHugepageMemory'">
+                detail.FLEXIBLE_HUGEPAGE_MEM_RATE* detail.FLEXIBLE_HUGEPAGE_MEMORY_TOTAL flexibleHugepageMemoryUSED, detail.FLEXIBLE_HUGEPAGE_MEMORY_TOTAL flexibleHugepageMemoryWHOLE,
+            </when>
+            <otherwise>
+                detail.MEMORY_RATE* host.memory memoryUSED, host.memory memoryWHOLE,
+            </otherwise>
+        </choose>
+        cluster.id AS CLUSTER_ID  FROM
+        <choose>
+            <when test="hostPoolId!=null and hostPoolId!=''">
+                ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_HOSTPOOL}
+            </when>
+            <otherwise>
+                ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_CLUSTER}
+            </otherwise>
+        </choose>
+        cluster, (SELECT TIME, HOST_ID,
+        <choose>
+            <when test="type!=null and type=='cpu'">
+                avgMerge(CPU_RATE_AVG) as CPU_RATE
+            </when>
+            <when test="type!=null and type=='reservedHugepageMemory'">
+                avgMerge(HUGEPAGE_MEM_RATE_AVG) as HUGEPAGE_MEM_RATE, avgMerge(HUGEPAGE_MEMORY_TOTAL_AVG) as HUGEPAGE_MEMORY_TOTAL
+            </when>
+            <when test="type!=null and type=='flexibleHugepageMemory'">
+                avgMerge(FLEXIBLE_HUGEPAGE_MEM_RATE_AVG) as FLEXIBLE_HUGEPAGE_MEM_RATE, avgMerge(FLEXIBLE_HUGEPAGE_MEMORY_TOTAL_AVG) as FLEXIBLE_HUGEPAGE_MEMORY_TOTAL
+            </when>
+            <otherwise>
+                avgMerge(MEMORY_RATE_AVG) as MEMORY_RATE
+            </otherwise>
+        </choose>
+        FROM AGG_HOST_CPU_MEM_DETAIL_1H
+        WHERE TIME BETWEEN ${startTime} AND ${endTime}
+        <choose>
+            <when test="hostPoolId!=null and hostPoolId!=''">
+                AND HOST_POOL_ID=${hostPoolId}
+            </when>
+            <otherwise>
+                AND CLUSTER_ID =${clusterId}
+            </otherwise>
+        </choose>
+        group by HOST_ID,TIME
+        ) detail inner join
+        ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_HOST} host on detail.HOST_ID=host.id ) d
+        WHERE
+        <choose>
+            <when test="hostPoolId!=null and hostPoolId!=''">
+                 d.CLUSTER_ID=${hostPoolId}
+            </when>
+            <otherwise>
+                 d.CLUSTER_ID =${clusterId}
+            </otherwise>
+        </choose>
+        group by d.CLUSTER_ID, d.TIME ORDER BY TIME ASC
+    </select>
+
+    <select id="readHostMonthCpuMemData" resultType="com.h3c.h3cloud.common.model.performance.HostCpuMemStatisticsData">
+        select
+        round(avgMerge(CPU_RATE_AVG),2) as cpuRateAvg,
+        round(avgMerge(MEMORY_RATE_AVG),2) as memoryRateAvg,
+        maxMerge(CPU_RATE_MAX) as cpuRateMax,
+        maxMerge(MEMORY_RATE_MAX) as memoryRateMax
+        FROM AGG_HOST_CPU_MEM_DETAIL_1H
+        WHERE TIME BETWEEN ${startTime} AND ${endTime}
+        <choose>
+            <when test='type!=null and type=="0"'>
+                AND CLUSTER_ID = ${clusterId}
+                GROUP BY CLUSTER_ID
+            </when>
+            <otherwise>
+                AND HOST_ID = ${hostId}
+                GROUP BY HOST_ID
+            </otherwise>
+        </choose>
+    </select>
+    <select id="readCpuMemTopN" resultType="com.h3c.h3cloud.common.model.performance.HostCpuMemStatisticsData">
+        SELECT FLOW.HOST_ID as hostId, TD.name as name,
+        <choose>
+            <when test='type!=null and type=="0"'>
+                round(avgMerge(FLOW.CPU_RATE_AVG),2)  as cpuRateAvg
+            </when>
+            <otherwise>
+                round(avgMerge(FLOW.MEMORY_RATE_AVG),2)  as memoryRateAvg
+            </otherwise>
+        </choose>
+        FROM AGG_HOST_CPU_MEM_DETAIL_1H FLOW, ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_HOST} TD  WHERE TD.id = FLOW.HOST_ID
+        AND TIME BETWEEN ${startTime} AND ${endTime}
+        <if test="hostPoolId!=null and hostPoolId!=''">
+            AND FLOW.HOST_POOL_ID  =${hostPoolId}
+        </if>
+        <if test="clusterId!=null and clusterId!=''">
+            AND FLOW.CLUSTER_ID =${clusterId}
+        </if>
+        <if test="operatorGroupCode!=null and operatorGroupCode!=''">
+            AND TD.op_group_code LIKE #{operatorGroupCode}
+        </if>
+        GROUP BY FLOW.HOST_ID, TD.name
+        <choose>
+            <when test='type!=null and type=="0"'>
+                ORDER BY cpuRateAvg DESC
+            </when>
+            <otherwise>
+                ORDER BY memoryRateAvg DESC
+            </otherwise>
+        </choose>
+        <if test="limit!=null and limit!=''">
+            LIMIT ${limit}
+        </if>
+    </select>
+    <select id="readCpuMemByCondition" resultType="com.h3c.h3cloud.common.model.performance.HostCpuMemStatisticsData">
+        SELECT HOST_ID as hostId,
+        <choose>
+            <when test="cycle!=null and cycle=='hour'">
+                formatDateTime(toDateTime(TIME), '%Y-%m-%d %H') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='week'">
+                formatDateTime(toDateTime(TIME), '%Y %V') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='month'">
+                formatDateTime(toDateTime(TIME), '%Y-%m') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='year'">
+                formatDateTime(toDateTime(TIME), '%Y') as timeStr,
+            </when>
+            <otherwise>
+                formatDateTime(toDateTime(TIME), '%Y-%m-%d') as timeStr,
+            </otherwise>
+        </choose>
+        <choose>
+            <when test='type!=null and type=="0"'>
+                round(avgMerge(CPU_RATE_AVG),2) as cpuRateAvg , maxMerge(CPU_RATE_MAX) as cpuRateMax, minMerge(CPU_RATE_MIN) as cpuRateMin
+            </when>
+            <when test='type!=null and type=="1"'>
+                round(avgMerge(MEMORY_RATE_AVG),2) as memoryRateAvg , maxMerge(MEMORY_RATE_MAX) as memoryRateMax, minMerge(MEMORY_RATE_MIN) as memoryRateMin
+            </when>
+            <when test='type!=null and type=="2"'>
+                round(avgMerge(BUFFER_RATE_AVG),2) as bufferRateAvg , maxMerge(BUFFER_RATE_MAX) as bufferRateMax, minMerge(BUFFER_RATE_MIN) as bufferRateMin
+            </when>
+            <when test='type!=null and type=="3"'>
+                round(avgMerge(CACHED_RATE_AVG),2) as cachedRateAvg , maxMerge(CACHED_RATE_MAX) as cachedRateMax, minMerge(CACHED_RATE_MIN) as cachedRateMin
+            </when>
+            <when test='type!=null and type=="4"'>
+                round(avgMerge(SWAP_RATE_AVG),2) as swapRateAvg , maxMerge(SWAP_RATE_MAX) as swapRateMax, minMerge(SWAP_RATE_MIN) as swapRateMin
+            </when>
+            <when test='type!=null and type=="5"'>
+                round(avgMerge(HUGEPAGE_MEM_RATE_AVG),2) as hugepageMemRateAvg , maxMerge(HUGEPAGE_MEM_RATE_MAX) as hugepageMemRateMax, minMerge(HUGEPAGE_MEM_RATE_MIN) as hugepageMemRateMin
+            </when>
+            <when test='type!=null and type=="6"'>
+                round(avgMerge(VM_GROUP_MEM_RATE_AVG),2) as vmGroupMemRateAvg , maxMerge(VM_GROUP_MEM_RATE_MAX) as vmGroupMemRateMax, minMerge(VM_GROUP_MEM_RATE_MIN) as vmGroupMemRateMin
+            </when>
+            <when test='type!=null and type=="7"'>
+                round(avgMerge(OVS_GROUP_MEM_RATE_AVG),2) as ovsGroupMemRateAvg , maxMerge(OVS_GROUP_MEM_RATE_MAX) as ovsGroupMemRateMax, minMerge(OVS_GROUP_MEM_RATE_MIN) as  ovsGroupMemRateMin
+            </when>
+            <when test='type!=null and type=="8"'>
+                round(avgMerge(FLEXIBLE_HUGEPAGE_MEM_RATE_AVG),2) as flexibleHugepageMemRateAvg , maxMerge(FLEXIBLE_HUGEPAGE_MEM_RATE_MAX) as flexibleHugepageMemRateMax, minMerge(FLEXIBLE_HUGEPAGE_MEM_RATE_MIN) as flexibleHugepageMemRateMin
+            </when>
+            <otherwise>
+                round(avgMerge(CPU_RATE_AVG),2) as cpuRateAvg , maxMerge(CPU_RATE_MAX) as cpuRateMax, minMerge(CPU_RATE_MIN) as cpuRateMin
+            </otherwise>
+        </choose>
+        FROM AGG_HOST_CPU_MEM_DETAIL_1H detail  WHERE TIME BETWEEN ${startTime} AND ${endTime}
+        <if test="hostId!=null and hostId!=''">
+            AND HOST_ID = ${hostId}
+        </if>
+        <if test="hostIds!=null and hostIds!=''">
+            AND HOST_ID in (${hostIds})
+        </if>
+        GROUP BY  HOST_ID, timeStr ORDER BY timeStr
+    </select>
+</mapper>

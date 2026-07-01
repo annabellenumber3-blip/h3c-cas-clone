@@ -1,0 +1,24 @@
+#!/usr/bin/expect
+##copy ssh key to peer node, by gaoliang 2013-05-20
+                                        
+set server [lindex $argv 0]
+set user_ssh [lindex $argv 1]
+set password [lindex $argv 2]
+
+spawn -noecho scp ${user_ssh}id_rsa ${user_ssh}id_rsa.pub ${user_ssh}authorized_keys \[$server\]:$user_ssh
+
+set timeout 30
+expect "*assword:" {
+    send "$password\r"
+    exp_continue
+} "*Permission denied*" {
+    exit 1
+} "Overwrite (y/n)?" {
+    send "y\r"
+    exp_continue
+} timeout {
+    exit 1
+} eof {
+    catch wait result  
+    exit [lindex $result 3]  
+}

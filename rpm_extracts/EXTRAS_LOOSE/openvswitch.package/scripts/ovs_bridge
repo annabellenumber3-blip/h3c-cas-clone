@@ -1,0 +1,2973 @@
+#!/bin/bash
+############################################################################
+#    File Name: ovs_bridge.sh
+# Date Created: 2016-09-26
+#       Author: jinkaibin/13060
+#  Description: add, modify, delete vswitch bridge
+#-----------------------------------------------------------------------------
+
+OVS_SHELL_SCRIPT_PATH="/opt/bin"
+distri=$(/opt/bin/os_lsb_release -is)
+. ${OVS_SHELL_SCRIPT_PATH}/ovs_shellfuncs
+. ${OVS_SHELL_SCRIPT_PATH}/ovs_returncodes
+
+shellname="ovs_bridge.sh"
+CVK_CONFIG_PATH="/etc/cvk"
+LINUX_BOND_BASE=/sys/class/net
+LINUX_BOND_MASTERS_BASE=$LINUX_BOND_BASE/bonding_masters
+LINUX_BOND_MODE_INIT="active-backup" # active-backup, 1; others: 2, 4
+LINUX_BOND_MIIMON_INIT=100 # default 100ms
+LINUX_BOND_POLICY_INIT="layer2"
+CVK_LINUX_BOND_CONF_PATH=$CVK_CONFIG_PATH/linux_bonding.cfg
+BASH=/bin/bash
+SHELL_CLEAR_VF=$OVS_SHELL_SCRIPT_PATH/smart_clear_vf.sh
+SHELL_LAG_CONFIG_VF=$OVS_SHELL_SCRIPT_PATH/smart_lag_config_vf.sh
+SHELL_LINUX_NETWORK=$OVS_SHELL_SCRIPT_PATH/linux_network.sh
+SHELL_LINUX_BOND=$OVS_SHELL_SCRIPT_PATH/linux_bond.sh
+
+LINUX_NETWORK_PATH="/etc/linux-engine-networks/vswitch"
+LINUX_SUBNET_PATH="/etc/linux-engine-networks/subnets"
+WAIT_UPGRADE_FILE="/etc/linux-engine-networks/.wait_upgrade"
+
+OVS_SYSLOG_OFF='--verbose=db_ctl_base:syslog:off'
+OVS_LOCK_FILE="/run/ovs_bridge.lock"
+
+die_with_message() {
+    local code=$1
+    shift
+    ovs_printlog ${shellname} err "errorcode: $code, $@"
+    exit $code
+}
+
+try_lock_ovs_bridge() {
+    local br_name=$1
+    touch_lock_file $OVS_LOCK_FILE
+    ovs_lock $OVS_LOCK_FILE || die_with_message ${OVS_BRIDGE_ERR_REPEAT_CALL_IS_RUNNING} "Process deal with smart vswitch already exists, please wait."
+    echo "$br_name" > $OVS_LOCK_FILE
+}
+
+release_lock_ovs_bridge() {
+    ovs_unlock
+    remove_lock_file $OVS_LOCK_FILE
+}
+
+usage() {
+    cat <<EOF
+example:
+ovs_bridge.sh add br_name
+      [--br_mode={veb|vxlan-cas|vxlan-sdn}]
+      [--accele_mode={normal|dpdk|smart}]
+      [bond_name]
+      [--iface=eth0] [--iface=eth1] ...
+      [--pci=xxxxx] [--pci=xxxxx] ...
+      [--vlan=num]
+      [--lacp={off|active|passive}]
+      [--bond_mode={active-backup|balance-slb|balance-tcp|balance-xor|802.3ad}]
+      [--datapath_type={netdev|system}]
+      [--network_type={1|2|7}]
+      [--multicast={true|false}]
+      [--mtu=xxxxx]
+      [--address=xxx.xxx.xxx.xxx]
+      [--netmask=xxx.xxx.xxx.xxx]
+      [--gateway=xxx.xxx.xxx.xxx]
+      [--ipv6address=xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx]
+      [--prefixlength=xxx]
+      [--ipv6gateway=xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx]
+      [--active-algorithm={speed|order}]
+      [--reselect-on-change={true|false}]
+      [--bond_policy=layer2]
+      [--bond_miimon=100]
+
+ovs_bridge.sh mod br_name
+      [bond_name]
+      [--accele_mode={normal|dpdk|smart}]
+      [--network_type={1|2|7}]
+      [--iface=eth0] [--iface=eth1] ...
+      [--pci=xxxxx] [--pci=xxxxx] ...
+      [--vlan=num]
+      [--lacp={off|active|passive}]
+      [--bond_mode={active-backup|balance-slb|balance-tcp|balance-xor|802.3ad}]
+      [--multicast={true|false}]
+      [--mtu=xxxxx]
+      [--address=xxx.xxx.xxx.xxx]
+      [--netmask=xxx.xxx.xxx.xxx]
+      [--gateway=xxx.xxx.xxx.xxx]
+      [--ipv6address=xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx]
+      [--prefixlength=xxx]
+      [--ipv6gateway=xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx]
+      [--active-algorithm={speed|order}]
+      [--reselect-on-change={true|false}]
+      [--bond_policy=layer2]
+      [--bond_miimon=100]
+
+ovs_bridge.sh del br_name
+
+ovs_bridge.sh get br_name
+      [--uplink]
+      [--vlan]
+      [--br_mode]
+      [--datapath_type]
+      [--network_type]
+      [--network_engine]
+      [--bond_mode]
+      [--lacp]
+      [--multicast]
+      [--mtu]
+      [--active-algorithm]
+      [--reselect-on-change]
+      [--bandwidth]
+      [--used_by_mirror]
+      [--used_by_drain]
+      [--status]
+      [--accele_mode]
+      [--used_by_vm]
+      [--linux_bridge]
+
+ovs_bridge.sh list
+      [--vswitch]
+      [--subnet]
+
+ovs_bridge.sh add_linuxbond
+      [bond_name]
+      [--bond_mode={active-backup|balance-xor|802.3ad}]
+      [--bond_policy=layer2]
+      [--bond_miimon=100]
+      [--iface=eth0] [--iface=eth1] ...
+
+ovs_bridge.sh seg br_name
+      [--add]
+      [--del]
+      [--get]
+
+EOF
+}
+
+check_port_ipv6_ubuntu() {
+    local ip_conf="/etc/network/interfaces"
+    local iface_=$1
+    local flag=0
+    local is_ipv6=0
+    local i
+    while read i; do
+         if [ $flag -eq 1 ]; then
+            if echo $i | grep -vE '^\s*#' | grep -qE '\baddress\b'; then
+                is_ipv6=1
+                break
+            fi
+        fi
+
+        if expr "$i" : "^\s*\biface\b\s*$iface_\s*\binet6\b\s*.*" > /dev/null; then
+            flag=1
+        elif expr "$i" : "^\s*\b(auto|iface)\b\s*" > /dev/null; then
+            flag=0
+        fi
+    done < $ip_conf
+
+    return $is_ipv6
+}
+
+check_ip_gateway_valid() {
+    if [ -n "$ADDRESS" ] && [ -n "$NETMASK" ] && [ -n "$GATEWAY" ]; then
+        local prefix=$(ipcalc -p $ADDRESS $NETMASK 2>/dev/null | awk -F= '{print $2}')
+        local ipv4=${ADDRESS}/$prefix
+        ipcalc -c $ipv4 2>/dev/null
+        [ $? -ne 0 ] && {
+            ovs_printlog ${shellname} err "invalid ipv4 $ipv4"
+            return $OVS_BRIDGE_ERR_INVALID_IPV4
+        }
+        local ip_network=$(ipcalc -n $ipv4 2>/dev/null | awk -F= '{print $2}')
+        local ip_broadcast=$(ipcalc -b $ipv4 2>/dev/null | awk -F= '{print $2}')
+
+        local gateway_v4=${GATEWAY}/$prefix
+        ipcalc -c $gateway_v4 2>/dev/null
+        [ $? -ne 0 ] && {
+            ovs_printlog ${shellname} err "invalid ipv4 gateway $GATEWAY"
+            return $OVS_BRIDGE_ERR_INVALID_IPV4_GATEWAY
+        }
+        local gateway_network=$(ipcalc -n $gateway_v4 2>/dev/null | awk -F= '{print $2}')
+
+        if [ "X$ip_network" != "X$gateway_network" ]; then
+            ovs_printlog ${shellname} err "invalid ipv4 gateway $GATEWAY, it should be in the same network with ipv4 $ipv4"
+            return $OVS_BRIDGE_ERR_INVALID_IPV4_GATEWAY
+        fi
+
+        if [ "X$ip_broadcast" = "X$GATEWAY" ] || [ "X$ip_network" = "X$GATEWAY" ]; then
+            ovs_printlog ${shellname} err "invalid ipv4 gateway $GATEWAY, it should not be the same as ipv4 broadcast or network"
+            return $OVS_BRIDGE_ERR_INVALID_IPV4_GATEWAY
+        fi
+    fi
+
+    if [ -n "$IPV6ADDRESS" ] && [ -n "$IPV6PREFIX" ] && [ -n "$IPV6GATEWAY" ]; then
+        local ipv6=$IPV6ADDRESS/$IPV6PREFIX
+        ipcalc -c $ipv6 2>/dev/null
+        [ $? -ne 0 ] && {
+            ovs_printlog ${shellname} err "invalid ipv6 $ipv6"
+            return $OVS_BRIDGE_ERR_INVALID_IPV6
+        }
+
+        local ipv6_network=$(ipcalc -n $ipv6 2>/dev/null | awk -F= '{print $2}')
+
+        local gateway_v6=${IPV6GATEWAY}/$IPV6PREFIX
+        ipcalc -c $gateway_v6 2>/dev/null
+        [ $? -ne 0 ] && {
+            ovs_printlog ${shellname} err "invalid ipv6 gateway $IPV6GATEWAY"
+            return $OVS_BRIDGE_ERR_INVALID_IPV6_GATEWAY
+        }
+        local gateway_v6_network=$(ipcalc -n $gateway_v6 2>/dev/null | awk -F= '{print $2}')
+
+        if [ "X$ipv6_network" != "X$gateway_v6_network" ]; then
+            ovs_printlog ${shellname} err "invalid ipv6 gateway $IPV6GATEWAY, it should be in the same network with ipv6 $ipv6"
+            return $OVS_BRIDGE_ERR_INVALID_IPV6_GATEWAY
+        fi
+    fi
+
+    return 0
+}
+
+check_port_ipv6_centos() {
+    local ip_config="/etc/sysconfig/network-scripts/ifcfg-$1"
+    [ ! -f $ip_config ] && return 0
+    ip6addr=$(source $ip_config && echo $IPV6ADDR)
+    [ "X$ip6addr" != "X" ] && return 1
+
+    return 0
+}
+
+check_port_ipv6() {
+    local flag=0
+    local port=$1
+    if [ "X$distri" = "XUbuntu" ]; then
+        check_port_ipv6_ubuntu $port
+        flag=$?
+    elif [ "X$distri" = "XCentOS" ]; then
+        check_port_ipv6_centos $port
+        flag=$?
+    fi
+
+    return $flag
+}
+
+# check_subnet_ipv6 return true if it has not ipv6 subnet, return false if it has ipv6 subnet
+check_subnet_ipv6() {
+    local br_name=$1
+    local subnet=$(ovs-vsctl --format=table --columns=name,other_config --no-heading --data=bare list Interface $br_name $(ovs-vsctl -t 2 $OVS_SYSLOG_OFF list-ifaces $br_name) | grep "subnet=1" | cut -d' ' -f1)
+    local flag=0
+    local i
+    for i in $subnet; do
+        if ! check_port_ipv6 $i; then
+            flag=1
+            break
+        fi
+    done
+
+    return $flag
+}
+
+get_if_speed() {
+    local iface=$1
+    local speed=""
+
+    if [ -e "/sys/class/net/$iface" ]; then
+        if readlink "/sys/class/net/$iface" | grep -Eq "/devices/pci|/devices/platform" || ethtool -i $iface | grep -q "OCTNIC"; then
+            speed=$(cat /sys/class/net/$iface/speed 2>/dev/null)
+        fi
+    else
+        pci=$(ovs-vsctl --if-exists get interface $iface options:dpdk-devargs 2>/dev/null)
+        if [ -e "/sys/bus/pci/devices/${pci//\"}/device" ];then
+            speed=$(ovs-vsctl --if-exists get interface $iface link_speed | tr -d "[]")
+            if [ "X$speed" != "X" ] && [ $speed -ge 0 ]; then
+                speed=`expr $speed / 1000 / 1000`
+            fi
+        fi
+    fi
+
+    if [ "X$speed" = "X" ] || [ $speed -le 0 ];then
+        speed="0"
+    fi
+
+    echo "$speed"
+}
+
+get_br_speed() {
+    local speed=""
+    local br_name=$1
+    local br_mode=$2
+
+    if [ "X$br_mode" = "X0" -o "X$br_mode" = "X4" ];then
+        local uplink_port=$(ovs_bridge_get_uplink_port $br_name)
+        local bond_mode=$(ovs-vsctl -t 2 --bare --if-exists get port $port bond_mode|tr -d '[]')
+
+        if [ "active-backup" = "$bond_mode" ]; then
+            local uplink_ifaces=$(ovs-appctl bond/show $uplink_port | grep 'active member mac' | tr -d '\)')
+            uplink_ifaces=${uplink_ifaces##*\(}
+
+            if [ "X$uplink_ifaces" = "Xnone" ]; then
+                ovs_printlog ${shellname} info "br: $br_name, bond_mode: $bond_mode, all slaves down."
+                uplink_ifaces=""
+            fi
+        else
+            local uplink_ifaces=$(ovs_bridge_get_uplink_ifaces $br_name)
+        fi
+    elif [ "X$br_mode" = "X3" ];then
+        local br_info=$(/opt/bin/ovsbr_get.sh $br_name --uplink --bond_mode)
+        local bond_mode=$(echo "$br_info" | grep "bond_mode")
+        bond_mode=${bond_mode##*: }
+
+        if [ "active-backup" = "$bond_mode" ]; then
+            datapath_type=$(ovs-vsctl --if-exists --bare get br $br_name datapath_type 2>/dev/null)
+            if [ "netdev" = "$datapath_type" ]; then
+                ##vxlan-sdn(dpdk) vswitch bond is ovs bond, need get uplink_port from ${br_name}-phy
+                local uplink_port=$(ovs_bridge_get_uplink_port ${br_name}-phy)
+                local uplink_ifaces=$(ovs-appctl bond/show $uplink_port | grep 'active slave mac' | tr -d '\)')
+                uplink_ifaces=${uplink_ifaces##*\(}
+
+                if [ "X$uplink_ifaces" = "Xnone" ]; then
+                    ovs_printlog ${shellname} info "br: $br_name, bond_mode: $bond_mode, all slaves down."
+                    uplink_ifaces=""
+                fi
+            else
+                ##vxlan-sdn(non-dpdk) vswitch bond is linux bond
+                local uplink_port=$(ovs-vsctl --bare --columns=name find port other_config:port_role=uplink)
+                local uplink_ifaces=$(cat /sys/class/net/$uplink_port/bonding/active_slave 2>/dev/null)
+            fi
+        else
+            local uplink_ifaces=$(echo "$br_info" | grep "uplink")
+            uplink_ifaces=$(echo ${uplink_ifaces##*: } | sed 's/,/ /g')
+        fi
+    fi
+
+    #ovs_printlog ${shellname} info "br: $br_name, bond_mode: $bond_mode, uplink_ifaces: $uplink_ifaces."
+    if [ "X$uplink_ifaces" = "X" ]; then
+        speed="0"
+        echo $speed
+        return 0
+    fi
+
+    if [ "X" = "X$bond_mode" ] || [ "active-backup" = "$bond_mode" ]; then
+        speed=$(get_if_speed $uplink_ifaces)
+    elif [ "balance-slb" = "$bond_mode" -o "balance-tcp" = "$bond_mode" ]; then
+        for iface in $uplink_ifaces
+        do
+            local tmp_speed=$(get_if_speed $iface)
+            speed=$((speed+tmp_speed))
+        done
+    else
+        speed="0"
+    fi
+
+    echo $speed
+    return 0
+}
+
+iface_to_port() {
+    [ -n "$1" ] && \
+        ovs-vsctl -t 2 --bare -- --id=@uid get Interface $1 \
+            -- --columns=name find Port Interfaces{\>=}@uid 2>/dev/null || true
+}
+
+bring_up_local_port() {
+    ip link set dev $1 up 2>/dev/null
+}
+
+ovs_bridge_xmit_event() {
+    local event=$1
+    local br_name=$2
+    $OVS_SHELL_SCRIPT_PATH/ovs_handle_bridge_event $event $br_name
+}
+
+ovs_bridge_get_uplink_port() {
+    local uplink_port=
+    for iface in $(ovs-vsctl -t 2 $OVS_SYSLOG_OFF list-ifaces $1 2>/dev/null)
+    do
+        if [ -e "/sys/class/net/$iface" ]; then
+            if readlink "/sys/class/net/$iface" | grep -Eq "/devices/pci|/devices/platform" || ethtool -i $iface | grep -q "OCTNIC"; then
+                # get first phyiscal iface
+                iface_to_port $iface
+                return
+            fi
+        else
+            pci=$(ovs-vsctl --if-exists get interface $iface options:dpdk-devargs 2>/dev/null)
+            if [ -e "/sys/bus/pci/devices/${pci//\"}/device" ];then
+                iface_to_port $iface
+                return
+            else
+                error_msg=$(ovs-vsctl --if-exists get interface $iface error 2>/dev/null)
+                if echo $error_msg | grep -q "No such device"; then
+                    iface_to_port $iface
+                    return
+                fi
+            fi
+        fi
+    done
+}
+
+ovs_bridge_get_uplink_ifaces() {
+    local br_name=$1
+    local uplink_port=$(ovs_bridge_get_uplink_port $br_name)
+    if [ -n "$uplink_port" ];then
+        ovs-vsctl -t 3 --if-exists get port $uplink_port Interfaces 2> /dev/null | tr -d '[],'|
+            xargs ovs-vsctl -t 2 --bare --columns=name list Interface | grep -v "^ *$"
+    fi
+}
+
+ovs_bridge_is_uplink_ifaces_change() {
+    local br_name=$1
+    shift
+    local ifaces="$*"
+    uplink_ifaces=$(ovs_bridge_get_uplink_ifaces $br_name|sort)
+    sort_ifaces=$(echo $ifaces | tr " " "\n" | sort)
+    [ "X$uplink_ifaces" != "X$sort_ifaces" ]  && return 0 || return 1
+}
+
+ovs_bridge_has_subnet() {
+    local br_name=$1
+    subnet=$(ovs-vsctl --format=table --columns=other_config --no-heading --data=bare list Interface $br_name $(ovs-vsctl -t 2 $OVS_SYSLOG_OFF list-ifaces $br_name) | grep "subnet=1")
+    [ "X$subnet" != "X" ]  && return 0 || return 1
+}
+
+ovs_bridge_del_uplink_command() {
+    local br_name=$1
+    local uplink_port=$(ovs_bridge_get_uplink_port $br_name)
+    if [ -n "$uplink_port" ];then
+        echo "-- --if-exists del-port $uplink_port"
+    fi
+}
+
+get_dpdk_pci_of_ovs() {
+    ovs-vsctl -t 2 --format=table --column=options --no-headings --data=bare find Interface type=dpdk |
+        grep -o -P '(?<=dpdk-devargs=)[0-9a-f]{4}:[0-9a-f]{2}:[0-9a-f]{2}\.[0-9a-f]'
+}
+
+get_dpdk_pci_of_bridge() {
+    local br_name=$1
+    if ovs-vsctl -t 2 br-exists $br_name 2>/dev/null;then
+        ovs-vsctl --format=table --columns=type,options --no-heading --data=bare list Interface $br_name $(ovs-vsctl -t 2 $OVS_SYSLOG_OFF list-ifaces $br_name) |
+            grep '^dpdk '| grep -o -P '(?<=dpdk-devargs=)[0-9a-f]{4}:[0-9a-f]{2}:[0-9a-f]{2}\.[0-9a-f]'
+    fi
+}
+
+get_pci_numa() {
+    if ! test -d /sys/bus/pci/devices/$1;then
+        return 1
+    fi
+    numa=$(cat /sys/bus/pci/devices/$1/numa_node 2>&1 || true)
+    if [ -z $numa -o $numa -lt 0 ];then
+        numa=0
+    fi
+    echo $numa
+    return 0
+}
+
+check_numa_mem_enough() {
+    MEM_USE_PER_DPDK_IFACE=1024
+    local br_name=$1
+    shift
+    local new_bridge_pcis="$@"
+    declare -a pci_count_on_numa
+
+    host_numa_num=$(ls -1 /sys/devices/system/node/node*/numastat 2>/dev/null | wc -l)
+    [ "$host_numa_num" -gt 0 ] || host_numa_num=1
+    for i in $(seq 0 $(($host_numa_num-1)))
+    do
+        pci_count_on_numa[$i]=0
+    done
+
+    for pci in $new_bridge_pcis
+    do
+        if pci_numa=$(get_pci_numa $pci);then
+            ((++pci_count_on_numa[$pci_numa]))
+        fi
+    done
+
+    for pci in $(get_dpdk_pci_of_bridge $br_name)
+    do
+        if pci_numa=$(get_pci_numa $pci);then
+            ((--pci_count_on_numa[$pci_numa])) || true
+        fi
+    done
+
+    for pci in $(get_dpdk_pci_of_ovs)
+    do
+        if pci_numa=$(get_pci_numa $pci);then
+            if [ ${pci_count_on_numa[$pci_numa]} -gt 0 ];then
+                ((++pci_count_on_numa[$pci_numa])) || true
+            fi
+        fi
+    done
+
+    dpdk_socket_mem=( $(ovs-vsctl -t 2 --if-exists get Open_vSwitch . other_config:dpdk-socket-mem | tr ',"' ' ') )
+    for i in $(seq 0 $(($host_numa_num-1)))
+    do
+        pci_count=${pci_count_on_numa[$i]}
+        if [ $pci_count -gt 0 ];then
+            ((mem_require=pci_count*$MEM_USE_PER_DPDK_IFACE))
+            if [ $mem_require -gt ${dpdk_socket_mem[$i]} ];then
+                echo "$OVS_BRIDGE_ERR_MEM_NOT_ENOUGH ${dpdk_socket_mem[$i]}MB on numa $i is less than ${mem_require}MB for $pci_count dpdk interfaces"
+                return
+            fi
+        fi
+    done
+}
+
+check_input_pci_list() {
+    local iface_num=$1
+    local br_name=$2
+    local br_mode=$3
+    local datapath_type=$4
+
+    shift 4
+    local pci_list="$*"
+    local pci
+    local pci_num
+    pci_num=$(echo $pci_list | wc -w)
+
+    if [ $iface_num != $pci_num ];then
+        echo "$OVS_BRIDGE_ERR_ARGUMENT_ERROR The number($iface_num) of interface list does not match number($pci_num) the pci list($pci_list)."
+        return
+    fi
+    ##TODO, check whether pci is repeated
+
+    dpdk_driver="igb_uio vfio-pci uio_pci_generic"
+    special_dpdk_driver="mlx5_core"
+    driver_list=""
+    iommu_group_list=""
+    for pci in $pci_list
+    do
+        if [ ! -e "/sys/bus/pci/devices/$pci/driver" ]; then
+            echo "$OVS_BRIDGE_ERR_PCI_NOT_EXIST_ERROR PCI $pci does not exist"
+            return
+        fi
+
+        driver_name=$(basename $(readlink "/sys/bus/pci/devices/$pci/driver"))
+        if ! echo "$dpdk_driver $special_dpdk_driver" | grep -Fq "$driver_name";then
+            echo "$OVS_BRIDGE_ERR_PCI_NOT_DPDK_ERROR PCI $pci is not a dpdk nic."
+            return
+        fi
+        if [ -n "$driver_list" ] && ! echo "$driver_list" | grep -q "$driver_name"; then
+            echo "$OVS_BRIDGE_ERR_DPDK_DRIVER_INCONSISTENT Inconsistent driver type when add DPDK ports."
+            return
+        fi
+        driver_list="$driver_list $driver_name"
+
+        pci_address=$(echo "$pci" | sed 's/:/\\:/g')
+        dpdk_iface=$(ovs-vsctl -t 2 --bare --columns=name find interface type=dpdk options:dpdk-devargs="$pci_address" 2>/dev/null)
+        [ -z "$dpdk_iface" ] || result=$(check_iface_is_used $br_name $dpdk_iface $br_mode $datapath_type)
+        if [ -n "$result" ]; then
+            echo $result
+            return
+        fi
+
+        # check iommu, not allow mulitple pci in same group added into ovs
+        if [ "$driver_name" = "vfio-pci" ];then
+            if iommu_group=$(basename $(readlink "/sys/bus/pci/devices/$pci/iommu_group"));then
+                if echo "$iommu_group_list" | grep -Fwq "$iommu_group";then
+                    echo "$OVS_BRIDGE_ERR_IOMMU_GROUP_IN_USE multiple pci in same iommu group $iommu_group are not allowed for uplink."
+                    return
+                fi
+                if [ -z "$dpdk_iface" ] && ! exec 10<>"/dev/vfio/$iommu_group";then
+                    echo "$OVS_BRIDGE_ERR_IOMMU_GROUP_IN_USE failed to open /dev/vfio/$iommu_group of $pci"
+                    return
+                fi
+                exec 10>&- || true
+                iommu_group_list="$iommu_group_list $iommu_group"
+            fi
+        fi
+    done
+}
+
+check_input_iface_list() {
+    local ifaces="$*"
+    for iface in $ifaces
+    do
+        if [ ! -e "/sys/class/net/$iface" ]; then
+            echo "$OVS_BRIDGE_ERR_PORT_ERROR Interface $iface does not exist"
+            return
+        fi
+        if ! readlink "/sys/class/net/$iface" | grep -Eq "/devices/pci|/devices/platform" && ! ethtool -i $iface | grep -q "OCTNIC"; then
+            echo "$OVS_BRIDGE_ERR_PORT_ERROR Interface $iface is not pci"
+            return
+        fi
+    done
+}
+
+check_smart_pf() {
+    local ifaces="$*"
+    local phys_switch_id=""
+    local phys_switch_id_list=""
+
+    for iface in $ifaces
+    do
+        phys_switch_id=$(cat /sys/class/net/$iface/phys_switch_id 2>/dev/null)
+        if [ -z "$phys_switch_id" ];then
+            echo "$OVS_BRIDGE_ERR_SMART_BOND_SLAVE can not get phys_switch_id of slave $iface, matbe is not a smart nic."
+            return
+        fi
+        phys_switch_id_list="$phys_switch_id_list $phys_switch_id"
+    done
+
+    #slaves must from one nic for smart bond
+    for id in $phys_switch_id_list
+    do
+        if [ "X$id" != "X$phys_switch_id" ];then
+            echo "$OVS_BRIDGE_ERR_SMART_BOND_SLAVE slave $ifaces is not from one smart nic."
+            return
+        fi
+    done
+}
+
+check_ovs_interface_error() {
+    local iface_list=$@
+    local iface
+
+    for iface in $iface_list
+    do
+        error=$(ovs-vsctl -t 2 --if-exists get Interface $iface error | tr -d "[]\n")
+        if [ -n "$error" ];then
+            echo "$OVS_BRIDGE_ERR_INTERFACE_ERROR Ovs interface error: $error."
+            return
+        fi
+    done
+}
+
+check_ovs_is_not_bridge_mirror_dst_bridge() {
+    local event=$1
+    local br_name=$2
+    # check bridge is not dst_br of bridge mirror
+    used_by_mirror_state=$(ovs-vsctl --if-exists get Interface $br_name other_config:used_by_mirror | tr -d "\"")
+    if [ -n "$used_by_mirror_state" ] && [ "X$used_by_mirror_state" = "Xtrue" ];then
+        die_with_message $OVS_BRIDGE_ERR_IS_BRIDGE_MIRROR_DST_BR "Dstination bridge of bridge mirror can not be changed."
+    fi
+
+    if [ "X$event" = "Xdel" ];then
+        if grep -q "dst_br='$br_name'" /etc/libvirt/qemu/*.xml 2>/dev/null; then
+            die_with_message $OVS_BRIDGE_ERR_IS_BRIDGE_MIRROR_DST_BR "Dstination bridge of bridge mirror can not be deleted."
+        fi
+    fi
+}
+
+check_ovs_is_not_bridge_drain_bridge() {
+    local event=$1
+    local br_name=$2
+    # check bridge is not drain bridge
+    used_by_drain_state=$(ovs-vsctl --if-exists get Bridge $br_name other_config:used_by_drain | tr -d "\"")
+    if [ -n "$used_by_drain_state" ] && [ "X$used_by_drain_state" = "Xtrue" ];then
+        die_with_message $OVS_BRIDGE_ERR_IS_BRIDGE_DRAIN_BR "bridge drain can not be changed or deleted."
+    fi
+
+    if [ "X$event" = "Xdel" ];then
+        for drain_netprofile in $(grep "DRAIN" /etc/net-agent/portprofile/*.xml 2>/dev/null | cut -d '"' -f 2)
+        do
+            if grep -q "bridge=\"$br_name\"" /etc/net-agent/netprofile/drain/$drain_netprofile.xml 2>/dev/null; then
+                die_with_message $OVS_BRIDGE_ERR_IS_BRIDGE_DRAIN_BR "Dstination bridge of bridge mirror can not be deleted."
+                break
+            fi
+        done
+    fi
+}
+
+is_host_network_bridge()
+{
+    local br_name=$1
+    local linux_br=$(get_linux_br_name $br_name)
+
+    [ -e /sys/class/net/$linux_br ] && return 0
+    [ -e $LINUX_NETWORK_PATH/$br_name ] && return 0
+
+    return 1
+}
+
+ovs_slave_priority_command() {
+    ifaces=$@
+    bond_iface_num=$(echo $ifaces | wc -w)
+    i=0
+    for iface in $ifaces
+    do
+        priority=$(( $bond_iface_num - $i ))
+        slave_priority_command="$slave_priority_command -- set interface $iface other_config:slave-priority=$priority"
+        i=$(( $i + 1 ))
+    done
+    echo "$slave_priority_command"
+}
+
+ovs_clear_slave_priority_command() {
+    ifaces=$@
+    for iface in $ifaces
+    do
+        clear_slave_priority_command="$clear_slave_priority_command -- --if-exists remove interface $iface other_config slave-priority"
+    done
+    echo "$clear_slave_priority_command"
+}
+
+## Usage:   add_linux_bond  bond_name  bond_mode  bond_policy  bond_miimon  iface1  iface2 ...
+add_linux_bond(){
+    local bond_name=$1
+    local bond_mode=$2
+    local bond_policy=$3
+    local bond_miimon=$4
+    local ifaces_args=""
+
+    shift 4
+    while [ $# -ne 0 ]; do
+        ifaces_args="$ifaces_args --iface=$1"
+        shift
+    done
+
+    $BASH $SHELL_LINUX_BOND add $bond_name --bond_mode=$bond_mode --bond_policy=$bond_policy --bond_miimon=$bond_miimon $ifaces_args
+    [ $? -ne 0 ] && return ${OVS_BOND_ERR_ADD_BOND_ERROR}
+
+    # bond config persistence
+    if [ -e $CVK_LINUX_BOND_CONF_PATH ];then
+        sed -i -e "/$bond_name/d" $CVK_LINUX_BOND_CONF_PATH
+    fi
+    # mkdir if dir does not existed
+    if [ ! -d "$CVK_CONFIG_PATH" ]; then
+        mkdir -p $CVK_CONFIG_PATH
+    fi
+
+    echo "$BASH $OVS_SHELL_SCRIPT_PATH/$shellname add_linuxbond --bond_name=$bond_name --bond_mode=$bond_mode --bond_policy=$bond_policy --bond_miimon=$bond_miimon $ifaces_args" >> $CVK_LINUX_BOND_CONF_PATH
+
+    ovs_printlog ${shellname} info "bond-config-write-to-file $CVK_LINUX_BOND_CONF_PATH: $BASH $OVS_SHELL_SCRIPT_PATH/$shellname add_linuxbond --bond_name=$bond_name --bond_mode=$bond_mode --bond_policy=$bond_policy --bond_miimon=$bond_miimon $ifaces_args"
+
+    return 0
+}
+
+## Usage:   del_linux_bond  bond_name
+del_linux_bond(){
+    local bond_name=$1
+
+    $BASH $SHELL_LINUX_BOND del $bond_name
+    [ $? -ne 0 ] && return ${OVS_BOND_ERR_DEL_BOND_ERROR}
+
+    # bond config persistence
+    if [ -e $CVK_LINUX_BOND_CONF_PATH ];then
+        sed -i -e "/$bond_name/d" $CVK_LINUX_BOND_CONF_PATH
+    fi
+    ovs_printlog ${shellname} info "bond-config-write-to-file $CVK_LINUX_BOND_CONF_PATH: deleted creating $bond_name command line."
+
+    return 0
+}
+
+get_pfs() {
+    read -d '' req <<EOF
+<request>
+  <operationType>get</operationType>
+  <iterator>sys_class_net</iterator>
+  <select>
+    <isPhysicalSmartNIC>1</isPhysicalSmartNIC>
+  </select>
+  <data>
+    <name/>
+    <phySwitchId/>
+  </data>
+</request>
+EOF
+
+    ret=$(/bin/python3 /opt/bin/device_config.pyc --xml "$req")
+    /bin/python3 - "$ret" <<EOF
+import sys
+import os
+from xml.etree import cElementTree as ET
+reply = ET.fromstring(sys.argv[1])
+for ent in reply.findall("entity"):
+    pfs_text = ent.find("name").text
+    print(pfs_text)
+EOF
+}
+
+## Usage:   cmd_ovs_add_linuxbond  bond_name  bond_mode  bond_policy  bond_miimon  iface1  iface2 ...
+cmd_ovs_add_linuxbond() {
+    local bond_name
+    local bond_mode
+    local bond_policy
+    local bond_miimon
+    local ifaces
+    local iface_num
+
+    all_args="$@"
+    args="`getopt -u -o "h" -l "bond_name:,bond_mode:,bond_policy:,bond_miimon:,iface:" -- "$@" 2>/dev/null`"
+    [ "$?" == "0" ] || die_with_message ${OVS_ERR_WRONG_PARAM} "getopt fails to parse args"
+    # quote may be lost in args
+    set -- $args
+    while :
+    do
+        case $1 in
+            --bond_name)
+                bond_name=$2
+                shift 2
+                ;;
+            --bond_mode)
+                bond_mode=$2
+                shift 2
+                ;;
+            --bond_policy)
+                bond_policy=$2
+                shift 2;
+                ;;
+            --bond_miimon)
+                bond_miimon=$2
+                shift 2
+                ;;
+            --iface)
+                ifaces="$ifaces $2"
+                if [ -z "$iface_num" ];then
+                    iface_num=s
+                elif [ "$iface_num" = "s" ];then
+                    iface_num=m
+                fi
+                shift 2
+                ;;
+            --)
+                shift
+                break
+                ;;
+            *)
+                die_with_message ${OVS_ERR_WRONG_PARAM} "unknown args $1"
+                break
+                ;;
+        esac
+    done
+
+    if [ "X$iface_num" = "X" -o "X$iface_num" = "Xs" ];then
+        die_with_message $OVS_BRIDGE_ERR_BOND_ERROR "Two or more ifaces are required while add-bond."
+    elif [ "X$iface_num" = "Xm" ] && [ -z "$bond_name" ];then
+        die_with_message $OVS_BRIDGE_ERR_BOND_ERROR "Bond_name is required while add-bond."
+    fi
+
+    [ -n "$bond_mode" ] || bond_mode=$LINUX_BOND_MODE_INIT
+    [ -n "$bond_policy" ] || bond_policy=$LINUX_BOND_POLICY_INIT
+    [ -n "$bond_miimon" ] || bond_miimon=$LINUX_BOND_MIIMON_INIT
+
+    add_linux_bond $bond_name $bond_mode $bond_policy $bond_miimon $ifaces
+    ret=$?
+    if [ $ret -ne 0 ]; then
+        ovs_printlog ${shellname} err "cmd_ovs_add_linuxbond(): Failed to do add_linux_bond, bond_name=$bond_name"
+        return $ret
+    fi
+
+    return $ret
+}
+
+vxlan_sdn_bridge_handle()
+{
+    local action=$1
+    local br_name=$2
+    local all_args=$3
+    local return_code
+
+    ovs_printlog ${shellname} info "vxlan_sdn_bridge_handle: action $action, args $all_args"
+
+    if [ "X$action" = "Xadd" ]; then
+        if [ -f "$OVS_SHELL_SCRIPT_PATH/ovsbr_add.sh" ];then
+            $OVS_SHELL_SCRIPT_PATH/ovsbr_add.sh $all_args
+            return_code=$?
+            if [ "$return_code" != "0" ];then
+                cmd_delete_bridge $br_name
+                die_with_message $return_code "Ovs add vxlan-sdn bridge: $br_name error."
+            fi
+        else
+            die_with_message $OVS_BRIDGE_ERR_VXLAN_SDN_ERROR "Ovs do not support vxlan-sdn."
+        fi
+    elif [ "X$action" = "Xmod" ]; then
+        if [ -f "$OVS_SHELL_SCRIPT_PATH/ovsbr_modify.sh" ];then
+            $OVS_SHELL_SCRIPT_PATH/ovsbr_modify.sh $all_args
+            return_code=$?
+            if [ "$return_code" != "0" ];then
+                die_with_message $return_code "Ovs modify vxlan-sdn bridge: $br_name error."
+            fi
+        else
+            die_with_message $OVS_BRIDGE_ERR_VXLAN_SDN_ERROR "Ovs do not support vxlan-sdn."
+        fi
+    elif [ "X$action" = "Xdel" ]; then
+        if [ -f "$OVS_SHELL_SCRIPT_PATH/ovsbr_del.sh" ];then
+            $OVS_SHELL_SCRIPT_PATH/ovsbr_del.sh $br_name
+            return_code=$?
+            if [ "$return_code" != "0" ];then
+                die_with_message $return_code "Ovs delete vxlan-sdn bridge: $br_name error."
+            fi
+        else
+            ovs_printlog ${shellname} info "$OVS_SHELL_SCRIPT_PATH/ovsbr_del.sh does not exiest, use ovs-vsctl to delete vxlan-sdn bridge:$br_name."
+            vsctl_command="-- --if-exists del-br $br_name -- --if-exists del-br ${br_name}-phy"
+            ovs-vsctl -t 5 $vsctl_command 2>/dev/null
+            if [ "$?" != "0" ];then
+                die_with_message $OVS_BRIDGE_ERR_DELETE_ERROR "Ovs delete vxlan-sdn bridge:$br_name error."
+            fi
+        fi
+    else
+        die_with_message $OVS_BRIDGE_ERR_VXLAN_SDN_ERROR "vxlan-sdn bridge not support action: $action."
+    fi
+}
+
+set_ovs_bridge_phy_ifaces_mtu()
+{
+    local br_name=$1
+    local bond_name=$2
+    local mtu=$3
+    local ifaces=$4
+
+    local bond_mech
+    local vsctl_command
+    # set physical interface MTU will take long time, and the time is uncertain. It will increase with the number of VFs.
+    # So execute it separately and ingnore the error caused by exec timeout.idms:202008190918.
+    bond_mech=$(ovs-vsctl -t 2 --bare --if-exists get bridge $br_name other_config:bond_mech 2>/dev/null | tr -d "\"")
+    if [ "X$bond_mech" != "Xlinux" ];then # ovs bond, or no bond
+        for iface in $ifaces; do
+            vsctl_command="$vsctl_command -- set interface $iface mtu_request=$mtu"
+        done
+    else # linux bond
+        [ -n "$bond_name" ] && vsctl_command="$vsctl_command -- set interface $bond_name mtu_request=$mtu"
+    fi
+
+    if [ -n "$vsctl_command" ];then
+        ovs_printlog ${shellname} info "try to set_phy_iface_mtu:bond_mech=$bond_mech,cmd=ovs-vsctl -t 8 $vsctl_command"
+        ovs-vsctl -t 8 $vsctl_command 2>/dev/null
+        ret=$?
+        if [ "$ret" != "0" ] && [ "$ret" != "142" ];then
+            cmd_delete_bridge $br_name
+            die_with_message $OVS_BRIDGE_ERR_ADD_ERROR "Ovs set phy interface mtu: $br_name error."
+        fi
+        ovs_printlog ${shellname} info "Ovs set phy interface mtu: ovs-vsctl -t 8 $vsctl_command,return:$ret"
+    fi
+}
+
+disable_lro()
+{
+    ifaces=$@
+
+    for iface in $ifaces
+    do
+        ethtool -K ${iface} lro off 2>/dev/null
+    done
+}
+
+add_normal_bridge()
+{
+    local all_args="$@"
+    local result
+    local br_mode_int=0 #default veb
+    local iface_list_num
+
+    #check
+    [ -z "$BR_MODE" ] && die_with_message ${OVS_ERR_WRONG_PARAM} "br_mode is requred!"
+
+    if [ "X$IFACE_NUM" = "Xm" ] && [ -z "$BOND_NAME" ];then
+        die_with_message $OVS_BRIDGE_ERR_ARGUMENT_ERROR "Bond_name is required while add-bond."
+    fi
+
+    dpdk_init=$(ovs-vsctl --if-exists -- get Open_vSwitch . other_config:dpdk-init | tr -d "\"")
+    if [ "X$dpdk_init" != "Xtrue" ] && [ "X$DATAPATH_TYPE" = "Xnetdev" ];then
+        die_with_message $OVS_BRIDGE_ERR_DPDK_NOT_ON "Failed to add dpdk bridge because of dpdk is not on."
+    fi
+
+    [ "X$ACCELE_MODE" = "Xdpdk" -a "X$DATAPATH_TYPE" != "Xnetdev" ] && die_with_message ${OVS_ERR_WRONG_PARAM} "dpdk accele mode need datapth_type is netdev!"
+
+    if [ "X$BR_MODE" = "Xveb" ];then
+        br_mode_int=0
+    elif [ "X$BR_MODE" = "Xvxlan-sdn" ];then
+        br_mode_int=3
+        if ovs-vsctl -t 2 --bare --columns=other_config list Bridge | grep -q br_mode=3;then
+            die_with_message $OVS_BRIDGE_ERR_VXLAN_ERROR "cvk can has only one vxlan-sdn vswitch."
+        fi
+
+        if ovs-vsctl -t 2 --bare --columns=other_config list Bridge | grep -q br_mode=4;then
+            die_with_message $OVS_BRIDGE_ERR_VXLAN_ERROR "vxlan-cas and vxlan-sdn bridge can't co-exist."
+        fi
+    elif [ "X$BR_MODE" = "Xvxlan-cas" ];then
+        br_mode_int=4
+        if ovs-vsctl -t 2 --bare --columns=other_config list Bridge | grep -q br_mode=4;then
+            die_with_message $OVS_BRIDGE_ERR_VXLAN_ERROR "cvk can has only one vxlan-cas vswitch."
+        fi
+        if ovs-vsctl -t 2 --bare --columns=other_config list Bridge | grep -q br_mode=3;then
+            die_with_message $OVS_BRIDGE_ERR_VXLAN_ERROR "vxlan-cas and vxlan-sdn bridge can't co-exist."
+        fi
+    fi
+
+    result=$(check_ifaces_used $BR_NAME "$IFACES" $br_mode_int $DATAPATH_TYPE)
+    [ -z "$result" ] || die_with_message $result
+
+    if [ "X$DATAPATH_TYPE" = "Xnetdev" ];then #dpdk bridge
+        iface_list_num=$(echo $IFACES | wc -w)
+        result=$(check_input_pci_list $iface_list_num $BR_NAME $br_mode_int "$DATAPATH_TYPE" "$PCI_LIST")
+        [ -z "$result" ] || die_with_message $result
+
+        result=$(check_numa_mem_enough $BR_NAME $PCI_LIST)
+        [ -z "$result" ] || die_with_message $result
+    else
+        result=$(check_input_iface_list $IFACES)
+        [ -z "$result" ] || die_with_message $result
+    fi
+
+    local lock_bridge_info=$(get_lock_file_info $OVS_LOCK_FILE)
+    if [ "X$lock_bridge_info" = "X$BR_NAME" ]; then
+        die_with_message $OVS_BRIDGE_ERR_REPEAT_CALL_IS_RUNNING "Process deal with locked bridge $lock_bridge_info already exists, please wait."
+    fi
+
+    if [ "X$BR_MODE" = "Xvxlan-sdn" ];then
+        [ -z "$ACCELE_MODE" ] || all_args=$(echo $all_args | sed 's/--accele_mode=[^ ]*//g')
+        [ -z "$NETWORK_TYPE" ] || all_args=$(echo $all_args | sed 's/--network_type=[^ ]*//g')
+        [ -z "$ACTIVE_ALGORITHM" ] || all_args=$(echo $all_args | sed 's/--active-algorithm=[^ ]*//g')
+        [ -z "$RESELECT_ON_CHANGE" ] || all_args=$(echo $all_args | sed 's/--reselect-on-change=[^ ]*//g')
+
+        flush_dev_ip $IFACES
+        vxlan_sdn_bridge_handle add $BR_NAME "$all_args"
+
+        [ -n $NETWORK_TYPE ] && ovs-vsctl -t 1 --if-exists set bridge $BR_NAME other_config:network_type=$NETWORK_TYPE
+        bring_up_local_port $BR_NAME
+        ovs_bridge_xmit_event add $BR_NAME
+        return
+    fi
+
+    [ -n "$MTU" ] || MTU="1500"
+    if [ $MTU -lt "1000" -o $MTU -gt "9000" ]; then
+        die_with_message $OVS_BRIDGE_ERR_MTU_RANGE_ERROR "MTU range must be in [1000, 9000]."
+    fi
+
+    [ "$VLAN" = "0" -o "$VLAN" = "1" ] && VLAN='[]'
+
+    local vsctl_command=""
+    # setup bridge
+    vsctl_command="$vsctl_command -- --if-exists del-br $BR_NAME -- add-br $BR_NAME"
+    vsctl_command="$vsctl_command -- set bridge $BR_NAME other_config:br_mode=$br_mode_int"
+    vsctl_command="$vsctl_command -- set bridge $BR_NAME other_config:accele_mode=$ACCELE_MODE"
+    [ -n "$NETWORK_TYPE" ] && vsctl_command="$vsctl_command -- set bridge $BR_NAME other_config:network_type=$NETWORK_TYPE"
+
+    #set bridge mcast, vlan, mtu
+    [ -z "$MULTICAST" ] || vsctl_command="$vsctl_command mcast_snooping_enable=$MULTICAST"
+    [ -z "$DATAPATH_TYPE" ] || vsctl_command="$vsctl_command datapath_type=$DATAPATH_TYPE"
+    [ -z "$VLAN" ] || vsctl_command="$vsctl_command -- set Port $BR_NAME tag=$VLAN"
+    vsctl_command="$vsctl_command -- set interface $BR_NAME mtu_request=$MTU"
+
+    # set bond
+    if [ "X$IFACE_NUM" = "Xm" ];then
+        #normal mode just use ovs bond
+        [ -n "$BOND_MECH" ] && vsctl_command="$vsctl_command -- set bridge $BR_NAME other_config:bond_mech=$BOND_MECH"
+        vsctl_command="$vsctl_command -- add-bond $BR_NAME $BOND_NAME $IFACES other_config:lacp-fallback-ab=true"
+        [ -z "$LACP" ] || vsctl_command="$vsctl_command lacp=$LACP"
+        [ -z "$BOND_MODE" ] || vsctl_command="$vsctl_command bond_mode=$BOND_MODE"
+        if [ "X$BOND_MODE" = "Xactive-backup" ];then
+            [ -z "$ACTIVE_ALGORITHM" ] || vsctl_command="$vsctl_command -- set port $BOND_NAME other_config:active-algorithm=$ACTIVE_ALGORITHM"
+            [ -z "$RESELECT_ON_CHANGE" ] || vsctl_command="$vsctl_command -- set port $BOND_NAME other_config:reselect-on-change=$RESELECT_ON_CHANGE"
+            if [ "X$ACTIVE_ALGORITHM" = "Xorder" ];then
+                vsctl_command="$vsctl_command $(ovs_slave_priority_command $IFACES)"
+            fi
+        fi
+    else
+        [ "X$IFACE_NUM" = "Xs" ] && vsctl_command="$vsctl_command -- add-port $BR_NAME $IFACES"
+        vsctl_command="$vsctl_command -- set bridge $BR_NAME other_config:bond_mech=null"
+    fi
+
+    local pci_list_array
+    local ifaces_array
+    if [ "X$DATAPATH_TYPE" = "Xnetdev" ];then # dpdk set pci list
+        [ -z "$PCI_LIST" ] || pci_list_array=($PCI_LIST)
+        [ -z "$IFACES" ] || ifaces_array=($IFACES)
+        for i in $(seq 0 $(($iface_list_num-1)))
+        do
+            vsctl_command="$vsctl_command -- set interface ${ifaces_array[$i]} type=dpdk options:dpdk-devargs=${pci_list_array[$i]}"
+        done
+    fi
+
+    if [ "X$DATAPATH_TYPE" != "Xnetdev" ];then
+        disable_lro $IFACES
+    fi
+
+    flush_dev_ip $IFACES
+
+    # execute ovs-vsctl
+    ovs_printlog ${shellname} info "add br: ovs-vsctl -t 8 $vsctl_command"
+    ovs-vsctl -t 8 $vsctl_command 2>/dev/null
+    if [ "$?" != "0" ];then
+        # change timeout 5 to 8, as change mtu takes long time. in case of failrue to add, del-br as to sync
+        # data with front. modify_bridge do NOT del-br for sync data purpose. idms: 201904281019.
+        cmd_delete_bridge $BR_NAME
+        die_with_message $OVS_BRIDGE_ERR_ADD_ERROR "Ovs add bridge: $BR_NAME error."
+    fi
+
+    # set MTU for physical interface
+    set_ovs_bridge_phy_ifaces_mtu $BR_NAME "$BOND_NAME" $MTU "$IFACES"
+
+    # check whether ovs interface has error
+    result=$(check_ovs_interface_error $IFACES)
+    [ -n "$result" ] && ovs_printlog ${shellname} err "$result"
+
+    bring_up_local_port $BR_NAME
+    ovs_bridge_xmit_event add $BR_NAME
+}
+
+add_smart_bridge()
+{
+    local all_args="$@"
+    local result
+    local br_mode_int=0 #default veb
+
+    #check
+    [ -z "$BR_MODE" ] && die_with_message ${OVS_ERR_WRONG_PARAM} "br_mode is requred!"
+
+    if [ "X$IFACE_NUM" = "Xm" ] && [ -z "$BOND_NAME" ];then
+        die_with_message $OVS_BRIDGE_ERR_ARGUMENT_ERROR "Bond_name is required while add-bond."
+    fi
+
+    if [ "X$BR_MODE" = "Xveb" ];then
+        br_mode_int=0
+    elif [ "X$BR_MODE" = "Xvxlan-sdn" ];then
+        br_mode_int=3
+        if ovs-vsctl -t 2 --bare --columns=other_config list Bridge | grep -q br_mode=3;then
+            die_with_message $OVS_BRIDGE_ERR_VXLAN_ERROR "cvk can has only one vxlan-sdn vswitch."
+        fi
+
+        if ovs-vsctl -t 2 --bare --columns=other_config list Bridge | grep -q br_mode=4;then
+            die_with_message $OVS_BRIDGE_ERR_VXLAN_ERROR "vxlan-cas and vxlan-sdn bridge can't co-exist."
+        fi
+    elif [ "X$BR_MODE" = "Xvxlan-cas" ];then
+        br_mode_int=4
+        if ovs-vsctl -t 2 --bare --columns=other_config list Bridge | grep -q br_mode=4;then
+            die_with_message $OVS_BRIDGE_ERR_VXLAN_ERROR "cvk can has only one vxlan-cas vswitch."
+        fi
+        if ovs-vsctl -t 2 --bare --columns=other_config list Bridge | grep -q br_mode=3;then
+            die_with_message $OVS_BRIDGE_ERR_VXLAN_ERROR "vxlan-cas and vxlan-sdn bridge can't co-exist."
+        fi
+    fi
+
+    result=$(check_ifaces_used $BR_NAME "$IFACES" $br_mode_int $DATAPATH_TYPE)
+    [ -z "$result" ] || die_with_message $result
+
+    result=$(check_input_iface_list $IFACES)
+    [ -z "$result" ] || die_with_message $result
+
+    if [ "X$BR_MODE" = "Xvxlan-sdn" ];then
+        [ -z "$ACCELE_MODE" ] || all_args=$(echo $all_args | sed 's/--accele_mode=[^ ]*//g')
+        [ -z "$NETWORK_TYPE" ] || all_args=$(echo $all_args | sed 's/--network_type=[^ ]*//g')
+        [ -z "$ACTIVE_ALGORITHM" ] || all_args=$(echo $all_args | sed 's/--active-algorithm=[^ ]*//g')
+        [ -z "$RESELECT_ON_CHANGE" ] || all_args=$(echo $all_args | sed 's/--reselect-on-change=[^ ]*//g')
+        flush_dev_ip $IFACES
+        vxlan_sdn_bridge_handle add $BR_NAME "$all_args"
+        [ -n $NETWORK_TYPE ] && ovs-vsctl -t 1 --if-exists set bridge $BR_NAME other_config:network_type=$NETWORK_TYPE
+        return
+    fi
+
+    [ -n "$MTU" ] || MTU="1500"
+    if [ $MTU -lt "1000" -o $MTU -gt "9000" ]; then
+        die_with_message $OVS_BRIDGE_ERR_MTU_RANGE_ERROR "MTU range must be in [1000, 9000]."
+    fi
+
+    local vsctl_command=""
+    # setup bridge
+    #add smart vswitch will take a lot of time, need requires adding lock protection.
+    try_lock_ovs_bridge $BR_NAME
+
+    vsctl_command="$vsctl_command -- --if-exists del-br $BR_NAME -- add-br $BR_NAME"
+    vsctl_command="$vsctl_command -- set bridge $BR_NAME other_config:br_mode=$br_mode_int"
+    vsctl_command="$vsctl_command -- set bridge $BR_NAME other_config:accele_mode=$ACCELE_MODE"
+    [ -n "$NETWORK_TYPE" ] && vsctl_command="$vsctl_command -- set bridge $BR_NAME other_config:network_type=$NETWORK_TYPE"
+
+    #set bridge mcast, vlan, mtu
+    [ -z "$MULTICAST" ] || vsctl_command="$vsctl_command mcast_snooping_enable=$MULTICAST"
+    [ -z "$DATAPATH_TYPE" ] || vsctl_command="$vsctl_command datapath_type=$DATAPATH_TYPE"
+    [ -z "$VLAN" ] || vsctl_command="$vsctl_command -- set Port $BR_NAME tag=$VLAN"
+    vsctl_command="$vsctl_command -- set interface $BR_NAME mtu_request=$MTU"
+
+    local isPF=""
+    local iface1
+    all_pfs=$(get_pfs)
+    iface1=`echo "$IFACES" | awk '{print $1}'`
+    if [ -n "$all_pfs" ];then
+        if echo "$all_pfs" | grep -wq "$iface1" 1>/dev/null 2>&1; then
+            isPF="true"
+
+            if [ "X$IFACE_NUM" = "Xm" ];then
+                result=$(check_smart_pf $IFACES)
+                [ -z "$result" ] || die_with_message $result
+            fi
+            vsctl_command="$vsctl_command -- set bridge $BR_NAME other_config:is_smart=true"
+        fi
+    fi
+
+    # set bond
+    if [ "X$IFACE_NUM" = "Xm" ];then
+        #smart mode just use linux bond
+        if [ "X$isPF" = "Xtrue" -o "X$BOND_MECH" = "Xlinux" ];then
+            BOND_NAME=$(get_bond_port_name $BR_NAME)
+            # for PF bond: must bond firstly, then init PFs
+            if [ "X$isPF" = "Xtrue" ];then
+                ovs_printlog ${shellname} info "$BASH $SHELL_CLEAR_VF $IFACES"
+                $BASH $SHELL_CLEAR_VF $IFACES
+            fi
+
+            [ -n "$BOND_MODE" ] || BOND_MODE=$LINUX_BOND_MODE_INIT
+            [ -n "$BOND_POLICY" ] || BOND_POLICY=$LINUX_BOND_POLICY_INIT
+            [ -n "$BOND_MIIMON" ] || BOND_MIIMON=$LINUX_BOND_MIIMON_INIT
+
+            add_linux_bond $BOND_NAME $BOND_MODE $BOND_POLICY $BOND_MIIMON $IFACES
+            ret=$?
+            if [ $ret -ne 0 ]; then
+                #add_linux_bond failed,roll-back
+                if [ "X$isPF" = "Xtrue" ];then
+                    ovs_printlog ${shellname} info "$BASH $SHELL_LAG_CONFIG_VF $IFACES"
+                    $BASH $SHELL_LAG_CONFIG_VF $IFACES
+                fi
+                die_with_message $ret "cmd_ovs_add_bridge(): Failed to do add linux bond, bond_name=$BOND_NAME"
+            fi
+
+            # two pfs must be configured at the same time
+            if [ "X$isPF" = "Xtrue" ];then
+                ovs_printlog ${shellname} info "$BASH $SHELL_LAG_CONFIG_VF $IFACES"
+                $BASH $SHELL_LAG_CONFIG_VF $IFACES
+            fi
+
+            ip link set dev $BOND_NAME up
+            vsctl_command="$vsctl_command -- add-port $BR_NAME $BOND_NAME"
+            vsctl_command="$vsctl_command -- set bridge $BR_NAME other_config:bond_mech=linux"
+        fi
+    else
+        if [ "X$IFACE_NUM" = "Xs" ]; then
+            # init PFs every time after (un)bond, so use it directly now
+            [ "X$isPF" = "Xtrue" ] && ip link set dev $IFACES up
+            vsctl_command="$vsctl_command -- add-port $BR_NAME $IFACES"
+        fi
+        vsctl_command="$vsctl_command -- set bridge $BR_NAME other_config:bond_mech=null"
+    fi
+
+    if [ "X$DATAPATH_TYPE" != "Xnetdev" ];then
+        disable_lro $IFACES
+    fi
+
+    flush_dev_ip $IFACES
+
+    # execute ovs-vsctl
+    ovs_printlog ${shellname} info "add br: ovs-vsctl -t 8 $vsctl_command"
+    ovs-vsctl -t 8 $vsctl_command 2>/dev/null
+    if [ "$?" != "0" ];then
+        # change timeout 5 to 8, as change mtu takes long time. in case of failrue to add, del-br as to sync
+        # data with front. modify_bridge do NOT del-br for sync data purpose. idms: 201904281019.
+        cmd_delete_bridge $BR_NAME
+        die_with_message $OVS_BRIDGE_ERR_ADD_ERROR "Ovs add bridge: $BR_NAME error."
+    fi
+
+    # set MTU for physical interface
+    set_ovs_bridge_phy_ifaces_mtu $BR_NAME "$BOND_NAME" $MTU "$IFACES"
+
+    # check whether ovs interface has error
+    result=$(check_ovs_interface_error $IFACES)
+    [ -n "$result" ] && ovs_printlog ${shellname} err "$result"
+
+    release_lock_ovs_bridge
+    bring_up_local_port $BR_NAME
+    ovs_bridge_xmit_event add $BR_NAME
+}
+
+get_host_network_args()
+{
+    local all_args="$*"
+
+    [ -z "$BR_MODE" ] || all_args=$(echo $all_args | sed 's/--br_mode=[^ ]*//g')
+    [ -z "$DATAPATH_TYPE" ] || all_args=$(echo $all_args | sed 's/--datapath_type=[^ ]*//g')
+    [ -z "$PCI_LIST" ] || all_args=$(echo $all_args | sed 's/--pci=[^ ]*//g')
+    [ -z "$BOND_MECH" ] || all_args=$(echo $all_args | sed 's/--bond_mech=[^ ]*//g')
+    [ -z "$BOND_POLICY" ] || all_args=$(echo $all_args | sed 's/--bond_policy=[^ ]*//g')
+    [ -z "$BOND_MIIMON" ] || all_args=$(echo $all_args | sed 's/--bond_miimon=[^ ]*//g')
+    [ -z "$ACTIVE_ALGORITHM" ] || all_args=$(echo $all_args | sed 's/--active-algorithm=[^ ]*//g')
+    [ -z "$RESELECT_ON_CHANGE" ] || all_args=$(echo $all_args | sed 's/--reselect-on-change=[^ ]*//g')
+
+    echo $all_args
+}
+
+bridge_net_config_apply()
+{
+    local ipv4=""
+    local ipv6=""
+    local bootproto4=""
+    local bootproto6=""
+
+    if [ -n "$ADDRESS" ] && [ -n "$NETMASK" ]; then
+        local prefix=$(ipcalc -p $ADDRESS $NETMASK 2>/dev/null | awk -F= '{print $2}')
+        ipv4=${ADDRESS}/$prefix
+        ipcalc -c $ipv4 2>/dev/null
+        [ $? -ne 0 ] && {
+            ovs_printlog ${shellname} err "invalid ipv4 $ipv4"
+            return $OVS_BRIDGE_ERR_INVALID_IPV4
+        }
+        bootproto4="static"
+    fi
+
+    if [ -n "$IPV6ADDRESS" ] && [ -n "$IPV6PREFIX" ]; then
+        ipv6=$IPV6ADDRESS/$IPV6PREFIX
+        ipcalc -c $ipv6 2>/dev/null
+        [ $? -ne 0 ] && {
+            ovs_printlog ${shellname} err "invalid ipv6 $ipv6"
+            return $OVS_BRIDGE_ERR_INVALID_IPV6
+        }
+        bootproto6="static"
+    fi
+
+    # vswitch0 may use dhcp at firtboot
+    if [ -z "$ipv4" ] && [ -z "$ipv6" ] && [ "$BR_NAME" = "vswitch0" ]; then
+        for iface in $IFACES
+        do
+            config_file="/etc/sysconfig/network-scripts/ifcfg-${iface}"
+            source $config_file
+            [ "X$BOOTPROTO" = "Xdhcp" ] && bootproto4="dhcp"
+        done
+    fi
+
+    if [ "X$ipv4" = "X0.0.0.0/0" ];then
+        ipv4=""
+    fi
+
+    read -d '' req <<EOF
+<request>
+    <operatorType>set</operatorType>
+    <callType>internal</callType>
+    <entity name="$BR_NAME">
+        <method4>$bootproto4</method4>
+        <method6>$bootproto6</method6>
+        <mtu>$MTU</mtu>
+        <ipv4>$ipv4</ipv4>
+        <gateway4>$GATEWAY</gateway4>
+        <route4/>\n
+        <ipv6>$ipv6</ipv6>
+        <gateway6>$IPV6GATEWAY</gateway6>
+        <route6/>
+    </entity>
+</request>
+EOF
+
+    python /opt/bin/netcfgtool.pyc xml "$req"; ret=$?
+    [ $ret -ne 0 ] && {
+        ovs_printlog ${shellname} err "netcfgtool run failed, ret=$ret"
+        return $OVS_BRIDGE_ERR_CONFIG_APPLY_FAILED
+    }
+    ovs_printlog ${shellname} info "$BR_NAME net config apply success."
+}
+
+bridge_net_config_delete()
+{
+    local br_name=$1
+    python /opt/bin/netcfgtool.pyc delete --name=$br_name --callType=internal; ret=$?
+    [ $ret -ne 0 ] && die_with_message $OVS_BRIDGE_ERR_CONFIG_DELETE_FAILED "$br_name net config delete failed, ret=$ret"
+    ovs_printlog ${shellname} info "$br_name net config delete success."
+
+    shift
+
+    for subnet in $@
+    do
+        python /opt/bin/netcfgtool.pyc delete --name=$subnet --callType=internal; ret=$?
+        [ $ret -ne 0 ] && die_with_message $OVS_BRIDGE_ERR_CONFIG_DELETE_FAILED "$subnet net config delete failed, ret=$ret"
+        ovs_printlog ${shellname} info "$subnet net config delete success."
+    done
+}
+
+cmd_add_bridge(){
+    local all_args="$@"
+
+    [ -z "$BR_NAME" ] && die_with_message $OVS_BRIDGE_ERR_ARGUMENT_ERROR "Bridge name is required!"
+    if [ -z "$ACCELE_MODE" ]; then
+        ACCELE_MODE="normal"
+        ovs_printlog ${shellname} warn "Missing accele_mode, use default accele mode normal"
+    fi
+
+    check_ip_gateway_valid; check_ret=$?
+    [ $check_ret -ne 0 ] && {
+        die_with_message $check_ret "add bridge $BR_NAME failed, ip or gateway is illegal, ret=$check_ret"
+    }
+
+    if is_host_network_type $NETWORK_TYPE; then
+        local new_args=$(get_host_network_args $all_args)
+        local lock_bridge_info=$(get_lock_file_info $OVS_LOCK_FILE)
+        if [ "X$lock_bridge_info" = "X$BR_NAME" ]; then
+            die_with_message $OVS_BRIDGE_ERR_REPEAT_CALL_IS_RUNNING "Process deal with locked bridge $lock_bridge_info already exists, please wait."
+        fi
+        $BASH $SHELL_LINUX_NETWORK add $new_args; ret=$?
+        [ $ret -ne 0 ] && die_with_message $ret "add linux network $BR_NAME failed"
+        ovs_bridge_xmit_event add $BR_NAME
+        bridge_net_config_apply; apply_ret=$?
+        [ $apply_ret -ne 0 ] && {
+            cmd_delete_bridge $BR_NAME
+            die_with_message $apply_ret "net config apply failed for $BR_NAME, ret=$apply_ret"
+        }
+        ovs_printlog ${shellname} info "/opt/bin/ovs_bridge.sh.x add linux network $BR_NAME end."
+        return
+    fi
+
+    case $ACCELE_MODE in
+        "normal")
+            ovs_printlog ${shellname} info "adding normal bridge: $BR_NAME"
+            add_normal_bridge "$@"
+            ;;
+        "dpdk")
+            ovs_printlog ${shellname} info "adding dpdk bridge: $BR_NAME"
+            add_normal_bridge "$@"
+            ;;
+        "smart")
+            ovs_printlog ${shellname} info "adding smart bridge: $BR_NAME"
+            add_smart_bridge "$@"
+            ;;
+        *)
+            die_with_message ${OVS_ERR_WRONG_PARAM} "unknown accele mode: $ACCELE_MODE"
+            ;;
+    esac
+
+    bridge_net_config_apply; apply_ret=$?
+    [ $apply_ret -ne 0 ] && {
+            cmd_delete_bridge $BR_NAME
+            die_with_message $apply_ret "net config apply failed for $BR_NAME, ret=$apply_ret"
+    }
+    ovs_printlog ${shellname} info "/opt/bin/ovs_bridge.sh.x add $BR_NAME end."
+}
+
+mod_normal_bridge()
+{
+    local all_args="$@"
+    local result
+
+    if ! ovs-vsctl -t 2 br-exists $BR_NAME 2>/dev/null;then
+        die_with_message $OVS_BRIDGE_ERR_BRIDGE_ERROR "Bridge $BR_NAME does not exist."
+    fi
+
+    if [ "X$IFACE_NUM" = "Xm" ] && [ -z "$BOND_NAME" ];then
+        die_with_message $OVS_BRIDGE_ERR_ARGUMENT_ERROR "Bond_name is required while add-bond."
+    fi
+
+    # check bridge is not dst_br of bridge mirror and check bridge is not drain bridge
+    check_ovs_is_not_bridge_mirror_dst_bridge mod $BR_NAME
+    check_ovs_is_not_bridge_drain_bridge mod $BR_NAME
+
+    local datapath_type=$(ovs-vsctl -t 2 --bare --if-exists get bridge $BR_NAME datapath_type 2>/dev/null)
+    local dpdk_init=$(ovs-vsctl --if-exists -- get Open_vSwitch . other_config:dpdk-init | tr -d "\"")
+    if [ "X$dpdk_init" != "Xtrue" ] && [ "X$datapath_type" = "Xnetdev" ];then
+        die_with_message $OVS_BRIDGE_ERR_DPDK_NOT_ON "Failed to modify dpdk bridge because of dpdk is not on."
+    fi
+
+    local br_mode=$(ovs-vsctl -t 2 --bare --if-exists get bridge $BR_NAME other_config:br_mode 2>/dev/null | tr -d "\"")
+    if [ "X$br_mode" = "X" ];then
+        br_mode=$(ovs-vsctl -t 2 --bare --if-exists get bridge $BR_NAME br_mode 2>/dev/null | tr -d "[]")
+    fi
+
+    if [ "X$datapath_type" = "Xnetdev" ];then
+        local iface_list_num=$(echo $IFACES | wc -w)
+        result=$(check_input_pci_list $iface_list_num $BR_NAME $br_mode "$datapath_type" "$PCI_LIST")
+        [ -z "$result" ] || die_with_message $result
+        result=$(check_numa_mem_enough $BR_NAME $PCI_LIST)
+        [ -z "$result" ] || die_with_message $result
+    else
+        result=$(check_input_iface_list $IFACES)
+        [ -z "$result" ] || die_with_message $result
+    fi
+
+    result=$(check_ifaces_used $BR_NAME "$IFACES" $br_mode $datapath_type)
+    [ -z "$result" ] || die_with_message $result
+
+    local vsctl_command
+    if [ "X$br_mode" = "X" ];then
+        die_with_message $OVS_BRIDGE_ERR_BRIDGE_ERROR "Failed to get br_mode of bridge $BR_NAME."
+    elif [ "X$br_mode" = "X0" -o "X$br_mode" = "X4" ];then  #veb, vxlan-cas
+        if [ -z "$IFACES" ] && ovs_bridge_has_subnet $BR_NAME;then
+            die_with_message $OVS_BRIDGE_ERR_SUBNET_ERROR "Can not del all ifaces of bridge $BR_NAME, because of subnet ifaces existing in bridge."
+        fi
+
+        [ -z "$MULTICAST" ] || vsctl_command="$vsctl_command -- set bridge $BR_NAME mcast_snooping_enable=$MULTICAST"
+        [ -z "$NETWORK_TYPE" ] || vsctl_command="$vsctl_command -- set bridge $BR_NAME other_config:network_type=$NETWORK_TYPE"
+
+        if [ "X$IFACE_NUM" = "Xm" ];then
+            [ -n "$BOND_MECH" ] && vsctl_command="$vsctl_command -- set bridge $BR_NAME other_config:bond_mech=$BOND_MECH"
+        else
+            vsctl_command="$vsctl_command -- set bridge $BR_NAME other_config:bond_mech=null"
+        fi
+
+        if ovs_bridge_is_uplink_ifaces_change $BR_NAME $IFACES; then
+            local network_type_val=$(ovs-vsctl -t 2 --bare --if-exists get bridge $BR_NAME other_config:network_type | tr -d "\"")
+            local private_vlan
+            if [ "X$network_type_val" = "X2" -a "X$NETWORK_TYPE" = "X2" ]; then
+                local vswitch_bond=$(ovs-vsctl -t 2 list-bonds $BR_NAME 2>/dev/null)
+                if [ -n "$vswitch_bond" ];then
+                    private_vlan=$(ovs-vsctl --if-exists get port $vswitch_bond other_config:private_vlan 2>/dev/null)
+                else
+                    local uplink_port=$(ovs_bridge_get_uplink_port $BR_NAME)
+                    if [ -n "$uplink_port" ];then
+                        private_vlan=$(ovs-vsctl --if-exists get port $uplink_port other_config:private_vlan 2>/dev/null)
+                    else
+                        private_vlan=$(get_vswitch_pvlan_config $BR_NAME)
+                    fi
+                fi
+            fi
+            for iface in $IFACES
+            do
+                vsctl_command="$vsctl_command -- --if-exists --with-iface del-port $iface"
+            done
+            # del ovs-br's old uplink
+            vsctl_command="$vsctl_command $(ovs_bridge_del_uplink_command $BR_NAME)"
+
+            if [ "X$IFACE_NUM" = "Xs" ];then
+                vsctl_command="$vsctl_command -- add-port $BR_NAME $IFACES"
+                if [ -n "$private_vlan" ];then
+                    vsctl_command="$vsctl_command -- set port $IFACES other_config:private_vlan=$private_vlan"
+                fi
+            elif [ "X$IFACE_NUM" = "Xm" ];then
+                vsctl_command="$vsctl_command -- add-bond $BR_NAME $BOND_NAME $IFACES other_config:lacp-fallback-ab=true"
+                if [ -n "$private_vlan" ];then
+                    vsctl_command="$vsctl_command -- set port $BOND_NAME other_config:private_vlan=$private_vlan"
+                fi
+            fi
+
+            if [ "X$datapath_type" = "Xnetdev" ];then
+                local pci_list_array
+                local ifaces_array
+                [ -z "$PCI_LIST" ] || pci_list_array=($PCI_LIST)
+                [ -z "$IFACES" ] || ifaces_array=($IFACES)
+                for i in $(seq 0 $(($iface_list_num-1)))
+                do
+                    vsctl_command="$vsctl_command -- set interface ${ifaces_array[$i]} type=dpdk options:dpdk-devargs=${pci_list_array[$i]}"
+                done
+            fi
+        fi
+
+        if [ "X$IFACE_NUM" = "Xm" ];then
+            [ -z "$LACP" ] || vsctl_command="$vsctl_command -- set port $BOND_NAME lacp=$LACP"
+            [ -z "$BOND_MODE" ] || vsctl_command="$vsctl_command -- set port $BOND_NAME bond_mode=$BOND_MODE"
+
+            local current_active_algorithm=$(ovs-vsctl -t 2 --if-exists get port $BOND_NAME other_config:active-algorithm)
+            if [ "X$BOND_MODE" = "Xactive-backup" ];then
+                [ -z "$ACTIVE_ALGORITHM" ] || vsctl_command="$vsctl_command -- set port $BOND_NAME other_config:active-algorithm=$ACTIVE_ALGORITHM"
+                [ -z "$RESELECT_ON_CHANGE" ] || vsctl_command="$vsctl_command -- set port $BOND_NAME other_config:reselect-on-change=$RESELECT_ON_CHANGE"
+                if [ "X$ACTIVE_ALGORITHM" != "X" ];then
+                    if [ "X$ACTIVE_ALGORITHM" = "Xorder" ];then
+                        vsctl_command="$vsctl_command $(ovs_slave_priority_command $IFACES)"
+                    else
+                        if [ "X$current_active_algorithm" = "Xorder" ];then
+                            vsctl_command="$vsctl_command $(ovs_clear_slave_priority_command $IFACES)"
+                        fi
+                    fi
+                fi
+            else
+                vsctl_command="$vsctl_command -- --if-exists remove port $BOND_NAME other_config active-algorithm"
+                vsctl_command="$vsctl_command -- --if-exists remove port $BOND_NAME other_config reselect-on-change"
+                if [ "X$current_active_algorithm" = "Xorder" ];then
+                    vsctl_command="$vsctl_command $(ovs_clear_slave_priority_command $IFACES)"
+                fi
+            fi
+        fi
+
+        [ -z "$VLAN" ] || vsctl_command="$vsctl_command -- set port $BR_NAME tag=$VLAN"
+
+        [ -n "$MTU" ] || MTU=$(ovs-vsctl -t 2 --bare --if-exists get interface $BR_NAME mtu_request 2>/dev/null | tr -d "[]\n")
+        [ -n "$MTU" ] || MTU="1500"
+
+        if ! check_subnet_ipv6 $BR_NAME; then
+            if [ $MTU -lt "1280" -o $MTU -gt "9000" ]; then
+                die_with_message $OVS_BRIDGE_ERR_MTU_RANGE_ERROR "bridge with ipv6 subnet, MTU range must be in [1280, 9000]."
+            fi
+        else
+            if [ $MTU -lt "1000" -o $MTU -gt "9000" ];then
+                die_with_message $OVS_BRIDGE_ERR_MTU_RANGE_ERROR "MTU range must be in [1000, 9000]."
+            fi
+        fi
+
+        vsctl_command="$vsctl_command -- set interface $BR_NAME mtu_request=$MTU"
+
+        if [ "X$DATAPATH_TYPE" != "Xnetdev" ];then
+            disable_lro $IFACES
+        fi
+
+        flush_dev_ip $IFACES
+
+        ovs_printlog ${shellname} info "mod br: ovs-vsctl -t 8 $vsctl_command"
+        ovs-vsctl -t 8 $vsctl_command 2>/dev/null
+        if [ "$?" != "0" ];then
+            die_with_message $OVS_BRIDGE_ERR_MODIFY_ERROR "Ovs modify bridge: $BR_NAME error."
+        fi
+
+        # set MTU for physical interface
+        set_ovs_bridge_phy_ifaces_mtu $BR_NAME "$bond_name" $MTU "$IFACES"
+
+        # check whether ovs interface has error
+        result=$(check_ovs_interface_error $IFACES)
+        if [ -n "$result" ];then
+            ovs_printlog ${shellname} err "$result"
+        fi
+
+        # nic or mac change will cause route missing, force bridge iface config applied
+        ifup $BR_NAME --force 2> /dev/nul
+
+    elif [ "X$br_mode" = "X3" ];then #vxlan-sdn
+        [ -z "$ACCELE_MODE" ] || all_args=$(echo $all_args | sed 's/--accele_mode=[^ ]*//g')
+        [ -z "$NETWORK_TYPE" ] || all_args=$(echo $all_args | sed 's/--network_type=[^ ]*//g')
+        [ -z "$ACTIVE_ALGORITHM" ] || all_args=$(echo $all_args | sed 's/--active-algorithm=[^ ]*//g')
+        [ -z "$RESELECT_ON_CHANGE" ] || all_args=$(echo $all_args | sed 's/--reselect-on-change=[^ ]*//g')
+
+        flush_dev_ip $IFACES
+
+        vxlan_sdn_bridge_handle mod $BR_NAME "$all_args"
+
+        [ -n $NETWORK_TYPE ] && ovs-vsctl -t 1 --if-exists set bridge $BR_NAME other_config:network_type=$NETWORK_TYPE
+        # nic or mac change will cause route missing, force sdn bridge iface config applied
+        if [ "X$datapath_type" = "Xnetdev" ];then
+            ifup ${BR_NAME}-phy --force 2> /dev/null
+        else
+            ifup $BR_NAME --force 2> /dev/null
+        fi
+
+    fi
+
+    ovs_bridge_xmit_event mod $BR_NAME
+}
+
+mod_smart_bridge()
+{
+    local all_args="$@"
+    local result
+
+    if ! ovs-vsctl -t 2 br-exists $BR_NAME 2>/dev/null;then
+        die_with_message $OVS_BRIDGE_ERR_BRIDGE_ERROR "Bridge $BR_NAME does not exist."
+    fi
+
+    if [ "X$IFACE_NUM" = "Xm" ] && [ -z "$BOND_NAME" ];then
+        die_with_message $OVS_BRIDGE_ERR_ARGUMENT_ERROR "Bond_name is required while add-bond."
+    fi
+
+    result=$(check_input_iface_list $IFACES)
+    [ -z "$result" ] || die_with_message $result
+
+    # check bridge is not dst_br of bridge mirror and check bridge is not drain bridge
+    check_ovs_is_not_bridge_mirror_dst_bridge mod $BR_NAME
+    check_ovs_is_not_bridge_drain_bridge mod $BR_NAME
+
+    local datapath_type=$(ovs-vsctl -t 2 --bare --if-exists get bridge $br_name datapath_type 2>/dev/null)
+    local br_mode=$(ovs-vsctl -t 2 --bare --if-exists get bridge $BR_NAME other_config:br_mode 2>/dev/null | tr -d "\"")
+    if [ "X$br_mode" = "X" ];then
+        br_mode=$(ovs-vsctl -t 2 --bare --if-exists get bridge $BR_NAME br_mode 2>/dev/null | tr -d "[]")
+    fi
+
+    result=$(check_ifaces_used $BR_NAME "$IFACES" $br_mode $datapath_type)
+    [ -z "$result" ] || die_with_message $result
+
+    local vsctl_command
+    if [ "X$br_mode" = "X" ];then
+        die_with_message $OVS_BRIDGE_ERR_BRIDGE_ERROR "Failed to get br_mode of bridge $BR_NAME."
+    elif [ "X$br_mode" = "X0" -o "X$br_mode" = "X4" ];then  #veb, vxlan-cas
+        if [ -z "$IFACES" ] && ovs_bridge_has_subnet $BR_NAME;then
+            die_with_message $OVS_BRIDGE_ERR_SUBNET_ERROR "Can not del all ifaces of bridge $BR_NAME, because of subnet ifaces existing in bridge."
+        fi
+
+        #mod smart vswitch will take a lot of time, need requires adding lock protection.
+        try_lock_ovs_bridge $BR_NAME
+
+        [ -z "$MULTICAST" ] || vsctl_command="$vsctl_command -- set bridge $BR_NAME mcast_snooping_enable=$MULTICAST"
+        [ -z "$NETWORK_TYPE" ] || vsctl_command="$vsctl_command -- set bridge $BR_NAME other_config:network_type=$NETWORK_TYPE"
+
+        local is_smart=$(ovs-vsctl -t 2 --bare --if-exists get bridge $BR_NAME other_config:is_smart 2>/dev/null | tr -d "\"")
+        if [ "X$is_smart" = "Xtrue" ];then
+            if [ "X$IFACE_NUM" = "Xm" ];then
+                result=$(check_smart_pf $IFACES)
+                [ -z "$result" ] || die_with_message $result
+            fi
+
+            # get uplink of smartnic ovs-br
+            # idms:202009231553.fix add linux bond failed for vs_business bridge
+            local tmpbond_name="$BR_NAME"_bond
+            tmpbond_name=`echo ${tmpbond_name:0:15}`
+            if [ "X$BR_NAME" = "X$tmpbond_name" ]; then
+                tmpbond_name=`echo ${tmpbond_name:0:14}`
+                tmpbond_name="$tmpbond_name"_
+            fi
+            [ ! -e /proc/net/bonding/$tmpbond_name ] && tmpbond_name=$(get_bond_port_name $BR_NAME)
+            BOND_NAME=$tmpbond_name
+            tmpbond_name=`ovs-vsctl $OVS_SYSLOG_OFF list-ports $BR_NAME | grep $tmpbond_name`
+            if [ -n "$tmpbond_name" -a -e $LINUX_BOND_BASE/$tmpbond_name ] ;then
+                tmpchar_bond_mode=`cat $LINUX_BOND_BASE/$tmpbond_name/bonding/mode | awk '{print $1}'`
+                tmpnum_bond_mode=`cat $LINUX_BOND_BASE/$tmpbond_name/bonding/mode | awk '{print $2}'`
+                tmpbond_slaves=`cat $LINUX_BOND_BASE/$tmpbond_name/bonding/slaves`
+                sort_tmpifaces=$(echo $tmpbond_slaves | tr -s " " "\n" | sort)
+            else
+                sort_tmpifaces=$(ovs_bridge_get_uplink_ifaces $BR_NAME  | tr -s " " "\n" | sort)
+            fi
+            sort_ifaces=$(echo $IFACES | tr -s " " "\n" | sort)
+        fi
+
+        if [ "X$IFACE_NUM" = "Xm" ];then
+            if [ "X$is_smart" = "Xtrue" ];then
+                vsctl_command="$vsctl_command -- set bridge $BR_NAME other_config:bond_mech=linux"
+            elif [ -n "$BOND_MECH" ];then
+                vsctl_command="$vsctl_command -- set bridge $BR_NAME other_config:bond_mech=$BOND_MECH"
+            fi
+        else
+            vsctl_command="$vsctl_command -- set bridge $BR_NAME other_config:bond_mech=null"
+        fi
+
+        if [ "X$is_smart" = "Xtrue" ];then
+            # smartnic ovs-br
+            [ -z "$IFACES" ] && die_with_message $OVS_BRIDGE_ERR_SMART_NIC "smartnic ovs-br must have at least one PF."
+            if [ "X$sort_tmpifaces" != "X$sort_ifaces" ] || [ "X$BOND_MODE" != "X$tmpchar_bond_mode" -a "X$BOND_MODE" != "X$tmpnum_bond_mode" ];then
+                # ifaces or bond_mode change, need to renew ovs port or linux bond.
+
+                # 1. del old ovs-br uplink.
+                if [ -z "$tmpbond_name" ];then
+                    # no bond before, del uplink port
+                    del_link_cmd="-- --if-exists del-port $sort_tmpifaces"
+                    ovs-vsctl -t 8 $del_link_cmd
+                    ovs_printlog ${shellname} info "del old uplink: ovs-vsctl -t 8 $del_link_cmd"
+                elif [ -e $LINUX_BOND_BASE/$tmpbond_name ];then
+                    # del linux bond
+                    # del bond port
+                    ovs-vsctl -t 8 -- --if-exists --with-iface del-port $tmpbond_name
+                    ovs_printlog ${shellname} info "ovs-vsctl -t 8 -- --if-exists --with-iface del-port $tmpbond_name"
+
+                    # clear vfs for old uplinks before del bond
+                    ovs_printlog ${shellname} info "$BASH $SHELL_CLEAR_VF $sort_tmpifaces"
+                    $BASH $SHELL_CLEAR_VF $sort_tmpifaces
+
+                    # del linux bond
+                    del_linux_bond $tmpbond_name
+                    ret=$?
+                    if [ $ret -ne 0 ]; then
+                        # roll-back: init PF slaves
+                        ovs_printlog ${shellname} info "$BASH $SHELL_LAG_CONFIG_VF $tmpbond_slaves"
+                        $BASH $SHELL_LAG_CONFIG_VF $tmpbond_slaves
+
+                        ip link set dev $ifaces up
+                        die_with_message $ret "cmd_ovs_modify_bridge(): Failed to do del_linux_bond(), bond_name=$tmpbond_name"
+                    fi
+                fi
+
+                # 2. config new linux bond
+                if [ "X$IFACE_NUM" = "Xm" ];then # two PFs, need to add linux bond
+                    # clear vfs for new ifaces before add bond
+                    ovs_printlog ${shellname} info "$BASH $SHELL_CLEAR_VF $IFACES"
+                    $BASH $SHELL_CLEAR_VF $IFACES
+
+                    [ -n "$BOND_MODE" ] || BOND_MODE=$LINUX_BOND_MODE_INIT
+                    [ -n "$BOND_POLICY" ] || BOND_POLICY=$LINUX_BOND_POLICY_INIT
+                    [ -n "$BOND_MIIMON" ] || BOND_MIIMON=$LINUX_BOND_MIIMON_INIT
+
+                    add_linux_bond $BOND_NAME $BOND_MODE $BOND_POLICY $BOND_MIIMON $IFACES
+                    ret=$?
+                    if [ $ret -ne 0 ]; then
+                        # roll-back: init the vfs
+                        ovs_printlog ${shellname} info "$BASH $SHELL_LAG_CONFIG_VF $IFACES"
+                        $BASH $SHELL_LAG_CONFIG_VF $IFACES
+                        die_with_message $ret "cmd_ovs_modify_bridge(): Failed to do add_linux_bond(), bond_name=$BOND_NAME"
+                    fi
+                fi
+
+                # 3. init VFs for ifaces and tmpbond_slaves
+                ifaces_all=""
+                if [ "X$IFACE_NUM" = "Xm" ];then
+                    ifaces_all="$ifaces_all $IFACES"
+                fi
+                if [ -n $tmpbond_name ];then
+                    ifaces_all="$ifaces_all $tmpbond_slaves"
+                fi
+                ifaces_all=$(echo "$ifaces_all" | tr " " "\n" | sort | uniq)
+                if [ "X$ifaces_all" != "X" ];then
+                    ovs_printlog ${shellname} info "$BASH $SHELL_LAG_CONFIG_VF $ifaces_all"
+                    $BASH $SHELL_LAG_CONFIG_VF $ifaces_all
+                fi
+
+                # 4. add new ovs-br uplink
+                if [ "X$IFACE_NUM" = "Xm" ];then
+                    ip link set dev $BOND_NAME up
+                    vsctl_command="$vsctl_command -- add-port $BR_NAME $BOND_NAME"
+                else
+                    ip link set dev $IFACES up
+                    vsctl_command="$vsctl_command -- add-port $BR_NAME $IFACES"
+                fi
+            fi
+        fi
+
+        [ -z "$VLAN" ] || vsctl_command="$vsctl_command -- set port $BR_NAME tag=$VLAN"
+        [ -n "$MTU" ] || MTU=$(ovs-vsctl -t 2 --bare --if-exists get interface $BR_NAME mtu_request 2>/dev/null | tr -d "[]\n")
+        [ -n "$MTU" ] || MTU="1500"
+
+        if ! check_subnet_ipv6 $BR_NAME; then
+            if [ $MTU -lt "1280" -o $MTU -gt "9000" ]; then
+                die_with_message $OVS_BRIDGE_ERR_MTU_RANGE_ERROR "bridge with ipv6 subnet, MTU range must be in [1280, 9000]."
+            fi
+        else
+            if [ $MTU -lt "1000" -o $MTU -gt "9000" ];then
+                die_with_message $OVS_BRIDGE_ERR_MTU_RANGE_ERROR "MTU range must be in [1000, 9000]."
+            fi
+        fi
+
+        vsctl_command="$vsctl_command -- set interface $BR_NAME mtu_request=$MTU"
+
+        if [ "X$DATAPATH_TYPE" != "Xnetdev" ];then
+            disable_lro $IFACES
+        fi
+
+        flush_dev_ip $IFACES
+
+        ovs_printlog ${shellname} info "mod br: ovs-vsctl -t 8 $vsctl_command"
+        ovs-vsctl -t 8 $vsctl_command 2>/dev/null
+        if [ "$?" != "0" ];then
+            die_with_message $OVS_BRIDGE_ERR_MODIFY_ERROR "Ovs modify bridge: $BR_NAME error."
+        fi
+
+        # set MTU for physical interface
+        set_ovs_bridge_phy_ifaces_mtu $BR_NAME "$BOND_NAME" $MTU "$IFACES"
+
+        # check whether ovs interface has error
+        result=$(check_ovs_interface_error $IFACES)
+        if [ -n "$result" ];then
+            ovs_printlog ${shellname} err "$result"
+        fi
+
+        release_lock_ovs_bridge
+        # nic or mac change will cause route missing, force bridge iface config applied
+        ifup $BR_NAME --force 2> /dev/nul
+
+    elif [ "X$br_mode" = "X3" ];then #vxlan-sdn
+        [ -z "$ACCELE_MODE" ] || all_args=$(echo $all_args | sed 's/--accele_mode=[^ ]*//g')
+        [ -z "$NETWORK_TYPE" ] || all_args=$(echo $all_args | sed 's/--network_type=[^ ]*//g')
+        [ -z "$ACTIVE_ALGORITHM" ] || all_args=$(echo $all_args | sed 's/--active-algorithm=[^ ]*//g')
+        [ -z "$RESELECT_ON_CHANGE" ] || all_args=$(echo $all_args | sed 's/--reselect-on-change=[^ ]*//g')
+
+        flush_dev_ip $IFACES
+        vxlan_sdn_bridge_handle mod $BR_NAME "$all_args"
+
+        [ -n $NETWORK_TYPE ] && ovs-vsctl -t 1 --if-exists set bridge $BR_NAME other_config:network_type=$NETWORK_TYPE
+        # nic or mac change will cause route missing, force sdn bridge iface config applied
+        if [ "X$datapath_type" = "Xnetdev" ];then
+            ifup ${BR_NAME}-phy --force 2> /dev/null
+        else
+            ifup $BR_NAME --force 2> /dev/null
+        fi
+    fi
+
+    ovs_bridge_xmit_event mod $BR_NAME
+}
+
+get_bridge_accele_mode()
+{
+    local br_name=$1
+
+    local accele_mode=$(ovs-vsctl -t 2 --bare --if-exists get bridge $br_name other_config:accele_mode 2>/dev/null | tr -d "\"")
+    if [ -n "$accele_mode" ]; then
+        echo "$accele_mode"
+        return
+    fi
+
+    local is_smart=$(ovs-vsctl -t 2 --bare --if-exists get bridge $br_name other_config:is_smart 2>/dev/null | tr -d "\"")
+    if [ "X$is_smart" = "Xtrue" ]; then
+        echo "smart"
+        return
+    fi
+
+    local datapath_type=$(ovs-vsctl -t 2 --bare --if-exists get bridge $br_name datapath_type 2>/dev/null)
+    if [ "X$datapath_type" = "Xnetdev" ]; then
+        echo "dpdk"
+        return
+    fi
+
+    echo "normal"
+}
+
+cmd_modify_bridge()
+{
+    local all_args="$@"
+
+    [ -z "$BR_NAME" ] && die_with_message $OVS_BRIDGE_ERR_ARGUMENT_ERROR "Bridge name is required."
+    [ -z "$ACCELE_MODE" ] && ACCELE_MODE=$(get_bridge_accele_mode $BR_NAME)
+
+    check_ip_gateway_valid; check_ret=$?
+    [ $check_ret -ne 0 ] && {
+        die_with_message $check_ret "mod bridge $BR_NAME failed, ip or gateway is illegal, ret=$check_ret"
+    }
+
+    if is_host_network_bridge $BR_NAME; then
+        local new_args=$(get_host_network_args $all_args)
+        $BASH $SHELL_LINUX_NETWORK mod $new_args; ret=$?
+        [ $ret -ne 0 ] && die_with_message $ret "mod linux network $BR_NAME failed"
+        ovs_bridge_xmit_event mod $BR_NAME
+        bridge_net_config_apply; ret=$?
+        [ $ret -ne 0 ] && die_with_message $ret "net config apply failed for $BR_NAME, ret=$ret"
+        ovs_printlog ${shellname} info "mod linux network $BR_NAME end."
+        return
+    fi
+
+    case $ACCELE_MODE in
+        "normal")
+            ovs_printlog ${shellname} info "moding normal bridge: $BR_NAME"
+            mod_normal_bridge "$@"
+            ;;
+        "dpdk")
+            ovs_printlog ${shellname} info "moding dpdk bridge: $BR_NAME"
+            mod_normal_bridge "$@"
+            ;;
+        "smart")
+            ovs_printlog ${shellname} info "moding smart bridge: $BR_NAME"
+            mod_smart_bridge "$@"
+            ;;
+        *)
+            die_with_message ${OVS_ERR_WRONG_PARAM} "unknown accele mode: $ACCELE_MODE"
+            ;;
+    esac
+
+    bridge_net_config_apply; ret=$?
+    [ $ret -ne 0 ] && die_with_message $ret "net config apply failed for $BR_NAME, ret=$ret"
+    ovs_printlog ${shellname} info "/opt/bin/ovs_bridge.sh.x mod $BR_NAME end."
+}
+
+get_bridge_subnets()
+{
+    local br_name=$1
+
+    read -d '' req <<EOF
+<request>
+    <operation>get</operation>
+    <vswitch>
+        <name>$br_name</name>
+    </vswitch>
+</request>
+EOF
+
+    local subnets=$(python /opt/bin/ovs_subnet.pyc --xml "$req" 2>/dev/null | grep ^\<port\> | awk -F "[>,<]" '{print $3}')
+    echo $subnets
+}
+
+cmd_delete_bridge() {
+    local br_name=$1
+    local br_mode
+
+    if [ -z "$br_name" ];then
+        die_with_message $OVS_BRIDGE_ERR_ARGUMENT_ERROR "Bridge name is required."
+    fi
+
+    local subnets=$(get_bridge_subnets $br_name)
+
+    if is_host_network_bridge $br_name; then
+        $BASH $SHELL_LINUX_NETWORK del $br_name; ret=$?
+        [ $ret -ne 0 ] && die_with_message $ret "delete linux network $br_name failed"
+        ovs_bridge_xmit_event del $br_name
+        bridge_net_config_delete $br_name $subnets
+        ovs_printlog ${shellname} info "del linux network $br_name end."
+        return
+    fi
+
+    # del ovs bridge
+    # check bridge is not dst_br of bridge mirror and check bridge is not drain bridge
+    event="del"
+    check_ovs_is_not_bridge_mirror_dst_bridge $event $br_name
+    check_ovs_is_not_bridge_drain_bridge $event $br_name
+
+    br_mode=$(ovs-vsctl -t 2 --bare --if-exists get bridge $br_name other_config:br_mode 2>/dev/null | tr -d "\"")
+    if [ "X$br_mode" = "X" ];then
+        br_mode=$(ovs-vsctl -t 2 --bare --if-exists get bridge $br_name br_mode 2>/dev/null | tr -d "[]")
+    fi
+
+    ifaces=$(ovs-vsctl -t 2 $OVS_SYSLOG_OFF list-ifaces $br_name)
+    accele_mode=$(get_bridge_accele_mode $br_name)
+
+    if [ "X$br_mode" = "X" ];then
+        die_with_message $OVS_BRIDGE_ERR_BRIDGE_ERROR "Failed to get br_mode of bridge $br_name."
+    elif [ "X$br_mode" = "X0" -o "X$br_mode" = "X4" ];then
+        is_smart=$(ovs-vsctl -t 2 --bare --if-exists get bridge $br_name other_config:is_smart 2>/dev/null | tr -d "\"")
+        if [ "X$is_smart" = "Xtrue" ];then
+            #del smart vswitch will take a lot of time, need requires adding lock protection.
+            try_lock_ovs_bridge $br_name
+
+            # deal with linux bond
+            local bond_name="$br_name"_bond
+            bond_name=`echo ${bond_name:0:15}`
+            if [ "X$br_name" = "X$bond_name" ];then
+                bond_name=`echo ${bond_name:0:14}`
+                bond_name="$bond_name"_
+            fi
+            [ ! -e /proc/net/bonding/$bond_name ] && bond_name=$(get_bond_port_name $BR_NAME)
+            bond_name=`ovs-vsctl $OVS_SYSLOG_OFF list-ports $br_name | grep $bond_name`
+            if [ -n "$bond_name" -a -e $LINUX_BOND_BASE/$bond_name ];then # linux bond
+                # for PFs, firstly need to clear vfs, then del bond
+                bond_slaves=`cat $LINUX_BOND_BASE/$bond_name/bonding/slaves`
+                ovs_printlog ${shellname} info "$BASH $SHELL_CLEAR_VF $bond_slaves"
+                $BASH $SHELL_CLEAR_VF $bond_slaves # clear at the same time
+
+                del_linux_bond $bond_name
+                ret=$?
+                if [ $ret -ne 0 ]; then
+                    # roll-backk init PF slaves
+                    ovs_printlog ${shellname} info "$BASH $SHELL_LAG_CONFIG_VF $bond_slaves"
+                    $BASH $SHELL_LAG_CONFIG_VF $bond_slaves # config at the same time
+
+                    for bslave in $bond_slaves;do
+                        ip link set dev $bslave up
+                    done
+                    die_with_message $ret "cmd_delete_bridge(): Failed to do del_linux_bond(), bond_name=$bond_name"
+                fi
+
+                # init PF slaves
+                ovs_printlog ${shellname} info "$BASH $SHELL_LAG_CONFIG_VF $bond_slaves"
+                $BASH $SHELL_LAG_CONFIG_VF $bond_slaves # config at the same time
+
+                for bslave in $bond_slaves;do
+                    ip link set dev $bslave up
+                done
+            fi
+        fi
+
+        vsctl_command="-- --if-exists del-br $br_name"
+        local segbr=$(ovs-vsctl -t 2 --bare --format=table -- --if-exists get bridge $br_name other_config:segbr | tr -d '"')
+        if [ -n "$segbr" ]; then
+            local del_segbr_command="-- --if-exists del-br $segbr"
+            vsctl_command="$vsctl_command $del_segbr_command"
+        fi
+
+        ovs_printlog ${shellname} info "del br: ovs-vsctl -t 5 $vsctl_command"
+        ovs-vsctl -t 5 $vsctl_command 2>/dev/null
+        if [ "$?" != "0" ];then
+            die_with_message $OVS_BRIDGE_ERR_DELETE_ERROR "Ovs delete bridge:$br_name error."
+        fi
+
+        if [ "X$is_smart" = "Xtrue" ];then
+            release_lock_ovs_bridge
+        fi
+
+        if [ -f "/etc/net-agent/subnet-acc/${br_name}.xml" ];then
+            rm -rf /etc/net-agent/subnet-acc/${br_name}.xml
+            ovs_printlog ${shellname} info "delete smart $br_name subnet config file"
+        fi
+    elif [ "X$br_mode" = "X3" ];then
+        vxlan_sdn_bridge_handle del $br_name
+    fi
+
+    for iface in $ifaces
+    do
+        #netdev bridge may have pci port which not need ifdown and ifup
+        [ ! -e /etc/sysconfig/network-scripts/ifcfg-$iface ] && continue
+        ifdown $iface 2>/dev/null
+        ifup $iface 2>/dev/null
+    done
+
+    ovs_bridge_xmit_event del $br_name
+    bridge_net_config_delete $br_name $subnets
+    ovs_printlog ${shellname} info "/opt/bin/ovs_bridge.sh.x del $br_name end."
+}
+
+cmd_get_bridge_info() {
+    local br_name
+    local uplink
+    local port=""
+    all_args="$@"
+    args="`getopt -u -o "h" -l "uplink,vlan,br_mode,datapath_type,network_type,network_engine,lacp,bond_mode,multicast,mtu,active-algorithm,reselect-on-change,bandwidth,used_by_mirror,used_by_drain,status,accele_mode,used_by_vm,linux_bridge" -- "$@" 2>/dev/null`"
+    [ "$?" == "0" ] || die_with_message ${OVS_ERR_WRONG_PARAM} "getopt fails to parse args"
+    #quote may be lost in args
+    set -- $args
+    while :
+    do
+        case $1 in
+            --uplink)
+                uplink="true"
+                shift 1
+                ;;
+            --vlan)
+                vlan="true"
+                shift 1
+                ;;
+            --br_mode)
+                br_mode_flag="true"
+                shift 1
+                ;;
+            --datapath_type)
+                datapath_type="true"
+                shift 1
+                ;;
+            --network_type)
+                network_type="true"
+                shift 1
+                ;;
+            --network_engine)
+                network_engine="true"
+                shift 1
+                ;;
+            --lacp)
+                lacp="true"
+                shift 1
+                ;;
+            --bond_mode)
+                bond_mode="true"
+                shift 1
+                ;;
+            --multicast)
+                multicast="true"
+                shift 1
+                ;;
+            --mtu)
+                mtu="true"
+                shift 1
+                ;;
+            --active-algorithm)
+                active_algorithm="true"
+                shift 1
+                ;;
+            --reselect-on-change)
+                reselect_on_change="true"
+                shift 1
+                ;;
+            --bandwidth)
+                bandwidth="true"
+                shift 1
+                ;;
+            --used_by_mirror)
+                used_by_mirror="true"
+                shift 1
+                ;;
+            --used_by_drain)
+                used_by_drain="true"
+                shift 1
+                ;;
+            --status)
+                status="true"
+                shift 1
+                ;;
+            --accele_mode)
+                accele_mode="true"
+                shift 1
+                ;;
+            --used_by_vm)
+                used_by_vm="true"
+                shift 1
+                ;;
+            --linux_bridge)
+                linux_bridge="true"
+                shift 1
+                ;;
+            --)
+                shift
+                break
+                ;;
+            *)
+                die_with_message ${OVS_ERR_WRONG_PARAM} "unknown args $1"
+                break
+                ;;
+        esac
+    done
+    br_name=$1
+    ### end of arg parse
+
+    if [ -z "$br_name" ];then
+        die_with_message $OVS_BRIDGE_ERR_ARGUMENT_ERROR "Bridge name is required."
+    fi
+
+    if [ -e $LINUX_NETWORK_PATH/$br_name ]; then
+        $BASH $SHELL_LINUX_NETWORK get $all_args
+        return
+    fi
+
+    bond_name="$br_name"_bond
+    bond_name=`echo ${bond_name:0:15}`
+    if [ "X$br_name" = "X$bond_name" ];then
+        bond_name=`echo ${bond_name:0:14}`
+        bond_name="$bond_name"_
+    fi
+    [ ! -e /proc/net/bonding/$bond_name ] && bond_name=$(get_bond_port_name $br_name)
+    bond_name=`ovs-vsctl $OVS_SYSLOG_OFF list-ports $br_name 2>/dev/null | grep $bond_name`
+    [ -n "$bond_name" -a -e $LINUX_BOND_BASE/$bond_name ] && is_linuxbond="true"
+
+    # get ovs bridge info
+    br_mode=$(ovs-vsctl -t 2 --bare --if-exists get bridge $br_name other_config:br_mode 2>/dev/null | tr -d "\"")
+    if [ "X$br_mode" = "X" ];then
+        br_mode=$(ovs-vsctl -t 2 --bare --if-exists get bridge $br_name br_mode 2>/dev/null | tr -d "[]")
+    fi
+
+    port=$(ovs_bridge_get_uplink_port $br_name)
+    if [ "X$br_mode" = "X" ];then
+        if [ "X$status" = "Xtrue" ]; then
+            # br_name maybe is linux/ovs/smart subnet name
+            get_subnet_status $br_name
+        else
+            die_with_message $OVS_BRIDGE_ERR_BRIDGE_ERROR "Failed to get br_mode of bridge $br_name."
+        fi
+    elif [ "X$br_mode" = "X0" -o "X$br_mode" = "X4" ];then
+        if [ "X$uplink" = "Xtrue" ]; then
+            if [ "X$is_linuxbond" = "Xtrue" ]; then
+                uplink_iface=`cat $LINUX_BOND_BASE/$bond_name/bonding/slaves | sed 's/[ ]\+/,/g'`
+            else
+                uplink_iface=$(ovs_bridge_get_uplink_ifaces $br_name | paste -sd ',' -)
+                uplink_iface_list=$(echo ${uplink_iface//","/" "})
+                iface_num=$(echo $uplink_iface_list | wc -w)
+                if [ $iface_num -gt 1 ];then
+                    [ -z "$port" ] || active_algorithm_tmp=$(ovs-vsctl -t 2 --if-exists get port $port other_config:active-algorithm)
+                    if [ "X$active_algorithm_tmp" = "Xorder" ];then
+                        for iface in $uplink_iface_list
+                        do
+                            iface_priority=$(ovs-vsctl -t 2 --if-exists get interface $iface other_config:slave-priority | tr -d "\"")
+                            index=$(( $iface_num - $iface_priority ))
+                            iface_priority_list[$index]="$iface"
+                        done
+                        uplink_iface=$(echo ${iface_priority_list[*]})
+                        uplink_iface=$(echo ${uplink_iface//" "/","})
+                    fi
+                fi
+            fi
+            echo "uplink : $uplink_iface"
+        fi
+
+        if [ "X$lacp" = "Xtrue" ];then
+            [ -z "$port" ] || lacp_state=$(ovs-vsctl -t 2 --if-exists get port $port lacp | tr -d "[]")
+            echo "lacp : $lacp_state"
+        fi
+
+        if [ "X$vlan" = "Xtrue" ]; then
+            local vid=$(ovs-vsctl get port $br_name tag | tr -d [])
+            [[ -n "$vid" && "$vid" -gt 1 && "$vid" -lt 4095 ]] || vid=""
+            echo "vlan : $vid"
+        fi
+
+        [ "X$br_mode_flag" = "Xtrue" ] && echo "br_mode : $br_mode"
+
+        if [ "X$datapath_type" = "Xtrue" ]; then
+            local datapath_type_val=$(ovs-vsctl -t 2 --bare --if-exists get bridge $br_name datapath_type 2>/dev/null)
+            echo "datapath_type : $datapath_type_val"
+        fi
+
+        if [ "X$bond_mode" = "Xtrue" ];then
+            if [ "X$is_linuxbond" = "Xtrue" ]; then
+                bond_mode_state=`cat $LINUX_BOND_BASE/$bond_name/bonding/mode | awk '{print $1}'`
+            else
+                [ -z "$port" ] || bond_mode_state=$(ovs-vsctl -t 2 --if-exists get port $port bond_mode | tr -d "[]")
+            fi
+            echo "bond_mode : $bond_mode_state"
+        fi
+
+        if [ "X$active_algorithm" = "Xtrue" ];then
+            [ -z "$port" ] || active_algorithm_state=$(ovs-vsctl -t 2 --if-exists get port $port other_config:active-algorithm)
+            echo "active-algorithm : $active_algorithm_state"
+        fi
+
+        if [ "X$reselect_on_change" = "Xtrue" ];then
+            [ -z "$port" ] || reselect_on_change_state=$(ovs-vsctl -t 2 --if-exists get port $port other_config:reselect-on-change | tr -d "\"")
+            echo "reselect-on-change : $reselect_on_change_state"
+        fi
+
+        if [ "X$multicast" = "Xtrue" ];then
+            multicast_state=$(ovs-vsctl -t 2 --bare --if-exists get bridge $br_name mcast_snooping_enable)
+            echo "multicast : $multicast_state"
+        fi
+
+        if [ "X$mtu" = "Xtrue" ];then
+            mtu_state=$(ovs-vsctl -t 2 --bare --if-exists get interface $br_name mtu_request 2>/dev/null | tr -d "[]")
+            echo "mtu : $mtu_state"
+        fi
+
+        if [ "X$bandwidth" = "Xtrue" ];then
+            if [ "X$is_linuxbond" = "Xtrue" ]; then
+                speed=`cat /sys/class/net/$bond_name/speed`
+                echo "bandwidth: ${speed}Mbps"
+            else
+                speed=$(get_br_speed $br_name $br_mode)
+                if [ $? -eq 0 ];then
+                    echo "bandwidth: ${speed}Mbps"
+                fi
+            fi
+        fi
+
+        if [ "X$used_by_mirror" = "Xtrue" ];then
+            used_by_mirror_state=$(ovs-vsctl -t 2 --bare --if-exists get Interface $br_name other_config:used_by_mirror | tr -d "\"")
+            if [ "X$used_by_mirror_state" != "Xtrue" ] && grep -q "dst_br='$br_name'" /etc/libvirt/qemu/*.xml 2>/dev/null; then
+                used_by_mirror_state="true"
+            fi
+            echo "used_by_mirror : $used_by_mirror_state"
+        fi
+
+        if [ "X$used_by_drain" = "Xtrue" ];then
+            used_by_drain_state=$(ovs-vsctl -t 2 --bare --if-exists get bridge $br_name other_config:used_by_drain | tr -d "\"")
+            echo "used_by_drain : $used_by_drain_state"
+        fi
+
+        if [ "X$network_type" = "Xtrue" ]; then
+            local network_type_val=$(ovs-vsctl -t 2 --bare --if-exists get bridge $br_name other_config:network_type | tr -d "\"")
+            echo "network_type : $network_type_val"
+        fi
+
+        if [ "X$network_engine" = "Xtrue" ]; then
+            echo "network_engine : ovs"
+        fi
+
+        if [ "X$status" = "Xtrue" ]; then
+            br_status='up'
+            ret=$(ip -br link show $br_name 2>/dev/null | awk '{print $4}')
+            if ! echo $ret | grep -qw LOWER_UP;then
+                br_status='down'
+            fi
+            if ! echo $ret | grep -qw UP;then
+                br_status='down'
+            fi
+
+            echo "status : $br_status"
+        fi
+
+        if [ "X$accele_mode" = "Xtrue" ]; then
+            local accele_mode_val=$(ovs-vsctl -t 2 --bare --if-exists get bridge $br_name other_config:accele_mode | tr -d "\"")
+            echo "accele_mode : $accele_mode_val"
+        fi
+
+        if [ "X$used_by_vm" = "Xtrue" ]; then
+            if check_used_by_vm $br_name; then
+                echo "used_by_vm : true"
+            else
+                echo "used_by_vm : false"
+            fi
+        fi
+
+        if [ "X$linux_bridge" = "Xtrue" ]; then
+            echo "linux_bridge :"
+        fi
+    elif [ "X$br_mode" = "X3" ];then
+        [ -z "$active_algorithm" ] || all_args=$(echo $all_args | sed 's/--active-algorithm//g')
+        [ -z "$reselect_on_change" ] || all_args=$(echo $all_args | sed 's/--reselect-on-change//g')
+        [ -z "$bandwidth" ] || all_args=$(echo $all_args | sed 's/--bandwidth//g')
+        [ -z "$used_by_mirror" ] || all_args=$(echo $all_args | sed 's/--used_by_mirror//g')
+        [ -z "$used_by_drain" ] || all_args=$(echo $all_args | sed 's/--used_by_drain//g')
+        [ -z "$datapath_type" ] || all_args=$(echo $all_args | sed 's/--datapath_type//g')
+        [ -z "$network_type" ] || all_args=$(echo $all_args | sed 's/--network_type//g')
+        [ -z "$network_engine" ] || all_args=$(echo $all_args | sed 's/--network_engine//g')
+        [ -z "$vlan" ] || all_args=$(echo $all_args | sed 's/--vlan//g')
+        [ -z "$br_mode_flag" ] || all_args=$(echo $all_args | sed 's/--br_mode//g')
+        [ -z "$status" ] || all_args=$(echo $all_args | sed 's/--status//g')
+        [ -z "$accele_mode" ] || all_args=$(echo $all_args | sed 's/--accele_mode//g')
+        [ -z "$used_by_vm" ] || all_args=$(echo $all_args | sed 's/--used_by_vm//g')
+        [ -z "$linux_bridge" ] || all_args=$(echo $all_args | sed 's/--linux_bridge//g')
+
+        if [ -f "$OVS_SHELL_SCRIPT_PATH/ovsbr_get.sh" ];then
+            $OVS_SHELL_SCRIPT_PATH/ovsbr_get.sh $all_args
+            local return_code=$?
+            if [ "$return_code" != "0" ];then
+                die_with_message $return_code "Failed to get info of vxlan-sdn bridge: $br_name."
+            fi
+
+            if [ "X$vlan" = "Xtrue" ]; then
+                local vid=$(ovs-vsctl get port $br_name tag | tr -d [])
+                if [ -z "$vid" ];then
+                    vid=$(ovs-vsctl --if-exists get port ${br_name}-phy tag | tr -d [])
+                fi
+                echo "vlan : $vid"
+            fi
+
+            [ "X$br_mode_flag" = "Xtrue" ] && echo "br_mode : $br_mode"
+
+            if [ "X$datapath_type" = "Xtrue" ]; then
+                local datapath_type_val=$(ovs-vsctl -t 2 --bare --if-exists get bridge $br_name datapath_type 2>/dev/null)
+                echo "datapath_type : $datapath_type_val"
+            fi
+
+            if [ "X$bandwidth" = "Xtrue" ];then
+                speed=$(get_br_speed $br_name $br_mode)
+                if [ $? -eq 0 ];then
+                    echo "bandwidth: ${speed}Mbps"
+                fi
+            fi
+
+            if [ "X$active_algorithm" = "Xtrue" ];then
+                echo "active_algorithm :"
+            fi
+
+            if [ "X$reselect_on_change" = "Xtrue" ];then
+                echo "reselect_on_change :"
+            fi
+
+            if [ "X$used_by_mirror" = "Xtrue" ];then
+                echo "used_by_mirror :"
+            fi
+
+            if [ "X$used_by_drain" = "Xtrue" ];then
+                echo "used_by_drain :"
+            fi
+
+            if [ "X$network_type" = "Xtrue" ]; then
+                local network_type_val=$(ovs-vsctl -t 2 --bare --if-exists get bridge $br_name other_config:network_type | tr -d "\"")
+                echo "network_type : $network_type_val"
+            fi
+
+            if [ "X$network_engine" = "Xtrue" ]; then
+                engine='ovs'
+                [ "X$is_linux_engine" = "Xtrue" ] && engine='linux'
+                echo "network_engine : $engine"
+            fi
+
+            if [ "X$status" = "Xtrue" ]; then
+                br_status='up'
+                ret=$(ip -br link show $br_name 2>/dev/null | awk '{print $4}')
+                if ! echo $ret | grep -qw LOWER_UP;then
+                    br_status='down'
+                fi
+                if ! echo $ret | grep -qw UP;then
+                    br_status='down'
+                fi
+
+                echo "status : $br_status"
+            fi
+
+            if [ "X$accele_mode" = "Xtrue" ]; then
+                if [ "X$is_linux_engine" = "Xtrue" ]; then
+                    local accele_mode_val=$(cat $LINUX_NETWORK_PATH/$br_name | grep -w accele_mode | awk -F= '{print $2}')
+                else
+                    local accele_mode_val=$(ovs-vsctl -t 2 --bare --if-exists get bridge $br_name other_config:accele_mode | tr -d "\"")
+                fi
+                echo "accele_mode : $accele_mode_val"
+            fi
+
+            if [ "X$used_by_vm" = "Xtrue" ]; then
+                if check_used_by_vm $br_name; then
+                    echo "used_by_vm : true"
+                else
+                    echo "used_by_vm : false"
+                fi
+            fi
+
+            if [ "X$linux_bridge" = "Xtrue" ]; then
+                echo "linux_bridge :"
+            fi
+        else
+            die_with_message $OVS_BRIDGE_ERR_VXLAN_SDN_ERROR "Ovs do not support vxlan-sdn."
+        fi
+    fi
+}
+
+cmd_ovs_list_info() {
+    local network_type_seg="128"
+    all_args="$@"
+    args="`getopt -u -o "h" -l "vswitch,subnet" -- "$@" 2>/dev/null`"
+    [ "$?" == "0" ] || die_with_message ${OVS_ERR_WRONG_PARAM} "getopt fails to parse args"
+    #quote may be lost in args
+    set -- $args
+    while :
+    do
+        case $1 in
+            --vswitch)
+                vswitch="true"
+                shift 1
+                ;;
+            --subnet)
+                subnet="true"
+                shift 1
+                ;;
+            --)
+                shift
+                break
+                ;;
+            *)
+                die_with_message ${OVS_ERR_WRONG_PARAM} "unknown args $1"
+                break
+                ;;
+        esac
+    done
+
+    if [ "X$vswitch" = "Xtrue" ];then
+        br_list=$(ovs-vsctl list-br)
+
+        #linux netwotk
+        net_list=$(ls $LINUX_NETWORK_PATH/* 2>/dev/null | grep -v ".old" | xargs -n1 basename 2>/dev/null)
+        br_list=$(echo $br_list $net_list)
+        br_list=$(echo $br_list | tr " " "\n" | sort | uniq)
+
+        pvlan_br_list=$(ovs-vsctl -t 2 --bare --columns=name find bridge other_config:pvlan_mode=True)
+        br_list=$(echo $br_list $pvlan_br_list | tr " " "\n" | sort | uniq -u)
+
+        ##vxlan-sdn(dpdk) has two bridges($br_name and ${br_name}-phy), list --vswitch need to remove ${br_name}-phy.
+        local vxlan_dpdk_br=$(ovs-vsctl -t 2 --bare --columns=name find bridge other_config:br_mode=3 datapath_type=netdev)
+        for tmp_br in $vxlan_dpdk_br
+        do
+            br_list=$(echo $br_list | sed 's/\<'${tmp_br}-phy'\>//g')
+        done
+
+        segbr_list=$(ovs-vsctl -t 2 --bare --format=table --columns=name find bridge other_config:network_type=$network_type_seg)
+        if [ -n "$segbr_list" ]; then
+            br_list=$(echo $br_list $segbr_list | tr " " "\n" | sort | uniq -u)
+        fi
+        br_list=$(echo $br_list | tr " " "\n" | sed '/^tbr-/d') # del trunk bridge
+        br_list=$(echo $br_list | tr " " "\n" |  paste -sd ',' -)
+        echo "vswitch : $br_list"
+    fi
+
+    if [ "X$subnet" = "Xtrue" ];then
+        subnet_list_=$(ovs-vsctl -t 2 --bare --format=table --columns=name find Int type=internal other_config:subnet=1)
+        linux_subnet_list=$(ls $LINUX_SUBNET_PATH/* 2>/dev/null | grep -v ".old" | xargs -n1 basename 2>/dev/null)
+        rep_list=$(ovs-vsctl -t 2 --bare --format=table --columns=name find Int other_config:used_by_subnet=1)
+        rep_to_vport=$(python3 /opt/bin/ovs_smartnic.pyc lsvdpa --verbose | awk '{print $2,$5}')
+        rep_subnet_list=""
+        for rep in $rep_list; do
+            vport=$(grep "^$rep" <<<"$rep_to_vport" | awk '{print $2}')
+            rep_subnet_list="$rep_subnet_list$vport\n"
+        done
+        subnet_list=$(printf "$subnet_list_")
+        if [ -n "$linux_subnet_list" ]; then
+            [ -n "$subnet_list_" ] && subnet_list=$(printf "$subnet_list_\n$linux_subnet_list")
+            [ -z "$subnet_list_" ] && subnet_list=$(printf "$linux_subnet_list")
+        fi
+        if [ X"$subnet_list" != X"" ]; then
+            subnet_list=$(printf "$subnet_list\n$rep_subnet_list" | paste -sd ',' -)
+        else
+            subnet_list=$(printf "$rep_subnet_list" | paste -sd ',' -)
+        fi
+        echo "subnet : $subnet_list"
+    fi
+}
+
+ovs_generate_segbr_name() {
+    local br_name=$1
+    local br_name_len=${#br_name}
+    local segbr_name
+
+    if [ ${br_name_len} -lt 15 ]; then
+        segbr_name="=${br_name}"
+    else
+        local md5_value=$(printf ${br_name} | md5sum | awk '{print $1}')
+        segbr_name="${br_name:0:10}${md5_value:0:5}"
+    fi
+
+    echo "${segbr_name}"
+}
+
+ovs_handle_segbr_add() {
+    local br_name=$1
+    local segbr_name=$(ovs_generate_segbr_name "${br_name}")
+    local network_type_seg="128"
+    local br_mode_veb="0"
+
+    local vsctl_command="-- --may-exist add-br $segbr_name"
+    local set_br_mode_cmd="-- -- set bridge $segbr_name other_config:br_mode=$br_mode_veb"
+    local set_network_type_cmd="-- -- set bridge $segbr_name other_config:network_type=$network_type_seg"
+    local set_segbr_cmd="-- -- set bridge $br_name other_config:segbr=$segbr_name"
+
+    vsctl_command="$vsctl_command $set_br_mode_cmd $set_network_type_cmd $set_segbr_cmd"
+    ovs_printlog ${shellname} info "add segbr: ovs-vsctl -t 5 $vsctl_command"
+    ovs-vsctl -t 5 $vsctl_command 2>/dev/null
+    if [ "$?" != "0" ];then
+        die_with_message "$OVS_BRIDGE_ERR_ADD_ERROR" "Ovs add seg bridge:$segbr_name error."
+    fi
+
+    bring_up_local_port "$segbr_name"
+    ovs_bridge_xmit_event add "$segbr_name"
+
+    ovs_printlog ${shellname} info "Ovs add seg bridge:$segbr_name ok."
+
+    echo "$segbr_name"
+}
+
+ovs_handle_segbr_del() {
+    local br_name=$1
+    local segbr_name=$2
+
+    local vsctl_command="-- --if-exists del-br $segbr_name"
+    local set_segbr_cmd="-- -- remove bridge $br_name other_config segbr"
+
+    vsctl_command="$vsctl_command $set_segbr_cmd"
+    ovs_printlog ${shellname} info "del segbr: ovs-vsctl -t 5 $vsctl_command"
+    ovs-vsctl -t 5 $vsctl_command 2>/dev/null
+    if [ "$?" != "0" ];then
+        die_with_message "$OVS_BRIDGE_ERR_DELETE_ERROR" "Ovs del seg bridge:$segbr_name error."
+    fi
+    ovs_printlog ${shellname} info "Ovs del seg bridge:$segbr_name ok."
+}
+
+cmd_ovs_seg_bridge() {
+    local br_name=$1
+    local args
+    local segbr
+
+    shift 1
+    args="`getopt -u -o "h" -l "add,del,get" -- "$@" 2>/dev/null`"
+    [ "$?" == "0" ] || die_with_message "${OVS_ERR_WRONG_PARAM}" "getopt fails to parse args: $*"
+
+    set -- $args
+    while :
+    do
+        case $1 in
+            --add)
+                add="true"
+                shift 1
+                ;;
+            --del)
+                del="true"
+                shift 1
+                ;;
+            --get)
+                get="true"
+                shift 1
+                ;;
+            --)
+                shift
+                break
+                ;;
+            *)
+                die_with_message ${OVS_ERR_WRONG_PARAM} "unknown args $1"
+                break
+                ;;
+        esac
+    done
+
+    if [ -z "$br_name" ];then
+        die_with_message "$OVS_BRIDGE_ERR_ARGUMENT_ERROR" "Bridge name is required."
+    fi
+
+    if ! ovs-vsctl -t 2 br-exists $br_name 2>/dev/null;then
+        if [ -e $LINUX_NETWORK_PATH/$br_name ];then
+            local is_linux_engine='true'
+        else
+            die_with_message "$OVS_BRIDGE_ERR_BRIDGE_ERROR" "Bridge $br_name does not exist."
+        fi
+    fi
+
+    if [ "X$is_linux_engine" = "Xtrue" ];then
+        [ "X$get" = "Xtrue" ] && echo "segbr:"
+        return
+    fi
+
+    segbr=$(ovs-vsctl -t 2 --bare --format=table -- --if-exists get bridge $br_name other_config:segbr | tr -d '"')
+    if [ "X$add" = "Xtrue" ]; then
+        if [ -n "$segbr" ]; then
+            ovs_printlog ${shellname} warn "add segbr for $br_name: $segbr already exists."
+            if [ "X$get" = "Xtrue" ]; then
+                echo "segbr: $segbr"
+                exit 0
+            else
+                exit 0
+            fi
+        fi
+        segbr=$(ovs_handle_segbr_add "$br_name")
+    fi
+
+    if [ "X$del" = "Xtrue" ]; then
+        if [ -z "$segbr" ]; then
+            ovs_printlog ${shellname} warn "del segbr for $br_name: segbr not exists."
+            exit 0
+        fi
+        ovs_handle_segbr_del "$br_name" "$segbr"
+        segbr=""
+    fi
+
+    if [ "X$get" = "Xtrue" ]; then
+        echo "segbr: $segbr"
+    fi
+}
+
+get_subnet_status() {
+    local subnet_name=$1
+    local ifname=""
+
+    # linux
+    if [ -f $LINUX_SUBNET_PATH/$subnet_name ]; then
+        ifname=$(grep ^master= $LINUX_SUBNET_PATH/$subnet_name | awk -F '=' '{print $2}')
+    # ovs or smart
+    elif [ "X$(ip link show $subnet_name >/dev/null 2>&1; echo $?)" = "X0" ]; then
+        ifname=$subnet_name
+    fi
+
+    if [ "X$ifname" = "X" ]; then
+        die_with_message ${OVS_ERR_WRONG_PARAM} "Failed to get br_mode of bridge $subnet_name. or Subnet $subnet_name is not exist."
+    fi
+
+    subnet_status='up'
+    ret=$(ip -br link show $ifname 2>/dev/null | awk '{print $4}')
+    if ! echo $ret | grep -qw LOWER_UP;then
+        subnet_status='down'
+    fi
+
+    if ! echo $ret | grep -qw UP;then
+        subnet_status='down'
+    fi
+
+    echo "status : $subnet_status"
+}
+
+# add,mod args
+BR_NAME=''
+BR_MODE=''
+ACCELE_MODE=''
+NETWORK_TYPE=''
+BOND_MECH=''
+VLAN=[]
+IFACES=''
+IFACE_NUM=''
+PCI_LIST=''
+BOND_NAME=''
+LACP=''
+BOND_MODE=''
+BOND_POLICY=''
+BOND_MIIMON=''
+ADDRESS=''
+NETMASK=''
+GATEWAY=''
+
+parse_add_args()
+{
+    args="`getopt -u -o "h" -l "br_mode:,accele_mode:,network_type:,bond_mech:,iface:,pci:,vlan:,lacp:,bond_mode:,datapath_type:,multicast:,mtu:,address:,netmask:,gateway:,ipv6address:,prefixlength:,ipv6gateway:,active-algorithm:,reselect-on-change:,bond_policy:,bond_miimon:" -- "$@" 2>/dev/null`"
+    [ "$?" == "0" ] || die_with_message ${OVS_ERR_WRONG_PARAM} "getopt fails to parse args"
+    # quote may be lost in args
+    set -- $args
+    while :
+    do
+        case $1 in
+            --accele_mode)
+                ACCELE_MODE=$2
+                shift 2
+                ;;
+            --br_mode)
+                BR_MODE=$2
+                shift 2
+                ;;
+            --network_type)
+                NETWORK_TYPE=$2
+                shift 2
+                ;;
+            --bond_mech)
+                BOND_MECH=$2
+                shift 2
+                ;;
+            --vlan)
+                VLAN=$2
+                shift 2;
+                ;;
+            --lacp)
+                LACP=$2
+                shift 2
+                ;;
+            --bond_mode)
+                BOND_MODE=$2
+                shift 2
+                ;;
+            --bond_policy)
+                BOND_POLICY=$2
+                shift 2;
+                ;;
+            --bond_miimon)
+                BOND_MIIMON=$2
+                shift 2
+                ;;
+            --iface)
+                IFACES="$IFACES $2"
+                if [ -z "$IFACE_NUM" ];then
+                    IFACE_NUM=s
+                elif [ "$IFACE_NUM" = "s" ];then
+                    IFACE_NUM=m
+                fi
+                shift 2
+                ;;
+            --pci)
+                PCI_LIST="$PCI_LIST $2"
+                shift 2
+                ;;
+            --datapath_type)
+                DATAPATH_TYPE=$2
+                shift 2
+                ;;
+            --multicast)
+                MULTICAST=$2
+                shift 2
+                ;;
+            --mtu)
+                MTU=$2
+                shift 2
+                ;;
+            --address)
+                ADDRESS=$2
+                shift 2
+                ;;
+            --netmask)
+                NETMASK=$2
+                shift 2
+                ;;
+            --gateway)
+                GATEWAY=$2
+                shift 2
+                ;;
+            --ipv6address)
+                IPV6ADDRESS=$2
+                shift 2
+                ;;
+            --prefixlength)
+                IPV6PREFIX=$2
+                shift 2
+                ;;
+            --ipv6gateway)
+                IPV6GATEWAY=$2
+                shift 2
+                ;;
+            --active-algorithm)
+                ACTIVE_ALGORITHM=$2
+                shift 2
+                ;;
+            --reselect-on-change)
+                RESELECT_ON_CHANGE=$2
+                shift 2
+                ;;
+            --)
+                shift
+                break
+                ;;
+            *)
+                die_with_message ${OVS_ERR_WRONG_PARAM} "unknown args $1"
+                break
+                ;;
+        esac
+    done
+
+    BR_NAME=$1
+    BOND_NAME=$2
+}
+
+parse_mod_args()
+{
+    args="`getopt -u -o "h" -l "iface:,pci:,vlan:,lacp:,accele_mode:,network_type:,bond_mode:,multicast:,mtu:,address:,netmask:,gateway:,ipv6address:,prefixlength:,ipv6gateway:,active-algorithm:,reselect-on-change:,bond_policy:,bond_miimon:" -- "$@" `"
+    [ "$?" == "0" ] || die_with_message ${OVS_ERR_WRONG_PARAM} "getopt fails to parse args"
+    # quote may be lost in args
+    set -- $args
+    while :
+    do
+        case $1 in
+            --vlan)
+                VLAN=$2
+                shift 2;
+                ;;
+            --lacp)
+                LACP=$2
+                shift 2
+                ;;
+            --accele_mode)
+                ACCELE_MODE=$2
+                shift 2
+                ;;
+            --network_type)
+                NETWORK_TYPE=$2
+                shift 2
+                ;;
+            --bond_mode)
+                BOND_MODE=$2
+                shift 2
+                ;;
+            --bond_policy)
+                BOND_POLICY=$2
+                shift 2;
+                ;;
+            --bond_miimon)
+                BOND_MIIMON=$2
+                shift 2
+                ;;
+            --iface)
+                IFACES="$IFACES $2"
+                if [ -z "$IFACE_NUM" ];then
+                    IFACE_NUM=s
+                elif [ "$IFACE_NUM" = "s" ];then
+                    IFACE_NUM=m
+                fi
+                shift 2
+                ;;
+            --pci)
+                PCI_LIST="$PCI_LIST $2"
+                shift 2
+                ;;
+            --multicast)
+                MULTICAST=$2
+                shift 2
+                ;;
+            --mtu)
+                MTU=$2
+                shift 2
+                ;;
+            --address)
+                ADDRESS=$2
+                shift 2
+                ;;
+            --netmask)
+                NETMASK=$2
+                shift 2
+                ;;
+            --gateway)
+                GATEWAY=$2
+                shift 2
+                ;;
+            --ipv6address)
+                IPV6ADDRESS=$2
+                shift 2
+                ;;
+            --prefixlength)
+                IPV6PREFIX=$2
+                shift 2
+                ;;
+            --ipv6gateway)
+                IPV6GATEWAY=$2
+                shift 2
+                ;;
+            --active-algorithm)
+                ACTIVE_ALGORITHM=$2
+                shift 2
+                ;;
+            --reselect-on-change)
+                RESELECT_ON_CHANGE=$2
+                shift 2
+                ;;
+            --)
+                shift
+                break
+                ;;
+            *)
+                die_with_message ${OVS_ERR_WRONG_PARAM} "unkown args $1."
+                break
+                ;;
+        esac
+    done
+    BR_NAME=$1
+    BOND_NAME=$2
+}
+
+main()
+{
+    local action
+
+    if [ $# -lt 1 ]; then
+        echo "missing arguments"
+        ovs_printlog ${shellname} err "called, missing arguments"
+        usage
+        exit ${OVS_ERR_WRONG_PARAM}
+    fi
+
+    if [ "X$1" = "X--help" -o "X$1" = "X-h" ]; then
+        usage
+        exit 0
+    fi
+
+    action=$1
+
+    if [ "X$action" != "Xget" ] && [ "X$action" != "Xlist" ]; then
+        ovs_printlog ${shellname} debug "called, params: $0 $@"
+    fi
+
+    if [ "X$action" = "Xadd" ] || [ "X$action" = "Xmod" ] || [ "X$action" = "Xdel" ] ; then
+        if [ -e $WAIT_UPGRADE_FILE ]; then
+            ovs_printlog ${shellname} err "can't do $action, need wait upgrading to linux bridge finished"
+            exit ${OVS_BRIDGE_ERR_UPGRADE_NOT_FINISHED}
+        fi
+    fi
+
+    shift 1
+    case $action in
+        add)
+            parse_add_args $@
+            cmd_add_bridge $@
+            ;;
+        mod)
+            parse_mod_args $@
+            cmd_modify_bridge $@
+            ;;
+        del)
+            cmd_delete_bridge $@
+            ;;
+        get)
+            cmd_get_bridge_info "$@"
+            ;;
+        list)
+            cmd_ovs_list_info "$@"
+            ;;
+        add_linuxbond)
+            cmd_ovs_add_linuxbond "$@"
+            ;;
+        seg)
+            cmd_ovs_seg_bridge "$@"
+            ;;
+        help)
+            usage
+            exit 0
+            ;;
+        *)
+            echo "unkown arguments: $*"
+            usage
+            exit ${OVS_ERR_WRONG_PARAM}
+    esac
+}
+
+main "$@"

@@ -1,0 +1,193 @@
+zEMixin classes for custom array types that don't inherit from ndarray.
+umath
+NDArrayOperatorsMixinc
+z)True when __array_ufunc__ is set to None.NF)
+__array_ufunc__
+AttributeError)
+6/usr/lib64/python3.9/site-packages/numpy/lib/mixins.py
+_disables_array_ufunc
+z>Implement a forward binary method with a ufunc, e.g., __add__.c
+NotImplemented
+self
+other
+ufuncr
+func
+_binary_method.<locals>.func
+__{}__
+format
+__name__
+namer
+_binary_method
+zAImplement a reflected binary method with a ufunc, e.g., __radd__.c
+z&_reflected_binary_method.<locals>.funcz
+__r{}__r
+_reflected_binary_method
+zAImplement an in-place binary method with a ufunc, e.g., __iadd__.c
+outr
+z$_inplace_binary_method.<locals>.funcz
+__i{}__r
+_inplace_binary_method$
+zEImplement forward, reflected and inplace binary methods with a ufunc.)
+_numeric_methods,
+z.Implement a unary special method with a ufunc.c
+_unary_method.<locals>.funcr
+_unary_method3
+Z Z!Z"e
+Z$Z%Z&e
+Z(Z)Z*e
+Z,Z-Z.e
+Z0e1e
+Z4Z5Z6e
+Z8Z9Z:e
+Z<Z=Z>e
+Z@ZAZBe
+ZDZEZFe
+ZHZIZJeKe
+ZMeKe
+ZOeKe
+ZQeKe
+Mixin defining all operator special methods using __array_ufunc__.
+    This class implements the special methods for almost all of Python's
+    builtin operators defined in the `operator` module, including comparisons
+    (``==``, ``>``, etc.) and arithmetic (``+``, ``*``, ``-``, etc.), by
+    deferring to the ``__array_ufunc__`` method, which subclasses must
+    implement.
+    It is useful for writing classes that do not inherit from `numpy.ndarray`,
+    but that should support arithmetic and numpy universal functions like
+    arrays as described in `A Mechanism for Overriding Ufuncs
+    <https://numpy.org/neps/nep-0013-ufunc-overrides.html>`_.
+    As an trivial example, consider this implementation of an ``ArrayLike``
+    class that simply wraps a NumPy array and ensures that the result of any
+    arithmetic operation is also an ``ArrayLike`` object::
+        class ArrayLike(np.lib.mixins.NDArrayOperatorsMixin):
+            def __init__(self, value):
+                self.value = np.asarray(value)
+            # One might also consider adding the built-in list type to this
+            # list, to support operations like np.add(array_like, list)
+            _HANDLED_TYPES = (np.ndarray, numbers.Number)
+            def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
+                out = kwargs.get('out', ())
+                for x in inputs + out:
+                    # Only support operations with instances of _HANDLED_TYPES.
+                    # Use ArrayLike instead of type(self) for isinstance to
+                    # allow subclasses that don't override __array_ufunc__ to
+                    # handle ArrayLike objects.
+                    if not isinstance(x, self._HANDLED_TYPES + (ArrayLike,)):
+                        return NotImplemented
+                # Defer to the implementation of the ufunc on unwrapped values.
+                inputs = tuple(x.value if isinstance(x, ArrayLike) else x
+                               for x in inputs)
+                if out:
+                    kwargs['out'] = tuple(
+                        x.value if isinstance(x, ArrayLike) else x
+                        for x in out)
+                result = getattr(ufunc, method)(*inputs, **kwargs)
+                if type(result) is tuple:
+                    # multiple return values
+                    return tuple(type(self)(x) for x in result)
+                elif method == 'at':
+                    # no return value
+                    return None
+                else:
+                    # one return value
+                    return type(self)(result)
+            def __repr__(self):
+                return '%s(%r)' % (type(self).__name__, self.value)
+    In interactions between ``ArrayLike`` objects and numbers or numpy arrays,
+    the result is always another ``ArrayLike``:
+        >>> x = ArrayLike([1, 2, 3])
+        >>> x - 1
+        ArrayLike(array([0, 1, 2]))
+        >>> 1 - x
+        ArrayLike(array([ 0, -1, -2]))
+        >>> np.arange(3) - x
+        ArrayLike(array([-1, -1, -1]))
+        >>> x - np.arange(3)
+        ArrayLike(array([1, 1, 1]))
+    Note that unlike ``numpy.ndarray``, ``ArrayLike`` does not allow operations
+    with arbitrary, unrecognized types. This ensures that interactions with
+    ArrayLike preserve a well-defined casting hierarchy.
+    .. versionadded:: 1.13
+    
+matmul
+truediv
+floordiv
+divmod
+lshift
+rshift
+invertN)Tr
+__module__
+__qualname__
+__doc__r
+less
+__lt__Z
+less_equal
+__le__Z
+equal
+__eq__Z	not_equal
+__ne__Z
+greater
+__gt__Z
+greater_equal
+__ge__r
+__add__
+__radd__
+__iadd__
+subtract
+__sub__
+__rsub__
+__isub__Z
+multiply
+__mul__
+__rmul__
+__imul__r'
+__matmul__
+__rmatmul__
+__imatmul__Z
+true_divide
+__truediv__
+__rtruediv__
+__itruediv__Z
+floor_divide
+__floordiv__
+__rfloordiv__
+__ifloordiv__Z	remainder
+__mod__
+__rmod__
+__imod__r+
+__divmod__r
+__rdivmod__Z
+power
+__pow__
+__rpow__
+__ipow__Z
+left_shift
+__lshift__
+__rlshift__
+__ilshift__Z
+right_shift
+__rshift__
+__rrshift__
+__irshift__Z
+bitwise_and
+__and__
+__rand__
+__iand__Z
+bitwise_xor
+__xor__
+__rxor__
+__ixor__Z
+bitwise_or
+__or__
+__ror__
+__ior__r
+negative
+__neg__Z
+positive
+__pos__
+absolute
+__abs__r5
+__invert__r
+numpy.corer
+__all__r
+<module>

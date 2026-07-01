@@ -1,0 +1,432 @@
+e	r>e
+Augeas is a library for programmatically editing configuration files.
+Augeas parses configuration files into a tree structure, which it exposes
+through its public API. Changes made through the API are written back to
+the initially read files.
+The transformation works very hard to preserve comments and formatting
+details. It is controlled by *lens* definitions that describe the file
+format and the transformation into a tree.
+version_info)
+libz/Nathaniel McCallum <nathaniel@natemccallum.com>z
+Jeff Schroeder <jeffschroeder@computer.org>
+Harald Hoyer <harald@redhat.com> - initial python bindings, packaging
+Nils Philippsen <nils@redhat.com>
+utf8c
+encode
+AUGENC
+3/usr/lib/python3.9/site-packages/augeas/__init__.py
+enc3
+decoder
+dec:
+AugeasIOErrorc
+message
+superr
+__init__
+error
+minor
+details
+self
+fullmessager
+args
+	__class__r
+AugeasIOError.__init__
+__name__
+__module__
+__qualname__r
+__classcell__r
+AugeasRuntimeErrorc
+AugeasRuntimeError.__init__r"
+AugeasValueErrorc
+AugeasValueError.__init__r"
+Z d d!
+Z!d"d#
+Z"d$d%
+Z#d&d'
+Z$d(d)
+Z%d*d+
+Z&d,d-
+Z'd.d/
+Z(d0d1
+Z)dId3d4
+Z*d5d6
+Z+d7d8
+Z,d9d:
+Z-d;d<
+Z.d=d>
+Z/d?d@
+Z0dJdBdC
+Z1dKdEdF
+Z2dGdH
+Augeasz/
+    Class wrapper for the Augeas library.
+    r
+NULLr
+string)
+cffistrr
+_optffistring
+Augeas._optffistringc
+Z	aug_error
+_Augeas__handler)
+AUG_ENOMEM
+MemoryErrorr=
+aug_error_messageZ
+aug_error_minor_messageZ
+aug_error_details)	r
+errorclass
+errmsgr
+_raise_error
+Augeas._raise_errorNc
+        Initialize the library.
+        :param root: the filesystem root. If `root` is :py:obj:`None`, use the
+                     value of the environment variable :envvar:`AUGEAS_ROOT`.
+                     If that doesn't exist either, use :samp:`/`.
+        :type root: str or None
+        :param loadpath: a colon-separated list of directories that modules
+                         should be searched in. This is in addition to the
+                         standard load path and the directories in
+                         :envvar:`AUGEAS_LENS_LIB`.
+        :type loadpath: str or None
+        :param flags: a combination of values of :attr:`SAVE_BACKUP`,
+                      :attr:`SAVE_NEWFILE`, :attr:`TYPE_CHECK`,
+                      :attr:`NO_STDINC`, :attr:`SAVE_NOOP`, :attr:`NO_LOAD`,
+                      :attr:`NO_MODL_AUTOLOAD`, and :attr:`ENABLE_SPAN`.
+        :type flags: int or :attr:`NONE`
+        Nz
+root MUST be a string or None!z"loadpath MUST be a string or None!z
+flag MUST be a flag!c
+close)
+<lambda>
+z!Augeas.__init__.<locals>.<lambda>z
+Unable to create Augeas object!)
+isinstance
+string_types
+	TypeError
+intr
+aug_initr>
+RuntimeError)
+rootZ
+loadpath
+flagsr
+Augeas.__init__c
+        Lookup the value associated with `path`.
+        It is an error if more than one node matches `path`.
+        :returns: the value at the path specified
+        :rtype: str
+        
+path MUST be a string!
+*The Augeas object has already been closed!
+char*[]r*
+Augeas.get() failed)
+newr
+aug_getr
+path
+value
+retr
+Augeas.getc
+        Lookup the label associated with `path`.
+        It is an error if more than one node matches `path`.
+        :returns: the label of the path specified
+        :rtype: str
+        rN
+Augeas.label() failed)
+Z	aug_labelr
+labelrU
+Augeas.labelc
+        Set the value associated with `path` to `value`.
+        Intermediate entries are created if they don't exist.
+        It is an error if more than one node matches `path`.
+        rN
+value MUST be a string or None!rO
+Augeas.set() failed)
+aug_setr
+Augeas.setc
+        Set the value of multiple nodes in one operation.
+        Find or create a node matching `sub` by interpreting `sub`
+        as a path expression relative to each node matching `base`.
+        `sub` may be :py:obj:`None`, in which case all the nodes matching
+        `base` will be modified.
+        z
+base MUST be a string!Nz
+sub MUST be a string or None!rX
+Augeas.setm() failed)
+type
+strrI
+aug_setmr
+base
+subrT
+setm	
+Augeas.setmc
+        Use the value of node `node` as a string and transform it into a tree
+        using the lens `lens` and store it in the tree at `path`, which will be
+        overwritten. `path` and `node` are path expressions.
+        
+lens MUST be a string!z
+node MUST be a string!rN
+Augeas.text_store() failed)
+aug_text_storer
+lensZ
+noderS
+text_store#
+Augeas.text_storec
+        Transform the tree at `path` into a string using lens `lens` and store
+        it in the node `node_out`, assuming the tree was initially generated
+        using the value of node `node_in`. `path`, `node_in`, and `node_out`
+        are path expressions.
+        r_
+node_in MUST be a string!rN
+node_out MUST be a string!rO
+Augeas.text_retrieve() failed)
+aug_text_retriever
+node_inrS
+node_outrU
+text_retrieve;
+Augeas.text_retrievec
+        Define a variable `name` whose value is the result of
+        evaluating `expr`. If a variable `name` already exists, its
+        name will be replaced with the result of evaluating `expr`.
+        If `expr` is :py:obj:`None`, the variable `name` will be removed if it
+        is defined.
+        Path variables can be used in path expressions later on by
+        prefixing them with :samp:`$`.
+        
+name MUST be a string!Nz
+expr MUST be a string or None!rO
+Augeas.defvar() failed)
+aug_defvarr
+name
+exprrU
+defvarW
+Augeas.defvarc
+        Define a variable `name` whose value is the result of
+        evaluating `expr`, which must not be :py:obj:`None` and evaluate to a
+        nodeset. If a variable `name` already exists, its name will
+        be replaced with the result of evaluating `expr`.
+        If `expr` evaluates to an empty nodeset, a node is created,
+        equivalent to calling ``set(expr, value)`` and `name` will be the
+        nodeset containing that single node.
+        rc
+expr MUST be a string!z
+value MUST be a string!rO
+Augeas.defnode() failed)
+aug_defnoder
+defnoder
+Augeas.defnodec
+        Move the node `src` to `dst`. `src` must match exactly one node
+        in the tree. `dst` must either match exactly one node in the
+        tree, or may not exist yet. If `dst` exists already, it and all
+        its descendants are deleted before moving `src` there. If `dst`
+        does not exist yet, it and all its missing ancestors are created.
+        
+src MUST be a string!
+dst MUST be a string!rO
+Augeas.move() failedN)
+aug_mvr
+srcZ
+dstrU
+move
+Augeas.movec
+        Copy the node `src` to `dst`. `src` must match exactly one node
+        in the tree. `dst` must either match exactly one node in the
+        tree, or may not exist yet. If `dst` exists already, it and all
+        its descendants are deleted before copying `src` there. If `dst`
+        does not exist yet, it and all its missing ancestors are created.
+        rh
+Augeas.copy() failedN)
+aug_cpr
+copy
+Augeas.copyc
+        Rename the label of all nodes matching `src` to `dst`.
+        rh
+Augeas.rename() failed)
+aug_renamer
+rename
+Augeas.renameTc
+        Create a new sibling `label` for `path` by inserting into the tree
+        just before `path` (if `before` is :py:obj:`True`) or just after `path`
+        (if `before` is :py:obj:`False`).
+        `path` must match exactly one existing node in the tree, and `label`
+        must be a label, i.e. not contain a :samp:`/`, :samp:`*` or end with
+        a bracketed index :samp:`[N]`.
+        rN
+label MUST be a string!rO
+Augeas.insert() failedN)
+aug_insertr
+beforerU
+insert
+Augeas.insertc
+        Remove `path` and all its children. Returns the number of entries
+        removed. All nodes that match `path`, and their descendants, are
+        removed.
+        rN
+aug_rmr
+remove
+Augeas.removec
+        Return the matches of the path expression `path`. The returned paths
+        are sufficiently qualified to make sure that they match exactly one
+        node in the current tree.
+        Path expressions use a very simple subset of XPath: the path `path`
+        consists of a number of segments, separated by :samp:`/`; each segment
+        can either be a :samp:`*`, matching any tree node, or a string,
+        optionally followed by an index in brackets, matching tree nodes
+        labelled with exactly that string. If no index is specified, the
+        expression matches all nodes with that label; the index can be a
+        positive number N, which matches exactly the *N*-th node with that
+        label (counting from 1), or the special expression :samp:`last()` which
+        matches the last node with the given label. All matches are done in
+        fixed positions in the tree, and nothing matches more than one path
+        segment.
+        rN
+char***r
+Augeas.match() failed: %s)
+Z	aug_matchr
+ranger;
+appendr
+free)
+parrayrU
+arrayZ
+matches
+itemr
+match
+Augeas.matchc
+	}	|	d
+        Get the span according to input file of the node associated with
+        `path`. If the node is associated with a file, a tuple of 7 elements is
+        returned: ``(filename, label_start, label_end, value_start, value_end,
+        span_start, span_end)``. If the node associated with `path` doesn't
+        belong to a file or is doesn't exists, :py:obj:`ValueError` is raised.
+        :rtype: tuple(str, int, int, int, int, int, int)
+        rN
+char **z
+unsigned int *r
+Augeas.span() failed)
+aug_spanr
+filenameZ
+label_startZ	label_endZ
+value_startZ	value_endZ
+span_startZ
+span_endrU
+fnamer
+span#
+Augeas.spanc
+        Write all pending changes to disk. Only files that had any changes
+        made to them are written.
+        If :attr:`SAVE_NEWFILE` is set in the creation `flags`, create changed
+        files as new files with the extension :samp:`.augnew`, and leave the
+        original file unmodified.
+        Otherwise, if :attr:`SAVE_BACKUP` is set in the creation `flags`, move
+        the original file to a new file with extension :samp:`.augsave`.
+        If neither of these flags is set, overwrite the original file.
+        rO
+Augeas.save() failedN)
+aug_saverB
+saveI
+Augeas.savec
+        Load files into the tree. Which files to load and what lenses to use
+        on them is specified under :samp:`/augeas/load` in the tree; each entry
+        :samp:`/augeas/load/NAME` specifies a 'transform', by having itself
+        exactly one child 'lens' and any number of children labelled 'incl' and
+        'excl'. The value of :samp:`NAME` has no meaning.
+        The 'lens' grandchild of :samp:`/augeas/load` specifies which lens to
+        use, and can either be the fully qualified name of a lens
+        :samp:`Module.lens` or :samp:`@Module`. The latter form means that the
+        lens from the transform marked for autoloading in MODULE should be
+        used.
+        The 'incl' and 'excl' grandchildren of :samp:`/augeas/load` indicate
+        which files to transform. Their value are used as glob patterns. Any
+        file that matches at least one 'incl' pattern and no 'excl' pattern is
+        transformed. The order of 'incl' and 'excl' entries is irrelevant.
+        When AUG_INIT is first called, it populates :samp:`/augeas/load` with
+        the transforms marked for autoloading in all the modules it finds.
+        Before loading any files, :func:`load` will remove everything
+        underneath :samp:`/augeas/files` and :samp:`/files`, regardless of
+        whether any entries have been modified or not.
+        rO
+Augeas.load() failedN)
+aug_loadrB
+loada
+Augeas.loadc
+        Clear all transforms beneath :samp:`/augeas/load`. If :func:`load` is
+        called right after this, there will be no files beneath :samp:`/files`.
+        z
+/augeas/load/*N)
+clear_transforms
+Augeas.clear_transformsr
+        Add a transform beneath :samp:`/augeas/load`.
+        :param lens: the (file)name of the lens to use
+        :type lens: str
+        :param incl: one or more glob patterns for the files to transform
+        :type incl: str or list(str)
+        :param name: deprecated parameter
+        :param excl: zero or more glob patterns of files to exclude from
+                     transforming
+        :type excl: str or list(str)
+        r
+Nz'name is now deprecated in this functionr+
+stacklevelFT)
+warnings
+warn
+DeprecationWarningrG
+	transform)
+inclrd
+exclr~
+add_transform
+Augeas.add_transformFc
+        Add a transform for `file` using `lens`.
+        `excl` specifies if this the file is to be included (:py:obj:`False`)
+        or excluded (:py:obj:`True`) from the `lens`.
+        The `lens` may be a module name or a full lens name.
+        If a module name is given, then lns will be the lens assumed.
+        r_
+file MUST be a string!z
+excl MUST be a boolean!rO
+Augeas.transform() failedN)
+boolr>
+aug_transformr
+filer
+Augeas.transformc
+        Close this Augeas instance and free any storage associated with it.
+        After this call, this Augeas instance is invalid and can not be used
+        for any more operations.
+        N)
+Z	aug_closerE
+Augeas.close)
+F)4r#
+__doc__Z
+NONEZ
+SAVE_BACKUPZ
+SAVE_NEWFILEZ
+TYPE_CHECKZ	NO_STDINCZ	SAVE_NOOPZ
+NO_LOADZ
+NO_MODL_AUTOLOADZ
+ENABLE_SPANZ
+AUG_NOERRORr?
+AUG_EINTERNALZ
+AUG_EPATHXZ
+AUG_ENOMATCHZ
+AUG_EMMATCHZ
+AUG_ESYNTAXZ
+AUG_ENOLENSZ	AUG_EMXFMZ
+AUG_ENOSPANZ
+AUG_EMVDESCZ
+AUG_ECMDRUNZ
+AUG_EBADARGZ
+AUG_ELABELZ
+AUG_ECPDESCr=
+augeaszN
+    Compat class, obsolete. Use class Augeas directly.
+    :deprecated:
+    c
+use Augeas instead of augeasr+
+augeas.__init__)
+sysr
+_pyverZ
+augeas.ffir
+__author__
+__credits__Z
+PY3r
+basestringr
+IOErrorr
+ValueErrorr(
+objectr)
+__all__r
+<module>

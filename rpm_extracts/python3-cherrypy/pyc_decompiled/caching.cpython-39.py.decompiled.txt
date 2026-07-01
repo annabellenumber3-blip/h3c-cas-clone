@@ -1,0 +1,258 @@
+CherryPy implements a simple caching system as a pluggable Tool. This tool
+tries to be an (in-process) HTTP/1.1-compliant cache. It's not quite there
+yet, but it's probably good enough for most sites.
+In general, GET responses are cached (along with selecting headers) and, if
+another request arrives for the same resource, the caching Tool will return 304
+Not Modified if possible, or serve the cached response otherwise. It also sets
+request.cached to True if serving a cached representation, and sets
+request.cacheable to False (so it doesn't get cached again).
+If POST, PUT, or DELETE requests are made for a cached resource, they
+invalidate (delete) any cached response.
+Usage
+=====
+Configuration file example::
+    [/]
+    tools.caching.on = True
+    tools.caching.delay = 3600
+You may use a class other than the default
+:class:`MemoryCache<cherrypy.lib.caching.MemoryCache>` by supplying the config
+entry ``cache_class``; supply the full dotted name of the replacement class
+as the config value. It must implement the basic methods ``get``, ``put``,
+``delete``, and ``clear``.
+You may set any attribute, including overriding methods, on the cache
+instance by providing them in config. The above sets the
+:attr:`delay<cherrypy.lib.caching.MemoryCache.delay>` attribute, for example.
+cptools
+httputilc
+Cachez%Base class for Cache implementations.c
+6Return the current variant if in the cache, else None.N
+NotImplementedError
+self
+8/usr/lib/python3.9/site-packages/cherrypy/lib/caching.py
+get0
+z	Cache.getc
+'Store the current variant in the cache.Nr
+sizer
+put4
+z	Cache.putc
+3Remove ALL cached variants of the current resource.Nr
+delete8
+Cache.deletec
+,Reset the cache to its initial, empty state.Nr
+clear<
+Cache.clearN)
+__name__
+__module__
+__qualname__
+__doc__r
+AntiStampedeCachezDA storage system for cached items which reduces stampede collisions.
+Return the cached value for the given key, or None.
+        If timeout is not None, and the value is already
+        being calculated by another thread, wait until the given timeout has
+        elapsed. If the value is available before the timeout expires, it is
+        returned. If not, None is returned, and a sentinel placed in the cache
+        to signal other threads to wait.
+        If timeout is None, no waiting is performed nor sentinels used.
+        Nz
+No timeout
+TOOLS.CACHINGz
+Waiting up to %s secondsz
+Result!z	Timed out)
+isinstance
+	threading
+Event
+cherrypy
+wait
+result
+dict
+__setitem__)
+timeout
+debug
+value
+AntiStampedeCache.waitc
+z'Set the cached value for the given key.N)
+set)
+existingr
+AntiStampedeCache.__setitem__N)
+MemoryCachea
+An in-memory cache for varying response content.
+    Each key in self.store is a URI, and each value is an AntiStampedeCache.
+    The response for any given URI may vary based on the values of
+    "selecting request headers"; that is, those named in the Vary
+    response header. We assume the list of header names to be constant
+    for each URI throughout the lifetime of the application, and store
+    that list in ``self.store[uri].selecting_headers``.
+    The items contained in ``self.store[uri]`` have keys which are tuples of
+    request header values (in the same order as the names in its
+    selecting_headers), and values which are the actual responses.
+    i
+expire_cache)
+target
+nameT)
+Threadr,
+expiration_threadZ
+daemon
+start)
+__init__
+MemoryCache.__init__c
+store
+expirations
+tot_puts
+tot_gets
+tot_hist
+tot_expires
+tot_non_modified
+cursizer
+MemoryCache.clearc
+Continuously examine cached objects, expiring stale ones.
+        This function is designed to be run in its own daemon thread,
+        referenced at ``self.expiration_thread``.
+        
+timer3
+copy
+itemsr2
+tupler7
+KeyError
+sleep
+expire_freq)
+expiration_timeZ
+objectsZ
+obj_size
+uriZ
+sel_header_valuesr
+MemoryCache.expire_cachec
+qsNc
+headersr
+requestr
+<listcomp>
+z#MemoryCache.get.<locals>.<listcomp>)
+servingrN
+query_stringr2
+selecting_headersr!
+sorted
+antistampede_timeoutr'
+uricache
+header_values
+variantr
+MemoryCache.getc
+z#MemoryCache.put.<locals>.<listcomp>Z
+Varyc
+responserQ
+elementsrS
+maxobjectsr9
+maxobj_size
+maxsizer;
+delayr3
+setdefault
+appendr>
+total_sizerB
+bucketrW
+MemoryCache.putc
+pop)
+MemoryCache.deleteN)
+POSTZ
+PUTZ
+DELETEFc
+}	|	
+s>|	d
+Try to obtain cached output. If fresh enough, raise HTTPError(304).
+    If POST, PUT, or DELETE:
+        * invalidates (deletes) any cached response for this resource
+        * sets request.cached = False
+        * sets request.cacheable = False
+    else if a cached copy exists:
+        * sets request.cached = True
+        * sets request.cacheable = False
+        * sets response.headers to the cached values
+        * checks the cached Last-Modified response header against the
+          current If-(Un)Modified-Since request headers; raises 304
+          if necessary.
+        * sets response.status and response.body to the cached values
+        * returns True
+    otherwise:
+        * sets request.cached = False
+        * sets request.cacheable = True
+        * returns False
+    
+_cacheZ
+cache_classz'request.method %r in invalid_methods %rr
+no-cachec
+get.<locals>.<listcomp>
+PragmaTc
+Cache-Control
+max-agei
+Invalid Cache-Control headerz-Ignoring cache due to Cache-Control: no-cachez
+Reading response from cachez
+Ignoring cache due to age > %d
+Agei0
+request is not cached))r
+hasattrrd
+setattrr'
+methodr 
+cached
+	cacheablerI
+boolra
+splitr]
+isdigitZ	HTTPError
+intr;
+Z	HeaderMapr#
+__getitem__
+strr
+validate_sinceZ
+HTTPRedirect
+exc_info
+statusr8
+body)
+invalid_methodsr'
+kwargsrN
+cache_dataZ
+max_ageZ
+atomsZ	directive
+create_timeZ
+ageZ
+z/Tee response output to cache storage. Internal.
+no-storerj
+Tee response.body into a list.rg
+valuesrc
+joinr
+chunk
+output
+tee_output.<locals>.tee)
+tee_output
+Tool for influencing cache mechanisms using the 'Expires' header.
+    secs
+        Must be either an int or a datetime.timedelta, and indicates the
+        number of seconds between response.time and when the response should
+        expire. The 'Expires' header will be set to response.time + secs.
+        If secs is zero, the 'Expires' header is set one year in the past, and
+        the following "cache prevention" headers are also set:
+            * Pragma: no-cache
+            * Cache-Control': no-cache, must-revalidate
+    force
+        If False, the following headers are checked:
+            * Etag
+            * Last-Modified
+            * Age
+            * Expires
+        If any are already present, none of the above response headers are set.
+    F)
+Etagz
+Last-Modifiedrl
+ExpiresTz
+request is not cacheablez
+TOOLS.EXPIRESz
+request is cacheablei
+no-cache, must-revalidateg
+datetimeZ	timedeltaZ
+daysZ
+secondsrN
+protocolr
+HTTPDater;
+secs
+forcer'
+Z	indicatorZ
+expiryr
+expires
+cherrypy.libr
+objectr
+<module>

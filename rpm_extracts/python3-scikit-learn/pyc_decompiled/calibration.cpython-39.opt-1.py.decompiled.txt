@@ -1,0 +1,918 @@
+m Z 
+l!m"Z"
+l#m$Z$m%Z%m&Z&m'Z'm(Z(
+m)Z)
+l*m+Z+
+l,m-Z-
+l.m/Z/m0Z0
+l1m2Z2
+l3m4Z4
+Z5d/d
+Z8d0d
+d!d"
+Z:d1d#d$
+d%d&
+d'd(d)d*
+d+d,
+d-d.
+)2z'Calibration of predicted probabilities.
+	signature)
+partial)
+log)
+Parallel)
+expit)
+xlogy)
+	fmin_bfgs
+BaseEstimator
+ClassifierMixin
+RegressorMixin
+clone
+MetaEstimatorMixin
+is_classifier)
+label_binarize
+LabelEncoder)
+column_or_1d
+	indexable
+check_matplotlib_support)
+check_classification_targets)
+delayed)
+_check_fit_params
+_check_sample_weight
+_num_samples
+check_consistent_length
+check_is_fitted)
+_safe_indexing)
+IsotonicRegression)
+	LinearSVC)
+check_cv
+cross_val_predict)
+_check_pos_label_consistency)
+_get_responsec
+CalibratedClassifierCVa
+Probability calibration with isotonic regression or logistic regression.
+    This class uses cross-validation to both estimate the parameters of a
+    classifier and subsequently calibrate a classifier. With default
+    `ensemble=True`, for each cv split it
+    fits a copy of the base estimator to the training subset, and calibrates it
+    using the testing subset. For prediction, predicted probabilities are
+    averaged across these individual calibrated classifiers. When
+    `ensemble=False`, cross-validation is used to obtain unbiased predictions,
+    via :func:`~sklearn.model_selection.cross_val_predict`, which are then
+    used for calibration. For prediction, the base estimator, trained using all
+    the data, is used. This is the method implemented when `probabilities=True`
+    for :mod:`sklearn.svm` estimators.
+    Already fitted classifiers can be calibrated via the parameter
+    `cv="prefit"`. In this case, no cross-validation is used and all provided
+    data is used for calibration. The user has to take care manually that data
+    for model fitting and calibration are disjoint.
+    The calibration is based on the :term:`decision_function` method of the
+    `base_estimator` if it exists, else on :term:`predict_proba`.
+    Read more in the :ref:`User Guide <calibration>`.
+    Parameters
+    ----------
+    base_estimator : estimator instance, default=None
+        The classifier whose output need to be calibrated to provide more
+        accurate `predict_proba` outputs. The default classifier is
+        a :class:`~sklearn.svm.LinearSVC`.
+    method : {'sigmoid', 'isotonic'}, default='sigmoid'
+        The method to use for calibration. Can be 'sigmoid' which
+        corresponds to Platt's method (i.e. a logistic regression model) or
+        'isotonic' which is a non-parametric approach. It is not advised to
+        use isotonic calibration with too few calibration samples
+        ``(<<1000)`` since it tends to overfit.
+    cv : int, cross-validation generator, iterable or "prefit",             default=None
+        Determines the cross-validation splitting strategy.
+        Possible inputs for cv are:
+        - None, to use the default 5-fold cross-validation,
+        - integer, to specify the number of folds.
+        - :term:`CV splitter`,
+        - An iterable yielding (train, test) splits as arrays of indices.
+        For integer/None inputs, if ``y`` is binary or multiclass,
+        :class:`~sklearn.model_selection.StratifiedKFold` is used. If ``y`` is
+        neither binary nor multiclass, :class:`~sklearn.model_selection.KFold`
+        is used.
+        Refer to the :ref:`User Guide <cross_validation>` for the various
+        cross-validation strategies that can be used here.
+        If "prefit" is passed, it is assumed that `base_estimator` has been
+        fitted already and all data is used for calibration.
+        .. versionchanged:: 0.22
+            ``cv`` default value if None changed from 3-fold to 5-fold.
+    n_jobs : int, default=None
+        Number of jobs to run in parallel.
+        ``None`` means 1 unless in a :obj:`joblib.parallel_backend` context.
+        ``-1`` means using all processors.
+        Base estimator clones are fitted in parallel across cross-validation
+        iterations. Therefore parallelism happens only when `cv != "prefit"`.
+        See :term:`Glossary <n_jobs>` for more details.
+        .. versionadded:: 0.24
+    ensemble : bool, default=True
+        Determines how the calibrator is fitted when `cv` is not `'prefit'`.
+        Ignored if `cv='prefit'`.
+        If `True`, the `base_estimator` is fitted using training data, and
+        calibrated using testing data, for each `cv` fold. The final estimator
+        is an ensemble of `n_cv` fitted classifier and calibrator pairs, where
+        `n_cv` is the number of cross-validation folds. The output is the
+        average predicted probabilities of all pairs.
+        If `False`, `cv` is used to compute unbiased predictions, via
+        :func:`~sklearn.model_selection.cross_val_predict`, which are then
+        used for calibration. At prediction time, the classifier used is the
+        `base_estimator` trained on all the data.
+        Note that this method is also internally implemented  in
+        :mod:`sklearn.svm` estimators with the `probabilities=True` parameter.
+        .. versionadded:: 0.24
+    Attributes
+    ----------
+    classes_ : ndarray of shape (n_classes,)
+        The class labels.
+    n_features_in_ : int
+        Number of features seen during :term:`fit`. Only defined if the
+        underlying base_estimator exposes such an attribute when fit.
+        .. versionadded:: 0.24
+    feature_names_in_ : ndarray of shape (`n_features_in_`,)
+        Names of features seen during :term:`fit`. Only defined if the
+        underlying base_estimator exposes such an attribute when fit.
+        .. versionadded:: 1.0
+    calibrated_classifiers_ : list (len() equal to cv or 1 if `cv="prefit"`             or `ensemble=False`)
+        The list of classifier and calibrator pairs.
+        - When `cv="prefit"`, the fitted `base_estimator` and fitted
+          calibrator.
+        - When `cv` is not "prefit" and `ensemble=True`, `n_cv` fitted
+          `base_estimator` and calibrator pairs. `n_cv` is the number of
+          cross-validation folds.
+        - When `cv` is not "prefit" and `ensemble=False`, the `base_estimator`,
+          fitted on all the data, and fitted calibrator.
+        .. versionchanged:: 0.24
+            Single calibrated classifier case when `ensemble=False`.
+    See Also
+    --------
+    calibration_curve : Compute true and predicted probabilities
+        for a calibration curve.
+    References
+    ----------
+    .. [1] Obtaining calibrated probability estimates from decision trees
+           and naive Bayesian classifiers, B. Zadrozny & C. Elkan, ICML 2001
+    .. [2] Transforming Classifier Scores into Accurate Multiclass
+           Probability Estimates, B. Zadrozny & C. Elkan, (KDD 2002)
+    .. [3] Probabilistic Outputs for Support Vector Machines and Comparisons to
+           Regularized Likelihood Methods, J. Platt, (1999)
+    .. [4] Predicting Good Probabilities with Supervised Learning,
+           A. Niculescu-Mizil & R. Caruana, ICML 2005
+    Examples
+    --------
+    >>> from sklearn.datasets import make_classification
+    >>> from sklearn.naive_bayes import GaussianNB
+    >>> from sklearn.calibration import CalibratedClassifierCV
+    >>> X, y = make_classification(n_samples=100, n_features=2,
+    ...                            n_redundant=0, random_state=42)
+    >>> base_clf = GaussianNB()
+    >>> calibrated_clf = CalibratedClassifierCV(base_estimator=base_clf, cv=3)
+    >>> calibrated_clf.fit(X, y)
+    CalibratedClassifierCV(base_estimator=GaussianNB(), cv=3)
+    >>> len(calibrated_clf.calibrated_classifiers_)
+    3
+    >>> calibrated_clf.predict_proba(X)[:5, :]
+    array([[0.110..., 0.889...],
+           [0.072..., 0.927...],
+           [0.928..., 0.071...],
+           [0.928..., 0.071...],
+           [0.071..., 0.928...]])
+    >>> from sklearn.model_selection import train_test_split
+    >>> X, y = make_classification(n_samples=100, n_features=2,
+    ...                            n_redundant=0, random_state=42)
+    >>> X_train, X_calib, y_train, y_calib = train_test_split(
+    ...        X, y, random_state=42
+    ... )
+    >>> base_clf = GaussianNB()
+    >>> base_clf.fit(X_train, y_train)
+    GaussianNB()
+    >>> calibrated_clf = CalibratedClassifierCV(
+    ...     base_estimator=base_clf,
+    ...     cv="prefit"
+    ... )
+    >>> calibrated_clf.fit(X_calib, y_calib)
+    CalibratedClassifierCV(base_estimator=GaussianNB(), cv='prefit')
+    >>> len(calibrated_clf.calibrated_classifiers_)
+    1
+    >>> calibrated_clf.predict_proba([[-0.5, 0.5]])
+    array([[0.936..., 0.063...]])
+    N
+sigmoidT)
+method
+n_jobs
+ensemblec
+base_estimatorr%
+selfr*
+9/usr/lib64/python3.9/site-packages/sklearn/calibration.py
+__init__
+CalibratedClassifierCV.__init__c
+t&t'|
+Fit the calibrated model.
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            Training data.
+        y : array-like of shape (n_samples,)
+            Target values.
+        sample_weight : array-like of shape (n_samples,), default=None
+            Sample weights. If None, then samples are equally weighted.
+        **fit_params : dict
+            Parameters to pass to the `fit` method of the underlying
+            classifier.
+        Returns
+        -------
+        self : object
+            Returns an instance of self.
+        Nr
+random_stateZ
+prefit
+classes_)
+attributes
+sample_weightz
+Since aW
+ does not appear to accept sample_weight, sample weights will only be used for the calibration itself. This can be caused by a limitation of the current scikit-learn API. See the following issue for more details: https://github.com/scikit-learn/scikit-learn/issues/21134. Be warned that the result of the calibration is likely to be incorrect.
+n_splitsc
+sum)
+class_)
+n_folds
+<listcomp>U
+z.CalibratedClassifierCV.fit.<locals>.<listcomp>z
+Requesting z.-fold cross-validation but provided less than z! examples for at least one class.T)
+classifier)
+train
+testr%
+classes
+supports_swr0
+_fit_classifier_calibrator_pairr
+fit_paramsr0
+	<genexpr>`
+z-CalibratedClassifierCV.fit.<locals>.<genexpr>)
+	estimatorr>
+n_features_in_
+feature_names_in_)*r
+valuesr
+calibrated_classifiers_r&
+_get_prediction_method
+_compute_predictions
+_fit_calibratorr%
+appendr
+fitr
+parameters
+type
+__name__
+warnings
+warn
+isinstance
+hasattrr1
+ValueErrorr
+splitr
+sample_aligned_params
+pred_method
+method_name
+	n_classes
+predictions
+calibrated_classifierZ
+label_encoder_Z
+fit_parameters
+estimator_namer&
+parallelZ
+this_estimator
+_Z	first_clfr,
+CalibratedClassifierCV.fitc
+Calibrated probabilities of classification.
+        This function returns calibrated probabilities of classification
+        according to each class on an array of test vectors X.
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            The samples, as accepted by `base_estimator.predict_proba`.
+        Returns
+        -------
+        C : ndarray of shape (n_samples, n_classes)
+            The predicted probas.
+        )
+zerosr
+predict_proba)
+mean_probar\
+probar,
+z$CalibratedClassifierCV.predict_probac
+Predict the target of new samples.
+        The predicted class is the class that has the highest probability,
+        and can thus be different from the prediction of the uncalibrated classifier.
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            The samples, as accepted by `base_estimator.predict`.
+        Returns
+        -------
+        C : ndarray of shape (n_samples,)
+            The predicted class.
+        r	
+axis)
+argmaxr`
+predict
+CalibratedClassifierCV.predictc
+_xfail_checksZ
+check_sample_weights_invariancez
+Due to the cross-validation and sample ordering, removing a sample is not strictly equal to putting is weight to zero. Specific unit tests are added for CalibratedClassifierCV specifically.r,
+_more_tags
+z!CalibratedClassifierCV._more_tags)
+N)	rO
+__module__
+__qualname__
+__doc__r.
+Fit a classifier/calibration pair on a given train/test split.
+    Fit the classifier on the train set, compute its predictions on the test
+    set and use the predictions as input to fit the calibrator along with the
+    test labels.
+    Parameters
+    ----------
+    estimator : estimator instance
+        Cloned base estimator.
+    X : array-like, shape (n_samples, n_features)
+        Sample data.
+    y : array-like, shape (n_samples,)
+        Targets.
+    train : ndarray, shape (n_train_indices,)
+        Indices of the training subset.
+    test : ndarray, shape (n_test_indices,)
+        Indices of the testing subset.
+    supports_sw : bool
+        Whether or not the `estimator` supports sample weights.
+    method : {'sigmoid', 'isotonic'}
+        Method to use for calibration.
+    classes : ndarray, shape (n_classes,)
+        The target classes.
+    sample_weight : array-like, default=None
+        Sample weights for `X`.
+    **fit_params : dict
+        Parameters to pass to the `fit` method of the underlying
+        classifier.
+    Returns
+    -------
+    calibrated_classifier : _CalibratedClassifier instance
+    Nr0
+fit_params_trainZ
+X_trainZ
+y_trainZ
+X_testZ
+y_testZ
+sw_trainrZ
+sw_testr\
+Return prediction method.
+    `decision_function` method of `clf` returned, if it
+    exists, otherwise `predict_proba` method returned.
+    Parameters
+    ----------
+    clf : Estimator instance
+        Fitted classifier to obtain the prediction method from.
+    Returns
+    -------
+    prediction_method : callable
+        The prediction method.
+    method_name : str
+        The name of the prediction method.
+    
+decision_functionr`
+zF'base_estimator' has no 'decision_function' or 'predict_proba' method.N)
+getattr
+RuntimeError)
+clfr%
+Return predictions for `X` and reshape binary outputs to shape
+    (n_samples, 1).
+    Parameters
+    ----------
+    pred_method : callable
+        Prediction method.
+    method_name: str
+        Name of the prediction method
+    X : array-like or None
+        Data used to obtain predictions.
+    n_classes : int
+        Number of classes present.
+    Returns
+    -------
+    predictions : array-like, shape (X.shape[0], len(clf.classes_))
+        The predictions. Note if there are 2 classes, array is of shape
+        (X.shape[0], 1).
+    )
+Invalid prediction method: )
+ndimr2
+newaxisrV
+Fit calibrator(s) and return a `_CalibratedClassifier`
+    instance.
+    `n_classes` (i.e. `len(clf.classes_)`) calibrators are fitted.
+    However, if `n_classes` equals 2, one calibrator is fitted.
+    Parameters
+    ----------
+    clf : estimator instance
+        Fitted classifier.
+    predictions : array-like, shape (n_samples, n_classes) or (n_samples, 1)                     when binary.
+        Raw predictions returned by the un-calibrated base classifier.
+    y : array-like, shape (n_samples,)
+        The targets.
+    classes : ndarray, shape (n_classes,)
+        All the prediction classes.
+    method : {'sigmoid', 'isotonic'}
+        The method to use for calibration.
+    sample_weight : ndarray, shape (n_samples,), default=None
+        Sample weights. If None, then samples are equally weighted.
+    Returns
+    -------
+    pipeline : _CalibratedClassifier instance
+    )
+isotonicZ
+clip)
+out_of_boundsr$
+z8'method' should be one of: 'sigmoid' or 'isotonic'. Got 
+	transformr/
+_SigmoidCalibrationrV
+_CalibratedClassifier)
+label_encoder
+pos_class_indices
+calibrators
+	class_idx
+	this_pred
+calibratorZ
+pipeliner,
+)	ru
+Pipeline-like chaining a fitted classifier and its fitted calibrators.
+    Parameters
+    ----------
+    base_estimator : estimator instance
+        Fitted classifier.
+    calibrators : list of fitted estimator instances
+        List of fitted calibrators (either 'IsotonicRegression' or
+        '_SigmoidCalibration'). The number of calibrators equals the number of
+        classes. However, if there are 2 classes, the list contains only one
+        fitted calibrator.
+    classes : array-like of shape (n_classes,)
+        All the prediction classes.
+    method : {'sigmoid', 'isotonic'}, default='sigmoid'
+        The method to use for calibration. Can be 'sigmoid' which
+        corresponds to Platt's method or 'isotonic' which is a
+        non-parametric approach based on isotonic regression.
+    r$
+_CalibratedClassifier.__init__c
+r~|	d
+nBt	j
+Calculate calibrated probabilities.
+        Calculates classification calibrated probabilities
+        for each class, in a one-vs-all manner, for `X`.
+        Parameters
+        ----------
+        X : ndarray of shape (n_samples, n_features)
+            The sample data.
+        Returns
+        -------
+        proba : array, shape (n_samples, n_classes)
+            The predicted probabilities. Can be exact zeros.
+        rl
+wheregr
+Z	full_likeZ
+divide)
+denominatorZ
+uniform_probar,
+z#_CalibratedClassifier.predict_probaN)
+}	|	d
+Probability Calibration with sigmoid method (Platt 2000)
+    Parameters
+    ----------
+    predictions : ndarray of shape (n_samples,)
+        The decision function or predict proba for the samples.
+    y : ndarray of shape (n_samples,)
+        The targets.
+    sample_weight : array-like of shape (n_samples,), default=None
+        Sample weights. If None, then samples are equally weighted.
+    Returns
+    -------
+    a : float
+        The slope.
+    b : float
+        The intercept.
+    References
+    ----------
+    Platt, "Probabilistic Outputs for Support Vector Machines"
+    r
+dtyper}
+loss
+T1r0
+	objective
+z'_sigmoid_calibration.<locals>.objectivec
+dotr3
+array)
+TEP_minus_T1PZ
+grad#
+z"_sigmoid_calibration.<locals>.grad
+fprime
+dispr	
+floatr2
+shapeZ
+zeros_likeZ
+float64r
+mask_negative_samplesZ
+prior0Z
+prior1r
+AB0Z
+AB_r,
+_sigmoid_calibration
+Sigmoid regression model.
+    Attributes
+    ----------
+    a_ : float
+        The slope.
+    b_ : float
+        The intercept.
+    Nc
+Fit the model using X, y as training data.
+        Parameters
+        ----------
+        X : array-like of shape (n_samples,)
+            Training data.
+        y : array-like of shape (n_samples,)
+            Training target.
+        sample_weight : array-like of shape (n_samples,), default=None
+            Sample weights. If None, then samples are equally weighted.
+        Returns
+        -------
+        self : object
+            Returns an instance of self.
+        )
+_SigmoidCalibration.fitc
+Predict new data by linear interpolation.
+        Parameters
+        ----------
+        T : array-like of shape (n_samples,)
+            Data to predict from.
+        Returns
+        -------
+        T_ : ndarray of shape (n_samples,)
+            The predicted data.
+        )
+_SigmoidCalibration.predict)
+deprecated
+uniform)
+	pos_label
+	normalize
+n_bins
+strategyc
+}	t	j
+Compute true and predicted probabilities for a calibration curve.
+    The method assumes the inputs come from a binary classifier, and
+    discretize the [0, 1] interval into bins.
+    Calibration curves may also be referred to as reliability diagrams.
+    Read more in the :ref:`User Guide <calibration>`.
+    Parameters
+    ----------
+    y_true : array-like of shape (n_samples,)
+        True targets.
+    y_prob : array-like of shape (n_samples,)
+        Probabilities of the positive class.
+    pos_label : int or str, default=None
+        The label of the positive class.
+        .. versionadded:: 1.1
+    normalize : bool, default="deprecated"
+        Whether y_prob needs to be normalized into the [0, 1] interval, i.e.
+        is not a proper probability. If True, the smallest value in y_prob
+        is linearly mapped onto 0 and the largest one onto 1.
+        .. deprecated:: 1.1
+            The normalize argument is deprecated in v1.1 and will be removed in v1.3.
+            Explicitly normalizing `y_prob` will reproduce this behavior, but it is
+            recommended that a proper probability is used (i.e. a classifier's
+            `predict_proba` positive class).
+    n_bins : int, default=5
+        Number of bins to discretize the [0, 1] interval. A bigger number
+        requires more data. Bins with no samples (i.e. without
+        corresponding values in `y_prob`) will not be returned, thus the
+        returned arrays may have less than `n_bins` values.
+    strategy : {'uniform', 'quantile'}, default='uniform'
+        Strategy used to define the widths of the bins.
+        uniform
+            The bins have identical widths.
+        quantile
+            The bins have the same number of samples and depend on `y_prob`.
+    Returns
+    -------
+    prob_true : ndarray of shape (n_bins,) or smaller
+        The proportion of samples whose class is the positive class, in each
+        bin (fraction of positives).
+    prob_pred : ndarray of shape (n_bins,) or smaller
+        The mean predicted probability in each bin.
+    References
+    ----------
+    Alexandru Niculescu-Mizil and Rich Caruana (2005) Predicting Good
+    Probabilities With Supervised Learning, in Proceedings of the 22nd
+    International Conference on Machine Learning (ICML).
+    See section 4 (Qualitative Analysis of Predictions).
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from sklearn.calibration import calibration_curve
+    >>> y_true = np.array([0, 0, 0, 0, 1, 1, 1, 1, 1])
+    >>> y_pred = np.array([0.1, 0.2, 0.3, 0.4, 0.65, 0.7, 0.8, 0.9,  1.])
+    >>> prob_true, prob_pred = calibration_curve(y_true, y_pred, n_bins=3)
+    >>> prob_true
+    array([0. , 0.5, 1. ])
+    >>> prob_pred
+    array([0.2  , 0.525, 0.85 ])
+    r
+The normalize argument is deprecated in v1.1 and will be removed in v1.3. Explicitly normalizing y_prob will reproduce this behavior, but it is recommended that a proper probability is used (i.e. a classifier's `predict_proba` positive class or `decision_function` output calibrated with `CalibratedClassifierCV`).r
+z!y_prob has values outside [0, 1].rl
+z9Only binary classification is supported. Provided labels rp
+quantile
+zSInvalid entry to 'strategy' input. Strategy must be either 'quantile' or 'uniform'.
+weights
+	minlength)
+FutureWarning
+maxrV
+uniquerH
+linspaceZ
+percentileZ
+searchsortedZ
+bincount)
+y_true
+y_probr
+labelsZ	quantilesZ
+binsZ
+binidsZ
+bin_sumsZ
+bin_trueZ	bin_totalZ
+nonzero
+	prob_true
+	prob_predr,
+calibration_curvei
+CalibrationDisplaya
+Calibration curve (also known as reliability diagram) visualization.
+    It is recommended to use
+    :func:`~sklearn.calibration.CalibrationDisplay.from_estimator` or
+    :func:`~sklearn.calibration.CalibrationDisplay.from_predictions`
+    to create a `CalibrationDisplay`. All parameters are stored as attributes.
+    Read more about calibration in the :ref:`User Guide <calibration>` and
+    more about the scikit-learn visualization API in :ref:`visualizations`.
+    .. versionadded:: 1.0
+    Parameters
+    ----------
+    prob_true : ndarray of shape (n_bins,)
+        The proportion of samples whose class is the positive class (fraction
+        of positives), in each bin.
+    prob_pred : ndarray of shape (n_bins,)
+        The mean predicted probability in each bin.
+    y_prob : ndarray of shape (n_samples,)
+        Probability estimates for the positive class, for each sample.
+    estimator_name : str, default=None
+        Name of estimator. If None, the estimator name is not shown.
+    pos_label : str or int, default=None
+        The positive class when computing the calibration curve.
+        By default, `estimators.classes_[1]` is considered as the
+        positive class.
+        .. versionadded:: 1.1
+    Attributes
+    ----------
+    line_ : matplotlib Artist
+        Calibration curve.
+    ax_ : matplotlib Axes
+        Axes with calibration curve.
+    figure_ : matplotlib Figure
+        Figure containing the curve.
+    See Also
+    --------
+    calibration_curve : Compute true and predicted probabilities for a
+        calibration curve.
+    CalibrationDisplay.from_predictions : Plot calibration curve using true
+        and predicted labels.
+    CalibrationDisplay.from_estimator : Plot calibration curve using an
+        estimator and data.
+    Examples
+    --------
+    >>> from sklearn.datasets import make_classification
+    >>> from sklearn.model_selection import train_test_split
+    >>> from sklearn.linear_model import LogisticRegression
+    >>> from sklearn.calibration import calibration_curve, CalibrationDisplay
+    >>> X, y = make_classification(random_state=0)
+    >>> X_train, X_test, y_train, y_test = train_test_split(
+    ...     X, y, random_state=0)
+    >>> clf = LogisticRegression(random_state=0)
+    >>> clf.fit(X_train, y_train)
+    LogisticRegression(random_state=0)
+    >>> y_prob = clf.predict_proba(X_test)[:, 1]
+    >>> prob_true, prob_pred = calibration_curve(y_test, y_prob, n_bins=10)
+    >>> disp = CalibrationDisplay(prob_true, prob_pred, y_prob)
+    >>> disp.plot()
+    <...>
+    N)
+CalibrationDisplay.__init__T)
+name
+ref_linec
+}	|	|
+Plot visualization.
+        Extra keyword arguments will be passed to
+        :func:`matplotlib.pyplot.plot`.
+        Parameters
+        ----------
+        ax : Matplotlib Axes, default=None
+            Axes object to plot on. If `None`, a new figure and axes is
+            created.
+        name : str, default=None
+            Name for labeling curve. If `None`, use `estimator_name` if
+            not `None`, otherwise no labeling is shown.
+        ref_line : bool, default=True
+            If `True`, plots a reference line representing a perfectly
+            calibrated classifier.
+        **kwargs : dict
+            Keyword arguments to be passed to :func:`matplotlib.pyplot.plot`.
+        Returns
+        -------
+        display : :class:`~sklearn.calibration.CalibrationDisplay`
+            Object that stores computed values.
+        
+CalibrationDisplay.plotr
+(Positive class: 
+labelz
+Perfectly calibratedr	
+lower right)
+locz
+Mean predicted probability z
+Fraction of positives )
+xlabel
+ylabel)
+matplotlib.pyplotZ
+pyplotZ
+subplotsr]
+updateZ
+get_legend_handles_labels
+plotr
+line_Z
+legend
+setZ
+ax_Z
+figureZ
+figure_)
+kwargsZ
+pltZ
+figZ
+info_pos_labelZ
+line_kwargsZ
+ref_line_labelZ
+existing_ref_liner
+Plot calibration curve using a binary classifier and data.
+        A calibration curve, also known as a reliability diagram, uses inputs
+        from a binary classifier and plots the average predicted probability
+        for each bin against the fraction of positive classes, on the
+        y-axis.
+        Extra keyword arguments will be passed to
+        :func:`matplotlib.pyplot.plot`.
+        Read more about calibration in the :ref:`User Guide <calibration>` and
+        more about the scikit-learn visualization API in :ref:`visualizations`.
+        .. versionadded:: 1.0
+        Parameters
+        ----------
+        estimator : estimator instance
+            Fitted classifier or a fitted :class:`~sklearn.pipeline.Pipeline`
+            in which the last estimator is a classifier. The classifier must
+            have a :term:`predict_proba` method.
+        X : {array-like, sparse matrix} of shape (n_samples, n_features)
+            Input values.
+        y : array-like of shape (n_samples,)
+            Binary target values.
+        n_bins : int, default=5
+            Number of bins to discretize the [0, 1] interval into when
+            calculating the calibration curve. A bigger number requires more
+            data.
+        strategy : {'uniform', 'quantile'}, default='uniform'
+            Strategy used to define the widths of the bins.
+            - `'uniform'`: The bins have identical widths.
+            - `'quantile'`: The bins have the same number of samples and depend
+              on predicted probabilities.
+        pos_label : str or int, default=None
+            The positive class when computing the calibration curve.
+            By default, `estimators.classes_[1]` is considered as the
+            positive class.
+            .. versionadded:: 1.1
+        name : str, default=None
+            Name for labeling curve. If `None`, the name of the estimator is
+            used.
+        ref_line : bool, default=True
+            If `True`, plots a reference line representing a perfectly
+            calibrated classifier.
+        ax : matplotlib axes, default=None
+            Axes object to plot on. If `None`, a new figure and axes is
+            created.
+        **kwargs : dict
+            Keyword arguments to be passed to :func:`matplotlib.pyplot.plot`.
+        Returns
+        -------
+        display : :class:`~sklearn.calibration.CalibrationDisplay`.
+            Object that stores computed values.
+        See Also
+        --------
+        CalibrationDisplay.from_predictions : Plot calibration curve using true
+            and predicted labels.
+        Examples
+        --------
+        >>> import matplotlib.pyplot as plt
+        >>> from sklearn.datasets import make_classification
+        >>> from sklearn.model_selection import train_test_split
+        >>> from sklearn.linear_model import LogisticRegression
+        >>> from sklearn.calibration import CalibrationDisplay
+        >>> X, y = make_classification(random_state=0)
+        >>> X_train, X_test, y_train, y_test = train_test_split(
+        ...     X, y, random_state=0)
+        >>> clf = LogisticRegression(random_state=0)
+        >>> clf.fit(X_train, y_train)
+        LogisticRegression(random_state=0)
+        >>> disp = CalibrationDisplay.from_estimator(clf, X_test, y_test)
+        >>> plt.show()
+        
+.from_estimatorz*'estimator' should be a fitted classifier.r`
+response_methodr
+	__class__
+from_predictions)
+clsrA
+from_estimator
+z!CalibrationDisplay.from_estimatorc
+Plot calibration curve using true labels and predicted probabilities.
+        Calibration curve, also known as reliability diagram, uses inputs
+        from a binary classifier and plots the average predicted probability
+        for each bin against the fraction of positive classes, on the
+        y-axis.
+        Extra keyword arguments will be passed to
+        :func:`matplotlib.pyplot.plot`.
+        Read more about calibration in the :ref:`User Guide <calibration>` and
+        more about the scikit-learn visualization API in :ref:`visualizations`.
+        .. versionadded:: 1.0
+        Parameters
+        ----------
+        y_true : array-like of shape (n_samples,)
+            True labels.
+        y_prob : array-like of shape (n_samples,)
+            The predicted probabilities of the positive class.
+        n_bins : int, default=5
+            Number of bins to discretize the [0, 1] interval into when
+            calculating the calibration curve. A bigger number requires more
+            data.
+        strategy : {'uniform', 'quantile'}, default='uniform'
+            Strategy used to define the widths of the bins.
+            - `'uniform'`: The bins have identical widths.
+            - `'quantile'`: The bins have the same number of samples and depend
+              on predicted probabilities.
+        pos_label : str or int, default=None
+            The positive class when computing the calibration curve.
+            By default, `estimators.classes_[1]` is considered as the
+            positive class.
+            .. versionadded:: 1.1
+        name : str, default=None
+            Name for labeling curve.
+        ref_line : bool, default=True
+            If `True`, plots a reference line representing a perfectly
+            calibrated classifier.
+        ax : matplotlib axes, default=None
+            Axes object to plot on. If `None`, a new figure and axes is
+            created.
+        **kwargs : dict
+            Keyword arguments to be passed to :func:`matplotlib.pyplot.plot`.
+        Returns
+        -------
+        display : :class:`~sklearn.calibration.CalibrationDisplay`.
+            Object that stores computed values.
+        See Also
+        --------
+        CalibrationDisplay.from_estimator : Plot calibration curve using an
+            estimator and data.
+        Examples
+        --------
+        >>> import matplotlib.pyplot as plt
+        >>> from sklearn.datasets import make_classification
+        >>> from sklearn.model_selection import train_test_split
+        >>> from sklearn.linear_model import LogisticRegression
+        >>> from sklearn.calibration import CalibrationDisplay
+        >>> X, y = make_classification(random_state=0)
+        >>> X_train, X_test, y_train, y_test = train_test_split(
+        ...     X, y, random_state=0)
+        >>> clf = LogisticRegression(random_state=0)
+        >>> clf.fit(X_train, y_train)
+        LogisticRegression(random_state=0)
+        >>> y_prob = clf.predict_proba(X_test)[:, 1]
+        >>> disp = CalibrationDisplay.from_predictions(y_test, y_prob)
+        >>> plt.show()
+        r
+Classifierr
+z#CalibrationDisplay.from_predictions)	rO
+classmethodr
+N)?rg
+inspectr
+	functoolsr
+mathr
+numpyr2
+joblibr
+scipy.specialr
+scipy.optimizer
+baser
+preprocessingr
+utilsr
+utils.multiclassr
+utils.fixesr
+utils.validationr
+svmr
+model_selectionr
+metrics._baser!
+metrics._plot.baser"
+<module>

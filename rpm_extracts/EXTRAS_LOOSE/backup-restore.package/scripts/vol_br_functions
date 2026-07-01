@@ -1,0 +1,241 @@
+#!/bin/bash
+
+. "$BR_SHELL_PATH/br_commdefine"
+. "$BR_SHELL_PATH/br_errorcodes"
+. "$BR_SHELL_PATH/br_functions"
+
+##############################################################################
+#    Func Name: vol_ftp_backup_transfer
+# Date Created: 2019-03-20
+#       Author: yuanminghao/14410
+#  Description: transfer files through ftp
+#        usage: vol_ftp_backup_transfer 192.168.0.107 21 gzh 1q2w3e svrdir localdir get [file]
+#               vol_ftp_backup_transfer 192.168.0.107 21 gzh 1q2w3e svrdir localdir put [file]
+#            $1 server ip or host name
+#            $2 ftp server port
+#            $3 user name
+#            $4 user'a password
+#            $5 directory on the ftp server
+#            $6 directory on local machine
+#            $7 put or get
+#            $8 file, optional
+#       OUTPUT: NONE
+#       RETURN: 0  : SUCCESS
+#               1  : FAILED
+#      CAUTION:
+#-----------------------------------------------------------------------------
+#  MODIFICATION HISTORY
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+vol_ftp_backup_transfer()
+{
+    # Module name for log
+    local MODULE_NAME=$$:vol_ftp_backup_transfer
+    local curdir=`pwd`
+    local result_values
+    local errorinfo
+    local rtn=0
+
+    # echo $@
+    case "$7" in
+        "put")
+            cd "$6"
+            if [ $? -ne 0 ]; then
+                br_printlog $MODULE_NAME err "$LINENO: cd directory $6 failed"
+                return $BR_CHANGE_DIR_FAILED
+            fi
+
+            if [ $# -gt 7 ]; then
+                result_values=`ftp -n -i "$1" "$2" <<EOF
+                user "$3" "$4"
+                binary
+                mkdir "$5"
+                cd "$5"
+                mput "$8"
+                bye
+EOF`
+            else
+                result_values=`ftp -n -i "$1" "$2" <<EOF
+                user "$3" "$4"
+                binary
+                mkdir "$5"
+                cd "$5"
+                mput conf
+                mput volume*
+                bye
+EOF`
+            fi
+
+            rtn=$?
+            cd "$curdir"
+            if [ $? -ne 0 ]; then
+                br_printlog $MODULE_NAME err "$LINENO: cd directory $curdir failed"
+                return $BR_CHANGE_DIR_FAILED
+            fi
+
+            if [ $rtn -ne 0 ]; then
+                br_printlog $MODULE_NAME err "Execute FTP transfer put failed with return code $rtn"
+                return $rtn
+            fi
+
+            # Parse the error information
+            errorinfo=`echo $result_values | grep "Not connected"`
+            if [ "X$errorinfo" != "X" ]; then
+                return $BR_FTP_TRANSFER_1
+            fi
+
+            errorinfo=`echo $result_values | grep "Login failed"`
+            if [ "X$errorinfo" != "X" ]; then
+                return $BR_FTP_TRANSFER_2
+            fi
+
+            #use wftp32
+            errorinfo=`echo $result_values | grep "The disk is full"`
+            if [ "X$errorinfo" != "X" ]; then
+                return $BR_DISK_SPACE_NO_ENOUGH
+            fi
+
+            errorinfo=`echo $result_values | grep "$5"`
+            if [ "X$errorinfo" != "X" ]; then
+                return $BR_FTP_TRANSFER_3
+            fi
+
+            errorinfo=`echo $result_values | grep "$6"`
+            if [ "X$errorinfo" != "X" ]; then
+                return $BR_FTP_TRANSFER_3
+            fi
+
+            # no privileges
+            errorinfo=`echo $result_values | grep "Permission denied"`
+            if [ "X$errorinfo" != "X" ]; then
+                return $BR_FTP_TRANSFER_4
+            fi
+            ;;
+
+        "get")
+            cd "$6"
+            if [ $? -ne 0 ]; then
+                br_printlog $MODULE_NAME err "$LINENO: cd directory $6 failed"
+                return $BR_CHANGE_DIR_FAILED
+            fi
+
+            if [ $# -gt 7 ]; then
+                result_values=`ftp -n -i "$1" "$2" <<EOF
+                user "$3" "$4"
+                binary
+                cd "$5"
+                mget "$8"
+                bye
+EOF`
+            else
+                result_values=`ftp -n -i "$1" "$2" <<EOF
+                user "$3" "$4"
+                binary
+                cd "$5"
+                mget conf
+                mget volume*
+                bye
+EOF`
+            fi
+
+            rtn=$?
+            cd "$curdir"
+            if [ $? -ne 0 ]; then
+                br_printlog $MODULE_NAME err "$LINENO: cd directory $curdir failed"
+                return $BR_CHANGE_DIR_FAILED
+            fi
+
+            if [ $rtn -ne 0 ]; then
+                br_printlog $MODULE_NAME err "Execute FTP transfer get failed with return code $rtn: $result_values"
+                return $rtn
+            fi
+
+            errorinfo=`echo $result_values | grep "Not connected"`
+            if [ "X$errorinfo" != "X" ]; then
+                return $BR_FTP_TRANSFER_1
+            fi
+
+            errorinfo=`echo $result_values | grep "Login failed"`
+            if [ "X$errorinfo" != "X" ]; then
+                return $BR_FTP_TRANSFER_2
+            fi
+
+            errorinfo=`echo $result_values | grep "$5"`
+            if [ "X$errorinfo" != "X" ]; then
+                return $BR_FTP_TRANSFER_3
+            fi
+
+            errorinfo=`echo $result_values | grep "$6"`
+            if [ "X$errorinfo" != "X" ]; then
+                return $BR_FTP_TRANSFER_3
+            fi
+            ;;
+        *)
+            br_printlog $MODULE_NAME err "Unknown parameters for ftp transfer"
+            return $BR_FTP_UNSUPORTTED_OPERATION
+            ;;
+    esac
+
+    return $BR_SUCCESS
+}
+
+############################################################################
+#    File Name: vol_check_up_scp_disk_space
+# Date Created: 2009-03-20
+#       Author: yuanminghao/14410
+#  Description: check up remote size of free disk space
+#            $1 scp server ip or host name
+#            $2 scp server port
+#            $3 vm backup directory
+#            $4 user'a password
+#            $5 directory on the scp server
+#       Return: 0 if succeffully, other with errors
+#      Caution: only scp backup and only used in HA Cluster Manager
+#-----------------------------------------------------------------------------
+#  Modification History
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+vol_check_up_scp_disk_space()
+{
+    local MODULE_NAME=$$:vol_check_up_scp_disk_space
+    local disk_info
+    local sum=0
+    local conf
+    local vol
+    local FREE_DISK_SPACE
+    local rtn=0
+
+    br_printlog $MODULE_NAME info "$LINENO: all params = $@"
+
+    disk_info=`expect "$BR_SHELL_PATH/get_disk_space_info.exp" "$4"@"$1" "$2" "$5" "$6"`
+    rtn=$?
+    if [ $rtn -ne 0 ]; then
+        br_printlog $MODULE_NAME err "$LINENO: get remote disk space info faild with $rtn"
+        return $rtn
+    fi
+
+    FREE_DISK_SPACE=`echo $disk_info | awk '{print $(NF - 2)}'`
+    rtn=$?
+    if [ $rtn -ne 0 ]; then
+        br_printlog $MODULE_NAME err "$LINENO: parse disk info failed with $rtn"
+        return $rtn
+    fi
+
+    cd "$3"
+    [ $? -ne 0 ] && return BR_CHANGE_DIR_FAILED
+
+    for file in `ls volume*`
+    do
+        vol=`ls -l $file | awk '{printf("%s ", $5)}'`
+        sum=`expr $sum + $vol`
+    done
+    conf=`ls -l | grep conf | awk '{printf("%s ", $5)}'`
+    sum=`expr $sum + $conf`
+
+    br_printlog $MODULE_NAME info "$LINENO: FREE_DISK_SPACE = $FREE_DISK_SPACE sum = $sum"
+    if [ $FREE_DISK_SPACE -lt $sum ]; then
+        br_printlog $MODULE_NAME err "$LINENO: check up remote disk space faild,NO ENOUGH SPACE!"
+        return $BR_DISK_SPACE_NO_ENOUGH
+    fi
+    return $BR_SUCCESS
+}

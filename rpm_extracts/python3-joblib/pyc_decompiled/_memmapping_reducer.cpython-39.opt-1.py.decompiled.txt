@@ -1,0 +1,346 @@
+s_8Y
+l	Z	d
+m Z 
+l!m"Z"
+l#m$Z$
+l%m&Z&
+Z'e(d
+Z.e/
+Z3e3e&j4d
+Z6d.d
+Z9d d!
+Z:d"d#
+d$d%
+d%e<
+Z=d/d*d+
+d,d-
+d-e<
+)0z/
+Reducer using memory mapping for numpy arrays
+mmapN)
+uuid4)
+util)
+whichmodule
+loads
+dumps
+HIGHEST_PROTOCOL
+PicklingError)
+as_strided
+dump
+load
+load_temporary_memmap)
+make_memmap
+delete_folder)
+resource_trackerz
+/dev/shmg
+_resource_trackerzj[FINALIZER CALL] object mapping to {} about to be deleted, decrementing the refcount of the file (pid: {})
+file)
+Z'externals.loky.backend.resource_trackerr
+debug
+format
+path
+basename
+getpid
+maybe_unlink)
+filenamer
+>/usr/lib/python3.9/site-packages/joblib/_memmapping_reducer.py
+_log_and_unlink<
+NzD[FINALIZER ADD] adding finalizer to {} (id {}, filename {}, pid  {}))
+type
+weakrefZ
+finalizer
+memmapr
+add_maybe_unlink_finalizerE
+Wrapper around os.unlink with a retry mechanism.
+    The retry mechanism has been implemented primarily to overcome a race
+    condition happening during the finalizer of a np.memmap: when a process
+    holding the last reference to a mmap-backed np.memmap/np.array is about to
+    delete this array (and close the reference), it sends a maybe_unlink
+    request to the resource_tracker. This request can be processed faster than
+    it takes for the last reference of the memmap to be closed, yielding (on
+    Windows) a PermissionError in the resource_tracker loop.
+    
+z9[ResourceTracker] tried to unlink {}, got PermissionErrorg
+?N)	
+ranger
+unlink
+PermissionErrorr
+time
+sleep)
+NUM_RETRIESZ
+retry_nor
+unlink_fileM
+_WeakArrayKeyMapa
+A variant of weakref.WeakKeyDictionary for unhashable numpy arrays.
+    This datastructure will be used with numpy arrays as obj keys, therefore we
+    do not use the __get__ / __set__ methods to avoid any conflict with the
+    numpy fancy indexing syntax.
+    c
+_data
+selfr
+__init__s
+_WeakArrayKeyMap.__init__c
+KeyError)
+valr
+getv
+_WeakArrayKeyMap.getc
+keyr1
+on_destroy
+z(_WeakArrayKeyMap.set.<locals>.on_destroy)
+valuer5
+set~
+_WeakArrayKeyMap.setc
+Nz"_WeakArrayKeyMap is not pickleable)
+__getstate__
+_WeakArrayKeyMap.__getstate__N)
+__name__
+__module__
+__qualname__
+__doc__r2
+z@Recursively look up the original np.memmap instance base if any.
+baseN)
+getattr
+isinstancer
+_get_backing_memmap)
+Get the full path to a subfolder inside the temporary folder.
+    Parameters
+    ----------
+    pool_folder_name : str
+        Sub-folder name used for the serialization of a pool instance.
+    temp_folder: str, optional
+        Folder to be used by the pool for memmapping large arrays
+        for sharing memory with worker processes. If None, this will try in
+        order:
+        - a folder pointed by the JOBLIB_TEMP_FOLDER environment
+          variable,
+        - /dev/shm if the folder exists and is writable: this is a
+          RAMdisk filesystem available by default on modern Linux
+          distributions,
+        - the default system temporary folder that can be
+          overridden with TMP, TMPDIR or TEMP environment
+          variables, typically /tmp under Unix operating systems.
+    Returns
+    -------
+    pool_folder : str
+       full path to the temporary folder
+    use_shared_mem : bool
+       whether the temporary folder is written to the system shared memory
+       folder or some other temporary folder.
+    FNZ
+JOBLIB_TEMP_FOLDERT)
+environr7
+exists
+SYSTEM_SHARED_MEM_FS
+statvfs
+f_bsize
+f_bavail
+SYSTEM_SHARED_MEM_FS_MIN_SIZE
+join
+makedirs
+IOError
+OSError
+tempfileZ
+gettempdir
+abspath
+expanduser)
+pool_folder_name
+temp_folderZ
+use_shared_memZ	shm_statsZ
+available_nbytesZ
+pool_folderr
+_get_temp_dir
+z?Return True if a is backed by some mmap buffer directly or not.N)
+has_shareable_memory
+z2Reconstruct an array view on a memory mapped file.z
+r+N)
+dtype
+shape
+mode
+offset
+order
+unlink_on_gc_collect)
+strides)
+total_buffer_lenr_
+_strided_from_memmap
+Pickling reduction for memmap backed arrays.
+    a is expected to be an instance of np.ndarray (or np.memmap)
+    m is expected to be an instance of np.memmap on the top of the ``base``
+    attribute ancestry of a. ``m.base`` should be the real python mmap object.
+    zC[MEMMAP REDUCE] reducing a memmap-backed array (shape, {}, pid: {})r
+F_CONTIGUOUS
+C_CONTIGUOUSNF)
+byte_boundsr]
+flagsr`
+itemsizerb
+)	rG
+a_startZ
+a_endZ
+m_startr]
+_reduce_memmap_backed
+z5reduce a np.array or a np.memmap from a child process
+protocolN)
+JOBLIB_MMAPSri
+asarrayr
+reduce_array_memmap_backward&
+ArrayMemmapForwardReducera#
+Reducer callable to dump large arrays to memmap files.
+    Parameters
+    ----------
+    max_nbytes: int
+        Threshold to trigger memmapping of large arrays to files created
+        a folder.
+    temp_folder_resolver: callable
+        An callable in charge of resolving a temporary folder name where files
+        for backing memmapped arrays are created.
+    mmap_mode: 'r', 'r+' or 'c'
+        Mode for the created memmap datastructure. See the documentation of
+        numpy.memmap for more details. Note: 'w+' is coerced to 'r+'
+        automatically to avoid zeroing the data on unpickling.
+    verbose: int, optional, 0 by default
+        If verbose > 0, memmap creations are logged.
+        If verbose > 1, both memmap creations, reuse and array pickling are
+        logged.
+    prewarm: bool, optional, False by default.
+        Force a read on newly memmapped array to make sure that OS pre-cache it
+        memory. This can be useful to avoid concurrent disk access when the
+        same data array is passed to different worker processes.
+    r
+auto)
+_max_nbytes
+_temp_folder_resolver
+_mmap_mode
+verbose
+_temp_folder
+startswithrK
+_prewarmr,
+_memmaped_arraysr=
+_temporary_memmaped_filenames
+_unlink_on_gc_collect)
+max_nbytes
+temp_folder_resolver
+	mmap_moder_
+prewarmr
+z"ArrayMemmapForwardReducer.__init__c
+z&ArrayMemmapForwardReducer._temp_folderc
+args
+kwargsr
+__reduce__g
+z$ArrayMemmapForwardReducer.__reduce__c
+r(t!
+r:t!
+n t$
+t/t0|
+{}-{}-{}.pklr
+zP[ARRAY DUMP] Pickling new array (shape={}, dtype={}) creating a new memmap at {})
+zN[ARRAY DUMP] Pickling known array (shape={}, dtype={}) reusing memmap file: {}zB[ARRAY DUMP] Pickling array (NO MEMMAPPING) (shape={},  dtype={}).rj
+)2rF
+Z	hasobjectro
+nbytesr
+chmod
+FOLDER_PERMISSIONSrS
+errnoZ
+EEXISTrw
+	threadingZ
+current_threadr
+hexr=
+addry
+registerrJ
+FILE_PERMISSIONSrv
+maxr
+is_new_memmapZ
+dumped_filenamer
+__call__y
+z"ArrayMemmapForwardReducer.__call__N)
+T)	r?
+propertyrt
+rFTc
+}	|	|
+Construct a pair of memmapping reducer linked to a tmpdir.
+    This function manage the creation and the clean up of the temporary folders
+    underlying the memory maps and should be use to get the reducers necessary
+    to construct joblib pool or executor.
+    N)
+dictre
+ndarrayr#
+forward_reducersZ
+backward_reducersr{
+forward_reduce_ndarrayr
+get_memmapping_reducers
+TemporaryResourcesManagera9
+Stateful object able to manage temporary folder and pickles
+    It exposes:
+    - a per-context folder name resolving API that memmap-based reducers will
+      rely on to know where to pickle the temporary memmaps
+    - a temporary file/folder management API that internally uses the
+      resource_tracker.
+    Nc
+_current_temp_folder
+_temp_folder_rootZ
+_use_shared_memr
+_cached_temp_foldersr
+_finalizers
+set_current_context)
+temp_folder_root
+context_idr
+z"TemporaryResourcesManager.__init__c
+_current_context_id
+register_new_context)
+z-TemporaryResourcesManager.set_current_contextc
+Nz!joblib_memmapping_folder_{}_{}_{})
+register_folder_finalizer)
+new_folder_nameZ
+new_folder_pathr8
+z.TemporaryResourcesManager.register_new_contextc
+z@Return a folder name specific to the currently activated context)
+resolve_temp_folder_name3
+z2TemporaryResourcesManager.resolve_temp_folder_namec
+folder)
+listr
+_unregister_contextr
+unregister
+atexit
+pop)
+	finalizerr
+z-TemporaryResourcesManager._unregister_contextc
+fromlistT
+allow_non_emptyr
+z%Failed to delete temporary folder: {})
+__import__r
+warnings
+warnr
+pool_module_name
+pool_subfolderr
+_cleanupP
+zETemporaryResourcesManager.register_folder_finalizer.<locals>._cleanup)
+z3TemporaryResourcesManager.register_folder_finalizerc
+z:Unlink temporary resources created by a process-based poolNr
+copy
+_unlink_temporary_resourcesr
+listdirr
+_try_delete_folder
+z5TemporaryResourcesManager._unlink_temporary_resourcesc
+z>Unregister temporary resources created by a process-based poolNr
+_unregister_temporary_resourcesr
+z9TemporaryResourcesManager._unregister_temporary_resourcesc
+z,TemporaryResourcesManager._try_delete_folder)
+NNNr
+FT)@rB
+statr
+uuidr
+multiprocessingr
+pickler
+WindowsError
+	NameErrorr 
+numpyre
+numpy.lib.stride_tricksr
+ImportErrorZ
+numpy_pickler
+Z	backportsr
+diskr
+externals.loky.backendr
+S_IRUSR
+S_IWUSR
+S_IXUSRr
+_CLEANUP_FUNCSr,
+objectrm
+<module>

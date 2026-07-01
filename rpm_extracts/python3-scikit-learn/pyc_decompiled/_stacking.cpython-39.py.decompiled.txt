@@ -1,0 +1,597 @@
+m	Z	
+l m!Z!
+l"m#Z#
+l$m%Z%
+l&m'Z'
+l(m)Z)
+l(m*Z*
+l(m+Z+
+l,m-Z-
+l(m.Z.
+d!d"
+d#d$
+)%z"Stacking classifier and regressor.
+ABCMeta
+abstractmethod)
+deepcopyN)
+Parallel
+clone)
+ClassifierMixin
+RegressorMixin
+TransformerMixin)
+is_classifier
+is_regressor)
+NotFittedError)
+_VisualBlock
+_fit_single_estimator)
+_BaseHeterogeneousEnsemble)
+LogisticRegression)
+RidgeCV)
+cross_val_predict)
+check_cv)
+LabelEncoder)
+Bunch)
+available_if)
+check_classification_targets)
+check_is_fitted)
+check_scalar)
+column_or_1d)
+delayed)
+_check_feature_names_inc
+Check if we can delegate a method to the underlying estimator.
+    First, we check the first fitted final estimator if available, otherwise we
+    check the unfitted final estimator.
+    c
+final_estimator_)
+hasattrr
+final_estimator
+self
+attr
+@/usr/lib64/python3.9/site-packages/sklearn/ensemble/_stacking.py
+<lambda>.
+z _estimator_has.<locals>.<lambda>r&
+_estimator_has(
+_BaseStackingz
+Base class for stacking method.N
+autor
+stack_method
+n_jobs
+verbose
+passthroughc
+estimators)
+super
+__init__r!
+	__class__r&
+_BaseStacking.__init__c
+defaultr&
+_clone_final_estimatorL
+z$_BaseStacking._clone_final_estimatorc
+)	a1
+Concatenate the predictions of each first layer learner and
+        possibly the input dataset `X`.
+        If `X` is sparse and `self.passthrough` is False, the output of
+        `transform` will be dense (the predictions). If `X` is sparse
+        and `self.passthrough` is True, the output of `transform` will
+        be sparse.
+        This helper is in charge of ensuring the predictions are 2D arrays and
+        it will drop one of the probability column when using probabilities
+        in the binary case. Indeed, the p(y|c=0) = 1 - p(y|c=1)
+        r
+predict_probar
+shape)
+predr&
+<listcomp>p
+z:_BaseStacking._concatenate_predictions.<locals>.<listcomp>)
+format)
+	enumerate
+ndim
+appendZ
+reshape
+stack_method_
+classes_
+_n_feature_outsr0
+sparseZ
+issparseZ
+hstackr?
+predictions
+X_metaZ
+est_idxZ
+predsr&
+_concatenate_predictionsR
+z&_BaseStacking._concatenate_predictionsc
+dropr+
+decision_function
+predictz9Underlying estimator {} does not implement the method {}.)
+getattrr 
+ValueErrorr?
+name
+	estimator
+methodr&
+_method_namex
+_BaseStacking._method_namec
+qPn$t
+Fit the estimators.
+        Parameters
+        ----------
+        X : {array-like, sparse matrix} of shape (n_samples, n_features)
+            Training vectors, where `n_samples` is the number of samples and
+            `n_features` is the number of features.
+        y : array-like of shape (n_samples,)
+            Target values.
+        sample_weight : array-like of shape (n_samples,) or default=None
+            Sample weights. If None, then samples are equally weighted.
+            Note that this is supported only if all underlying estimators
+            support sample weights.
+            .. versionchanged:: 0.23
+               when not None, `sample_weight` is passed to all underlying
+               estimators
+        Returns
+        -------
+        self : object
+        r0
+neither)
+target_typeZ
+include_boundariesZ
+prefitrM
+est)
+sample_weight
+	<genexpr>
+z$_BaseStacking.fit.<locals>.<genexpr>r
+feature_names_in_c
+methr"
+z%_BaseStacking.fit.<locals>.<listcomp>c
+predict_method
+classifier
+random_stateNrX
+fit_paramsr/
+bool_
+boolZ
+_validate_estimators
+_validate_final_estimatorr-
+estimators_r
+named_estimators_
+zipr 
+randomZ
+RandomStaterL
+namesZ
+all_estimatorsr-
+est_fitted_idxZ
+name_estZ
+org_estZ
+current_estimatorrJ
+_BaseStacking.fitc
+z+Number of features seen during :term:`fit`.z' object has no attribute n_features_in_Nr
+AttributeErrorr5
+__name__re
+n_features_in_)
+nfer&
+_BaseStacking.n_features_in_c
+z9Concatenate and return the predictions of the estimators.c
+z,_BaseStacking._transform.<locals>.<listcomp>)
+_transform
+_BaseStacking._transformc
+Get output feature names for transformation.
+        Parameters
+        ----------
+        input_features : array-like of str or None, default=None
+            Input features. The input feature names are only used when `passthrough` is
+            `True`.
+            - If `input_features` is `None`, then `feature_names_in_` is
+              used as feature names in. If `feature_names_in_` is not defined,
+              then names are generated: `[x0, x1, ..., x(n_features_in_ - 1)]`.
+            - If `input_features` is an array-like, then `input_features` must
+              match `feature_names_in_` if `feature_names_in_` is defined.
+            If `passthrough` is `False`, then only the names of `estimators` are used
+            to generate the output feature names.
+        Returns
+        -------
+        feature_names_out : ndarray of str objects
+            Transformed feature names.
+        )
+generate_namesc
+z6_BaseStacking.get_feature_names_out.<locals>.<genexpr>r
+class_namerW
+dtype)
+lowerr1
+extend
+rangerH
+concatenateZ
+asarray
+object)
+input_featuresZ
+non_dropped_estimatorsZ
+meta_namesZ
+n_features_outr&
+get_feature_names_out
+z#_BaseStacking.get_feature_names_outrO
+Predict target for X.
+        Parameters
+        ----------
+        X : {array-like, sparse matrix} of shape (n_samples, n_features)
+            Training vectors, where `n_samples` is the number of samples and
+            `n_features` is the number of features.
+        **predict_params : dict of str -> obj
+            Parameters to the `predict` called by the `final_estimator`. Note
+            that this may be used to return uncertainties from some estimators
+            with `return_std` or `return_cov`. Be aware that it will only
+            accounts for uncertainty in the final estimator.
+        Returns
+        -------
+        y_pred : ndarray of shape (n_samples,) or (n_samples, n_output)
+            Predicted targets.
+        )
+	transform)
+predict_paramsr&
+_BaseStacking.predictc
+parallelF)
+dash_wrappedr!
+serial)
+final_blockr&
+_sk_visual_block_a
+_BaseStacking._sk_visual_block_)
+__module__
+__qualname__
+__doc__r
+staticmethodrU
+propertyrk
+__classcell__r&
+	metaclassc
+StackingClassifierai
+Stack of estimators with a final classifier.
+    Stacked generalization consists in stacking the output of individual
+    estimator and use a classifier to compute the final prediction. Stacking
+    allows to use the strength of each individual estimator by using their
+    output as input of a final estimator.
+    Note that `estimators_` are fitted on the full `X` while `final_estimator_`
+    is trained using cross-validated predictions of the base estimators using
+    `cross_val_predict`.
+    Read more in the :ref:`User Guide <stacking>`.
+    .. versionadded:: 0.22
+    Parameters
+    ----------
+    estimators : list of (str, estimator)
+        Base estimators which will be stacked together. Each element of the
+        list is defined as a tuple of string (i.e. name) and an estimator
+        instance. An estimator can be set to 'drop' using `set_params`.
+    final_estimator : estimator, default=None
+        A classifier which will be used to combine the base estimators.
+        The default classifier is a
+        :class:`~sklearn.linear_model.LogisticRegression`.
+    cv : int, cross-validation generator, iterable, or "prefit", default=None
+        Determines the cross-validation splitting strategy used in
+        `cross_val_predict` to train `final_estimator`. Possible inputs for
+        cv are:
+        * None, to use the default 5-fold cross validation,
+        * integer, to specify the number of folds in a (Stratified) KFold,
+        * An object to be used as a cross-validation generator,
+        * An iterable yielding train, test splits,
+        * `"prefit"` to assume the `estimators` are prefit. In this case, the
+          estimators will not be refitted.
+        For integer/None inputs, if the estimator is a classifier and y is
+        either binary or multiclass,
+        :class:`~sklearn.model_selection.StratifiedKFold` is used.
+        In all other cases, :class:`~sklearn.model_selection.KFold` is used.
+        These splitters are instantiated with `shuffle=False` so the splits
+        will be the same across calls.
+        Refer :ref:`User Guide <cross_validation>` for the various
+        cross-validation strategies that can be used here.
+        If "prefit" is passed, it is assumed that all `estimators` have
+        been fitted already. The `final_estimator_` is trained on the `estimators`
+        predictions on the full training set and are **not** cross validated
+        predictions. Please note that if the models have been trained on the same
+        data to train the stacking model, there is a very high risk of overfitting.
+        .. versionadded:: 1.1
+            The 'prefit' option was added in 1.1
+        .. note::
+           A larger number of split will provide no benefits if the number
+           of training samples is large enough. Indeed, the training time
+           will increase. ``cv`` is not used for model evaluation but for
+           prediction.
+    stack_method : {'auto', 'predict_proba', 'decision_function', 'predict'},             default='auto'
+        Methods called for each base estimator. It can be:
+        * if 'auto', it will try to invoke, for each estimator,
+          `'predict_proba'`, `'decision_function'` or `'predict'` in that
+          order.
+        * otherwise, one of `'predict_proba'`, `'decision_function'` or
+          `'predict'`. If the method is not implemented by the estimator, it
+          will raise an error.
+    n_jobs : int, default=None
+        The number of jobs to run in parallel all `estimators` `fit`.
+        `None` means 1 unless in a `joblib.parallel_backend` context. -1 means
+        using all processors. See Glossary for more details.
+    passthrough : bool, default=False
+        When False, only the predictions of estimators will be used as
+        training data for `final_estimator`. When True, the
+        `final_estimator` is trained on the predictions as well as the
+        original training data.
+    verbose : int, default=0
+        Verbosity level.
+    Attributes
+    ----------
+    classes_ : ndarray of shape (n_classes,)
+        Class labels.
+    estimators_ : list of estimators
+        The elements of the `estimators` parameter, having been fitted on the
+        training data. If an estimator has been set to `'drop'`, it
+        will not appear in `estimators_`. When `cv="prefit"`, `estimators_`
+        is set to `estimators` and is not fitted again.
+    named_estimators_ : :class:`~sklearn.utils.Bunch`
+        Attribute to access any fitted sub-estimators by name.
+    n_features_in_ : int
+        Number of features seen during :term:`fit`. Only defined if the
+        underlying classifier exposes such an attribute when fit.
+        .. versionadded:: 0.24
+    feature_names_in_ : ndarray of shape (`n_features_in_`,)
+        Names of features seen during :term:`fit`. Only defined if the
+        underlying estimators expose such an attribute when fit.
+        .. versionadded:: 1.0
+    final_estimator_ : estimator
+        The classifier which predicts given the output of `estimators_`.
+    stack_method_ : list of str
+        The method used by each base estimator.
+    See Also
+    --------
+    StackingRegressor : Stack of estimators with a final regressor.
+    Notes
+    -----
+    When `predict_proba` is used by each estimator (i.e. most of the time for
+    `stack_method='auto'` or specifically for `stack_method='predict_proba'`),
+    The first column predicted by each estimator will be dropped in the case
+    of a binary classification problem. Indeed, both feature will be perfectly
+    collinear.
+    References
+    ----------
+    .. [1] Wolpert, David H. "Stacked generalization." Neural networks 5.2
+       (1992): 241-259.
+    Examples
+    --------
+    >>> from sklearn.datasets import load_iris
+    >>> from sklearn.ensemble import RandomForestClassifier
+    >>> from sklearn.svm import LinearSVC
+    >>> from sklearn.linear_model import LogisticRegression
+    >>> from sklearn.preprocessing import StandardScaler
+    >>> from sklearn.pipeline import make_pipeline
+    >>> from sklearn.ensemble import StackingClassifier
+    >>> X, y = load_iris(return_X_y=True)
+    >>> estimators = [
+    ...     ('rf', RandomForestClassifier(n_estimators=10, random_state=42)),
+    ...     ('svr', make_pipeline(StandardScaler(),
+    ...                           LinearSVC(random_state=42)))
+    ... ]
+    >>> clf = StackingClassifier(
+    ...     estimators=estimators, final_estimator=LogisticRegression()
+    ... )
+    >>> from sklearn.model_selection import train_test_split
+    >>> X_train, X_test, y_train, y_test = train_test_split(
+    ...     X, y, stratify=y, random_state=42
+    ... )
+    >>> clf.fit(X_train, y_train).score(X_test, y_test)
+    0.9...
+    Nr+
+StackingClassifier.__init__c
+z:'final_estimator' parameter should be a classifier. Got {})
+z,StackingClassifier._validate_final_estimatorc
+Fit the estimators.
+        Parameters
+        ----------
+        X : {array-like, sparse matrix} of shape (n_samples, n_features)
+            Training vectors, where `n_samples` is the number of samples and
+            `n_features` is the number of features.
+        y : array-like of shape (n_samples,)
+            Target values.
+        sample_weight : array-like of shape (n_samples,), default=None
+            Sample weights. If None, then samples are equally weighted.
+            Note that this is supported only if all underlying estimators
+            support sample weights.
+        Returns
+        -------
+        self : object
+            Returns a fitted instance of estimator.
+        )
+_lerE
+StackingClassifier.fitrO
+inverse_transform)
+y_predr4
+StackingClassifier.predictr:
+Predict class probabilities for `X` using the final estimator.
+        Parameters
+        ----------
+        X : {array-like, sparse matrix} of shape (n_samples, n_features)
+            Training vectors, where `n_samples` is the number of samples and
+            `n_features` is the number of features.
+        Returns
+        -------
+        probabilities : ndarray of shape (n_samples, n_classes) or             list of ndarray of shape (n_output,)
+            The class probabilities of the input samples.
+        )
+z StackingClassifier.predict_probarN
+Decision function for samples in `X` using the final estimator.
+        Parameters
+        ----------
+        X : {array-like, sparse matrix} of shape (n_samples, n_features)
+            Training vectors, where `n_samples` is the number of samples and
+            `n_features` is the number of features.
+        Returns
+        -------
+        decisions : ndarray of shape (n_samples,), (n_samples, n_classes),             or (n_samples, n_classes * (n_classes-1) / 2)
+            The decision function computed the final estimator.
+        )
+z$StackingClassifier.decision_functionc
+Return class labels or probabilities for X for each estimator.
+        Parameters
+        ----------
+        X : {array-like, sparse matrix} of shape (n_samples, n_features)
+            Training vectors, where `n_samples` is the number of samples and
+            `n_features` is the number of features.
+        Returns
+        -------
+        y_preds : ndarray of shape (n_samples, n_estimators) or                 (n_samples, n_classes * n_estimators)
+            Prediction outputs for each estimator.
+        
+StackingClassifier.transformc
+z$StackingClassifier._sk_visual_block_)
+StackingRegressora
+Stack of estimators with a final regressor.
+    Stacked generalization consists in stacking the output of individual
+    estimator and use a regressor to compute the final prediction. Stacking
+    allows to use the strength of each individual estimator by using their
+    output as input of a final estimator.
+    Note that `estimators_` are fitted on the full `X` while `final_estimator_`
+    is trained using cross-validated predictions of the base estimators using
+    `cross_val_predict`.
+    Read more in the :ref:`User Guide <stacking>`.
+    .. versionadded:: 0.22
+    Parameters
+    ----------
+    estimators : list of (str, estimator)
+        Base estimators which will be stacked together. Each element of the
+        list is defined as a tuple of string (i.e. name) and an estimator
+        instance. An estimator can be set to 'drop' using `set_params`.
+    final_estimator : estimator, default=None
+        A regressor which will be used to combine the base estimators.
+        The default regressor is a :class:`~sklearn.linear_model.RidgeCV`.
+    cv : int, cross-validation generator, iterable, or "prefit", default=None
+        Determines the cross-validation splitting strategy used in
+        `cross_val_predict` to train `final_estimator`. Possible inputs for
+        cv are:
+        * None, to use the default 5-fold cross validation,
+        * integer, to specify the number of folds in a (Stratified) KFold,
+        * An object to be used as a cross-validation generator,
+        * An iterable yielding train, test splits.
+        * "prefit" to assume the `estimators` are prefit, and skip cross validation
+        For integer/None inputs, if the estimator is a classifier and y is
+        either binary or multiclass,
+        :class:`~sklearn.model_selection.StratifiedKFold` is used.
+        In all other cases, :class:`~sklearn.model_selection.KFold` is used.
+        These splitters are instantiated with `shuffle=False` so the splits
+        will be the same across calls.
+        Refer :ref:`User Guide <cross_validation>` for the various
+        cross-validation strategies that can be used here.
+        If "prefit" is passed, it is assumed that all `estimators` have
+        been fitted already. The `final_estimator_` is trained on the `estimators`
+        predictions on the full training set and are **not** cross validated
+        predictions. Please note that if the models have been trained on the same
+        data to train the stacking model, there is a very high risk of overfitting.
+        .. versionadded:: 1.1
+            The 'prefit' option was added in 1.1
+        .. note::
+           A larger number of split will provide no benefits if the number
+           of training samples is large enough. Indeed, the training time
+           will increase. ``cv`` is not used for model evaluation but for
+           prediction.
+    n_jobs : int, default=None
+        The number of jobs to run in parallel for `fit` of all `estimators`.
+        `None` means 1 unless in a `joblib.parallel_backend` context. -1 means
+        using all processors. See Glossary for more details.
+    passthrough : bool, default=False
+        When False, only the predictions of estimators will be used as
+        training data for `final_estimator`. When True, the
+        `final_estimator` is trained on the predictions as well as the
+        original training data.
+    verbose : int, default=0
+        Verbosity level.
+    Attributes
+    ----------
+    estimators_ : list of estimator
+        The elements of the `estimators` parameter, having been fitted on the
+        training data. If an estimator has been set to `'drop'`, it
+        will not appear in `estimators_`. When `cv="prefit"`, `estimators_`
+        is set to `estimators` and is not fitted again.
+    named_estimators_ : :class:`~sklearn.utils.Bunch`
+        Attribute to access any fitted sub-estimators by name.
+    n_features_in_ : int
+        Number of features seen during :term:`fit`. Only defined if the
+        underlying regressor exposes such an attribute when fit.
+        .. versionadded:: 0.24
+    feature_names_in_ : ndarray of shape (`n_features_in_`,)
+        Names of features seen during :term:`fit`. Only defined if the
+        underlying estimators expose such an attribute when fit.
+        .. versionadded:: 1.0
+    final_estimator_ : estimator
+        The regressor to stacked the base estimators fitted.
+    stack_method_ : list of str
+        The method used by each base estimator.
+    See Also
+    --------
+    StackingClassifier : Stack of estimators with a final classifier.
+    References
+    ----------
+    .. [1] Wolpert, David H. "Stacked generalization." Neural networks 5.2
+       (1992): 241-259.
+    Examples
+    --------
+    >>> from sklearn.datasets import load_diabetes
+    >>> from sklearn.linear_model import RidgeCV
+    >>> from sklearn.svm import LinearSVR
+    >>> from sklearn.ensemble import RandomForestRegressor
+    >>> from sklearn.ensemble import StackingRegressor
+    >>> X, y = load_diabetes(return_X_y=True)
+    >>> estimators = [
+    ...     ('lr', RidgeCV()),
+    ...     ('svr', LinearSVR(random_state=42))
+    ... ]
+    >>> reg = StackingRegressor(
+    ...     estimators=estimators,
+    ...     final_estimator=RandomForestRegressor(n_estimators=10,
+    ...                                           random_state=42)
+    ... )
+    >>> from sklearn.model_selection import train_test_split
+    >>> X_train, X_test, y_train, y_test = train_test_split(
+    ...     X, y, random_state=42
+    ... )
+    >>> reg.fit(X_train, y_train).score(X_test, y_test)
+    0.3...
+    NFr
+StackingRegressor.__init__c
+z9'final_estimator' parameter should be a regressor. Got {})
+z+StackingRegressor._validate_final_estimatorc
+Fit the estimators.
+        Parameters
+        ----------
+        X : {array-like, sparse matrix} of shape (n_samples, n_features)
+            Training vectors, where `n_samples` is the number of samples and
+            `n_features` is the number of features.
+        y : array-like of shape (n_samples,)
+            Target values.
+        sample_weight : array-like of shape (n_samples,), default=None
+            Sample weights. If None, then samples are equally weighted.
+            Note that this is supported only if all underlying estimators
+            support sample weights.
+        Returns
+        -------
+        self : object
+            Returns a fitted instance.
+        T)
+warn)
+StackingRegressor.fitc
+Return the predictions for X for each estimator.
+        Parameters
+        ----------
+        X : {array-like, sparse matrix} of shape (n_samples, n_features)
+            Training vectors, where `n_samples` is the number of samples and
+            `n_features` is the number of features.
+        Returns
+        -------
+        y_preds : ndarray of shape (n_samples, n_estimators)
+            Prediction outputs for each estimator.
+        r
+StackingRegressor.transformc
+z#StackingRegressor._sk_visual_block_)
+abcr
+copyr
+numpyrH
+joblibr
+scipy.sparserG
+baser
+exceptionsr
+utils._estimator_html_reprr
+_baser
+linear_modelr
+model_selectionr
+preprocessingr
+utilsr
+utils.metaestimatorsr
+utils.multiclassr
+utils.validationr
+utils.fixesr
+<module>

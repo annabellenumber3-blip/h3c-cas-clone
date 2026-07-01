@@ -1,0 +1,239 @@
+m	Z	
+DerSequence)
+long_to_bytes)
+Integer)
+HMAC)
+EccKey)
+DsaKey
+DssSigScheme
+newc
+zoA (EC)DSA signature object.
+    Do not instantiate directly.
+    Use :func:`Cryptodome.Signature.DSS.new`.
+    c
+Create a new Digital Signature Standard (DSS) object.
+        Do not instantiate this object directly,
+        use `Cryptodome.Signature.DSS.new` instead.
+        
+_key
+	_encoding
+_order
+size_in_bits
+_order_bits
+_order_bytes)
+self
+encoding
+order
+>/usr/lib64/python3.9/site-packages/Cryptodome/Signature/DSS.py
+__init__3
+DssSigScheme.__init__c
+zRReturn ``True`` if this signature object can be used
+        for signing messages.)
+has_private
+can_signA
+DssSigScheme.can_signc
+To be provided by subclasses
+NotImplementedError
+msg_hashr
+_compute_nonceG
+DssSigScheme._compute_noncec
+_valid_hashJ
+DssSigScheme._valid_hashc
+Compute the DSA/ECDSA signature of a message.
+        Args:
+          msg_hash (hash object):
+            The hash that was carried out over the message.
+            The object belongs to the :mod:`Cryptodome.Hash` package.
+            Under mode ``'fips-186-3'``, the hash must be a FIPS
+            approved secure hash (SHA-2 or SHA-3).
+        :return: The signature as ``bytes``
+        :raise ValueError: if the hash algorithm is incompatible to the (EC)DSA key
+        :raise TypeError: if the (EC)DSA key has no private half
+        z
+Private key is needed to sign
+Hash is not sufficiently strongN
+binary
+<listcomp>k
+z%DssSigScheme.sign.<locals>.<listcomp>)
+	TypeErrorr"
+ValueErrorr!
+from_bytes
+digestr
+_signr
+joinr
+encode)
+nonce
+sig_pair
+outputr
+signM
+DssSigScheme.signc
+Check if a certain (EC)DSA signature is authentic.
+        Args:
+          msg_hash (hash object):
+            The hash that was carried out over the message.
+            This is an object belonging to the :mod:`Cryptodome.Hash` module.
+            Under mode ``'fips-186-3'``, the hash must be a FIPS
+            approved secure hash (SHA-2 or SHA-3).
+          signature (``bytes``):
+            The signature that needs to be validated.
+        :raise ValueError: if the signature is not authentic
+        r#
+z'The signature is not authentic (length)c
+z'DssSigScheme.verify.<locals>.<listcomp>NT)
+strictz$The signature is not authentic (DER)z,The signature is not authentic (DER content)r
+z"The signature is not authentic (d)z
+The signature is not authenticF)
+lenr
+decode
+IndexErrorZ
+hasOnlyIntsr
+_verify)
+Z	signatureZ
+r_primeZ
+s_primeZ
+der_seqr1
+resultr
+verifyz
+DssSigScheme.verifyN)
+__name__
+__module__
+__qualname__
+__doc__r
+DeterministicDsaSigSchemec
+superr?
+_private_key)
+private_key
+	__class__r
+z"DeterministicDsaSigScheme.__init__c
+See 2.3.2 in RFC6979r
+bstrr9
+q_lenZ
+b_lenr
+	_bits2int
+z#DeterministicDsaSigScheme._bits2intc
+See 2.3.3 in RFC6979r
+Z	int_mod_qr
+_int2octets
+z%DeterministicDsaSigScheme._int2octetsc
+See 2.3.4 in RFC6979)
+_bits2octets
+z&DeterministicDsaSigScheme._bits2octetsc
+z!Generate k in a deterministic way
+digest_sizer
+mhashZ
+mask_vZ
+nonce_kZ
+int_octr0
+mask_tr
+z(DeterministicDsaSigScheme._compute_noncec
+z%DeterministicDsaSigScheme._valid_hash)
+__classcell__r
+FipsDsaSigScheme)
+Nz+L/N (%d, %d) is not compliant to FIPS 186-3)
+	_randfuncr
+_fips_186_3_L_Nr+
+randfunc
+errorrD
+FipsDsaSigScheme.__init__c
+min_inclusiveZ
+max_exclusiverV
+random_ranger
+FipsDsaSigScheme._compute_noncec
+z*Verify that SHA-1, SHA-2 or SHA-3 are usedz
+1.3.14.3.2.26z
+2.16.840.1.101.3.4.2.)
+startswithr
+FipsDsaSigScheme._valid_hash)
+FipsEcDsaSigSchemec
+FipsEcDsaSigScheme.__init__c
+_curver
+z!FipsEcDsaSigScheme._compute_noncec
+zxVerify that the strength of the hash matches or exceeds
+        the strength of the EC. We fail if the hash is too weak.)
+2.16.840.1.101.3.4.2.4z
+2.16.840.1.101.3.4.2.7z
+2.16.840.1.101.3.4.2.5)
+2.16.840.1.101.3.4.2.1z
+2.16.840.1.101.3.4.2.8z
+2.16.840.1.101.3.4.2.6)
+2.16.840.1.101.3.4.2.2z
+2.16.840.1.101.3.4.2.9)
+2.16.840.1.101.3.4.2.3z
+2.16.840.1.101.3.4.2.10F)
+pointQr
+AttributeError)	r
+modulus_bitsZ
+sha224Z
+sha256Z
+sha384Z
+sha512Z
+shsr9
+FipsEcDsaSigScheme._valid_hash)
+Create a signature object :class:`DssSigScheme` that
+    can perform (EC)DSA signature or verification.
+    .. note::
+        Refer to `NIST SP 800 Part 1 Rev 4`_ (or newer release) for an
+        overview of the recommended key lengths.
+    Args:
+        key (:class:`Cryptodome.PublicKey.DSA` or :class:`Cryptodome.PublicKey.ECC`):
+            The key to use for computing the signature (*private* keys only)
+            or for verifying one.
+            For DSA keys, let ``L`` and ``N`` be the bit lengths of the modulus ``p``
+            and of ``q``: the pair ``(L,N)`` must appear in the following list,
+            in compliance to section 4.2 of `FIPS 186-4`_:
+            - (1024, 160) *legacy only; do not create new signatures with this*
+            - (2048, 224) *deprecated; do not create new signatures with this*
+            - (2048, 256)
+            - (3072, 256)
+            For ECC, only keys over P-224, P-256, P-384, and P-521 are accepted.
+        mode (string):
+            The parameter can take these values:
+            - ``'fips-186-3'``. The signature generation is randomized and carried out
+              according to `FIPS 186-3`_: the nonce ``k`` is taken from the RNG.
+            - ``'deterministic-rfc6979'``. The signature generation is not
+              randomized. See RFC6979_.
+        encoding (string):
+            How the signature is encoded. This value determines the output of
+            :meth:`sign` and the input to :meth:`verify`.
+            The following values are accepted:
+            - ``'binary'`` (default), the signature is the raw concatenation
+              of ``r`` and ``s``. It is defined in the IEEE P.1363 standard.
+              For DSA, the size in bytes of the signature is ``N/4`` bytes
+              (e.g. 64 for ``N=256``).
+              For ECDSA, the signature is always twice the length of a point
+              coordinate (e.g. 64 bytes for P-256).
+            - ``'der'``, the signature is a ASN.1 DER SEQUENCE
+              with two INTEGERs (``r`` and ``s``). It is defined in RFC3279_.
+              The size of the signature is variable.
+        randfunc (callable):
+            A function that returns random ``bytes``, of a given length.
+            If omitted, the internal RNG is used.
+            Only applicable for the *'fips-186-3'* mode.
+    .. _FIPS 186-3: http://csrc.nist.gov/publications/fips/fips186-3/fips_186-3.pdf
+    .. _FIPS 186-4: http://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.186-4.pdf
+    .. _NIST SP 800 Part 1 Rev 4: http://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-57pt1r4.pdf
+    .. _RFC6979: http://tools.ietf.org/html/rfc6979
+    .. _RFC3279: https://tools.ietf.org/html/rfc3279#section-2.2.2
+    )
+derz
+Unknown encoding '%s'
+ed25519z ECC key is not on a NIST P curver(
+Unsupported key type Nz
+deterministic-rfc6979z
+fips-186-3z
+Unknown DSS mode '%s')
+isinstancer
+namer
+typer
+getattrr?
+moder
+private_key_attrrC
+Cryptodome.Util.asn1r
+Cryptodome.Util.numberr
+Cryptodome.Math.Numbersr
+Cryptodome.Hashr
+Cryptodome.PublicKey.ECCr
+Cryptodome.PublicKey.DSAr
+__all__
+objectr
+<module>"

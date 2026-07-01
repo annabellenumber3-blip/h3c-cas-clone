@@ -1,0 +1,87 @@
+#!/usr/bin/expect
+# Author : guozhonghua/02084
+# Date   : 2013-05-18
+# Des    : Delete the LV/VG/PV/dm/part of the disk
+# Usage  : Delete the parts of the disk
+#      $0: the op type
+#      $1: the other parameters
+#      $.: other parameters
+# the common function of the expected
+
+# The expect function
+proc expect_fun {} {
+    set timeout 20 
+    expect "*yes/no*" { 
+        send "yes\r"
+        exp_continue
+    } "*y/n*" { 
+        send "y\r"
+        exp_continue
+    } "*Yes/No*" { 
+        send "Yes\r"
+        exp_continue
+    } "*Y/N*" { 
+        send "Y\r"
+        exp_continue  
+    } "Retry/Cancel" {
+        send "Cancel\n"
+        exp_continue
+    } "Device or resource busy" {
+        send_user "\n"
+        exit 3
+    } "Command failed" {
+        send_user "\n"
+        exit 2     
+    } timeout {
+        send_user "\n"
+        exit 1
+    } eof { 
+        send_user "\n"
+        exit 0 
+    }
+}
+
+# check the input
+if {$argc<1} {
+    send_user "usage: $argv0 type ..."
+    exit 4
+}
+
+# Get the operation type
+set type_op [lindex $argv 0]
+
+# lv remove
+if { $type_op == "lv"} {
+    set vg [lindex $argv 1]
+    set lv [lindex $argv 2]
+    spawn -noecho lvremove -f /dev/$vg/$lv
+}
+
+# vg remove
+if { $type_op == "vg"} {
+    set vg [lindex $argv 1]
+    spawn -noecho vgremove -f $vg
+}
+
+# pv remove
+if { $type_op == "pv"} {
+    set disk_path [lindex $argv 1]
+    spawn -noecho pvremove -f $disk_path
+}
+
+# dm remove 
+if { $type_op == "dm"} {
+    set disk_name [lindex $argv 1]
+    spawn -noecho dmsetup remove -ff $disk_name
+}
+
+# part delete 
+if { $type_op == "pt"} {
+    set disk [lindex $argv 1]
+    set index [lindex $argv 2]
+    spawn -noecho parted -s $disk rm $index
+}
+
+# get the expect info
+set exit_code [ expect_fun ]
+exit $exit_code

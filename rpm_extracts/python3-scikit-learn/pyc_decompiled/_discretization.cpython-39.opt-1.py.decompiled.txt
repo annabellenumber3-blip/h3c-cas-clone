@@ -1,0 +1,298 @@
+d	l	m
+OneHotEncoder
+BaseEstimator
+TransformerMixin)
+check_array)
+check_is_fitted)
+check_random_state)
+_check_feature_names_in)
+check_scalar)
+_safe_indexingc
+KBinsDiscretizera
+    Bin continuous data into intervals.
+    Read more in the :ref:`User Guide <preprocessing_discretization>`.
+    .. versionadded:: 0.20
+    Parameters
+    ----------
+    n_bins : int or array-like of shape (n_features,), default=5
+        The number of bins to produce. Raises ValueError if ``n_bins < 2``.
+    encode : {'onehot', 'onehot-dense', 'ordinal'}, default='onehot'
+        Method used to encode the transformed result.
+        - 'onehot': Encode the transformed result with one-hot encoding
+          and return a sparse matrix. Ignored features are always
+          stacked to the right.
+        - 'onehot-dense': Encode the transformed result with one-hot encoding
+          and return a dense array. Ignored features are always
+          stacked to the right.
+        - 'ordinal': Return the bin identifier encoded as an integer value.
+    strategy : {'uniform', 'quantile', 'kmeans'}, default='quantile'
+        Strategy used to define the widths of the bins.
+        - 'uniform': All bins in each feature have identical widths.
+        - 'quantile': All bins in each feature have the same number of points.
+        - 'kmeans': Values in each bin have the same nearest center of a 1D
+          k-means cluster.
+    dtype : {np.float32, np.float64}, default=None
+        The desired data-type for the output. If None, output dtype is
+        consistent with input dtype. Only np.float32 and np.float64 are
+        supported.
+        .. versionadded:: 0.24
+    subsample : int or None (default='warn')
+        Maximum number of samples, used to fit the model, for computational
+        efficiency. Used when `strategy="quantile"`.
+        `subsample=None` means that all the training samples are used when
+        computing the quantiles that determine the binning thresholds.
+        Since quantile computation relies on sorting each column of `X` and
+        that sorting has an `n log(n)` time complexity,
+        it is recommended to use subsampling on datasets with a
+        very large number of samples.
+        .. deprecated:: 1.1
+           In version 1.3 and onwards, `subsample=2e5` will be the default.
+    random_state : int, RandomState instance or None, default=None
+        Determines random number generation for subsampling.
+        Pass an int for reproducible results across multiple function calls.
+        See the `subsample` parameter for more details.
+        See :term:`Glossary <random_state>`.
+        .. versionadded:: 1.1
+    Attributes
+    ----------
+    bin_edges_ : ndarray of ndarray of shape (n_features,)
+        The edges of each bin. Contain arrays of varying shapes ``(n_bins_, )``
+        Ignored features will have empty arrays.
+    n_bins_ : ndarray of shape (n_features,), dtype=np.int_
+        Number of bins per feature. Bins whose width are too small
+        (i.e., <= 1e-8) are removed with a warning.
+    n_features_in_ : int
+        Number of features seen during :term:`fit`.
+        .. versionadded:: 0.24
+    feature_names_in_ : ndarray of shape (`n_features_in_`,)
+        Names of features seen during :term:`fit`. Defined only when `X`
+        has feature names that are all strings.
+        .. versionadded:: 1.0
+    See Also
+    --------
+    Binarizer : Class used to bin values as ``0`` or
+        ``1`` based on a parameter ``threshold``.
+    Notes
+    -----
+    In bin edges for feature ``i``, the first and last values are used only for
+    ``inverse_transform``. During transform, bin edges are extended to::
+      np.concatenate([-np.inf, bin_edges_[i][1:-1], np.inf])
+    You can combine ``KBinsDiscretizer`` with
+    :class:`~sklearn.compose.ColumnTransformer` if you only want to preprocess
+    part of the features.
+    ``KBinsDiscretizer`` might produce constant features (e.g., when
+    ``encode = 'onehot'`` and certain bins do not contain any data).
+    These features can be removed with feature selection algorithms
+    (e.g., :class:`~sklearn.feature_selection.VarianceThreshold`).
+    Examples
+    --------
+    >>> from sklearn.preprocessing import KBinsDiscretizer
+    >>> X = [[-2, 1, -4,   -1],
+    ...      [-1, 2, -3, -0.5],
+    ...      [ 0, 3, -2,  0.5],
+    ...      [ 1, 4, -1,    2]]
+    >>> est = KBinsDiscretizer(n_bins=3, encode='ordinal', strategy='uniform')
+    >>> est.fit(X)
+    KBinsDiscretizer(...)
+    >>> Xt = est.transform(X)
+    >>> Xt  # doctest: +SKIP
+    array([[ 0., 0., 0., 0.],
+           [ 1., 1., 1., 0.],
+           [ 2., 2., 2., 1.],
+           [ 2., 2., 2., 2.]])
+    Sometimes it may be useful to convert the data back into the original
+    feature space. The ``inverse_transform`` function converts the binned
+    data into the original feature space. Each value will be equal to the mean
+    of the two bin edges.
+    >>> est.bin_edges_[0]
+    array([-2., -1.,  0.,  1.])
+    >>> est.inverse_transform(Xt)
+    array([[-1.5,  1.5, -3.5, -0.5],
+           [-0.5,  2.5, -2.5, -0.5],
+           [ 0.5,  3.5, -1.5,  0.5],
+           [ 0.5,  3.5, -1.5,  1.5]])
+    
+onehot
+quantileN
+warn)
+encode
+strategy
+dtype
+	subsample
+random_statec
+n_binsr
+selfr
+K/usr/lib64/python3.9/site-packages/sklearn/preprocessing/_discretization.py
+__init__
+KBinsDiscretizer.__init__c
+l!m"}
+r|t	
+_*d%|
+t+d&d'
+        Fit the estimator.
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            Data to be discretized.
+        y : None
+            Ignored. This parameter exists only for compatibility with
+            :class:`~sklearn.pipeline.Pipeline`.
+        Returns
+        -------
+        self : object
+            Returns the instance itself.
+        Z
+numeric
+Valid options for 'dtype' are r
+. Got dtype=z
+  instead.r
+In version 1.3 onwards, subsample=2e5 will be used by default. Set subsample explicitly to silence this warning in the mean time. Set subsample=None to disable subsampling explicitly.r
+min_valF)
+size
+replacez"Invalid parameter for `strategy`: z6. `subsample` must be used with `strategy="quantile"`.)
+onehot-dense
+ordinalz;Valid options for 'encode' are {}. Got encode={!r} instead.)
+uniformr
+kmeansz?Valid options for 'strategy' are {}. Got strategy={!r} instead.z3Feature %d is constant and will be replaced with 0.r!
+KMeans
+n_clusters
+initZ
+n_init)
+to_beging:
+yE>zqBins whose width are too small (i.e., <= 1e-8) in feature %d are removed. Consider decreasing the number of bins.r
+arange
+<listcomp>/
+z(KBinsDiscretizer.fit.<locals>.<listcomp>)
+categoriesZ
+sparser
+_validate_datar(
+float64
+float32r
+ValueError
+shaper
+warningsr
+FutureWarningr
+numbers
+Integralr	
+choicer
+isinstancer
+format
+_validate_n_binsZ
+zeros
+object
+range
+maxZ
+array
+infZ
+linspaceZ
+asarrayZ
+percentileZ
+clusterr$
+fitZ
+cluster_centers_
+sortZ
+ediff1d
+bin_edges_
+n_bins_r
+_encoder)
+supported_dtypeZ
+output_dtypeZ	n_samples
+n_features
+rngZ
+subsample_idxZ
+valid_encodeZ
+valid_strategyr
+	bin_edges
+columnZ
+col_minZ
+col_maxZ	quantilesr$
+uniform_edgesr'
+centers
+maskr
+KBinsDiscretizer.fitc
+z0Returns n_bins_, the number of bins per feature.z>{} received an invalid n_bins type. Received {}, expected int.r
+zH{} received an invalid number of bins. Received {}, expected at least 2.r
+copyZ	ensure_2dr
+z8n_bins must be a scalar or array of shape (n_features,).z
+strr)
+	<genexpr>V
+z4KBinsDiscretizer._validate_n_bins.<locals>.<genexpr>zk{} received an invalid number of bins at indices {}. Number of bins must be at least 2, and must be an int.)
+Numberr6
+__name__
+typer(
+full
+intr
+ndimr2
+where
+join)
+Z	orig_binsr
+bad_nbins_valueZ
+violating_indices
+indicesr
+z!KBinsDiscretizer._validate_n_binsc
+        Discretize the data.
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            Data to be discretized.
+        Returns
+        -------
+        Xt : {ndarray, sparse matrix}, dtype={np.float32, np.float64}
+            Data in the binned space. Will be a sparse matrix if
+            `self.encode='onehot'` and ndarray otherwise.
+        NTF)
+resetr
+right)
+sider 
+searchsortedr
+	transform)
+XtrI
+dtype_initZ
+Xt_encr
+KBinsDiscretizer.transformc
+        Transform discretized data back to original feature space.
+        Note that this function does not regenerate the original data
+        due to discretization rounding.
+        Parameters
+        ----------
+        Xt : array-like of shape (n_samples, n_features)
+            Transformed data in the binned space.
+        Returns
+        -------
+        Xinv : ndarray, dtype={np.float32, np.float64}
+            Data in the original feature space.
+        r
+z8Incorrect number of features. Expecting {}, received {}.Nr%
+inverse_transformr
+int_)
+XinvrG
+bin_centersr
+z"KBinsDiscretizer.inverse_transformc
+Get output feature names.
+        Parameters
+        ----------
+        input_features : array-like of str or None, default=None
+            Input features.
+            - If `input_features` is `None`, then `feature_names_in_` is
+              used as feature names in. If `feature_names_in_` is not defined,
+              then the following input feature names are generated:
+              `["x0", "x1", ..., "x(n_features_in_ - 1)"]`.
+            - If `input_features` is an array-like, then `input_features` must
+              match `feature_names_in_` if `feature_names_in_` is defined.
+        Returns
+        -------
+        feature_names_out : ndarray of str objects
+            Transformed feature names.
+        rD
+hasattrrD
+get_feature_names_out)
+input_featuresr
+z&KBinsDiscretizer.get_feature_names_out)
+__module__
+__qualname__
+__doc__r
+numpyr(
+baser
+utils.validationr
+utilsr
+<module>

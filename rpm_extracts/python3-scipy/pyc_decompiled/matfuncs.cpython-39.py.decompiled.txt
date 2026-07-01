@@ -1,0 +1,475 @@
+m	Z	m
+d d!
+d!e!
+Z"d"d
+Z#d#d$
+Z$d2d%d&
+Z%d'd(
+Z&d)d*
+Z'd+d,
+Z(d-d.
+Sparse matrix functions
+expm
+float_factorial)
+solve
+solve_triangular)
+isspmatrix)
+spsolve)
+is_pydata_spmatrix)
+LinearOperator
+_ident_like
+_exact_1_normZ
+upper_triangularc
+    Compute the inverse of a sparse matrix
+    Parameters
+    ----------
+    A : (M,M) ndarray or sparse matrix
+        square matrix to be inverted
+    Returns
+    -------
+    Ainv : (M,M) ndarray or sparse matrix
+        inverse of `A`
+    Notes
+    -----
+    This computes the sparse inverse of `A`. If the inverse of `A` is expected
+    to be non-sparse, it will likely be faster to convert `A` to dense and use
+    scipy.linalg.inv.
+    Examples
+    --------
+    >>> from scipy.sparse import csc_matrix
+    >>> from scipy.sparse.linalg import inv
+    >>> A = csc_matrix([[1., 0.], [1., 2.]])
+    >>> Ainv = inv(A)
+    >>> Ainv
+    <2x2 sparse matrix of type '<class 'numpy.float64'>'
+        with 3 stored elements in Compressed Sparse Column format>
+    >>> A.dot(Ainv)
+    <2x2 sparse matrix of type '<class 'numpy.float64'>'
+        with 2 stored elements in Compressed Sparse Column format>
+    >>> A.dot(Ainv).todense()
+    matrix([[ 1.,  0.],
+            [ 0.,  1.]])
+    .. versionadded:: 0.12.0
+    z
+Input must be a sparse matrix)
+scipy
+sparser
+	TypeErrorr
+Ainv
+B/usr/lib64/python3.9/site-packages/scipy/sparse/linalg/matfuncs.pyr
+    Compute the 1-norm of a non-negative integer power of a non-negative matrix.
+    Parameters
+    ----------
+    A : a square ndarray or matrix or sparse matrix
+        Input matrix with non-negative entries.
+    p : non-negative integer
+        The power to which the matrix is to be raised.
+    Returns
+    -------
+    out : float
+        The 1-norm of the matrix power p of A.
+    r
+expected non-negative integer p
+%expected A to be like a square matrix
+dtype)
+ValueError
+shape
+ones
+float
+range
+max)
+_onenorm_matrix_power_nnmQ
+trilZ
+nnzZ
+count_nonzeror	
+any)
+lower_partr
+_is_upper_triangularr
+    A matrix product that knows about sparse and structured matrices.
+    Parameters
+    ----------
+    A : 2d ndarray
+        First matrix.
+    B : 2d ndarray
+        Second matrix.
+    alpha : float
+        The matrix product will be scaled by this constant.
+    structure : str, optional
+        A string describing the structure of both matrices `A` and `B`.
+        Only `upper_triangular` is currently supported.
+    Returns
+    -------
+    M : 2d ndarray
+        Matrix product of A and B.
+    r
+z%expected A to be a rectangular matrixz%expected B to be a rectangular matrixN)
+trmm
+UPPER_TRIANGULARr
+linalgZ
+get_blas_funcsr!
+alpha
+	structure
+outr
+_smart_matrix_product
+MatrixPowerOperatorNc
+z'expected p to be a non-negative integer)
+ndimr
+_structurer
+selfr
+__init__
+MatrixPowerOperator.__init__c
+_matvec
+MatrixPowerOperator._matvecc
+ravelr 
+A_Tr&
+_rmatvec
+MatrixPowerOperator._rmatvecc
+_matmat
+MatrixPowerOperator._matmatc
+MatrixPowerOperator.T)
+__name__
+__module__
+__qualname__r:
+propertyr
+ProductOperatorzK
+    For now, this is limited to products of multiple square matrices.
+    c
+qbqX|
+)	Nr0
+zbFor now, the ProductOperator implementation is limited to the product of multiple square matrices.zHThe square matrices of the ProductOperator must all have the same shape.c
+.0r<
+<listcomp>
+z,ProductOperator.__init__.<locals>.<listcomp>)
+getr8
+find_common_typer
+_operator_sequence)
+args
+kwargsr
+ProductOperator.__init__c
+reversedrN
+ProductOperator._matvecc
+ProductOperator._rmatvecc
+ProductOperator._matmatc
+z%ProductOperator.T.<locals>.<listcomp>)
+T_argsr
+ProductOperator.TN)
+__doc__r:
+    Efficiently estimate the 1-norm of A^p.
+    Parameters
+    ----------
+    A : ndarray
+        Matrix whose 1-norm of a power is to be computed.
+    p : int
+        Non-negative integer power.
+    t : int, optional
+        A positive parameter controlling the tradeoff between
+        accuracy versus time and memory usage.
+        Larger values take longer and use more memory
+        but give more accurate output.
+    itmax : int, optional
+        Use at most this many iterations.
+    compute_v : bool, optional
+        Request a norm-maximizing linear operator input vector if True.
+    compute_w : bool, optional
+        Request a norm-maximizing linear operator output vector if True.
+    Returns
+    -------
+    est : float
+        An underestimate of the 1-norm of the sparse matrix.
+    v : ndarray, optional
+        The vector such that ||Av||_1 == est*||v||_1.
+        It can be thought of as an input to the linear operator
+        that gives an output with particularly large norm.
+    w : ndarray, optional
+        The vector Av which has relatively large 1-norm.
+        It can be thought of as an output of the linear operator
+        that is relatively large in norm compared to the input.
+    rA
+onenormestr4
+itmax
+	compute_v
+	compute_wr0
+_onenormest_matrix_power
+    Efficiently estimate the 1-norm of the matrix product of the args.
+    Parameters
+    ----------
+    operator_seq : linear operator sequence
+        Matrices whose 1-norm of product is to be computed.
+    t : int, optional
+        A positive parameter controlling the tradeoff between
+        accuracy versus time and memory usage.
+        Larger values take longer and use more memory
+        but give more accurate output.
+    itmax : int, optional
+        Use at most this many iterations.
+    compute_v : bool, optional
+        Request a norm-maximizing linear operator input vector if True.
+    compute_w : bool, optional
+        Request a norm-maximizing linear operator output vector if True.
+    structure : str, optional
+        A string describing the structure of all operators.
+        Only `upper_triangular` is currently supported.
+    Returns
+    -------
+    est : float
+        An underestimate of the 1-norm of the sparse matrix.
+    v : ndarray, optional
+        The vector such that ||Av||_1 == est*||v||_1.
+        It can be thought of as an input to the linear operator
+        that gives an output with particularly large norm.
+    w : ndarray, optional
+        The vector Av which has relatively large 1-norm.
+        It can be thought of as an output of the linear operator
+        that is relatively large in norm compared to the input.
+    r0
+operator_seqrX
+_onenormest_product(
+d d!
+d"d#
+d$d%
+d&d'
+d(d)
+_ExpmPadeHelperz
+    Help lazily evaluate a matrix exponential.
+    The idea is to not do more work than we need for high expm precision,
+    so we lazily compute matrix powers and store or precompute
+    other properties of the matrix.
+    NFc
+        Initialize the object.
+        Parameters
+        ----------
+        A : a dense or sparse square numpy matrix or ndarray
+            The matrix to be exponentiated.
+        structure : str, optional
+            A string describing the structure of matrix `A`.
+            Only `upper_triangular` is currently supported.
+        use_exact_onenorm : bool, optional
+            If True then only the exact one-norm of matrix powers and products
+            will be used. Otherwise, the one-norm of powers and products
+            may initially be estimated.
+        N)
+_A10
+	_d4_exact
+	_d6_exact
+	_d8_exact
+_d10_exact
+_d4_approx
+_d6_approx
+_d8_approx
+_d10_approxr
+identr0
+use_exact_onenorm)
+_ExpmPadeHelper.__init__c
+_ExpmPadeHelper.A2c
+_ExpmPadeHelper.A4c
+_ExpmPadeHelper.A6c
+_ExpmPadeHelper.A8c
+_ExpmPadeHelper.A10c
+_onenormro
+d4_tight
+_ExpmPadeHelper.d4_tightc
+UUUUUU
+d6_tight
+_ExpmPadeHelper.d6_tightc
+d8_tight
+_ExpmPadeHelper.d8_tightc
+	d10_tight
+_ExpmPadeHelper.d10_tightc
+d4_loose
+_ExpmPadeHelper.d4_loosec
+d6_loose
+_ExpmPadeHelper.d6_loosec
+d8_loose
+_ExpmPadeHelper.d8_loosec
+	d10_loose
+_ExpmPadeHelper.d10_loosec
+(@r+
+pade3
+_ExpmPadeHelper.pade3c
+)	N)
+@z@g
+>@r+
+pade5
+_ExpmPadeHelper.pade5c
+~pAg
+~`Ag
+@t>Ag
+L@r+
+pade7
+_ExpmPadeHelper.pade7c
+~@Ag
+V@r+
+pade9
+_ExpmPadeHelper.pade9c
+}	|	|
+`=Hb
+S-Ag
+f@r+
+pade13_scaled
+_ExpmPadeHelper.pade13_scaled)
+    Compute the matrix exponential using Pade approximation.
+    Parameters
+    ----------
+    A : (M,M) array_like or sparse matrix
+        2D Array or Matrix (sparse or dense) to be exponentiated
+    Returns
+    -------
+    expA : (M,M) ndarray
+        Matrix exponential of `A`
+    Notes
+    -----
+    This is algorithm (6.1) which is a simplification of algorithm (5.1).
+    .. versionadded:: 0.12.0
+    References
+    ----------
+    .. [1] Awad H. Al-Mohy and Nicholas J. Higham (2009)
+           "A New Scaling and Squaring Algorithm for the Matrix Exponential."
+           SIAM Journal on Matrix Analysis and Applications.
+           31 (3). pp. 970-989. ISSN 1095-7162
+    Examples
+    --------
+    >>> from scipy.sparse import csc_matrix
+    >>> from scipy.sparse.linalg import expm
+    >>> A = csc_matrix([[1, 0, 0], [0, 2, 0], [0, 0, 3]])
+    >>> A.todense()
+    matrix([[1, 0, 0],
+            [0, 2, 0],
+            [0, 0, 3]], dtype=int64)
+    >>> Aexp = expm(A)
+    >>> Aexp
+    <3x3 sparse matrix of type '<class 'numpy.float64'>'
+        with 3 stored elements in Compressed Sparse Column format>
+    >>> Aexp.todense()
+    matrix([[  2.71828183,   0.        ,   0.        ],
+            [  0.        ,   7.3890561 ,   0.        ],
+            [  0.        ,   0.        ,  20.08553692]])
+    
+auto)
+_expm)
+}	|	d
+t&|	|
+expected a square matrix)
+isinstance
+list
+tupler
+matrixZ
+asarrayr
+zerosr
+	__class__
+expZ
+arrayZ
+ndarrayZ
+issubdtypeZ
+inexactZ
+astyper
+_ellr
+_solve_P_Qru
+minr
+ceil
+log2r
+_fragment_2_1r 
+eta_1r
+eta_2Z
+eta_3Z
+eta_4Z
+eta_5Z
+theta_13r
+    A helper function for expm_2009.
+    Parameters
+    ----------
+    U : ndarray
+        Pade numerator.
+    V : ndarray
+        Pade denominator.
+    structure : str, optional
+        A string describing the structure of both matrices `U` and `V`.
+        Only `upper_triangular` is currently supported.
+    Notes
+    -----
+    The `structure` argument is inspired by similar args
+    for theano and cvxopt functions.
+    Nz
+unsupported matrix structure: )
+str)
+    Stably evaluate exp(a)*sinh(x)/x
+    Notes
+    -----
+    The strategy of falling back to a sixth order Taylor expansion
+    was suggested by the Spallation Neutron Source docs
+    which was found on the internet by google search.
+    http://www.ornl.gov/~t6p/resources/xal/javadoc/gov/sns/tools/math/ElementaryFunction.html
+    The details of the cutoff point and the Horner-like evaluation
+    was picked without reference to anything in particular.
+    Note that sinch is not currently implemented in scipy.special,
+    whereas the "engineer's" definition of sinc is implemented.
+    The implementation of sinc involves a scaling factor of pi
+    that distinguishes it from the "mathematician's" version of sinc.
+    g
+absr
+_exp_sinch
+    Equation (10.42) of Functions of Matrices: Theory and Computation.
+    Notes
+    -----
+    This is a helper function for _fragment_2_1 of expm_2009.
+    Equation (10.42) is on page 251 in the section on Schur algorithms.
+    In particular, section 10.4.3 explains the Schur-Parlett algorithm.
+    expm([[lam_1, t_12], [0, lam_1])
+    =
+    [[exp(lam_1), t_12*exp((lam_1 + lam_2)/2)*sinch((lam_1 - lam_2)/2)],
+    [0, exp(lam_2)]
+    g
+lam_1
+lam_2
+t_12r
+	_eq_10_42
+    A helper function for expm_2009.
+    Notes
+    -----
+    The argument X is modified in-place, but this modification is not the same
+    as the returned value of the function.
+    This function also takes pains to do things in ways that are compatible
+    with sparse matrices, for example by avoiding fancy indexing
+    and by using methods of the matrices whenever possible instead of
+    using functions of the numpy or scipy libraries themselves.
+    r
+diagonal
+copyr
+diag_TZ
+scaleZ
+exp_diag
+valuer
+    A helper function for expm_2009.
+    Parameters
+    ----------
+    A : linear operator
+        A linear operator whose norm of power we care about.
+    m : int
+        The power of the linear operator
+    Returns
+    -------
+    value : int
+        A value related to a bound.
+    r
+exactg
+specialZ
+combr
+choose_2m_mZ
+abs_c_recip
+A_abs_onenormr/
+log2_alpha_div_ur
+FFN)
+FFN)
+N)*rU
+__all__Z
+numpyr
+scipy.specialr
+scipy._lib._utilr
+scipy.linalg.basicr
+scipy.sparse.baser
+scipy.sparse.linalgr
+scipy.sparse.sputilsr	
+scipy.sparseZ
+scipy.sparse.linalg.interfacer
+_expm_multiplyr
+objectr^
+<module>

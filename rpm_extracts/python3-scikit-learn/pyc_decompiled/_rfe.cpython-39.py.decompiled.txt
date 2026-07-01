@@ -1,0 +1,519 @@
+m	Z	
+z1Recursive feature elimination for feature ranking
+Parallel
+effective_n_jobs
+available_if)
+_safe_split)
+_safe_tags)
+check_is_fitted)
+delayed)
+deprecated)
+BaseEstimator)
+MetaEstimatorMixin)
+clone)
+is_classifier)
+check_cv
+_score)
+check_scoring
+SelectorMixin)
+_get_feature_importancesc
+    Return the score for a fit across one fold.
+    c
+	estimator
+features
+X_test
+scorerZ
+y_test
+D/usr/lib64/python3.9/site-packages/sklearn/feature_selection/_rfe.py
+<lambda>(
+z!_rfe_single_fit.<locals>.<lambda>)
+_fit
+scores_)	
+rfer
+train
+testr
+X_trainZ
+y_trainr
+_rfe_single_fit
+Check if we can delegate a method to the underlying estimator.
+    First, we check the first fitted estimator if available, otherwise we
+    check the unfitted estimator.
+    c
+estimator_)
+hasattrr&
+self
+attrr
+z _estimator_has.<locals>.<lambda>r
+_estimator_has.
+d d!
+d"d#
+RFEar
+Feature ranking with recursive feature elimination.
+    Given an external estimator that assigns weights to features (e.g., the
+    coefficients of a linear model), the goal of recursive feature elimination
+    (RFE) is to select features by recursively considering smaller and smaller
+    sets of features. First, the estimator is trained on the initial set of
+    features and the importance of each feature is obtained either through
+    any specific attribute or callable.
+    Then, the least important features are pruned from current set of features.
+    That procedure is recursively repeated on the pruned set until the desired
+    number of features to select is eventually reached.
+    Read more in the :ref:`User Guide <rfe>`.
+    Parameters
+    ----------
+    estimator : ``Estimator`` instance
+        A supervised learning estimator with a ``fit`` method that provides
+        information about feature importance
+        (e.g. `coef_`, `feature_importances_`).
+    n_features_to_select : int or float, default=None
+        The number of features to select. If `None`, half of the features are
+        selected. If integer, the parameter is the absolute number of features
+        to select. If float between 0 and 1, it is the fraction of features to
+        select.
+        .. versionchanged:: 0.24
+           Added float values for fractions.
+    step : int or float, default=1
+        If greater than or equal to 1, then ``step`` corresponds to the
+        (integer) number of features to remove at each iteration.
+        If within (0.0, 1.0), then ``step`` corresponds to the percentage
+        (rounded down) of features to remove at each iteration.
+    verbose : int, default=0
+        Controls verbosity of output.
+    importance_getter : str or callable, default='auto'
+        If 'auto', uses the feature importance either through a `coef_`
+        or `feature_importances_` attributes of estimator.
+        Also accepts a string that specifies an attribute name/path
+        for extracting feature importance (implemented with `attrgetter`).
+        For example, give `regressor_.coef_` in case of
+        :class:`~sklearn.compose.TransformedTargetRegressor`  or
+        `named_steps.clf.feature_importances_` in case of
+        class:`~sklearn.pipeline.Pipeline` with its last step named `clf`.
+        If `callable`, overrides the default feature importance getter.
+        The callable is passed with the fitted estimator and it should
+        return importance for each feature.
+        .. versionadded:: 0.24
+    Attributes
+    ----------
+    classes_ : ndarray of shape (n_classes,)
+        The classes labels. Only available when `estimator` is a classifier.
+    estimator_ : ``Estimator`` instance
+        The fitted estimator used to select features.
+    n_features_ : int
+        The number of selected features.
+    n_features_in_ : int
+        Number of features seen during :term:`fit`. Only defined if the
+        underlying estimator exposes such an attribute when fit.
+        .. versionadded:: 0.24
+    feature_names_in_ : ndarray of shape (`n_features_in_`,)
+        Names of features seen during :term:`fit`. Defined only when `X`
+        has feature names that are all strings.
+        .. versionadded:: 1.0
+    ranking_ : ndarray of shape (n_features,)
+        The feature ranking, such that ``ranking_[i]`` corresponds to the
+        ranking position of the i-th feature. Selected (i.e., estimated
+        best) features are assigned rank 1.
+    support_ : ndarray of shape (n_features,)
+        The mask of selected features.
+    See Also
+    --------
+    RFECV : Recursive feature elimination with built-in cross-validated
+        selection of the best number of features.
+    SelectFromModel : Feature selection based on thresholds of importance
+        weights.
+    SequentialFeatureSelector : Sequential cross-validation based feature
+        selection. Does not rely on importance weights.
+    Notes
+    -----
+    Allows NaN/Inf in the input if the underlying estimator does as well.
+    References
+    ----------
+    .. [1] Guyon, I., Weston, J., Barnhill, S., & Vapnik, V., "Gene selection
+           for cancer classification using support vector machines",
+           Mach. Learn., 46(1-3), 389--422, 2002.
+    Examples
+    --------
+    The following example shows how to retrieve the 5 most informative
+    features in the Friedman #1 dataset.
+    >>> from sklearn.datasets import make_friedman1
+    >>> from sklearn.feature_selection import RFE
+    >>> from sklearn.svm import SVR
+    >>> X, y = make_friedman1(n_samples=50, n_features=10, random_state=0)
+    >>> estimator = SVR(kernel="linear")
+    >>> selector = RFE(estimator, n_features_to_select=5, step=1)
+    >>> selector = selector.fit(X, y)
+    >>> selector.support_
+    array([ True,  True,  True,  True,  True, False, False, False, False,
+           False])
+    >>> selector.ranking_
+    array([1, 1, 1, 1, 1, 6, 4, 3, 2, 5])
+    Nr
+auto)
+n_features_to_select
+step
+verbose
+importance_getterc
+__init__
+RFE.__init__c
+_estimator_typer(
+RFE._estimator_typec
+Classes labels available when `estimator` is a classifier.
+        Returns
+        -------
+        ndarray of shape (n_classes,)
+        )
+classes_r(
+RFE.classes_c
+Fit the RFE model and then the underlying estimator on the selected features.
+        Parameters
+        ----------
+        X : {array-like, sparse matrix} of shape (n_samples, n_features)
+            The training input samples.
+        y : array-like of shape (n_samples,)
+            The target values.
+        **fit_params : dict
+            Additional parameters passed to the `fit` method of the underlying
+            estimator.
+        Returns
+        -------
+        self : object
+            Fitted estimator.
+        )
+fit_paramsr
+RFE.fitc
+}	|	d
+cscr
+	allow_nanT
+accept_sparseZ
+ensure_min_featuresZ
+force_all_finiteZ
+multi_outputz
+n_features_to_select must be either None, a positive integer representing the absolute number of features or a float in (0.0, 1.0] representing a percentage of features to select. Got r
+Step must be >0)
+dtypez#Fitting estimator with %d features.Z
+square)
+transform_funcF)"
+	_get_tags
+_validate_data
+getr/
+shape
+ValueError
+isinstance
+numbersZ
+Integral
+intr0
+ones
+boolr
+sumZ
+aranger
+printr9
+argsortZ
+ravel
+appendZ
+logical_notr&
+n_features_
+support_
+ranking_)
+step_scorer8
+tagsZ	error_msg
+n_featuresr/
+importancesZ
+ranksZ	thresholdr
+RFE._fit
+predictc
+Reduce X to the selected features and then predict using the underlying estimator.
+        Parameters
+        ----------
+        X : array of shape [n_samples, n_features]
+            The input samples.
+        Returns
+        -------
+        y : array of shape [n_samples]
+            The predicted target values.
+        )
+	transform
+RFE.predict
+scorec
+Reduce X to the selected features and return the score of the underlying estimator.
+        Parameters
+        ----------
+        X : array of shape [n_samples, n_features]
+            The input samples.
+        y : array of shape [n_samples]
+            The target values.
+        **fit_params : dict
+            Parameters to pass to the `score` method of the underlying
+            estimator.
+            .. versionadded:: 1.0
+        Returns
+        -------
+        score : float
+            Score of the underlying base estimator computed with the selected
+            features returned by `rfe.transform(X)` and `y`.
+        )
+z	RFE.scorec
+_get_support_maskz
+RFE._get_support_mask
+decision_functionc
+Compute the decision function of ``X``.
+        Parameters
+        ----------
+        X : {array-like or sparse matrix} of shape (n_samples, n_features)
+            The input samples. Internally, it will be converted to
+            ``dtype=np.float32`` and if a sparse matrix is provided
+            to a sparse ``csr_matrix``.
+        Returns
+        -------
+        score : array, shape = [n_samples, n_classes] or [n_samples]
+            The decision function of the input samples. The order of the
+            classes corresponds to that in the attribute :term:`classes_`.
+            Regression and binary classification produce an array of shape
+            [n_samples].
+        )
+RFE.decision_function
+predict_probac
+Predict class probabilities for X.
+        Parameters
+        ----------
+        X : {array-like or sparse matrix} of shape (n_samples, n_features)
+            The input samples. Internally, it will be converted to
+            ``dtype=np.float32`` and if a sparse matrix is provided
+            to a sparse ``csr_matrix``.
+        Returns
+        -------
+        p : array of shape (n_samples, n_classes)
+            The class probabilities of the input samples. The order of the
+            classes corresponds to that in the attribute :term:`classes_`.
+        )
+RFE.predict_proba
+predict_log_probac
+Predict class log-probabilities for X.
+        Parameters
+        ----------
+        X : array of shape [n_samples, n_features]
+            The input samples.
+        Returns
+        -------
+        p : array of shape (n_samples, n_classes)
+            The class log-probabilities of the input samples. The order of the
+            classes corresponds to that in the attribute :term:`classes_`.
+        )
+RFE.predict_log_probac
+NTr:
+key)
+poor_scorer:
+requires_y)
+_more_tags
+RFE._more_tags)
+__name__
+__module__
+__qualname__
+__doc__r4
+propertyr5
+RFECVa
+Recursive feature elimination with cross-validation to select the number of features.
+    See glossary entry for :term:`cross-validation estimator`.
+    Read more in the :ref:`User Guide <rfe>`.
+    Parameters
+    ----------
+    estimator : ``Estimator`` instance
+        A supervised learning estimator with a ``fit`` method that provides
+        information about feature importance either through a ``coef_``
+        attribute or through a ``feature_importances_`` attribute.
+    step : int or float, default=1
+        If greater than or equal to 1, then ``step`` corresponds to the
+        (integer) number of features to remove at each iteration.
+        If within (0.0, 1.0), then ``step`` corresponds to the percentage
+        (rounded down) of features to remove at each iteration.
+        Note that the last iteration may remove fewer than ``step`` features in
+        order to reach ``min_features_to_select``.
+    min_features_to_select : int, default=1
+        The minimum number of features to be selected. This number of features
+        will always be scored, even if the difference between the original
+        feature count and ``min_features_to_select`` isn't divisible by
+        ``step``.
+        .. versionadded:: 0.20
+    cv : int, cross-validation generator or an iterable, default=None
+        Determines the cross-validation splitting strategy.
+        Possible inputs for cv are:
+        - None, to use the default 5-fold cross-validation,
+        - integer, to specify the number of folds.
+        - :term:`CV splitter`,
+        - An iterable yielding (train, test) splits as arrays of indices.
+        For integer/None inputs, if ``y`` is binary or multiclass,
+        :class:`~sklearn.model_selection.StratifiedKFold` is used. If the
+        estimator is a classifier or if ``y`` is neither binary nor multiclass,
+        :class:`~sklearn.model_selection.KFold` is used.
+        Refer :ref:`User Guide <cross_validation>` for the various
+        cross-validation strategies that can be used here.
+        .. versionchanged:: 0.22
+            ``cv`` default value of None changed from 3-fold to 5-fold.
+    scoring : str, callable or None, default=None
+        A string (see model evaluation documentation) or
+        a scorer callable object / function with signature
+        ``scorer(estimator, X, y)``.
+    verbose : int, default=0
+        Controls verbosity of output.
+    n_jobs : int or None, default=None
+        Number of cores to run in parallel while fitting across folds.
+        ``None`` means 1 unless in a :obj:`joblib.parallel_backend` context.
+        ``-1`` means using all processors. See :term:`Glossary <n_jobs>`
+        for more details.
+        .. versionadded:: 0.18
+    importance_getter : str or callable, default='auto'
+        If 'auto', uses the feature importance either through a `coef_`
+        or `feature_importances_` attributes of estimator.
+        Also accepts a string that specifies an attribute name/path
+        for extracting feature importance.
+        For example, give `regressor_.coef_` in case of
+        :class:`~sklearn.compose.TransformedTargetRegressor`  or
+        `named_steps.clf.feature_importances_` in case of
+        :class:`~sklearn.pipeline.Pipeline` with its last step named `clf`.
+        If `callable`, overrides the default feature importance getter.
+        The callable is passed with the fitted estimator and it should
+        return importance for each feature.
+        .. versionadded:: 0.24
+    Attributes
+    ----------
+    classes_ : ndarray of shape (n_classes,)
+        The classes labels. Only available when `estimator` is a classifier.
+    estimator_ : ``Estimator`` instance
+        The fitted estimator used to select features.
+    grid_scores_ : ndarray of shape (n_subsets_of_features,)
+        The cross-validation scores such that
+        ``grid_scores_[i]`` corresponds to
+        the CV score of the i-th subset of features.
+        .. deprecated:: 1.0
+            The `grid_scores_` attribute is deprecated in version 1.0 in favor
+            of `cv_results_` and will be removed in version 1.2.
+    cv_results_ : dict of ndarrays
+        A dict with keys:
+        split(k)_test_score : ndarray of shape (n_features,)
+            The cross-validation scores across (k)th fold.
+        mean_test_score : ndarray of shape (n_features,)
+            Mean of scores over the folds.
+        std_test_score : ndarray of shape (n_features,)
+            Standard deviation of scores over the folds.
+        .. versionadded:: 1.0
+    n_features_ : int
+        The number of selected features with cross-validation.
+    n_features_in_ : int
+        Number of features seen during :term:`fit`. Only defined if the
+        underlying estimator exposes such an attribute when fit.
+        .. versionadded:: 0.24
+    feature_names_in_ : ndarray of shape (`n_features_in_`,)
+        Names of features seen during :term:`fit`. Defined only when `X`
+        has feature names that are all strings.
+        .. versionadded:: 1.0
+    ranking_ : narray of shape (n_features,)
+        The feature ranking, such that `ranking_[i]`
+        corresponds to the ranking
+        position of the i-th feature.
+        Selected (i.e., estimated best)
+        features are assigned rank 1.
+    support_ : ndarray of shape (n_features,)
+        The mask of selected features.
+    See Also
+    --------
+    RFE : Recursive feature elimination.
+    Notes
+    -----
+    The size of ``grid_scores_`` is equal to
+    ``ceil((n_features - min_features_to_select) / step) + 1``,
+    where step is the number of features removed at each iteration.
+    Allows NaN/Inf in the input if the underlying estimator does as well.
+    References
+    ----------
+    .. [1] Guyon, I., Weston, J., Barnhill, S., & Vapnik, V., "Gene selection
+           for cancer classification using support vector machines",
+           Mach. Learn., 46(1-3), 389--422, 2002.
+    Examples
+    --------
+    The following example shows how to retrieve the a-priori not known 5
+    informative features in the Friedman #1 dataset.
+    >>> from sklearn.datasets import make_friedman1
+    >>> from sklearn.feature_selection import RFECV
+    >>> from sklearn.svm import SVR
+    >>> X, y = make_friedman1(n_samples=50, n_features=10, random_state=0)
+    >>> estimator = SVR(kernel="linear")
+    >>> selector = RFECV(estimator, step=1, cv=5)
+    >>> selector = selector.fit(X, y)
+    >>> selector.support_
+    array([ True,  True,  True,  True,  True, False, False, False, False,
+           False])
+    >>> selector.ranking_
+    array([1, 1, 1, 1, 1, 6, 4, 3, 2, 5])
+    r
+min_features_to_select
+scoringr1
+n_jobsr2
+)	r)
+RFECV.__init__c
+_!t"
+t(|	j	d
+Fit the RFE model and automatically tune the number of selected features.
+        Parameters
+        ----------
+        X : {array-like, sparse matrix} of shape (n_samples, n_features)
+            Training vector, where `n_samples` is the number of samples and
+            `n_features` is the total number of features.
+        y : array-like of shape (n_samples,)
+            Target values (integers for classification, real numbers for
+            regression).
+        groups : array-like of shape (n_samples,) or None, default=None
+            Group labels for the samples used while splitting the dataset into
+            train/test set. Only used in conjunction with a "Group" :term:`cv`
+            instance (e.g., :class:`~sklearn.model_selection.GroupKFold`).
+            .. versionadded:: 0.20
+        Returns
+        -------
+        self : object
+            Fitted estimator.
+        Z
+csrr
+classifier)
+.0r#
+funcr 
+	<genexpr>
+RFECV.fit.<locals>.<genexpr>)
+axisN
+mean_test_scoreZ
+std_test_score
+split
+_test_score))r?
+listr%
+arrayrJ
+lenZ
+argmaxr9
+_transform
+cv_results_Z
+meanZ
+range)
+groupsrQ
+parallelZ
+scoresZ
+scores_sumZ
+scores_sum_revZ
+argmax_idxr/
+scores_rev
+z	RFECV.fitzwThe `grid_scores_` attribute is deprecated in version 1.0 in favor of `cv_results_` and will be removed in version 1.2.c
+<listcomp>
+z&RFECV.grid_scores_.<locals>.<listcomp>)
+asarrayrq
+Z	grid_sizer
+grid_scores_
+RFECV.grid_scores_)
+N)	r]
+)$r`
+numpyrH
+joblibr
+utils.metaestimatorsr
+utils._tagsr
+utils.validationr
+utils.fixesr	
+utils.deprecationr
+baser
+model_selectionr
+model_selection._validationr
+metricsr
+_baser
+<module>

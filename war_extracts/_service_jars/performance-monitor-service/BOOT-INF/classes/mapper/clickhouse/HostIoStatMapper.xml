@@ -1,0 +1,410 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.h3c.h3cloud.performance.monitor.service.mapper.clickhouse.HostIoStatMapper">
+    <delete id ="deleteBeforeTime">
+        ALTER TABLE TBL_HOST_IO_STAT DELETE WHERE TIME &lt; #{time}
+    </delete>
+    <select id="readInfoByCondition" resultType="com.h3c.h3cloud.common.model.performance.HostIoStatData">
+        SELECT DEV_NAME as devName, TIME as time,
+        <if test="hostId!=null and hostId!=''">
+            fs.title as title,
+        </if>
+        <if test="clusterId!=null and clusterId!=''">
+            any(fs.title) as title,
+        </if>
+        <choose>
+            <when test="hostId!=null and hostId!=''">
+                IO_STAT as ioStat, RD_STAT as rdStat, WR_STAT as wrStat, RD_REQ_PS AS rdReqps, WR_REQ_PS AS wrReqps, RD_LATENCY as rdLatency, WR_LATENCY as wrLatency, UTILIZATION as utilization
+            </when>
+            <otherwise>
+                SUM(IO_STAT) as ioStat, SUM(RD_STAT) as rdStat, SUM(WR_STAT) as wrStat, round(SUM(RD_REQ_PS)) AS rdReqps, round(SUM(WR_REQ_PS)) AS wrReqps
+            </otherwise>
+        </choose>
+        FROM TBL_HOST_IO_STAT t   LEFT JOIN ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_SHARE_FILE_SYSTEM} fs on fs.name = t.DEV_NAME
+        WHERE TIME BETWEEN ${startTime} AND ${endTime}
+        <if test="hostId!=null and hostId!=''">
+            AND t.HOST_ID=${hostId}
+        </if>
+        <if test="clusterId!=null and clusterId!=''">
+            AND t.CLUSTER_ID=${clusterId} AND DEV_NAME in (select storage_pool_name from ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_STORAGE_POOL_CONFIG} con WHERE con.type in(1,2,9,10))
+        </if>
+        <if test="currentDisk!=null and currentDisk!=''">
+            AND DEV_NAME =#{currentDisk}
+        </if>
+        <if test="hostId==null or hostId==''">
+            GROUP BY DEV_NAME,TIME
+        </if>
+        ORDER BY TIME ASC
+    </select>
+    <select id="readCvksInfoByCondition" resultType="com.h3c.h3cloud.common.model.performance.HostIoStatData">
+        SELECT host.name hostName, DEV_NAME as devName, TIME as time, HOST_ID as hostId, IO_STAT as ioStat, RD_STAT as rdStat, WR_STAT as wrStat, RD_REQ_PS AS rdReqps, WR_REQ_PS AS wrReqps,
+        RD_LATENCY as rdLatency, WR_LATENCY as wrLatency, UTILIZATION as utilization, fs.title as title
+        FROM TBL_HOST_IO_STAT t
+        LEFT JOIN ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_SHARE_FILE_SYSTEM} fs on fs.name = t.DEV_NAME
+        RIGHT JOIN ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_HOST} host ON t.HOST_ID = host.id
+        WHERE TIME BETWEEN ${startTime} AND ${endTime}
+        <if test="hostIds!=null and hostIds!=''">
+            AND t.HOST_ID IN (${hostIds})
+        </if>
+        <if test="clusterId!=null and clusterId!=''">
+            AND t.CLUSTER_ID =${clusterId}
+        </if>
+        <if test="currentDisk!=null and currentDisk!=''">
+            AND t.DEV_NAME = #{currentDisk}
+        </if>
+        <if test="clusterId!=null and clusterId!=''">
+            AND t.DEV_NAME in (select storage_pool_name from ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_STORAGE_POOL_CONFIG} con WHERE con.type in(1,2,9,10))
+        </if>
+        ORDER BY TIME ASC
+    </select>
+    <select id="readStorageInfoAverageByCondition" resultType="com.h3c.h3cloud.common.model.performance.HostIoStatData">
+        SELECT DEV_NAME as devName,
+        <choose>
+            <when test="hostId!=null and hostId!=''">
+                RD_STAT as rdStat, WR_STAT as wrStat, RD_REQ_PS AS rdReqps, WR_REQ_PS AS wrReqps, RD_LATENCY as rdLatency, WR_LATENCY as wrLatency
+            </when>
+            <otherwise>
+                SUM(RD_STAT) as rdStat, SUM(WR_STAT) as wrStat, SUM(RD_REQ_PS) AS rdReqps, SUM(WR_REQ_PS) AS wrReqps
+            </otherwise>
+        </choose>
+        FROM TBL_HOST_IO_STAT t  WHERE 1=1
+        <if test="hostId!=null and hostId!=''">
+            AND HOST_ID =${hostId}
+        </if>
+        <if test="clusterId!=null and clusterId!=''">
+            AND CLUSTER_ID =${clusterId}
+        </if>
+        AND TIME BETWEEN ${startTime} AND ${endTime}
+        AND t.DEV_NAME in (select storage_pool_name from ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_STORAGE_POOL_CONFIG} con WHERE con.type in(1,2,9,10))
+        <if test="currentDisk!=null and currentDisk!=''">
+            AND DEV_NAME =#{currentDisk}
+        </if>
+        <if test="clusterId!=null and clusterId!=''">
+            GROUP BY DEV_NAME
+        </if>
+        <if test="hostId!=null and hostId!=''">
+            ORDER BY TIME ASC
+        </if>
+    </select>
+    <select id="isNeedMigrateStorage" resultType="com.h3c.h3cloud.common.model.performance.HostIoStatData">
+        SELECT DEV_NAME as devName FROM (SELECT  DEV_NAME,min(s) min,count(*) count FROM (SELECT io.DEV_NAME,
+        <choose>
+            <when test="queryFld!=null and queryFld=='DISKUTILIZATION'">
+                avg(${queryField}) as s
+            </when>
+            <otherwise>
+                sum(${queryField}) as s
+            </otherwise>
+        </choose>
+        FROM TBL_HOST_IO_STAT io  WHERE io.TIME BETWEEN ${startTime} AND ${endTime} AND io.DEV_NAME IN (${devNames})
+        GROUP BY io.DEV_NAME,io.TIME ) t  GROUP BY t.DEV_NAME ORDER BY avg(s) DESC ) t1 WHERE t1.min
+        ${comparison} ${threshold}
+    </select>
+    <select id="readNowInfoByCondition" resultType="com.h3c.h3cloud.common.model.performance.HostIoStatData">
+        SELECT DEV_NAME as devName, UTILIZATION as utilization, RD_STAT as rdStat, WR_STAT as wrStat, RD_REQ_PS AS rdReqps, WR_REQ_PS AS wrReqps,
+         RD_LATENCY as rdLatency, WR_LATENCY as wrLatency FROM TBL_HOST_IO_STAT
+        WHERE HOST_ID = ${hostId} AND TIME = (SELECT MAX(TIME)-${duration} FROM TBL_HOST_IO_STAT)
+    </select>
+    <select id="readRecentHostStatus" resultType="com.h3c.h3cloud.common.model.performance.HostIoStatData">
+        SELECT  MAX(tdio.UTILIZATION) as utilization,  tdio.HOST_ID as hostId from TBL_HOST_IO_STAT tdio
+        WHERE tdio.TIME=(SELECT MAX(TIME) FROM TBL_HOST_IO_STAT)-${duration}
+        <if test="hostPoolId!=null and hostPoolId!=''">
+            AND tdio.HOST_POOL_ID= ${hostPoolId}
+        </if>
+        <if test="clusterId!=null and clusterId!=''">
+            AND tdio.CLUSTER_ID= ${clusterId}
+        </if>
+        <if test="operatorGroupCode!=null and operatorGroupCode!=''">
+            AND tdio.OP_GROUP_CODE LIKE #{operatorGroupCode}
+        </if>
+        GROUP BY tdio.HOST_ID
+    </select>
+    <select id="getShareFileStat" resultType="com.h3c.h3cloud.common.model.performance.HostIoStatData">
+        SELECT DEV_NAME as devName,
+        <choose>
+            <when test="hostId!=null and hostId!=''">
+                RD_STAT as rdStat, WR_STAT as wrStat, round(RD_REQ/30) AS rdReq, round(WR_REQ/30) AS wrReq, RD_LATENCY as rdLatency, WR_LATENCY as wrLatency,HOST_ID as hostId,CLUSTER_ID as clusterId
+            </when>
+            <otherwise>
+                SUM(RD_STAT) as rdStat, SUM(WR_STAT) as wrStat, round(SUM(RD_REQ/30)) AS rdReq, round(SUM(WR_REQ/30)) AS wrReq,any(HOST_ID) as hostId, any(CLUSTER_ID) as clusterId
+            </otherwise>
+        </choose>
+        FROM TBL_HOST_IO_STAT  t  WHERE 1=1
+        <if test="hostId!=null and hostId!=''">
+            AND HOST_ID =${hostId}
+        </if>
+        <if test="clusterId!=null and clusterId!=''">
+            AND CLUSTER_ID =${clusterId}
+        </if>
+        AND TIME BETWEEN ${startTime} AND ${endTime}
+        AND DEV_NAME in (select storage_pool_name from ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_STORAGE_POOL_CONFIG} con WHERE con.type in(1,2,9,10))
+        <if test="hostId==null or hostId==''">
+            GROUP BY DEV_NAME
+        </if>
+        <if test="hostId!=null and hostId!=''">
+            ORDER BY TIME ASC
+        </if>
+    </select>
+
+    <select id="getHostShareFileStat" resultType="com.h3c.h3cloud.common.model.performance.HostIoStatData">
+        SELECT DEV_NAME as devName,
+        ROUND(avg(RD_STAT),2) as rdStat,
+        ROUND(avg(WR_STAT),2) as wrStat,
+        round(avg(RD_REQ_PS),2) AS rdReqps,
+        round(avg(WR_REQ_PS),2) AS wrReqps,
+        ROUND(avg(RD_LATENCY),2) as rdLatency,
+        ROUND(avg(WR_LATENCY),2) as wrLatency,any(CLUSTER_ID) as clusterId
+        FROM TBL_HOST_IO_STAT t  WHERE HOST_ID =${hostId} AND TIME BETWEEN ${startTime} AND ${endTime}
+        AND DEV_NAME in (select storage_pool_name from ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_STORAGE_POOL_CONFIG} con WHERE con.type in(1,2,9,10))
+        GROUP BY DEV_NAME
+    </select>
+    <select id="getClusterShareFileStat" resultType="com.h3c.h3cloud.common.model.performance.HostIoStatData">
+        SELECT DEV_NAME as devName, SUM(RD_STAT) as rdStat, SUM(WR_STAT) as wrStat, SUM(RD_REQ_PS) AS rdReqps, SUM(WR_REQ_PS) AS wrReqps,
+        any(CLUSTER_ID) as clusterId
+        FROM TBL_HOST_IO_STAT t  WHERE CLUSTER_ID =${clusterId} AND TIME BETWEEN ${startTime} AND ${endTime}
+        AND DEV_NAME in (select storage_pool_name from ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_STORAGE_POOL_CONFIG} con WHERE con.type in(1,2,9,10))
+        GROUP BY DEV_NAME
+    </select>
+    <select id="queryAllByLastestTime" resultType="com.h3c.h3cloud.common.model.performance.HostIoStatData">
+        SELECT DEV_NAME  as devName,RD_REQ_PS as rdReqps,WR_REQ_PS as wrReqps,HOST_ID as hostId FROM TBL_HOST_IO_STAT  WHERE TIME = (SELECT MAX(TIME)-${duration} FROM TBL_HOST_IO_STAT)
+    </select>
+    <select id="getHostIOTrend" resultType="com.h3c.h3cloud.common.model.performance.HostIoStatData">
+        SELECT tdio.HOST_ID hostId,SUM(tdio.IO_STAT) as ioStat, tdio.TIME as time, TT.name as hostName
+        FROM TBL_HOST_IO_STAT tdio  INNER JOIN ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_HOST} TT ON tdio.HOST_ID=TT.id WHERE tdio.HOST_ID in (${hostIds})
+        <if test="operatorGroupCode!=null and operatorGroupCode!=''">
+            AND tdio.OP_GROUP_CODE LIKE #{operatorGroupCode}
+        </if>
+        AND tdio.TIME BETWEEN ${startTime} AND ${endTime}
+        GROUP BY tdio.HOST_ID, tdio.TIME, TT.name ORDER BY tdio.TIME ASC
+    </select>
+    <select id="getStoreIOTrend" resultType="com.h3c.h3cloud.common.model.performance.HostIoStatData">
+        SELECT  tdio.DEV_NAME devName,SUM(tdio.IO_STAT) as ioStat, tdio.TIME as time
+        FROM TBL_HOST_IO_STAT tdio  WHERE tdio.DEV_NAME IN (${devNames})
+        <if test="operatorGroupCode!=null and operatorGroupCode!=''">
+            AND tdio.OP_GROUP_CODE LIKE #{operatorGroupCode}
+        </if>
+        AND tdio.TIME BETWEEN ${startTime} AND ${endTime}
+        GROUP BY tdio.DEV_NAME, tdio.TIME ORDER BY tdio.TIME ASC
+    </select>
+    <select id="getHostIOPSTrend" resultType="com.h3c.h3cloud.common.model.performance.HostIoStatData">
+        SELECT tdio.HOST_ID hostId, RD_REQ_PS AS rdReqps, WR_REQ_PS AS wrReqps, tdio.RD_LATENCY as rdLatency, tdio.WR_LATENCY as wrLatency, tdio.TIME as time, TT.name as hostName
+        FROM TBL_HOST_IO_STAT tdio
+        INNER JOIN ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_HOST} TT ON tdio.HOST_ID=TT.id
+        WHERE tdio.HOST_ID=${hostId}
+        <if test="currentDisk!=null and currentDisk!=''">
+            AND tdio.DEV_NAME =#{currentDisk}
+        </if>
+        <if test="operatorGroupCode!=null and operatorGroupCode!=''">
+            AND tdio.OP_GROUP_CODE LIKE #{operatorGroupCode}
+        </if>
+        AND tdio.TIME BETWEEN ${startTime} AND ${endTime}
+        ORDER BY tdio.TIME ASC
+    </select>
+    <select id="getStoreIOPSTrend" resultType="com.h3c.h3cloud.common.model.performance.HostIoStatData">
+        SELECT DISTINCT tdio.DEV_NAME devName, SUM(RD_REQ_PS)AS rdReqps, SUM(WR_REQ_PS) AS wrReqps, tdio.TIME as time
+        FROM TBL_HOST_IO_STAT tdio   WHERE tdio.DEV_NAME IN (${devNames})
+        <if test="operatorGroupCode!=null and operatorGroupCode!=''">
+            AND tdio.OP_GROUP_CODE LIKE #{operatorGroupCode}
+        </if>
+        AND tdio.TIME BETWEEN ${startTime} AND ${endTime}
+        GROUP BY tdio.DEV_NAME, tdio.TIME ORDER BY tdio.TIME ASC
+    </select>
+    <select id="queryHostIOPSTopByCondition" resultType="com.h3c.h3cloud.common.model.performance.HostIoStatData">
+        SELECT his.HOST_ID hostId,SUM(his.rd_ps_avg) + SUM(his.wr_ps_avg) reqps, th.name hostName, any(th.cluster_id) clusterId, any(th.host_pool_id) hostpoolId
+        FROM (SELECT HOST_ID, CEILING(AVG(RD_REQ_PS)) rd_ps_avg, CEILING(AVG(WR_REQ_PS)) wr_ps_avg FROM TBL_HOST_IO_STAT where
+        TIME BETWEEN ${startTime} AND ${endTime}
+        <if test="hostPoolId!=null and hostPoolId!=''">
+            AND HOST_POOL_ID =${hostPoolId}
+        </if>
+        <if test="hostId!=null and hostId!=''">
+            AND  HOST_ID =${hostId}
+        </if>
+        <if test="clusterId!=null and clusterId!=''">
+            AND CLUSTER_ID =${clusterId}
+        </if>
+        <if test="operatorGroupCode!=null and operatorGroupCode!=''">
+            AND OP_GROUP_CODE LIKE #{operatorGroupCode}
+        </if>
+        GROUP BY HOST_ID, DEV_NAME HAVING MAX(TIME) > ${endTime} - 241) as his,
+        ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_HOST} th WHERE th.id = his.HOST_ID
+        GROUP BY his.HOST_ID, th.name
+        ORDER BY reqps DESC
+        <if test="limit!=null and limit!=''">
+            LIMIT ${limit}
+        </if>
+    </select>
+    <select id="queryTopIOPSByCondition" resultType="com.h3c.h3cloud.common.model.performance.HostIoStatData">
+        SELECT t2.DEV_NAME as devName,round(SUM(t2.RD_REQ_PS+ t2.WR_REQ_PS)) as reqps,t2.TIME as time, any(t1.TITLE) as title FROM
+        ( SELECT SUM(RD_REQ_PS+WR_REQ_PS) SUM_REQ_PS,DEV_NAME,any(FS.title) as TITLE  FROM TBL_HOST_IO_STAT t
+        LEFT JOIN ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_SHARE_FILE_SYSTEM} FS on FS.name=t.DEV_NAME
+        WHERE TIME BETWEEN ${startTime} AND ${endTime}
+        AND DEV_NAME in (select storage_pool_name from ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_STORAGE_POOL_CONFIG} con WHERE con.type in(1,2,9,10))
+        <if test="operatorGroupCode!=null and operatorGroupCode!=''">
+            AND t.OP_GROUP_CODE LIKE #{operatorGroupCode}
+        </if>
+        GROUP BY DEV_NAME ORDER BY SUM_REQ_PS DESC
+        <if test="limit!=null and limit!=''">
+            LIMIT ${limit}
+        </if>
+        ) t1  LEFT JOIN TBL_HOST_IO_STAT  t2 ON t1.DEV_NAME=t2.DEV_NAME  WHERE TIME BETWEEN ${startTime} AND ${endTime}
+        GROUP BY t2.DEV_NAME,t2.TIME ORDER BY TIME ASC
+    </select>
+    <select id="clusterIops" resultType="com.h3c.h3cloud.common.model.performance.HostIoStatData">
+        SELECT tis.RD_REQ_PS+tis.WR_REQ_PS as reqps,tis.TIME as time, t.clusterName as clusterName FROM
+        (SELECT SUM(th.RD_REQ+th.WR_REQ) total,th.CLUSTER_ID clusterId, any(c.name) clusterName,any(th.DEV_NAME) devName FROM TBL_HOST_IO_STAT th
+        INNER JOIN ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_CLUSTER} c ON th.CLUSTER_ID = c.id
+        WHERE th.TIME BETWEEN ${startTime} AND ${endTime}
+        <if test="operatorGroupCode!=null and operatorGroupCode!=''">
+            AND th.OP_GROUP_CODE LIKE #{operatorGroupCode}
+        </if>
+        GROUP BY th.CLUSTER_ID ORDER BY total DESC LIMIT ${limit}) t
+        LEFT JOIN TBL_HOST_IO_STAT tis ON tis.CLUSTER_ID = t.clusterId
+        LEFT JOIN ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_SHARE_FILE_SYSTEM} fs ON fs.name = t.devName
+        WHERE tis.TIME BETWEEN ${startTime} AND ${endTime}
+        AND tis.DEV_NAME in (select storage_pool_name from ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_STORAGE_POOL_CONFIG} con WHERE con.type in(1,2,9,10))
+        ORDER BY t.clusterName, tis.TIME
+    </select>
+    <select id="clusterIoRw" resultType="com.h3c.h3cloud.common.model.performance.HostIoStatData">
+        SELECT tis.IO_STAT ioStat, tis.TIME as time, t.clusterName as clusterName  FROM
+        (SELECT any(th.TIME) time, SUM(th.IO_STAT) total, any(c.name) clusterName,th.CLUSTER_ID clusterId,any(th.DEV_NAME) devName
+        FROM TBL_HOST_IO_STAT th
+        INNER JOIN ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_CLUSTER} c ON th.CLUSTER_ID = c.id
+        WHERE TIME BETWEEN ${startTime} AND ${endTime}
+        <if test="operatorGroupCode!=null and operatorGroupCode!=''">
+            AND th.OP_GROUP_CODE LIKE #{operatorGroupCode}
+        </if>
+        GROUP BY th.CLUSTER_ID ORDER BY total DESC LIMIT ${limit}) t
+        LEFT JOIN TBL_HOST_IO_STAT tis ON tis.CLUSTER_ID = t.clusterId
+        LEFT JOIN ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_SHARE_FILE_SYSTEM} fs ON fs.name = t.devName
+        WHERE tis.TIME BETWEEN ${startTime} AND ${endTime}
+        AND tis.DEV_NAME in (select storage_pool_name from ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_STORAGE_POOL_CONFIG} con WHERE con.type in(1,2,9,10))
+        ORDER BY t.clusterName,tis.TIME
+    </select>
+    <select id="queryTopIOLatencyByCondition" resultType="com.h3c.h3cloud.common.model.performance.HostIoStatData">
+        SELECT t2.DEV_NAME as devName,round(SUM(t2.RD_LATENCY+t2.WR_LATENCY),2) as latency,t2.TIME as time,any(t1.TITLE) as title FROM
+        ( SELECT SUM(RD_LATENCY+WR_LATENCY) SUM_LATENCY,DEV_NAME, any(FS.title) as TITLE FROM TBL_HOST_IO_STAT t
+        LEFT JOIN ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_SHARE_FILE_SYSTEM} FS on FS.name=t.DEV_NAME
+        WHERE TIME BETWEEN ${startTime} AND ${endTime}
+        AND DEV_NAME in (select storage_pool_name from ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_STORAGE_POOL_CONFIG} con WHERE con.type in(1,2,9,10))
+        <if test="operatorGroupCode!=null and operatorGroupCode!=''">
+            AND OP_GROUP_CODE LIKE #{operatorGroupCode}
+        </if>
+        GROUP BY DEV_NAME ORDER BY SUM_LATENCY DESC
+        <if test="limit!=null and limit!=''">
+            LIMIT ${limit}
+        </if>
+        ) t1 LEFT JOIN TBL_HOST_IO_STAT  t2 ON t1.DEV_NAME=t2.DEV_NAME WHERE TIME BETWEEN ${startTime} AND ${endTime}
+        GROUP BY t2.DEV_NAME,t2.TIME ORDER BY t2.TIME ASC
+    </select>
+
+    <select id="queryNewestHostIostatByHostId" resultType="com.h3c.h3cloud.common.model.performance.HostIoStatData">
+        SELECT TIME as time,IO_STAT as ioStat,RD_STAT as rdStat,WR_STAT as wrStat,RD_REQ_PS as rdReqps,WR_REQ_PS as wrReqps,RD_LATENCY as rdLatency,WR_LATENCY as wrLatency,DEV_NAME as devName, UTILIZATION as utilization FROM TBL_HOST_IO_STAT   where HOST_ID =${hostId}
+        AND TIME = (SELECT MAX(TIME) FROM TBL_HOST_IO_STAT WHERE HOST_ID =${hostId}) - ${duration}
+    </select>
+    <select id="queryNewDurationHostIostatByHostId" resultType="com.h3c.h3cloud.common.model.performance.HostIoStatData">
+        SELECT HOST_ID as hostId,ROUND(AVG(IO_STAT),2) as ioStat,ROUND(AVG(RD_STAT),2) as rdStat,ROUND(AVG(WR_STAT),2) as wrStat,ROUND(AVG(RD_REQ_PS),2) as rdReqps,ROUND(AVG(WR_REQ_PS),2) as wrReqps,ROUND(AVG(RD_LATENCY),2) as rdLatency,ROUND(AVG(WR_LATENCY),2) as wrLatency,DEV_NAME as devName, ROUND(AVG(UTILIZATION),2) as utilization FROM TBL_HOST_IO_STAT  WHERE HOST_ID==${hostId}
+         AND TIME >= (SELECT MAX(TIME) FROM TBL_HOST_IO_STAT WHERE HOST_ID =${hostId}) - ${duration}  GROUP BY HOST_ID,DEV_NAME
+    </select>
+    <select id="queryHostDisk" resultType="com.h3c.h3cloud.common.model.performance.HostIoStatData">
+        SELECT DISTINCT DEV_NAME as devName,HOST_ID as hostId FROM TBL_HOST_IO_STAT WHERE HOST_ID =${hostId}
+    </select>
+    <select id="queryStorageHistory" resultType="com.h3c.h3cloud.common.model.performance.HostIoStatData">
+        SELECT TIME, UTILIZATION FROM TBL_HOST_IO_STAT  WHERE TIME BETWEEN ${startTime} AND ${endTime}
+        AND DEV_NAME =#{devName}  ORDER BY TIME ASC
+    </select>
+    <select id="queryDiskPerfData" resultType="com.h3c.h3cloud.common.model.performance.HostIoStatData">
+        SELECT disk3.DEV_NAME as devName,
+        <if test="type!=null and type!='' and type=='DISKIO'">
+            disk3.avg as ioStat
+        </if>
+        <if test="type!=null and type!='' and type=='IOPS'">
+            disk3.avg as reqps
+        </if>
+        <if test="type!=null and type!='' and type=='DISKUTILIZATION'">
+            disk3.avg as utilization
+        </if>
+        FROM (SELECT disk2.DEV_NAME, AVG(disk2.point_value) avg, COUNT(disk2.TIME) count_ FROM (
+        <if test="type!=null and type!='' and type=='DISKIO'">
+            SELECT disk.TIME, disk.DEV_NAME, SUM(disk.IO_STAT) point_value
+        </if>
+        <if test="type!=null and type!='' and type=='IOPS'">
+            SELECT disk.TIME, disk.DEV_NAME, SUM(disk.RD_REQ_PS + disk.WR_REQ_PS) point_value
+        </if>
+        <if test="type!=null and type!='' and type=='DISKUTILIZATION'">
+            SELECT disk.TIME, disk.DEV_NAME, AVG(disk.UTILIZATION) point_value
+        </if>
+        FROM TBL_HOST_IO_STAT disk  WHERE  disk.TIME BETWEEN ${startTime} AND ${endTime} AND
+        disk.DEV_NAME in (SELECT pool.storage_pool_name FROM
+        ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_STORAGE_POOL_CONFIG}
+        pool WHERE pool.type IN (1, 2) AND pool.host_id =${hostId})
+        GROUP BY disk.TIME, disk.DEV_NAME ) disk2 GROUP BY disk2.DEV_NAME
+        ) disk3 WHERE disk3.count_ >=${effectivePoint}  ORDER BY disk3.avg ASC
+    </select>
+
+    <select id="readClusterSharedStoragePoolUtilization" resultType="com.h3c.h3cloud.common.model.performance.ClusterIoStatData">
+        select
+            a.DEV_NAME as devName,
+            any(c.title) as storagePoolTitle,
+            any(b.path) as storagePoolPath,
+            min(UTILIZATION) as utilization
+        from
+            TBL_HOST_IO_STAT a,
+            ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_STORAGE_POOL_CONFIG} b
+            LEFT JOIN ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_SHARE_FILE_SYSTEM} c on b.share_file_system_id = c.id
+        where
+            a.HOST_ID = b.host_id
+          and a.DEV_NAME = b.storage_pool_name
+          and b.type in(1, 2)
+          AND TIME BETWEEN ${startTime} AND ${endTime}
+        group by
+            a.DEV_NAME
+    </select>
+
+    <select id="readClusterSharedStoragePoolData" resultType="com.h3c.h3cloud.common.model.performance.ClusterIoStatData">
+        select
+            a.DEV_NAME as devName,
+            any(d.title)as storagePoolTitle,
+            any(b.path) as storagePoolPath,
+            min(a.value) as value
+        from
+            (
+                select
+                    DEV_NAME,
+                    <choose>
+                        <when test="queryField!=null and queryField=='IO_STAT'">
+                            sum(IO_STAT) as value
+                        </when>
+                        <when test="queryField!=null and queryField=='RD_STAT'">
+                            sum(RD_STAT) as value
+                        </when>
+                        <when test="queryField!=null and queryField=='WR_STAT'">
+                            sum(WR_STAT) as value
+                        </when>
+                        <when test="queryField!=null and queryField=='TOTAL_REQ_PS'">
+                            sum(RD_REQ_PS + WR_REQ_PS) as value
+                        </when>
+                        <when test="queryField!=null and queryField=='RD_REQ_PS'">
+                            sum(RD_REQ_PS) as value
+                        </when>
+                        <when test="queryField!=null and queryField=='WR_REQ_PS'">
+                            sum(WR_REQ_PS) as value
+                        </when>
+                        <otherwise>
+                            sum(IO_STAT) as value
+                        </otherwise>
+                    </choose>
+                from TBL_HOST_IO_STAT
+                where
+                    TIME BETWEEN ${startTime} AND ${endTime}
+                group by
+                    DEV_NAME, TIME
+            ) a,
+            ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_STORAGE_POOL_CONFIG} b
+            left join ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_SHARE_FILE_SYSTEM} d on b.share_file_system_id = d.id
+        where
+            a.DEV_NAME = b.storage_pool_name
+            and b.type in(1, 2)
+        group by
+            DEV_NAME
+    </select>
+</mapper>

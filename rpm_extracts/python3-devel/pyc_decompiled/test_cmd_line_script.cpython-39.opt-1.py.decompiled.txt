@@ -1,0 +1,495 @@
+l	Z	d
+support)
+make_pkg
+make_script
+make_zip_pkg
+make_zip_script
+assert_python_ok
+assert_python_failure
+spawn_python
+kill_python)
+test1Z
+test2Z
+test3a
+# Script may be run with optimisation enabled, so don't rely on assert
+# statements being executed
+def assertEqual(lhs, rhs):
+    if lhs != rhs:
+        raise AssertionError('%r != %r' % (lhs, rhs))
+def assertIdentical(lhs, rhs):
+    if lhs is not rhs:
+        raise AssertionError('%r is not %r' % (lhs, rhs))
+# Check basic code execution
+result = ['Top level assignment']
+def f():
+    result.append('Lower level reference')
+assertEqual(result, ['Top level assignment', 'Lower level reference'])
+# Check population of magic variables
+assertEqual(__name__, '__main__')
+from importlib.machinery import BuiltinImporter
+_loader = __loader__ if __loader__ is BuiltinImporter else type(__loader__)
+print('__loader__==%a' % _loader)
+print('__file__==%a' % __file__)
+print('__cached__==%a' % __cached__)
+print('__package__==%r' % __package__)
+# Check PEP 451 details
+import os.path
+if __package__ is not None:
+    print('__main__ was located through the import system')
+    assertIdentical(__spec__.loader, __loader__)
+    expected_spec_name = os.path.splitext(os.path.basename(__file__))[0]
+    if __package__:
+        expected_spec_name = __package__ + "." + expected_spec_name
+    assertEqual(__spec__.name, expected_spec_name)
+    assertEqual(__spec__.parent, __package__)
+    assertIdentical(__spec__.submodule_search_locations, None)
+    assertEqual(__spec__.origin, __file__)
+    if __spec__.cached is not None:
+        assertEqual(__spec__.cached, __cached__)
+# Check the sys module
+import sys
+assertIdentical(globals(), sys.modules[__name__].__dict__)
+if __spec__ is not None:
+    # XXX: We're not currently making __main__ available under its real name
+    pass # assertIdentical(globals(), sys.modules[__spec__.name].__dict__)
+from test import test_cmd_line_script
+example_args_list = test_cmd_line_script.example_args
+assertEqual(sys.argv[1:], example_args_list)
+print('sys.argv[0]==%a' % sys.argv[0])
+print('sys.path[0]==%a' % sys.path[0])
+# Check the working directory
+import os
+print('cwd==%a' % os.getcwd())
+	importlib
+invalidate_caches)
+script_dir
+script_basename
+source
+	to_return
+1/usr/lib64/python3.9/test/test_cmd_line_script.py
+_make_test_scriptN
+zip_dirZ
+zip_basenameZ
+pkg_namer
+depthr
+_make_test_zip_pkgS
+j	dmd
+d d!
+d"d#
+d$d%
+d&d'
+d(d)
+d*d+
+d,d-
+d.d/
+d0d1
+d2d3
+d4d5
+d6d7
+d8d9
+d:d;
+Z d<d=
+Z!d>d?
+Z"d@dA
+Z#dBdC
+Z$dDdE
+Z%dFdG
+j	dHdI
+Z'dJdK
+Z(dLdM
+Z)dNdO
+Z*dPdQ
+Z+dRdS
+Z,dTdU
+Z-dVdW
+Z.dXdY
+Z/dZd[
+Z0d\d]
+Z1d^d_
+Z2d`da
+Z3dbdc
+Z4ddde
+Z5dfdg
+Z6dhdi
+Z7djdk
+CmdLineTestNc
+}	d	|	
+Output from test script %r:r
+__loader__==%az
+__file__==%az
+__package__==%rz
+sys.argv[0]==%az
+sys.path[0]==%az
+cwd==%az
+Expected output:
+utf-8)
+verbose
+print
+repr
+assertEqual
+getcwd
+assertIn
+encode)
+self
+script_nameZ	exit_code
+data
+expected_file
+expected_argv0
+expected_path0
+expected_package
+expected_loader
+expected_cwdZ
+printed_loaderZ
+printed_fileZ
+printed_packageZ
+printed_argv0Z
+printed_path0Z
+printed_cwdr
+_check_output[
+CmdLineTest._check_output
+cwdc
+__isolatedZ
+__cwd)
+isinstance
+strr
+Z!optim_args_from_interpreter_flags
+example_argsr
+script_exec_argsr%
+cmd_line_switches
+env_vars
+run_args
+errr
+_check_scriptx
+CmdLineTest._check_scriptc
+NFr.
+Output from test script z
+Expected output: %rr
+)	r0
+tupler
+expected_msgr-
+_check_import_error
+CmdLineTest._check_import_errorc
+print(__loader__)r
+	machinery
+BuiltinImporterr!
+expectedr
+test_dash_c_loader
+CmdLineTest.test_dash_c_loaderc
+print(__loader__)
+stdin
+write
+flushr
+test_stdin_loader
+CmdLineTest.test_stdin_loaderFc
+rDqN|
+stderr
+>>> )
+subprocess
+PIPErG
+STDOUT
+stdout
+read
+readliner
+close)
+separate_stderrrE
+interactive_python
+CmdLineTest.interactive_pythonc
+print('foo')
+foo)
+strip)
+check_repl_stdout_flush
+z#CmdLineTest.check_repl_stdout_flushc
+Traceback s
+File "<stdin>"s
+ZeroDivisionError)
+check_repl_stderr_flush
+z#CmdLineTest.check_repl_stderr_flushc
+test_repl_stdout_flush
+z"CmdLineTest.test_repl_stdout_flushc
+NTrT
+&test_repl_stdout_flush_separate_stderr
+z2CmdLineTest.test_repl_stdout_flush_separate_stderrc
+test_repl_stderr_flush
+z"CmdLineTest.test_repl_stderr_flushc
+&test_repl_stderr_flush_separate_stderr
+z2CmdLineTest.test_repl_stderr_flush_separate_stderrc
+script)
+temp_dirr
+SourceFileLoader
+test_basic_script
+CmdLineTest.test_basic_scriptc
+temp_cwd
+assertTruer
+path
+isabsr
+basenamer:
+relative_namer
+test_script_abspath
+CmdLineTest.test_script_abspathc
+doraise
+py_compile
+compiler
+remove
+make_legacy_pycr:
+SourcelessFileLoader
+pyc_filer
+test_script_compiled
+z CmdLineTest.test_script_compiledc
+__main__
+test_directory
+CmdLineTest.test_directoryc
+test_directory_compiled
+z#CmdLineTest.test_directory_compiledc
+"can't find '__main__' module in %r)
+msgr
+test_directory_error
+z CmdLineTest.test_directory_errorc
+test_ziprs
+	zipimport
+zipimporter)
+zip_name
+run_namer
+test_zipfile
+CmdLineTest.test_zipfilec
+invalidation_modery
+PycInvalidationMode
+	TIMESTAMPr
+compiled_namer|
+test_zipfile_compiled_timestamp
+z+CmdLineTest.test_zipfile_compiled_timestampc
+CHECKED_HASHr
+"test_zipfile_compiled_checked_hash
+z.CmdLineTest.test_zipfile_compiled_checked_hashc
+UNCHECKED_HASHr
+$test_zipfile_compiled_unchecked_hash'
+z0CmdLineTest.test_zipfile_compiled_unchecked_hashc
+not_mainry
+test_zipfile_error1
+CmdLineTest.test_zipfile_errorc
+test_pkgr\
+test_pkg.scriptr,
+joinr
+pkg_dirr#
+test_module_in_package8
+z"CmdLineTest.test_module_in_packagec
+PYTHONPATHr-
+!test_module_in_package_in_zipfileB
+z-CmdLineTest.test_module_in_package_in_zipfilec
+test_pkg.test_pkg.scriptz
+test_pkg.test_pkgr
+$test_module_in_subpackage_in_zipfileI
+z0CmdLineTest.test_module_in_subpackage_in_zipfilec
+test_packageQ
+CmdLineTest.test_packagec
+test_package_compiled[
+z!CmdLineTest.test_package_compiledc
+z7'test_pkg' is a package and cannot be directly executedr
+test_package_errorh
+CmdLineTest.test_package_errorc
+z^Cannot use package as __main__ module; 'test_pkg' is a package and cannot be directly executedr
+main_dirrw
+test_package_recursionp
+z"CmdLineTest.test_package_recursionc
+z1import sys; print('init_argv0==%r' % sys.argv[0])r\
+init_argv0==%rr
+change_cwdr
+test_issue8202{
+CmdLineTest.test_issue8202c
+z2import sys; print("sys.path[0]==%r" % sys.path[0])F)
+sys.path[0]==%rrs
+openrC
+"test_issue8202_dash_c_file_ignored
+z.CmdLineTest.test_issue8202_dash_c_file_ignoredc
+otherr
+"test_issue8202_dash_m_file_ignored
+z.CmdLineTest.test_issue8202_dash_m_file_ignoredc
+issue20884.pyr
+newlinez
+#coding: iso-8859-1
+zQxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+ranger
+test_issue20884
+CmdLineTest.test_issue20884c
+argsr
+setup_test_pkg
+CmdLineTest.setup_test_pkgc
+check_dash_m_failure
+z CmdLineTest.check_dash_m_failurec
+z+if __name__ == '__main__': raise ValueErrorz
+test_pkg.others
+ValueError)
+test_dash_m_error_code_is_one
+z)CmdLineTest.test_dash_m_error_code_is_onec
+builtinss
+No code object available)
+builtins.xs=
+Error while finding module specification.*ModuleNotFoundError)
+builtins.x.ys]
+Error while finding module specification.*ModuleNotFoundError.*No module named.*not a package)
+os.paths
+loader.*cannot handle)
+No module named.*is a package and cannot be directly executed)
+importlib.nonexistents
+No module named)
+z	.unittests#
+Relative module names not supportedr
+Traceback)
+subTestr
+assertRegex
+assertNotIn)
+tests
+nameZ
+regexr7
+test_dash_m_errors
+CmdLineTest.test_dash_m_errorsc
+test_pkg/__init__.pyc
+wbsG
+Error while finding module specification.*ImportError.*bad magic numbers
+is a packager
+mkdirr
+test_dash_m_bad_pyc
+CmdLineTest.test_dash_m_bad_pycc
+asyncio.pyr
+Try using 'asyncio' instead of 'asyncio.py' as the module name)
+*test_hint_when_triying_to_import_a_py_file
+z6CmdLineTest.test_hint_when_triying_to_import_a_py_filec
+Nz%raise {0}('Exception in __init__.py')r
+asciis
+Exception in __init__.pyr
+ImportError
+AttributeError
+	TypeError
+ValueError
+__name__
+formatr
+exceptionsZ	exception
+initr
+test_dash_m_init_traceback
+z&CmdLineTest.test_dash_m_init_tracebackc
+Nz1raise ImportError('Exception in __main__ module')rr
+ImportErrors
+Exception in __main__ moduler
+mainr9
+test_dash_m_main_traceback
+z&CmdLineTest.test_dash_m_main_tracebackc
+Nz|            try:
+                raise ValueError
+            except:
+                raise NameError from None
+            r\
+Z	Tracebackr
+  File 
+	NameError)
+textwrap
+dedentr
+decode
+splitr
+lenrb
+startswith
+exitcoderK
+textr
+test_pep_409_verbiage
+z!CmdLineTest.test_pep_409_verbiagec
+win32
+darwinz
+need support.TESTFN_NONASCIIz
+print(ascii(__file__))
+stdout=%r stderr=%rr
+TESTFN_UNDECODABLE
+platformr
+fsdecodeZ
+TESTFN_NONASCIIZ
+skipTestr
+addCleanup
+unlinkr
+rstripr
+test_non_ascii*
+CmdLineTest.test_non_asciic
+            import sys
+            error = None
+            try:
+                raise ValueError('some text')
+            except ValueError as err:
+                error = err
+            if error:
+                sys.exit(error)
+            r\
+z	some text)	r
+)test_issue20500_exit_with_exception_valueA
+z5CmdLineTest.test_issue20500_exit_with_exception_valuec
+1 + 1 = 2
+    1 + 1 = 2
+    ^)	r
+TextIOWrapper
+BytesIOrL
+*test_syntaxerror_unindented_caret_positionS
+z6CmdLineTest.test_syntaxerror_unindented_caret_positionc
+Nz;            if True:
+                1 + 1 = 2
+            r\
+if True:
+    1 + 1 = 2
+(test_syntaxerror_indented_caret_position\
+z4CmdLineTest.test_syntaxerror_indented_caret_positionc
+foo = f"""{}
+foo"""
+    foo"""
+          ^s3
+SyntaxError: f-string: empty expression not allowed
+splitlines
+#test_syntaxerror_multi_line_fstrings
+z/CmdLineTest.test_syntaxerror_multi_line_fstringc
+foo = """\q"""
+-Werrorr
+    foo = """\q"""r
+SyntaxError: invalid escape sequence \qr
+3test_syntaxerror_invalid_escape_sequence_multi_line
+z?CmdLineTest.test_syntaxerror_invalid_escape_sequence_multi_linec
+c            import sys
+            for entry in sys.path:
+                print(entry)
+            rr
+-Esr,
+maxDiffr
+)	r"
+work_dirr
+out_by_nameZ
+out_by_dirZ
+out_by_dir_isolatedr
+-test_consistent_sys_path_for_direct_execution
+z9CmdLineTest.test_consistent_sys_path_for_direct_executionc
+script_pkgrr
+-smz
+script_pkg.__main__r,
+-Imz
+No module named script_pkg
+out_by_moduleZ
+out_by_packager
+traceback_linesr
+-test_consistent_sys_path_for_module_execution
+z9CmdLineTest.test_consistent_sys_path_for_module_executionc
+nonexistingscript.pyT)
+: can't open file r
+assertFalser
+existsr	
+communicater 
+assertNotEqual
+returncode)
+procr8
+test_nonexisting_script
+z#CmdLineTest.test_nonexisting_script)
+F)9r
+__module__
+__qualname__r+
+contextlib
+contextmanagerrP
+reap_childrenr
+tearDownModule
+importlib.machineryrz
+unittestr
+os.pathrj
+testr
+test.support.script_helperr
+test_sourcer
+TestCaser
+<module>

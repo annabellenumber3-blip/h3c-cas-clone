@@ -1,0 +1,818 @@
+l	Z	d
+Z"e#e
+e"e e!d 
+Z$d]d"d#
+d$d%
+d&d'
+d(d)
+d)e&
+Z(d*d+
+d,d-
+d.d/
+d0d1
+Z,d2d3
+d4d5
+/d6d7
+d^d8d9
+/d6d7
+d_d:d;
+Z1e0j
+d<d=
+e2e*d>
+e2e(d?
+dAl5m6Z6
+l7Z7e6
+Z8e8
+e8j9dCdDe:d
+Z<e&e<j=e<j>
+*Z?e,e0dF
+Z@e?D
+ZAeBdGeAjC
+dHeAjD
+dIeAjE
+FeAjGdKdL
+ZHZIeBdMeHjJ
+dOeHjLdP
+eBdQdRdSdTdUdVdWdX
+]<ZGeBeGjMeGjNeGjOePeGjO
+ePeGjO
+dYeGjCdWdX
+eAjR
+rdeBdQdRdZdUd[d\dWdX
+eAjRD
+] ZSeBeSjMeSjNeSjDeSjCdWdX
+)`aC
+A module for reading dvi files output by TeX. Several limitations make
+this not (currently) useful as a general-purpose dvi preprocessor, but
+it is currently used by the pdf backend for processing usetex text.
+Interface::
+  with Dvi(filename, 72) as dvi:
+      # iterate over pages:
+      for page in dvi:
+          w, h, d = page.width, page.height, page.descent
+          for x, y, font, glyph, width in page.text:
+              fontname = font.texname
+              pointsize = font.size
+              ...
+          for x, y, height, width in page.boxes:
+              ...
+namedtupleN)
+	lru_cache
+partial
+wraps)
+Path)
+_api
+cbookZ
+DviStatez!pre outer inpage post_post finale
+Pagez
+text boxes height width descent
+Boxz
+x y height widthc
+Texta
+    A glyph in the dvi file.
+    The *x* and *y* attributes directly position the glyph.  The *font*,
+    *glyph*, and *width* attributes are kept public for back-compatibility,
+    but users wanting to draw the glyph themselves are encouraged to instead
+    load the font specified by `font_path` at `font_size`, warp it with the
+    effects specified by `font_effects`, and load the glyph specified by
+    `glyph_name_or_index`.
+    c
+pdftex.map)
+PsfontsMap
+find_tex_file
+font
+texname
+self
+8/usr/lib64/python3.9/site-packages/matplotlib/dviread.py
+_get_pdftexmap_entryM
+Text._get_pdftexmap_entryc
+z/The `~pathlib.Path` to the font for this glyph.NzINo usable font file found for {} ({}); the font may lack a Type-1 version
+ascii)
+filename
+ValueError
+format
+psname
+decoder
+psfontr
+	font_pathP
+Text.font_pathc
+The font size.)
+sizer
+	font_size[
+Text.font_sizec
+        The "font effects" dict for this glyph.
+        This dict contains the values for this glyph of SlantFont and
+        ExtendFont (if any), read off :file:`pdftex.map`.
+        )
+effectsr
+font_effects`
+Text.font_effectsc
+        Either the glyph name or the native charmap glyph index.
+        If :file:`pdftex.map` specifies an encoding for this glyph's font, that
+        is a mapping of glyph indices to Adobe glyph names; use it to convert
+        dvi indices to glyph names.  Callers can then convert glyph names to
+        glyph indices (with FT_Get_Name_Index/get_name_index), and load the
+        glyph using FT_Load_Glyph/load_glyph.
+        If :file:`pdftex.map` specifies no encoding, the indices directly map
+        to the font's "native" charmap; glyphs should directly loaded using
+        FT_Load_Char/load_char after selecting the native charmap.
+        N)
+encoding
+_parse_enc
+glyph)
+entryr
+glyph_name_or_indexj
+Text.glyph_name_or_indexN)
+__name__
+__module__
+__qualname__
+__doc__r
+propertyr
+x y font glyph widthc
+z?Return *delta* without reading anything more from the dvi file.r
+dviZ
+deltar
+_arg_raw
+    Read *nbytes* bytes, returning the bytes interpreted as a signed integer
+    if *signed* is true, unsigned otherwise.
+    
+_arg)
+nbytes
+signedr,
+    Read *delta* bytes, returning None if *delta* is zero, and the bytes
+    interpreted as a signed integer otherwise.
+    r
+NTr.
+	_arg_slen
+    Read *delta*+1 bytes, returning the bytes interpreted as signed.
+    
+_arg_slen1
+    Read *delta*+1 bytes, returning the bytes interpreted as unsigned.
+    r4
+_arg_ulen1
+    Read *delta*+1 bytes, returning the bytes interpreted as
+    unsigned integer for 0<=*delta*<3 and signed if *delta*==3.
+    r4
+_arg_olen1
+slen
+olen1
+slen1
+ulen1
+    Decorator for dispatch by opcode. Sets the values in *table*
+    from *min* to *max* to this method, adds a check that the Dvi state
+    matches *state* if not None, reads arguments from the file according
+    to *args*.
+    Parameters
+    ----------
+    table : dict[int, callable]
+        The dispatch table to be filled in.
+    min, max : int
+        Range of opcodes that calls the registered function; *max* defaults to
+        *min*.
+    state : _dvistate, optional
+        State of the Dvi object in which these opcodes are allowed.
+    args : list[str], default: ['raw']
+        Sequence of argument specifications:
+        - 'raw': opcode minus minimum
+        - 'u1': read one unsigned byte
+        - 'u4': read four bytes, treat as an unsigned number
+        - 's4': read four bytes, treat as a signed number
+        - 'slen': read (opcode - minimum) bytes, treat as signed
+        - 'slen1': read (opcode - minimum + 1) bytes, treat as signed
+        - 'ulen1': read (opcode - minimum + 1) bytes, treat as unsigned
+        - 'olen1': read (opcode - minimum + 1) bytes, treat as unsigned
+          if under four bytes, signed if four bytes
+    c
+_arg_mapping
+<listcomp>
+z/_dispatch.<locals>.decorate.<locals>.<listcomp>c
+state precondition failedc
+byte
+minr
+z@_dispatch.<locals>.decorate.<locals>.wrapper.<locals>.<listcomp>)
+stater
+get_args
+methodrK
+wrapper
+z,_dispatch.<locals>.decorate.<locals>.wrapperr4
+range)
+args
+maxrK
+table)
+decorate
+_dispatch.<locals>.decorater
+	_dispatch
+d!d"
+d$d%
+d&d'
+d(d)e
+d*d+
+d,d-
+d$d%
+d/d0
+d1d2
+d4d5
+d7d%
+d8d9
+d<d=
+d?d@
+dBdC
+dDdEe
+dFd 
+dGdH
+dIdJe
+dKd 
+dLdM
+dNdOe
+dKd 
+dPdQ
+dRdSe
+dFd 
+dTdU
+dVdWe
+dKd 
+dXdY
+dZd[e
+dKd 
+d\d]
+d^d_e
+d`da
+dbdce
+ddde
+dfdgdhdi
+djdk
+dldmdndi
+dodp
+Z+dqdr
+j-dtd%
+dudv
+dxdy
+d{d|
+d}d~d
+DviaI
+    A reader for a dvi ("device-independent") file, as produced by TeX.
+    The current implementation can only iterate through pages in order,
+    and does not even attempt to verify the postamble.
+    This class can be used as a context manager to close the underlying
+    file upon exit. Pages can be read via iteration. Here is an overly
+    simple way to extract text without trying to detect whitespace::
+        >>> with matplotlib.dviread.Dvi('input.dvi', 72) as dvi:
+        ...     for page in dvi:
+        ...         print(''.join(chr(t.glyph) for t in page.text))
+    N
+        Read the data from the file named *filename* and convert
+        TeX's internal units to units of *dpi* per inch.
+        *dpi* only sets the units and does not limit the resolution.
+        Use None to return TeX's internal units.
+        z
+Dvi: %s
+rbN)	
+_log
+debug
+open
+file
+fonts
+	_dvistate
+prerL
+__init__
+Dvi.__init__
+3.5c
+<lambda>
+Dvi.<lambda>c
+z+Context manager enter method, does nothing.r
+	__enter__
+Dvi.__enter__c
+        Context manager exit method, closes the underlying file if it is open.
+        N)
+close)
+etypeZ
+evalueZ
+etracer
+__exit__
+Dvi.__exit__c
+        Iterate through the pages of the file.
+        Yields
+        ------
+        Page
+            Details of all the text and box objects on the page.
+            The Page tuple contains lists of Text and Box tuples and
+            the page dimensions, and the Text and Box tuples contain
+            coordinates transformed into a standard Cartesian
+            coordinate system at the dpi value given when initializing.
+            The coordinates are floating point numbers, but otherwise
+            precision is not lost and coordinate values are not clipped to
+            integers.
+        N)
+_read
+_outputr
+__iter__
+Dvi.__iter__c
+z(Close the underlying file if it is open.N)
+closedrh
+z	Dvi.closec
+        Output the text and boxes belonging to the most recent page.
+        page = dvi._output()
+        r
+text
+boxes
+width
+height
+descentg
+maxyZ
+minxr
+Dvi._output.<locals>.<listcomp>c
+infrp
+isinstancer
+_height_depth_ofrK
+_baseline_vr	
+minyZ
+maxxZ	maxy_pure
+eltrF
+Dvi._outputc
+        Read one page from the file. Return True if successful,
+        False if there were no more pages.
+        r
+_push
+_pop
+_down
+stackr7
+read
+_dtabler&
+append
+getattr
+	post_postrh
+down_stackrJ
+namer
+z	Dvi._readFc
+        Read and return an integer argument *nbytes* long.
+        Signedness is determined by the *signed* keyword.
+        r
+value
+Dvi._argr
+_put_char_realrz
+	_width_of
+charr
+_set_char_immediate
+Dvi._set_char_immediater
+	_set_char
+Dvi._set_char
+_put_rule_realrz
+	_set_rule
+Dvi._set_rule
+	_put_char
+Dvi._put_charc
+scale
+tfmr
+_mul2012r
+z&Dvi._put_char_real.<locals>.<listcomp>)
+_vfrp
+_scale
+DviFontr
+_tfmr
+extend)	r
+newfr
+Dvi._put_char_real
+	_put_rule
+Dvi._put_rulec
+Dvi._put_rule_real
+_nop
+Dvi._nop
+inpagerL
+_bop
+Dvi._bopr
+outerrL
+_eop
+Dvi._eop
+z	Dvi._push
+Dvi._pop
+_right
+Dvi._right
+new_wr
+_right_w
+Dvi._right_w
+new_xr
+_right_x
+Dvi._right_x
+z	Dvi._down
+new_yr
+_down_y
+Dvi._down_y
+new_zr
+_down_z
+Dvi._down_z
+_fnt_num_immediate
+Dvi._fnt_num_immediate
+new_fr
+_fnt_num
+Dvi._fnt_num
+Nz!Dvi._xxx: encountered special: %s
+<%02x>)
+chr)
+Dvi._xxx.<locals>.<listcomp>)
+join)
+datalen
+specialr
+_xxx
+Dvi._xxx
+_fnt_def_real)
+_fnt_def
+Dvi._fnt_defc
+rT|	j
+tfm checksum mismatch: %sr
+_tfmfile
+checksumr
+_vffile
+FileNotFoundErrorr
+fontnamer
+Dvi._fnt_def_real
+Unknown dvi format %di
+Nonstandard units in dvi file
+z%Nonstandard magnification in dvi file)
+numZ
+denZ
+magr
+_pre
+Dvi._pre
+_post0
+z	Dvi._post
+NotImplementedErrorr
+_post_post6
+Dvi._post_post
+unknown command: byte r
+offsetr
+_malformed:
+Dvi._malformed)
+F)2r&
+deprecatedr*
+baselinerg
+    Encapsulation of a font that a DVI file can refer to.
+    This class holds a font's texname and size, supports comparison,
+    and knows the widths of glyphs in the same units as the AFM file.
+    There are also internal attributes (for use by dviread.py) that
+    are *not* used for comparison.
+    The size is in Adobe points (converted from TeX points).
+    Parameters
+    ----------
+    scale : float
+        Factor by which the font is scaled from its natural size.
+    tfm : Tfm
+        TeX font metrics for this font
+    texname : bytes
+       Name of the font as used internally by TeX and friends, as an ASCII
+       bytestring.  This is usually very different from any external font
+       names; `PsfontsMap` can be used to find the external name of the font.
+    vf : Vf
+       A TeX "virtual font" file, or None if this font is not virtual.
+    Attributes
+    ----------
+    texname : bytes
+    size : float
+       Size of the font in Adobe points, converted from the slightly
+       smaller TeX points.
+    widths : list
+       Widths of glyphs in glyph-space units, typically 1/1000ths of
+       the point size.
+    )
+widthsr
+get)
+z$DviFont.__init__.<locals>.<listcomp>)
+check_isinstance
+bytesr
+ncharsr
+DviFont.__init__c
+typer
+otherr
+__eq__r
+DviFont.__eq__c
+__ne__v
+DviFont.__ne__c
+<{}: {}>)
+__repr__y
+DviFont.__repr__c
+Width of char in dvi units.Nz No width for char %d in font %s.r
+DviFont._width_ofc
+z&Height and depth of char in dvi units.rs
+depthNz
+No %s for char %d in font %sr
+^cmsy\d+$r
+match)
+resultZ
+metricr
+DviFont._height_depth_ofN)
+	__slots__rc
+    A virtual font (\*.vf file) containing subroutines for dvi files.
+    Parameters
+    ----------
+    filename : str or path-like
+    Notes
+    -----
+    The virtual font format is a derivative of dvi:
+    http://mirrors.ctan.org/info/knuth/virtual-fonts
+    This class reuses some of the machinery of `Dvi`
+    but replaces the `_read` loop and dispatch mechanism.
+    Examples
+    --------
+    ::
+        vf = Vf(filename)
+        glyph = vf[code]
+        glyph.text, glyph.boxes, glyph.width
+    c
+superrc
+_first_font
+_charsrk
+	__class__r
+Vf.__init__c
+coder
+__getitem__
+Vf.__getitem__c
+NNr4
+NNNz!Packet length mismatch in vf file)
+z"Inappropriate opcode %d in vf filer
+Vf._read.<locals>.<listcomp>)
+Unknown vf opcode %d)
+tell
+_finalize_packetr
+_init_packetr
+packet_charZ
+packet_endsZ
+packet_len
+packet_widthrJ
+byte_atr
+Vf._readc
+Misplaced packet in vf filer
+Vf._init_packetc
+Vf._finalize_packetc
+Nz pre command in middle of vf file
+Unknown vf format %dz
+vf file comment: %s)
+Vf._pre)
+__classcell__r
+z1Multiply two numbers in 20.12 fixed point format.r
+num1Z
+num2r
+Tfma
+    A TeX Font Metric file.
+    This implementation covers only the bare minimum needed by the Dvi class.
+    Parameters
+    ----------
+    filename : str or path-like
+    Attributes
+    ----------
+    checksum : int
+       Used for verifying against the dvi file.
+    design_size : int
+       Design size of the font (unknown units)
+    width, height, depth : dict
+       Dimensions of each character, need to be scaled by the factor
+       specified in the dvi file. These are dicts because indexing may
+       not start from 0.
+    )
+design_sizerr
+opening tfm file %srZ
+!6Hr
+z(lh=%d, bc=%d, ec=%d, nw=%d, nh=%d, nd=%dr9
+struct
+unpackr
+	enumeraterP
+header1Z
+header2Z	char_infor
+heightsZ
+depths
+idxr
+byte0Z
+byte1r
+Tfm.__init__N)
+PsFontz(texname psname effects encoding filenamec
+    A psfonts.map formatted file, mapping TeX fonts to PS fonts.
+    Parameters
+    ----------
+    filename : str or path-like
+    Notes
+    -----
+    For historical reasons, TeX knows many Type-1 fonts by different
+    names than the outside world. (For one thing, the names have to
+    fit in eight characters.) Also, TeX's native fonts are not Type-1
+    but Metafont, which is nontrivial to convert to PostScript except
+    as a bitmap. While high-quality conversions to Type-1 format exist
+    and are shipped with modern TeX distributions, we need to know
+    which Type-1 fonts are the counterparts of which native fonts. For
+    these reasons a mapping is needed from internal font names to font
+    file names.
+    A texmf tree typically includes mapping files called e.g.
+    :file:`psfonts.map`, :file:`pdftex.map`, or :file:`dvipdfm.map`.
+    The file :file:`psfonts.map` is used by :program:`dvips`,
+    :file:`pdftex.map` by :program:`pdfTeX`, and :file:`dvipdfm.map`
+    by :program:`dvipdfm`. :file:`psfonts.map` might avoid embedding
+    the 35 PostScript fonts (i.e., have no filename for them, as in
+    the Times-Bold example above), while the pdf-related files perhaps
+    only avoid the "Base 14" pdf fonts. But the user may have
+    configured these files differently.
+    Examples
+    --------
+    >>> map = PsfontsMap(find_tex_file('pdftex.map'))
+    >>> entry = map[b'ptmbo8r']
+    >>> entry.texname
+    b'ptmbo8r'
+    >>> entry.psname
+    b'Times-Bold'
+    >>> entry.encoding
+    '/usr/local/texlive/2008/texmf-dist/fonts/enc/dvips/base/8r.enc'
+    >>> entry.effects
+    {'slant': 0.16700000000000001}
+    >>> entry.filename
+    )
+	_filename
+	_unparsed
+_parsedc
+object
+__new__
+fsdecoder(
+split
+setdefaultr
+clsr
+line
+tfmnamer
+PsfontsMap.__new__c
+q8q$z
+NzWAn associated PostScript font (required by Matplotlib) could not be found for TeX font r
+ in zo; this problem can often be solved by installing a suitable PostScript font package in your TeX package manager)
+_parse_and_cache_liner*
+KeyError
+LookupErrorr
+PsfontsMap.__getitem__c
+r,t	t
+        Parse a line in the font mapping file.
+        The format is (partially) documented at
+        http://mirrors.ctan.org/systems/doc/pdftex/manual/pdftex-a.pdf
+        https://tug.org/texinfohtml/dvips.html#psfonts_002emap
+        Each line can have the following fields:
+        - tfmname (first, only required field),
+        - psname (defaults to tfmname, must come immediately after tfmname if
+          present),
+        - fontflags (integer, must come immediately after psname if present,
+          ignored by us),
+        - special (SlantFont and ExtendFont, only field that is double-quoted),
+        - fontfile, encodingfile (optional, prefixed by <, <<, or <[; << always
+          precedes a font, <[ always precedes an encoding, < can precede either
+          but then an encoding file must have extension .enc; < and << also
+          request different font subsetting behaviors but we ignore that; < can
+          be separated from the filename by whitespace).
+        special, fontfile, and encodingfile can appear in any order.
+        )
+#NFs
+"([^"]*)(?:"|$)|(\S+)s
+.encTs	
+SlantFontZ
+slants
+ExtendFontr
+.ttfs
+.ttcs
+.otfr
+startswithr
+finditer
+groups
+next
+filter
+endswith
+reversedr0
+float
+absr
+_find_tex_filer'
+basenamer
+encodingfileZ
+fontfileZ
+is_subsettedZ
+is_t1Z
+is_truetypeZ
+matchesr
+quotedZ
+unquotedZ
+wordr
+wordsr
+z PsfontsMap._parse_and_cache_lineN)	r&
+    Parse a \*.enc file referenced from a psfonts.map style file.
+    The format supported by this function is a tiny subset of PostScript.
+    Parameters
+    ----------
+    path : os.PathLike
+    Returns
+    -------
+    list
+        The nth entry of the list is the PostScript glyph name of the nth
+        glyph.
+    z
+%.*r
+(?s)\[(.*)\]r4
+_parse_enc.<locals>.<listcomp>c
+	<genexpr>
+_parse_enc.<locals>.<genexpr>c
+z)Failed to parse {} as Postscript encodingN)
+subr
+	read_text
+search
+groupr0
+allr
+pathZ
+no_commentsZ
+array
+linesr
+_LuatexKpsewhichc
+	_new_proc
+_proc)
+_LuatexKpsewhich.__new__c
+luatexz	--luaonlyz
+kpsewhich.lua)
+stdin
+stdout)
+subprocess
+Popen
+strr
+_get_data_path
+PIPEr
+_LuatexKpsewhich._new_procc
+nil)
+pollrT
+writer.
+fsencode
+flushrW
+readline
+rstripr/
+outr
+_LuatexKpsewhich.searchN)
+    Find a file in the texmf tree using kpathsea_.
+    The kpathsea library, provided by most existing TeX distributions, both
+    on Unix-like systems and on Windows (MikTeX), is invoked via a long-lived
+    luatex process if luatex is installed, or via kpsewhich otherwise.
+    .. _kpathsea: https://www.tug.org/kpathsea/
+    Parameters
+    ----------
+    filename : str or path-like
+    format : str or bytes
+        Used as the value of the ``--format`` option to :program:`kpsewhich`.
+        Could be e.g. 'tfm' or 'vf' to limit the search to that type of files.
+        Deprecated.
+    Raises
+    ------
+    FileNotFoundError
+        If the file is not found.
+    z
+utf-8
+replace)
+errorsN
+command_line_encoding)
+envr!
+surrogateescape)
+Z	kpsewhichz	--format=
+z:Matplotlib's TeX implementation searched for a file named z* in your texmf tree, but could not find it)
+environ
+getfilesystemencodingr
+_check_and_log_subprocessr[
+RuntimeError)
+lkrQ
+kwargs
+cmdr
+3.6r
+z5; in the future, this will raise a FileNotFoundError.)
+messager
+warn_deprecatedrS
+excr
+suffixr
+	_fontfiley
+.tfmz
+__main__)
+ArgumentParserr
+nargsr
+defaultr
+=== new page === (w: z
+, h: z
+, d: 
+font: z
+latin-1z
+	scale: i
+(glyphs)
+(boxes))
+NNrB
+N)Tr)
+collectionsr
+enum
+	functoolsr
+loggingr.
+pathlibr
+numpyr{
+matplotlibr
+Z	getLoggerr&
+Enumra
+dictrC
+delete_parameterrF
+argparsert
+	itertools
+parser
+add_argumentrD
+parse_argsrS
+fontmapZ
+page
+printrr
+groupbyrp
+isprintablerq
+boxr
+<module>

@@ -1,0 +1,446 @@
+Z d d!
+Z!d"d#
+Z"d$d%
+Z#d&d'
+Z$d(d)
+Z%d*d*d*d*d*d+d+d+d,d,d-d-d.d.d/d/d0d1d1d1d2
+Z&d3d4
+Z'd5d6
+Z(d7d8
+d9d:
+Z*d?d;d<
+)@z:Objects and routines pertaining to date and time (tempora)
+oncel
+r4 l
+days
+    Some versions of Python render %Y with only three characters :(
+    https://bugs.python.org/issue39103
+    i
+datetime
+date
+strftime
+4/usr/lib/python3.9/site-packages/tempora/__init__.py
+_needs_year_help#
+    Given a datetime or date or time object from the ``datetime``
+    module, always return a datetime using default values.
+    il
+isinstancer
+time
+combine)
+ensure_datetime,
+    Portable strftime.
+    In the stdlib, strftime has `known portability problems
+    <https://bugs.python.org/issue13305>`_. This function
+    aims to smooth over those issues and provide a
+    consistent experience across the major platforms.
+    >>> strftime('%Y', datetime.datetime(1890, 1, 1))
+    '1890'
+    >>> strftime('%Y', datetime.datetime(900, 1, 1))
+    '0900'
+    Supports time.struct_time, tuples, and datetime.datetime objects.
+    >>> strftime('%Y-%m-%d', (1976, 5, 7))
+    '1976-05-07'
+    Also supports date objects
+    >>> strftime('%Y', datetime.date(1976, 5, 7))
+    '1976'
+    Also supports milliseconds using %s.
+    >>> strftime('%s', datetime.time(microsecond=20000))
+    '020'
+    Also supports microseconds (3 digits) using %
+    >>> strftime('%
+', datetime.time(microsecond=123456))
+    '456'
+    Historically, %u was used for microseconds, but now
+    it honors the value rendered by stdlib.
+    >>> strftime('%u', datetime.date(1976, 5, 7))
+    '5'
+    Also supports microseconds (6 digits) using %f
+    >>> strftime('%f', datetime.time(microsecond=23456))
+    '023456'
+    Even supports time values on date objects (discouraged):
+    >>> strftime('%f', datetime.date(1976, 1, 1))
+    '000000'
+    >>> strftime('%
+', datetime.date(1976, 1, 1))
+    '000'
+    >>> strftime('%s', datetime.date(1976, 1, 1))
+    '000'
+    And vice-versa:
+    >>> strftime('%Y', datetime.time())
+    '1900'
+    N
+%03d
+%04dc
+replace)
+subr
+doSub
+strftime.<locals>.doSubc
+	functools
+reduce)
+subsr
+doSubs
+strftime.<locals>.doSubsz
+struct_time
+tupler
+microsecondr
+year
+join
+splitr
+    Find the time which is the specified date/time truncated to the time delta
+    relative to the start date/time.
+    By default, the start time is midnight of the same day as the specified
+    date/time.
+    >>> datetime_mod(datetime.datetime(2004, 1, 2, 3),
+    ...     datetime.timedelta(days = 1.5),
+    ...     start = datetime.datetime(2004, 1, 1))
+    datetime.datetime(2004, 1, 1, 0, 0)
+    >>> datetime_mod(datetime.datetime(2004, 1, 2, 13),
+    ...     datetime.timedelta(days = 1.5),
+    ...     start = datetime.datetime(2004, 1, 1))
+    datetime.datetime(2004, 1, 2, 12, 0)
+    >>> datetime_mod(datetime.datetime(2004, 1, 2, 13),
+    ...     datetime.timedelta(days = 7),
+    ...     start = datetime.datetime(2004, 1, 1))
+    datetime.datetime(2004, 1, 1, 0, 0)
+    >>> datetime_mod(datetime.datetime(2004, 1, 10, 13),
+    ...     datetime.timedelta(days = 7),
+    ...     start = datetime.datetime(2004, 1, 1))
+    datetime.datetime(2004, 1, 8, 0, 0)
+    Nc
+seconds_per_day
+seconds
+microseconds
+get_time_delta_microseconds
+z1datetime_mod.<locals>.get_time_delta_microseconds
+	timedelta)
+period
+startZ
+deltar1
+offset
+resultr
+datetime_mod
+    Find the nearest even period for the specified date/time.
+    >>> datetime_round(datetime.datetime(2004, 11, 13, 8, 11, 13),
+    ...     datetime.timedelta(hours = 1))
+    datetime.datetime(2004, 11, 13, 8, 0)
+    >>> datetime_round(datetime.datetime(2004, 11, 13, 8, 31, 13),
+    ...     datetime.timedelta(hours = 1))
+    datetime.datetime(2004, 11, 13, 9, 0)
+    >>> datetime_round(datetime.datetime(2004, 11, 13, 8, 30),
+    ...     datetime.timedelta(hours = 1))
+    datetime.datetime(2004, 11, 13, 9, 0)
+    r	
+abs)
+datetime_round
+    Returns the nearest year to now inferred from a Julian date.
+    >>> freezer = getfixture('freezer')
+    >>> freezer.move_to('2019-05-20')
+    >>> get_nearest_year_for_day(20)
+    2019
+    >>> get_nearest_year_for_day(340)
+    2018
+    >>> freezer.move_to('2019-12-15')
+    >>> get_nearest_year_for_day(20)
+    2020
+    
+gmtime
+tm_year
+tm_yday)
+nowr8
+get_nearest_year_for_day
+    Gregorian Date is defined as a year and a julian day (1-based
+    index into the days of the year).
+    >>> gregorian_date(2007, 15)
+    datetime.date(2007, 1, 15)
+    r
+julian_dayr8
+gregorian_date
+    return the number of seconds in the specified period
+    >>> get_period_seconds('day')
+    86400
+    >>> get_period_seconds(86400)
+    86400
+    >>> get_period_seconds(datetime.timedelta(hours=24))
+    86400
+    >>> get_period_seconds('day + os.system("rm -Rf *")')
+    Traceback (most recent call last):
+    ...
+    ValueError: period not in (second, minute, hour, day, month, year)
+    Z
+seconds_per_z6period not in (second, minute, hour, day, month, year)r@
+z"period must be a string or integer)
+lower
+globals
+KeyError
+ValueError
+numbers
+Numberr
+get_period_secondsr-
+	TypeError)
+namer8
+msgr
+    For a given period (e.g. 'month', 'day', or some numeric interval
+    such as 3600 (in secs)), return the format string that can be
+    used with strftime to format that time to specify the times
+    across that interval, but no more detailed.
+    For example,
+    >>> get_date_format_string('month')
+    '%Y-%m'
+    >>> get_date_format_string(3600)
+    '%Y-%m-%d %H'
+    >>> get_date_format_string('hour')
+    '%Y-%m-%d %H'
+    >>> get_date_format_string(None)
+    Traceback (most recent call last):
+        ...
+    TypeError: period must be a string or integer
+    >>> get_date_format_string('garbage')
+    Traceback (most recent call last):
+        ...
+    ValueError: period not in (second, minute, hour, day, month, year)
+    
+monthz
+%Y-%m)
+-%m-%dz
+ %Hz
+-%Mz
+-%Sr
+interval
+file_period_secsr
+<lambda>4
+z(get_date_format_string.<locals>.<lambda>Nr
+seconds_per_yearr,
+seconds_per_hour
+seconds_per_minute
+listr(
+indexr'
+format_pieces
+seconds_per_secondZ	intervalsZ
+modsr
+get_date_format_string
+    >>> monkeypatch = getfixture('monkeypatch')
+    >>> import builtins
+    >>> monkeypatch.setattr(builtins, 'input', lambda prompt: '3/hour')
+    >>> calculate_prorated_values()
+    per minute: 0.05
+    per hour: 3.0
+    per day: 72.0
+    per month: 2191.454166666667
+    per year: 26297.45
+    z#Enter the rate (3/hour, 50/month)> z
+per {period}: {value}N)
+input
+_prorated_values
+print
+format
+locals)
+rater5
+valuer
+calculate_prorated_values9
+    Given a rate (a string in units per unit time), and return that same
+    rate for various time periods.
+    >>> for period, value in _prorated_values('20/hour'):
+    ...     print('{period}: {value:0.3f}'.format(**locals()))
+    minute: 0.333
+    hour: 20.000
+    day: 480.000
+    month: 14609.694
+    year: 175316.333
+    z"(?P<value>[\d.]+)/(?P<period>\w+)$ra
+minute
+hourr@
+match
+	groupdict
+floatrK
+resra
+value_per_secondr5
+period_valuer
+    Take a string representing a span of time and parse it to a time delta.
+    Accepts any string of comma-separated numbers each with a unit indicator.
+    >>> parse_timedelta('1 day')
+    datetime.timedelta(days=1)
+    >>> parse_timedelta('1 day, 30 seconds')
+    datetime.timedelta(days=1, seconds=30)
+    >>> parse_timedelta('47.32 days, 20 minutes, 15.4 milliseconds')
+    datetime.timedelta(days=47, seconds=28848, microseconds=15400)
+    Supports weeks, months, years
+    >>> parse_timedelta('1 week')
+    datetime.timedelta(days=7)
+    >>> parse_timedelta('1 year, 1 month')
+    datetime.timedelta(days=395, seconds=58685)
+    Note that months and years strict intervals, not aligned
+    to a calendar:
+    >>> now = datetime.datetime.now()
+    >>> later = now + parse_timedelta('1 year')
+    >>> diff = later.replace(year=now.year) - now
+    >>> diff.seconds
+    20940
+    >>> parse_timedelta('foo')
+    Traceback (most recent call last):
+    ...
+    ValueError: Unexpected 'foo'
+    >>> parse_timedelta('14 seconds foo')
+    Traceback (most recent call last):
+    ...
+    ValueError: Unexpected 'foo'
+    Supports abbreviations:
+    >>> parse_timedelta('1s')
+    datetime.timedelta(seconds=1)
+    >>> parse_timedelta('1sec')
+    datetime.timedelta(seconds=1)
+    >>> parse_timedelta('5min1sec')
+    datetime.timedelta(seconds=301)
+    >>> parse_timedelta('1 ms')
+    datetime.timedelta(microseconds=1000)
+    >>> parse_timedelta('1 
+    datetime.timedelta(microseconds=1)
+    >>> parse_timedelta('1 us')
+    datetime.timedelta(microseconds=1)
+    And supports the common colon-separated duration:
+    >>> parse_timedelta('14:00:35.362')
+    datetime.timedelta(seconds=50435, microseconds=362000)
+    TODO: Should this be 14 hours or 14 minutes?
+    >>> parse_timedelta('14:00')
+    datetime.timedelta(seconds=50400)
+    >>> parse_timedelta('14:00 minutes')
+    Traceback (most recent call last):
+    ...
+    ValueError: Cannot specify units with composite delta
+    Nanoseconds get rounded to the nearest microsecond:
+    >>> parse_timedelta('600 ns')
+    datetime.timedelta(microseconds=1)
+    >>> parse_timedelta('.002 
+s, 499 ns')
+    datetime.timedelta(microseconds=1)
+    Expect ValueError for other invalid inputs.
+    >>> parse_timedelta('13 feet')
+    Traceback (most recent call last):
+    ...
+    ValueError: Invalid unit feets
+    )
+_parse_timedelta_nanos
+resolve)
+parse_timedelta`
+Nz)(?P<value>[\d.:]+)\s?(?P<unit>[^\W\d_]+)?)
+finditer
+_check_unmatchedr(
+_parse_timedelta_part
+	_Saved_NS)
+partsZ	chk_partsZ
+deltasr
+    Ensure no words appear in unmatched text.
+    c
+\w+z
+Unexpected r
+searchrH
+group)
+Z	unmatched
+foundr
+check_unmatched
+z)_check_unmatched.<locals>.check_unmatchedr
+end)
+matches
+textrv
+posrf
+millisecond
+secondrd
+weekr@
+nanosecond)
+usecZ
+microsZ
+msecZ
+millisr
+nsecZ
+nanosc
+_unit_lookup
+get)
+Z	raw_matchrx
+_resolve_unit
+z)Cannot specify units with composite delta
+hoursZ
+minutesr-
+.0ra
+unitr
+	<genexpr>
+z-_parse_timedelta_composite.<locals>.<genexpr>)
+ziprj
+	raw_valuer
+valuesZ
+unitsZ
+composedr
+_parse_timedelta_composite
+)	Nr
+monthsZ
+yearsr
+endswithr
+days_per_yearrq
+derive)
+    Bundle a timedelta with nanoseconds.
+    >>> _Saved_NS.derive('microseconds', .001)
+    _Saved_NS(td=datetime.timedelta(0), nanoseconds=1)
+    r
+millisecondsr.
+vars
+update)
+self
+kwargsr
+__init__ 
+_Saved_NS.__init__c
+nanoseconds)
+Invalid unit r/
+contextlib
+suppressrG
+multiplierr
+clsr
+raw_tdri
+_Saved_NS.derivec
+otherr
+__add__1
+_Saved_NS.__add__c
+        Resolve any nanoseconds into the microseconds field,
+        discarding any nanosecond resolution (but honoring partial
+        microseconds).
+        r
+roundr
+addl_microsr
+_Saved_NS.resolvec
+_Saved_NS(td=z
+, nanoseconds=
+__repr__?
+_Saved_NS.__repr__N)
+__name__
+__module__
+__qualname__
+__doc__r
+dictr
+classmethodr
+    Much like the built-in function range, but works with dates
+    >>> range_items = date_range(
+    ...     datetime.datetime(2005,12,21),
+    ...     datetime.datetime(2005,12,25),
+    ... )
+    >>> my_range = tuple(range_items)
+    >>> datetime.datetime(2005,12,21) in my_range
+    True
+    >>> datetime.datetime(2005,12,22) in my_range
+    True
+    >>> datetime.datetime(2005,12,25) in my_range
+    False
+    >>> from_now = date_range(stop=datetime.datetime(2099, 12, 31))
+    >>> next(from_now)
+    datetime.datetime(...)
+    Nr
+stop
+stepr
+date_rangeC
+NNN),r
+jaraco.functoolsr
+osc_per_yearZ
+osc_per_secondrY
+minutes_per_hourZ
+hours_per_dayrU
+thirty_daysZ
+six_monthsZ
+seconds_per_monthZ
+hours_per_monthr
+<module>

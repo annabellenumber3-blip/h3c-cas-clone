@@ -1,0 +1,468 @@
+m	Z	
+linear_sum_assignment
+OptimizeResult)
+_check_unknown_options)
+check_random_state
+2optc
+    Approximates solution to the quadratic assignment problem and
+    the graph matching problem.
+    Quadratic assignment solves problems of the following form:
+    .. math::
+        \min_P & \ {\ \text{trace}(A^T P B P^T)}\\
+        \mbox{s.t. } & {P \ \epsilon \ \mathcal{P}}\\
+    where :math:`\mathcal{P}` is the set of all permutation matrices,
+    and :math:`A` and :math:`B` are square matrices.
+    Graph matching tries to *maximize* the same objective function.
+    This algorithm can be thought of as finding the alignment of the
+    nodes of two graphs that minimizes the number of induced edge
+    disagreements, or, in the case of weighted graphs, the sum of squared
+    edge weight differences.
+    Note that the quadratic assignment problem is NP-hard. The results given
+    here are approximations and are not guaranteed to be optimal.
+    Parameters
+    ----------
+    A : 2-D array, square
+        The square matrix :math:`A` in the objective function above.
+    B : 2-D array, square
+        The square matrix :math:`B` in the objective function above.
+    method :  str in {'faq', '2opt'} (default: 'faq')
+        The algorithm used to solve the problem.
+        :ref:`'faq' <optimize.qap-faq>` (default) and
+        :ref:`'2opt' <optimize.qap-2opt>` are available.
+    options : dict, optional
+        A dictionary of solver options. All solvers support the following:
+        maximize : bool (default: False)
+            Maximizes the objective function if ``True``.
+        partial_match : 2-D array of integers, optional (default: None)
+            Fixes part of the matching. Also known as a "seed" [2]_.
+            Each row of `partial_match` specifies a pair of matched nodes:
+            node ``partial_match[i, 0]`` of `A` is matched to node
+            ``partial_match[i, 1]`` of `B`. The array has shape ``(m, 2)``,
+            where ``m`` is not greater than the number of nodes, :math:`n`.
+        rng : int, `RandomState`, `Generator` or None, optional (default: None)
+            Accepts an integer as a seed for the random generator or a
+            ``RandomState`` or ``Generator`` object. If None (default), uses
+            global `numpy.random` random state.
+        For method-specific options, see
+        :func:`show_options('quadratic_assignment') <show_options>`.
+    Returns
+    -------
+    res : OptimizeResult
+        `OptimizeResult` containing the following fields.
+        col_ind : 1-D array
+            Column indices corresponding to the best permutation found of the
+            nodes of `B`.
+        fun : float
+            The objective value of the solution.
+        nit : int
+            The number of iterations performed during optimization.
+    Notes
+    -----
+    The default method :ref:`'faq' <optimize.qap-faq>` uses the Fast
+    Approximate QAP algorithm [1]_; it typically offers the best combination of
+    speed and accuracy.
+    Method :ref:`'2opt' <optimize.qap-2opt>` can be computationally expensive,
+    but may be a useful alternative, or it can be used to refine the solution
+    returned by another method.
+    References
+    ----------
+    .. [1] J.T. Vogelstein, J.M. Conroy, V. Lyzinski, L.J. Podrazik,
+           S.G. Kratzer, E.T. Harley, D.E. Fishkind, R.J. Vogelstein, and
+           C.E. Priebe, "Fast approximate quadratic programming for graph
+           matching," PLOS one, vol. 10, no. 4, p. e0121002, 2015,
+           :doi:`10.1371/journal.pone.0121002`
+    .. [2] D. Fishkind, S. Adali, H. Patsolic, L. Meng, D. Singh, V. Lyzinski,
+           C. Priebe, "Seeded graph matching", Pattern Recognit. 87 (2019):
+           203-215, :doi:`10.1016/j.patcog.2018.09.014`
+    .. [3] "2-opt," Wikipedia.
+           https://en.wikipedia.org/wiki/2-opt
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from scipy.optimize import quadratic_assignment
+    >>> A = np.array([[0, 80, 150, 170], [80, 0, 130, 100],
+    ...               [150, 130, 0, 120], [170, 100, 120, 0]])
+    >>> B = np.array([[0, 5, 2, 7], [0, 0, 3, 8],
+    ...               [0, 0, 0, 3], [0, 0, 0, 0]])
+    >>> res = quadratic_assignment(A, B)
+    >>> print(res)
+     col_ind: array([0, 3, 2, 1])
+         fun: 3260
+         nit: 9
+    The see the relationship between the returned ``col_ind`` and ``fun``,
+    use ``col_ind`` to form the best permutation matrix found, then evaluate
+    the objective function :math:`f(P) = trace(A^T P B P^T )`.
+    >>> perm = res['col_ind']
+    >>> P = np.eye(len(A), dtype=int)[perm]
+    >>> fun = np.trace(A.T @ P @ B @ P.T)
+    >>> print(fun)
+    3260
+    Alternatively, to avoid constructing the permutation matrix explicitly,
+    directly permute the rows and columns of the distance matrix.
+    >>> fun = np.trace(A.T @ B[perm][:, perm])
+    >>> print(fun)
+    3260
+    Although not guaranteed in general, ``quadratic_assignment`` happens to
+    have found the globally optimal solution.
+    >>> from itertools import permutations
+    >>> perm_opt, fun_opt = None, np.inf
+    >>> for perm in permutations([0, 1, 2, 3]):
+    ...     perm = np.array(perm)
+    ...     fun = np.trace(A.T @ B[perm][:, perm])
+    ...     if fun < fun_opt:
+    ...         fun_opt, perm_opt = fun, perm
+    >>> print(np.array_equal(perm_opt, res['col_ind']))
+    True
+    Here is an example for which the default method,
+    :ref:`'faq' <optimize.qap-faq>`, does not find the global optimum.
+    >>> A = np.array([[0, 5, 8, 6], [5, 0, 5, 1],
+    ...               [8, 5, 0, 2], [6, 1, 2, 0]])
+    >>> B = np.array([[0, 1, 8, 4], [1, 0, 5, 2],
+    ...               [8, 5, 0, 5], [4, 2, 5, 0]])
+    >>> res = quadratic_assignment(A, B)
+    >>> print(res)
+     col_ind: array([1, 0, 3, 2])
+         fun: 178
+         nit: 13
+    If accuracy is important, consider using  :ref:`'2opt' <optimize.qap-2opt>`
+    to refine the solution.
+    >>> guess = np.array([np.arange(len(A)), res.col_ind]).T
+    >>> res = quadratic_assignment(A, B, method="2opt",
+    ...                            options = {'partial_guess': guess})
+    >>> print(res)
+     col_ind: array([1, 2, 3, 0])
+         fun: 176
+         nit: 17
+    N)
+method z
+ must be in 
+lower
+_quadratic_assignment_faq
+_quadratic_assignment_2opt
+ValueError)
+method
+options
+methods
+9/usr/lib64/python3.9/site-packages/scipy/optimize/_qap.py
+quadratic_assignment
+sum)
+permr
+_calc_score
+n`t	t
+rft	t
+`A` must be squarez
+`B` must be square
+z,`A` and `B` must have exactly two dimensionsz*`A` and `B` matrices must be of equal sizez>`partial_match` can have only as many seeds as there are nodesz%`partial_match` must have two columnsz0`partial_match` must have exactly two dimensionsz2`partial_match` must contain only positive indicesz9`partial_match` entries must be less than number of nodesz-`partial_match` column entries must be unique)
+atleast_2d
+array
+astype
+shape
+ndim
+setr
+partial_match
+msgr
+_common_input_validation
+barycenter
+r"t	
+r^t	
+]d}!|
+}#}$t	
+}%| |%
+}&|&j
+}'|&j
+}*|)|
+|*|$
+},|)j
+}-|'|(
+}.|-|
+|.|-
+}/|/| 
+d	|/
+}0t	j
+| |0
+|0} 
+|0} 
+}#}1t	
+}2t	j!|
+    Solve the quadratic assignment problem (approximately).
+    This function solves the Quadratic Assignment Problem (QAP) and the
+    Graph Matching Problem (GMP) using the Fast Approximate QAP Algorithm
+    (FAQ) [1]_.
+    Quadratic assignment solves problems of the following form:
+    .. math::
+        \min_P & \ {\ \text{trace}(A^T P B P^T)}\\
+        \mbox{s.t. } & {P \ \epsilon \ \mathcal{P}}\\
+    where :math:`\mathcal{P}` is the set of all permutation matrices,
+    and :math:`A` and :math:`B` are square matrices.
+    Graph matching tries to *maximize* the same objective function.
+    This algorithm can be thought of as finding the alignment of the
+    nodes of two graphs that minimizes the number of induced edge
+    disagreements, or, in the case of weighted graphs, the sum of squared
+    edge weight differences.
+    Note that the quadratic assignment problem is NP-hard. The results given
+    here are approximations and are not guaranteed to be optimal.
+    Parameters
+    ----------
+    A : 2-D array, square
+        The square matrix :math:`A` in the objective function above.
+    B : 2-D array, square
+        The square matrix :math:`B` in the objective function above.
+    method :  str in {'faq', '2opt'} (default: 'faq')
+        The algorithm used to solve the problem. This is the method-specific
+        documentation for 'faq'.
+        :ref:`'2opt' <optimize.qap-2opt>` is also available.
+    Options
+    -------
+    maximize : bool (default: False)
+        Maximizes the objective function if ``True``.
+    partial_match : 2-D array of integers, optional (default: None)
+        Fixes part of the matching. Also known as a "seed" [2]_.
+        Each row of `partial_match` specifies a pair of matched nodes:
+        node ``partial_match[i, 0]`` of `A` is matched to node
+        ``partial_match[i, 1]`` of `B`. The array has shape ``(m, 2)``, where
+        ``m`` is not greater than the number of nodes, :math:`n`.
+    rng : int, `RandomState`, `Generator` or None, optional (default: None)
+        Accepts an integer as a seed for the random generator or a
+        ``RandomState`` or ``Generator`` object. If None (default), uses
+        global `numpy.random` random state.
+    P0 : 2-D array, "barycenter", or "randomized" (default: "barycenter")
+        Initial position. Must be a doubly-stochastic matrix [3]_.
+        If the initial position is an array, it must be a doubly stochastic
+        matrix of size :math:`m' \times m'` where :math:`m' = n - m`.
+        If ``"barycenter"`` (default), the initial position is the barycenter
+        of the Birkhoff polytope (the space of doubly stochastic matrices).
+        This is a :math:`m' \times m'` matrix with all entries equal to
+        :math:`1 / m'`.
+        If ``"randomized"`` the initial search position is
+        :math:`P_0 = (J + K) / 2`, where :math:`J` is the barycenter and
+        :math:`K` is a random doubly stochastic matrix.
+    shuffle_input : bool (default: False)
+        Set to `True` to resolve degenerate gradients randomly. For
+        non-degenerate gradients this option has no effect.
+    maxiter : int, positive (default: 30)
+        Integer specifying the max number of Frank-Wolfe iterations performed.
+    tol : float (default: 0.03)
+        Tolerance for termination. Frank-Wolfe iteration terminates when
+        :math:`\frac{||P_{i}-P_{i+1}||_F}{\sqrt{m')}} \leq tol`,
+        where :math:`i` is the iteration number.
+    Returns
+    -------
+    res : OptimizeResult
+        `OptimizeResult` containing the following fields.
+        col_ind : 1-D array
+            Column indices corresponding to the best permutation found of the
+            nodes of `B`.
+        fun : float
+            The objective value of the solution.
+        nit : int
+            The number of Frank-Wolfe iterations performed.
+    Notes
+    -----
+    The algorithm may be sensitive to the initial permutation matrix (or
+    search "position") due to the possibility of several local minima
+    within the feasible region. A barycenter initialization is more likely to
+    result in a better solution than a single random initialization. However,
+    calling ``quadratic_assignment`` several times with different random
+    initializations may result in a better optimum at the cost of longer
+    total execution time.
+    Examples
+    --------
+    As mentioned above, a barycenter initialization often results in a better
+    solution than a single random initialization.
+    >>> np.random.seed(0)
+    >>> n = 15
+    >>> A = np.random.rand(n, n)
+    >>> B = np.random.rand(n, n)
+    >>> res = quadratic_assignment(A, B)  # FAQ is default method
+    >>> print(res.fun)
+    46.871483385480545
+    >>> options = {"P0": "randomized"}  # use randomized initialization
+    >>> res = quadratic_assignment(A, B, options=options)
+    >>> print(res.fun)
+    47.224831071310625 # may vary
+    However, consider running from several randomized initializations and
+    keeping the best result.
+    >>> res = min([quadratic_assignment(A, B, options=options)
+    ...            for i in range(30)], key=lambda x: x.fun)
+    >>> print(res.fun)
+    46.671852533681516 # may vary
+    The '2-opt' method can be used to further refine the results.
+    >>> options = {"partial_guess": np.array([np.arange(n), res.col_ind]).T}
+    >>> res = quadratic_assignment(A, B, method="2opt", options=options)
+    >>> print(res.fun)
+    46.47160735721583 # may vary
+    References
+    ----------
+    .. [1] J.T. Vogelstein, J.M. Conroy, V. Lyzinski, L.J. Podrazik,
+           S.G. Kratzer, E.T. Harley, D.E. Fishkind, R.J. Vogelstein, and
+           C.E. Priebe, "Fast approximate quadratic programming for graph
+           matching," PLOS one, vol. 10, no. 4, p. e0121002, 2015,
+           :doi:`10.1371/journal.pone.0121002`
+    .. [2] D. Fishkind, S. Adali, H. Patsolic, L. Meng, D. Singh, V. Lyzinski,
+           C. Priebe, "Seeded graph matching", Pattern Recognit. 87 (2019):
+           203-215, :doi:`10.1016/j.patcog.2018.09.014`
+    .. [3] "Doubly stochastic Matrix," Wikipedia.
+           https://en.wikipedia.org/wiki/Doubly_stochastic_matrix
+    N>
+randomizedz
+Invalid 'P0' parameter stringr
+z$'maxiter' must be a positive integerz
+'tol' must be a positive floatz1`P0` matrix must have shape m' x m', where m'=n-m
+axisr
+z%`P0` matrix must be doubly stochasticr*
+sizer
+col_indZ
+funZ
+maximizeT
+dtype)#r
+operator
+indexr)
+isinstance
+strr
+allcloser
+ones
+_doubly_stochasticZ
+uniformr
+Z	setdiff1d
+range
+permutationZ
+concatenate
+_split_matrixr
+eyeZ
+argminZ
+linalgZ
+normZ
+sqrt
+arange
+zerosr!
+rngZ
+shuffle_input
+maxiter
+unknown_optionsr(
+n_seedsZ
+n_unseed
+scorer
+obj_func_scalarZ	nonseed_BZ	nonseed_AZ
+perm_AZ
+perm_BZ
+A11Z
+A12Z
+A21Z
+A22Z
+B11Z
+B12Z
+B21Z
+B22Z	const_sum
+n_iterZ
+grad_fp
+cols
+b21Z
+b12Z
+AR22Z
+BR22Z
+b22aZ
+b22b
+alphaZ
+P_i1
+colr
+unshuffled_permr
+upperr
+MbP?c
+all)
+max_iter
+P_eps
+    Solve the quadratic assignment problem (approximately).
+    This function solves the Quadratic Assignment Problem (QAP) and the
+    Graph Matching Problem (GMP) using the 2-opt algorithm [1]_.
+    Quadratic assignment solves problems of the following form:
+    .. math::
+        \min_P & \ {\ \text{trace}(A^T P B P^T)}\\
+        \mbox{s.t. } & {P \ \epsilon \ \mathcal{P}}\\
+    where :math:`\mathcal{P}` is the set of all permutation matrices,
+    and :math:`A` and :math:`B` are square matrices.
+    Graph matching tries to *maximize* the same objective function.
+    This algorithm can be thought of as finding the alignment of the
+    nodes of two graphs that minimizes the number of induced edge
+    disagreements, or, in the case of weighted graphs, the sum of squared
+    edge weight differences.
+    Note that the quadratic assignment problem is NP-hard. The results given
+    here are approximations and are not guaranteed to be optimal.
+    Parameters
+    ----------
+    A : 2-D array, square
+        The square matrix :math:`A` in the objective function above.
+    B : 2-D array, square
+        The square matrix :math:`B` in the objective function above.
+    method :  str in {'faq', '2opt'} (default: 'faq')
+        The algorithm used to solve the problem. This is the method-specific
+        documentation for '2opt'.
+        :ref:`'faq' <optimize.qap-faq>` is also available.
+    Options
+    -------
+    maximize : bool (default: False)
+        Maximizes the objective function if ``True``.
+    rng : int, `RandomState`, `Generator` or None, optional (default: None)
+        Accepts an integer as a seed for the random generator or a
+        ``RandomState`` or ``Generator`` object. If None (default), uses
+        global `numpy.random` random state.
+    partial_match : 2-D array of integers, optional (default: None)
+        Fixes part of the matching. Also known as a "seed" [2]_.
+        Each row of `partial_match` specifies a pair of matched nodes: node
+        ``partial_match[i, 0]`` of `A` is matched to node
+        ``partial_match[i, 1]`` of `B`. The array has shape ``(m, 2)``,
+        where ``m`` is not greater than the number of nodes, :math:`n`.
+    partial_guess : 2-D array of integers, optional (default: None)
+        A guess for the matching between the two matrices. Unlike
+        `partial_match`, `partial_guess` does not fix the indices; they are
+        still free to be optimized.
+        Each row of `partial_guess` specifies a pair of matched nodes: node
+        ``partial_guess[i, 0]`` of `A` is matched to node
+        ``partial_guess[i, 1]`` of `B`. The array has shape ``(m, 2)``,
+        where ``m`` is not greater than the number of nodes, :math:`n`.
+    Returns
+    -------
+    res : OptimizeResult
+        `OptimizeResult` containing the following fields.
+        col_ind : 1-D array
+            Column indices corresponding to the best permutation found of the
+            nodes of `B`.
+        fun : float
+            The objective value of the solution.
+        nit : int
+            The number of iterations performed during optimization.
+    Notes
+    -----
+    This is a greedy algorithm that works similarly to bubble sort: beginning
+    with an initial permutation, it iteratively swaps pairs of indices to
+    improve the objective function until no such improvements are possible.
+    References
+    ----------
+    .. [1] "2-opt," Wikipedia.
+           https://en.wikipedia.org/wiki/2-opt
+    .. [2] D. Fishkind, S. Adali, H. Patsolic, L. Meng, D. Singh, V. Lyzinski,
+           C. Priebe, "Seeded graph matching", Pattern Recognit. 87 (2019):
+           203-215, https://doi.org/10.1016/j.patcog.2018.09.014
+    r
+z@`partial_guess` can have only as many entries as there are nodesr
+z%`partial_guess` must have two columnsz0`partial_guess` must have exactly two dimensionsz2`partial_guess` must contain only positive indicesz9`partial_guess` entries must be less than number of nodesz-`partial_guess` column entries must be uniquer3
+boolr:
+	itertools
+combinations_with_replacement)
+partial_guessrA
+fixed_rowsZ
+guess_rowsZ
+guess_colsZ
+fixed_colsr
+random_rowsZ
+random_colsZ
+best_scoreZ
+i_freeZ
+betterrG
+done
+FNNr*
+FNNN)
+numpyr
+optimizer
+scipy._lib._utilr
+QUADRATIC_ASSIGNMENT_METHODSr
+<module>

@@ -1,0 +1,213 @@
+Classes representing basic access.
+SELinux - at the most basic level - represents access as
+the 4-tuple subject (type or context), target (type or context),
+object class, permission. The policy language elaborates this basic
+access to facilitate more concise rules (e.g., allow rules can have multiple
+source or target types - see refpolicy for more information).
+This module has objects for representing the most basic access (AccessVector)
+and sets of that access (AccessVectorSet). These objects are used in Madison
+in a variety of ways, but they are the fundamental representation of access.
+	refpolicy)
+util
+	audit2whyc
+Determine if an id is a parameter in the form $N, where N is
+    an integer.
+    Returns:
+      True if the id is a parameter
+      False if the id is not a parameter
+    r
+$NFT)
+ValueError)
+3/usr/lib/python3.9/site-packages/sepolgen/access.py
+is_idparam'
+AccessVectora
+    An access vector is the basic unit of access in SELinux.
+    Access vectors are the most basic representation of access within
+    SELinux. It represents the access a source type has to a target
+    type in terms of an object class and a set of permissions.
+    Access vectors are distinct from AVRules in that they can only
+    store a single source type, target type, and object class. The
+    simplicity of AccessVectors makes them useful for storing access
+    in a form that is easy to search and compare.
+    The source, target, and object are stored as string. No checking
+    done to verify that the strings are valid SELinux identifiers.
+    Identifiers in the form $N (where N is an integer) are reserved as
+    interface parameters and are treated as wild cards in many
+    circumstances.
+    Properties:
+     .src_type - The source type allowed access. [String or None]
+     .tgt_type - The target type to which access is allowed. [String or None]
+     .obj_class - The object class to which access is allowed. [String or None]
+     .perms - The permissions allowed to the object class. [IdSet]
+     .audit_msgs - The audit messages that generated this access vector [List of strings]
+     .xperms - Extended permissions attached to the AV. [Dictionary {operation: xperm set}]
+    Nc
+	from_list
+src_type
+tgt_type
+	obj_classr
+IdSet
+perms
+audit_msgsr
+TERULE
+type
+data
+xperms
+__hash__Z
+info_flow_dir)
+selfZ	init_listr
+__init__S
+AccessVector.__init__c
+Initialize an access vector from a list.
+        Initialize an access vector from a list treating the list as
+        positional arguments - i.e., 0 = src_type, 1 = tgt_type, etc.
+        All of the list elements 3 and greater are treated as perms.
+        For example, the list ['foo_t', 'bar_t', 'file', 'read', 'write']
+        would create an access vector list with the source type 'foo_t',
+        target type 'bar_t', object class 'file', and permissions 'read'
+        and 'write'.
+        This format is useful for very simple storage to strings or disc
+        (see to_list) and for initializing access vectors.
+        
+z+List must contain at least four elements %sr
+N)	r
+strr
+listr
+AccessVector.from_listc
+        Convert an access vector to a list.
+        Convert an access vector to a list treating the list as positional
+        values. See from_list for more information on how an access vector
+        is represented in a list.
+        )
+extend
+sortedr
+to_list}
+AccessVector.to_listc
+z0Add permissions and extended permissions from AVN)
+updater
+XpermSetr#
+merge
+AccessVector.mergec
+	to_string
+__str__
+AccessVector.__str__c
+allow %s %s:%s %s;)
+to_space_strr,
+AccessVector.to_stringc
+)	r"
+sort
+AttributeError
+	TypeError
+NotImplemented)
+other
+method
+_compare
+AccessVector._compare)
+__name__
+__module__
+__qualname__
+__doc__r
+q.q$q
+Convert an avrule into a list of access vectors.
+    AccessVectors and AVRules are similarly, but differ in that
+    an AVRule can more than one source type, target type, and
+    object class. This function expands a single avrule into a
+    list of one or more AccessVectors representing the access
+    defined in the AVRule.
+    
+    )
+isinstancer
+Z	src_typesZ	tgt_typesZ
+obj_classesr
+copy
+append)
+avruler5
+accessr
+avrule_to_access_vectors
+AccessVectorSeta/
+A non-overlapping set of access vectors.
+    An AccessVectorSet is designed to store one or more access vectors
+    that are non-overlapping. Access can be added to the set
+    incrementally and access vectors will be added or merged as
+    necessary.  For example, adding the following access vectors using
+    add_av:
+       allow $1 etc_t : read;
+       allow $1 etc_t : write;
+       allow $1 var_log_t : read;
+    Would result in an access vector set with the access vectors:
+       allow $1 etc_t : { read write};
+       allow $1 var_log_t : read;
+    c
+z)Initialize an access vector set.
+        N)
+srcZ
+info_dirr,
+AccessVectorSet.__init__c
+z9Iterate over all of the unique access vectors in the set.N)
+values)
+tgts
+objsr(
+__iter__
+AccessVectorSet.__iter__c
+Return the number of unique access vectors in the set.
+        Because of the internal representation of the access vector set,
+        __len__ is not a constant time operation. Worst case is O(N)
+        where N is the number of unique access vectors, but the common
+        case is probably better.
+        r
+__len__
+AccessVectorSet.__len__c
+Return the unique access vectors in the set as a list.
+        The format of the returned list is a set of nested lists,
+        each access vector represented by a list. This format is
+        designed to be simply  serializable to a file.
+        For example, consider an access vector set with the following
+        access vectors:
+          allow $1 user_t : file read;
+          allow $1 etc_t : file { read write};
+        to_list would return the following:
+          [[$1, user_t, file, read]
+           [$1, etc_t, file, read, write]]
+        See AccessVector.to_list for more information.
+        )
+AccessVectorSet.to_listc
+Add access vectors stored in a list.
+        See to list for more information on the list format that this
+        method accepts.
+        This will add all of the access from the list. Any existing
+        access vectors in the set will be retained.
+        N)
+add_avr
+AccessVectorSet.from_listNc
+z)Add an access vector to the set.
+        N)
+	audit_msgZ
+avc_typer
+AccessVectorSet.addc
+z Add an access vector to the set.N)	rC
+setdefaultr
+clsr
+AccessVectorSet.add_av)
+typesr(
+avs_extract_types*
+avs_extract_obj_perms2
+RoleTypeSetz
+A non-overlapping set of role type statements.
+    This class allows the incremental addition of role type statements and
+    maintains a non-overlapping list of statements.
+    c
+z Initialize an access vector set.N)
+role_typesr,
+RoleTypeSet.__init__c
+zAIterate over all of the unique role allows statements in the set.N)
+	role_typer
+RoleTypeSet.__iter__c
+z2Return the unique number of role allow statements.)
+keysr,
+RoleTypeSet.__len__c
+RoleType
+rolerP
+RoleTypeSet.addN)
+selinuxr
+Comparisonr
+<module>

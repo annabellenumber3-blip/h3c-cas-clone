@@ -1,0 +1,370 @@
+m	Z	
+Neighborhood Component Analysis
+warnN)
+minimize
+softmax)
+pairwise_distances)
+BaseEstimator
+TransformerMixin
+ _ClassNamePrefixFeaturesOutMixin)
+LabelEncoder)
+PCA)
+check_classification_targets)
+check_random_state)
+check_is_fitted
+check_array
+check_scalar)
+ConvergenceWarningc
+NeighborhoodComponentsAnalysisa
+Neighborhood Components Analysis.
+    Neighborhood Component Analysis (NCA) is a machine learning algorithm for
+    metric learning. It learns a linear transformation in a supervised fashion
+    to improve the classification accuracy of a stochastic nearest neighbors
+    rule in the transformed space.
+    Read more in the :ref:`User Guide <nca>`.
+    Parameters
+    ----------
+    n_components : int, default=None
+        Preferred dimensionality of the projected space.
+        If None it will be set to `n_features`.
+    init : {'auto', 'pca', 'lda', 'identity', 'random'} or ndarray of shape             (n_features_a, n_features_b), default='auto'
+        Initialization of the linear transformation. Possible options are
+        `'auto'`, `'pca'`, `'lda'`, `'identity'`, `'random'`, and a numpy
+        array of shape `(n_features_a, n_features_b)`.
+        - `'auto'`
+            Depending on `n_components`, the most reasonable initialization
+            will be chosen. If `n_components <= n_classes` we use `'lda'`, as
+            it uses labels information. If not, but
+            `n_components < min(n_features, n_samples)`, we use `'pca'`, as
+            it projects data in meaningful directions (those of higher
+            variance). Otherwise, we just use `'identity'`.
+        - `'pca'`
+            `n_components` principal components of the inputs passed
+            to :meth:`fit` will be used to initialize the transformation.
+            (See :class:`~sklearn.decomposition.PCA`)
+        - `'lda'`
+            `min(n_components, n_classes)` most discriminative
+            components of the inputs passed to :meth:`fit` will be used to
+            initialize the transformation. (If `n_components > n_classes`,
+            the rest of the components will be zero.) (See
+            :class:`~sklearn.discriminant_analysis.LinearDiscriminantAnalysis`)
+        - `'identity'`
+            If `n_components` is strictly smaller than the
+            dimensionality of the inputs passed to :meth:`fit`, the identity
+            matrix will be truncated to the first `n_components` rows.
+        - `'random'`
+            The initial transformation will be a random array of shape
+            `(n_components, n_features)`. Each value is sampled from the
+            standard normal distribution.
+        - numpy array
+            `n_features_b` must match the dimensionality of the inputs passed
+            to :meth:`fit` and n_features_a must be less than or equal to that.
+            If `n_components` is not `None`, `n_features_a` must match it.
+    warm_start : bool, default=False
+        If `True` and :meth:`fit` has been called before, the solution of the
+        previous call to :meth:`fit` is used as the initial linear
+        transformation (`n_components` and `init` will be ignored).
+    max_iter : int, default=50
+        Maximum number of iterations in the optimization.
+    tol : float, default=1e-5
+        Convergence tolerance for the optimization.
+    callback : callable, default=None
+        If not `None`, this function is called after every iteration of the
+        optimizer, taking as arguments the current solution (flattened
+        transformation matrix) and the number of iterations. This might be
+        useful in case one wants to examine or store the transformation
+        found after each iteration.
+    verbose : int, default=0
+        If 0, no progress messages will be printed.
+        If 1, progress messages will be printed to stdout.
+        If > 1, progress messages will be printed and the `disp`
+        parameter of :func:`scipy.optimize.minimize` will be set to
+        `verbose - 2`.
+    random_state : int or numpy.RandomState, default=None
+        A pseudo random number generator object or a seed for it if int. If
+        `init='random'`, `random_state` is used to initialize the random
+        transformation. If `init='pca'`, `random_state` is passed as an
+        argument to PCA when initializing the transformation. Pass an int
+        for reproducible results across multiple function calls.
+        See :term:`Glossary <random_state>`.
+    Attributes
+    ----------
+    components_ : ndarray of shape (n_components, n_features)
+        The linear transformation learned during fitting.
+    n_features_in_ : int
+        Number of features seen during :term:`fit`.
+        .. versionadded:: 0.24
+    n_iter_ : int
+        Counts the number of iterations performed by the optimizer.
+    random_state_ : numpy.RandomState
+        Pseudo random number generator object used during initialization.
+    feature_names_in_ : ndarray of shape (`n_features_in_`,)
+        Names of features seen during :term:`fit`. Defined only when `X`
+        has feature names that are all strings.
+        .. versionadded:: 1.0
+    See Also
+    --------
+    sklearn.discriminant_analysis.LinearDiscriminantAnalysis : Linear
+        Discriminant Analysis.
+    sklearn.decomposition.PCA : Principal component analysis (PCA).
+    References
+    ----------
+    .. [1] J. Goldberger, G. Hinton, S. Roweis, R. Salakhutdinov.
+           "Neighbourhood Components Analysis". Advances in Neural Information
+           Processing Systems. 17, 513-520, 2005.
+           http://www.cs.nyu.edu/~roweis/papers/ncanips.pdf
+    .. [2] Wikipedia entry on Neighborhood Components Analysis
+           https://en.wikipedia.org/wiki/Neighbourhood_components_analysis
+    Examples
+    --------
+    >>> from sklearn.neighbors import NeighborhoodComponentsAnalysis
+    >>> from sklearn.neighbors import KNeighborsClassifier
+    >>> from sklearn.datasets import load_iris
+    >>> from sklearn.model_selection import train_test_split
+    >>> X, y = load_iris(return_X_y=True)
+    >>> X_train, X_test, y_train, y_test = train_test_split(X, y,
+    ... stratify=y, test_size=0.7, random_state=42)
+    >>> nca = NeighborhoodComponentsAnalysis(random_state=42)
+    >>> nca.fit(X_train, y_train)
+    NeighborhoodComponentsAnalysis(...)
+    >>> knn = KNeighborsClassifier(n_neighbors=3)
+    >>> knn.fit(X_train, y_train)
+    KNeighborsClassifier(...)
+    >>> print(knn.score(X_test, y_test))
+    0.933333...
+    >>> knn.fit(nca.transform(X_train), y_train)
+    KNeighborsClassifier(...)
+    >>> print(knn.score(nca.transform(X_test), y_test))
+    0.961904...
+    N
+autoF
+init
+warm_start
+max_iter
+callback
+verbose
+random_statec
+n_componentsr
+selfr
+</usr/lib64/python3.9/site-packages/sklearn/neighbors/_nca.py
+__init__
+z'NeighborhoodComponentsAnalysis.__init__c
+}	|	j
+Fit the model according to the given training data.
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            The training samples.
+        y : array-like of shape (n_samples,)
+            The corresponding training labels.
+        Returns
+        -------
+        self : object
+            Fitted estimator.
+        N
+L-BFGS-Bg
+maxiter
+disp)
+methodZ
+argsZ
+jacZ
+optionsr
+[{}] NCA did not converge: {}z
+[{}] Training took {:8.2f}s.)
+_validate_paramsr
+random_state_
+time
+newaxis
+_initializer
+_loss_grad_lbfgsr
+dictr
+	_callback
+n_iter_r
+reshape
+shape
+components_Z
+_n_features_out
+	__class__
+__name__
+successr
+format
+messager
+print)
+t_train
+same_class_mask
+transformationr$
+optimizer_paramsZ
+opt_result
+cls_namer
+z"NeighborhoodComponentsAnalysis.fitc
+Apply the learned transformation to the given data.
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            Data samples.
+        Returns
+        -------
+        X_embedded: ndarray of shape (n_samples, n_components)
+            The data samples transformed.
+        Raises
+        ------
+        NotFittedError
+            If :meth:`fit` has not been called before.
+        F)
+reset)
+_validate_datar+
+dotr4
+	transform
+z(NeighborhoodComponentsAnalysis.transformc
+rnt	d
+rjt	d
+Validate parameters as soon as :meth:`fit` is called.
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            The training samples.
+        y : array-like of shape (n_samples,)
+            The corresponding training labels.
+        Returns
+        -------
+        X : ndarray of shape (n_samples, n_features)
+            The validated training samples.
+        y : ndarray of shape (n_samples,)
+            The validated training labels, encoded to be integers in
+            the `range(0, n_classes)`.
+        init : str or ndarray of shape (n_features_a, n_features_b)
+            The validated initialization of the linear transformation.
+        Raises
+        -------
+        TypeError
+            If a parameter is not an instance of the desired type.
+        ValueError
+            If a parameter's value violates its legal value range or if the
+            combination of two or more given parameters is incompatible.
+        r
+ensure_min_samplesNr
+min_valz
+The preferred dimensionality of the projected space `n_components` ({}) cannot be greater than the given data dimensionality ({})!r
+zyThe new inputs dimensionality ({}) does not match the input dimensionality of the previously learned transformation ({}).r
+`callback` is not callable.z
+The input dimensionality ({}) of the given linear transformation `init` must match the dimensionality of the given inputs `X` ({}).z~The output dimensionality ({}) of the given linear transformation `init` cannot be greater than its input dimensionality ({}).z
+The preferred dimensionality of the projected space `n_components` ({}) does not match the output dimensionality of the given linear transformation `init` ({})!)
+identity
+randomzo`init` must be 'auto', 'pca', 'lda', 'identity', 'random' or a numpy array of shape (n_components, n_features).)
+fit_transformr
+numbersZ
+Integralr3
+ValueErrorr8
+bool
+hasattrr4
+Realr
+callabler
+isinstancer+
+ndarrayr
+z/NeighborhoodComponentsAnalysis._validate_paramsc
+Initialize the transformation.
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            The training samples.
+        y : array-like of shape (n_samples,)
+            The training labels.
+        init : str or ndarray of shape (n_features_a, n_features_b)
+            The validated initialization of the linear transformation.
+        Returns
+        -------
+        transformation : ndarray of shape (n_components, n_features)
+            The initialized linear transformation.
+        r4
+size>
+z Finding principal components... 
+endr
+LinearDiscriminantAnalysis)
+z*Finding most discriminative components... Nz
+done in {:5.2f}s)
+unique
+minZ
+eyer)
+standard_normalr*
+stdout
+flushr@
+discriminant_analysisrT
+Z	scalings_rD
+Z	n_samplesZ
+n_featuresr
+Z	n_classesZ	init_timerF
+z*NeighborhoodComponentsAnalysis._initializec
+Called after each iteration of the optimizer.
+        Parameters
+        ----------
+        transformation : ndarray of shape (n_components * n_features,)
+            The solution computed by the optimizer in this iteration.
+        Nr!
+z(NeighborhoodComponentsAnalysis._callback
+Compute the loss and the loss gradient w.r.t. `transformation`.
+        Parameters
+        ----------
+        transformation : ndarray of shape (n_components * n_features,)
+            The raveled linear transformation on which to compute loss and
+            evaluate gradient.
+        X : ndarray of shape (n_samples, n_features)
+            The training samples.
+        same_class_mask : ndarray of shape (n_samples, n_samples)
+            A mask where `mask[i, j] == 1` if `X[i]` and `X[j]` belong
+            to the same class, and `0` otherwise.
+        Returns
+        -------
+        loss : float
+            The loss computed for the given transformation.
+        gradient : ndarray of shape (n_components * n_features,)
+            The new (flattened) gradient of the loss.
+        r
+Z	Iterationz
+Objective Valuez
+Time(s)z
+{:>10} {:>20} {:>10}z
+[{}]z
+[{}] {}
+[{}] {}
+squared)
+axisZ
+keepdims)
+[{}] {:>10} {:>20.6e} {:>10.2f})
+fill_diagonal
+infr
+sumrX
+ravel)
+signZ
+header_fieldsZ
+header_fmt
+headerr?
+Z	t_funcallZ
+X_embeddedZ
+p_ijZ
+masked_p_ij
+lossZ
+weighted_p_ijZ
+weighted_p_ij_symZ
+gradientZ
+values_fmtr
+z/NeighborhoodComponentsAnalysis._loss_grad_lbfgsc
+requires_yTr
+_more_tags7
+z)NeighborhoodComponentsAnalysis._more_tags)
+__module__
+__qualname__
+__doc__r 
+)!re
+warningsr
+numpyr+
+scipy.optimizer
+utils.extmathr
+metricsr
+baser
+preprocessingr
+decompositionr
+utils.multiclassr
+utils.randomr
+utils.validationr
+exceptionsr
+<module>

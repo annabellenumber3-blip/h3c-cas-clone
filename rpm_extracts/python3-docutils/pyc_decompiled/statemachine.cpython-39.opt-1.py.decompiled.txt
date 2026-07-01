@@ -1,0 +1,847 @@
+d d!
+d"d#
+d$d%
+d&d'
+d(d)
+d*d+
+d,d-
+Z"d.d/e
+d1d2
+Z$d3d4
+A finite state machine specialized for regular-expression-based text filters,
+this module defines the following classes:
+- `StateMachine`, a state machine
+- `State`, a state superclass
+- `StateMachineWS`, a whitespace-sensitive version of `StateMachine`
+- `StateWS`, a state superclass for use with `StateMachineWS`
+- `SearchStateMachine`, uses `re.search()` instead of `re.match()`
+- `SearchStateMachineWS`, uses `re.search()` instead of `re.match()`
+- `ViewList`, extends standard Python lists.
+- `StringList`, string-specific ViewList.
+Exception classes:
+- `StateMachineError`
+- `UnknownStateError`
+- `DuplicateStateError`
+- `UnknownTransitionError`
+- `DuplicateTransitionError`
+- `TransitionPatternNotFound`
+- `TransitionMethodNotFound`
+- `UnexpectedIndentationError`
+- `TransitionCorrection`: Raised to switch to another transition.
+- `StateCorrection`: Raised to switch to another state & transition.
+Functions:
+- `string2lines()`: split a multi-line string into a list of one-line strings
+How To Use This Module
+======================
+(See the individual classes, methods, and attributes for details.)
+1. Import it: ``import statemachine`` or ``from statemachine import ...``.
+   You will also need to ``import re``.
+2. Derive a subclass of `State` (or `StateWS`) for each state in your state
+   machine::
+       class MyState(statemachine.State):
+   Within the state's class definition:
+   a) Include a pattern for each transition, in `State.patterns`::
+          patterns = {'atransition': r'pattern', ...}
+   b) Include a list of initial transitions to be set up automatically, in
+      `State.initial_transitions`::
+          initial_transitions = ['atransition', ...]
+   c) Define a method for each transition, with the same name as the
+      transition pattern::
+          def atransition(self, match, context, next_state):
+              # do something
+              result = [...]  # a list
+              return context, next_state, result
+              # context, next_state may be altered
+      Transition methods may raise an `EOFError` to cut processing short.
+   d) You may wish to override the `State.bof()` and/or `State.eof()` implicit
+      transition methods, which handle the beginning- and end-of-file.
+   e) In order to handle nested processing, you may wish to override the
+      attributes `State.nested_sm` and/or `State.nested_sm_kwargs`.
+      If you are using `StateWS` as a base class, in order to handle nested
+      indented blocks, you may wish to:
+      - override the attributes `StateWS.indent_sm`,
+        `StateWS.indent_sm_kwargs`, `StateWS.known_indent_sm`, and/or
+        `StateWS.known_indent_sm_kwargs`;
+      - override the `StateWS.blank()` method; and/or
+      - override or extend the `StateWS.indent()`, `StateWS.known_indent()`,
+        and/or `StateWS.firstknown_indent()` methods.
+3. Create a state machine object::
+       sm = StateMachine(state_classes=[MyState, ...],
+                         initial_state='MyState')
+4. Obtain the input text, which needs to be converted into a tab-free list of
+   one-line strings. For example, to read text from a file called
+   'inputfile'::
+       input_string = open('inputfile').read()
+       input_lines = statemachine.string2lines(input_string)
+5. Run the state machine on the input text and collect the results, a list::
+       results = sm.run(input_lines)
+6. Remove any lingering circular references::
+       sm.unlink()
+print_functionZ
+restructuredtextN)
+utils)
+ErrorOutput)
+d7d	d
+d;d d!
+d"d#
+d<d$d%
+d=d&d'
+d(d)
+d*d+
+d,d-
+d.d/
+d0d1
+d2d3
+d4d5
+StateMachinea
+    A finite state machine for text filters using regular expressions.
+    The input is provided in the form of a list of one-line strings (no
+    newlines). States are subclasses of the `State` class. Transitions consist
+    of regular expression patterns and transition methods, and are defined in
+    each state.
+    The state machine is started with the `run()` method, which returns the
+    results of processing in a list.
+    Fc
+        Initialize a `StateMachine` object; add state objects.
+        Parameters:
+        - `state_classes`: a list of `State` (sub)classes.
+        - `initial_state`: a string, the class name of the initial state.
+        - `debug`: a boolean; produce verbose output if true (nonzero).
+        Nr
+input_lines
+input_offset
+line
+line_offset
+debug
+initial_state
+current_state
+states
+add_states
+	observersr
+_stderr)
+self
+state_classesr
+9/usr/lib/python3.9/site-packages/docutils/statemachine.py
+__init__
+StateMachine.__init__c
+z9Remove circular references to objects no longer required.N)
+values
+unlink
+stater
+StateMachine.unlinkr
+rft	d
+r(t	d	|
+r(t	d
+        Run the state machine on `input_lines`. Return results (a list).
+        Reset `self.line_offset` and `self.current_state`. Run the
+        beginning-of-file transition. Input one line at a time and check for a
+        matching transition. If a match is found, call the transition method
+        and possibly change the state. Store the context returned by the
+        transition method to be passed on to the next transition matched.
+        Accumulate the results returned by the transition methods in a list.
+        Run the end-of-file transition. Finally, return the accumulated
+        results.
+        Parameters:
+        - `input_lines`: a list of strings without newlines, or `StringList`.
+        - `input_offset`: the line offset of `input_lines` from the beginning
+          of the file.
+        - `context`: application-specific storage.
+        - `input_source`: name or path of source of `input_lines`.
+        - `initial_state`: name of initial state.
+        
+sourcer
+StateMachine.run: input_lines (line_offset=%s):
+| %sz
+fileNz!
+StateMachine.run: bof transitionz4
+StateMachine.run: line (source=%r, offset=%r):
+| %sz$
+StateMachine.run: %s.eof transitionr
+StateMachine.run: TransitionCorrection to state "%s", transition %s.
+StateMachine.run: StateCorrection to state "%s", transition %s.)
+runtime_init
+isinstance
+StringListr
+print
+joinr
+	get_state
+extend
+	next_line
+infor
+check_line
+EOFError
+	__class__
+__name__
+TransitionCorrection
+previous_line
+args
+StateCorrection
+errorr
+contextZ
+input_sourcer
+transitions
+resultsr
+resultr
+offset
+next_state
+	exceptionr
+StateMachine.runc
+        Return current state object; set it first if `next_state` given.
+        Parameter `next_state`: a string, the name of the next state.
+        Exception: `UnknownStateError` raised if `next_state` unknown.
+        zJ
+StateMachine.get_state: Changing state from "%s" to "%s" (input line %s).r
+abs_line_numberr
+KeyError
+UnknownStateError)
+StateMachine.get_stater!
+zNz |
+z9Load `self.line` with the `n`'th next line and return it.N)
+IndexErrorr-
+notify_observers
+StateMachine.next_linec
+z3Return 1 if the next line is blank or non-existant.r!
+striprB
+is_next_line_blank8
+StateMachine.is_next_line_blankc
+z0Return 1 if the input is at or past end-of-file.r!
+at_eof?
+StateMachine.at_eofc
+z8Return 1 if the input is at or before beginning-of-file.r
+at_bofC
+StateMachine.at_bofc
+z=Load `self.line` with the `n`'th previous line and return it.r
+StateMachine.previous_linec
+z?Jump to absolute line offset `line_offset`, load and return it.N)
+	goto_lineQ
+StateMachine.goto_linec
+z<Return source of line at absolute line offset `line_offset`.)
+get_source^
+StateMachine.get_sourcec
+z;Return line offset of current line, from beginning of file.
+abs_line_offsetb
+StateMachine.abs_line_offsetc
+z5Return line number of current line (counting from 1).r!
+StateMachine.abs_line_numberc
+Return (source, line) tuple for current or given line number.
+        Looks up the source and line number in the `self.input_lines`
+        StringList instance to count for included source files.
+        If the optional argument `lineno` is given, convert it from an
+        absolute line number to the corresponding (source, line) pair.
+        Nr!
+	TypeError
+get_source_and_linerB
+linenor;
+srcZ	srcoffsetZ
+srcliner
+z StateMachine.get_source_and_linec
+internal padding after )
+internal padding before r
+insertr
+insert_input
+StateMachine.insert_inputc
+        Return a contiguous block of text.
+        If `flush_left` is true, raise `UnexpectedIndentationError` if an
+        indented line is encountered before the text block ends (with a blank
+        line).
+        r!
+get_text_blockr
+UnexpectedIndentationErrorr3
+flush_left
+block
+errr
+StateMachine.get_text_blockc
+}	|	r6|
+        Examine one line of input for a transition match & execute its method.
+        Parameters:
+        - `context`: application-dependent storage.
+        - `state`: a `State` object, the current state.
+        - `transitions`: an optional ordered list of transition names to try,
+          instead of ``state.transition_order``.
+        Return the values returned by the transition method:
+        - context: possibly modified from the parameter `context`;
+        - next state name (`State` subclass name);
+        - the result output of the transition, a list.
+        When there is no match, ``state.no_match()`` is called and its return
+        value is returned.
+        Nz5
+StateMachine.check_line: state="%s", transitions=%r.r
+StateMachine.check_line: Matched transition "%s" in state "%s".z1
+StateMachine.check_line: No match in state "%s".)
+transition_orderr
+matchr
+no_match)
+state_correction
+name
+pattern
+methodr<
+StateMachine.check_linec
+        Initialize & add a `state_class` (`State` subclass) object.
+        Exception: `DuplicateStateError` raised if `state_class` was already
+        added.
+        N)
+DuplicateStateErrorr
+state_classZ	statenamer
+	add_state
+StateMachine.add_statec
+        Add `state_classes` (a list of `State` subclasses).
+        N)
+StateMachine.add_statesc
+        Initialize `self.states`.
+        N)
+StateMachine.runtime_initc
+Report error details.z
+%s: %sr
+input line %sz
+module %s, line %s, function %sN)
+_exception_datar%
+type
+value
+moduler
+functionr
+StateMachine.errorc
+        The `observer` parameter is a function or bound method which takes two
+        arguments, the source and offset of the current line.
+        N)
+append
+observerr
+attach_observer
+StateMachine.attach_observerc
+removerm
+detach_observer
+StateMachine.detach_observerc
+StateMachine.notify_observers)
+NNN)
+__module__
+__qualname__
+__doc__r
+Stateav
+    State superclass. Contains a list of transitions, and transition methods.
+    Transition methods all have the same signature. They take 3 parameters:
+    - An `re` match object. ``match.string`` contains the matched input line,
+      ``match.start()`` gives the start index of the match, and
+      ``match.end()`` gives the end index.
+    - A context object, whose meaning is application-defined (initial value
+      ``None``). It can be used to store any information required by the state
+      machine, and the retured context is passed on to the next transition
+      method unchanged.
+    - The name of the next state, a string, taken from the transitions list;
+      normally it is returned unchanged, but it may be altered by the
+      transition method if necessary.
+    Transition methods all return a 3-tuple:
+    - A context object, as (potentially) modified by the transition method.
+    - The next state name (a return value of ``None`` means no state change).
+    - The processing result, a list, which is accumulated by the state
+      machine.
+    Transition methods may raise an `EOFError` to cut processing short.
+    There are two implicit transitions, and corresponding transition methods
+    are defined: `bof()` handles the beginning-of-file, and `eof()` handles
+    the end-of-file. These methods have non-standard signatures and return
+    values. `bof()` returns the initial context and results, and may be used
+    to return a header string, or do any other processing needed. `eof()`
+    should handle any remaining context and wrap things up; it returns the
+    final processing result.
+    Typical applications need only subclass `State` (or a subclass), set the
+    `patterns` and `initial_transitions` class attributes, and provide
+    corresponding transition methods. The default object initialization will
+    take care of constructing the list of transitions.
+    NFc
+        Initialize a `State` object; make & add initial transitions.
+        Parameters:
+        - `statemachine`: the controlling `StateMachine` object.
+        - `debug`: a boolean; produce verbose output if true.
+        N)
+)	r_
+add_initial_transitions
+state_machiner
+	nested_smr.
+nested_sm_kwargsr/
+State.__init__c
+        Initialize this `State` before running the state machine; called from
+        `self.state_machine.run()`.
+        Nr
+State.runtime_initc
+State.unlinkc
+z>Make and add transitions listed in `self.initial_transitions`.N)
+initial_transitions
+make_transitions
+add_transitions
+namesr8
+State.add_initial_transitionsc
+        Add a list of transitions to the start of the transition list.
+        Parameters:
+        - `names`: a list of transition names.
+        - `transitions`: a mapping of names to transition tuples.
+        Exceptions: `DuplicateTransitionError`, `UnknownTransitionError`.
+        Nr
+DuplicateTransitionError
+UnknownTransitionErrorr_
+update)
+State.add_transitionsc
+        Add a transition to the start of the transition list.
+        Parameter `transition`: a ready-made transition 3-tuple.
+        Exception: `DuplicateTransitionError`.
+        Nr
+transitionr
+add_transition
+State.add_transitionc
+        Remove a transition by `name`.
+        Exception: `UnknownTransitionError`.
+        N)
+remove_transition
+State.remove_transitionc
+        Make & return a transition tuple based on `name`.
+        This is a convenience function to simplify transition creation.
+        Parameters:
+        - `name`: a string, the name of the transition pattern & method. This
+          `State` object must have a method called '`name`', and a dictionary
+          `self.patterns` containing a key '`name`'.
+        - `next_state`: a string, the name of the next `State` object for this
+          transition. A value of ``None`` (or absent) implies no state change
+          (i.e., continue with the same state).
+        Exceptions: `TransitionPatternNotFound`, `TransitionMethodNotFound`.
+        Nr`
+%s.patterns[%r]z
+%s.%s)
+patterns
+hasattr
+compiler@
+TransitionPatternNotFound
+getattr
+AttributeError
+TransitionMethodNotFound)
+make_transition
+State.make_transitionc
+        Return a list of transition names and a transition mapping.
+        Parameter `name_list`: a list, where each entry is either a transition
+        name string, or a 1- or 2-tuple (transition name, optional next state
+        name).
+        rU
+Z	name_listZ
+stringtyper
+Z	namestater
+State.make_transitionsc
+        Called when there is no match from `StateMachine.check_line()`.
+        Return the same values returned by transition methods:
+        - context: unchanged;
+        - next state name: ``None``;
+        - empty result list.
+        Override in subclasses to catch this event.
+        Nr
+State.no_matchc
+        Handle beginning-of-file. Return unchanged `context`, empty result.
+        Override in subclasses.
+        Parameter `context`: application-defined storage.
+        r
+z	State.bofc
+        Handle end-of-file. Return empty result.
+        Override in subclasses.
+        Parameter `context`: application-defined storage.
+        r
+z	State.eofc
+        A "do nothing" transition method.
+        Return unchanged `context` & `next_state`, empty result. Useful for
+        simple state changes (actionless transitions).
+        r
+z	State.nop)
+StateMachineWSaq
+    `StateMachine` subclass specialized for whitespace recognition.
+    There are three methods provided for extracting indented text blocks:
+    - `get_indented()`: use when the indent is unknown.
+    - `get_known_indented()`: use when the indent is known for all lines.
+    - `get_first_known_indented()`: use when only the first line's indent is
+      known.
+    FTc
+        Return a block of indented lines of text, and info.
+        Extract an indented block where the indent is unknown for all lines.
+        :Parameters:
+            - `until_blank`: Stop collecting at the first blank line if true.
+            - `strip_indent`: Strip common leading indent if true (default).
+        :Return:
+            - the indented block (a list of lines of text),
+            - its indent,
+            - its first line offset from BOF, and
+            - whether or not it finished with a blank line.
+        r!
+get_indentedr
+trim_start)
+until_blank
+strip_indentr;
+indented
+indent
+blank_finishr
+StateMachineWS.get_indentedc
+        Return an indented block and info.
+        Extract an indented block where the indent is known for all lines.
+        Starting with the current line, extract the entire text block with at
+        least `indent` indentation (which must be whitespace, except for the
+        first line).
+        :Parameters:
+            - `indent`: The number of indent columns/characters.
+            - `until_blank`: Stop collecting at the first blank line if true.
+            - `strip_indent`: Strip `indent` characters of indentation if true
+              (default).
+        :Return:
+            - the indented block,
+            - its first line offset from BOF, and
+            - whether or not it finished with a blank line.
+        )
+block_indentr!
+get_known_indented6
+z!StateMachineWS.get_known_indentedc
+        Return an indented block and info.
+        Extract an indented block where the indent is known for the first line
+        and unknown for all other lines.
+        :Parameters:
+            - `indent`: The first line's indent (# of columns/characters).
+            - `until_blank`: Stop collecting at the first blank line if true
+              (1).
+            - `strip_indent`: Strip `indent` characters of indentation if true
+              (1, default).
+            - `strip_top`: Strip blank lines from the beginning of the block.
+        :Return:
+            - the indented block,
+            - its indent,
+            - its first line offset from BOF, and
+            - whether or not it finished with a blank line.
+        )
+first_indentr!
+Z	strip_topr;
+get_first_known_indentedT
+z'StateMachineWS.get_first_known_indentedN)
+FTT)
+StateWSa
+    State superclass specialized for whitespace (blank lines & indents).
+    Use this class with `StateMachineWS`.  The transitions 'blank' (for blank
+    lines) and 'indent' (for indented text blocks) are added automatically,
+    before any other transitions.  The transition method `blank()` handles
+    blank lines and `indent()` handles nested indented blocks.  Indented
+    blocks trigger a new state machine to be created by `indent()` and run.
+    The class of the state machine to be created is in `indent_sm`, and the
+    constructor keyword arguments are in the dictionary `indent_sm_kwargs`.
+    The methods `known_indent()` and `firstknown_indent()` are provided for
+    indented blocks where the indent (all lines' and first line's only,
+    respectively) is known to the transition method, along with the attributes
+    `known_indent_sm` and `known_indent_sm_kwargs`.  Neither transition method
+    is triggered automatically.
+    Nz
+ *$z
+blankr
+        Initialize a `StateSM` object; extends `State.__init__()`.
+        Check for indent state machine attributes, set defaults if not set.
+        N)
+	indent_smry
+indent_sm_kwargsrz
+known_indent_sm
+known_indent_sm_kwargsr{
+StateWS.__init__c
+        Add whitespace-specific transitions before those defined in subclass.
+        Extends `State.add_initial_transitions()`.
+        N)
+ws_patternsr}
+ws_initial_transitionsr~
+StateWS.add_initial_transitionsc
+z9Handle blank lines. Does nothing. Override in subclasses.)
+StateWS.blankc
+        Handle an indented text block. Extend or override in subclasses.
+        Recursively run the registered state machine for indented blocks
+        (`self.indent_sm`).
+        r
+smr9
+StateWS.indentc
+        Handle a known-indent text block. Extend or override in subclasses.
+        Recursively run the registered state machine for known-indent indented
+        blocks (`self.known_indent_sm`). The indent is the length of the
+        match, ``match.end()``.
+        r
+endr
+known_indent
+StateWS.known_indentc
+        Handle an indented text block (first line's indent known).
+        Extend or override in subclasses.
+        Recursively run the registered state machine for known-indent indented
+        blocks (`self.known_indent_sm`). The indent is the length of the
+        match, ``match.end()``.
+        r
+first_known_indent
+StateWS.first_known_indent)
+_SearchOverridea
+    Mix-in class to override `StateMachine` regular expression behavior.
+    Changes regular expression matching, from the default `re.match()`
+    (succeeds only if the pattern matches at the start of `self.line`) to
+    `re.search()` (succeeds if the pattern matches anywhere in `self.line`).
+    When subclassing a `StateMachine`, list this class **first** in the
+    inheritance list of the class definition.
+    c
+        Return the result of a regular expression search.
+        Overrides `StateMachine.match()`.
+        Parameter `pattern`: `re` compiled regular expression.
+        )
+searchr
+_SearchOverride.matchN)
+SearchStateMachinez@`StateMachine` which uses `re.search()` instead of `re.match()`.N
+SearchStateMachineWSzB`StateMachineWS` which uses `re.search()` instead of `re.match()`.Nr
+d!d"
+d#d$
+d%d&
+d'd(
+d)d*
+d+d,
+d-d.
+dSd0d1
+dTd2d3
+dUd5d6
+dVd8d9
+dWd:d;
+d<d=
+Z d>d?
+Z!d@dA
+Z"dBdC
+Z#dDdE
+Z$dFdG
+Z%dHdI
+Z&dJdK
+Z'dLdM
+Z(dNdO
+Z)dPdQ
+ViewLista>
+    List with extended functionality: slices of ViewList objects are child
+    lists, linked to their parents. Changes made to a child list also affect
+    the parent list.  A child list is effectively a "view" (in the SQL sense)
+    of the parent list.  Changes to parent lists, however, do *not* affect
+    active child lists.  If a parent list is changed, any active child lists
+    should be recreated.
+    The start and end of the slice can be trimmed using the `trim_start()` and
+    `trim_end()` methods, without affecting the parent list.  The link between
+    child and parent lists can be broken by calling `disconnect()` on the
+    child list.
+    Also, ViewList objects keep track of the source & offset of each item.
+    This information is accessible via the `source()`, `offset()`, and
+    `info()` methods.
+    Nc
+<listcomp>P
+z%ViewList.__init__.<locals>.<listcomp>)	
+data
+items
+parent
+parent_offsetr#
+list
+ranger5
+initlistr
+ViewList.__init__c
+strr
+__str__S
+ViewList.__str__c
+%s(%s, items=%s))
+__repr__V
+ViewList.__repr__c
+_ViewList__cast
+otherr
+__lt__Z
+ViewList.__lt__c
+__le__[
+ViewList.__le__c
+__eq__\
+ViewList.__eq__c
+__ne__]
+ViewList.__ne__c
+__gt__^
+ViewList.__gt__c
+__ge___
+ViewList.__ge__c
+mineZ
+yoursr
+__cmp__a
+ViewList.__cmp__c
+__castg
+ViewList.__castc
+itemr
+__contains__m
+ViewList.__contains__c
+__len__n
+ViewList.__len__c
+slicer.
+start
+stopr
+__getitem__t
+ViewList.__getitem__c
+Nz(assigning non-ViewList to ViewList slicer
+__setitem__}
+ViewList.__setitem__c
+__delitem__
+ViewList.__delitem__c
+z!adding non-ViewList to a ViewList
+__add__
+ViewList.__add__c
+z!adding ViewList to a non-ViewListr
+__radd__
+ViewList.__radd__c
+Nz!argument to += must be a ViewList)
+__iadd__
+ViewList.__iadd__c
+__mul__
+ViewList.__mul__c
+__imul__
+ViewList.__imul__c
+Nz(extending a ViewList with a non-ViewList)
+ViewList.extendr
+ViewList.appendc
+Nz+inserting non-ViewList with no source given)	r#
+indexr
+ViewList.insertr
+popr
+ViewList.popr!
+        Remove items from the start of the list, without touching the parent.
+        
+CSize of trim too large; can't trim %s items from a list of size %s.r
+Trim size must be >= 0.N)
+ViewList.trim_startc
+        Remove items from the end of the list, without touching the parent.
+        r
+trim_end
+ViewList.trim_endc
+ViewList.removec
+countr
+ViewList.countc
+ViewList.indexc
+reverser
+ViewList.reversec
+entryr
+z!ViewList.sort.<locals>.<listcomp>c
+sorted
+zipr
+tmpr
+sort
+ViewList.sortc
+z%Return source & offset for index `i`.r!
+ViewList.infoc
+Return source for index `i`.r
+ViewList.sourcec
+Return offset for index `i`.r!
+ViewList.offsetc
+z-Break link between this list and parent list.N)
+disconnect"
+ViewList.disconnectc
+z8Return iterator yielding (source, offset, value) tuples.N)
+xitems&
+ViewList.xitemsc
+z=Print the list in `grep` format (`source:offset:value` lines)z
+%s:%d:%sN)
+pprint+
+ViewList.pprint)
+NNNNN)
+)+r/
+__rmul__r
+z*A `ViewList` with string-specific methods.r
+        Trim `length` characters off the beginning of each item, in-place,
+        from index `start` to `end`.  No whitespace-checking is done on the
+        trimmed text.  Does not affect slice parent.
+        c
+lengthr
+z(StringList.trim_left.<locals>.<listcomp>Nr
+	trim_left5
+StringList.trim_leftFc
+s*qj|
+lastr
+StringList.get_text_blockTNc
+}	|	r
+        Extract and return a StringList of indented lines of text.
+        Collect all lines with indentation, determine the minimum indentation,
+        remove the minimum indentation from all indented lines (unless
+        `strip_indent` is false), and return them. All lines up to but not
+        including the first unindented line will be returned.
+        :Parameters:
+          - `start`: The index of the first line to examine.
+          - `until_blank`: Stop collecting at the first blank line if true.
+          - `strip_indent`: Strip common leading indent if true (default).
+          - `block_indent`: The indent of the entire block, if known.
+          - `first_indent`: The indent of the first line, if known.
+        :Return:
+          - a StringList of indented lines with mininum indent removed;
+          - the amount of the indent;
+          - a boolean: did the indented block finish with a blank line or EOF?
+        Nr!
+lstrip
+minr
+strippedZ
+line_indentr]
+StringList.get_indentedc
+}	|	r
+z+StringList.get_2D_block.<locals>.<listcomp>)	r
+column_indicesrB
+rstripr
+leftZ
+bottom
+rightr
+get_2D_block
+StringList.get_2D_blockc
+        Pad all double-width characters in self by appending `pad_char` to each.
+        For East Asian language support.
+        Z
+WFrU
+unicodedata
+east_asian_widthr
+unicoderl
+pad_charr
+charr
+pad_double_width
+StringList.pad_double_widthc
+z6Replace all occurrences of substring `old` with `new`.N)
+replace)
+oldr
+StringList.replace)
+FTNN)
+maxsizer
+StateMachineErrorN
+    Raise from within a transition method to switch to another transition.
+    Raise with one argument, the new transition name.
+    Nr
+    Raise from within a transition method to switch to another state.
+    Raise with one or two arguments: new state name, and an optional new
+    transition name.
+    Nr
+    Return a list of one-line strings with tabs expanded, no newlines, and
+    trailing whitespace stripped.
+    Each tab is expanded with between 1 and `tab_width` spaces, so that the
+    next character's index becomes a multiple of `tab_width` (8 by default).
+    Parameters:
+    - `astring`: a multi-line string.
+    - `tab_width`: the number of columns between tab stops.
+    - `convert_whitespace`: convert form feeds and vertical tabs to spaces?
+    - `whitespace`: pattern object with the to-be-converted
+      whitespace characters (default [\v\f]).
+    r
+expandtabsr
+	tab_widthr
+z string2lines.<locals>.<listcomp>)
+splitlines)
+astringr
+convert_whitespaceZ
+whitespace
+linesr
+string2lines
+    Return exception information:
+    - the exception's class name;
+    - the exception object;
+    - the name of the file containing the offending code;
+    - the line number of the offending code;
+    - the function name of the offending code.
+    )	r	
+exc_info
+tb_next
+tb_frame
+f_coder/
+co_filename
+	tb_lineno
+co_name)
+	traceback
+coder
+)&ru
+__future__r
+__docformat__r	
+docutilsr
+docutils.utils.error_reportingr
+version_infor
+objectr
+	Exceptionr
+<module>

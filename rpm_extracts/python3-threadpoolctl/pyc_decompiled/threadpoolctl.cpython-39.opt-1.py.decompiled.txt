@@ -1,0 +1,635 @@
+Z e!e"d
+Z'e!e d
+Z(d!d"
+d#d$
+d%d&
+Z*e)e!e$
+e%d'
+d(d)
+d*d+
+d,d-
+d-e,e
+Z-e)d.
+.d/d
+d1d2
+d2e,
+Z/e)d.
+.d3d
+.d4d
+d6d7
+Z0e)d.
+.d8d
+.d9d
+d:d;
+d<d=
+d=e1
+d>d?
+d?e1
+d@dA
+dAe1
+Z5dCdD
+Z6e7dEk
+threadpoolctl
+This module provides utilities to introspect native libraries that relies on
+thread pools (notably BLAS and OpenMP implementations) and dynamically set the
+maximal number of threads they can use.
+find_library)
+abstractmethod)
+	lru_cache)
+ContextDecoratorz
+3.0.0)
+threadpool_limits
+threadpool_info
+ThreadpoolControllerZ
+KMP_DUPLICATE_LIB_OK
+Truel
+_dl_phdr_infoZ	dlpi_addr
+	dlpi_nameZ	dlpi_phdrZ
+dlpi_phnumN)	
+__name__
+__module__
+__qualname__
+_SYSTEM_UINT
+ctypes
+c_char_pZ
+c_void_p
+_SYSTEM_UINT_HALFZ
+_fields_
+1/usr/lib/python3.9/site-packages/threadpoolctl.pyr
+openmp)
+libiompZ
+libgomp
+libompZ
+vcomp)
+user_api
+internal_api
+filename_prefixes
+blasZ
+openblas)
+libopenblasZ
+mkl)
+Z	libmkl_rtZ
+mkl_rtZ
+blis)
+libblis)
+OpenMPController
+OpenBLASController
+MKLController
+BLISControllerc
+libr
+	<genexpr>[
+<listcomp>\
+prefixr
+__doc__
+format)
+args
+kwargsr
+	decoratorm
+z$_format_docstring.<locals>.decoratorr
+_format_docstringl
+maxsizec
+zCSmall caching wrapper around os.path.realpath to limit system calls)
+path
+realpath)
+filepathr
+	_realpathu
+	USER_APISZ
+INTERNAL_APISc
+Return the maximal number of threads for each detected library.
+    Return a list with all the supported libraries that have been found. Each
+    library is represented by a dict with the following information:
+      - "user_api" : user API. Possible values are {USER_APIS}.
+      - "internal_api": internal API. Possible values are {INTERNAL_APIS}.
+      - "prefix" : filename prefix of the specific implementation.
+      - "filepath": path to the loaded library.
+      - "version": version of the library (if available).
+      - "num_threads": the current thread limit.
+    In addition, each library may contain internal_api specific entries.
+    )
+infor
+Z	e	Z
+_ThreadpoolLimitera
+The guts of ThreadpoolController.limit
+    Refer to the docstring of ThreadpoolController.limit for more details.
+    It will only act on the library controllers held by the provided `controller`.
+    Using the default constructor sets the limits right away such that it can be used as
+    a callable. Setting the limits can be delayed by using the `wrap` class method such
+    that it can be used as a decorator.
+    N
+limitsr
+_check_params
+_limits
+	_user_api
+	_prefixes
+_controllerr8
+_original_info
+_set_threadpool_limits
+self
+controllerr;
+__init__
+_ThreadpoolLimiter.__init__c
+	__enter__
+_ThreadpoolLimiter.__enter__c
+restore_original_limits)
+type
+value
+	tracebackr
+__exit__
+_ThreadpoolLimiter.__exit__c
+z@Return an instance of this class that can be used as a decorator)
+_ThreadpoolLimiterDecorator)
+clsrE
+wrap
+_ThreadpoolLimiter.wrapc
+z,Set the limits back to their original values
+num_threadsN)
+zipr@
+lib_controllersrA
+set_num_threads)
+lib_controllerZ
+original_infor
+z*_ThreadpoolLimiter.restore_original_limitsc
+)	zuOriginal num_threads from before calling threadpool_limits
+        Return a dict `{user_api: num_threads}`.
+        c
+lib_info
+z?_ThreadpoolLimiter.get_original_num_threads.<locals>.<listcomp>
+Nz1Multiple value possible for following user apis: 
+. Returning the minimum.)
+append
+warnings
+warn
+join)
+warning_apisr;
+n_limits
+limitr
+get_original_num_threads
+z+_ThreadpoolLimiter.get_original_num_threadsc
+d	t	
+zCSuitable values for the _limits, _user_api and _prefixes attributesNz
+user_api must be either in z
+ or None. Got z	 instead.c
+<dictcomp>
+z4_ThreadpoolLimiter._check_params.<locals>.<dictcomp>c
+z4limits must either be an int, a list or a dict. Got z
+ insteadc
+_ALL_PREFIXES
+z4_ThreadpoolLimiter._check_params.<locals>.<listcomp>c
+_ALL_USER_APISrd
+isinstance
+intrk
+ValueError
+listr	
+dict
+	TypeErrorrJ
+prefixesr
+z _ThreadpoolLimiter._check_paramsc
+Change the maximal number of threads in selected thread pools.
+        Return a list with all the supported libraries that have been found
+        matching `self._prefixes` and `self._user_api`.
+        N)
+z)_ThreadpoolLimiter._set_threadpool_limits)
+classmethodrP
+unregisterrc
+z8Same as _ThreadpoolLimiter but to be used as a decoratorNr:
+z$_ThreadpoolLimiterDecorator.__init__c
+z%_ThreadpoolLimiterDecorator.__enter__)
+	BLAS_LIBS
+OPENMP_LIBSc
+Change the maximal number of threads that can be used in thread pools.
+    This object can be used either as a callable (the construction of this object
+    limits the number of threads), as a context manager in a `with` block to
+    automatically restore the original state of the controlled libraries when exiting
+    the block, or as a decorator through its `wrap` method.
+    Set the maximal number of threads that can be used in thread pools used in
+    the supported libraries to `limit`. This function works for libraries that
+    are already loaded in the interpreter and can be changed dynamically.
+    This effect is global and impacts the whole Python process. There is no thread level
+    isolation as these libraries do not offer thread-local APIs to configure the number
+    of threads to use in nested parallel calls.
+    Parameters
+    ----------
+    limits : int, dict or None (default=None)
+        The maximal number of threads that can be used in thread pools
+        - If int, sets the maximum number of threads to `limits` for each
+          library selected by `user_api`.
+        - If it is a dictionary `{{key: max_threads}}`, this function sets a
+          custom maximum number of threads for each `key` which can be either a
+          `user_api` or a `prefix` for a specific library.
+        - If None, this function does not do anything.
+    user_api : {USER_APIS} or None (default=None)
+        APIs of libraries to limit. Used only if `limits` is an int.
+        - If "blas", it will only limit BLAS supported libraries ({BLAS_LIBS}).
+        - If "openmp", it will only limit OpenMP supported libraries
+          ({OPENMP_LIBS}). Note that it can affect the number of threads used
+          by the BLAS libraries if they rely on OpenMP.
+        - If None, this function will apply to all supported libraries.
+    Nc
+superrF
+	__class__r
+threadpool_limits.__init__c
+threadpool_limits.wrap)
+__classcell__r
+PREFIXESr7
+d!d"
+d#d$
+d%d&
+d'd(
+))r	
+Collection of LibController objects for all loaded supported libraries
+    Attributes
+    ----------
+    lib_controllers : list of `LibController` objects
+        The list of library controllers of all loaded supported libraries.
+    c
+_load_libraries
+_warn_if_incompatible_openmprG
+ThreadpoolController.__init__c
+__new__rS
+new_controllerr
+_from_controllers
+z&ThreadpoolController._from_controllersc
+z.Return lib_controllers info as a list of dictsc
+z-ThreadpoolController.info.<locals>.<listcomp>)
+ThreadpoolController.infoc
+Return a ThreadpoolController containing a subset of its current
+        library controllers
+        It will select all libraries matching at least one pair (key, value) from kwargs
+        where key is an entry of the library info dict (like "user_api", "internal_api",
+        "prefix", ...) and value is the value or a list of acceptable values for that
+        entry.
+        For instance, `ThreadpoolController().select(internal_api=["blis", "openblas"])`
+        will select all library controllers whose internal_api is either "blis" or
+        "openblas".
+        c
+getattr)
+vals
+z9ThreadpoolController.select.<locals>.<listcomp>.<genexpr>)
+items)
+z/ThreadpoolController.select.<locals>.<listcomp>)
+select
+ThreadpoolController.selectrY
+"{}"N
+ThreadpoolController.<genexpr>rv
+Change the maximal number of threads that can be used in thread pools.
+        This function returns an object that can be used either as a callable (the
+        construction of this object limits the number of threads) or as a context
+        manager, in a `with` block to automatically restore the original state of the
+        controlled libraries when exiting the block.
+        Set the maximal number of threads that can be used in thread pools used in
+        the supported libraries to `limits`. This function works for libraries that
+        are already loaded in the interpreter and can be changed dynamically.
+        This effect is global and impacts the whole Python process. There is no thread
+        level isolation as these libraries do not offer thread-local APIs to configure
+        the number of threads to use in nested parallel calls.
+        Parameters
+        ----------
+        limits : int, dict or None (default=None)
+            The maximal number of threads that can be used in thread pools
+            - If int, sets the maximum number of threads to `limits` for each
+              library selected by `user_api`.
+            - If it is a dictionary `{{key: max_threads}}`, this function sets a
+              custom maximum number of threads for each `key` which can be either a
+              `user_api` or a `prefix` for a specific library.
+            - If None, this function does not do anything.
+        user_api : {USER_APIS} or None (default=None)
+            APIs of libraries to limit. Used only if `limits` is an int.
+            - If "blas", it will only limit BLAS supported libraries ({BLAS_LIBS}).
+            - If "openmp", it will only limit OpenMP supported libraries
+              ({OPENMP_LIBS}). Note that it can affect the number of threads used
+              by the BLAS libraries if they rely on OpenMP.
+            - If None, this function will apply to all supported libraries.
+        r:
+ThreadpoolController.limitc
+Change the maximal number of threads that can be used in thread pools.
+        This function returns an object that can be used as a decorator.
+        Set the maximal number of threads that can be used in thread pools used in
+        the supported libraries to `limits`. This function works for libraries that
+        are already loaded in the interpreter and can be changed dynamically.
+        Parameters
+        ----------
+        limits : int, dict or None (default=None)
+            The maximal number of threads that can be used in thread pools
+            - If int, sets the maximum number of threads to `limits` for each
+              library selected by `user_api`.
+            - If it is a dictionary `{{key: max_threads}}`, this function sets a
+              custom maximum number of threads for each `key` which can be either a
+              `user_api` or a `prefix` for a specific library.
+            - If None, this function does not do anything.
+        user_api : {USER_APIS} or None (default=None)
+            APIs of libraries to limit. Used only if `limits` is an int.
+            - If "blas", it will only limit BLAS supported libraries ({BLAS_LIBS}).
+            - If "openmp", it will only limit OpenMP supported libraries
+              ({OPENMP_LIBS}). Note that it can affect the number of threads used
+              by the BLAS libraries if they rely on OpenMP.
+            - If None, this function will apply to all supported libraries.
+        r:
+ThreadpoolController.wrapc
+__len__
+ThreadpoolController.__len__c
+zALoop through loaded shared libraries and store the supported ones
+darwinZ
+win32N)
+platform
+_find_libraries_with_dyld
++_find_libraries_with_enum_process_module_ex
+$_find_libraries_with_dl_iterate_phdrrG
+z$ThreadpoolController._load_librariesc
+Loop through loaded libraries and return binders on supported ones
+        This function is expected to work on POSIX system only.
+        This code is adapted from code by Intel developper @anton-malakhov
+        available at https://github.com/IntelPython/smp
+        Copyright (c) 2017, Intel Corporation published under the BSD 3-Clause
+        license
+        
+dl_iterate_phdrc
+utf-8r
+contentsr
+decode
+_make_controller_from_path)
+size
+datar5
+match_library_callback
+zYThreadpoolController._find_libraries_with_dl_iterate_phdr.<locals>.match_library_callbackr%
+	_get_libc
+hasattrr
+Z	CFUNCTYPE
+c_intZ
+POINTERr
+c_size_tr
+libcr
+c_func_signatureZ
+c_match_library_callbackr
+z9ThreadpoolController._find_libraries_with_dl_iterate_phdrc
+Loop through loaded libraries and return binders on supported ones
+        This function is expected to work on OSX system only
+        
+_dyld_image_countr
+_dyld_get_image_name
+restype
+rangeZ	string_atr
+n_dyld
+z.ThreadpoolController._find_libraries_with_dyldc
+}	|	s`t
+|	t	
+Loop through loaded libraries and return binders on supported ones
+        This function is expected to work on windows system only.
+        This code is adapted from code by Philipp Hagemeister @phihag available
+        at https://stackoverflow.com/questions/17474574
+        r
+DWORD
+HMODULE
+MAX_PATHi
+PsapiZ
+kernel32Fz
+Could not open PID 
+EnumProcessModulesEx failedNz
+GetModuleFileNameEx failed)
+ctypes.wintypesr
+_get_windllZ
+OpenProcessr2
+getpid
+OSErrorr
+sizeofZ
+EnumProcessModulesExZ
+byrefrK
+mapZ
+create_unicode_bufferZ
+GetModuleFileNameExWr
+CloseHandle)
+PROCESS_QUERY_INFORMATIONZ
+PROCESS_VM_READZ
+LIST_LIBRARIES_ALLZ
+ps_apiZ	kernel_32Z	h_processZ	buf_countZ
+neededZ
+bufZ
+buf_size
+countZ	h_modulesZ
+n_sizeZ
+h_moduler5
+z@ThreadpoolController._find_libraries_with_enum_process_module_exc
+rBq |
+z:Store a library controller if it is supported and selectedr
+basename
+lower
+_SUPPORTED_LIBRARIESr
+_check_prefix
+globalsrS
+filenameZ
+controller_classZ
+candidate_libr'
+lib_controller_classrU
+z/ThreadpoolController._make_controller_from_pathc
+z]Return the prefix library_basename starts with
+        Return None if none matches.
+        N
+startswith)
+library_basenamer
+z"ThreadpoolController._check_prefixc
+z?Raise a warning if llvm-OpenMP and intel-OpenMP are both loadedZ
+linuxNc
+zEThreadpoolController._warn_if_incompatible_openmp.<locals>.<listcomp>a
+            Found Intel OpenMP ('libiomp') and LLVM OpenMP ('libomp') loaded at
+            the same time. Both libraries are known to be incompatible and this
+            can cause random crashes or deadlocks on Linux when loaded in the
+            same Python program.
+            Using threadpoolctl may cause crashes or deadlocks. For more
+            information and possible workarounds, please see
+                https://github.com/joblib/threadpoolctl/blob/master/multiple_openmp.md
+            r
+textwrap
+dedentr_
+RuntimeWarning)
+msgr
+z1ThreadpoolController._warn_if_incompatible_openmpc
+z Load the lib-C for unix systems.r
+mode)
+_system_libraries
+getr
+CDLL
+_RTLD_NOLOAD)
+Z	libc_namer
+ThreadpoolController._get_libcc
+Load a windows DLLNz
+.dll)
+WinDLL)
+dll_nameZ
+dllr
+z ThreadpoolController._get_windll)
+_ALL_BLAS_LIBRARIES
+_ALL_OPENMP_LIBRARIESrb
+LibControlleraA
+Abstract base class for the individual library controllers
+    A library controller is represented by the following information:
+      - "user_api" : user API. Possible values are {USER_APIS}.
+      - "internal_api" : internal API. Possible values are {INTERNAL_APIS}.
+      - "prefix" : prefix of the shared library's name.
+      - "filepath" : path to the loaded library.
+      - "version" : version of the library (if available).
+      - "num_threads" : the current thread limit.
+    In addition, each library controller may contain internal_api specific
+    entries.
+    Nr
+_dynlib
+get_version
+version)
+LibController.__init__c
+z&Return relevant info wrapped in a dictrQ
+z&LibController.info.<locals>.<dictcomp>)
+varsrQ
+Z	all_attrsr
+LibController.infoc
+get_num_threadsrG
+LibController.num_threadsc
+z5Return the maximum number of threads available to useNr
+LibController.get_num_threadsc
+z(Set the maximum number of threads to useNr
+LibController.set_num_threadsc
+z(Return the version of the shared libraryNr
+LibController.get_version)
+propertyrQ
+Controller class for OpenBLASc
+_get_threading_layer
+threading_layer
+_get_architectureZ
+architecture
+OpenBLASController.__init__c
+openblas_get_num_threadsZ
+openblas_get_num_threads64_c
+<lambda>
+z4OpenBLASController.get_num_threads.<locals>.<lambda>
+get_funcr
+z"OpenBLASController.get_num_threadsc
+openblas_set_num_threadsZ
+openblas_set_num_threads64_c
+z4OpenBLASController.set_num_threads.<locals>.<lambda>r
+set_funcr
+z"OpenBLASController.set_num_threadsc
+openblas_get_configZ
+openblas_get_config64_r
+OpenBLASrX
+splitr
+get_configZ
+configr
+OpenBLASController.get_versionc
+z&Return the threading layer of OpenBLAS
+openblas_get_parallelZ
+openblas_get_parallel64_N
+unknown
+pthreads
+disabledr
+z'OpenBLASController._get_threading_layerc
+z,Return the architecture detected by OpenBLASZ
+openblas_get_corenameZ
+openblas_get_corename64_Nr
+get_corenamer
+z$OpenBLASController._get_architecture
+Controller class for BLISc
+BLISController.__init__c
+bli_thread_get_num_threadsc
+z0BLISController.get_num_threads.<locals>.<lambda>
+BLISController.get_num_threadsc
+bli_thread_set_num_threadsc
+z0BLISController.set_num_threads.<locals>.<lambda>r
+BLISController.set_num_threadsc
+bli_info_get_version_strr
+get_version_r
+BLISController.get_versionc
+z"Return the threading layer of BLISr
+bli_info_get_enable_openmpZ
+bli_info_get_enable_pthreadsrG
+z#BLISController._get_threading_layerc
+z(Return the architecture detected by BLIS
+bli_arch_query_idN
+bli_arch_stringr
+z BLISController._get_architecturer
+Controller class for MKLc
+MKLController.__init__c
+MKL_Get_Max_Threadsc
+z/MKLController.get_num_threads.<locals>.<lambda>r
+MKLController.get_num_threadsc
+MKL_Set_Num_Threadsc
+z/MKLController.set_num_threads.<locals>.<lambda>r
+MKLController.set_num_threadsc
+MKL_Get_Version_String
+Version ([^ ]+) r
+create_string_bufferr
+search
+groups
+strip)
+resr
+groupr
+MKLController.get_versionc
+z!Return the threading layer of MKLZ
+MKL_Set_Threading_Layerc
+layerr
+z4MKLController._get_threading_layer.<locals>.<lambda>Z
+intelZ
+sequentialZ
+pgiZ
+gnuZ
+tbbz
+not specified)
+set_threading_layerZ	layer_mapr
+z"MKLController._get_threading_layer)
+Controller class for OpenMPc
+omp_get_max_threadsc
+z2OpenMPController.get_num_threads.<locals>.<lambda>r
+z OpenMPController.get_num_threadsc
+omp_set_num_threadsc
+z2OpenMPController.set_num_threads.<locals>.<lambda>r
+z OpenMPController.set_num_threadsc
+OpenMPController.get_versionN)
+zBCommandline interface to display thread-pool information and exit.r
+Nz5python -m threadpoolctl -i numpy scipy.linalg xgboostz)Display thread-pool information and exit.)
+usage
+descriptionz
+--import
+modules
+z;Python modules to import before introspecting thread-pools.)
+dest
+nargs
+default
+helpz
+-cz	--commandz@a Python statement to execute before introspecting thread-pools.)
+packagez
+WARNING: could not import)
+filer
+indent)
+argparse
+	importlib
+jsonr
+ArgumentParser
+add_argument
+parse_args
+argvr
+import_module
+ImportError
+print
+stderrZ
+command
+exec
+dumpsr
+parser
+options
+moduler
+_main
+__main__)8r)
+ctypes.utilr
+abcr
+	functoolsr
+contextlibr
+__version__
+__all__
+environ
+setdefaultr1
+c_uint64Z
+c_uint32r
+c_uint16r
+Z	Structurer
+RTLD_NOLOADr
+AttributeErrorZ
+DEFAULT_MODEr
+valuesrk
+_ALL_INTERNAL_APISri
+<module>

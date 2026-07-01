@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.h3c.h3cloud.performance.monitor.service.mapper.clickhouse.DomainCpuDetailAggregation30mMapper">
+    <delete id ="deleteBeforeTime">
+        ALTER TABLE AGG_DOMAIN_CPU_DETAIL_30M DELETE WHERE TIME &lt; #{time}
+    </delete>
+    <select id="readCpuMemTopN" resultType="com.h3c.h3cloud.common.model.performance.DomainCpuDetailStatisticsData">
+        SELECT FLOW.DOMAIN_ID as domainId,
+        <choose>
+            <when test='type!=null and type=="0"'>
+                round(avgMerge(CPU_RATE_AVG),2) as avgCpuRate
+            </when>
+            <otherwise>
+                round(avgMerge(MEMORY_AVG),2) as avgMemRate
+            </otherwise>
+        </choose>
+        FROM  ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_DOMAIN} TD,
+        AGG_DOMAIN_CPU_DETAIL_30M FLOW  WHERE TD.id = FLOW.DOMAIN_ID AND TIME BETWEEN ${startTime} AND ${endTime}
+        <if test="hostPoolId!=null and hostPoolId!=''">
+            AND FLOW.HOST_POOL_ID =${hostPoolId}
+        </if>
+        <if test="clusterId!=null and clusterId!=''">
+            AND FLOW.CLUSTER_ID =${clusterId}
+        </if>
+        <if test="hostId!=null and hostId!=''">
+            AND FLOW.HOST_ID =${hostId}
+        </if>
+        <if test="operatorGroupCode!=null and operatorGroupCode!=''">
+            AND FLOW.OP_GROUP_CODE LIKE #{operatorGroupCode}
+        </if>
+        GROUP BY FLOW.DOMAIN_ID
+        <choose>
+            <when test='type!=null and type=="0"'>
+                ORDER BY avgCpuRate DESC
+            </when>
+            <otherwise>
+                ORDER BY avgMemRate DESC
+            </otherwise>
+        </choose>
+        <if test="limit!=null and limit!=''">
+            LIMIT ${limit}
+        </if>
+    </select>
+    <select id="readCpuMemCpuUsageByCondition" resultType="com.h3c.h3cloud.common.model.performance.DomainCpuDetailStatisticsData">
+        SELECT DOMAIN_ID as domainId,
+        <choose>
+            <when test="cycle!=null and cycle=='hour'">
+                formatDateTime(toDateTime(TIME), '%Y-%m-%d %H') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='week'">
+                formatDateTime(toDateTime(TIME), '%Y %V') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='month'">
+                formatDateTime(toDateTime(TIME), '%Y-%m') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='year'">
+                formatDateTime(toDateTime(TIME), '%Y') as timeStr,
+            </when>
+            <otherwise>
+                formatDateTime(toDateTime(TIME), '%Y-%m-%d') as timeStr,
+            </otherwise>
+        </choose>
+        <choose>
+            <when test='type!=null and type=="0"'>
+                round(avgMerge(CPU_RATE_AVG),2) as avgCpuRate , maxMerge(CPU_RATE_MAX) as maxCpuRate, minMerge(CPU_RATE_MIN) as minCpuRate
+            </when>
+            <when test='type!=null and type=="1"'>
+                round(avgMerge(MEMORY_AVG),2) as avgMemRate , maxMerge(MEMORY_MAX) as maxMemRate, minMerge(MEMORY_MIN) as minMemRate
+            </when>
+            <when test='type!=null and type=="3"'>
+                round(avgMerge(CPU_READY_AVG),2) as avgCpuReadyTrend , maxMerge(CPU_READY_MAX) as maxCpuReadyTrend, minMerge(CPU_READY_MIN) as minCpuReadyTrend
+            </when>
+            <otherwise>
+                round(avgMerge(CPU_USAGE_MHZ_AVG),2) as avgCpuUsageMhz , maxMerge(CPU_USAGE_MHZ_MAX) as maxCpuUsageMhz, minMerge(CPU_USAGE_MHZ_MIN) as minCpuUsageMhz
+            </otherwise>
+        </choose>
+        FROM AGG_DOMAIN_CPU_DETAIL_30M detail  WHERE TIME BETWEEN ${startTime} AND ${endTime}
+        <if test="domainId!=null and domainId!=''">
+            AND DOMAIN_ID = ${domainId}
+        </if>
+        <if test="vmIds!=null and vmIds!=''">
+            AND DOMAIN_ID in (${vmIds})
+        </if>
+        GROUP BY  DOMAIN_ID, timeStr ORDER BY timeStr
+    </select>
+    <select id="readSysAvgMaxMinPerformance" resultType="com.h3c.h3cloud.common.model.performance.DomainCpuDetailStatisticsData">
+        SELECT DOMAIN_ID as domainId,
+        round(avgMerge(CPU_RATE_AVG),2) as avgCpuRate , maxMerge(CPU_RATE_MAX) as maxCpuRate, minMerge(CPU_RATE_MIN) as minCpuRate,
+        round(avgMerge(MEMORY_AVG),2) as avgMemRate , maxMerge(MEMORY_MAX) as maxMemRate, minMerge(MEMORY_MIN) as minMemRate
+        FROM AGG_DOMAIN_CPU_DETAIL_30M detail  WHERE TIME BETWEEN ${startTime} AND ${endTime}
+        <if test="domainId!=null and domainId!=''">
+            AND DOMAIN_ID = ${domainId}
+        </if>
+        <if test="vmIds!=null and vmIds!=''">
+            AND DOMAIN_ID in (${vmIds})
+        </if>
+        GROUP BY DOMAIN_ID
+    </select>
+    <select id="readCpuMemRateByCluster" resultType="com.h3c.h3cloud.common.model.performance.DomainCpuDetailData">
+        select b.uuid as uuid, a.TIME as time, a.CPU_RATE as cpuRate, a.MEMORY as memory from (select TIME, round(avgMerge(CPU_RATE_AVG),2) as CPU_RATE, round(avgMerge(MEMORY_AVG),2) as MEMORY,DOMAIN_ID from AGG_DOMAIN_CPU_DETAIL_30M
+        WHERE TIME BETWEEN ${startTime} AND ${endTime} AND CLUSTER_ID = ${clusterId} GROUP BY TIME, DOMAIN_ID) as a
+        join  ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_DOMAIN} as b on a.DOMAIN_ID=b.id
+        order by uuid, time
+    </select>
+    <select id="readSysPerformance" resultType="com.h3c.h3cloud.common.model.performance.DomainCpuDetailData">
+        SELECT
+          round(avgMerge(CPU_RATE_AVG),2) as cpuRate,
+          round(avgMerge(MEMORY_AVG),2) as memory,
+          round(avgMerge(CPU_USAGE_MHZ_AVG),2) as cpuUsageMhz,
+          round(avgMerge(CPU_READY_AVG),2) as cpuReady,
+          TIME as time
+        FROM AGG_DOMAIN_CPU_DETAIL_30M
+        WHERE TIME BETWEEN ${startTime} AND ${endTime}
+          AND DOMAIN_ID = ${domainId}
+          GROUP BY time ORDER BY time ASC
+    </select>
+</mapper>

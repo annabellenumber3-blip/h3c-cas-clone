@@ -1,0 +1,207 @@
+m	Z	
+Dogleg algorithm with rectangular trust regions for least-squares minimization.
+The description of the algorithm can be found in [Voglis]_. The algorithm does
+trust-region iterations, but the shape of trust regions is rectangular as
+opposed to conventional elliptical. The intersection of a trust region and
+an initial feasible region is again some rectangle. Thus, on each iteration a
+bound-constrained quadratic optimization problem is solved.
+A quadratic problem is solved by well-known dogleg approach, where the
+function is minimized along piecewise-linear "dogleg" path [NumOpt]_,
+Chapter 4. If Jacobian is not rank-deficient then the function is decreasing
+along this path, and optimization amounts to simply following along this
+path as long as a point stays within the bounds. A constrained Cauchy step
+(along the anti-gradient) is considered for safety in rank deficient cases,
+in this situations the convergence might be slow.
+If during iterations some variable hit the initial bound and the component
+of anti-gradient points outside the feasible region, then a next dogleg step
+won't make any progress. At this state such variables satisfy first-order
+optimality conditions and they are excluded before computing a next dogleg
+step.
+Gauss-Newton step can be computed exactly by `numpy.linalg.lstsq` (for dense
+Jacobian matrices) or by iterative procedure `scipy.sparse.linalg.lsmr` (for
+dense and sparse matrices, or Jacobian being LinearOperator). The second
+option allows to solve very large problems (up to couple of millions of
+residuals on a regular PC), provided the Jacobian matrix is sufficiently
+sparse. But note that dogbox is not very good for solving problems with
+large number of constraints, because of variables exclusion-inclusion on each
+iteration (a required number of function evaluations might be high or accuracy
+of a solution will be poor), thus its large-scale usage is probably limited
+to unconstrained problems.
+References
+----------
+.. [Voglis] C. Voglis and I. E. Lagaris, "A Rectangular Trust Region Dogleg
+            Approach for Unconstrained and Bound Constrained Nonlinear
+            Optimization", WSEAS International Conference on Applied
+            Mathematics, Corfu, Greece, 2004.
+.. [NumOpt] J. Nocedal and S. J. Wright, "Numerical optimization, 2nd edition".
+lstsq
+norm)
+LinearOperator
+aslinearoperator
+lsmr)
+OptimizeResult
+step_size_to_bound
+	in_bounds
+update_tr_radius
+evaluate_quadratic
+build_quadratic_1d
+minimize_quadratic_1d
+compute_grad
+compute_jac_scale
+check_termination
+scale_for_robust_loss_function
+print_header_nonlinear
+print_iteration_nonlinearc
+Compute LinearOperator to use in LSMR by dogbox algorithm.
+    `active_set` mask is used to excluded active variables from computations
+    of matrix-vector products.
+    c
+ravel
+copy
+matvec)
+x_free
+active_set
+@/usr/lib64/python3.9/site-packages/scipy/optimize/_lsq/dogbox.pyr
+lsmr_operator.<locals>.matvecc
+rmatvec)
+lsmr_operator.<locals>.rmatvec)
+dtype)
+shaper
+float)
+lsmr_operator8
+Find intersection of trust-region bounds and initial bounds.
+    Returns
+    -------
+    lb_total, ub_total : ndarray with shape of x
+        Lower and upper bounds of the intersection region.
+    orig_l, orig_u : ndarray of bool with shape of x
+        True means that an original bound is taken as a corresponding bound
+        in the intersection region.
+    tr_l, tr_u : ndarray of bool with shape of x
+        True means that a trust-region bound is taken as a corresponding bound
+        in the intersection region.
+    )
+maximumZ
+minimum
+equal)
+	tr_bounds
+lb_centeredZ
+ub_centered
+lb_total
+ub_total
+orig_l
+orig_u
+tr_l
+tr_ur
+find_intersectionM
+Find dogleg step in a rectangular region.
+    Returns
+    -------
+    step : ndarray, shape (n,)
+        Computed dogleg step.
+    bound_hits : ndarray of int, shape (n,)
+        Each component shows whether a corresponding variable hits the
+        initial bound after the step is taken:
+            *  0 - a variable doesn't hit the bound.
+            * -1 - lower bound is hit.
+            *  1 - upper bound is hit.
+    tr_hit : bool
+        Whether the step hit the boundary of the trust-region.
+    
+zeros_like
+intr
+any)
+newton_step
+bound_hitsZ	to_bounds
+cauchy_stepZ	step_diffZ	step_size
+hits
+tr_hitr
+dogleg_stepj
+}#|#
+}'|'|	k
+|"|!|'
+|,|%|%
+}.}/nT|
+}-|-|+9
+}.}/d
+}"|"d
+|(|-|%|.|/|2|)|*
+}3}4}5|
+|,|%|3
+|8|8
+|"|6|9|5
+};t	|
+|!t	|
+qZ|"d
+r@|4|
+}"| d
+|&|'|
+jac)
+ordg
+exact)
+rcondr
+Z	cost_only)
+cost
+funrA
+gradZ
+optimalityZ
+active_mask
+nfev
+njevZ
+status) r
+sumr
+dotr
+isinstance
+strr
+infr6
+empty_like
+sizer
+fillr
+clip
+allZ
+isfiniter
+)=rG
+J0r+
+ftolZ
+xtolZ
+gtolZ
+max_nfevZ
+x_scaleZ
+loss_functionZ	tr_solverZ
+tr_options
+verbose
+f_truerH
+rhorF
+Z	jac_scaleZ
+scaleZ	scale_invZ
+DeltaZ
+on_boundr
+stepZ
+termination_statusZ	iterationZ	step_normZ
+actual_reductionr
+free_setZ
+g_freeZ
+g_fullZ
+g_normr
+lb_freeZ
+ub_freeZ
+scale_freeZ
+J_freer9
+lsmr_opr*
+Z	step_freeZ
+on_bound_freer?
+predicted_reductionZ
+x_newZ
+f_newZ
+step_h_normZ
+cost_newZ
+ratio
+maskr
+dogbox
+__doc__Z
+numpyr(
+numpy.linalgr
+scipy.sparse.linalgr
+scipy.optimizer
+commonr	
+<module>

@@ -1,0 +1,104 @@
+quotea
+# Run something, muting output or redirecting it to the debug stream
+# depending on the value of _ARC_DEBUG.
+# If ARGCOMPLETE_USE_TEMPFILES is set, use tempfiles for IPC.
+__python_argcomplete_run() {
+    if [[ -z "${ARGCOMPLETE_USE_TEMPFILES-}" ]]; then
+        __python_argcomplete_run_inner "$@"
+        return
+    fi
+    local tmpfile="$(mktemp)"
+    _ARGCOMPLETE_STDOUT_FILENAME="$tmpfile" __python_argcomplete_run_inner "$@"
+    local code=$?
+    cat "$tmpfile"
+    rm "$tmpfile"
+    return $code
+__python_argcomplete_run_inner() {
+    if [[ -z "${_ARC_DEBUG-}" ]]; then
+        "$@" 8>&1 9>&2 1>/dev/null 2>&1
+    else
+        "$@" 8>&1 9>&2 1>&9 2>&1
+    fi
+_python_argcomplete%(function_suffix)s() {
+    local IFS=$'\013'
+    local SUPPRESS_SPACE=0
+    if compopt +o nospace 2> /dev/null; then
+        SUPPRESS_SPACE=1
+    fi
+    COMPREPLY=( $(IFS="$IFS" \
+                  COMP_LINE="$COMP_LINE" \
+                  COMP_POINT="$COMP_POINT" \
+                  COMP_TYPE="$COMP_TYPE" \
+                  _ARGCOMPLETE_COMP_WORDBREAKS="$COMP_WORDBREAKS" \
+                  _ARGCOMPLETE=1 \
+                  _ARGCOMPLETE_SUPPRESS_SPACE=$SUPPRESS_SPACE \
+                  __python_argcomplete_run "%(argcomplete_script)s") )
+    if [[ $? != 0 ]]; then
+        unset COMPREPLY
+    elif [[ $SUPPRESS_SPACE == 1 ]] && [[ "${COMPREPLY-}" =~ [=/:]$ ]]; then
+        compopt -o nospace
+    fi
+complete %(complete_opts)s -F _python_argcomplete%(function_suffix)s %(executables)s
+zVcomplete "%(executable)s" 'p@*@`python-argcomplete-tcsh "%(argcomplete_script)s"`@' ;
+function __fish_%(function_name)s_complete
+    set -x _ARGCOMPLETE 1
+    set -x _ARGCOMPLETE_DFS \t
+    set -x _ARGCOMPLETE_IFS \n
+    set -x _ARGCOMPLETE_SUPPRESS_SPACE 1
+    set -x _ARGCOMPLETE_SHELL fish
+    set -x COMP_LINE (commandline -p)
+    set -x COMP_POINT (string length (commandline -cp))
+    set -x COMP_TYPE
+    if set -q _ARC_DEBUG
+        %(argcomplete_script)s 8>&1 9>&2 1>&9 2>&1
+    else
+        %(argcomplete_script)s 8>&1 9>&2 1>/dev/null 2>&1
+    end
+complete %(completion_arg)s %(executable)s -f -a '(__fish_%(function_name)s_complete)'
+bashZ
+tcsh
+fishTr
+    Provide the shell code required to register a python executable for use with the argcomplete module.
+    :param list(str) executables: Executables to be completed (when invoked exactly with this name)
+    :param bool use_defaults: Whether to fallback to readline's default completion when no matches are generated.
+    :param str shell: Name of the shell to output code for (bash or tcsh)
+    :param complete_arguments: Arguments to call complete with
+    :type complete_arguments: list(str) or None
+    :param argcomplete_script: Script to call complete with, if not the executable to complete.
+        If supplied, will be used to complete *all* passed executables.
+    :type argcomplete_script: str or None
+    Nz$-o nospace -o default -o bashdefaultz
+-o nospace -o bashdefault
+A/usr/lib/python3.9/site-packages/argcomplete/shell_integration.py
+<listcomp>f
+shellcode.<locals>.<listcomp>
+complete_opts
+executables
+argcomplete_script
+function_suffixr
+--pathz	--command)
+executabler
+completion_arg
+function_name)
+join
+bashcode
+dict
+replace
+fishcode
+shell_codes
+get)
+use_defaults
+shellZ
+complete_argumentsr
+complete_optionsZ
+quoted_executablesZ
+executables_listZ
+scriptr
+coder
+	shellcodeR
+NN)	Z
+shlexr
+ImportErrorZ
+pipesr
+tcshcoder
+<module>

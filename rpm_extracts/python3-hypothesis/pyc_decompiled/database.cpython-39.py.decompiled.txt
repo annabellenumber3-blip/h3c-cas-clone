@@ -1,0 +1,222 @@
+m	Z	
+sha384)
+Dict
+Iterable)
+mkdir_p
+storage_directory)
+HypothesisException
+HypothesisWarning)
+not_set)
+DirectoryBasedExampleDatabase
+ExampleDatabase
+InMemoryExampleDatabase
+MultiplexedDatabase
+ReadOnlyDatabasec
+    Returns True iff the desired path can be used as database path because
+    either the directory exists and can be used, or its root directory can
+    be used and we can make the directory as needed.
+    )	
+path
+exists
+dirname
+isdir
+access
+R_OK
+W_OK
+X_OK
+7/usr/lib/python3.9/site-packages/hypothesis/database.py
+_usable_dir 
+rVt	
+HYPOTHESIS_DATABASE_FILEz
+The $HYPOTHESIS_DATABASE_FILE environment variable no longer has any effect.  Configure your database location via a settings profile instead.
+https://hypothesis.readthedocs.io/en/latest/settings.html#settings-profilesZ
+examplesz
+The database setting is not configured, and the default location is unusable - falling back to an in-memory database for this session.  path=)
+:memory:)
+getenvr
+warnings
+warnr
+strr
+_db_for_path,
+_EDMetac
+super
+__call__)
+self
+args
+kwargs
+	__class__r
+_EDMeta.__call__)
+__name__
+__module__
+__qualname__r$
+__classcell__r
+sphinx)
+_METACLASS_CALL_BLACKLISTz$hypothesis.database._EDMeta.__call__c
+An abstract base class for storing examples in Hypothesis' internal format.
+    An ExampleDatabase maps each ``bytes`` key to many distinct ``bytes``
+    values, like a ``Mapping[bytes, AbstractSet[bytes]]``.
+    N
+value
+returnc
+zsSave ``value`` under ``key``.
+        If this value is already present for this key, silently do nothing.
+        z
+.saveN
+NotImplementedError
+typer*
+saved
+ExampleDatabase.save
+z5Return an iterable over all values matching this key.z
+.fetchNr3
+fetchl
+ExampleDatabase.fetchc
+zeRemove this value from this key.
+        If this value is not present, silently do nothing.
+        z
+.deleteNr3
+deleteq
+ExampleDatabase.delete
+destr1
+Move ``value`` from key ``src`` to key ``dest``. Equivalent to
+        ``delete(src, value)`` followed by ``save(src, value)``, but may
+        have a more efficient implementation.
+        Note that ``value`` will be inserted at ``dest`` regardless of whether
+        it is currently present at ``src``.
+        N)
+movey
+ExampleDatabase.move)
+__doc__
+abstractmethod
+bytesr7
+	metaclassc
+A non-persistent example database, implemented in terms of a dict of sets.
+    This can be useful if you call a test function several times in a single
+    session, or for testing other database implementations, but because it
+    does not persist between runs we do not recommend it for general use.
+    c
+data
+__init__
+z InMemoryExampleDatabase.__init__
+InMemoryExampleDatabase(
+__repr__
+z InMemoryExampleDatabase.__repr__r8
+getr9
+InMemoryExampleDatabase.fetchNr/
+setdefault
+addrD
+InMemoryExampleDatabase.savec
+discardrD
+InMemoryExampleDatabase.delete)
+Z	hexdigest)
+_hash
+e	e	d
+e	e	e	d
+e	e	d
+Use a directory to store Hypothesis examples as files.
+    Each test corresponds to a directory, and each example to a file within that
+    directory.  While the contents are fairly opaque, a
+    ``DirectoryBasedExampleDatabase`` can be shared by checking the directory
+    into version control, for example with the following ``.gitignore``::
+        # Ignore files cached by Hypothesis...
+        .hypothesis/*
+        # except for the examples directory
+        !.hypothesis/examples/
+    Note however that this only makes sense if you also pin to an exact version of
+    Hypothesis, and we would usually recommend implementing a shared database with
+    a network datastore - see :class:`~hypothesis.database.ExampleDatabase`, and
+    the :class:`~hypothesis.database.MultiplexedDatabase` helper.
+    N)
+keypaths)
+z&DirectoryBasedExampleDatabase.__init__rJ
+DirectoryBasedExampleDatabase(rK
+z&DirectoryBasedExampleDatabase.__repr__c
+KeyErrorr
+joinrS
+Z	directoryr
+	_key_path
+z'DirectoryBasedExampleDatabase._key_pathc
+_value_path
+z)DirectoryBasedExampleDatabase._value_pathr8
+rb)	rW
+listdir
+openrV
+read
+OSError)
+z#DirectoryBasedExampleDatabase.fetchr/
+ascii
+binasciiZ
+hexlify
+urandom
+decoder[
+write
+renamer]
+unlink)
+suffixZ
+tmpname
+z"DirectoryBasedExampleDatabase.saver<
+renamesrX
+z"DirectoryBasedExampleDatabase.movec
+z$DirectoryBasedExampleDatabase.delete)
+A wrapper to make the given database read-only.
+    The implementation passes through ``fetch``, and turns ``save``, ``delete``, and
+    ``move`` into silent no-ops.
+    Note that this disables Hypothesis' automatic discarding of stale examples.
+    It is designed to allow local machines to access a shared database (e.g. from CI
+    servers), without propagating changes back from a local or in-development branch.
+    N)
+dbr2
+isinstancer
+_wrapped)
+ReadOnlyDatabase.__init__rJ
+ReadOnlyDatabase(rK
+ReadOnlyDatabase.__repr__r8
+ReadOnlyDatabase.fetchr/
+ReadOnlyDatabase.savec
+ReadOnlyDatabase.delete)
+A wrapper around multiple databases.
+    Each ``save``, ``fetch``, ``move``, or ``delete`` operation will be run against
+    all of the wrapped databases.  ``fetch`` does not yield duplicate values, even
+    if the same value is present in two or more of the wrapped databases.
+    This combines well with a :class:`ReadOnlyDatabase`, as follows:
+    .. code-block:: python
+        local = DirectoryBasedExampleDatabase("/tmp/hypothesis/examples/")
+        shared = CustomNetworkDatabase()
+        settings.register_profile("ci", database=shared)
+        settings.register_profile(
+            "dev", database=MultiplexedDatabase(local, ReadOnlyDatabase(shared))
+        )
+        settings.load_profile("ci" if os.environ.get("CI") else "dev")
+    So your CI system or fuzzing runs can populate a central shared database;
+    while local runs on development machines can reproduce any failures from CI
+    but will only cache their own failures locally and cannot remove examples
+    from the shared database.
+    N)
+dbsr2
+.0rk
+	<genexpr>.
+z/MultiplexedDatabase.__init__.<locals>.<genexpr>)
+allrm
+MultiplexedDatabase.__init__rJ
+MultiplexedDatabase({})z
+formatrV
+reprrm
+MultiplexedDatabase.__repr__r8
+seenrk
+MultiplexedDatabase.fetchr/
+MultiplexedDatabase.savec
+MultiplexedDatabase.deleter<
+MultiplexedDatabase.move)
+N)"rB
+sysr
+hashlibr
+typingr
+hypothesis.configurationr
+hypothesis.errorsr
+hypothesis.utils.conventionsr	
+__all__r
+ABCMetar!
+modulesZ
+sphinx.ext.autodocr.
+append
+	Exceptionr
+<module>

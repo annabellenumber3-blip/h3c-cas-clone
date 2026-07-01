@@ -1,0 +1,258 @@
+m	Z	
+OrderedDict)
+CollectReport)
+Producer)
+report_collection_diff)
+parse_spec_configc
+d d!
+d"d#
+LoadScopeSchedulinga
+Implement load scheduling across nodes, but grouping test by scope.
+    This distributes the tests collected across all nodes so each test is run
+    just once.  All nodes collect and submit the list of tests and when all
+    collections are received it is verified they are identical collections.
+    Then the collection gets divided up in work units, grouped by test scope,
+    and those work units get submitted to nodes.  Whenever a node finishes an
+    item, it calls ``.mark_test_complete()`` which will trigger the scheduler
+    to assign more work units if the number of pending tests for the node falls
+    below a low-watermark.
+    When created, ``numnodes`` defines how many nodes are expected to submit a
+    collection. This is used to know when all nodes have finished collection.
+    Attributes:
+    :numnodes: The expected number of nodes taking part.  The actual number of
+       nodes will vary during the scheduler's lifetime as nodes are added by
+       the DSession as they are brought up and removed either because of a dead
+       node or normal shutdown.  This number is primarily used to know when the
+       initial collection is completed.
+    :collection: The final list of tests collected by all nodes once it is
+       validated to be identical between all the nodes.  It is initialised to
+       None until ``.schedule()`` is called.
+    :workqueue: Ordered dictionary that maps all available scopes with their
+       associated tests (nodeid). Nodeids are in turn associated with their
+       completion status. One entry of the workqueue is called a work unit.
+       In turn, a collection of work unit is called a workload.
+       ::
+            workqueue = {
+                '<full>/<path>/<to>/test_module.py': {
+                    '<full>/<path>/<to>/test_module.py::test_case1': False,
+                    '<full>/<path>/<to>/test_module.py::test_case2': False,
+                    (...)
+                },
+                (...)
+            }
+    :assigned_work: Ordered dictionary that maps worker nodes with their
+       assigned work units.
+       ::
+            assigned_work = {
+                '<worker node A>': {
+                    '<full>/<path>/<to>/test_module.py': {
+                        '<full>/<path>/<to>/test_module.py::test_case1': False,
+                        '<full>/<path>/<to>/test_module.py::test_case2': False,
+                        (...)
+                    },
+                    (...)
+                },
+                (...)
+            }
+    :registered_collections: Ordered dictionary that maps worker nodes with
+       their collection of tests gathered during test discovery.
+       ::
+            registered_collections = {
+                '<worker node A>': [
+                    '<full>/<path>/<to>/test_module.py::test_case1',
+                    '<full>/<path>/<to>/test_module.py::test_case2',
+                ],
+                (...)
+            }
+    :log: A py.log.Producer instance.
+    :config: Config object, used for handling hooks.
+    Nc
+loadscopesched)
+lenr
+numnodes
+collectionr
+	workqueue
+assigned_work
+registered_collectionsr
+logr
+config)
+selfr
+=/usr/lib/python3.9/site-packages/xdist/scheduler/loadscope.py
+__init__W
+LoadScopeScheduling.__init__c
+z,A list of all active nodes in the scheduler.)
+listr
+keys
+nodesf
+LoadScopeScheduling.nodesc
+Boolean indication initial test collection is complete.
+        This is a boolean indicating all initial participating nodes have
+        finished collection.  The required number of initial nodes is defined
+        by ``.numnodes``.
+        )
+collection_is_completedk
+z+LoadScopeScheduling.collection_is_completedc
+z9Return True if all tests have been executed by the nodes.F
+values
+_pending_of
+assigned_unitr
+tests_finishedu
+z"LoadScopeScheduling.tests_finishedc
+Return True if there are pending test items.
+        This indicates that collection has finished and nodes are still
+        processing test items, so this can be thought of as
+        "the scheduler is active".
+        Tr
+has_pending
+LoadScopeScheduling.has_pendingc
+Add a new node to the scheduler.
+        From now on the node will be assigned work units to be executed.
+        Called by the ``DSession.worker_workerready`` hook when it successfully
+        bootstraps a new node.
+        N)
+noder
+add_node
+LoadScopeScheduling.add_nodec
+qFq.q"
+qTq"t
+Remove a node from the scheduler.
+        This should be called either when the node crashed or at shutdown time.
+        In the former case any pending items assigned to the node will be
+        re-scheduled.
+        Called by the hooks:
+        - ``DSession.worker_workerfinished``.
+        - ``DSession.worker_errordown``.
+        Return the item being executed while the node crashed or None if the
+        node has no more pending items.
+        Nz=Unable to identify crashitem on a workload with pending items)	r
+popr
+items
+RuntimeErrorr
+update
+_reschedule)
+workload
+	work_unit
+nodeid
+	completedZ	crashitemr
+remove_node
+LoadScopeScheduling.remove_nodec
+Add the collected test items from a node.
+        The collection is stored in the ``.registered_collections`` dictionary.
+        Called by the hook:
+        - ``DSession.worker_collectionfinish``.
+        N)
+next
+iterr
+gateway
+other_node
+msgr
+add_node_collection
+z'LoadScopeScheduling.add_node_collectionr
+zuMark test item as completed by node.
+        Called by the hook:
+        - ``DSession.worker_testreport``.
+        TN)
+_split_scoper
+item_indexZ
+durationr*
+scoper
+mark_test_complete
+z&LoadScopeScheduling.mark_test_completec
+NotImplementedError)
+itemr
+mark_test_pending
+z%LoadScopeScheduling.mark_test_pendingc
+Assign a work unit to a node.F
+last
+defaultc
+index)
+.0r*
+worker_collectionr
+<listcomp>
+z9LoadScopeScheduling._assign_work_unit.<locals>.<listcomp>N)
+popitemr
+setdefaultr
+send_runtest_some)
+assigned_to_nodeZ
+nodeids_indexesr
+_assign_work_unit
+z%LoadScopeScheduling._assign_work_unitc
+Determine the scope (grouping) of a nodeid.
+        There are usually 3 cases for a nodeid::
+            example/loadsuite/test/test_beta.py::test_beta0
+            example/loadsuite/test/test_delta.py::Delta1::test_delta0
+            example/loadsuite/epsilon/__init__.py::epsilon.epsilon
+        #. Function in a test module.
+        #. Method of a class in a test module.
+        #. Doctest in a function in a package.
+        This function will group tests with the scope determined by splitting
+        the first ``::`` from the right. That is, classes will be grouped in a
+        single work unit, and functions from a test module will be grouped by
+        their module. In the above example, scopes will be::
+            example/loadsuite/test/test_beta.py
+            example/loadsuite/test/test_delta.py::Delta1
+            example/loadsuite/epsilon/__init__.py
+        z
+rsplit)
+z LoadScopeScheduling._split_scopec
+z1Return the number of pending tests in a workload.c
+count)
+	<genexpr>(
+z2LoadScopeScheduling._pending_of.<locals>.<genexpr>)
+sumr
+pendingr
+LoadScopeScheduling._pending_ofc
+Maybe schedule new items on the node.
+        If there are any globally pending work units left then this will check
+        if the given node should be given any more tests.
+        Nz!Number of units waiting for node:r
+shutting_downr
+shutdownr
+LoadScopeScheduling._reschedulec
+Initiate distribution of the test collection.
+        Initiate scheduling of the items across the nodes.  If this gets called
+        again later it behaves the same as calling ``._reschedule()`` on all
+        nodes so that newly added nodes will start to be used.
+        If ``.collection_is_completed`` is True, this is called by the hook:
+        - ``DSession.worker_collectionfinish``.
+        Nz+**Different tests collected, aborting run**r:
+Shuting down {} nodesTr9
+Shuting down unused node {})
+!_check_nodes_have_same_collectionr
+format
+ranger
+extra_nodes
+unused_node
+assignedr
+scheduleE
+LoadScopeScheduling.schedulec
+sNq*d
+rhq*t
+Return True if all nodes have collected the same items.
+        If collections differ, this method returns False while logging
+        the collection differences and posting collection errors to
+        pytest_collectreport hook.
+        r
+failed)
+longrepr
+result)
+report)
+hookZ
+pytest_collectreport)	r
+node_collection_itemsZ
+first_node
+colZ
+same_collectionr!
+repr
+z5LoadScopeScheduling._check_nodes_have_same_collection)
+__name__
+__module__
+__qualname__
+__doc__r
+propertyr
+collectionsr
+_pytest.runnerr
+py.logr
+xdist.reportr
+xdist.workermanager
+<module>

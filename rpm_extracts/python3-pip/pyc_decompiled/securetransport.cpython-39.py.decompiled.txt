@@ -1,0 +1,432 @@
+l	Z	d
+l!m"Z"
+j$Z%e
+j&j'Z(e
+ZPeQe
+d&d"d 
+Zdedec_dG
+d#d$
+d$eb
+SecureTranport support for urllib3 via ctypes.
+This makes platform-native TLS available to urllib3 users on macOS without the
+use of a compiler. This is an important feature because the Python Package
+Index is moving to become a TLSv1.2-or-higher server, and the default OpenSSL
+that ships with macOS is not capable of doing TLSv1.2. The only way to resolve
+this is to give macOS users an alternative solution to the problem, and that
+solution is to use SecureTransport.
+We use ctypes here because this solution must not require a compiler. That's
+because pip is not allowed to require a compiler either.
+This is not intended to be a seriously long-term solution to this problem.
+The hope is that PEP 543 will eventually solve this issue for us, at which
+point we can retire this contrib module. But in the short term, we need to
+solve the impending tire fire that is Python on Mac without this kind of
+contrib module. So...here we are.
+To use this module, simply import and inject it::
+    import pip._vendor.urllib3.contrib.securetransport as securetransport
+    securetransport.inject_into_urllib3()
+Happy TLSing!
+This code is a bastardised version of the code found in Will Bond's oscrypto
+library. An enormous debt is owed to him for blazing this trail for us. For
+that reason, this code should be considered to be covered both by urllib3's
+license and by oscrypto's:
+.. code-block::
+    Copyright (c) 2015-2016 Will Bond <will@wbond.net>
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+absolute_importN)
+util)
+PROTOCOL_TLS_CLIENT
+CoreFoundation
+Security
+SecurityConst)
+_assert_no_error
+_build_tls_unknown_ca_alert
+_cert_array_from_pem
+_create_cfstring_array
+_load_client_cert_chain
+_temporary_keychain)
+_fileobject
+backport_makefile
+inject_into_urllib3
+extract_from_urllib3Ti
+PROTOCOL_SSLv2
+PROTOCOL_SSLv3
+PROTOCOL_TLSv1
+PROTOCOL_TLSv1_1
+PROTOCOL_TLSv1_2c
+    Monkey-patch urllib3 with SecureTransport-backed SSL-support.
+    TN)
+SecureTransportContextr
+SSLContext
+ssl_
+HAS_SNI
+IS_SECURETRANSPORT
+O/usr/lib/python3.9/site-packages/pip/_vendor/urllib3/contrib/securetransport.pyr
+    Undo monkey-patching by :func:`inject_into_urllib3`.
+    FN)
+orig_util_SSLContextr
+orig_util_HAS_SNIr
+    SecureTransport read callback. This is called by ST to request that data
+    be returned from the socket.
+    Nr
+	timed out)
+_connection_refs
+getr
+errSSLInternal
+socket
+gettimeoutr
+wait_for_read
+error
+errno
+EAGAIN
+ctypes
+c_charZ
+from_address
+	recv_into
+errSSLClosedGraceful
+ECONNRESET
+EPIPE
+errSSLClosedAbort
+errSSLWouldBlock
+	Exception
+_exception)
+connection_id
+data_buffer
+data_length_pointer
+wrapped_socket
+base_socketZ
+requested_length
+timeoutr*
+read_countZ	remaining
+bufferZ
+chunk_size
+_read_callback
+}	zV|	|
+    SecureTransport write callback. This is called by ST to request that data
+    actually be sent on the network.
+    Nr
+	string_atr)
+wait_for_writer*
+sendr1
+bytes_to_write
+datar<
+sentZ
+chunk_sentr>
+_write_callback
+d!d"
+d#d$
+d/d&d'
+d(d)
+d*d+
+d,d-
+WrappedSocketz
+    API-compatibility wrapper for Python's OpenSSL wrapped socket object.
+    Note: _makefile_refs, _drop(), and _reuse() are needed for the garbage
+    collector of PyPy.
+    c
+context
+_makefile_refs
+_closedr6
+	_keychain
+_keychain_dir
+_client_cert_chainr)
+_timeout
+settimeout)
+selfr(
+__init__N
+WrappedSocket.__init__c
+        A context manager that can be used to wrap calls that do I/O from
+        SecureTransport. If any of the I/O callbacks hit an exception, this
+        context manager will correctly propagate the exception after the fact.
+        This avoids silently swallowing those exceptions.
+        It also correctly forces the socket closed.
+        N)
+close)
+	exceptionr 
+_raise_on_error`
+WrappedSocket._raise_on_errorc
+        Sets up the allowed ciphers. By default this matches the set in
+        util.ssl_.DEFAULT_CIPHERS, at least as supported by macOS. This is done
+        custom and doesn't allow changing at this time, mostly because parsing
+        OpenSSL cipher strings is going to be a freaking nightmare.
+        N)
+SSLCipherSuite
+CIPHER_SUITESZ
+SSLSetEnabledCiphersrG
+ciphers
+resultr 
+_set_ciphersu
+WrappedSocket._set_ciphersc
+        Sets up the ALPN protocols on the context.
+        N)
+SSLSetALPNProtocolsrG
+	CFRelease)
+	protocolsZ
+protocols_arrrW
+_set_alpn_protocols
+z!WrappedSocket._set_alpn_protocolsc
+        Called when we have set custom validation. We do this in two cases:
+        first, when cert validation is entirely disabled; and second, when
+        using a custom trust DB.
+        Raises an SSLError if the connection is not trusted.
+        Nz
+error code: %dz
+exception: %rZ
+certificate verify failed, %s)
+kSecTrustResultUnspecifiedZ
+kSecTrustResultProceed
+_evaluate_trustr5
+versionr(
+sendall
+struct
+packZ
+setsockoptZ
+SOL_SOCKETZ	SO_LINGERrQ
+SSLError)	rO
+verify
+trust_bundleZ	successes
+trust_result
+reasonr>
+recZ
+optsr 
+_custom_validate
+WrappedSocket._custom_validatec
+Failed to copy trust referenceT)
+path
+isfile
+open
+readr	
+SecTrustRefr
+SSLCopyPeerTrustrG
+byrefr
+SecTrustSetAnchorCertificatesZ!SecTrustSetAnchorCertificatesOnlyZ
+SecTrustResultTypeZ
+SecTrustEvaluater
+value)
+cert_array
+trustrW
+WrappedSocket._evaluate_trustc
+        Actually performs the TLS handshake. This is run automatically by
+        wrapped socket, and shouldn't be needed in user code.
+        Ni
+utf-8Tz
+handshake timed out)&r	
+SSLCreateContextr
+kSSLClientSideZ
+kSSLStreamTyperG
+SSLSetIOFuncs
+_read_callback_pointer
+_write_callback_pointerr
+_connection_ref_lock
+idr%
+SSLSetConnection
+isinstance
+bytes
+encodeZ
+SSLSetPeerDomainNamerT
+SSLSetProtocolVersionMinZ
+SSLSetProtocolVersionMaxZ
+SSLSetSessionOptionZ"kSSLSessionOptionBreakOnServerAuthr
+SSLSetCertificaterS
+SSLHandshaker4
+errSSLServerAuthCompletedrh
+server_hostnamerd
+min_versionZ
+max_versionZ
+client_certZ
+client_keyZ
+client_key_passphraseZ
+alpn_protocolsrW
+handler 
+	handshake
+WrappedSocket.handshakec
+fileno
+WrappedSocket.filenoc
+_decref_socketios;
+WrappedSocket._decref_socketiosc
+create_string_bufferr/
+bufsizr=
+bytes_readrB
+recvA
+WrappedSocket.recvNc
+recv timed out)
+from_buffer
+c_size_trS
+SSLReadrG
+errSSLClosedNoNotifyrQ
+nbytes
+processed_bytesrW
+WrappedSocket.recv_intoc
+WrappedSocket.settimeoutc
+WrappedSocket.gettimeoutc
+send timed out)
+SSLWriterG
+WrappedSocket.sendc
+SSL_WRITE_BLOCKSIZE)
+total_sentrC
+WrappedSocket.sendallc
+SSLCloserG
+shutdown
+WrappedSocket.shutdownc
+SecKeychainDelete
+shutilZ
+rmtreerK
+WrappedSocket.closeFc
+Nz2SecureTransport only supports dumping binary certsr
+ValueErrorr	
+SecTrustGetCertificateCountZ
+SecTrustGetCertificateAtIndexZ
+SecCertificateCopyDataZ
+CFDataGetLengthZ
+CFDataGetBytePtrr@
+binary_formrt
+certdataZ	der_bytesrW
+cert_countZ
+leafZ
+data_lengthr8
+getpeercert
+WrappedSocket.getpeercertc
+Nz(SecureTransport does not support TLS 1.3z
+TLSv1.2z
+TLSv1.1Z
+TLSv1Z
+SSLv3Z
+SSLv2z
+Unknown TLS version: %r)
+SSLProtocolZ
+SSLGetNegotiatedProtocolVersionrG
+kTLSProtocol13rb
+kTLSProtocol12
+kTLSProtocol11
+kTLSProtocol1
+kSSLProtocol3
+kSSLProtocol2)
+protocolrW
+WrappedSocket.versionc
+_reuse
+WrappedSocket._reusec
+_drop
+WrappedSocket._drop)
+__name__
+__module__
+__qualname__
+__doc__rP
+contextlib
+contextmanagerrS
+mode
+bufsizer 
+makefile
+	buffering
+args
+kwargsr 
+Z	e	j
+    I am a wrapper class for the SecureTransport library, to translate the
+    interface of the standard library ``SSLContext`` object to calls into
+    SecureTransport.
+    c
+_protocol_to_min_max
+_min_version
+_max_version
+_options
+_verify
+_trust_bundle
+_client_cert
+_client_key
+_client_key_passphrase
+_alpn_protocols)
+SecureTransportContext.__init__c
+        SecureTransport cannot have its hostname checking disabled. For more,
+        see the comment on getpeercert() in this file.
+        Tr 
+check_hostname#
+z%SecureTransportContext.check_hostnamec
+options3
+SecureTransportContext.optionsc
+CERT_REQUIREDZ	CERT_NONEr
+verify_modeB
+z"SecureTransportContext.verify_modec
+NTF)
+set_default_verify_pathsJ
+z/SecureTransportContext.set_default_verify_pathsc
+load_default_certsV
+z)SecureTransportContext.load_default_certsc
+Nz5SecureTransport doesn't support custom cipher strings)
+DEFAULT_CIPHERSr
+set_ciphersY
+z"SecureTransportContext.set_ciphersNc
+Nz1SecureTransport does not support cert directories)
+cafileZ
+capathZ
+cadatar 
+load_verify_locations^
+z,SecureTransportContext.load_verify_locationsc
+_client_cert_passphrase)
+certfileZ
+keyfile
+passwordr 
+load_cert_chainj
+z&SecureTransportContext.load_cert_chainc
+        Sets the ALPN protocols that will later be set on the context.
+        Raises a NotImplementedError if ALPN is not supported.
+        rY
+z2SecureTransport supports ALPN only in macOS 10.12+c
+ensure_binary)
+<listcomp>y
+z=SecureTransportContext.set_alpn_protocols.<locals>.<listcomp>N)
+hasattrr	
+NotImplementedErrorr
+set_alpn_protocolso
+z)SecureTransportContext.set_alpn_protocolsFTc
+sockZ
+server_sideZ
+do_handshake_on_connectZ
+suppress_ragged_eofsr|
+wrap_socket{
+z"SecureTransportContext.wrap_socket)
+NNN)
+FTTN)
+propertyr
+setterr
+N)fr
+__future__r
+os.pathrj
+Z	threading
+weakrefZ
+pip._vendorr
+Z	util.ssl_r
+_securetransport.bindingsr
+_securetransport.low_levelr
+ImportErrorZ
+packages.backports.makefiler
+__all__r
+WeakValueDictionaryr%
+Lockrw
+Z'TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384Z'TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256Z%TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384Z%TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256Z-TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256Z+TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256Z#TLS_DHE_RSA_WITH_AES_256_GCM_SHA384Z#TLS_DHE_RSA_WITH_AES_128_GCM_SHA256Z'TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384Z$TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHAZ'TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256Z$TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHAZ%TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384Z"TLS_ECDHE_RSA_WITH_AES_256_CBC_SHAZ%TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256Z"TLS_ECDHE_RSA_WITH_AES_128_CBC_SHAZ#TLS_DHE_RSA_WITH_AES_256_CBC_SHA256Z TLS_DHE_RSA_WITH_AES_256_CBC_SHAZ#TLS_DHE_RSA_WITH_AES_128_CBC_SHA256Z TLS_DHE_RSA_WITH_AES_128_CBC_SHAZ
+TLS_AES_256_GCM_SHA384Z
+TLS_AES_128_GCM_SHA256Z
+TLS_RSA_WITH_AES_256_GCM_SHA384Z
+TLS_RSA_WITH_AES_128_GCM_SHA256Z
+TLS_AES_128_CCM_8_SHA256Z
+TLS_AES_128_CCM_SHA256Z
+TLS_RSA_WITH_AES_256_CBC_SHA256Z
+TLS_RSA_WITH_AES_128_CBC_SHA256Z
+TLS_RSA_WITH_AES_256_CBC_SHAZ
+TLS_RSA_WITH_AES_128_CBC_SHArU
+PROTOCOL_TLSr
+SSLReadFuncru
+SSLWriteFuncrv
+objectrE
+<module>

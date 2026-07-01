@@ -1,0 +1,337 @@
+d$d%
+d&d'
+d(d)
+)*aL
+A python interface to Adobe Font Metrics Files.
+Although a number of other Python implementations exist, and may be more
+complete than this, it was decided not to go with them because they were
+either:
+1) copyrighted or used a non-BSD compatible license
+2) had too many dependencies and a free standing lib was needed
+3) did more than needed and it was easier to write afresh rather than
+   figure out how to get just what was needed.
+It is pretty easy to use, and has no external dependencies:
+>>> import matplotlib as mpl
+>>> from pathlib import Path
+>>> afm_path = Path(mpl.get_data_path(), 'fonts', 'afm', 'ptmr8a.afm')
+>>> from matplotlib.afm import AFM
+>>> with afm_path.open('rb') as fh:
+...     afm = AFM(fh)
+>>> afm.string_width_height('What the heck?')
+(6220.0, 694)
+>>> afm.get_fontname()
+'Times-Roman'
+>>> afm.get_kern_dist('A', 'f')
+>>> afm.get_kern_dist('A', 'y')
+-92.0
+>>> afm.get_bbox_char('!')
+[130, -9, 238, 676]
+As in the Adobe Font Metrics File Format Specification, all dimensions
+are given in units of 1/1000 of the scale factor (point size) of the font
+being used.
+namedtupleN
+	uni2type1c
+float
+5/usr/lib64/python3.9/site-packages/matplotlib/_afm.py
+_to_int0
+latin-1
+isinstance
+bytes
+decoder
+replacer
+	_to_float9
+utf8)
+_to_strD
+valr
+<listcomp>J
+z$_to_list_of_ints.<locals>.<listcomp>)
+split
+_to_list_of_intsH
+z&_to_list_of_floats.<locals>.<listcomp>)
+_to_list_of_floatsM
+false
+noFT)
+lower
+stripr
+_to_boolQ
+r\qD|
+q$qDt
+    Read the font metrics header (up to the char metrics) and returns
+    a dictionary mapping *key* to *val*.  *val* will be converted to the
+    appropriate python type as necessary; e.g.:
+        * 'False'->False
+        * '0'->0
+        * '-168 -218 1000 898'-> [-168, -218, 1000, 898]
+    Dictionary keys are
+      StartFontMetrics, FontName, FullName, FamilyName, Weight,
+      ItalicAngle, IsFixedPitch, FontBBox, UnderlinePosition,
+      UnderlineThickness, Version, Notice, EncodingScheme, CapHeight,
+      XHeight, Ascender, Descender, StartCharMetrics
+    c
+<lambda>x
+_parse_header.<locals>.<lambda>)
+StartFontMetrics
+FontName
+FullName
+FamilyName
+Weight
+ItalicAngles
+IsFixedPitchs
+FontBBoxs
+UnderlinePosition
+UnderlineThicknesss
+Versions
+Notices
+EncodingScheme
+CapHeights	
+Capheight
+XHeights
+Ascenders	
+Descender
+StdHW
+StdVW
+StartCharMetricss
+CharacterSets
+CharactersTs
+Commentr
+Not an AFM fileF
+z/Found an unknown keyword in AFM header (was %r)z)Value error parsing header in AFM: %s, %sr2
+	Bad parse)
+rstrip
+startswithr
+RuntimeError
+KeyError
+_log
+error
+ValueError)	
+header_converters
+first_line
+lineZ
+keyr
+Z	converterr
+_parse_headerX
+CharMetricsz
+width, name, bboxz
+    Represents the character metrics of a single character.
+    Notes
+    -----
+    The fields do currently only describe a subset of character metrics
+    information defined in the AFM standard.
+    z
+The character width (WX).z
+The character name (N).zK
+    The bbox of the character (B) as a tuple (*llx*, *lly*, *urx*, *ury*).c
+    Parse the given filehandle for character metrics information and return
+    the information as dicts.
+    It is assumed that the file cursor is on the line behind
+    'StartCharMetrics'.
+    Returns
+    -------
+    ascii_d : dict
+         A mapping "ASCII num of the character" to `.CharMetrics`.
+    name_d : dict
+         A mapping "character name" to `.CharMetrics`.
+    Notes
+    -----
+    This function is incomplete per the standard, but thus far parses
+    all the sample afm files tried.
+    >
+EndCharMetricsc
+	<genexpr>
+z&_parse_char_metrics.<locals>.<genexpr>
+Bad char metrics line: %srE
+Euro
+minusu
+dictr
+issubsetr7
+list
+mapr
+ord)
+required_keysZ
+ascii_dZ
+name_dr?
+valsZ
+name
+bboxZ
+metricsr
+_parse_char_metrics
+s8q&|
+    Return a kern pairs dictionary; keys are (*char1*, *char2*) tuples and
+    values are the kern pair value.  For example, a kern pairs line like
+    ``KPX A y -50``
+    will be represented as::
+      d[ ('A', 'y') ] = -50
+    s
+StartKernPairsz Bad start of kern pairs data: %ss
+EndKernPairs
+KPXz
+Bad kern pairs line: %sr
+Bad kern pairs parseN)
+nextr6
+_parse_kern_pairs
+CompositePartz
+name, dx, dyzK
+    Represents the information on a composite element of a composite char.z
+Name of the part, e.g. 'acute'.z+x-displacement of the part from the origin.z+y-displacement of the part from the origin.c
+    Parse the given filehandle for composites information return them as a
+    dict.
+    It is assumed that the file cursor is on the line behind 'StartComposites'.
+    Returns
+    -------
+    dict
+        A dict mapping composite character names to a parts list. The parts
+        list is a list of `.CompositePart` entries describing the parts of
+        the composite.
+    Examples
+    --------
+    A composite definition line::
+      CC Aacute 2 ; PCC A 0 0 ; PCC acute 160 170 ;
+    will be represented as::
+      composites['Aacute'] = [CompositePart(name='A', dx=0, dy=0),
+                              CompositePart(name='acute', dx=160, dy=170)]
+    s
+EndComposites
+Bad composites parseN)
+appendr7
+compositesr?
+ccrT
+_num_partsZ
+pccPartsr
+partr
+_parse_composites
+    Parse the optional fields for kern pair data and composites.
+    Returns
+    -------
+    kern_data : dict
+        A dict containing kerning information. May be empty.
+        See `._parse_kern_pairs`.
+    composites : dict
+        A dict containing composite information. May be empty.
+        See `._parse_composites`.
+    )
+StartKernData
+StartCompositesr
+optionalr>
+_parse_optionalF
+d d!
+d"d#
+d$d%
+d&d'
+d(d)
+d*d+
+d,d-
+d.d/
+AFMc
+z'Parse the AFM file in file object *fh*.N)
+_headerrV
+_metrics
+_metrics_by_namerd
+_kernZ
+_composite)
+selfr=
+__init__h
+AFM.__init__Fc
+isordr
+get_bbox_charn
+AFM.get_bbox_charc
+r.q |
+        Return the string width (including kerning) and string height
+        as a (*w*, *h*) tuple.
+        )
+max)
+total_width
+namelast
+miny
+maxyrn
+string_width_heights
+AFM.string_width_heightc
+rDq6t
+)	z7Return the string bounding box and the maximal descent.)
+uniZ
+04XZ
+question)
+strr
+leftrn
+get_str_bbox_and_descent
+AFM.get_str_bbox_and_descentc
+Return the string bounding box.NrW
+get_str_bbox
+AFM.get_str_bboxc
+z8Get the name of the character, i.e., ';' is 'semicolon'.)
+get_name_char
+AFM.get_name_charc
+        Get the width of the character from the character metric WX field.
+        )
+widthrm
+get_width_char
+AFM.get_width_charc
+z;Get the width of the character from a type1 character name.)
+get_width_from_char_name
+AFM.get_width_from_char_namec
+z@Get the bounding box (ink) height of character *c* (space is 0).rK
+get_height_char
+AFM.get_height_charc
+        Return the kerning pair distance (possibly 0) for chars *c1* and *c2*.
+        )
+get_kern_dist_from_name)
+name1
+name2r
+get_kern_dist
+AFM.get_kern_distc
+        Return the kerning pair distance (possibly 0) for chars
+        *name1* and *name2*.
+        r
+AFM.get_kern_dist_from_namec
+z*Return the font name, e.g., 'Times-Roman'.r(
+get_fontname
+AFM.get_fontnamec
+postscript_name
+AFM.postscript_namec
+z/Return the font full name, e.g., 'Times-Roman'.r)
+get_fullname
+AFM.get_fullnamec
+z+Return the font family name, e.g., 'Times'.r*
+NzY(?i)([ -](regular|plain|italic|oblique|bold|semibold|light|ultralight|extra|condensed))+$
+sub)
+extrasr
+get_familyname
+AFM.get_familynamec
+z$The font family name, e.g., 'Times'.)
+family_name
+AFM.family_namec
+z0Return the font weight, e.g., 'Bold' or 'Roman'.r+
+get_weight
+AFM.get_weightc
+Return the fontangle as float.r,
+	get_angle
+AFM.get_anglec
+Return the cap height as float.r.
+get_capheight
+AFM.get_capheightc
+Return the xheight as float.r/
+get_xheight
+AFM.get_xheightc
+z(Return the underline thickness as float.r-
+get_underline_thickness
+AFM.get_underline_thicknessc
+        Return the standard horizontal stem width as float, or *None* if
+        not specified in AFM file.
+        r0
+get_horizontal_stem_width
+AFM.get_horizontal_stem_widthc
+        Return the standard vertical stem width as float, or *None* if
+        not specified in AFM file.
+        r1
+get_vertical_stem_width
+AFM.get_vertical_stem_widthN)
+__name__
+__module__
+__qualname__rk
+propertyr
+__doc__
+collectionsr
+loggingr
+_mathtext_datar
+Z	getLoggerr
+dyra
+<module>

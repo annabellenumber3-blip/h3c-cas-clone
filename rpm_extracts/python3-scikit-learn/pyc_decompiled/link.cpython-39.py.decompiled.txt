@@ -1,0 +1,171 @@
+m	Z	m
+Module contains classes for invertible (and differentiable) link functions.
+abstractmethod)
+	dataclassN)
+expit
+logit)
+gmean
+softmaxc
+Interval
+high
+low_inclusive
+high_inclusivec
+Check that low <= highz#One must have low <= high; got low=z
+, high=
+ValueError)
+self
+8/usr/lib64/python3.9/site-packages/sklearn/_loss/link.py
+__post_init__
+Interval.__post_init__c
+Test whether all values of x are in interval range.
+        Parameters
+        ----------
+        x : ndarray
+            Array whose elements are tested to be in interval range.
+        Returns
+        -------
+        result : bool
+        F)
+greater_equalr
+greater
+allr
+less_equalr
+less
+bool)
+includes
+Interval.includesN)
+__name__
+__module__
+__qualname__
+float
+__annotations__r
+Generate values low and high to be within the interval range.
+    This is used in tests only.
+    Returns
+    -------
+    low, high : tuple
+        The returned values low and high lie within the interval.
+    
+finfo
+epsr
+infr
+intervalZ
+dtyper!
+_inclusive_low_high:
+e	d	d
+BaseLinka
+Abstract base class for differentiable, invertible link functions.
+    Convention:
+        - link function g: raw_prediction = g(y_pred)
+        - inverse link h: y_pred = h(raw_prediction)
+    For (generalized) linear models, `raw_prediction = X @ coef` is the so
+    called linear predictor, and `y_pred = h(raw_prediction)` is the predicted
+    conditional (on X) expected value of the target `y_true`.
+    The methods are not implemented as staticmethods in case a link function needs
+    parameters.
+    FNc
+Compute the link function g(y_pred).
+        The link function maps (predicted) target values to raw predictions,
+        i.e. `g(y_pred) = raw_prediction`.
+        Parameters
+        ----------
+        y_pred : array
+            Predicted target values.
+        out : array
+            A location into which the result is stored. If provided, it must
+            have a shape that the inputs broadcast to. If not provided or None,
+            a freshly-allocated array is returned.
+        Returns
+        -------
+        out : array
+            Output array, element-wise link function.
+        Nr
+y_pred
+outr
+linkl
+BaseLink.linkc
+Compute the inverse link function h(raw_prediction).
+        The inverse link function maps raw predictions to predicted target
+        values, i.e. `h(raw_prediction) = y_pred`.
+        Parameters
+        ----------
+        raw_prediction : array
+            Raw prediction values (in link space).
+        out : array
+            A location into which the result is stored. If provided, it must
+            have a shape that the inputs broadcast to. If not provided or None,
+            a freshly-allocated array is returned.
+        Returns
+        -------
+        out : array
+            Output array, element-wise inverse link function.
+        Nr
+raw_predictionr'
+inverse
+BaseLink.inverse)
+__doc__
+is_multiclassr
+interval_y_predr
+IdentityLinkz"The identity link function g(x)=x.Nc
+copytor%
+IdentityLink.link)
+LogLinkz"The log link function g(x)=log(x).r
+logr%
+LogLink.linkc
+expr)
+LogLink.inverse)
+	LogitLinkz&The logit link function g(x)=logit(x).r
+LogitLink.linkc
+LogitLink.inverse)
+MultinomialLogita
+The symmetric multinomial logit function.
+    Convention:
+        - y_pred.shape = raw_prediction.shape = (n_samples, n_classes)
+    Notes:
+        - The inverse link h is the softmax function.
+        - The sum is over the second axis, i.e. axis=1 (n_classes).
+    We have to choose additional constraints in order to make
+        y_pred[k] = exp(raw_pred[k]) / sum(exp(raw_pred[k]), k=0..n_classes-1)
+    for n_classes classes identifiable and invertible.
+    We choose the symmetric side constraint where the geometric mean response
+    is set as reference category, see [2]:
+    The symmetric multinomial logit link function for a single data point is
+    then defined as
+        raw_prediction[k] = g(y_pred[k]) = log(y_pred[k]/gmean(y_pred))
+        = log(y_pred[k]) - mean(log(y_pred)).
+    Note that this is equivalent to the definition in [1] and implies mean
+    centered raw predictions:
+        sum(raw_prediction[k], k=0..n_classes-1) = 0.
+    For linear models with raw_prediction = X @ coef, this corresponds to
+    sum(coef[k], k=0..n_classes-1) = 0, i.e. the sum over classes for every
+    feature is zero.
+    Reference
+    ---------
+    .. [1] Friedman, Jerome; Hastie, Trevor; Tibshirani, Robert. "Additive
+        logistic regression: a statistical view of boosting" Ann. Statist.
+        28 (2000), no. 2, 337--407. doi:10.1214/aos/1016218223.
+        https://projecteuclid.org/euclid.aos/1016218223
+    .. [2] Zahid, Faisal Maqbool and Gerhard Tutz. "Ridge estimation for
+        multinomial logit models with symmetric side constraints."
+        Computational Statistics 28 (2013): 1017-1034.
+        http://epub.ub.uni-muenchen.de/11001/1/tr067.pdf
+    Tr
+axis)
+mean
+newaxis)
+symmetrize_raw_prediction
+z*MultinomialLogit.symmetrize_raw_predictionNc
+MultinomialLogit.linkc
+copyF)
+MultinomialLogit.inverse)
+identityr4
+multinomial_logit)
+abcr
+dataclassesr
+numpyr
+scipy.specialr
+scipy.statsr
+utils.extmathr	
+float64r#
+_LINKSr
+<module>

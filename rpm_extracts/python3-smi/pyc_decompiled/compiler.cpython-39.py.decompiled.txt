@@ -1,0 +1,272 @@
+getpwuidc
+Nz	<unknown>
+2/usr/lib/python3.9/site-packages/pysmi/compiler.py
+<lambda>
+__name__)
+__version__)
+MibInfo)
+SymtableCodeGen
+error)
+debugc
+	MibStatusa{
+Indicate MIB transformation result.
+    *MibStatus* is a subclass of Python string type. Some additional
+    attributes may be set to indicate the details.
+    The following *MibStatus* class instances are defined:
+    * *compiled* - MIB is successfully transformed
+    * *untouched* - fresh transformed version of this MIB already exisits
+    * *failed* - MIB transformation failed. *error* attribute carries details.
+    * *unprocessed* - MIB transformation required but waived for some reason
+    * *missing* - ASN.1 MIB source can't be found
+    * *borrowed* - MIB transformation failed but pre-transformed version was used
+    c
+	__class__
+setattr)
+self
+kwargs
+setOptions(
+MibStatus.setOptionsN)
+__module__
+__qualname__
+__doc__r
+compiledZ	untouchedZ
+failedZ
+unprocessedZ
+missing
+borrowedc
+MibCompilera
+Top-level, user-facing, composite MIB compiler object.
+    MibCompiler implements high-level MIB transformation processing logic.
+    It executes its actions by calling the following specialized objects:
+      * *readers* - to acquire ASN.1 MIB data
+      * *searchers* - to see if transformed MIB already exists and no processing is necessary
+      * *parser* - to parse ASN.1 MIB into AST
+      * *code generator* - to perform actual MIB transformation
+      * *borrowers* - to fetch pre-transformed MIB if transformation is impossible
+      * *writer* - to store transformed MIB data
+    Required components must be passed to MibCompiler on instantiation. Those
+    components are: *parser*, *codegenerator* and *writer*.
+    Optional components could be set or modified at later phases of MibCompiler
+    life. Unlike singular, required components, optional one can be present
+    in sequences to address many possible sources of data. They are
+    *readers*, *searchers* and *borrowers*.
+    
+indexc
+Creates an instance of *MibCompiler* class.
+           Args:
+               parser: ASN.1 MIB parser object
+               codegen: MIB transformation object
+               writer: transformed MIB storing object
+        N)
+_parser
+_codegenr
+_symbolgen
+_writer
+_sources
+_searchers
+_borrowers)
+parserZ
+codegen
+writerr
+__init__N
+MibCompiler.__init__c
+Add more ASN.1 MIB source repositories.
+        MibCompiler.compile will invoke each of configured source objects
+        in order of their addition asking each to fetch MIB module specified
+        by name.
+        Args:
+            sources: reader object(s)
+        Returns:
+            reference to itself (can be used for call chaining)
+        z
+current MIB source(s): %s
+<listcomp>o
+z*MibCompiler.addSources.<locals>.<listcomp>)
+extendr
+logger
+flagCompiler
+join)
+sourcesr
+addSources^
+MibCompiler.addSourcesc
+Add more transformed MIBs repositories.
+        MibCompiler.compile will invoke each of configured searcher objects
+        in order of their addition asking each if already transformed MIB
+        module already exists and is more recent than specified.
+        Args:
+            searchers: searcher object(s)
+        Returns:
+            reference to itself (can be used for call chaining)
+        z%current compiled MIBs location(s): %sr(
+z,MibCompiler.addSearchers.<locals>.<listcomp>)
+Z	searchersr
+addSearcherss
+MibCompiler.addSearchersc
+Add more transformed MIBs repositories to borrow MIBs from.
+        Whenever MibCompiler.compile encounters MIB module which neither of
+        the *searchers* can find or fetched ASN.1 MIB module can not be
+        parsed (due to syntax errors), these *borrowers* objects will be
+        invoked in order of their addition asking each if already transformed
+        MIB can be fetched (borrowed).
+        Args:
+            borrowers: borrower object(s)
+        Returns:
+            reference to itself (can be used for call chaining)
+        z
+current MIB borrower(s): %sr(
+z,MibCompiler.addBorrowers.<locals>.<listcomp>)
+Z	borrowersr
+addBorrowers
+MibCompiler.addBorrowersc
+uname
+AttributeErrorr
+getuid
+	Exception)
+platform_info
+	user_infor
+_get_system_info
+MibCompiler._get_system_infoc
+prd	f
+d t't(t)
+j-j	|
+	r<|
+	r<t
+	o0t
+	oVt
+d6d7
+j.j5|
+j<d;
+)?aH
+Transform requested and possibly referred MIBs.
+        The *compile* method should be invoked when *MibCompiler* object
+        is operational meaning at least *sources* are specified.
+        Once called with a MIB module name, *compile* will:
+        * fetch ASN.1 MIB module with given name by calling *sources*
+        * make sure no such transformed MIB already exists (with *searchers*)
+        * parse ASN.1 MIB text with *parser*
+        * perform actual MIB transformation into target format with *code generator*
+        * may attempt to borrow pre-transformed MIB through *borrowers*
+        * write transformed MIB through *writer*
+        The above sequence will be performed for each MIB name given in
+        *mibnames* and may be performed for all MIBs referred to from
+        MIBs being processed.
+        Args:
+            mibnames: list of ASN.1 MIBs names
+            options: options that affect the way PySMI components work
+        Returns:
+            A dictionary of MIB module names processed (keys) and *MibStatus*
+            class instances (values)
+        c
+z'MibCompiler.compile.<locals>.<listcomp>r
+MIB %s already parsedz
+MIB %s already failedz
+trying source %sz0%s (%s) read from %s, immediate dependencies: %sr(
+<none>z
+no %s found at %sz
+ at MIB %sz
+%serror %s from %s
+ignoreErrorsz	ignoring z
+failing on r
+MIB source %s not foundz
+no %s found everywherez MIBs analyzed %s, MIBs failed %sz checking if %s requires updating
+rebuild)
+z'no compiled MIB %s available through %sz2will be using existing compiled MIB %s found by %sz
+error from %s: %sz*no suitable compiled MIB %s found anywhereZ
+noDepsz.excluding imported MIB %s from code generationz
+MIBs parsed %s, MIBs failed %sz
+compiling %s read from %sz
+ASN.1 source %s
+Produced by %s-%s at %s
+,On host %s platform %s version %s by user %s
+Using Python version %s
+genTexts
+textFilter)
+commentsrF
+z"%s read from %s and compiled by %sz
+MIBs built %s, MIBs failed %sz(excluding imported MIB %s from borrowingz
+trying to borrow %s from %s)
+name
+importedz
+%s borrowed with %sz/MIBs available for borrowing %s, MIBs failed %sz,checking if failed MIB %s requires borrowingz
+will borrow MIB %s)
+path
+file
+aliasz
+failing with problem MIBs %sz-proceeding with built MIBs %s, failed MIBs %sZ	writeMibsT
+dryRun
+%s stored by %s)	rK
+oids
+identity
+revision
+enterprise
+compliancez
+error %s from %sz
+MIBs modified: %sc
+Z	processedr
+popr
+getDatar
+parser 
+genCoderI
+appendrK
+PySmiReaderFileNotFoundError
+PySmiError
+exc_info
+source
+mibname
+statusFailedr
+statusMissing
+tupler#
+fileExists
+mtimeZ
+PySmiFileNotFoundErrorZ
+PySmiFileNotModifiedError
+statusUntouched
+searcher
+copyr=
+packageName
+packageVersion
+time
+asctime
+version
+splitr
+handlerr$
+statusBorrowedrL
+statusUnprocessed
+putData
+statusCompiledrP
+mibnames
+optionsZ
+parsedMibsZ
+failedMibsZ
+borrowedMibsZ	builtMibsZ
+symbolTableMapZ
+mibsToParseZ
+canonicalMibNamesr_
+fileInfoZ
+fileDataZ
+mibTreeZ
+mibInfoZ
+symbolTable
+	exc_class
+tbrh
+mibDataZ
+borrowerr
+compile
+MibCompiler.compilec
+old_index_datarN
+ at MIB index %sz
+error %s when building %sr>
+with_traceback)
+	indexFiler
+genIndexrX
+hasattrry
+processedMibsrt
+buildIndex
+MibCompiler.buildIndexN)
+pwdr
+ImportErrorZ
+pysmir
+pysmi.mibinfor
+pysmi.codegen.symtabler
+objectr
+<module>

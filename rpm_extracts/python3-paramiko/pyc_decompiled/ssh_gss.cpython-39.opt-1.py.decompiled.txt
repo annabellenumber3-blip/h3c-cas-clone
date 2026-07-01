@@ -1,0 +1,418 @@
+This module provides GSS-API / SSPI  authentication as defined in :rfc:`4462`.
+.. note:: Credential delegation is not supported in server mode.
+.. seealso:: :doc:`/api/kex_gss`
+.. versionadded:: 1.15
+	__title__z
+python-gssapi
+PYTHON-GSSAPI-NEW
+SSPIF)
+MSG_USERAUTH_REQUEST)
+SSHException)
+__version_info__c
+    Provide SSH2 GSS-API / SSPI authentication.
+    :param str auth_method: The name of the SSH authentication mechanism
+                            (gssapi-with-mic or gss-keyex)
+    :param bool gss_deleg_creds: Delegate client credentials or not.
+                                 We delegate credentials by default.
+    :return: Either an `._SSH_GSSAPI_OLD` or `._SSH_GSSAPI_NEW` (Unix)
+             object or an `_SSH_SSPI` (Windows) object
+    :rtype: object
+    :raises: ``ImportError`` -- If no GSS-API / SSPI module could be imported.
+    :see: `RFC 4462 <http://www.ietf.org/rfc/rfc4462.txt>`_
+    :note: Check for the available API and return either an `._SSH_GSSAPI_OLD`
+           (MIT GSSAPI using python-gssapi package) object, an
+           `._SSH_GSSAPI_NEW` (MIT GSSAPI using gssapi package) object
+           or an `._SSH_SSPI` (MS SSPI) object.
+           If there is no supported API available,
+           ``None`` will be returned.
+    r
+ntz)Unable to import a GSS-API / SSPI module!N)
+_API
+_SSH_GSSAPI_OLD
+_SSH_GSSAPI_NEW
+name
+	_SSH_SSPI
+ImportError)
+auth_method
+gss_deleg_credsr
+4/usr/lib/python3.9/site-packages/paramiko/ssh_gss.py
+GSSAuthN
+_SSH_GSSAuthzs
+    Contains the shared variables and methods of `._SSH_GSSAPI_OLD`,
+    `._SSH_GSSAPI_NEW` and `._SSH_SSPI`.
+    c
+        :param str auth_method: The name of the SSH authentication mechanism
+                                (gssapi-with-mic or gss-keyex)
+        :param bool gss_deleg_creds: Delegate client credentials or not
+        Nz
+ssh-connectionz
+1.2.840.113554.1.2.2F)
+_auth_method
+_gss_deleg_creds
+	_gss_host
+	_username
+_session_id
+_service
+_krb5_mech
+	_gss_ctxt
+_gss_ctxt_status
+_gss_srv_ctxt
+_gss_srv_ctxt_statusZ
+cc_file
+selfr
+__init__t
+_SSH_GSSAuth.__init__c
+        This is just a setter to use a non default service.
+        I added this method, because RFC 4462 doesn't specify "ssh-connection"
+        as the only service value.
+        :param str service: The desired SSH service
+        z
+ssh-N)
+findr
+servicer
+set_service
+_SSH_GSSAuth.set_servicec
+        Setter for C{username}. If GSS-API Key Exchange is performed, the
+        username is not set by C{ssh_init_sec_context}.
+        :param str username: The name of the user who attempts to login
+        N)
+usernamer
+set_username
+_SSH_GSSAuth.set_username
+clientc
+        This method returns a single OID, because we only support the
+        Kerberos V5 mechanism.
+        :param str mode: Client for client mode and server for server mode
+        :return: A byte sequence containing the number of supported
+                 OIDs, the length of the OID and the actual OID encoded with
+                 DER
+        :note: In server mode we just return the OID length and the DER encoded
+               OID.
+        r
+ObjectIdentifier)
+encoder
+server)
+pyasn1.type.univr,
+pyasn1.codec.derr-
+_make_uint32
+encoder
+len)
+moder,
+OIDsZ
+krb5_OIDZ
+OID_lenr
+ssh_gss_oids
+_SSH_GSSAuth.ssh_gss_oidsc
+        Check if the given OID is the Kerberos V5 OID (server mode).
+        :param str desired_mech: The desired GSS-API mechanism of the client
+        :return: ``True`` if the given OID is supported, otherwise C{False}
+        r
+decoderFT)
+decode
+__str__r
+desired_mechr6
+mech
+ssh_check_mech
+_SSH_GSSAuth.ssh_check_mechc
+        Create a 32 bit unsigned integer (The byte sequence of an integer).
+        :param int integer: The integer value to convert
+        :return: The byte sequence of an 32 bit integer
+        z
+struct
+pack)
+integerr
+_SSH_GSSAuth._make_uint32c
+        Create the SSH2 MIC filed for gssapi-with-mic.
+        :param str session_id: The SSH session ID
+        :param str username: The name of the user who attempts to login
+        :param str service: The requested SSH service
+        :param str auth_method: The requested SSH authentication mechanism
+        :return: The MIC as defined in RFC 4462. The contents of the
+                 MIC field are:
+                 string    session_identifier,
+                 byte      SSH_MSG_USERAUTH_REQUEST,
+                 string    user-name,
+                 string    service (ssh-connection),
+                 string    authentication-method
+                           (gssapi-with-mic or gssapi-keyex)
+        
+session_idr)
+micr
+_ssh_build_mic
+_SSH_GSSAuth._ssh_build_micN)
+__name__
+__module__
+__qualname__
+__doc__r%
+    Implementation of the GSS-API MIT Kerberos Authentication for SSH2,
+    using the older (unmaintained) python-gssapi package.
+    :see: `.GSSAuth`
+    c
+N)	r
+gssapiZ
+C_PROT_READY_FLAGZ
+C_INTEG_FLAGZ
+C_MUTUAL_FLAGZ
+C_DELEG_FLAG
+_gss_flagsr#
+_SSH_GSSAPI_OLD.__init__Nc
+        Initialize a GSS-API context.
+        :param str username: The name of the user who attempts to login
+        :param str target: The hostname of the target to connect to
+        :param str desired_mech: The negotiated GSS-API mechanism
+                                 ("pseudo negotiated" mechanism, because we
+                                 support just the krb5 mechanism :-))
+        :param str recv_token: The GSS-API token received from the Server
+        :raises:
+            `.SSHException` -- Is raised if the desired mechanism of the client
+            is not supported
+        :return: A ``String`` if the GSS-API has returned a token or
+            ``None`` if no token was returned
+        r
+host@N
+Unsupported mechanism OID.)
+Z	peer_nameZ	mech_typeZ	req_flagsz
+{} Target: {}r.
+NameZ
+C_NT_HOSTBASED_SERVICEZ
+ContextrH
+flagsZ
+OIDZ
+mech_from_stringr
+InitContextr
+step
+GSSException
+format
+exc_info
+establishedr 
+targetr9
+recv_tokenr6
+	targ_name
+	krb5_mechr:
+token
+messager
+ssh_init_sec_context
+z$_SSH_GSSAPI_OLD.ssh_init_sec_contextFc
+        Create the MIC token for a SSH2 message.
+        :param str session_id: The SSH session ID
+        :param bool gss_kex: Generate the MIC for GSS-API Key Exchange or not
+        :return: gssapi-with-mic:
+                 Returns the MIC token from GSS-API for the message we created
+                 with ``_ssh_build_mic``.
+                 gssapi-keyex:
+                 Returns the MIC token from GSS-API with the SSH session ID as
+                 message.
+        )
+get_micr!
+gss_kex
+	mic_field
+	mic_tokenr
+ssh_get_micA
+_SSH_GSSAPI_OLD.ssh_get_micc
+        Accept a GSS-API context (server mode).
+        :param str hostname: The servers hostname
+        :param str username: The name of the user who attempts to login
+        :param str recv_token: The GSS-API Token received from the server,
+                               if it's not the initial call.
+        :return: A ``String`` if the GSS-API has returned a token or ``None``
+                if no token was returned
+        N)
+AcceptContextrM
+hostnamerT
+ssh_accept_sec_context\
+z&_SSH_GSSAPI_OLD.ssh_accept_sec_contextc
+        Verify the MIC token for a SSH2 message.
+        :param str mic_token: The MIC token received from the client
+        :param str session_id: The SSH session ID
+        :param str username: The name of the user who attempts to login
+        :return: None if the MIC check was successful
+        :raises: ``gssapi.GSSException`` -- if the MIC check failed
+        N)
+verify_micr
+ssh_check_micp
+_SSH_GSSAPI_OLD.ssh_check_micc
+        Checks if credentials are delegated (server mode).
+        :return: ``True`` if credentials are delegated, otherwise ``False``
+        NTF)
+delegated_cred
+credentials_delegated
+z%_SSH_GSSAPI_OLD.credentials_delegatedc
+        Save the Client token in a file. This is used by the SSH server
+        to store the client credentials if credentials are delegated
+        (server mode).
+        :param str client_token: The GSS-API token received form the client
+        :raises:
+            ``NotImplementedError`` -- Credential delegation is currently not
+            supported in server mode
+        N
+NotImplementedError
+client_tokenr
+save_client_creds
+z!_SSH_GSSAPI_OLD.save_client_creds)
+NNN)
+propertyrg
+    Implementation of the GSS-API MIT Kerberos Authentication for SSH2,
+    using the newer, currently maintained gssapi package.
+    :see: `.GSSAuth`
+    c
+RequirementFlagZ
+protection_readyZ	integrityZ
+mutual_authenticationZ
+delegate_to_peerrH
+_SSH_GSSAPI_NEW.__init__Nc
+)	ae
+        Initialize a GSS-API context.
+        :param str username: The name of the user who attempts to login
+        :param str target: The hostname of the target to connect to
+        :param str desired_mech: The negotiated GSS-API mechanism
+                                 ("pseudo negotiated" mechanism, because we
+                                 support just the krb5 mechanism :-))
+        :param str recv_token: The GSS-API token received from the Server
+        :raises: `.SSHException` -- Is raised if the desired mechanism of the
+                 client is not supported
+        :raises: ``gssapi.exceptions.GSSError`` if there is an error signaled
+                                                by the GSS-API implementation
+        :return: A ``String`` if the GSS-API has returned a token or ``None``
+                 if no token was returned
+        r
+Z	name_typeNrJ
+initiate)
+usage)
+NameTypeZ
+hostbased_servicer7
+MechTypeZ
+kerberos
+SecurityContextrH
+completer 
+z$_SSH_GSSAPI_NEW.ssh_init_sec_contextFc
+        Create the MIC token for a SSH2 message.
+        :param str session_id: The SSH session ID
+        :param bool gss_kex: Generate the MIC for GSS-API Key Exchange or not
+        :return: gssapi-with-mic:
+                 Returns the MIC token from GSS-API for the message we created
+                 with ``_ssh_build_mic``.
+                 gssapi-keyex:
+                 Returns the MIC token from GSS-API with the SSH session ID as
+                 message.
+        :rtype: str
+        )
+get_signaturer!
+_SSH_GSSAPI_NEW.ssh_get_micc
+accept)
+z&_SSH_GSSAPI_NEW.ssh_accept_sec_contextc
+        Verify the MIC token for a SSH2 message.
+        :param str mic_token: The MIC token received from the client
+        :param str session_id: The SSH session ID
+        :param str username: The name of the user who attempts to login
+        :return: None if the MIC check was successful
+        :raises: ``gssapi.exceptions.GSSError`` -- if the MIC check failed
+        N)
+verify_signaturer
+_SSH_GSSAPI_NEW.ssh_check_micc
+        Checks if credentials are delegated (server mode).
+        :return: ``True`` if credentials are delegated, otherwise ``False``
+        :rtype: bool
+        NTF)
+delegated_credsrf
+z%_SSH_GSSAPI_NEW.credentials_delegatedc
+        Save the Client token in a file. This is used by the SSH server
+        to store the client credentials if credentials are delegated
+        (server mode).
+        :param str client_token: The GSS-API token received form the client
+        :raises: ``NotImplementedError`` -- Credential delegation is currently
+                 not supported in server mode
+        Nrh
+z!_SSH_GSSAPI_NEW.save_client_creds)
+NNN)
+    Implementation of the Microsoft SSPI Kerberos Authentication for SSH2.
+    :see: `.GSSAuth`
+    c
+sspiconZ
+ISC_REQ_INTEGRITYZ
+ISC_REQ_MUTUAL_AUTH
+ISC_REQ_DELEGATErH
+_SSH_SSPI.__init__Nc
+        Initialize a SSPI context.
+        :param str username: The name of the user who attempts to login
+        :param str target: The FQDN of the target to connect to
+        :param str desired_mech: The negotiated SSPI mechanism
+                                 ("pseudo negotiated" mechanism, because we
+                                 support just the krb5 mechanism :-))
+        :param recv_token: The SSPI token received from the Server
+        :raises:
+            `.SSHException` -- Is raised if the desired mechanism of the client
+            is not supported
+        :return: A ``String`` if the SSPI has returned a token or ``None`` if
+                 no token was returned
+        r
+host/NrJ
+Kerberos)
+scflagsZ	targetspnz
+, Target: {}T)
+sspiZ
+ClientAuthrH
+	authorize
+Buffer
+pywintypes
+error
+strerrorrO
+_SSH_SSPI.ssh_init_sec_contextFc
+        Create the MIC token for a SSH2 message.
+        :param str session_id: The SSH session ID
+        :param bool gss_kex: Generate the MIC for Key Exchange with SSPI or not
+        :return: gssapi-with-mic:
+                 Returns the MIC token from SSPI for the message we created
+                 with ``_ssh_build_mic``.
+                 gssapi-keyex:
+                 Returns the MIC token from SSPI with the SSH session ID as
+                 message.
+        )
+signr!
+_SSH_SSPI.ssh_get_micc
+        Accept a SSPI context (server mode).
+        :param str hostname: The servers FQDN
+        :param str username: The name of the user who attempts to login
+        :param str recv_token: The SSPI Token received from the server,
+                               if it's not the initial call.
+        :return: A ``String`` if the SSPI has returned a token or ``None`` if
+                 no token was returned
+        ru
+spnr
+ServerAuthr!
+z _SSH_SSPI.ssh_accept_sec_contextc
+        Verify the MIC token for a SSH2 message.
+        :param str mic_token: The MIC token received from the client
+        :param str session_id: The SSH session ID
+        :param str username: The name of the user who attempts to login
+        :return: None if the MIC check was successful
+        :raises: ``sspi.error`` -- if the MIC check failed
+        N)
+verifyr
+_SSH_SSPI.ssh_check_micc
+_SSH_SSPI.credentials_delegatedc
+        Save the Client token in a file. This is used by the SSH server
+        to store the client credentails if credentials are delegated
+        (server mode).
+        :param str client_token: The SSPI token received form the client
+        :raises:
+            ``NotImplementedError`` -- Credential delegation is currently not
+            supported in server mode
+        Nrh
+_SSH_SSPI.save_client_creds)
+NNN)
+T)#rE
+GSS_AUTH_AVAILABLEZ
+GSS_EXCEPTIONSr
+hasattrr
+exceptionsZ
+GeneralError
+rawZ
+miscZ
+GSSErrorr
+OSErrorrz
+paramiko.commonr
+paramiko.ssh_exceptionr
+paramiko._versionr	
+objectr
+_SSH_GSSAPIr
+<module>

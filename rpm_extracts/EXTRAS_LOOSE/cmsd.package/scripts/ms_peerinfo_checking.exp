@@ -1,0 +1,18 @@
+#!/usr/bin/expect
+
+set ssh_opt [lindex $argv 0]
+set server [lindex $argv 1]
+set password [lindex $argv 2]
+spawn -noecho ssh $ssh_opt $server /bin/bash /opt/bin/ms_peer_cmd.sh 
+set timeout 30
+expect "*assword:" {
+    send "$password\r"
+    exp_continue
+} "*Permission denied*" {
+    exit 1
+} timeout {
+    exit 1
+} eof {
+    exit 0
+}
+

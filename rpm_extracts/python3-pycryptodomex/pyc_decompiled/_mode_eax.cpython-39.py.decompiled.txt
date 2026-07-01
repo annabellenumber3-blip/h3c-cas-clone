@@ -1,0 +1,266 @@
+EAX mode.
+EaxMode
+	unhexlify)
+byte_string
+bord
+_copy_bytes)
+	is_buffer)
+strxor)
+long_to_bytes
+bytes_to_long)
+CMAC
+BLAKE2s)
+get_random_bytesc
+*EAX* mode.
+    This is an Authenticated Encryption with Associated Data
+    (`AEAD`_) mode. It provides both confidentiality and authenticity.
+    The header of the message may be left in the clear, if needed,
+    and it will still be subject to authentication.
+    The decryption step tells the receiver if the message comes
+    from a source that really knowns the secret key.
+    Additionally, decryption detects if any part of the message -
+    including the header - has been modified or corrupted.
+    This mode requires a *nonce*.
+    This mode is only available for ciphers that operate on 64 or
+    128 bits blocks.
+    There are no official standards defining EAX.
+    The implementation is based on `a proposal`__ that
+    was presented to NIST.
+    .. _AEAD: http://blog.cryptographyengineering.com/2012/05/how-to-choose-authenticated-encryption.html
+    .. __: http://csrc.nist.gov/groups/ST/toolkit/BCM/documents/proposedmodes/eax/eax-spec.pdf
+    :undocumented: __init__
+    c
+szt	d
+EAX cipher modeN
+update
+encrypt
+decrypt
+digest
+verify
+z3'mac_len' must be at least 2 and not larger than %dr
+z!Nonce cannot be empty in EAX modez,nonce must be bytes, bytearray or memoryviewc
+Z	ciphermod
+cipher_params)
+block_size
+struct
+pack)
+factory
+self
+A/usr/lib64/python3.9/site-packages/Cryptodome/Cipher/_mode_eax.py
+<listcomp>k
+z$EaxMode.__init__.<locals>.<listcomp>
+initial_value
+nonce)
+_mac_len
+_mac_tag
+_next
+ValueError
+lenr
+	TypeError
+range
+_omacr
+_signerr
+MODE_CTR
+_cipher)
+mac_lenr
+counter_intr#
+__init__P
+EaxMode.__init__c
+Protect associated data
+        If there is any associated data, the caller has to invoke
+        this function one or more times, before using
+        ``decrypt`` or ``encrypt``.
+        By *associated data* it is meant any data (e.g. packet headers) that
+        will not be encrypted and will be transmitted in the clear.
+        However, the receiver is still able to detect any modification to it.
+        If there is no associated data, this method must not be called.
+        The caller may split associated data in segments of any size, and
+        invoke this method multiple times, each time with the next segment.
+        :Parameters:
+          assoc_data : bytes/bytearray/memoryview
+            A piece of associated data. There are no restrictions on its size.
+        r
+z<update() can only be called immediately after initializationr
+assoc_datar#
+EaxMode.updateNc
+Encrypt data with the key and the parameters set at initialization.
+        A cipher object is stateful: once you have encrypted a message
+        you cannot encrypt (or decrypt) another message using the same
+        object.
+        The data to encrypt can be broken up in two or
+        more pieces and `encrypt` can be called multiple times.
+        That is, the statement:
+            >>> c.encrypt(a) + c.encrypt(b)
+        is equivalent to:
+             >>> c.encrypt(a+b)
+        This function does not add any padding to the plaintext.
+        :Parameters:
+          plaintext : bytes/bytearray/memoryview
+            The piece of data to encrypt.
+            It can be of any length.
+        :Keywords:
+          output : bytearray/memoryview
+            The location where the ciphertext must be written to.
+            If ``None``, the ciphertext is returned.
+        :Return:
+          If ``output`` is ``None``, the ciphertext as ``bytes``.
+          Otherwise, ``None``.
+        r
+z@encrypt() can only be called after initialization or an update()r
+outputNr
+	plaintextr6
+ctr#
+EaxMode.encryptc
+Decrypt data with the key and the parameters set at initialization.
+        A cipher object is stateful: once you have decrypted a message
+        you cannot decrypt (or encrypt) another message with the same
+        object.
+        The data to decrypt can be broken up in two or
+        more pieces and `decrypt` can be called multiple times.
+        That is, the statement:
+            >>> c.decrypt(a) + c.decrypt(b)
+        is equivalent to:
+             >>> c.decrypt(a+b)
+        This function does not remove any padding from the plaintext.
+        :Parameters:
+          ciphertext : bytes/bytearray/memoryview
+            The piece of data to decrypt.
+            It can be of any length.
+        :Keywords:
+          output : bytearray/memoryview
+            The location where the plaintext must be written to.
+            If ``None``, the plaintext is returned.
+        :Return:
+          If ``output`` is ``None``, the plaintext as ``bytes``.
+          Otherwise, ``None``.
+        r
+z@decrypt() can only be called after initialization or an update()r
+ciphertextr6
+EaxMode.decryptc
+Compute the *binary* MAC tag.
+        The caller invokes this function at the very end.
+        This method returns the MAC that shall be sent to the receiver,
+        together with the ciphertext.
+        :Return: the MAC, as a byte string.
+        r
+zAdigest() cannot be called when decrypting or validating a messager
+N)	r+
+tagr
+EaxMode.digestc
+Compute the *printable* MAC tag.
+        This method is like `digest`.
+        :Return: the MAC, as a hexadecimal string.
+        
+%02x)
+z%EaxMode.hexdigest.<locals>.<listcomp>)
+joinr
+	hexdigest
+EaxMode.hexdigestc
+Validate the *binary* MAC tag.
+        The caller invokes this function at the very end.
+        This method checks if the decrypted message is indeed valid
+        (that is, if the key is correct) and it has not been
+        tampered with while in transit.
+        :Parameters:
+          received_mac_tag : bytes/bytearray/memoryview
+            This is the *binary* MAC, as received from the sender.
+        :Raises MacMismatchError:
+            if the MAC does not match. The message has been tampered with
+            or the key is incorrect.
+        r
+z3verify() cannot be called when encrypting a messager
+digest_bitsr!
+dataz
+MAC check failed)
+received_mac_tagr9
+secretZ
+mac1Z
+mac2r#
+EaxMode.verifyc
+Validate the *printable* MAC tag.
+        This method is like `verify`.
+        :Parameters:
+          hex_mac_tag : string
+            This is the *printable* MAC, as received from the sender.
+        :Raises MacMismatchError:
+            if the MAC does not match. The message has been tampered with
+            or the key is incorrect.
+        N)
+hex_mac_tagr#
+	hexverify7
+EaxMode.hexverifyc
+Perform encrypt() and digest() in one step.
+        :Parameters:
+          plaintext : bytes/bytearray/memoryview
+            The piece of data to encrypt.
+        :Keywords:
+          output : bytearray/memoryview
+            The location where the ciphertext must be written to.
+            If ``None``, the ciphertext is returned.
+        :Return:
+            a tuple with two items:
+            - the ciphertext, as ``bytes``
+            - the MAC tag, as ``bytes``
+            The first item becomes ``None`` when the ``output`` parameter
+            specified a location for the result.
+        r5
+encrypt_and_digestF
+EaxMode.encrypt_and_digestc
+Perform decrypt() and verify() in one step.
+        :Parameters:
+          ciphertext : bytes/bytearray/memoryview
+            The piece of data to decrypt.
+          received_mac_tag : bytes/bytearray/memoryview
+            This is the *binary* MAC, as received from the sender.
+        :Keywords:
+          output : bytearray/memoryview
+            The location where the plaintext must be written to.
+            If ``None``, the plaintext is returned.
+        :Return: the plaintext as ``bytes`` or ``None`` when the ``output``
+            parameter specified a location for the result.
+        :Raises MacMismatchError:
+            if the MAC does not match. The message has been tampered with
+            or the key is incorrect.
+        r5
+ptr#
+decrypt_and_verify\
+EaxMode.decrypt_and_verify)
+__name__
+__module__
+__qualname__
+__doc__r4
+Create a new block cipher, configured in EAX mode.
+    :Parameters:
+      factory : module
+        A symmetric cipher module from `Cryptodome.Cipher` (like
+        `Cryptodome.Cipher.AES`).
+    :Keywords:
+      key : bytes/bytearray/memoryview
+        The secret key to use in the symmetric cipher.
+      nonce : bytes/bytearray/memoryview
+        A value that must never be reused for any other encryption.
+        There are no restrictions on its length, but it is recommended to use
+        at least 16 bytes.
+        The nonce shall never repeat for two different messages encrypted with
+        the same key, but it does not need to be random.
+        If not specified, a 16 byte long random string is used.
+      mac_len : integer
+        Length of the MAC, in bytes. It must be no larger than the cipher
+        block bytes (which is the default).
+    r!
+Missing parameter: )
+popr
+KeyErrorr.
+strr
+kwargsr!
+_create_eax_ciphert
+__all__r
+binasciir
+Cryptodome.Util.py3compatr
+Cryptodome.Util._raw_apir
+Cryptodome.Util.strxorr
+Cryptodome.Util.numberr	
+Cryptodome.Hashr
+Cryptodome.Randomr
+objectr
+<module>

@@ -1,0 +1,983 @@
+m Z 
+l!m"Z"
+l#m$Z$
+l%m&Z&
+l'm(Z(
+l)m*Z*
+l+m,Z,
+l-m.Z.m/Z/m0Z0
+l1m2Z2
+l3m4Z4
+zHFast Gradient Boosting decision trees for classification and regression.
+abstractmethod)
+partialN)
+default_timer
+_LOSSES
+BaseLoss
+AbsoluteError
+HalfBinomialLoss
+HalfMultinomialLoss
+HalfPoissonLoss
+HalfSquaredError
+PinballLoss)
+BaseEstimator
+RegressorMixin
+ClassifierMixin
+is_classifier)
+check_random_state
+resample)
+check_is_fitted
+check_consistent_length
+_check_sample_weight)
+_openmp_effective_n_threads)
+check_classification_targets)
+check_scoring)
+train_test_split)
+LabelEncoder
+_update_raw_predictions)
+Y_DTYPE
+X_DTYPE
+	G_H_DTYPE)
+_BinMapper)
+TreeGrower)
+least_squares
+least_absolute_deviation
+poisson
+quantile
+binary_crossentropy
+categorical_crossentropyc
+Update the leaf values to be predicted by the tree.
+    Update equals:
+        loss.fit_intercept_only(y_true - raw_prediction)
+    This is only applied if loss.need_update_leaves_values is True.
+    Note: It only works, if the loss is a function of the residual, as is the
+    case for AbsoluteError and PinballLoss. Otherwise, one would need to get
+    the minimum of loss(y_true, raw_prediction + x) in x. A few examples:
+      - AbsoluteError: median(y_true - raw_prediction).
+      - PinballLoss: quantile(y_true - raw_prediction).
+    See also notes about need_update_leaves_values in BaseLoss.
+    N
+y_true
+sample_weight)
+finalized_leavesZ
+sample_indices
+fit_intercept_only
+	shrinkage
+value)	
+loss
+growerr+
+raw_predictionr,
+leaf
+indices
+update
+`/usr/lib64/python3.9/site-packages/sklearn/ensemble/_hist_gradient_boosting/gradient_boosting.py
+_update_leaves_values6
+d,d	d
+d d!
+d"d#
+d$d%
+d&d'
+d/d(d)
+d*d+
+BaseHistGradientBoostingz<Base class for histogram-based gradient boosting estimators.c
+learning_rate
+max_iter
+max_leaf_nodes
+	max_depth
+min_samples_leaf
+l2_regularization
+max_bins
+monotonic_cst
+categorical_features
+warm_start
+early_stopping
+scoring
+validation_fraction
+n_iter_no_change
+verbose
+random_state
+selfr0
+__init__X
+z!BaseHistGradientBoosting.__init__c
+Validate parameters passed to __init__.
+        The parameters that are directly passed to the grower are checked in
+        TreeGrower.z5Loss {} is not supported for {}. Accepted losses: {}.z
+z*learning_rate={} must be strictly positiver
+z'max_iter={} must not be smaller than 1.z%n_iter_no_change={} must be positive.Nz:validation_fraction={} must be strictly positive, or None.z"tol={} must not be smaller than 0.
+z?max_bins={} should be no smaller than 2 and no larger than 255.zFmonotonic constraints are not supported for multiclass classification.)
+_VALID_LOSSES
+isinstancer
+ValueError
+format
+	__class__
+__name__
+joinr;
+n_trees_per_iteration_
+_validate_parameters
+z-BaseHistGradientBoosting._validate_parametersc
+Check and validate categorical features in X
+        Return
+        ------
+        is_categorical : ndarray of shape (n_features,) or None, dtype=bool
+            Indicates whether a feature is categorical. If no feature is
+            categorical, this is None.
+        known_categories : list of size n_features or None
+            The list contains, for each feature:
+                - an array of shape (n_categories,) with the unique cat values
+                - None if the feature is not categorical
+            None if no feature is categorical.
+        N)
+bzJcategorical_features must be an array-like of bools or array-like of ints.r
+zJcategorical_features set as integer indices must be in [0, n_features - 1]
+dtypeTzOcategorical_features set as a boolean mask must have shape (n_features,), got: z
+Categorical feature at index z& is expected to have a cardinality <= z) is expected to be encoded with values < )
+asarray
+sizer^
+kindrS
+shape
+zeros
+bool
+range
+uniqueZ
+isnanrA
+append)	rM
+n_features
+is_categorical
+known_categoriesZ
+f_idxZ
+categoriesZ
+missingr6
+_check_categories
+z*BaseHistGradientBoosting._check_categoriesNc
+rvt$|
+n$t$|
+j'j)k
+r2t.d
+j2j5d
+j2j5d
+n:t<|
+rttAd
+} tF|
+]H}!|
+}"t.d
+G|!d
+}#| 
+}#| }$tF|
+}%tM|
+j'jN|
+}&|&
+|&jV7
+|&jW7
+|&jX7
+rbtZ|
+|&j[|
+j'j\d$
+}(t]|
+|)|(
+j6d%
+}%}+|
+j'j)|
+},tad&d'
+}-tad(d'
+}.t.d)
+G|.|,|-
+t.d*
+Gd+|
+t.d*
+Gd,|
+t.d*
+Gd-|
+t.d*
+Gd.|
+Fit the gradient boosting model.
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            The input samples.
+        y : array-like of shape (n_samples,)
+            Target values.
+        sample_weight : array-like of shape (n_samples,) default=None
+            Weights of training data.
+            .. versionadded:: 0.23
+        Returns
+        -------
+        self : object
+            Fitted estimator.
+        
+force_all_finiteNr]
+auto
+predict_proba)
+Z	test_size
+stratifyrK
+n_binsrm
+	n_threads)
+is_training_datar
+axisz Fitting gradient boosted rounds:r*
+orderr0
+raw_predictions
+y_train
+sample_weight_train
+raw_predictions_val
+y_val
+sample_weight_valry
+zLmax_iter=%d must be larger than or equal to n_iter_=%d when warm_start==True)
+	n_samplesr^
+[{}/{}] 
+flush)
+gradient_outry
+hessian_outry
+X_binnedZ	gradientsZ
+hessiansrx
+n_bins_non_missing
+has_missing_valuesrm
+binning_thresholdsr|
+get_n_leaf_nodes)
+predictors_at_ith_iteration
+	predictorr6
+	<genexpr>
+z/BaseHistGradientBoosting.fit.<locals>.<genexpr>c
+len)
+z+Fit {} trees in {:.3f} s, ({} total leaves)z
+{:<32} {:.3f}sz Time spent computing histograms:z
+Time spent finding best splits:z
+Time spent applying splits:z
+Time spent predicting:)c
+time
+_validate_datar 
+	_encode_yr
+float64
+_fitted_with_swr
+_is_fittedZ
+randintZ
+iinfoZ
+uint32rd
+_random_seedrZ
+_n_featuresro
+is_categorical_
+_in_fitr
+	_get_loss
+_lossr
+do_early_stopping_rG
+_use_validation_data
+hasattrr
+_bin_mapper
+	_bin_data
+missing_values_bin_idx_rh
+astypeZ
+uint8rJ
+print
+_clear_stater-
+reshape
+_baseline_predictionrf
+_predictors
+_scorer
+train_score_
+validation_score_rF
+_check_early_stopping_lossr
+_get_small_trainset
+_check_early_stopping_scorerr<
+n_iter_rS
+tolist
+_raw_predictZ
+init_gradient_and_hessianr!
+constant_hessian
+gradientZ
+gradient_hessianrk
+ndimr#
+n_bins_non_missing_rB
+growZ
+total_apply_split_timeZ
+total_find_split_timeZ
+total_compute_hist_timeZ
+need_update_leaves_valuesr8
+make_predictorZ
+bin_thresholds_r
+	enumerate
+predict_binned
+_print_iteration_stats
+sumr`
+)/rM
+fit_start_timeZ
+acc_find_split_timeZ
+acc_apply_split_timeZ
+acc_compute_hist_timeZ
+acc_prediction_time
+rngr
+X_trainZ
+X_valr
+X_binned_train
+X_binned_valr
+predictorsr
+X_binned_small_train
+y_small_train
+sample_weight_small_trainZ
+begin_at_stager
+hessian
+	iteration
+iteration_start_timeZ
+g_viewZ
+h_view
+tic_predZ
+toc_predZ
+should_early_stopZ
+pred
+durationZ
+n_total_leavesZ
+n_predictorsr6
+BaseHistGradientBoosting.fitc
+getattrrY
+z#BaseHistGradientBoosting._is_fittedc
+z/Clear the state of the gradient boosting model.)
+delattr)
+varr6
+z%BaseHistGradientBoosting._clear_statec
+Compute the indices of the subsample set and return this set.
+        For efficiency, we need to subsample the training set to compute scores
+        with scorers.
+        ru
+replacerK
+aranger
+ascontiguousarray)
+seedZ
+subsample_sizer3
+z,BaseHistGradientBoosting._get_small_trainsetc
+Check if fitting should be early-stopped based on scorer.
+        Scores are computed on validation data or on training data.
+        Nrs
+classes_r
+intr
+_should_stop)
+z5BaseHistGradientBoosting._check_early_stopping_scorerr
+Check if fitting should be early-stopped based on loss.
+        Scores are computed on validation data or on training data.
+        )
+z3BaseHistGradientBoosting._check_early_stopping_lossc
+        Return True (do early stopping) if the last n scores aren't better
+        than the (n-1)th-to-last score, up to some tolerance.
+        r
+score
+reference_scorer6
+<listcomp>N
+z9BaseHistGradientBoosting._should_stop.<locals>.<listcomp>)
+scoresZ
+reference_positionZ
+recent_scoresZ
+recent_improvementsr6
+z%BaseHistGradientBoosting._should_stopc
+Bin data X.
+        If is_training_data, then fit the _bin_mapper attribute.
+        Else, the binned data is converted to a C-contiguous array.
+        Z
+trainingZ
+validationz
+Binning {:.3f} GB of {} data: g
+{:.3f} s)
+nbytesr
+fit_transformZ	transformr_
+descriptionZ
+ticr
+tocr
+z"BaseHistGradientBoosting._bin_datac
+z/Print info about the current fitting iteration.r
+predictors_listr6
+zCBaseHistGradientBoosting._print_iteration_stats.<locals>.<listcomp>r|
+get_max_depth
+zBBaseHistGradientBoosting._print_iteration_stats.<locals>.<genexpr>c
+{} tree, {} leaves, z
+{} trees, {} leaves z
+({} on avg), z
+max depth = {}, r0
+train {}: {:.5f}, z
+val {}: {:.5f}, z
+in {:0.3f}sN)
+log_msg
+predictors_of_ith_iterationZ
+n_treesr>
+n_leavesZ
+factor
+nameZ
+iteration_timer6
+z/BaseHistGradientBoosting._print_iteration_statsc
+Return the sum of the leaves values over all predictors.
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            The input samples.
+        n_threads : int, default=None
+            Number of OpenMP threads to use. `_openmp_effective_n_threads` is called
+            to determine the effective number of threads use, which takes cgroups CPU
+            quotes into account. See the docstring of `_openmp_effective_n_threads`
+            for details.
+        Returns
+        -------
+        raw_predictions : array, shape (n_samples, n_trees_per_iteration)
+            The raw predicted values.
+        r
+resetr
+BX has {} features but this estimator was trained with {} features.r
+_predict_iterationsr
+	is_binnedr
+z%BaseHistGradientBoosting._raw_predictc
+z9Add the predictions of the predictors to raw_predictions.)
+missing_values_bin_idxry
+known_cat_bitsets
+	f_idx_mapry
+make_known_categories_bitsetsr
+predict)
+z,BaseHistGradientBoosting._predict_iterationsc
+Compute raw predictions of ``X`` for each iteration.
+        This method allows monitoring (i.e. determine error on testing set)
+        after each stage.
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            The input samples.
+        Yields
+        ------
+        raw_predictions : generator of ndarray of shape             (n_samples, n_trees_per_iteration)
+            The raw predictions of the input samples. The order of the
+            classes corresponds to that in the attribute :term:`classes_`.
+        Fr
+copy)
+_staged_raw_predict
+z,BaseHistGradientBoosting._staged_raw_predictc
+qZqN|
+Fast partial dependence computation.
+        Parameters
+        ----------
+        grid : ndarray, shape (n_samples, n_target_features)
+            The grid points on which the partial dependence should be
+            evaluated.
+        target_features : ndarray, shape (n_target_features)
+            The set of target features for which the partial dependence
+            should be evaluated.
+        Returns
+        -------
+        averaged_predictions : ndarray, shape                 (n_trees_per_iteration, n_samples)
+            The value of the partial dependence function on each grid point.
+        r
+Fzx{} does not support partial dependence plots with the 'recursion' method when sample weights were given during fit time.
+NotImplementedErrorrT
+compute_partial_dependence)
+gridZ
+target_featuresZ
+averaged_predictionsr
+%_compute_partial_dependence_recursion
+z>BaseHistGradientBoosting._compute_partial_dependence_recursionc
+NZ	allow_nanTr6
+_more_tags9
+z#BaseHistGradientBoosting._more_tagsc
+z"BaseHistGradientBoosting._get_lossc
+z"BaseHistGradientBoosting._encode_yc
+z-Number of iterations of the boosting process.)
+z BaseHistGradientBoosting.n_iter_)
+__module__
+__qualname__
+__doc__r
+propertyr
+HistGradientBoostingRegressora
+Histogram-based Gradient Boosting Regression Tree.
+    This estimator is much faster than
+    :class:`GradientBoostingRegressor<sklearn.ensemble.GradientBoostingRegressor>`
+    for big datasets (n_samples >= 10 000).
+    This estimator has native support for missing values (NaNs). During
+    training, the tree grower learns at each split point whether samples
+    with missing values should go to the left or right child, based on the
+    potential gain. When predicting, samples with missing values are
+    assigned to the left or right child consequently. If no missing values
+    were encountered for a given feature during training, then samples with
+    missing values are mapped to whichever child has the most samples.
+    This implementation is inspired by
+    `LightGBM <https://github.com/Microsoft/LightGBM>`_.
+    Read more in the :ref:`User Guide <histogram_based_gradient_boosting>`.
+    .. versionadded:: 0.21
+    Parameters
+    ----------
+    loss : {'squared_error', 'absolute_error', 'poisson', 'quantile'},             default='squared_error'
+        The loss function to use in the boosting process. Note that the
+        "squared error" and "poisson" losses actually implement
+        "half least squares loss" and "half poisson deviance" to simplify the
+        computation of the gradient. Furthermore, "poisson" loss internally
+        uses a log-link and requires ``y >= 0``.
+        "quantile" uses the pinball loss.
+        .. versionchanged:: 0.23
+           Added option 'poisson'.
+        .. versionchanged:: 1.1
+           Added option 'quantile'.
+        .. deprecated:: 1.0
+            The loss 'least_squares' was deprecated in v1.0 and will be removed
+            in version 1.2. Use `loss='squared_error'` which is equivalent.
+        .. deprecated:: 1.0
+            The loss 'least_absolute_deviation' was deprecated in v1.0 and will
+            be removed in version 1.2. Use `loss='absolute_error'` which is
+            equivalent.
+    quantile : float, default=None
+        If loss is "quantile", this parameter specifies which quantile to be estimated
+        and must be between 0 and 1.
+    learning_rate : float, default=0.1
+        The learning rate, also known as *shrinkage*. This is used as a
+        multiplicative factor for the leaves values. Use ``1`` for no
+        shrinkage.
+    max_iter : int, default=100
+        The maximum number of iterations of the boosting process, i.e. the
+        maximum number of trees.
+    max_leaf_nodes : int or None, default=31
+        The maximum number of leaves for each tree. Must be strictly greater
+        than 1. If None, there is no maximum limit.
+    max_depth : int or None, default=None
+        The maximum depth of each tree. The depth of a tree is the number of
+        edges to go from the root to the deepest leaf.
+        Depth isn't constrained by default.
+    min_samples_leaf : int, default=20
+        The minimum number of samples per leaf. For small datasets with less
+        than a few hundred samples, it is recommended to lower this value
+        since only very shallow trees would be built.
+    l2_regularization : float, default=0
+        The L2 regularization parameter. Use ``0`` for no regularization
+        (default).
+    max_bins : int, default=255
+        The maximum number of bins to use for non-missing values. Before
+        training, each feature of the input array `X` is binned into
+        integer-valued bins, which allows for a much faster training stage.
+        Features with a small number of unique values may use less than
+        ``max_bins`` bins. In addition to the ``max_bins`` bins, one more bin
+        is always reserved for missing values. Must be no larger than 255.
+    categorical_features : array-like of {bool, int} of shape (n_features)             or shape (n_categorical_features,), default=None
+        Indicates the categorical features.
+        - None : no feature will be considered categorical.
+        - boolean array-like : boolean mask indicating categorical features.
+        - integer array-like : integer indices indicating categorical
+          features.
+        For each categorical feature, there must be at most `max_bins` unique
+        categories, and each categorical value must be in [0, max_bins -1].
+        Read more in the :ref:`User Guide <categorical_support_gbdt>`.
+        .. versionadded:: 0.24
+    monotonic_cst : array-like of int of shape (n_features), default=None
+        Indicates the monotonic constraint to enforce on each feature. -1, 1
+        and 0 respectively correspond to a negative constraint, positive
+        constraint and no constraint. Read more in the :ref:`User Guide
+        <monotonic_cst_gbdt>`.
+        .. versionadded:: 0.23
+    warm_start : bool, default=False
+        When set to ``True``, reuse the solution of the previous call to fit
+        and add more estimators to the ensemble. For results to be valid, the
+        estimator should be re-trained on the same data only.
+        See :term:`the Glossary <warm_start>`.
+    early_stopping : 'auto' or bool, default='auto'
+        If 'auto', early stopping is enabled if the sample size is larger than
+        10000. If True, early stopping is enabled, otherwise early stopping is
+        disabled.
+        .. versionadded:: 0.23
+    scoring : str or callable or None, default='loss'
+        Scoring parameter to use for early stopping. It can be a single
+        string (see :ref:`scoring_parameter`) or a callable (see
+        :ref:`scoring`). If None, the estimator's default scorer is used. If
+        ``scoring='loss'``, early stopping is checked w.r.t the loss value.
+        Only used if early stopping is performed.
+    validation_fraction : int or float or None, default=0.1
+        Proportion (or absolute size) of training data to set aside as
+        validation data for early stopping. If None, early stopping is done on
+        the training data. Only used if early stopping is performed.
+    n_iter_no_change : int, default=10
+        Used to determine when to "early stop". The fitting process is
+        stopped when none of the last ``n_iter_no_change`` scores are better
+        than the ``n_iter_no_change - 1`` -th-to-last one, up to some
+        tolerance. Only used if early stopping is performed.
+    tol : float, default=1e-7
+        The absolute tolerance to use when comparing scores during early
+        stopping. The higher the tolerance, the more likely we are to early
+        stop: higher tolerance means that it will be harder for subsequent
+        iterations to be considered an improvement upon the reference score.
+    verbose : int, default=0
+        The verbosity level. If not zero, print some information about the
+        fitting process.
+    random_state : int, RandomState instance or None, default=None
+        Pseudo-random number generator to control the subsampling in the
+        binning process, and the train/validation data split if early stopping
+        is enabled.
+        Pass an int for reproducible output across multiple function calls.
+        See :term:`Glossary <random_state>`.
+    Attributes
+    ----------
+    do_early_stopping_ : bool
+        Indicates whether early stopping is used during training.
+    n_iter_ : int
+        The number of iterations as selected by early stopping, depending on
+        the `early_stopping` parameter. Otherwise it corresponds to max_iter.
+    n_trees_per_iteration_ : int
+        The number of tree that are built at each iteration. For regressors,
+        this is always 1.
+    train_score_ : ndarray, shape (n_iter_+1,)
+        The scores at each iteration on the training data. The first entry
+        is the score of the ensemble before the first iteration. Scores are
+        computed according to the ``scoring`` parameter. If ``scoring`` is
+        not 'loss', scores are computed on a subset of at most 10 000
+        samples. Empty if no early stopping.
+    validation_score_ : ndarray, shape (n_iter_+1,)
+        The scores at each iteration on the held-out validation data. The
+        first entry is the score of the ensemble before the first iteration.
+        Scores are computed according to the ``scoring`` parameter. Empty if
+        no early stopping or if ``validation_fraction`` is None.
+    is_categorical_ : ndarray, shape (n_features, ) or None
+        Boolean mask for the categorical features. ``None`` if there are no
+        categorical features.
+    n_features_in_ : int
+        Number of features seen during :term:`fit`.
+        .. versionadded:: 0.24
+    feature_names_in_ : ndarray of shape (`n_features_in_`,)
+        Names of features seen during :term:`fit`. Defined only when `X`
+        has feature names that are all strings.
+        .. versionadded:: 1.0
+    See Also
+    --------
+    GradientBoostingRegressor : Exact gradient boosting method that does not
+        scale as good on datasets with a large number of samples.
+    sklearn.tree.DecisionTreeRegressor : A decision tree regressor.
+    RandomForestRegressor : A meta-estimator that fits a number of decision
+        tree regressors on various sub-samples of the dataset and uses
+        averaging to improve the statistical performance and control
+        over-fitting.
+    AdaBoostRegressor : A meta-estimator that begins by fitting a regressor
+        on the original dataset and then fits additional copies of the
+        regressor on the same dataset but where the weights of instances are
+        adjusted according to the error of the current prediction. As such,
+        subsequent regressors focus more on difficult cases.
+    Examples
+    --------
+    >>> from sklearn.ensemble import HistGradientBoostingRegressor
+    >>> from sklearn.datasets import load_diabetes
+    >>> X, y = load_diabetes(return_X_y=True)
+    >>> est = HistGradientBoostingRegressor().fit(X, y)
+    >>> est.score(X, y)
+    0.92...
+    )
+squared_errorr$
+absolute_errorr%
+superr
+z&HistGradientBoostingRegressor.__init__c
+Predict values for X.
+        Parameters
+        ----------
+        X : array-like, shape (n_samples, n_features)
+            The input samples.
+        Returns
+        -------
+        y : ndarray, shape (n_samples,)
+            The predicted values.
+        )
+link
+inverser
+ravel)
+z%HistGradientBoostingRegressor.predictc
+Predict regression target for each iteration.
+        This method allows monitoring (i.e. determine error on testing set)
+        after each stage.
+        .. versionadded:: 0.24
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            The input samples.
+        Yields
+        ------
+        y : generator of ndarray of shape (n_samples,)
+            The predicted values of the input samples, for each iteration.
+        N)
+staged_predict`
+z,HistGradientBoostingRegressor.staged_predictc
+z6loss='poisson' requires non-negative y and sum(y) > 0.)
+allr
+z'HistGradientBoostingRegressor._encode_yc
+z|The loss 'least_squares' was deprecated in v1.0 and will be removed in version 1.2. Use 'squared_error' which is equivalent.r
+The loss 'least_absolute_deviation' was deprecated in v1.0  and will be removed in version 1.2. Use 'absolute_error' which is equivalent.r
+warnings
+warn
+FutureWarningr
+z'HistGradientBoostingRegressor._get_loss)
+__classcell__r6
+d d!
+d"d#
+HistGradientBoostingClassifiera
+Histogram-based Gradient Boosting Classification Tree.
+    This estimator is much faster than
+    :class:`GradientBoostingClassifier<sklearn.ensemble.GradientBoostingClassifier>`
+    for big datasets (n_samples >= 10 000).
+    This estimator has native support for missing values (NaNs). During
+    training, the tree grower learns at each split point whether samples
+    with missing values should go to the left or right child, based on the
+    potential gain. When predicting, samples with missing values are
+    assigned to the left or right child consequently. If no missing values
+    were encountered for a given feature during training, then samples with
+    missing values are mapped to whichever child has the most samples.
+    This implementation is inspired by
+    `LightGBM <https://github.com/Microsoft/LightGBM>`_.
+    Read more in the :ref:`User Guide <histogram_based_gradient_boosting>`.
+    .. versionadded:: 0.21
+    Parameters
+    ----------
+    loss : {'log_loss', 'auto', 'binary_crossentropy', 'categorical_crossentropy'},             default='log_loss'
+        The loss function to use in the boosting process.
+        For binary classification problems, 'log_loss' is also known as logistic loss,
+        binomial deviance or binary crossentropy. Internally, the model fits one tree
+        per boosting iteration and uses the logistic sigmoid function (expit) as
+        inverse link function to compute the predicted positive class probability.
+        For multiclass classification problems, 'log_loss' is also known as multinomial
+        deviance or categorical crossentropy. Internally, the model fits one tree per
+        boosting iteration and per class and uses the softmax function as inverse link
+        function to compute the predicted probabilities of the classes.
+        .. deprecated:: 1.1
+            The loss arguments 'auto', 'binary_crossentropy' and
+            'categorical_crossentropy' were deprecated in v1.1 and will be removed in
+            version 1.3. Use `loss='log_loss'` which is equivalent.
+    learning_rate : float, default=0.1
+        The learning rate, also known as *shrinkage*. This is used as a
+        multiplicative factor for the leaves values. Use ``1`` for no
+        shrinkage.
+    max_iter : int, default=100
+        The maximum number of iterations of the boosting process, i.e. the
+        maximum number of trees for binary classification. For multiclass
+        classification, `n_classes` trees per iteration are built.
+    max_leaf_nodes : int or None, default=31
+        The maximum number of leaves for each tree. Must be strictly greater
+        than 1. If None, there is no maximum limit.
+    max_depth : int or None, default=None
+        The maximum depth of each tree. The depth of a tree is the number of
+        edges to go from the root to the deepest leaf.
+        Depth isn't constrained by default.
+    min_samples_leaf : int, default=20
+        The minimum number of samples per leaf. For small datasets with less
+        than a few hundred samples, it is recommended to lower this value
+        since only very shallow trees would be built.
+    l2_regularization : float, default=0
+        The L2 regularization parameter. Use 0 for no regularization.
+    max_bins : int, default=255
+        The maximum number of bins to use for non-missing values. Before
+        training, each feature of the input array `X` is binned into
+        integer-valued bins, which allows for a much faster training stage.
+        Features with a small number of unique values may use less than
+        ``max_bins`` bins. In addition to the ``max_bins`` bins, one more bin
+        is always reserved for missing values. Must be no larger than 255.
+    categorical_features : array-like of {bool, int} of shape (n_features)             or shape (n_categorical_features,), default=None
+        Indicates the categorical features.
+        - None : no feature will be considered categorical.
+        - boolean array-like : boolean mask indicating categorical features.
+        - integer array-like : integer indices indicating categorical
+          features.
+        For each categorical feature, there must be at most `max_bins` unique
+        categories, and each categorical value must be in [0, max_bins -1].
+        Read more in the :ref:`User Guide <categorical_support_gbdt>`.
+        .. versionadded:: 0.24
+    monotonic_cst : array-like of int of shape (n_features), default=None
+        Indicates the monotonic constraint to enforce on each feature. -1, 1
+        and 0 respectively correspond to a negative constraint, positive
+        constraint and no constraint. Read more in the :ref:`User Guide
+        <monotonic_cst_gbdt>`.
+        .. versionadded:: 0.23
+    warm_start : bool, default=False
+        When set to ``True``, reuse the solution of the previous call to fit
+        and add more estimators to the ensemble. For results to be valid, the
+        estimator should be re-trained on the same data only.
+        See :term:`the Glossary <warm_start>`.
+    early_stopping : 'auto' or bool, default='auto'
+        If 'auto', early stopping is enabled if the sample size is larger than
+        10000. If True, early stopping is enabled, otherwise early stopping is
+        disabled.
+        .. versionadded:: 0.23
+    scoring : str or callable or None, default='loss'
+        Scoring parameter to use for early stopping. It can be a single
+        string (see :ref:`scoring_parameter`) or a callable (see
+        :ref:`scoring`). If None, the estimator's default scorer
+        is used. If ``scoring='loss'``, early stopping is checked
+        w.r.t the loss value. Only used if early stopping is performed.
+    validation_fraction : int or float or None, default=0.1
+        Proportion (or absolute size) of training data to set aside as
+        validation data for early stopping. If None, early stopping is done on
+        the training data. Only used if early stopping is performed.
+    n_iter_no_change : int, default=10
+        Used to determine when to "early stop". The fitting process is
+        stopped when none of the last ``n_iter_no_change`` scores are better
+        than the ``n_iter_no_change - 1`` -th-to-last one, up to some
+        tolerance. Only used if early stopping is performed.
+    tol : float, default=1e-7
+        The absolute tolerance to use when comparing scores. The higher the
+        tolerance, the more likely we are to early stop: higher tolerance
+        means that it will be harder for subsequent iterations to be
+        considered an improvement upon the reference score.
+    verbose : int, default=0
+        The verbosity level. If not zero, print some information about the
+        fitting process.
+    random_state : int, RandomState instance or None, default=None
+        Pseudo-random number generator to control the subsampling in the
+        binning process, and the train/validation data split if early stopping
+        is enabled.
+        Pass an int for reproducible output across multiple function calls.
+        See :term:`Glossary <random_state>`.
+    Attributes
+    ----------
+    classes_ : array, shape = (n_classes,)
+        Class labels.
+    do_early_stopping_ : bool
+        Indicates whether early stopping is used during training.
+    n_iter_ : int
+        The number of iterations as selected by early stopping, depending on
+        the `early_stopping` parameter. Otherwise it corresponds to max_iter.
+    n_trees_per_iteration_ : int
+        The number of tree that are built at each iteration. This is equal to 1
+        for binary classification, and to ``n_classes`` for multiclass
+        classification.
+    train_score_ : ndarray, shape (n_iter_+1,)
+        The scores at each iteration on the training data. The first entry
+        is the score of the ensemble before the first iteration. Scores are
+        computed according to the ``scoring`` parameter. If ``scoring`` is
+        not 'loss', scores are computed on a subset of at most 10 000
+        samples. Empty if no early stopping.
+    validation_score_ : ndarray, shape (n_iter_+1,)
+        The scores at each iteration on the held-out validation data. The
+        first entry is the score of the ensemble before the first iteration.
+        Scores are computed according to the ``scoring`` parameter. Empty if
+        no early stopping or if ``validation_fraction`` is None.
+    is_categorical_ : ndarray, shape (n_features, ) or None
+        Boolean mask for the categorical features. ``None`` if there are no
+        categorical features.
+    n_features_in_ : int
+        Number of features seen during :term:`fit`.
+        .. versionadded:: 0.24
+    feature_names_in_ : ndarray of shape (`n_features_in_`,)
+        Names of features seen during :term:`fit`. Defined only when `X`
+        has feature names that are all strings.
+        .. versionadded:: 1.0
+    See Also
+    --------
+    GradientBoostingClassifier : Exact gradient boosting method that does not
+        scale as good on datasets with a large number of samples.
+    sklearn.tree.DecisionTreeClassifier : A decision tree classifier.
+    RandomForestClassifier : A meta-estimator that fits a number of decision
+        tree classifiers on various sub-samples of the dataset and uses
+        averaging to improve the predictive accuracy and control over-fitting.
+    AdaBoostClassifier : A meta-estimator that begins by fitting a classifier
+        on the original dataset and then fits additional copies of the
+        classifier on the same dataset where the weights of incorrectly
+        classified instances are adjusted such that subsequent classifiers
+        focus more on difficult cases.
+    Examples
+    --------
+    >>> from sklearn.ensemble import HistGradientBoostingClassifier
+    >>> from sklearn.datasets import load_iris
+    >>> X, y = load_iris(return_X_y=True)
+    >>> clf = HistGradientBoostingClassifier().fit(X, y)
+    >>> clf.score(X, y)
+    1.0
+    )
+log_lossr(
+z'HistGradientBoostingClassifier.__init__c
+Predict classes for X.
+        Parameters
+        ----------
+        X : array-like, shape (n_samples, n_features)
+            The input samples.
+        Returns
+        -------
+        y : ndarray, shape (n_samples,)
+            The predicted classes.
+        r
+argmaxrv
+encoded_classesr6
+z&HistGradientBoostingClassifier.predictc
+Predict classes at each iteration.
+        This method allows monitoring (i.e. determine error on testing set)
+        after each stage.
+        .. versionadded:: 0.24
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            The input samples.
+        Yields
+        ------
+        y : generator of ndarray of shape (n_samples,)
+            The predicted classes of the input samples, for each iteration.
+        r
+staged_predict_probar_
+take)
+probar
+z-HistGradientBoostingClassifier.staged_predictc
+Predict class probabilities for X.
+        Parameters
+        ----------
+        X : array-like, shape (n_samples, n_features)
+            The input samples.
+        Returns
+        -------
+        p : ndarray, shape (n_samples, n_classes)
+            The class probabilities of the input samples.
+        )
+z,HistGradientBoostingClassifier.predict_probac
+Predict class probabilities at each iteration.
+        This method allows monitoring (i.e. determine error on testing set)
+        after each stage.
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            The input samples.
+        Yields
+        ------
+        y : generator of ndarray of shape (n_samples,)
+            The predicted class probabilities of the input samples,
+            for each iteration.
+        N)
+z3HistGradientBoostingClassifier.staged_predict_probac
+Compute the decision function of ``X``.
+        Parameters
+        ----------
+        X : array-like, shape (n_samples, n_features)
+            The input samples.
+        Returns
+        -------
+        decision : ndarray, shape (n_samples,) or                 (n_samples, n_trees_per_iteration)
+            The raw predicted values (i.e. the sum of the trees leaves) for
+            each sample. n_trees_per_iteration is equal to the number of
+            classes in multiclass classification.
+        r
+decisionr6
+decision_function
+z0HistGradientBoostingClassifier.decision_functionc
+Compute decision function of ``X`` for each iteration.
+        This method allows monitoring (i.e. determine error on testing set)
+        after each stage.
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            The input samples.
+        Yields
+        ------
+        decision : generator of ndarray of shape (n_samples,) or                 (n_samples, n_trees_per_iteration)
+            The decision function of the input samples, which corresponds to
+            the raw values predicted from the trees of the ensemble . The
+            classes corresponds to that in the attribute :term:`classes_`.
+        r
+staged_decisionr6
+staged_decision_function
+z7HistGradientBoostingClassifier.staged_decision_functionc
+label_encoderZ	encoded_y
+	n_classesr6
+z(HistGradientBoostingClassifier._encode_yc
+The loss 'z`' was deprecated in v1.1 and will be removed in version 1.3. Use 'log_loss' which is equivalent.)
+loss='zZ' is not suitable for a binary classification problem. Please use loss='log_loss' instead.r(
+z>' is not defined for multiclass classification with n_classes=z
+, use loss='log_loss' instead.)
+z(HistGradientBoostingClassifier._get_loss)
+abcr
+	functoolsr
+numpyr_
+timeitr
+_loss.lossr
+baser
+utilsr
+utils.validationr
+utils._openmp_helpersr
+utils.multiclassr
+metricsr
+model_selectionr
+preprocessingr
+_gradient_boostingr
+commonr
+binningr"
+<module>

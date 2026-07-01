@@ -1,0 +1,235 @@
+z@Hessian update strategies for quasi-Newton optimization methods.
+norm)
+get_blas_funcs)
+warn)
+HessianUpdateStrategy
+BFGS
+SR1c
+Interface for implementing Hessian update strategies.
+    Many optimization methods make use of Hessian (or inverse Hessian)
+    approximations, such as the quasi-Newton methods BFGS, SR1, L-BFGS.
+    Some of these  approximations, however, do not actually need to store
+    the entire matrix or can compute the internal matrix product with a
+    given vector in a very efficiently manner. This class serves as an
+    abstract interface between the optimization algorithm and the
+    quasi-Newton update strategies, giving freedom of implementation
+    to store and update the internal matrix as efficiently as possible.
+    Different choices of initialization and update procedure will result
+    in different quasi-Newton strategies.
+    Four methods should be implemented in derived classes: ``initialize``,
+    ``update``, ``dot`` and ``get_matrix``.
+    Notes
+    -----
+    Any instance of a class that implements this interface,
+    can be accepted by the method ``minimize`` and used by
+    the compatible solvers to approximate the Hessian (or
+    inverse Hessian) used by the optimization algorithms.
+    c
+Initialize internal matrix.
+        Allocate internal memory for storing and updating
+        the Hessian or its inverse.
+        Parameters
+        ----------
+        n : int
+            Problem dimension.
+        approx_type : {'hess', 'inv_hess'}
+            Selects either the Hessian or the inverse Hessian.
+            When set to 'hess' the Hessian will be stored and updated.
+            When set to 'inv_hess' its inverse will be used instead.
+        z=The method ``initialize(n, approx_type)`` is not implemented.N
+NotImplementedError
+self
+approx_type
+M/usr/lib64/python3.9/site-packages/scipy/optimize/_hessian_update_strategy.py
+initialize$
+z HessianUpdateStrategy.initializec
+Update internal matrix.
+        Update Hessian matrix or its inverse (depending on how 'approx_type'
+        is defined) using information about the last evaluated points.
+        Parameters
+        ----------
+        delta_x : ndarray
+            The difference between two points the gradient
+            function have been evaluated at: ``delta_x = x2 - x1``.
+        delta_grad : ndarray
+            The difference between the gradients:
+            ``delta_grad = grad(x2) - grad(x1)``.
+        z>The method ``update(delta_x, delta_grad)`` is not implemented.Nr	
+delta_x
+delta_gradr
+update6
+HessianUpdateStrategy.updatec
+Compute the product of the internal matrix with the given vector.
+        Parameters
+        ----------
+        p : array_like
+            1-D array representing a vector.
+        Returns
+        -------
+        Hp : array
+            1-D represents the result of multiplying the approximation matrix
+            by vector p.
+        z)The method ``dot(p)`` is not implemented.Nr	
+dotH
+HessianUpdateStrategy.dotc
+Return current internal matrix.
+        Returns
+        -------
+        H : ndarray, shape (n, n)
+            Dense matrix containing either the Hessian
+            or its inverse (depending on how 'approx_type'
+            is defined).
+        z0The method ``get_matrix(p)`` is not implemented.Nr	
+get_matrixY
+z HessianUpdateStrategy.get_matrixN)
+__name__
+__module__
+__qualname__
+__doc__r
+FullHessianUpdateStrategyzKHessian update strategy with full dimensional internal representation.
+    Z
+dtypeZ
+syr2Z
+symv
+autoc
+init_scale
+first_iterationr
+__init__o
+z"FullHessianUpdateStrategy.__init__c
+hessZ
+inv_hessz+`approx_type` must be 'hess' or 'inv_hess'.r*
+N)	r&
+ValueError
+floatr'
+z$FullHessianUpdateStrategy.initializec
+absr
+s_norm2Z
+y_norm2
+_auto_scale
+z%FullHessianUpdateStrategy._auto_scalec
+Nz9The method ``_update_implementation`` is not implemented.r	
+_update_implementation
+z0FullHessianUpdateStrategy._update_implementationc
+delta_grad == 0.0. Check if the approximated function is linear. If the function is linear better results can be obtained by defining the Hessian as zero instead of using quasi-Newton approximations.r#
+allr
+UserWarningr&
+scaler
+z FullHessianUpdateStrategy.updatec
+_symvr'
+FullHessianUpdateStrategy.dotc
+Return the current internal matrix.
+        Returns
+        -------
+        M : ndarray, shape (n, n)
+            Dense matrix containing either the Hessian or its inverse
+            (depending on how `approx_type` was defined).
+        r*
+copyr'
+tril_indices_from
+z$FullHessianUpdateStrategy.get_matrixN)
+_syr
+_syr2r8
+Broyden-Fletcher-Goldfarb-Shanno (BFGS) Hessian update strategy.
+    Parameters
+    ----------
+    exception_strategy : {'skip_update', 'damp_update'}, optional
+        Define how to proceed when the curvature condition is violated.
+        Set it to 'skip_update' to just skip the update. Or, alternatively,
+        set it to 'damp_update' to interpolate between the actual BFGS
+        result and the unmodified matrix. Both exceptions strategies
+        are explained  in [1]_, p.536-537.
+    min_curvature : float
+        This number, scaled by a normalization factor, defines the
+        minimum curvature ``dot(delta_grad, delta_x)`` allowed to go
+        unaffected by the exception strategy. By default is equal to
+        1e-8 when ``exception_strategy = 'skip_update'`` and equal
+        to 0.2 when ``exception_strategy = 'damp_update'``.
+    init_scale : {float, 'auto'}
+        Matrix scale at first iteration. At the first
+        iteration the Hessian matrix or its inverse will be initialized
+        with ``init_scale*np.eye(n)``, where ``n`` is the problem dimension.
+        Set it to 'auto' in order to use an automatic heuristic for choosing
+        the initial scale. The heuristic is described in [1]_, p.143.
+        By default uses 'auto'.
+    Notes
+    -----
+    The update is based on the description in [1]_, p.140.
+    References
+    ----------
+    .. [1] Nocedal, Jorge, and Stephen J. Wright. "Numerical optimization"
+           Second Edition (2006).
+    
+skip_updateNr#
+damp_updateg
+?z<`exception_strategy` must be 'skip_update' or 'damp_update'.)
+min_curvaturer+
+superr
+exception_strategy)
+	__class__r
+BFGS.__init__c
+Update the inverse Hessian matrix.
+        BFGS update using the formula:
+            ``H <- H + ((H*y).T*y + s.T*y)/(s.T*y)^2 * (s*s.T)
+                     - 1/(s.T*y) * ((H*y)*s.T + s*(H*y).T)``
+        where ``s = delta_x`` and ``y = delta_grad``. This formula is
+        equivalent to (6.17) in [1]_ written in a more efficient way
+        for implementation.
+        References
+        ----------
+        .. [1] Nocedal, Jorge, and Stephen J. Wright. "Numerical optimization"
+               Second Edition (2006).
+        
+_update_inverse_hessian%
+BFGS._update_inverse_hessianc
+Update the Hessian matrix.
+        BFGS update using the formula:
+            ``B <- B - (B*s)*(B*s).T/s.T*(B*s) + y*y^T/s.T*y``
+        where ``s`` is short for ``delta_x`` and ``y`` is short
+        for ``delta_grad``. Formula (6.19) in [1]_.
+        References
+        ----------
+        .. [1] Nocedal, Jorge, and Stephen J. Wright. "Numerical optimization"
+               Second Edition (2006).
+        g
+_update_hessian9
+BFGS._update_hessianc
+}	|	|
+wMwr7
+update_factorr
+BFGS._update_implementation)
+__classcell__r
+Symmetric-rank-1 Hessian update strategy.
+    Parameters
+    ----------
+    min_denominator : float
+        This number, scaled by a normalization factor,
+        defines the minimum denominator magnitude allowed
+        in the update. When the condition is violated we skip
+        the update. By default uses ``1e-8``.
+    init_scale : {float, 'auto'}, optional
+        Matrix scale at first iteration. At the first
+        iteration the Hessian matrix or its inverse will be initialized
+        with ``init_scale*np.eye(n)``, where ``n`` is the problem dimension.
+        Set it to 'auto' in order to use an automatic heuristic for choosing
+        the initial scale. The heuristic is described in [1]_, p.143.
+        By default uses 'auto'.
+    Notes
+    -----
+    The update is based on the description in [1]_, p.144-146.
+    References
+    ----------
+    .. [1] Nocedal, Jorge, and Stephen J. Wright. "Numerical optimization"
+           Second Edition (2006).
+    rA
+min_denominatorrD
+SR1.__init__c
+z_minus_Mw
+denominatorr
+SR1._update_implementation)
+numpyr,
+numpy.linalgr
+scipy.linalgr
+warningsr
+__all__
+objectr
+<module>

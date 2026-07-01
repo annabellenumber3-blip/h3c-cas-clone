@@ -1,0 +1,428 @@
+Python WebSocket library
+Copyright 2011 Joel Martin
+Copyright 2016 Pierre Ossman
+Licensed under LGPL version 3 (see docs/LICENSE.LGPL-3)
+Supports following protocol versions:
+    - http://tools.ietf.org/html/draft-ietf-hybi-thewebsocketprotocol-07
+    - http://tools.ietf.org/html/draft-ietf-hybi-thewebsocketprotocol-10
+    - http://tools.ietf.org/html/rfc6455
+	b64encode)
+sha1)
+urlparsez/no 'numpy' module, HyBi protocol will be slowerc
+WebSocketWantReadErrorN
+__name__
+__module__
+__qualname__
+8/usr/lib/python3.9/site-packages/websockify/websocket.pyr
+WebSocketWantWriteErrorNr
+dAd"d#
+dBd$d%
+d&d'
+d(d)
+d*d+
+d,d-
+d.d/
+d0d1
+d2d3
+d4d5
+d6d7
+d8d9
+dCd;d<
+d=d>
+	WebSocketao
+WebSocket protocol socket like class.
+    This provides access to the WebSocket protocol by behaving much
+    like a real socket would. It shares many similarities with
+    ssl.SSLSocket.
+    The WebSocket protocols requires extra data to be sent and received
+    compared to the application level data. This means that a socket
+    that is ready to be read may not hold enough data to decode any
+    application data, and a socket that is ready to be written to may
+    not have enough space for an entire WebSocket frame. This is
+    handled by the exceptions WebSocketWantReadError and
+    WebSocketWantWriteError. When these are raised the caller must wait
+    for the socket to become ready again and call the relevant function
+    again.
+    A connection is established by using either connect() or accept(),
+    depending on if a client or server session is desired. See the
+    respective functions for details.
+    The following methods are passed on to the underlying socket:
+        - fileno
+        - getpeername, getsockname
+        - getsockopt, setsockopt
+        - gettimeout, settimeout
+        - setblocking
+    z$258EAFA5-E914-47DA-95CA-C5AB0DC85B11c
+z Creates an unconnected WebSocket
+_state
+_partial_msg
+_recv_buffer
+_recv_queue
+_send_buffer
+_previous_sendmsg
+_sent_close
+_received_close
+close_code
+close_reason
+socket
+selfr
+__init__G
+WebSocket.__init__c
+filenoZ
+getpeernameZ
+getsocknameZ
+getsockoptZ
+setsockoptZ
+gettimeoutZ
+settimeoutZ
+setblockingz!%s instance has no attribute '%s')
+getattr
+AttributeError
+	__class__r
+namer
+__getattr__\
+WebSocket.__getattr__Nc
+d!d"
+d'd(
+}	|	
+ d)d
+t"t#|	
+)4az
+Establishes a new connection to a WebSocket server.
+        This method connects to the host specified by uri and
+        negotiates a WebSocket connection. origin should be specified
+        in accordance with RFC 6454 if known. A list of valid
+        sub-protocols can be specified in the protocols argument.
+        The data will be sent in the clear if the "ws" scheme is used,
+        and encrypted if the "wss" scheme is used.
+        Both WebSocketWantReadError and WebSocketWantWriteError can be
+        raised whilst negotiating the connection. Repeated calls to
+        connect() must retain the same arguments.
+        T)
+http
+httpsi
+Unknown scheme '%s'r
+ssl_handshake
+headers
+latin-1
+ascii
+GET %s HTTP/1.1
+Host: %s
+Upgrade: websocket
+Connection: upgrade
+Sec-WebSocket-Key: %s
+Sec-WebSocket-Version: 13
+Origin: %s
+Sec-WebSocket-Protocol: %s
+send_headersZ
+responsez
+Socket closed unexpectedlys
+HTTP/1.1z
+Invalid responseZ
+101z
+WebSocket request denied: %s
+Upgrade
+	websocket
+#Missing or incorrect upgrade headerz
+Sec-WebSocket-Acceptz#Missing Sec-WebSocket-Accept headerz#Invalid Sec-WebSocket-Accept header
+Sec-WebSocket-Protocolz(Unexpected Sec-WebSocket-Protocol headerz!Invalid protocol chosen by server
+done
+ WebSocket is in an invalid state)(
+clientr
+port
+scheme
+	Exceptionr
+create_connection
+hostname
+sslZ
+wrap_socketZ
+do_handshakeZ
+_key
+range
+random
+	randranger
+encode
+decode
+path
+_queue_str
+join
+_flush
+_recvr
+findr
+split
+emailZ
+message_from_string
+lower
+print
+typer
+GUID
+digest
+protocol)
+origin
+	protocolsr=
+request
+wordsr)
+acceptZ
+expectedr
+connecti
+WebSocket.connectc
+Establishes a new WebSocket session with a client.
+        This method negotiates a WebSocket connection with an incoming
+        client. The caller must provide the client socket and the
+        headers from the HTTP request.
+        A server can identify that a client is requesting a WebSocket
+        connection by looking at the "Upgrade" header. It will include
+        the value "websocket" in such cases.
+        WebSocketWantWriteError can be raised if the response cannot be
+        sent right away. accept() must be called again once more space
+        is available using the same arguments.
+        r
+upgrader*
+Sec-WebSocket-VersionNz$Missing Sec-WebSocket-Version header)
+13z	hybi-%02dz
+Unsupported protocol version %sz
+Sec-WebSocket-Keyz Missing Sec-WebSocket-Key headerr.
+Invalid protocol selectedz"HTTP/1.1 101 Switching Protocols
+Connection: Upgrade
+Sec-WebSocket-Accept: %s
+flushr:
+versionr
+select_subprotocolrI
+keyr\
+WebSocket.acceptc
+Returns which sub-protocol should be used.
+        This method does not select any sub-protocol by default and is
+        meant to be overridden by an implementation that wishes to make
+        use of sub-protocols. It will be called during handling of
+        accept().
+        r*
+WebSocket.select_subprotocolc
+Called when a WebSocket ping message is received.
+        This will be called whilst processing recv()/recvmsg(). The
+        default implementation sends a pong reply back.N)
+pong
+datar
+handle_ping<
+WebSocket.handle_pingc
+Called when a WebSocket pong message is received.
+        This will be called whilst processing recv()/recvmsg(). The
+        default implementation does nothing.Nr
+handle_pongC
+WebSocket.handle_pongc
+Read data from the WebSocket.
+        This will return any available data on the socket (which may
+        be the empty string if the peer sent an empty message or
+        messages). If the socket is closed then None will be
+        returned. The reason for the close is found in the
+        'close_code' and 'close_reason' properties.
+        Unlike recvmsg() this method may return data from more than one
+        WebSocket message. It is however not guaranteed to return all
+        buffered data. Callers should continue calling recv() whilst
+        pending() returns True.
+        Both WebSocketWantReadError and WebSocketWantWriteError can be
+        raised when calling recv().
+        )
+recvmsgr
+recvJ
+WebSocket.recvc
+Read a single message from the WebSocket.
+        This will return a single WebSocket message from the socket
+        (which will be the empty string if the peer sent an empty
+        message). If the socket is closed then None will be
+        returned. The reason for the close is found in the
+        'close_code' and 'close_reason' properties.
+        Unlike recv() this method will not return data from more than
+        one WebSocket message. Callers should continue calling
+        recvmsg() whilst pending() returns True.
+        Both WebSocketWantReadError and WebSocketWantWriteError can be
+        raised when calling recvmsg().
+        N)
+pending
+_recvmsg
+_recv_framesr
+WebSocket.recvmsgc
+Check if any WebSocket data is pending.
+        This method will return True as long as there are WebSocket
+        frames that have yet been processed. A single recv() from the
+        underlying socket may return multiple WebSocket frames and it
+        is therefore important that a caller continues calling recv()
+        or recvmsg() as long as pending() returns True.
+        Note that this function merely tells if there are raw WebSocket
+        frames pending. Those frames may not contain any application
+        data.
+        r
+WebSocket.pendingc
+Write data to the WebSocket
+        This will queue the given data and attempt to send it to the
+        peer. Unlike sendmsg() this method might coalesce the data with
+        data from other calls, or split it over multiple messages.
+        WebSocketWantWriteError can be raised if there is insufficient
+        space in the underlying socket. send() must be called again
+        once more space is available using the same arguments.
+        r
+sendmsg)
+bytesr
+send
+WebSocket.sendc
+t	yp
+Write a single message to the WebSocket
+        This will queue the given message and attempt to send it to the
+        peer. Unlike send() this method will preserve the data as a
+        single WebSocket message.
+        WebSocketWantWriteError can be raised if there is insufficient
+        space in the underlying socket. sendmsg() must be called again
+        once more space is available using the same arguments.
+        r
+isinstancerq
+	TypeErrorr
+ValueErrorrL
+_sendmsgr
+msgr
+WebSocket.sendmsgr
+Write a ping message to the WebSocket
+        WebSocketWantWriteError can be raised if there is insufficient
+        space in the underlying socket. ping() must be called again once
+        more space is available using the same arguments.
+        N
+ping
+WebSocket.pingc
+Write a pong message to the WebSocket
+        WebSocketWantWriteError can be raised if there is insufficient
+        space in the underlying socket. pong() must be called again once
+        more space is available using the same arguments.
+        N
+WebSocket.pong
+)	as
+Gracefully terminate the WebSocket connection.
+        This will start the process to terminate the WebSocket
+        connection. The caller must continue to calling recv() or
+        recvmsg() after this function in order to wait for the peer to
+        acknowledge the close. Calls to send() and sendmsg() will be
+        ignored.
+        WebSocketWantWriteError can be raised if there is insufficient
+        space in the underlying socket for the close message. shutdown()
+        must be called again once more space is available using the same
+        arguments.
+        The how argument is currently ignored.
+        Nr|
+Locally initiated closeTr
+UTF-8
+struct
+packrF
+code
+reasonrw
+shutdown
+WebSocket.shutdownc
+Terminate the WebSocket connection immediately.
+        This will close the WebSocket connection directly after sending
+        a close message to the peer.
+        WebSocketWantWriteError can be raised if there is insufficient
+        space in the underlying socket for the close message. close()
+        must be called again once more space is available using the same
+        arguments.
+        N)
+	SHUT_RDWR
+_close)
+close
+WebSocket.closec
+OSError
+errno
+EWOULDBLOCKr
+hasattrrm
+excr
+WebSocket._recvc
+rLqn|
+Connection closed abnormallyTF
+length)
+_decode_hybir
+append)
+framer
+WebSocket._recv_framesc
+maskedi
+z Procotol error: Frame not maskedz
+Procotol error: Frame masked
+opcodez-Procotol error: Unexpected continuation frame
+payload
+finr
+z*Unsupported: Text frames are not supportedr5
+z$Procotol error: Unexpected new framer
+Unsupported: Fragmented closer}
+z&Procotol error: Invalid UTF-8 in closei
+z&No close status code specified by peerrx
+Unsupported: Fragmented pingr{
+Unsupported: Fragmented pongz"Unsupported: Unknown opcode 0x%02x)
+popr<
+unpackrG
+UnicodeDecodeErrorr
+WebSocket._recvmsgc
+sentr
+WebSocket._flushc
+_send
+WebSocket._sendc
+stringr
+WebSocket._queue_strc
+_encode_hybir
+maskrZ
+WebSocket._sendmsgc
+WebSocket._closec
+_unmask)
+bufr
+_mask
+WebSocket._maskc
+}	|	
+<u4Z
+count
+offsetr
+numpyrJ
+dtype
+	byteorderZ
+newbyteorderZ
+frombufferrb
+bitwise_xor
+tobytes
+arrayZ	frombytesrB
+plenZ
+pstartZ
+pend
+WebSocket._unmaskTc
+ Encode a HyBi style WebSocket frame.
+        Optional opcode:
+            0x0 - continuation
+            0x1 - text frame
+            0x2 - binary frame
+            0x8 - connection close
+            0x9 - ping
+            0xA - pong
+        
+>BBi
+>BBH
+>BBQ
+mask_keyr
+mask_bitZ
+payload_len
+headerr
+WebSocket._encode_hybic
+ Decode HyBi style WebSocket packets.
+        Returns:
+            {'fin'          : boolean,
+             'opcode'       : number,
+             'masked'       : boolean,
+             'length'       : encoded_length,
+             'payload'      : decoded_buffer}
+        r
+>Qr{
+blenZ
+hlenr
+WebSocket._decode_hybi)
+NT)!r
+__doc__rU
+base64r
+hashlibr
+urllib.parser
+ImportError
+warnings
+warnZ
+SSLWantReadErrorr
+SSLWantWriteErrorr
+objectr
+<module>

@@ -1,0 +1,1 @@
+ALTER TABLE tbl_vm_migrate_task ALTER COLUMN dest_host_ip TYPE varchar(256); -- '目的主机IP',

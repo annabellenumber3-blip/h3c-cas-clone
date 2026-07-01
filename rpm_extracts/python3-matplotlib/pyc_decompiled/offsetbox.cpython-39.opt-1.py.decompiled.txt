@@ -1,0 +1,913 @@
+Z d2d
+e	j"
+d e#
+d!d"
+d"e#
+Z+d#d$
+d%d&
+d&e+
+d'd(
+d(e#
+d)d*
+d*e	j"e
+d+d,
+d-d.
+d.e1
+d/d0
+d0e1
+)3ac
+Container classes for `.Artist`\s.
+`OffsetBox`
+    The base of all container artists defined in this module.
+`AnchoredOffsetbox`, `AnchoredText`
+    Anchor and align an arbitrary `.Artist` or a text relative to the parent
+    axes or a specific anchor point.
+`DrawingArea`
+    A container with fixed width and height. Children have a fixed position
+    inside the container and may be clipped.
+`HPacker`, `VPacker`
+    Containers for layouting their children vertically or horizontally.
+`PaddedBox`
+    A container to add a padding around an `.Artist`.
+`TextArea`
+    Contains a single `.Text` instance.
+_api
+_docstring)
+FontProperties)
+	BboxImage)
+FancyBboxPatch
+FancyArrowPatch
+bbox_artist)
+Bbox
+BboxBase
+TransformedBboxFc
+DEBUG
+mbbox_artist)
+args
+kwargs
+:/usr/lib64/python3.9/site-packages/matplotlib/offsetbox.pyr
+fixedc
+    Pack boxes specified by their ``(width, xdescent)`` pair.
+    For simplicity of the description, the terminology used here assumes a
+    horizontal layout, but the function works equally for a vertical layout.
+    *xdescent* is analogous to the usual descent, but along the x-direction; it
+    is currently ignored.
+    There are three packing *mode*\s:
+    - 'fixed': The elements are packed tight to the left with a spacing of
+      *sep* in between. If *total* is *None* the returned total will be the
+      right edge of the last box. A non-*None* total will be passed unchecked
+      to the output. In particular this means that right edge of the last
+      box may be further to the right than the returned total.
+    - 'expand': Distribute the boxes with equal spacing so that the left edge
+      of the first box is at 0, and the right edge of the last box is at
+      *total*. The parameter *sep* is ignored in this mode. A total of *None*
+      is accepted and considered equal to 1. The total is returned unchanged
+      (except for the conversion *None* to 1). If the total is smaller than
+      the sum of the widths, the laid out boxes will overlap.
+    - 'equal': If *total* is given, the total space is divided in N equal
+      ranges and each box is left-aligned within its subspace.
+      Otherwise (*total* is *None*), *sep* must be provided and each box is
+      left-aligned in its subspace of width ``(max(widths) + sep)``. The
+      total width is then calculated to be ``N * (max(widths) + sep)``.
+    Parameters
+    ----------
+    wd_list : list of (float, float)
+        (width, xdescent) of boxes to be packed.
+    total : float or None
+        Intended total length. *None* if not used.
+    sep : float
+        Spacing between boxes.
+    mode : {'fixed', 'expand', 'equal'}
+        The packing mode.
+    Returns
+    -------
+    total : float
+        The total width needed to accommodate the laid out boxes.
+    offsets : array of float
+        The left offsets of the boxes.
+    )
+expand
+equal)
+moder
+sepr
+<listcomp>f
+z'_get_packed_offsets.<locals>.<listcomp>N
+z@total and sep cannot both be None when using layout mode 'equal')
+zipr
+check_in_list
+cumsum
+ValueErrorZ
+arange)	
+wd_list
+totalr
+w_listZ
+d_listZ
+offsets_
+offsetsZ
+maxhr
+_get_packed_offsets1
+baselinec
+    Align boxes each specified by their ``(height, descent)`` pair.
+    For simplicity of the description, the terminology used here assumes a
+    horizontal layout (i.e., vertical alignment), but the function works
+    equally for a vertical layout.
+    Parameters
+    ----------
+    hd_list
+        List of (height, xdescent) of boxes to be aligned.
+    height : float or None
+        Intended total height. If None, the maximum of the heights in *hd_list*
+        is used.
+    align : {'baseline', 'left', 'top', 'right', 'bottom', 'center'}
+        The alignment anchor of the boxes.
+    Returns
+    -------
+    height
+        The total height of the packing (if a value was originally passed in,
+        it is returned without checking that it is actually large enough).
+    descent
+        The descent of the packing.
+    offsets
+        The bottom offsets of the boxes.
+    Nc
+	<genexpr>
+z'_get_aligned_offsets.<locals>.<genexpr>)
+left
+right
+bottom
+center)
+alignr+
+z(_get_aligned_offsets.<locals>.<listcomp>)
+heightr
+hd_listr8
+height_descentZ
+descentr)
+_get_aligned_offsets
+	OffsetBoxz
+    The OffsetBox is a simple container artist.
+    The child artists are meant to be drawn at a relative position to its
+    parent.
+    Being an artist itself, all parameters are passed on to `.Artist`.
+    c
+super
+__init__
+_internal_updateZ
+set_clip_on
+	_children
+_offset)
+selfr
+	__class__r
+OffsetBox.__init__c
+        Set the `.Figure` for the `.OffsetBox` and all its children.
+        Parameters
+        ----------
+        fig : `~matplotlib.figure.Figure`
+        N)
+set_figure
+get_children)
+OffsetBox.set_figurec
+martist
+Artist
+axes
+fsetrG
+axrI
+OffsetBox.axesc
+        Delegate the mouse event contains-check to the children.
+        As a container, the `.OffsetBox` does not respond itself to
+        mouseevents.
+        Parameters
+        ----------
+        mouseevent : `matplotlib.backend_bases.MouseEvent`
+        Returns
+        -------
+        contains : bool
+            Whether any values are within the radius.
+        details : dict
+            An artist-specific dictionary of details of the event context,
+            such as which points are contained in the pick radius. See the
+            individual Artist subclasses for details.
+        See Also
+        --------
+        .Artist.contains
+        NF)
+_default_containsrG
+contains)
+mouseevent
+inside
+inforI
+OffsetBox.containsc
+        Set the offset.
+        Parameters
+        ----------
+        xy : (float, float) or callable
+            The (x, y) coordinates of the offset in display units. These can
+            either be given explicitly as a tuple (x, y), or by providing a
+            function that converts the extent into the offset. This function
+            must have the signature::
+                def offset(width, height, xdescent, ydescent, renderer) -> (float, float)
+        TN)
+stale
+set_offset
+OffsetBox.set_offsetc
+        Return the offset as a tuple (x, y).
+        The extent parameters have to be provided to handle the case where the
+        offset is dynamically determined by a callable (see
+        `~.OffsetBox.set_offset`).
+        Parameters
+        ----------
+        width, height, xdescent, ydescent
+            Extent parameters.
+        renderer : `.RendererBase` subclass
+        )
+callablerB
+widthr8
+xdescent
+ydescent
+rendererr
+get_offset
+OffsetBox.get_offsetc
+        Set the width of the box.
+        Parameters
+        ----------
+        width : float
+        TN)
+	set_width'
+OffsetBox.set_widthc
+        Set the height of the box.
+        Parameters
+        ----------
+        height : float
+        TN)
+set_height2
+OffsetBox.set_heightc
+z/Return a list of the visible child `.Artist`\s.c
+get_visible
+z2OffsetBox.get_visible_children.<locals>.<listcomp>
+get_visible_children=
+OffsetBox.get_visible_childrenc
+z'Return a list of the child `.Artist`\s.rd
+OffsetBox.get_childrenc
+        Update offset of the children and return the extent of the box.
+        Parameters
+        ----------
+        renderer : `.RendererBase` subclass
+        Returns
+        -------
+        width
+        height
+        xdescent
+        ydescent
+        list of (xoffset, yoffset) pairs
+        z9get_extent_offsets must be overridden in derived classes.N)
+NotImplementedError
+get_extent_offsetsE
+OffsetBox.get_extent_offsetsc
+z@Return a tuple ``width, height, xdescent, ydescent`` of the box.)
+ydr)
+get_extentX
+OffsetBox.get_extentNc
+figure
+_get_rendererri
+mtransformsr	
+from_bounds)	rC
+get_window_extent]
+OffsetBox.get_window_extentc
+        Update the location of children if necessary and draw them
+        to the given *renderer*.
+        Fr6
+fillZ
+propsN)	ri
+drawr
+dictrV
+OffsetBox.draw)
+__name__
+__module__
+__qualname__
+__doc__r?
+setterrP
+__classcell__r
+PackerBaseNr+
+        Parameters
+        ----------
+        pad : float, optional
+            The boundary padding in points.
+        sep : float, optional
+            The spacing between items in points.
+        width, height : float, optional
+            Width and height of the container box in pixels, calculated if
+            *None*.
+        align : {'top', 'bottom', 'left', 'right', 'center', 'baseline'}, default: 'baseline'
+            Alignment of boxes.
+        mode : {'fixed', 'expand', 'equal'}, default: 'fixed'
+            The packing mode.
+            - 'fixed' packs the given `.Artist`\s tight with *sep* spacing.
+            - 'expand' uses the maximal available space to distribute the
+              artists with equal spacing in between.
+            - 'equal': Each artist an equal fraction of the available space
+              and is left-aligned (or top-aligned) therein.
+        children : list of `.Artist`
+            The artists to pack.
+        Notes
+        -----
+        *pad* and *sep* are in points and will be scaled with the renderer
+        dpi, while *width* and *height* are in pixels.
+        N)	r>
+childrenrD
+PackerBase.__init__)
+NNNNr+
+VPackerzs
+    VPacker packs its children vertically, automatically adjusting their
+    relative positions at draw time.
+    c
+z.VPacker.get_extent_offsets.<locals>.<listcomp>c
+points_to_pixelsru
+isinstancer
+listr 
+dpicorru
+whd_listr'
+xoffsets
+	pack_listr8
+Z	yoffsets_
+yoffsetsr]
+VPacker.get_extent_offsetsN
+HPackerzu
+    HPacker packs its children horizontally, automatically adjusting their
+    relative positions at draw time.
+    c
+)	Nr
+z.HPacker.get_extent_offsets.<locals>.<listcomp>r
+Z	xoffsets_r
+HPacker.get_extent_offsetsNr
+	PaddedBoxz
+    A container to add a padding around an `.Artist`.
+    The `.PaddedBox` contains a `.FancyBboxPatch` that is used to visualize
+    it when rendering.
+    
+draw_frame
+nameNFc
+        Parameters
+        ----------
+        child : `~matplotlib.artist.Artist`
+            The contained `.Artist`.
+        pad : float
+            The padding in points. This will be scaled with the renderer dpi.
+            In contrast *width* and *height* are in *pixels* and thus not
+            scaled.
+        draw_frame : bool
+            Whether to draw the contained `.FancyBboxPatch`.
+        patch_attrs : dict or None
+            Additional parameters passed to the contained `.FancyBboxPatch`.
+        
+square,pad=0
+	facecolor
+	edgecolor
+mutation_scale
+snap
+visibleZ
+boxstyleN)
+patch
+update)
+childru
+patch_attrsrD
+PaddedBox.__init__c
+PaddedBox.get_extent_offsetsc
+}	|	
+PaddedBox.drawc
+set_bounds
+bounds
+set_mutation_scalerV
+bbox
+fontsizer
+update_frame-
+PaddedBox.update_framec
+PaddedBox.draw_frame)
+NFN)
+make_keyword_onlyr?
+DrawingAreaz
+    The DrawingArea can contain any Artist as a child. The DrawingArea
+    has a fixed width and height. The position of children relative to
+    the parent is fixed. The children can be clipped at the
+    boundaries of the parent.
+    r6
+        Parameters
+        ----------
+        width, height : float
+            Width and height of the container box.
+        xdescent, ydescent : float
+            Descent of the box in x- and y-direction.
+        clip : bool
+            Whether to clip the children to the box.
+        N)
+_clip_childrenro
+Affine2D
+offset_transform
+dpi_transform)
+cliprD
+DrawingArea.__init__c
+        If the children of this DrawingArea should be clipped
+        by DrawingArea bounding box.
+        )
+clip_childrenU
+DrawingArea.clip_childrenc
+boolr
+valr
+        Return the `~matplotlib.transforms.Transform` applied to the children.
+        )
+get_transformb
+DrawingArea.get_transformc
+        set_transform is ignored.
+        Nr
+set_transformh
+DrawingArea.set_transformc
+        Set the offset of the container.
+        Parameters
+        ----------
+        xy : (float, float)
+            The (x, y) coordinates of the offset in display units.
+        r
+clear
+	translaterV
+DrawingArea.set_offsetc
+Return offset of the container.
+DrawingArea.get_offsetNc
+DrawingArea.get_window_extentc
+z0Return width, height, xdescent, ydescent of box.r
+dpi_corr
+DrawingArea.get_extentc
+&Add an `.Artist` to the container box.N)
+appendZ
+is_transform_setr
+add_artist
+DrawingArea.add_artistc
+scalero
+TransformedPath
+mpath
+Pathr8
+clipboxZ	_clippathZ
+set_clip_pathrw
+tpathrI
+DrawingArea.draw)
+propertyr
+TextAreaz
+    The TextArea is a container artist for a single Text instance.
+    The text is placed at (0, 0) with baseline+left alignment, by default. The
+    width and height of the TextArea instance is the width and height of its
+    child text.
+    r
+	textpropsr
+        Parameters
+        ----------
+        s : str
+            The text to be displayed.
+        textprops : dict, default: {}
+            Dictionary of keyword parameters to be passed to the `.Text`
+            instance in the TextArea.
+        multilinebaseline : bool, default: False
+            Whether the baseline for multiline text is adjusted so that it
+            is (approximately) center-aligned with single-line text.
+        Nr
+mtext
+Text
+_textr>
+_baseline_transformr
+_multilinebaseline)
+multilinebaselinerD
+TextArea.__init__c
+z&Set the text of this area as a string.TN)
+set_textrV
+TextArea.set_textc
+z5Return the string representation of this area's text.)
+get_textre
+TextArea.get_textc
+        Set multilinebaseline.
+        If True, the baseline for multiline text is adjusted so that it is
+        (approximately) center-aligned with single-line text.  This is used
+        e.g. by the legend implementation so that single-line labels are
+        baseline-aligned, but multiline labels are "center"-aligned with them.
+        TN)
+set_multilinebaseline
+TextArea.set_multilinebaselinec
+        Get multilinebaseline.
+        )
+get_multilinebaseline
+TextArea.get_multilinebaselinec
+TextArea.set_transformc
+TextArea.set_offsetc
+TextArea.get_offsetc
+TextArea.get_window_extentc
+TeXF)
+ismathr
+get_text_width_height_descentr
+_fontpropertiesZ
+get_usetexZ
+_get_layout
+sizer
+get_horizontalalignment)
+yd_newZ
+h_dZ
+harj
+TextArea.get_extentc
+NFr6
+TextArea.draw)
+AuxTransformBoxaZ
+    Offset Box with the aux_transform. Its children will be
+    transformed with the aux_transform first then will be
+    offsetted. The absolute coordinate of the aux_transform is meaning
+    as it will be automatically adjust so that the left-lower corner
+    of the bounding box of children will be set to (0, 0) before the
+    offset transform.
+    It is similar to drawing area, except that the extent of the box
+    is not predetermined but calculated from the window extent of its
+    children. Furthermore, the extent of the children will be
+    calculated in the transformed coordinate.
+    c
+aux_transformr>
+ref_offset_transform)
+AuxTransformBox.__init__c
+AuxTransformBox.add_artistc
+        Return the :class:`~matplotlib.transforms.Transform` applied
+        to the children
+        )
+AuxTransformBox.get_transformc
+AuxTransformBox.set_transformc
+AuxTransformBox.set_offsetc
+AuxTransformBox.get_offsetNc
+z!AuxTransformBox.get_window_extentc
+z.AuxTransformBox.get_extent.<locals>.<listcomp>r6
+get_matrixr
+unionr
+set_matrixr[
+_offZ
+bboxesZ
+AuxTransformBox.get_extentc
+AuxTransformBox.draw)
+d+d d!
+d,d"d#
+d-d$d%
+d.d&d'
+d(d)
+AnchoredOffsetboxa0
+    An offset box placed according to location *loc*.
+    AnchoredOffsetbox has a single child.  When multiple children are needed,
+    use an extra OffsetBox to enclose them.  By default, the offset box is
+    anchored against its parent axes. You may explicitly specify the
+    *bbox_to_anchor*.
+    
+upper rightz
+upper leftz
+lower leftz
+lower rightr2
+center leftz
+center rightz
+lower centerz
+upper centerr4
+NTc	
+        Parameters
+        ----------
+        loc : str
+            The box location.  Valid locations are
+            'upper left', 'upper center', 'upper right',
+            'center left', 'center', 'center right',
+            'lower left', 'lower center, 'lower right'.
+            For backward compatibility, numeric values are accepted as well.
+            See the parameter *loc* of `.Legend` for details.
+        pad : float, default: 0.4
+            Padding around the child as fraction of the fontsize.
+        borderpad : float, default: 0.5
+            Padding between the offsetbox frame and the *bbox_to_anchor*.
+        child : `.OffsetBox`
+            The box that will be anchored.
+        prop : `.FontProperties`
+            This is only used as a reference for paddings. If not given,
+            :rc:`legend.fontsize` is used.
+        frameon : bool
+            Whether to draw a frame around the box.
+        bbox_to_anchor : `.BboxBase`, 2-tuple, or 4-tuple of floats
+            Box that is used to position the legend in conjunction with *loc*.
+        bbox_transform : None or :class:`matplotlib.transforms.Transform`
+            The transform for the bounding box (*bbox_to_anchor*).
+        **kwargs
+            All other parameters are passed on to `.OffsetBox`.
+        Notes
+        -----
+        See `.Legend` for a detailed description of the anchoring mechanism.
+        )
+locN
+legend.fontsize
+set_bbox_to_anchor
+	set_childr
+strr
+check_getitem
+codesr
+	borderpadru
+rcParams
+propZ	_from_anyrx
+set_sizer
+get_size_in_pointsr
+frameon
+bbox_to_anchorZ
+bbox_transformr
+AnchoredOffsetbox.__init__c
+Set the child to be anchored.NT)
+_childrL
+AnchoredOffsetbox.set_childc
+Return the child.
+	get_child
+AnchoredOffsetbox.get_childc
+Return the list of children.r
+AnchoredOffsetbox.get_childrenc
+        Return the extent of the box as (width, height, x, y).
+        This is the extent of the child plus the padding.
+        r
+AnchoredOffsetbox.get_extentc
+z,Return the bbox that the box is anchored to.N)
+_bbox_to_anchorrL
+_bbox_to_anchor_transformr
+	transformr
+get_bbox_to_anchor
+z$AnchoredOffsetbox.get_bbox_to_anchorc
+        Set the bbox that the box is anchored to.
+        *bbox* can be a Bbox instance, a list of [left, bottom, width,
+        height], or a list of [left, bottom] where the width and
+        height will be assumed to be zero. The bbox will be
+        transformed to display coordinate by the given transform.
+        Nz
+Invalid bbox: r
+	TypeErrorr&
+errr
+z$AnchoredOffsetbox.set_bbox_to_anchorc
+_update_offset_funcrl
+z#AnchoredOffsetbox.get_window_extentc
+        Update the offset func which depends on the dpi of the
+        renderer (because of the padding).
+        Nc
+_get_anchored_bboxr
+z6AnchoredOffsetbox._update_offset_func.<locals>._offset)
+z%AnchoredOffsetbox._update_offset_funcc
+AnchoredOffsetbox.update_framec
+AnchoredOffsetbox.draw)
+NNTNN)
+zorderr
+    Return the (x, y) position of the *bbox* anchored at the *parentbbox* with
+    the *loc* code with the *borderpad*.
+    )
+	container)
+paddedZ
+anchored
+parentbboxr
+AnchoredTextz&
+    AnchoredOffsetbox with Text.
+    r
+        Parameters
+        ----------
+        s : str
+            Text.
+        loc : str
+            Location code. See `AnchoredOffsetbox`.
+        pad : float, default: 0.4
+            Padding around the text as fraction of the fontsize.
+        borderpad : float, default: 0.5
+            Spacing between the offsetbox frame and the *bbox_to_anchor*.
+        prop : dict, optional
+            Dictionary of keyword parameters to be passed to the
+            `~matplotlib.text.Text` instance contained inside AnchoredText.
+        **kwargs
+            All other parameters are passed to `AnchoredOffsetbox`.
+        N
+verticalalignmentz<Mixing verticalalignment with AnchoredText is not supported.)
+setr&
+txtr
+get_fontpropertiesr>
+)	rC
+Z	badkwargs
+fprD
+AnchoredText.__init__)
+OffsetImager
+zoomr
+cmap
+norm
+interpolation
+origin
+filternorm
+	filterrad
+resample)	r>
+_dpi_corr
+imagerA
+set_zoom
+set_data)
+arrr
+OffsetImage.__init__c
+asarray
+_datar
+OffsetImage.set_datac
+get_data
+OffsetImage.get_datac
+_zoomrV
+OffsetImage.set_zoomc
+get_zoom
+OffsetImage.get_zoomc
+OffsetImage.get_offsetc
+OffsetImage.get_childrenc
+OffsetImage.get_window_extentc
+shape)	rC
+dataZ
+OffsetImage.get_extentc
+OffsetImage.draw)	r
+NNNNTr
+d*d!d"
+d#d$
+d%d&
+AnnotationBboxz
+    Container for an `OffsetBox` referring to a specific position *xy*.
+    Optionally an arrow pointing from the offsetbox to *xy* can be drawn.
+    This is like `.Annotation`, but with `OffsetBox` instead of `.Text`.
+    r
+AnnotationBbox(%g,%g)r
+__str__
+AnnotationBbox.__str__r
+xycoordsr
+        Parameters
+        ----------
+        offsetbox : `OffsetBox`
+        xy : (float, float)
+            The point *(x, y)* to annotate. The coordinate system is determined
+            by *xycoords*.
+        xybox : (float, float), default: *xy*
+            The position *(x, y)* to place the text at. The coordinate system
+            is determined by *boxcoords*.
+        xycoords : str or `.Artist` or `.Transform` or callable or (float, float), default: 'data'
+            The coordinate system that *xy* is given in. See the parameter
+            *xycoords* in `.Annotation` for a detailed description.
+        boxcoords : str or `.Artist` or `.Transform` or callable or (float, float), default: value of *xycoords*
+            The coordinate system that *xybox* is given in. See the parameter
+            *textcoords* in `.Annotation` for a detailed description.
+        frameon : bool, default: True
+            By default, the text is surrounded by a white `.FancyBboxPatch`
+            (accessible as the ``patch`` attribute of the `.AnnotationBbox`).
+            If *frameon* is set to False, this patch is made invisible.
+        pad : float, default: 0.4
+            Padding around the offsetbox.
+        box_alignment : (float, float)
+            A tuple of two floats for a vertical and horizontal alignment of
+            the offset box w.r.t. the *boxcoords*.
+            The lower-left corner is (0, 0) and upper-right corner is (1, 1).
+        **kwargs
+            Other parameters are identical to `.Annotation`.
+        )
+annotation_clipNZ
+relposr+
+squarert
+_AnnotationBase
+	offsetbox
+copy
+arrowprops
+set_fontsize
+xybox
+	boxcoords
+_box_alignment
+_arrow_relposr
+arrow_patchr
+set_boxstyler
+box_alignmentZ	bboxpropsr1
+AnnotationBbox.__init__c
+xyannP
+AnnotationBbox.xyannc
+	anncoordsY
+AnnotationBbox.anncoordsc
+coordsr
+	_check_xyr/
+AnnotationBbox.containsc
+AnnotationBbox.get_childrenc
+AnnotationBbox.set_figurec
+        Set the fontsize in points.
+        If *s* is not given, reset to :rc:`legend.fontsize`.
+        Nr
+AnnotationBbox.set_fontsizec
+Return the fontsize in points.)
+get_fontsize
+AnnotationBbox.get_fontsizec
+z4AnnotationBbox.get_window_extent.<locals>.<listcomp>)
+z AnnotationBbox.get_window_extentc
+get_tightbboxr=
+z0AnnotationBbox.get_tightbbox.<locals>.<listcomp>)
+AnnotationBbox.get_tightbboxc
+        Update pixel positions for the annotated point, the text and the arrow.
+        r
+patchAN)
+tupleZ
+_get_xyr/
+_get_position_xyr8
+set_positions
+getZ
+set_patchA)
+xcoordZ
+ycoordZ
+ox0Z
+oy0r
+arrow_beginZ	arrow_endr?
+update_positions
+AnnotationBbox.update_positionsc
+Z	_rendererrb
+AnnotationBbox.draw)
+NNN)
+dedent_interpdr
+DraggableBasea
+    Helper base class for a draggable artist (legend, offsetbox).
+    Derived classes must override the following methods::
+        def save_offset(self):
+            '''
+            Called when the object is picked for dragging; should save the
+            reference position of the artist.
+            '''
+        def update_offset(self, dx, dy):
+            '''
+            Called during the dragging; (*dx*, *dy*) is the pixel offset from
+            the point where the mouse drag started.
+            '''
+    Optionally, you may override the following method::
+        def finalize_offset(self):
+            '''Called when the mouse is released.'''
+    In the current implementation of `.DraggableLegend` and
+    `DraggableAnnotation`, `update_offset` places the artists in display
+    coordinates, and `finalize_offset` recalculates their position in axes
+    coordinate and set a relevant attribute.
+    Fc
+NTFZ
+pick_eventZ
+button_release_event)
+ref_artistZ
+pickableZ
+set_picker
+got_artistrm
+canvasZ
+supports_blit
+	_use_blit
+	callbacks
+_connect_picklable
+on_pick
+on_release
+cids)
+use_blitr
+DraggableBase.__init__c
+_check_still_parentedrH
+mouse_xrC
+mouse_y
+update_offsetrJ
+restore_region
+backgroundrG
+blit)
+	on_motion
+DraggableBase.on_motionc
+j	r||
+motion_notify_event)
+artistrG
+set_animatedrI
+copy_from_bboxrm
+save_offset)
+DraggableBase.on_pickc
+)	rQ
+finalize_offsetrI
+mpl_disconnectr]
+eventr
+DraggableBase.on_releasec
+NFT)
+disconnectre
+z#DraggableBase._check_still_parentedc
+Disconnect the callbacks.N)
+AttributeError)
+cidZ
+DraggableBase.disconnectc
+DraggableBase.save_offsetc
+DraggableBase.update_offsetc
+DraggableBase.finalize_offsetN)
+DraggableOffsetBoxFc
+DraggableOffsetBox.__init__c
+offsetbox_x
+offsetbox_yrY
+offsetr
+DraggableOffsetBox.save_offsetc
+loc_in_canvasr
+z DraggableOffsetBox.update_offsetc
+}	|	S
+get_loc_in_canvasO
+z$DraggableOffsetBox.get_loc_in_canvas)
+DraggableAnnotationFc
+annotation)
+DraggableAnnotation.__init__c
+annr
+DraggableAnnotation.save_offsetc
+invertedr
+z!DraggableAnnotation.update_offset)
+numpyr"
+matplotlibr
+matplotlib.artistr[
+matplotlib.path
+pathr
+matplotlib.text
+textr
+matplotlib.transformsZ
+transformsro
+matplotlib.font_managerr
+matplotlib.imager
+matplotlib.patchesr
+<module>

@@ -1,0 +1,121 @@
+CMSD_SUCCEED=0
+CMSD_FAILED=1
+
+CMSD_ROLE_MASTER=1
+CMSD_ROLE_SLAVE=2
+
+SKIP_MONITOR_CVM_CONF_PATH="/etc/cmsd/ms_service_monitor_cvm.conf"
+SKIP_MONITOR_FS_DATA_CONF_PATH="/etc/cmsd/ms_service_monitor_filesystem_data.conf"
+SKIP_MONITOR_FILESYSTEM_CONF_PATH="/etc/cmsd/ms_service_monitor_filesystem.conf"
+SKIP_MONITOR_NETWORK_CONF_PATH="/etc/cmsd/ms_service_monitor_network.conf"
+
+MODULE_PREFIX="ms_service_"
+SCRIPT_CONF_PATH="/etc/cmsd/services/"
+PARAM_IFS=' = '
+
+declare -A params_dictionary
+if [ "X$(/opt/bin/os_lsb_release -is)" = "XH3Linux" ]; then
+    MYSQL_NAME="seasql"
+    MYSQL_DEAMON="/usr/local/tos/seasql/bin/seasql"
+    MYSQL_CONFIG="/etc/database/config"
+else
+    MYSQL_NAME="mysql"
+    MYSQL_DEAMON="/usr/sbin/mysqld"
+    if [ -f /etc/mysql/mysql.conf.d/mysqld.cnf ]; then
+        MYSQL_CONFIG="/etc/mysql/mysql.conf.d/mysqld.cnf"
+    else
+        MYSQL_CONFIG="/etc/mysql/my.cnf"
+    fi
+fi
+#######################################################
+# translate cdr to mask, eg: 16 -> 255.255.0.0. 
+# usage: cdr2mask 16
+########################################################
+cdr2mask()
+{
+    # Number of args to shift, 255..255, first non-255 byte, zeroes
+    set -- $(( 5 - ($1 / 8) )) 255 255 255 255 $(( (255 << (8 - ($1 % 8))) & 255 )) 0 0 0
+    [ $1 -gt 1 ] && shift $1 || shift
+    echo ${1-0}.${2-0}.${3-0}.${4-0}
+}
+
+#######################################################
+# get broadcast with ip/netmask, 
+# usage: get_broadcast 172.20.28.103/255.255.0.0
+########################################################
+get_broadcast()
+{
+    echo $@ | awk 'BEGIN{FS="[./]";OFS="."}
+        END{
+            print or($1,xor($5,255)),or($2,xor($6,255)),or($3,xor($7,255)),or($4,xor($8,255))
+        }'
+
+}
+
+#######################################################
+# read conf and generate params dictionary for script.
+# $1: script module name, eg: ms_sync`s module is sync
+# 
+# @retrun: output is stored in params_dictionary, then 
+#          use it like this: ${params_dictionary["ip"]}
+########################################################
+read_conf()
+{
+    module=`echo $1 | sed "s/$MODULE_PREFIX//"`
+    OLD_IFS="$IFS"
+    IFS="$PARAM_IFS"
+
+    conf_path=${SCRIPT_CONF_PATH}${module}".conf"
+    if [ ! -f $conf_path ]; then
+        IFS="$OLD_IFS"
+        return 1
+    fi
+
+    while read k v; do
+        # filter invalid key, valid key is composition of: alphanumeric characters and underscores
+        if [ "X$k" = "X" ]; then
+            continue
+        else
+            echo "$k" | grep -Eq "[^a-zA-Z0-9_]"
+            if [ $? -eq 0 ]; then
+                continue
+            fi
+        fi
+
+        # strip any "#" comment 
+        v=$(echo "$v" | sed "s/[ ]*#.*//")
+
+        params_dictionary[$k]=$v
+    done < $conf_path
+
+    IFS="$OLD_IFS"
+}
+
+#######################################################
+# call functions according to operation inputed
+# $1: script module name, eg: ms_sync`s module is sync
+# $2: action
+# 
+# @retrun: none
+########################################################
+run_main()
+{
+    module=$1
+    action=$2
+    shift
+    shift
+
+    module=`echo $module | sed "s/$MODULE_PREFIX//"`
+    case $action in
+        start | stop | monitor) echo ${module}_${action} $*; ${module}_${action} $* ;;
+        *) ${module}_usage  ;;
+    esac
+}
+
+#######################################################
+# log for script
+########################################################
+cmsd_log()
+{
+    echo $*
+}

@@ -1,0 +1,404 @@
+Z"d	Z#d
+Z$e!d
+d d!
+d!e&
+d"d#
+d#e&
+d$d%
+Z)d-d'd(
+d)d*
+d*e&
+d+d,
+d,e&
+).z1 Classes for read / write of matlab (TM) 4 files
+asbytes
+asstr
+MatFileReader
+	docfiller
+matdims
+read_dtype
+convert_dtypes
+arr_to_chars
+arr_dtype_number)
+squeeze_element
+chars_to_strings)
+reduce
+little
+header)
+moptr
+mrowsr
+ncolsr
+imagfr
+namlenr
+c32Z
+c24Z
+c16r
+VAX D-floatz
+VAX G-floatZ
+Cray)
+double
+char
+sparsec
+VarHeader4Fc
+name
+dtype
+mclass
+dims
+is_complex)
+selfr(
+:/usr/lib64/python3.9/site-packages/scipy/io/matlab/mio4.py
+__init__Q
+VarHeader4.__init__N)
+__name__
+__module__
+__qualname__Z
+is_logicalZ	is_globalr0
+VarReader4z" Class to read matlab 4 variables c
+file_reader
+mat_stream
+dtypes
+chars_as_strings
+squeeze_me)
+VarReader4.__init__c
+z% Read and return header for variable r
+z.Mat 4 mopt wrong format, byteswapping problem?
+zBWe do not support byte ordering '%s'; returned data may be corrupt
+z,O in MOPT integer should be 0, wrong format?
+read
+strip
+ValueError
+divmod
+warnings
+warn
+order_codes
+UserWarningr&
+datar(
+rest
+read_headerh
+VarReader4.read_headerTc
+No reader for class code %s)
+mxFULL_CLASS
+read_full_array
+mxCHAR_CLASS
+read_char_arrayr8
+mxSPARSE_CLASS
+read_sparse_array
+	TypeErrorr9
+processr*
+arrr.
+array_from_header
+VarReader4.array_from_headerc
+ Mat4 read using header `hdr` dtype and dims
+        Parameters
+        ----------
+        hdr : object
+           object with attributes ``dtype``, ``dims``. dtype is assumed to be
+           the correct endianness
+        copy : bool, optional
+           copies array before return if True (default True)
+           (buffer is usually read only)
+        Returns
+        -------
+        arr : ndarray
+            of dtype given by `hdr` ``dtype`` and shape given by `hdr` ``dims``
+        z
+Not enough bytes to read matrix '%s'; is this a badly-formed file? Consider listing matrices with `whosmat` and loading named matrices with `variable_names` kwarg to `loadmat`
+shaper)
+buffer
+order)
+itemsizer6
+lenrB
+ndarray
+copy)	r-
+dtr+
+Z	num_bytes
+read_sub_array
+VarReader4.read_sub_arrayc
+ Full (rather than sparse) matrix getter
+        Read matrix (array) can be real or complex
+        Parameters
+        ----------
+        hdr : ``VarHeader4`` instance
+        Returns
+        -------
+        arr : ndarray
+            complex array if ``hdr.is_complex`` is True, otherwise a real
+            numeric array
+        F)
+resZ
+res_jr.
+VarReader4.read_full_arrayc
+ latin-1 text matrix (char matrix) reader
+        Parameters
+        ----------
+        hdr : ``VarHeader4`` instance
+        Returns
+        -------
+        arr : ndarray
+            with dtype 'U1', shape given by `hdr` ``dims``
+        
+latin-1r 
+astypera
+uint8
+tobytes
+decoderb
+arrayrc
+VarReader4.read_char_arrayc
+ Read and return sparse matrix type
+        Parameters
+        ----------
+        hdr : ``VarHeader4`` instance
+        Returns
+        -------
+        arr : ``scipy.sparse.coo_matrix``
+            with dtype ``float`` and shape read from the sparse matrix data
+        Notes
+        -----
+        MATLAB 4 real sparse arrays are saved in a N+1 by 3 array format, where
+        N is the number of non-zero values. Column 1 values [0:N] are the
+        (1-based) row indices of the each non-zero value, column 2 [0:N] are the
+        column indices, column 3 [0:N] are the (real) values. The last values
+        [-1,0:2] of the rows, column indices are shape[0] and shape[1]
+        respectively of the output matrix. The last value for the values column
+        is a padding 0. mrows and ncols values from the header give the shape of
+        the stored matrix, here [N+1, 3]. Complex data are saved as a 4 column
+        matrix, where the fourth column contains the imaginary component; the
+        last value is again 0. Complex sparse data do *not* have the header
+        ``imagf`` field set to True; the fact that the data are complex is only
+        detectable because there are 4 storage columns.
+        N
+intc
+float
+complex)	rf
+ascontiguousarrayr\
+imag
+scipyr%
+coo_matrix)
+tmpr+
+VarReader4.read_sparse_arrayc
+zwRead the shape of the array described by the header.
+        The file position after this call is unspecified.
+        Nrn
+<listcomp>(
+z0VarReader4.shape_from_header.<locals>.<listcomp>)
+tuple
+mapr@
+seekr_
+rowsZ
+colsr.
+shape_from_header	
+VarReader4.shape_from_headerN)
+__doc__r0
+MatFile4Readerz
+ Reader for Mat4 files c
+zR Initialize matlab 4 file reader
+    %(matstream_arg)s
+    %(load_args)s
+        N)
+superr
+_matrix_reader)
+args
+kwargs
+	__class__r.
+MatFile4Reader.__init__c
+SYS_LITTLE_ENDIAN)
+guess_byte_order8
+MatFile4Reader.guess_byte_orderc
+za Run when beginning read of variables
+        Sets up readers from parameters in `self`
+        N)
+mdtypes_templateZ
+byte_orderr7
+initialize_readD
+MatFile4Reader.initialize_readc
+ Read and return header, next position
+        Parameters
+        ----------
+        None
+        Returns
+        -------
+        header : object
+           object that can be passed to self.read_var_array, and that
+           has attributes ``name`` and ``is_global``
+        next_position : int
+           position in stream of next variable
+        c
+<lambda>\
+z0MatFile4Reader.read_var_header.<locals>.<lambda>r
+tell)
+remaining_bytes
+next_positionr.
+read_var_headerL
+MatFile4Reader.read_var_headerTc
+ Read array, given `header`
+        Parameters
+        ----------
+        header : header object
+           object with fields defining variable header
+        process : {True, False}, optional
+           If True, apply recursive post-processing during loading of array.
+        Returns
+        -------
+        arr : array
+           array with post-processing applied or not according to
+           `process`.
+        )
+read_var_arrayc
+MatFile4Reader.read_var_arrayNc
+ get variables from stream as dictionary
+        Parameters
+        ----------
+        variable_names : None or str or sequence of str, optional
+            variable name, or sequence of variable names to get from Mat file /
+            file stream. If None, then get all variables in file.
+        Nr
+isinstance
+listr6
+end_of_streamr
+remover`
+variable_names
+mdictrW
+get_variablesu
+MatFile4Reader.get_variablesc
+ list variables from stream r
+unknown)
+mclass_info
+getr*
+append)
+varsrW
+infor.
+list_variables
+MatFile4Reader.list_variables)
+__classcell__r.
+rowc
+ Make ``arr`` exactly two dimensional
+    If `arr` has more than 2 dimensions, raise a ValueError
+    Parameters
+    ----------
+    arr : array
+    oned_as : {'row', 'column'}, optional
+       Whether to reshape 1-D vectors as row vectors or column vectors.
+       See documentation for ``matdims`` for more detail
+    Returns
+    -------
+    arr2d : array
+       2-D version of the array
+    r
+z=Matlab 4 files cannot save arrays with more than 2 dimensions)
+reshape)
+oned_asr+
+	arr_to_2d
+VarWriter4c
+file_streamr
+file_writerr.
+VarWriter4.__init__c
+writerk
+write_bytes
+VarWriter4.write_bytesc
+write_string
+VarWriter4.write_stringr
+ Write header for given data options
+        Parameters
+        ----------
+        name : str
+            name of variable
+        shape : sequence
+           Shape of array as it will be read in matlab
+        P : int, optional
+            code for mat4 data type, one of ``miDOUBLE, miSINGLE, miINT32,
+            miINT16, miUINT16, miUINT8``
+        T : int, optional
+            code for mat4 matrix class, one of ``mxFULL_CLASS, mxCHAR_CLASS,
+            mxSPARSE_CLASS``
+        imagf : int, optional
+            flag indicating complex
+        r.
+emptyr
+)	r-
+write_header
+VarWriter4.write_headerc
+ Write matrix `arr`, with name `name`
+        Parameters
+        ----------
+        arr : array_like
+           array to write
+        name : str
+           name in matlab workspace
+        N
+=z!Cannot save object arrays in Mat4z
+Cannot save void type arrays)
+issparse
+write_sparsera
+asarrayr)
+isnativerj
+newbyteorder
+typeZ
+object_rV
+voidZ
+unicode_Z
+string_
+write_char
+write_numeric)
+dttr.
+VarWriter4.writec
+c128r
+kind
+np_to_mtypesr
+KeyErrorrj
+miDOUBLEr
+realrr
+VarWriter4.write_numericc
+rvt	
+miUINT8rR
+prodrb
+item
+encoder
+n_charsZ
+st_arr
+str.
+VarWriter4.write_charc
+zY Sparse matrices are 2-D
+        See docstring for VarReader4.read_sparse_array
+        r
+tocoor)
+zerosZ
+nnzr
+colrH
+ijvr.
+VarWriter4.write_sparseN)
+MatFile4Writerz) Class for writing matlab 4 format files Nc
+_matrix_writer)
+MatFile4Writer.__init__c
+ Write variables in `mdict` to stream
+        Parameters
+        ----------
+        mdict : mapping
+           mapping with method ``items`` return name, contents pairs
+           where ``name`` which will appeak in the matlab workspace in
+           file load, and ``contents`` is something writeable to a
+           matlab file, such as a NumPy array.
+        write_header : {None, True, False}
+           If True, then write the matlab file header before writing the
+           variables. If None (the default) then write the file header
+           if we are at position 0 in the stream. By setting False
+           here, and setting the stream position to the end of the file,
+           you can append variables to a matlab file
+        N)
+itemsr
+varr.
+put_variablesP
+MatFile4Writer.put_variables)
+sysrD
+numpyra
+numpy.compatr
+scipy.sparsers
+miobaser
+Z	mio_utilsr
+	functoolsr
+	byteorderr
+miSINGLEZ
+miINT32Z
+miINT16Z
+miUINT16r
+objectr&
+<module>

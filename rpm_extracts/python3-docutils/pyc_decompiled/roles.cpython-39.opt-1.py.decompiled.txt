@@ -1,0 +1,252 @@
+d d!
+d"e#
+d#d$
+d%e$
+d&d'
+Z%d(e
+d)e%
+d*d+
+j&d,
+d-e'
+d.d/
+d0e(
+d1d2
+d3e)
+d4e)
+d5e)
+d6e)
+d7e)
+d8e)
+d9e)
+d:e)
+d;e)
+d<d=
+Z*d>S
+This module defines standard interpreted text role functions, a registry for
+interpreted text roles, and an API for adding to and retrieving from the
+registry.
+The interface for interpreted role functions is as follows::
+    def role_fn(name, rawtext, text, lineno, inliner,
+                options={}, content=[]):
+        code...
+    # Set function attributes for customization:
+    role_fn.options = ...
+    role_fn.content = ...
+Parameters:
+- ``name`` is the local name of the interpreted text role, the role name
+  actually used in the document.
+- ``rawtext`` is a string containing the entire interpreted text construct.
+  Return it as a ``problematic`` node linked to a system message if there is a
+  problem.
+- ``text`` is the interpreted text content, with backslash escapes converted
+  to nulls (``
+``).
+- ``lineno`` is the line number where the interpreted text beings.
+- ``inliner`` is the Inliner object that called the role function.
+  It defines the following useful attributes: ``reporter``,
+  ``problematic``, ``memo``, ``parent``, ``document``.
+- ``options``: A dictionary of directive options for customization, to be
+  interpreted by the role function.  Used for additional attributes for the
+  generated elements and other functionality.
+- ``content``: A list of strings, the directive content for customization
+  ("role" directive).  To be interpreted by the role function.
+Function attributes for customization, interpreted by the "role" directive:
+- ``options``: A dictionary, mapping known option names to conversion
+  functions such as `int` or `float`.  ``None`` or an empty dict implies no
+  options to parse.  Several directive option conversion functions are defined
+  in the `directives` module.
+  All role functions implicitly support the "class" option, unless disabled
+  with an explicit ``{'class': None}``.
+- ``content``: A boolean; true if content is allowed.  Client code must handle
+  the case where content is required but not supplied (an empty content list
+  will be supplied).
+Note that unlike directives, the "arguments" function attribute is not
+supported for role customization.  Directive arguments are handled by the
+"role" directive itself.
+Interpreted role functions return a tuple of two values:
+- A list of nodes which will be inserted into the document tree at the
+  point where the interpreted role was encountered (can be an empty
+  list).
+- A list of system messages, which will be inserted into the document tree
+  immediately after the end of the current inline block (can also be empty).
+reStructuredText
+nodes
+utils)
+directives)
+Lexer
+LexerErrorz
+title-referencec
+    Locate and return a role function from its language-dependent name, along
+    with a list of system messages.  If the role is not found in the current
+    language, check English.  Return a 2-tuple: role function (``None`` if the
+    named role cannot be found) and a list of system messages.
+    Nz:Problem retrieving role entry from language module %r: %s.z&No role entry for "%s" in module "%s".z%Using English fallback for role "%s".z#Trying "%s" as canonical role name.
+line)
+lower
+_rolesZ
+roles
+AttributeError
+append
+KeyError
+__name__
+DEFAULT_INTERPRETED_ROLE
+_fallback_language_module
+info
+join
+_role_registry
+register_local_role)
+	role_nameZ
+language_module
+lineno
+reporterZ
+normnameZ
+messagesZ
+msg_textZ
+canonicalname
+error
+message
+role_fn
+>/usr/lib/python3.9/site-packages/docutils/parsers/rst/roles.py
+role^
+    Register an interpreted text role by its canonical name.
+    :Parameters:
+      - `name`: The canonical name of the interpreted role.
+      - `role_fn`: The role function.  See the module docstring.
+    N)
+set_implicit_optionsr
+namer
+register_canonical_role
+    Register an interpreted text role by its local or language-dependent name.
+    :Parameters:
+      - `name`: The local or language-dependent name of the interpreted role.
+      - `role_fn`: The role function.  See the module docstring.
+    N)
+    Add customization options to role functions, unless explicitly set or
+    disabled.
+    
+optionsN
+class)
+hasattrr$
+class_option)
+zAFor roles which simply wrap a given `node_class` around the text.N)
+GenericRoler#
+canonical_name
+node_classr
+register_generic_role
+    Generic interpreted text role, where the interpreted text is simply
+    wrapped with the provided node class.
+    c
+selfr
+__init__
+GenericRole.__init__c
+set_classesr)
+rawtext
+textr
+inlinerr$
+contentr
+__call__
+GenericRole.__call__N
+__module__
+__qualname__
+__doc__r-
+CustomRolez4
+    Wrapper for custom interpreted text roles.
+    c
+	base_roler$
+supplied_options
+supplied_content)
+CustomRole.__init__c
+}	|	r.|
+r.|	d
+}	|	
+copy
+update
+listr;
+extendr9
+optsZ
+contr
+CustomRole.__call__Nr4
+inline)
+generic_custom_role
+abbreviation
+acronym
+emphasis
+literal
+strong
+	subscript
+superscriptc
+}	|	g
+z<PEP number must be a number from 0 to 9999; "%s" is invalid.r	
+PEP 
+refuri)
+intr
+unescape
+ValueErrorr
+problematic
+document
+settingsZ
+pep_base_urlZ
+pep_file_url_templater.
+	reference)
+pepnum
+refr
+pep_reference_role
+pep-referencec
+zHRFC number must be a number greater than or equal to 1; "%s" is invalid.r	
+RFC rJ
+splitrK
+rfc_base_urlZ
+rfc_urlr.
+str)
+rfcnumZ
+sectionrR
+noder
+rfc_reference_role
+rfc-referencec
+Nz raw (and derived) roles disabled
+formatz
+No format (Writer name) is associated with this role: "%s".
+The "raw" role cannot be used directly.
+Instead, use the "role" directive to create a new role with an associated format.r	
+raw_enabledr
+warningrN
+rawr
+get_source_and_line
+sourcer
+raw_role/
+languager@
+code
+classesT)
+getr?
+syntax_highlightr
+Text)
+tokensr
+valuer
+	code_roleE
+findrX
+math)	r
+	math_rolef
+Nz+Interpreted text role "%s" not implemented.r	
+attributesrR
+unimplemented_roles
+indexz
+named-referencez
+anonymous-referencez
+uri-referencez
+footnote-referencez
+citation-referencez
+substitution-reference
+targetz#restructuredtext-unimplemented-rolec
+    Auxiliary function to set options['classes'] and delete
+    options['class'].
+    r%
+N)+r7
+__docformat__Z
+docutilsr
+docutils.parsers.rstr
+docutils.parsers.rst.languagesr
+docutils.utils.code_analyzerr
+objectr(
+title_referencerU
+Z	unchangedrh
+<module>

@@ -1,0 +1,472 @@
+xf6:
+d d!
+d"d#
+d$d%
+d&d'
+e"e%e(e
+Z)d)d*
+Z*d+d,
+Z+e+j
+d-d.
+,e-e.e*
+d/d0
+Z/d1d2
+j1j2d3d.
+,d4d5
+Scales define the distribution of data values on an axis, e.g. a log scaling.
+They are defined as subclasses of `ScaleBase`.
+See also `.axes.Axes.set_xscale` and the scales examples in the documentation.
+See :doc:`/gallery/scales/custom_scale` for a full example of defining a custom
+scale.
+Matplotlib also supports non-separable transformations that operate on both
+`~.axis.Axis` at the same time.  They are known as projections, and defined in
+`matplotlib.projections`.
+_api
+_docstring)
+NullFormatter
+ScalarFormatter
+LogFormatterSciNotation
+LogitFormatter
+NullLocator
+LogLocator
+AutoLocator
+AutoMinorLocator
+SymmetricalLogLocator
+AsinhLocator
+LogitLocator)
+	Transform
+IdentityTransformc
+	ScaleBasea
+    The base class for all scales.
+    Scales are separable transformations, working on a single dimension.
+    Subclasses should override
+    :attr:`name`
+        The scale's name.
+    :meth:`get_transform`
+        A method returning a `.Transform`, which converts data coordinates to
+        scaled coordinates.  This transform should be invertible, so that e.g.
+        mouse positions can be converted back to data coordinates.
+    :meth:`set_default_locators_and_formatters`
+        A method that sets default locators and formatters for an `~.axis.Axis`
+        that uses this scale.
+    :meth:`limit_range_for_scale`
+        An optional method that "fixes" the axis range to acceptable values,
+        e.g. restricting log-scaled axes to positive values.
+    c
+        Construct a new scale.
+        Notes
+        -----
+        The following note is for scale implementors.
+        For back-compatibility reasons, scales take an `~matplotlib.axis.Axis`
+        object as first argument.  However, this argument should not
+        be used: a single scale object should be usable by multiple
+        `~matplotlib.axis.Axis`\es at the same time.
+        N
+self
+axisr
+6/usr/lib64/python3.9/site-packages/matplotlib/scale.py
+__init__3
+ScaleBase.__init__c
+        Return the `.Transform` object associated with this scale.
+        N
+NotImplementedError
+get_transformA
+ScaleBase.get_transformc
+        Set the locators and formatters of *axis* to instances suitable for
+        this scale.
+        Nr
+#set_default_locators_and_formattersG
+z-ScaleBase.set_default_locators_and_formattersc
+        Return the range *vmin*, *vmax*, restricted to the
+        domain supported by this scale (if any).
+        *minpos* should be the minimum positive value in the data.
+        This is used by log scales to determine a minimum value.
+        r
+vminZ
+vmaxZ
+minposr
+limit_range_for_scaleN
+ScaleBase.limit_range_for_scaleN)
+__name__
+__module__
+__qualname__
+__doc__r
+LinearScalez#
+    The default linear scale.
+    
+linearc
+        Nr
+LinearScale.__init__c
+xtick.minor.visible
+ytick.minor.visible
+set_major_locatorr
+set_major_formatterr
+set_minor_formatterr
+Z	axis_name
+mplZ
+rcParams
+set_minor_locatorr
+z/LinearScale.set_default_locators_and_formattersc
+        Return the transform for linear scaling, which is just the
+        `~matplotlib.transforms.IdentityTransform`.
+        )
+LinearScale.get_transformN)
+namer
+FuncTransformzi
+    A simple transform that takes and arbitrary function for the
+    forward and inverse transform.
+    
+        Parameters
+        ----------
+        forward : callable
+            The forward function for the transform.  This function must have
+            an inverse and, for best behavior, be monotonic.
+            It must have the signature::
+               def forward(values: array-like) -> array-like
+        inverse : callable
+            The inverse of the forward function.  Signature as ``forward``.
+        z,arguments to FuncTransform must be functionsN)
+superr
+callable
+_forward
+_inverse
+ValueError)
+forward
+inverse
+	__class__r
+FuncTransform.__init__c
+valuesr
+transform_non_affine
+z"FuncTransform.transform_non_affinec
+inverted
+FuncTransform.inverted
+input_dims
+output_dimsr
+__classcell__r
+	FuncScalezN
+    Provide an arbitrary scale with user-supplied function for the axis.
+    
+functionc
+        Parameters
+        ----------
+        axis : `~matplotlib.axis.Axis`
+            The axis for the scale.
+        functions : (callable, callable)
+            two-tuple of the forward and inverse functions for the scale.
+            The forward function must be monotonic.
+            Both functions must have the signature::
+               def forward(values: array-like) -> array-like
+        N)
+_transform)
+	functionsr6
+	transformr
+FuncScale.__init__c
+z7Return the `.FuncTransform` associated with this scale.
+FuncScale.get_transformc
+z-FuncScale.set_default_locators_and_formattersN)
+LogTransformr0
+clipc
+z#The log base cannot be <= 0 or == 1TF
+mask
+nonpositive)
+baser
+check_getitem
+_clip)
+LogTransform.__init__c
+{}(base={}, nonpositive={!r})rI
+format
+typer
+__str__
+LogTransform.__str__c
+ignore
+divideZ
+invalid
+errstate
+logZ
+log2
+log10
+getrN
+outr
+z!LogTransform.transform_non_affinec
+InvertedLogTransformrN
+LogTransform.inverted)
+InvertedLogTransform.__init__c
+{}(base={}))
+InvertedLogTransform.__str__c
+powerrN
+z)InvertedLogTransform.transform_non_affinec
+InvertedLogTransform.invertedrb
+LogScalezT
+    A standard logarithmic scale.  Care is taken to only plot positive values.
+    r\
+subsrM
+        Parameters
+        ----------
+        axis : `~matplotlib.axis.Axis`
+            The axis for the scale.
+        base : float, default: 10
+            The base of the logarithm.
+        nonpositive : {'clip', 'mask'}, default: 'clip'
+            Determines the behavior for non-positive values. They can either
+            be masked as invalid, or clipped to a very small positive number.
+        subs : sequence of int, default: None
+            Where to place the subticks between each major tick.  For example,
+            in a log10 scale, ``[2, 3, 4, 5, 6, 7, 8, 9]`` will place 8
+            logarithmically spaced minor ticks between each major tick.
+        N)
+LogScale.__init__c
+<lambda>
+LogScale.<lambda>c
+labelOnlyBase)
+z,LogScale.set_default_locators_and_formattersc
+z6Return the `.LogTransform` associated with this scale.rG
+LogScale.get_transformc
+z$Limit the domain to positive values.gY
+isfiniter
+LogScale.limit_range_for_scale)
+propertyrN
+FuncScaleLogzu
+    Provide an arbitrary scale with user-supplied function for the axis and
+    then put on a logarithmic axes.
+    
+functionlogrW
+        Parameters
+        ----------
+        axis : `matplotlib.axis.Axis`
+            The axis for the scale.
+        functions : (callable, callable)
+            two-tuple of the forward and inverse functions for the scale.
+            The forward function must be monotonic.
+            Both functions must have the signature::
+                def forward(values: array-like) -> array-like
+        base : float, default: 10
+            Logarithmic base of the scale.
+        N)
+FuncScaleLog.__init__c
+_brN
+FuncScaleLog.basec
+z3Return the `.Transform` associated with this scale.rG
+FuncScaleLog.get_transformN)
+SymmetricalLogTransformr0
+'base' must be larger than 1
+'linthresh' must be positivez
+'linscale' must be positive
+	linthresh
+linscale
+_linscale_adjrY
+	_log_base)
+z SymmetricalLogTransform.__init__c
+absrZ
+signrr
+abs_ar`
+insider
+z,SymmetricalLogTransform.transform_non_affinec
+InvertedSymmetricalLogTransformrN
+z SymmetricalLogTransform.inverted
+)	r1
+invlinthreshrs
+symlogr8
+z(InvertedSymmetricalLogTransform.__init__c
+)	rY
+z4InvertedSymmetricalLogTransform.transform_non_affinec
+z(InvertedSymmetricalLogTransform.invertedr{
+SymmetricalLogScalea
+    The symmetrical logarithmic scale is logarithmic in both the
+    positive and negative directions from the origin.
+    Since the values close to zero tend toward infinity, there is a
+    need to have a range around zero that is linear.  The parameter
+    *linthresh* allows the user to specify the size of this range
+    (-*linthresh*, *linthresh*).
+    Parameters
+    ----------
+    base : float, default: 10
+        The base of the logarithm.
+    linthresh : float, default: 2
+        Defines the range ``(-x, x)``, within which the plot is linear.
+        This avoids having the plot go to infinity around zero.
+    subs : sequence of int
+        Where to place the subticks between each major tick.
+        For example, in a log10 scale: ``[2, 3, 4, 5, 6, 7, 8, 9]`` will place
+        8 logarithmically spaced minor ticks between each major tick.
+    linscale : float, optional
+        This allows the linear range ``(-linthresh, linthresh)`` to be
+        stretched relative to the logarithmic range. Its value is the number of
+        decades to use for each half of the linear range. For example, when
+        *linscale* == 1.0 (the default), the space used for the positive and
+        negative halves of the linear range will be equal to one decade in
+        the logarithmic range.
+    r}
+SymmetricalLogScale.__init__c
+SymmetricalLogScale.<lambda>c
+z7SymmetricalLogScale.set_default_locators_and_formattersc
+zAReturn the `.SymmetricalLogTransform` associated with this scale.rG
+z!SymmetricalLogScale.get_transform)
+AsinhTransformz<Inverse hyperbolic-sine transformation used by `.AsinhScale`r0
+z8Scale parameter 'linear_width' must be strictly positive)
+linear_width
+AsinhTransform.__init__c
+arcsinhrd
+z#AsinhTransform.transform_non_affinec
+InvertedAsinhTransformr
+AsinhTransform.invertedr>
+z4Hyperbolic sine transformation used by `.AsinhScale`r0
+InvertedAsinhTransform.__init__c
+sinhrd
+z+InvertedAsinhTransform.transform_non_affinec
+InvertedAsinhTransform.invertedr>
+AsinhScalea
+    A quasi-logarithmic scale based on the inverse hyperbolic sine (asinh)
+    For values close to zero, this is essentially a linear scale,
+    but for large magnitude values (either positive or negative)
+    it is asymptotically logarithmic. The transition between these
+    linear and logarithmic regimes is smooth, and has no discontinuities
+    in the function gradient in contrast to
+    the `.SymmetricalLogScale` ("symlog") scale.
+    Specifically, the transformation of an axis coordinate :math:`a` is
+    :math:`a \rightarrow a_0 \sinh^{-1} (a / a_0)` where :math:`a_0`
+    is the effective width of the linear region of the transformation.
+    In that region, the transformation is
+    :math:`a \rightarrow a + \mathcal{O}(a^3)`.
+    For large values of :math:`a` the transformation behaves as
+    :math:`a \rightarrow a_0 \, \mathrm{sgn}(a) \ln |a| + \mathcal{O}(1)`.
+    .. note::
+       This API is provisional and may be revised in the future
+       based on early user feedback.
+    
+asinh)
+auto)
+        Parameters
+        ----------
+        linear_width : float, default: 1
+            The scale parameter (elsewhere referred to as :math:`a_0`)
+            defining the extent of the quasi-linear region,
+            and the coordinate values beyond which the transformation
+            becomes asymptotically logarithmic.
+        base : int, default: 10
+            The number base used for rounding tick locations
+            on a logarithmic scale. If this is less than one,
+            then rounding is to the nearest integer multiple
+            of powers of ten.
+        subs : sequence of int
+            Multiples of the number base used for minor ticks.
+            If set to 'auto', this will use built-in defaults,
+            e.g. (2, 5) for base=10.
+        r
+N)	r1
+_base
+auto_tick_multipliersr^
+_subs)
+kwargsr8
+AsinhScale.__init__c
+AsinhScale.<lambda>c
+AsinhScale.get_transformc
+major_locatorZ
+minor_locatorZ
+minor_formatterr0
+{x:.3g})
+setr
+z.AsinhScale.set_default_locators_and_formatters)
+LogitTransformr0
+TFrJ
+check_in_list
+_nonpositiverP
+LogitTransform.__init__c
+z,logit transform (base 10), masked or clippedrT
+z#LogitTransform.transform_non_affinec
+LogisticTransformr
+LogitTransform.invertedc
+{}({!r})
+LogitTransform.__str__)
+LogisticTransform.__init__c
+logistic transform (base 10)ro
+z&LogisticTransform.transform_non_affinec
+LogisticTransform.invertedc
+LogisticTransform.__str__)
+LogitScalez
+    Logit scale for data between zero and one, both excluded.
+    This scale is similar to a log scale close to zero and to one, and almost
+    linear around 0.5. It maps the interval ]0, 1[ onto ]-infty, +infty[.
+    
+logitrK
+\frac{1}{2}F
+one_half
+use_overlinec
+        Parameters
+        ----------
+        axis : `matplotlib.axis.Axis`
+            Currently unused.
+        nonpositive : {'mask', 'clip'}
+            Determines the behavior for values beyond the open interval ]0, 1[.
+            They can either be masked as invalid, or clipped to a number very
+            close to 0 or 1.
+        use_overline : bool, default: False
+            Indicate the usage of survival notation (\overline{x}) in place of
+            standard notation (1-x) for probability close to one.
+        one_half : str, default: r"\frac{1}{2}"
+            The string used for ticks formatter to represent 1/2.
+        N)
+_use_overline
+	_one_half)
+LogitScale.__init__c
+z8Return the `.LogitTransform` associated with this scale.rG
+LogitScale.get_transformc
+minor)
+z.LogitScale.set_default_locators_and_formattersc
+        Limit the domain to values between 0 and 1 (excluded).
+        gH
+z LogitScale.limit_range_for_scaleN)
+z)Return the names of the available scales.)
+sorted
+_scale_mappingr
+get_scale_names
+    Return a scale class by name.
+    Parameters
+    ----------
+    scale : {%(names)s}
+    axis : `matplotlib.axis.Axis`
+    z
+3.5zjSupport for case-insensitive scales is deprecated since %(since)s and support will be removed %(removal)s.)
+message)
+scale)
+lowerr
+warn_deprecatedrO
+Z	scale_clsr
+scale_factory
+namesz
+    Register a new kind of scale.
+    Parameters
+    ----------
+    scale_class : subclass of `ScaleBase`
+        The scale to register.
+    N)
+scale_classr
+register_scale
+    Helper function for generating docstrings related to scales.
+    
+    z
+        
+items
+inspectZ
+getdocr
+extend
+textwrap
+indent
+join)
+docsr.
+Z	docstringr
+_get_scale_docs
+{%s}c
+repr)
+.0r&
+<listcomp>
+scale_typeZ
+scale_docs)4r"
+numpyrY
+matplotlibr,
+matplotlib.tickerr
+matplotlib.transformsr
+mapr
+interpd
+update
+rstripr
+<module>

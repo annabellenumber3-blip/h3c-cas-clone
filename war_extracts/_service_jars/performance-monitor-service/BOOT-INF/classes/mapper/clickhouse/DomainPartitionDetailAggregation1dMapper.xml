@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.h3c.h3cloud.performance.monitor.service.mapper.clickhouse.DomainPartitionDetailAggregation1dMapper">
+    <delete id ="deleteBeforeTime">
+        ALTER TABLE AGG_DOMAIN_PARTITION_DETAIL_1D DELETE WHERE TIME &lt; #{time}
+    </delete>
+    <select id="readVmPartitionByCondition" resultType="com.h3c.h3cloud.common.model.performance.DomainPartitionDetailData">
+        SELECT
+          TIME as time,
+          PARTITION_NAME as partitionName,
+          round(avgMerge(USED_AVG),2) as used,
+          round(avgMerge(UTILIZATION_AVG),2) as utilization,
+          round(avgMerge(SIZE_AVG),2) as size,
+          DOMAIN_ID as domainId
+        FROM AGG_DOMAIN_PARTITION_DETAIL_1D WHERE TIME BETWEEN ${startTime} AND ${endTime}
+        <if test="domainId!=null and domainId!=''">
+            AND DOMAIN_ID=${domainId}
+        </if>
+        GROUP BY DOMAIN_ID, PARTITION_NAME, TIME
+        ORDER BY TIME ASC
+    </select>
+    <select id="readDomainPartitionRateByCondition" resultType="com.h3c.h3cloud.common.model.performance.DomainPartitionStatisticsData">
+        SELECT PARTITION_NAME as partitionName,DOMAIN_ID as domainId,
+        <choose>
+            <when test="cycle!=null and cycle=='hour'">
+                formatDateTime(toDateTime(TIME), '%Y-%m-%d %H') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='week'">
+                formatDateTime(toDateTime(TIME), '%Y %V') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='month'">
+                formatDateTime(toDateTime(TIME), '%Y-%m') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='year'">
+                formatDateTime(toDateTime(TIME), '%Y') as timeStr,
+            </when>
+            <otherwise>
+                formatDateTime(toDateTime(TIME), '%Y-%m-%d') as timeStr,
+            </otherwise>
+        </choose>
+        <choose>
+            <when test='type!=null and type=="0"'>
+                ROUND(avgMerge(UTILIZATION_AVG),2) as utilizationAvg , maxMerge(UTILIZATION_MAX) as utilizationMax, minMerge(UTILIZATION_MIN) as utilizationMin
+            </when>
+            <otherwise>
+                ROUND(avgMerge(USED_AVG),2) as usedAvg , maxMerge(USED_MAX) as usedMax, minMerge(USED_MIN) as usedMin
+            </otherwise>
+        </choose>
+        FROM AGG_DOMAIN_PARTITION_DETAIL_1D
+        WHERE TIME BETWEEN ${startTime} AND ${endTime}
+        <if test="domainId!=null and domainId!=''">
+            AND DOMAIN_ID = ${domainId}
+        </if>
+        <if test="vmIds!=null and vmIds!=''">
+            AND DOMAIN_ID in (${vmIds})
+        </if>
+        GROUP BY DOMAIN_ID, PARTITION_NAME, timeStr ORDER BY timeStr
+    </select>
+    <select id="readDomainsPartitionRateByCondition" resultType="com.h3c.h3cloud.common.model.performance.DomainPartitionStatisticsData">
+        SELECT any(PARTITION_NAME) as partitionName,DOMAIN_ID as domainId,
+        <choose>
+            <when test="cycle!=null and cycle=='hour'">
+                formatDateTime(toDateTime(TIME), '%Y-%m-%d %H') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='week'">
+                formatDateTime(toDateTime(TIME), '%Y %V') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='month'">
+                formatDateTime(toDateTime(TIME), '%Y-%m') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='year'">
+                formatDateTime(toDateTime(TIME), '%Y') as timeStr,
+            </when>
+            <otherwise>
+                formatDateTime(toDateTime(TIME), '%Y-%m-%d') as timeStr,
+            </otherwise>
+        </choose>
+        <choose>
+            <when test='type!=null and type=="0"'>
+                ROUND(avgMerge(UTILIZATION_AVG),2) as utilizationAvg
+            </when>
+            <otherwise>
+                ROUND(avgMerge(USED_AVG),2) as usedAvg
+            </otherwise>
+        </choose>
+        FROM AGG_DOMAIN_PARTITION_DETAIL_1D
+        WHERE TIME BETWEEN ${startTime} AND ${endTime}
+        <if test="vmIds!=null and vmIds!=''">
+            AND DOMAIN_ID in (${vmIds})
+        </if>
+        GROUP BY DOMAIN_ID, timeStr ORDER BY timeStr
+    </select>
+</mapper>

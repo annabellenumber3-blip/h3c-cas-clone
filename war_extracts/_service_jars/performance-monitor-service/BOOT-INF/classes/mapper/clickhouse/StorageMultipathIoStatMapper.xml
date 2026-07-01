@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.h3c.h3cloud.performance.monitor.service.mapper.clickhouse.StorageMultipathIoStatMapper">
+    <delete id ="deleteBeforeTime">
+        ALTER TABLE TBL_STORAGE_MULTIPATH_IO_STAT DELETE WHERE TIME &lt; #{time}
+    </delete>
+    <select id="readStorageMultipathInfoByCondition" resultType="com.h3c.h3cloud.common.model.performance.StorageMultipathIoStatData">
+        SELECT
+        <if test="hostId!=null and hostId!=''">
+            DEV_NAME as devName,
+        </if>
+        <if test="clusterId!=null and clusterId!=''">
+            any(DEV_NAME) as devName,
+        </if>
+        TIME as time,
+        <choose>
+            <when test="hostId!=null and hostId!=''">
+                IO_STAT as ioStat, RD_STAT as rdStat, WR_STAT as wrStat, round(RD_REQ/${duration}) AS rdReq, round(WR_REQ/${duration}) AS wrReq, RD_LATENCY as rdLatency, WR_LATENCY as wrLatency
+            </when>
+            <otherwise>
+                SUM(IO_STAT) as ioStat, SUM(RD_STAT) as rdStat, SUM(WR_STAT) as wrStat, round(SUM(RD_REQ/${duration})) AS rdReq, round(SUM(WR_REQ/${duration})) AS wrReq
+            </otherwise>
+        </choose>
+        FROM TBL_STORAGE_MULTIPATH_IO_STAT  WHERE TIME BETWEEN ${startTime} AND ${endTime} AND POOL_NAME =#{poolName}
+        <if test="hostId!=null and hostId!=''">
+            AND HOST_ID=${hostId}
+        </if>
+        <if test="clusterId!=null and clusterId!=''">
+            AND CLUSTER_ID=${clusterId}
+        </if>
+        <if test="currentDisk!=null and currentDisk!=''">
+            AND DEV_NAME =#{currentDisk}
+        </if>
+        <if test="clusterId!=null and clusterId!=''">
+            AND POOL_NAME in (select storage_pool_name from ${@com.h3c.h3cloud.performance.monitor.service.mapper.base.clickhouseMapperConstant@TBL_STORAGE_POOL_CONFIG} con WHERE con.type in(1,2,9,10))
+        </if>
+        <if test="hostId==null or hostId==''">
+            GROUP BY POOL_NAME,TIME
+        </if>
+        ORDER BY TIME ASC
+    </select>
+</mapper>

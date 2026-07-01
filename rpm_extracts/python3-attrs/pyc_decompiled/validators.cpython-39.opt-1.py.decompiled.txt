@@ -1,0 +1,298 @@
+m	Z	m
+d d!
+d"d#
+d$d%
+d&d'
+d(d)
+Z!d*d+
+d,d-
+Z#dGd.d/
+d0d1
+Z%dHd2d3
+d4d5
+Z'd6d7
+Z(d8d9
+Z)d:d;
+Z*d<d=
+d>d?
+Z,d@dA
+dBdC
+Z.dDdE
+Commonly useful validators.
+contextmanager
+get_run_validators
+set_run_validators)
+_AndValidator
+and_
+attrib
+attrs)
+NotCallableError
+deep_iterable
+deep_mapping
+disabled
+get_disabled
+instance_of
+is_callable
+matches_re
+max_len
+min_len
+optional
+provides
+set_disabledc
+    Globally disable or enable running validators.
+    By default, they are run.
+    :param disabled: If ``True``, disable running all validators.
+    :type disabled: bool
+    .. warning::
+        This function is not thread-safe!
+    .. versionadded:: 21.3.0
+    N
+3/usr/lib/python3.9/site-packages/attr/validators.pyr
+    Return a bool indicating whether validators are currently disabled or not.
+    :return: ``True`` if validators are currently disabled.
+    :rtype: bool
+    .. versionadded:: 21.3.0
+    )
+    Context manager that disables running validators within its context.
+    .. warning::
+        This context manager is not thread-safe!
+    .. versionadded:: 21.3.0
+    FNTr
+repr
+slots
+hashc
+_InstanceOfValidatorc
+        We use a callable class to be able to change the ``__repr__``.
+        z?'{name}' must be {type!r} (got {value!r} that is a {actual!r}).)
+name
+type
+actual
+valueN)
+isinstancer&
+	TypeError
+formatr%
+	__class__
+self
+inst
+attrr(
+__call__b
+_InstanceOfValidator.__call__c
+Nz)<instance_of validator for type {type!r}>
+__repr__t
+_InstanceOfValidator.__repr__N)
+__name__
+__module__
+__qualname__r
+    A validator that raises a `TypeError` if the initializer is called
+    with a wrong type for this particular attribute (checks are performed using
+    `isinstance` therefore it's also valid to pass a tuple of types).
+    :param type: The type to check for.
+    :type type: type or tuple of types
+    :raises TypeError: With a human readable error message, the attribute
+        (of type `attrs.Attribute`), the expected type, and the value it
+        got.
+    )
+frozenr!
+_MatchesReValidatorc
+z9'{name}' must match regex {pattern!r} ({value!r} doesn't))
+patternr(
+match_func
+ValueErrorr+
+_MatchesReValidator.__call__c
+Nz.<matches_re validator for pattern {pattern!r}>)
+_MatchesReValidator.__repr__N)
+    A validator that raises `ValueError` if the initializer is called
+    with a string that doesn't match *regex*.
+    :param regex: a regex string or precompiled pattern to match against
+    :param int flags: flags that will be passed to the underlying re function
+        (default 0)
+    :param callable func: which underlying `re` function to call. Valid options
+        are `re.fullmatch`, `re.search`, and `re.match`; the default ``None``
+        means `re.fullmatch`. For performance reasons, the pattern is always
+        precompiled using `re.compile`.
+    .. versionadded:: 19.2.0
+    .. versionchanged:: 21.3.0 *regex* can be a pre-compiled pattern.
+    Nz
+'func' must be one of {}.z
+NoneN)
+	<genexpr>
+matches_re.<locals>.<genexpr>zR'flags' can only be used with a string pattern; pass flags to re.compile() instead)
+	fullmatch
+search
+matchr<
+join
+sorted
+setr)
+Patternr*
+compiler9
+regex
+flags
+funcZ
+valid_funcsr:
+_ProvidesValidatorc
+z<'{name}' must provide {interface!r} which {value!r} doesn't.)
+	interfacer(
+providedByr*
+_ProvidesValidator.__call__c
+Nz0<provides validator for interface {interface!r}>
+_ProvidesValidator.__repr__N)
+    A validator that raises a `TypeError` if the initializer is called
+    with an object that does not provide the requested *interface* (checks are
+    performed using ``interface.providedBy(value)`` (see `zope.interface
+    <https://zopeinterface.readthedocs.io/en/latest/>`_).
+    :param interface: The interface to check for.
+    :type interface: ``zope.interface.Interface``
+    :raises TypeError: With a human readable error message, the attribute
+        (of type `attrs.Attribute`), the expected interface, and the
+        value it got.
+    )
+_OptionalValidatorc
+	validatorr-
+_OptionalValidator.__call__c
+Nz'<optional validator for {what} or None>)
+what)
+_OptionalValidator.__repr__N)
+    A validator that makes an attribute optional.  An optional attribute is one
+    which can be set to ``None`` in addition to satisfying the requirements of
+    the sub-validator.
+    :param validator: A validator (or a list of validators) that is used for
+        non-``None`` values.
+    :type validator: callable or `list` of callables.
+    .. versionadded:: 15.1.0
+    .. versionchanged:: 17.1.0 *validator* can be a list of validators.
+    )
+listrO
+_InValidatorc
+NFz/'{name}' must be in {options!r} (got {value!r}))
+optionsr(
+in_optionsr
+_InValidator.__call__c
+Nz(<in_ validator with options {options!r}>
+_InValidator.__repr__N)
+    A validator that raises a `ValueError` if the initializer is called
+    with a value that does not belong in the options provided.  The check is
+    performed using ``value in options``.
+    :param options: Allowed options.
+    :type options: list, tuple, `enum.Enum`, ...
+    :raises ValueError: With a human readable error message, the attribute (of
+       type `attrs.Attribute`), the expected options, and the value it
+       got.
+    .. versionadded:: 17.1.0
+    .. versionchanged:: 22.1.0
+       The ValueError was incomplete until now and only contained the human
+       readable error message. Now it contains all the information that has
+       been promised since 17.1.0.
+    )
+_IsCallableValidatorc
+z?'{name}' must be callable (got {value!r} that is a {actual!r}).)
+msgr(
+callabler
+messager
+_IsCallableValidator.__call__c
+<is_callable validator>r
+_IsCallableValidator.__repr__N)
+    A validator that raises a `attr.exceptions.NotCallableError` if the
+    initializer is called with a value for this particular attribute
+    that is not callable.
+    .. versionadded:: 19.1.0
+    :raises `attr.exceptions.NotCallableError`: With a human readable error
+        message containing the attribute (`attrs.Attribute`) name,
+        and the value it got.
+    )
+_DeepIterablerP
+defaultrQ
+iterable_validator
+member_validator)
+memberr
+_DeepIterable.__call__c
+ {iterable!r})
+iterablezJ<deep_iterable validator for{iterable_identifier} iterables of {member!r}>)
+iterable_identifierr`
+_DeepIterable.__repr__)
+    A validator that performs deep validation of an iterable.
+    :param member_validator: Validator(s) to apply to iterable members
+    :param iterable_validator: Validator to apply to iterable itself
+        (optional)
+    .. versionadded:: 19.1.0
+    :raises TypeError: if any sub-validators fail
+    )
+tupler
+_DeepMappingrP
+mapping_validator
+key_validator
+value_validator)
+keyr
+_DeepMapping.__call__c
+NzA<deep_mapping validator for objects mapping {key!r} to {value!r}>)
+_DeepMapping.__repr__)
+    A validator that performs deep validation of a dictionary.
+    :param key_validator: Validator to apply to dictionary keys
+    :param value_validator: Validator to apply to dictionary values
+    :param mapping_validator: Validator to apply to top-level mapping
+        attribute (optional)
+    .. versionadded:: 19.1.0
+    :raises TypeError: if any sub-validators fail
+    )
+_NumberValidatorc
+z&'{name}' must be {op} {bound}: {value})
+boundr(
+compare_funcrk
+compare_opr-
+_NumberValidator.__call__c
+<Validator for x {op} {bound}>)
+_NumberValidator.__repr__N)	r5
+    A validator that raises `ValueError` if the initializer is called
+    with a number larger or equal to *val*.
+    :param val: Exclusive upper bound for values
+    .. versionadded:: 21.3.0
+    
+operatorr
+valr
+    A validator that raises `ValueError` if the initializer is called
+    with a number greater than *val*.
+    :param val: Inclusive upper bound for values
+    .. versionadded:: 21.3.0
+    z
+    A validator that raises `ValueError` if the initializer is called
+    with a number smaller than *val*.
+    :param val: Inclusive lower bound for values
+    .. versionadded:: 21.3.0
+    z
+    A validator that raises `ValueError` if the initializer is called
+    with a number smaller or equal to *val*.
+    :param val: Exclusive lower bound for values
+    .. versionadded:: 21.3.0
+    
+_MaxLengthValidatorc
+z*Length of '{name}' must be <= {max}: {len})
+lenN)
+max_lengthr<
+_MaxLengthValidator.__call__c
+<max_len validator for {max}>)
+_MaxLengthValidator.__repr__N)
+    A validator that raises `ValueError` if the initializer is called
+    with a string or iterable that is longer than *length*.
+    :param int length: Maximum length of the string or iterable
+    .. versionadded:: 21.3.0
+    )
+lengthr
+_MinLengthValidatorc
+z*Length of '{name}' must be => {min}: {len})
+minru
+min_lengthr<
+_MinLengthValidator.__call__c
+<min_len validator for {min}>)
+_MinLengthValidator.__repr__N)
+    A validator that raises `ValueError` if the initializer is called
+    with a string or iterable that is shorter than *length*.
+    :param int length: Minimum length of the string or iterable
+    .. versionadded:: 22.1.0
+    )
+__doc__ro
+contextlibr
+_configr
+_maker
+exceptionsr
+AttributeErrorr&
+__all__r
+<module>

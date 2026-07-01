@@ -1,0 +1,612 @@
+m	Z	
+m Z 
+Z!d-d
+Z#d.d
+Z$d d!
+d"d#
+d%d&
+d&e&
+d'd(
+d(e&
+d)d*
+d*e&
+d+d,
+)/zG
+The :mod:`sklearn.pls` module implements Partial Least Squares (PLS).
+ABCMeta
+abstractmethod)
+BaseEstimator
+RegressorMixin
+TransformerMixin)
+MultiOutputMixin)
+ _ClassNamePrefixFeaturesOutMixin)
+check_array
+check_scalar
+check_consistent_length)
+sp_version)
+parse_version)
+svd_flip)
+check_is_fitted
+FLOAT_DTYPES)
+ConvergenceWarning)
+PLSCanonical
+PLSRegression
+PLSSVDz
+1.7)
+pinv)
+pinv2c
+full_matrices
+check_finiteg
+dtype
+char
+lower
+finfo
+sumZ	transpose
+	conjugate
+dot)
+factorZ
+condZ
+rank
+F/usr/lib64/python3.9/site-packages/sklearn/cross_decomposition/_pls.py
+_pinv2_old$
+	|	|
+)	a?
+Return the first left and right singular vectors of X'Y.
+    Provides an alternative to the svd(X'Y) and uses the power method instead.
+    With norm_y_weights to True and in mode A, this corresponds to the
+    algorithm section 11.3 of the Wegelin's review, except this starts at the
+    "update saliences" part.
+    c
+abs)
+	<genexpr>C
+z;_get_first_singular_vectors_power_method.<locals>.<genexpr>
+Y residual is constantN
+z$Maximum number of iterations reached)
+next
+StopIterationr-
+ranger&
+sqrt
+shape
+warnings
+warnr
+mode
+max_iter
+norm_y_weightsZ
+y_score
+x_weights_oldZ
+X_pinvZ
+Y_pinv
+	x_weightsZ
+x_score
+	y_weightsZ
+x_weights_diffZ
+n_iterr+
+(_get_first_singular_vectors_power_method6
+zbReturn the first left and right singular vectors of X'Y.
+    Here the whole SVD is computed.
+    F
+Vtr+
+_get_first_singular_vectors_svdq
+z{Center X, Y and scale if the scale parameter==True
+    Returns
+    -------
+        X, Y, x_mean, y_mean, x_std, y_std
+    r
+axisr<
+ddofg
+meanZ
+stdr 
+onesrA
+scaleZ
+x_meanZ
+y_meanZ
+x_stdZ
+y_stdr+
+_center_scale_xy{
+z7Same as svd_flip but works on 1d arrays, and is inplaceN)
+argmaxr3
+sign)
+biggest_abs_val_idxrZ
+_svd_flip_1d
+_PLSa
+Partial Least Squares (PLS)
+    This class implements the generic PLS algorithm.
+    Main ref: Wegelin, a survey of Partial Least Squares (PLS) methods,
+    with emphasis on the two-block case
+    https://www.stat.washington.edu/research/reports/2000/tr371.pdf
+    r
+regressionr.
+nipalsr/
+deflation_moderF
+	algorithmrG
+copyc
+n_componentsr`
+selfrc
+__init__
+_PLS.__init__c
+z$t&|	|
+z<t+|
+rbt/|	|
+1|	|
+Fit model to data.
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            Training vectors, where `n_samples` is the number of samples and
+            `n_features` is the number of predictors.
+        Y : array-like of shape (n_samples,) or (n_samples, n_targets)
+            Target vectors, where `n_samples` is the number of samples and
+            `n_targets` is the number of response variables.
+        Returns
+        -------
+        self : object
+            Fitted model.
+        r
+ensure_min_samplesrE
+input_namer
+	ensure_2dr<
+min_valZ
+max_val)
+z+algorithm should be 'svd' or 'nipals', got 
+	canonicalr_
+z$Y residual is constant at iteration r
+_validate_datar 
+float64rb
+ndim
+reshaperA
+numbers
+Integral
+minra
+ValueErrorZ
+_norm_y_weightsrY
+_x_mean
+_y_mean
+_x_std
+_y_stdZ
+zeros
+x_weights_
+y_weights_
+	_x_scores
+	_y_scores
+x_loadings_
+y_loadings_
+n_iter_r"
+allr3
+strrB
+appendrT
+outerr
+x_rotations_
+y_rotations_
+_coef_
+intercept_
+_n_features_out)
+rank_upper_boundrI
+Y_eps
+Yk_maskrL
+x_scoresZ
+y_ss
+y_scoresZ
+x_loadingsZ
+y_loadingsr+
+_PLS.fitNc
+Apply the dimension reduction.
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            Samples to transform.
+        Y : array-like of shape (n_samples, n_targets), default=None
+            Target vectors.
+        copy : bool, default=True
+            Whether to copy `X` and `Y`, or perform in-place normalization.
+        Returns
+        -------
+        x_scores, y_scores : array-like or tuple of array-like
+            Return `x_scores` if `Y` is not given, `(x_scores, y_scores)` otherwise.
+        F
+resetNrE
+	transformm
+_PLS.transformc
+Transform data back to its original space.
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_components)
+            New data, where `n_samples` is the number of samples
+            and `n_components` is the number of pls components.
+        Y : array-like of shape (n_samples, n_components)
+            New target, where `n_samples` is the number of samples
+            and `n_components` is the number of pls components.
+        Returns
+        -------
+        X_reconstructed : ndarray of shape (n_samples, n_features)
+            Return the reconstructed `X` data.
+        Y_reconstructed : ndarray of shape (n_samples, n_targets)
+            Return the reconstructed `X` target. Only returned when `Y` is given.
+        Notes
+        -----
+        This transformation will only be exact if `n_components=n_features`.
+        rD
+matmulr
+X_reconstructedZ
+Y_reconstructedr+
+inverse_transform
+_PLS.inverse_transformc
+Predict targets of given samples.
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            Samples.
+        copy : bool, default=True
+            Whether to copy `X` and `Y`, or perform in-place normalization.
+        Returns
+        -------
+        y_pred : ndarray of shape (n_samples,) or (n_samples, n_targets)
+            Returns predicted values.
+        Notes
+        -----
+        This call requires the estimation of a matrix of shape
+        `(n_features, n_targets)`, which may be an issue in high dimensional
+        space.
+        Fr
+Ypredr+
+predict
+_PLS.predictc
+Learn and apply the dimension reduction on the train data.
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            Training vectors, where `n_samples` is the number of samples and
+            `n_features` is the number of predictors.
+        y : array-like of shape (n_samples, n_targets), default=None
+            Target vectors, where `n_samples` is the number of samples and
+            `n_targets` is the number of response variables.
+        Returns
+        -------
+        self : ndarray of shape (n_samples, n_components)
+            Return `x_scores` if `Y` is not given, `(x_scores, y_scores)` otherwise.
+        
+fit_transform
+_PLS.fit_transformc
+z%The coefficients of the linear model.r
+_coef_warningTz
+The attribute `coef_` will be transposed in version 1.3 to be consistent with other linear models in scikit-learn. Currently, `coef_` has a shape of (n_features, n_targets) and in the future it will have a shape of (n_targets, n_features).F)
+hasattr
+getattrrB
+FutureWarningr
+coef_
+_PLS.coef_c
+NTF)
+poor_scoreZ
+requires_yr+
+_more_tags
+_PLS._more_tags)
+__name__
+__module__
+__qualname__
+__doc__r
+propertyr
+	metaclassc
+PLS regression.
+    PLSRegression is also known as PLS2 or PLS1, depending on the number of
+    targets.
+    Read more in the :ref:`User Guide <cross_decomposition>`.
+    .. versionadded:: 0.8
+    Parameters
+    ----------
+    n_components : int, default=2
+        Number of components to keep. Should be in `[1, min(n_samples,
+        n_features, n_targets)]`.
+    scale : bool, default=True
+        Whether to scale `X` and `Y`.
+    max_iter : int, default=500
+        The maximum number of iterations of the power method when
+        `algorithm='nipals'`. Ignored otherwise.
+    tol : float, default=1e-06
+        The tolerance used as convergence criteria in the power method: the
+        algorithm stops whenever the squared norm of `u_i - u_{i-1}` is less
+        than `tol`, where `u` corresponds to the left singular vector.
+    copy : bool, default=True
+        Whether to copy `X` and `Y` in :term:`fit` before applying centering,
+        and potentially scaling. If `False`, these operations will be done
+        inplace, modifying both arrays.
+    Attributes
+    ----------
+    x_weights_ : ndarray of shape (n_features, n_components)
+        The left singular vectors of the cross-covariance matrices of each
+        iteration.
+    y_weights_ : ndarray of shape (n_targets, n_components)
+        The right singular vectors of the cross-covariance matrices of each
+        iteration.
+    x_loadings_ : ndarray of shape (n_features, n_components)
+        The loadings of `X`.
+    y_loadings_ : ndarray of shape (n_targets, n_components)
+        The loadings of `Y`.
+    x_scores_ : ndarray of shape (n_samples, n_components)
+        The transformed training samples.
+    y_scores_ : ndarray of shape (n_samples, n_components)
+        The transformed training targets.
+    x_rotations_ : ndarray of shape (n_features, n_components)
+        The projection matrix used to transform `X`.
+    y_rotations_ : ndarray of shape (n_features, n_components)
+        The projection matrix used to transform `Y`.
+    coef_ : ndarray of shape (n_features, n_targets)
+        The coefficients of the linear model such that `Y` is approximated as
+        `Y = X @ coef_ + intercept_`.
+    intercept_ : ndarray of shape (n_targets,)
+        The intercepts of the linear model such that `Y` is approximated as
+        `Y = X @ coef_ + intercept_`.
+        .. versionadded:: 1.1
+    n_iter_ : list of shape (n_components,)
+        Number of iterations of the power method, for each
+        component.
+    n_features_in_ : int
+        Number of features seen during :term:`fit`.
+    feature_names_in_ : ndarray of shape (`n_features_in_`,)
+        Names of features seen during :term:`fit`. Defined only when `X`
+        has feature names that are all strings.
+        .. versionadded:: 1.0
+    See Also
+    --------
+    PLSCanonical : Partial Least Squares transformer and regressor.
+    Examples
+    --------
+    >>> from sklearn.cross_decomposition import PLSRegression
+    >>> X = [[0., 0., 1.], [1.,0.,0.], [2.,2.,2.], [2.,5.,4.]]
+    >>> Y = [[0.1, -0.2], [0.9, 1.1], [6.2, 5.9], [11.9, 12.3]]
+    >>> pls2 = PLSRegression(n_components=2)
+    >>> pls2.fit(X, Y)
+    PLSRegression()
+    >>> Y_pred = pls2.predict(X)
+    r
+superre
+	__class__r+
+PLSRegression.__init__c
+Z	x_scores_r
+Z	y_scores_)
+PLSRegression.fit)
+__classcell__r+
+Partial Least Squares transformer and regressor.
+    Read more in the :ref:`User Guide <cross_decomposition>`.
+    .. versionadded:: 0.8
+    Parameters
+    ----------
+    n_components : int, default=2
+        Number of components to keep. Should be in `[1, min(n_samples,
+        n_features, n_targets)]`.
+    scale : bool, default=True
+        Whether to scale `X` and `Y`.
+    algorithm : {'nipals', 'svd'}, default='nipals'
+        The algorithm used to estimate the first singular vectors of the
+        cross-covariance matrix. 'nipals' uses the power method while 'svd'
+        will compute the whole SVD.
+    max_iter : int, default=500
+        The maximum number of iterations of the power method when
+        `algorithm='nipals'`. Ignored otherwise.
+    tol : float, default=1e-06
+        The tolerance used as convergence criteria in the power method: the
+        algorithm stops whenever the squared norm of `u_i - u_{i-1}` is less
+        than `tol`, where `u` corresponds to the left singular vector.
+    copy : bool, default=True
+        Whether to copy `X` and `Y` in fit before applying centering, and
+        potentially scaling. If False, these operations will be done inplace,
+        modifying both arrays.
+    Attributes
+    ----------
+    x_weights_ : ndarray of shape (n_features, n_components)
+        The left singular vectors of the cross-covariance matrices of each
+        iteration.
+    y_weights_ : ndarray of shape (n_targets, n_components)
+        The right singular vectors of the cross-covariance matrices of each
+        iteration.
+    x_loadings_ : ndarray of shape (n_features, n_components)
+        The loadings of `X`.
+    y_loadings_ : ndarray of shape (n_targets, n_components)
+        The loadings of `Y`.
+    x_rotations_ : ndarray of shape (n_features, n_components)
+        The projection matrix used to transform `X`.
+    y_rotations_ : ndarray of shape (n_features, n_components)
+        The projection matrix used to transform `Y`.
+    coef_ : ndarray of shape (n_features, n_targets)
+        The coefficients of the linear model such that `Y` is approximated as
+        `Y = X @ coef_ + intercept_`.
+    intercept_ : ndarray of shape (n_targets,)
+        The intercepts of the linear model such that `Y` is approximated as
+        `Y = X @ coef_ + intercept_`.
+        .. versionadded:: 1.1
+    n_iter_ : list of shape (n_components,)
+        Number of iterations of the power method, for each
+        component. Empty if `algorithm='svd'`.
+    n_features_in_ : int
+        Number of features seen during :term:`fit`.
+    feature_names_in_ : ndarray of shape (`n_features_in_`,)
+        Names of features seen during :term:`fit`. Defined only when `X`
+        has feature names that are all strings.
+        .. versionadded:: 1.0
+    See Also
+    --------
+    CCA : Canonical Correlation Analysis.
+    PLSSVD : Partial Least Square SVD.
+    Examples
+    --------
+    >>> from sklearn.cross_decomposition import PLSCanonical
+    >>> X = [[0., 0., 1.], [1.,0.,0.], [2.,2.,2.], [2.,5.,4.]]
+    >>> Y = [[0.1, -0.2], [0.9, 1.1], [6.2, 5.9], [11.9, 12.3]]
+    >>> plsca = PLSCanonical(n_components=2)
+    >>> plsca.fit(X, Y)
+    PLSCanonical()
+    >>> X_c, Y_c = plsca.transform(X, Y)
+    r
+PLSCanonical.__init__)
+CCAap
+Canonical Correlation Analysis, also known as "Mode B" PLS.
+    Read more in the :ref:`User Guide <cross_decomposition>`.
+    Parameters
+    ----------
+    n_components : int, default=2
+        Number of components to keep. Should be in `[1, min(n_samples,
+        n_features, n_targets)]`.
+    scale : bool, default=True
+        Whether to scale `X` and `Y`.
+    max_iter : int, default=500
+        The maximum number of iterations of the power method.
+    tol : float, default=1e-06
+        The tolerance used as convergence criteria in the power method: the
+        algorithm stops whenever the squared norm of `u_i - u_{i-1}` is less
+        than `tol`, where `u` corresponds to the left singular vector.
+    copy : bool, default=True
+        Whether to copy `X` and `Y` in fit before applying centering, and
+        potentially scaling. If False, these operations will be done inplace,
+        modifying both arrays.
+    Attributes
+    ----------
+    x_weights_ : ndarray of shape (n_features, n_components)
+        The left singular vectors of the cross-covariance matrices of each
+        iteration.
+    y_weights_ : ndarray of shape (n_targets, n_components)
+        The right singular vectors of the cross-covariance matrices of each
+        iteration.
+    x_loadings_ : ndarray of shape (n_features, n_components)
+        The loadings of `X`.
+    y_loadings_ : ndarray of shape (n_targets, n_components)
+        The loadings of `Y`.
+    x_rotations_ : ndarray of shape (n_features, n_components)
+        The projection matrix used to transform `X`.
+    y_rotations_ : ndarray of shape (n_features, n_components)
+        The projection matrix used to transform `Y`.
+    coef_ : ndarray of shape (n_features, n_targets)
+        The coefficients of the linear model such that `Y` is approximated as
+        `Y = X @ coef_ + intercept_`.
+    intercept_ : ndarray of shape (n_targets,)
+        The intercepts of the linear model such that `Y` is approximated as
+        `Y = X @ coef_ + intercept_`.
+        .. versionadded:: 1.1
+    n_iter_ : list of shape (n_components,)
+        Number of iterations of the power method, for each
+        component.
+    n_features_in_ : int
+        Number of features seen during :term:`fit`.
+    feature_names_in_ : ndarray of shape (`n_features_in_`,)
+        Names of features seen during :term:`fit`. Defined only when `X`
+        has feature names that are all strings.
+        .. versionadded:: 1.0
+    See Also
+    --------
+    PLSCanonical : Partial Least Squares transformer and regressor.
+    PLSSVD : Partial Least Square SVD.
+    Examples
+    --------
+    >>> from sklearn.cross_decomposition import CCA
+    >>> X = [[0., 0., 1.], [1.,0.,0.], [2.,2.,2.], [3.,5.,4.]]
+    >>> Y = [[0.1, -0.2], [0.9, 1.1], [6.2, 5.9], [11.9, 12.3]]
+    >>> cca = CCA(n_components=1)
+    >>> cca.fit(X, Y)
+    CCA(n_components=1)
+    >>> X_c, Y_c = cca.transform(X, Y)
+    r
+CCA.__init__)
+Partial Least Square SVD.
+    This transformer simply performs a SVD on the cross-covariance matrix
+    `X'Y`. It is able to project both the training data `X` and the targets
+    `Y`. The training data `X` is projected on the left singular vectors, while
+    the targets are projected on the right singular vectors.
+    Read more in the :ref:`User Guide <cross_decomposition>`.
+    .. versionadded:: 0.8
+    Parameters
+    ----------
+    n_components : int, default=2
+        The number of components to keep. Should be in `[1,
+        min(n_samples, n_features, n_targets)]`.
+    scale : bool, default=True
+        Whether to scale `X` and `Y`.
+    copy : bool, default=True
+        Whether to copy `X` and `Y` in fit before applying centering, and
+        potentially scaling. If `False`, these operations will be done inplace,
+        modifying both arrays.
+    Attributes
+    ----------
+    x_weights_ : ndarray of shape (n_features, n_components)
+        The left singular vectors of the SVD of the cross-covariance matrix.
+        Used to project `X` in :meth:`transform`.
+    y_weights_ : ndarray of (n_targets, n_components)
+        The right singular vectors of the SVD of the cross-covariance matrix.
+        Used to project `X` in :meth:`transform`.
+    n_features_in_ : int
+        Number of features seen during :term:`fit`.
+    feature_names_in_ : ndarray of shape (`n_features_in_`,)
+        Names of features seen during :term:`fit`. Defined only when `X`
+        has feature names that are all strings.
+        .. versionadded:: 1.0
+    See Also
+    --------
+    PLSCanonical : Partial Least Squares transformer and regressor.
+    CCA : Canonical Correlation Analysis.
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from sklearn.cross_decomposition import PLSSVD
+    >>> X = np.array([[0., 0., 1.],
+    ...               [1., 0., 0.],
+    ...               [2., 2., 2.],
+    ...               [2., 5., 4.]])
+    >>> Y = np.array([[0.1, -0.2],
+    ...               [0.9, 1.1],
+    ...               [6.2, 5.9],
+    ...               [11.9, 12.3]])
+    >>> pls = PLSSVD(n_components=2).fit(X, Y)
+    >>> X_c, Y_c = pls.transform(X, Y)
+    >>> X_c.shape, Y_c.shape
+    ((4, 2), (4, 2))
+    r
+PLSSVD.__init__c
+Fit model to data.
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            Training samples.
+        Y : array-like of shape (n_samples,) or (n_samples, n_targets)
+            Targets.
+        Returns
+        -------
+        self : object
+            Fitted estimator.
+        r
+PLSSVD.fitNc
+        Apply the dimensionality reduction.
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            Samples to be transformed.
+        Y : array-like of shape (n_samples,) or (n_samples, n_targets),                 default=None
+            Targets.
+        Returns
+        -------
+        x_scores : array-like or tuple of array-like
+            The transformed data `X_tranformed` if `Y is not None`,
+            `(X_transformed, Y_transformed)` otherwise.
+        F)
+PLSSVD.transformc
+Learn and apply the dimensionality reduction.
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            Training samples.
+        y : array-like of shape (n_samples,) or (n_samples, n_targets),                 default=None
+            Targets.
+        Returns
+        -------
+        out : array-like or tuple of array-like
+            The transformed data `X_tranformed` if `Y is not None`,
+            `(X_transformed, Y_transformed)` otherwise.
+        r
+PLSSVD.fit_transform)
+T)+r
+abcr
+numpyr 
+scipy.linalgr
+baser
+utilsr
+utils.fixesr
+utils.extmathr
+utils.validationr
+exceptionsr
+__all__r
+<module>

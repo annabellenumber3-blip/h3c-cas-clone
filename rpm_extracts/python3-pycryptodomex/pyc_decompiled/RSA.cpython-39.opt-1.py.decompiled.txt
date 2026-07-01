@@ -1,0 +1,481 @@
+Z"d%d d!
+Z#e#Z$d"Z%d
+generate
+	construct
+import_key
+RsaKey
+Random)
+tobytes
+bord
+tostr)
+DerSequence
+DerNull)
+bytes_to_long)
+Integer)
+test_probable_prime
+generate_probable_prime
+	COMPOSITE)
+_expand_subject_public_key_info
+_create_subject_public_key_info
+ _extract_subject_public_key_infoc
+d d!
+d"d#
+d$d%
+d&d'
+d(d)
+d*d+
+d,d-
+d.d/
+d0d1
+d2d3
+dGd7d8
+Z d9d:
+Z!d;d<
+Z"d=d>
+Z#d?d@
+Z$dAdB
+Z%dCdD
+Z&dEdF
+Z'd5S
+Class defining an actual RSA key.
+    Do not instantiate directly.
+    Use :func:`generate`, :func:`construct` or :func:`import_key` instead.
+    :ivar n: RSA modulus
+    :vartype n: integer
+    :ivar e: RSA public exponent
+    :vartype e: integer
+    :ivar d: RSA private exponent
+    :vartype d: integer
+    :ivar p: First factor of the RSA modulus
+    :vartype p: integer
+    :ivar q: Second factor of the RSA modulus
+    :vartype q: integer
+    :ivar invp: Chinese remainder component (:math:`p^{-1} \text{mod } q`)
+    :vartype invp: integer
+    :ivar invq: Chinese remainder component (:math:`q^{-1} \text{mod } p`)
+    :vartype invq: integer
+    :ivar u: Same as ``invp``
+    :vartype u: integer
+    :undocumented: exportKey, publickey
+    c
+Build an RSA key.
+        :Keywords:
+          n : integer
+            The modulus.
+          e : integer
+            The public exponent.
+          d : integer
+            The private exponent. Only required for private keys.
+          p : integer
+            The first factor of the modulus. Only required for private keys.
+          q : integer
+            The second factor of the modulus. Only required for private keys.
+          u : integer
+            The CRT coefficient (inverse of p modulo q). Only required for
+            private keys.
+        
+Some RSA components are missing
+keys
+ValueError
+items
+setattr
+_invq)
+self
+kwargsZ	input_setZ
+public_setZ
+private_setZ	component
+value
+>/usr/lib64/python3.9/site-packages/Cryptodome/PublicKey/RSA.py
+__init__T
+RsaKey.__init__c
+RsaKey.nc
+_er2
+RsaKey.ec
+Nz-No private exponent available for public keys)
+has_private
+AttributeErrorr0
+RsaKey.dc
+Nz.No CRT component 'p' available for public keys)
+RsaKey.pc
+Nz.No CRT component 'q' available for public keys)
+RsaKey.qc
+Nz/No CRT component 'dp' available for public keys)
+z	RsaKey.dpc
+Nz/No CRT component 'dq' available for public keys)
+z	RsaKey.dqc
+Nz1No CRT component 'invq' available for public keys)
+inverser$
+invq
+RsaKey.invqc
+invp
+RsaKey.invpc
+Nz.No CRT component 'u' available for public keys)
+_ur2
+RsaKey.uc
+Size of the RSA modulus in bits
+size_in_bitsr2
+RsaKey.size_in_bitsc
+z9The minimal amount of bytes that can hold the RSA modulusr
+size_in_bytes
+RsaKey.size_in_bytesc
+Plaintext too large)
+powr
+	plaintextr,
+_encrypt
+RsaKey._encryptc
+Ciphertext too largez
+This is not a private keyr
+min_inclusiveZ
+max_exclusive)
+	TypeErrorr
+random_ranger@
+_mult_modulo_bytesr8
+)	r)
+ciphertext
+resultr,
+_decrypt_to_bytes
+RsaKey._decrypt_to_bytesc
+Legacy private method)
+_decrypt
+RsaKey._decryptc
+z"Whether this is an RSA private keyr#
+hasattrr2
+RsaKey.has_privatec
+NTr,
+can_encrypt
+RsaKey.can_encryptc
+can_sign
+RsaKey.can_signc
+z^A matching RSA public key.
+        Returns:
+            a new :class:`RsaKey` object
+        r
+public_key
+RsaKey.public_keyc
+NFT)
+otherr,
+__eq__
+RsaKey.__eq__c
+__ne__
+RsaKey.__ne__c
+PicklingError)
+picklerT
+__getstate__
+RsaKey.__getstate__c
+, d=%d, p=%d, q=%d, u=%d
+RsaKey(n=%d, e=%d%s))
+extrar,
+__repr__
+RsaKey.__repr__c
+PrivateZ
+Publicz
+%s RSA key at 0x%X)
+key_typer,
+__str__
+RsaKey.__str__
+PEMNr
+Export this RSA key.
+        Args:
+          format (string):
+            The format to use for wrapping the key:
+            - *'PEM'*. (*Default*) Text encoding, done according to `RFC1421`_/`RFC1423`_.
+            - *'DER'*. Binary encoding.
+            - *'OpenSSH'*. Textual encoding, done according to OpenSSH specification.
+              Only suitable for public keys (not private keys).
+          passphrase (string):
+            (*For private keys only*) The pass phrase used for protecting the output.
+          pkcs (integer):
+            (*For private keys only*) The ASN.1 structure to use for
+            serializing the key. Note that even in case of PEM
+            encoding, there is an inner ASN.1 DER structure.
+            With ``pkcs=1`` (*default*), the private key is encoded in a
+            simple `PKCS#1`_ structure (``RSAPrivateKey``).
+            With ``pkcs=8``, the private key is encoded in a `PKCS#8`_ structure
+            (``PrivateKeyInfo``).
+            .. note::
+                This parameter is ignored for a public key.
+                For DER and PEM, an ASN.1 DER ``SubjectPublicKeyInfo``
+                structure is always used.
+          protection (string):
+            (*For private keys only*)
+            The encryption scheme to use for protecting the private key.
+            If ``None`` (default), the behavior depends on :attr:`format`:
+            - For *'DER'*, the *PBKDF2WithHMAC-SHA1AndDES-EDE3-CBC*
+              scheme is used. The following operations are performed:
+                1. A 16 byte Triple DES key is derived from the passphrase
+                   using :func:`Cryptodome.Protocol.KDF.PBKDF2` with 8 bytes salt,
+                   and 1 000 iterations of :mod:`Cryptodome.Hash.HMAC`.
+                2. The private key is encrypted using CBC.
+                3. The encrypted key is encoded according to PKCS#8.
+            - For *'PEM'*, the obsolete PEM encryption scheme is used.
+              It is based on MD5 for key derivation, and Triple DES for encryption.
+            Specifying a value for :attr:`protection` is only meaningful for PKCS#8
+            (that is, ``pkcs=8``) and only if a pass phrase is present too.
+            The supported schemes for PKCS#8 are listed in the
+            :mod:`Cryptodome.IO.PKCS8` module (see :attr:`wrap_algo` parameter).
+          randfunc (callable):
+            A function that provides random bytes. Only used for PEM encoding.
+            The default is :func:`Cryptodome.Random.get_random_bytes`.
+        Returns:
+          byte string: the encoded key
+        Raises:
+          ValueError:when the format is unknown or when you try to encrypt a private
+            key with *DER* format and PKCS#1.
+        .. warning::
+            If you don't provide a pass phrase, the private key will be
+            exported in the clear!
+        .. _RFC1421:    http://www.ietf.org/rfc/rfc1421.txt
+        .. _RFC1423:    http://www.ietf.org/rfc/rfc1423.txt
+        .. _`PKCS#1`:   http://www.ietf.org/rfc/rfc3447.txt
+        .. _`PKCS#8`:   http://www.ietf.org/rfc/rfc5208.txt
+        NZ
+OpenSSHc
+to_bytes
+<listcomp>]
+z%RsaKey.export_key.<locals>.<listcomp>r
+ssh-rsarb
+struct
+pack
+len)
+kpr,
+ssh-rsa 
+RSA PRIVATE KEYZ
+DERz&PKCS#1 private key cannot be encrypted
+PKCS8r\
+PRIVATE KEY)
+key_paramsz
+ENCRYPTED PRIVATE KEYz"PBKDF2WithHMAC-SHA1AndDES-EDE3-CBCz
+PUBLIC KEY
+z3Unknown key format '%s'. Cannot export the RSA key.)
+get_random_bytesr3
+join
+binasciiZ
+b2a_base64r4
+encoder 
+Cryptodome.IOrl
+wrapr
+format
+passphraseZ
+pkcsZ
+protection
+randfuncZ
+e_bytesZ
+n_bytes
+keyparts
+	keystringZ
+binary_keyrZ
+pem_strr,
+export_key	
+RsaKey.export_keyc
+Nz0Use module Cryptodome.Signature.pkcs1_15 instead
+NotImplementedError)
+sign
+RsaKey.signc
+Z	signaturer,
+verify
+RsaKey.verifyc
+Nz/Use module Cryptodome.Cipher.PKCS1_OAEP insteadrz
+encrypt
+RsaKey.encryptc
+decrypt
+RsaKey.decryptc
+blind
+RsaKey.blindc
+unblind
+RsaKey.unblindc
+size
+RsaKey.size)
+NN)(
+__name__
+__module__
+__qualname__
+__doc__r.
+propertyr
+Z	exportKeyZ	publickeyr~
+rD|	
+Create a new RSA key pair.
+    The algorithm closely follows NIST `FIPS 186-4`_ in its
+    sections B.3.1 and B.3.3. The modulus is the product of
+    two non-strong probable primes.
+    Each prime passes a suitable number of Miller-Rabin tests
+    with random bases and a single Lucas test.
+    Args:
+      bits (integer):
+        Key length, or size (in bits) of the RSA modulus.
+        It must be at least 1024, but **2048 is recommended.**
+        The FIPS standard only defines 1024, 2048 and 3072.
+      randfunc (callable):
+        Function that returns random bytes.
+        The default is :func:`Cryptodome.Random.get_random_bytes`.
+      e (integer):
+        Public RSA exponent. It must be an odd positive integer.
+        It is typically a small number with very few ones in its
+        binary representation.
+        The FIPS standard requires the public exponent to be
+        at least 65537 (the default).
+    Returns: an RSA key object (:class:`RsaKey`, with private key).
+    .. _FIPS 186-4: http://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.186-4.pdf
+    i
+z"RSA modulus length must be >= 1024
+zBRSA public exponent must be a positive, odd integer larger than 2.Nr
+	candidate)
+min_pr,
+filter_p
+generate.<locals>.filter_p)
+exact_bitsru
+prime_filter
+absr
+min_distance
+min_qr
+filter_q
+generate.<locals>.filter_q
+sqrtr
+lcmr8
+bitsru
+size_qZ
+size_pr
+Construct an RSA key from a tuple of valid RSA components.
+    The modulus **n** must be the product of two primes.
+    The public exponent **e** must be odd and larger than 1.
+    In case of a private key, the following equations must apply:
+    .. math::
+        \begin{align}
+        p*q &= n \\
+        e*d &\equiv 1 ( \text{mod lcm} [(p-1)(q-1)]) \\
+        p*u &\equiv 1 ( \text{mod } q)
+        \end{align}
+    Args:
+        rsa_components (tuple):
+            A tuple of integers, with at least 2 and no
+            more than 6 items. The items come in the following order:
+            1. RSA modulus *n*.
+            2. Public exponent *e*.
+            3. Private exponent *d*.
+               Only required if the key is private.
+            4. First factor of *n* (*p*).
+               Optional, but the other factor *q* must also be present.
+            5. Second factor of *n* (*q*). Optional.
+            6. CRT coefficient *q*, that is :math:`p^{-1} \text{mod }q`. Optional.
+        consistency_check (boolean):
+            If ``True``, the library will verify that the provided components
+            fulfil the main RSA properties.
+    Raises:
+        ValueError: when the key being imported fails the most basic RSA validity checks.
+    Returns: An RSA key object (:class:`RsaKey`).
+    c
+construct.<locals>.InputCompsN)
+InputComps,
+Tz2Unable to compute factors p and q from exponent d.r
+Invalid RSA public exponentz-RSA public exponent is not coprime to modulusz
+RSA modulus is not oddz
+Invalid RSA private exponentz.RSA private exponent is not coprime to modulusz RSA factors do not match modulusz
+RSA factor p is compositez
+RSA factor q is compositez
+Invalid RSA conditionz
+Invalid RSA component uz
+Invalid RSA component u with p)
+object
+zipr"
+rsa_componentsZ
+consistency_checkr
+input_comps
+compr+
+keyr
+ktot
+spotted
+candr
+phir
+nr_elementsZ
+only_ints_expectedr
+z(No PKCS#1 encoding of an RSA private keyr
+decoder 
+encodedr*
+derr,
+_import_pkcs1_private
+_import_pkcs1_public
+No RSA subjectPublicKeyInfo)
+algoidZ
+encoded_key
+paramsr,
+_import_subjectPublicKeyInfo
+sp_infor,
+_import_x509_cert
+No PKCS#8 encoded RSA keyr
+unwrapr
+_import_keyDER)
+_import_pkcs8
+z@Import an RSA key (public or private half), encoded in DER form.
+RSA key format is not supportedN)
+extern_keyrt
+Z	decodingsZ
+decodingr,
+import_openssh_private_generic
+read_bytes
+read_string
+check_paddingz
+ssh-rsaz
+This SSH key is not RSAc
+from_bytesr^
+z/_import_openssh_private_rsa.<locals>.<listcomp>)
+_opensshr
+data
+passwordr
+ssh_nameZ	decryptedr
+iqmpr
+paddedZ
+buildr,
+_import_openssh_private_rsa
+|	d	d	|
+|	d	|
+Import an RSA key (public or private).
+    Args:
+      extern_key (string or byte string):
+        The RSA key to import.
+        The following formats are supported for an RSA **public key**:
+        - X.509 certificate (binary or PEM format)
+        - X.509 ``subjectPublicKeyInfo`` DER SEQUENCE (binary or PEM
+          encoding)
+        - `PKCS#1`_ ``RSAPublicKey`` DER SEQUENCE (binary or PEM encoding)
+        - An OpenSSH line (e.g. the content of ``~/.ssh/id_ecdsa``, ASCII)
+        The following formats are supported for an RSA **private key**:
+        - PKCS#1 ``RSAPrivateKey`` DER SEQUENCE (binary or PEM encoding)
+        - `PKCS#8`_ ``PrivateKeyInfo`` or ``EncryptedPrivateKeyInfo``
+          DER SEQUENCE (binary or PEM encoding)
+        - OpenSSH (text format, introduced in `OpenSSH 6.5`_)
+        For details about the PEM encoding, see `RFC1421`_/`RFC1423`_.
+      passphrase (string or byte string):
+        For private keys only, the pass phrase that encrypts the key.
+    Returns: An RSA key object (:class:`RsaKey`).
+    Raises:
+      ValueError/IndexError/TypeError:
+        When the given key cannot be parsed (possibly because the pass
+        phrase is wrong).
+    .. _RFC1421: http://www.ietf.org/rfc/rfc1421.txt
+    .. _RFC1423: http://www.ietf.org/rfc/rfc1423.txt
+    .. _`PKCS#1`: http://www.ietf.org/rfc/rfc3447.txt
+    .. _`PKCS#8`: http://www.ietf.org/rfc/rfc5208.txt
+    .. _`OpenSSH 6.5`: https://flak.tedunangst.com/post/new-openssh-key-format-and-bcrypt-pbkdf
+    r
+-----BEGIN OPENSSH PRIVATE KEYs
+-----ri
+startswithr
+a2b_base64
+splitrh
+unpack
+appendr
+text_encodedZ
+openssh_encodedZ
+markerZ
+enc_flagrG
+lengthr
+1.2.840.113549.1.1.1)
+__all__rp
+Cryptodomer
+Cryptodome.Util.py3compatr
+Cryptodome.Util.asn1r
+Cryptodome.Util.numberr
+Cryptodome.Math.Numbersr
+Cryptodome.Math.Primalityr
+Cryptodome.PublicKeyr
+Z	importKeyr
+<module> 

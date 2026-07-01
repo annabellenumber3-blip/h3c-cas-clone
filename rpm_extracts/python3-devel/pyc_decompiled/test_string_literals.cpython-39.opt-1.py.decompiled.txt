@@ -1,0 +1,221 @@
+Test correct treatment of various string literals by the parser.
+There are four types of string literals:
+    'abc'             -- normal str
+    r'abc'            -- raw str
+    b'xyz'            -- normal bytes
+    br'xyz' | rb'xyz' -- raw bytes
+The difference between normal and raw strings is of course that in a
+raw string, \ escapes (while still used to determine the end of the
+literal) are not interpreted, so that r'\x00' contains four
+characters: a backslash, an x, and two zeros; while '\x00' contains a
+single character (code point zero).
+The tricky thing is what should happen when non-ASCII bytes are used
+inside literals.  For bytes literals, this is considered illegal.  But
+for str literals, those bytes are supposed to be decoded using the
+encoding declared for the file (UTF-8 by default).
+We have to test this with various file encodings.  We also test it with
+exec()/eval(), which uses a different code path.
+This file is really about correct treatment of encodings and
+backslashes.  It doesn't concern itself with issues like single
+vs. double quotes or singly- vs. triply-quoted strings: that's dealt
+with elsewhere (I assume).
+use_old_parsera
+# coding: %s
+a = 'x'
+assert ord(a) == 120
+b = '\x01'
+assert ord(b) == 1
+c = r'\x01'
+assert list(map(ord, c)) == [92, 120, 48, 49]
+d = '\x81'
+assert ord(d) == 0x81
+e = r'\x81'
+assert list(map(ord, e)) == [92, 120, 56, 49]
+f = '\u1881'
+assert ord(f) == 0x1881
+g = r'\u1881'
+assert list(map(ord, g)) == [92, 117, 49, 56, 56, 49]
+h = '\U0001d120'
+assert ord(h) == 0x1d120
+i = r'\U0001d120'
+assert list(map(ord, i)) == [92, 85, 48, 48, 48, 49, 100, 49, 50, 48]
+bytes)
+1/usr/lib64/python3.9/test/test_string_literals.py
+byte=
+d d!
+d"d#
+d$d%
+d&d'
+TestLiteralsc
+path
+	save_path
+tempfileZ
+mkdtemp
+tmpdir
+insert
+selfr
+setUpC
+TestLiterals.setUpc
+ignore_errors)
+shutilZ
+rmtreer
+tearDownH
+TestLiterals.tearDownc
+TEMPLATE)
+test_templateL
+TestLiterals.test_templatec
+ 'x' 
+ '\x01' 
+ '\x81' 
+ '\u1881' 
+ '\U0001d120' 
+assertEqual
+eval
+chrr
+test_eval_str_normalR
+z!TestLiterals.test_eval_str_normalc
+ '\x' z
+ '\x0' z
+ '\u' z
+ '\u0' z
+ '\u00' z	 '\u000' z
+ '\U' z
+ '\U0' z
+ '\U00' z	 '\U000' z
+ '\U0000' z
+ '\U00000' z
+ '\U000000' z
+ '\U0000000' 
+assertRaises
+SyntaxErrorr 
+test_eval_str_incomplete]
+z%TestLiterals.test_eval_str_incompletec
+"'01234567NU\abfnrtuvxz
+'\%c'
+record
+always
+categoryz	'''
+\z'''r
+<string>
+error)
+range
+assertWarns
+DeprecationWarningr
+warnings
+catch_warnings
+simplefilter
+filename
+linenor$
+	exception
+offset
+excr
+test_eval_str_invalid_escapem
+z)TestLiterals.test_eval_str_invalid_escapec
+ r'x' r
+z	 r'\x01' z
+\x01z
+z	 r'\x81' z
+\x81u
+ r'\u1881' z
+\u1881u
+ r'\U0001d120' z
+\U0001d120u	
+test_eval_str_raw
+TestLiterals.test_eval_str_rawc
+ b'x' 
+xz	 b'\x01' r
+' z	 b'\x81' r
+ br'\u1881' 
+\u1881u
+ br'\U0001d120' 
+\U0001d120u	
+test_eval_bytes_normal
+z#TestLiterals.test_eval_bytes_normalc
+ b'\x' z
+ b'\x0' r#
+test_eval_bytes_incomplete
+z'TestLiterals.test_eval_bytes_incompletec
+"'01234567\abfnrtvxz
+b'\%c'
+\Tr)
+b'''
+\z'''r
+test_eval_bytes_invalid_escape
+z+TestLiterals.test_eval_bytes_invalid_escapec
+ br'x' rB
+ rb'x' z
+ br'\x01' s
+\x01z
+ rb'\x01' z
+ br'
+ rb'
+ br'\x81' s
+\x81z
+ rb'\x81' u
+ br'
+ rb'
+' rC
+ rb'\u1881' u	
+ br'
+' u	
+ rb'
+' rE
+ rb'\U0001d120' u
+ br'
+ rb'
+ bb'' z
+ rr'' z
+ brr'' z
+ bbr'' z
+ rrb'' z
+ rbb'' rG
+test_eval_bytes_raw
+z TestLiterals.test_eval_bytes_rawc
+ u'x' r
+ ur'' z
+ ru'' z
+ bu'' z
+ ub'' )
+test_eval_str_u
+TestLiterals.test_eval_str_u
+.pyr=
+encoding)
+replace
+joinr
+open
+writer
+close
+__import__r
+modules)
+extra
+modname
+check_encoding
+TestLiterals.check_encodingc
+z = '
+'; assert ord(z) == 0x1234
+utf-8
+test_file_utf_8
+TestLiterals.test_file_utf_8c
+test_file_utf_8_error
+z"TestLiterals.test_file_utf_8_errorc
+test_file_utf8
+TestLiterals.test_file_utf8c
+iso-8859-1ra
+test_file_iso_8859_1
+z!TestLiterals.test_file_iso_8859_1c
+latin-1ra
+test_file_latin_1
+TestLiterals.test_file_latin_1c
+latin9ra
+test_file_latin9
+TestLiterals.test_file_latin9N)
+__name__
+__module__
+__qualname__r
+__main__)
+__doc__rT
+unittestr3
+test.supportr
+TestCaser	
+mainr
+<module>

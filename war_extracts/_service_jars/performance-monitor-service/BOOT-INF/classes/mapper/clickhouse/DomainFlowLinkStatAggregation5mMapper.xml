@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.h3c.h3cloud.performance.monitor.service.mapper.clickhouse.DomainFlowLinkStatAggregation5mMapper">
+    <delete id ="deleteBeforeTime">
+        ALTER TABLE AGG_DOMAIN_FLOW_LINK_STAT_5M DELETE WHERE TIME &lt; #{time}
+    </delete>
+    <select id="readVmFlowLink" resultType="com.h3c.h3cloud.common.model.performance.DomainFlowLinkStatData">
+        SELECT round(avgMerge(FLOW_LINK_AVG)) as flowLink, TIME as time
+        FROM AGG_DOMAIN_FLOW_LINK_STAT_5M
+        WHERE DOMAIN_ID =${domainId}
+          AND TIME BETWEEN ${startTime} AND ${endTime}
+        GROUP BY time
+        ORDER BY TIME ASC
+    </select>
+    <select id="readLinkTrendByCondition" resultType="com.h3c.h3cloud.common.model.performance.DomainFlowLinkStatStatisticsData">
+        SELECT DOMAIN_ID as domainId,
+        <choose>
+            <when test="cycle!=null and cycle=='hour'">
+                formatDateTime(toDateTime(TIME), '%Y-%m-%d %H') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='week'">
+                formatDateTime(toDateTime(TIME), '%Y %V') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='month'">
+                formatDateTime(toDateTime(TIME), '%Y-%m') as timeStr,
+            </when>
+            <when test="cycle!=null and cycle=='year'">
+                formatDateTime(toDateTime(TIME), '%Y') as timeStr,
+            </when>
+            <otherwise>
+                formatDateTime(toDateTime(TIME), '%Y-%m-%d') as timeStr,
+            </otherwise>
+        </choose>
+        round(avgMerge(FLOW_LINK_AVG)) as avgFlowLink, maxMerge(FLOW_LINK_MAX) as maxFlowLink, minMerge(FLOW_LINK_MIN) as minFlowLink
+        FROM AGG_DOMAIN_FLOW_LINK_STAT_5M detail  WHERE TIME BETWEEN ${startTime} AND ${endTime}
+        <if test="domainId!=null and domainId!=''">
+            AND DOMAIN_ID = ${domainId}
+        </if>
+        <if test="vmIds!=null and vmIds!=''">
+            AND DOMAIN_ID in (${vmIds})
+        </if>
+        GROUP BY  DOMAIN_ID, timeStr ORDER BY timeStr
+    </select>
+</mapper>

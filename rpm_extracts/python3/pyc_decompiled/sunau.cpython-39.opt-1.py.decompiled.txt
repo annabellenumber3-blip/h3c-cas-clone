@@ -1,0 +1,303 @@
+Stuff to parse Sun and NeXT audio files.
+An audio file consists of a header followed by the data.  The structure
+of the header is as follows.
+        +---------------+
+        | magic word    |
+        +---------------+
+        | header size   |
+        +---------------+
+        | data size     |
+        +---------------+
+        | encoding      |
+        +---------------+
+        | sample rate   |
+        +---------------+
+        | # of channels |
+        +---------------+
+        | info          |
+        |               |
+        +---------------+
+The magic word consists of the 4 characters '.snd'.  Apart from the
+info field, all header fields are 4 bytes in size.  They are all
+32-bit unsigned integers encoded in big-endian byte order.
+The header size really gives the start of the data.
+The data size is the physical size of the data.  From the other
+parameters the number of frames can be calculated.
+The encoding gives the way in which audio samples are encoded.
+Possible values are listed below.
+The info field currently consists of an ASCII string giving a
+human-readable description of the audio file.  The info field is
+padded with NUL bytes to the header size.
+Usage.
+Reading audio files:
+        f = sunau.open(file, 'r')
+where file is either the name of a file or an open file pointer.
+The open file pointer must have methods read(), seek(), and close().
+When the setpos() and rewind() methods are not used, the seek()
+method is not  necessary.
+This returns an instance of a class with the following public methods:
+        getnchannels()  -- returns number of audio channels (1 for
+                           mono, 2 for stereo)
+        getsampwidth()  -- returns sample width in bytes
+        getframerate()  -- returns sampling frequency
+        getnframes()    -- returns number of audio frames
+        getcomptype()   -- returns compression type ('NONE' or 'ULAW')
+        getcompname()   -- returns human-readable version of
+                           compression type ('not compressed' matches 'NONE')
+        getparams()     -- returns a namedtuple consisting of all of the
+                           above in the above order
+        getmarkers()    -- returns None (for compatibility with the
+                           aifc module)
+        getmark(id)     -- raises an error since the mark does not
+                           exist (for compatibility with the aifc module)
+        readframes(n)   -- returns at most n frames of audio
+        rewind()        -- rewind to the beginning of the audio stream
+        setpos(pos)     -- seek to the specified position
+        tell()          -- return the current position
+        close()         -- close the instance (make it unusable)
+The position returned by tell() and the position given to setpos()
+are compatible and have nothing to do with the actual position in the
+file.
+The close() method is called automatically when the class instance
+is destroyed.
+Writing audio files:
+        f = sunau.open(file, 'w')
+where file is either the name of a file or an open file pointer.
+The open file pointer must have methods write(), tell(), seek(), and
+close().
+This returns an instance of a class with the following public methods:
+        setnchannels(n) -- set the number of channels
+        setsampwidth(n) -- set the sample width
+        setframerate(n) -- set the frame rate
+        setnframes(n)   -- set the number of frames
+        setcomptype(type, name)
+                        -- set the compression type and the
+                           human-readable compression type
+        setparams(tuple)-- set all parameters at once
+        tell()          -- return current position in output file
+        writeframesraw(data)
+                        -- write audio frames without pathing up the
+                           file header
+        writeframes(data)
+                        -- write audio frames and patch up the file header
+        close()         -- patch up the file header and close the
+                           output file
+You should set the parameters before the first writeframesraw or
+writeframes.  The total number of frames does not need to be set,
+but when it is set to the correct value, the header does not have to
+be patched up.
+It is best to first set all parameters, perhaps possibly the
+compression type, and then write audio frames using writeframesraw.
+When all frames have been written, either call writeframes(b'') or
+close() to patch up the sizes in the header.
+The close() method is called automatically when the class instance
+is destroyed.
+namedtuple
+_sunau_paramsz7nchannels sampwidth framerate nframes comptype compnameidns.
+ErrorN)
+__name__
+__module__
+__qualname__
+/usr/lib64/python3.9/sunau.pyr
+range
+read
+EOFError
+ord)
+file
+byter
+	_read_u32
+divmod
+insert
+write
+bytes)
+datar
+_write_u32
+d!d"
+d#d$
+d%d&
+d'd(
+Au_readc
+rbTF
+type
+builtins
+open
+_opened
+initfp
+self
+__init__
+Au_read.__init__c
+_file
+close
+__del__
+Au_read.__del__c
+	__enter__
+Au_read.__enter__c
+argsr
+__exit__
+Au_read.__exit__c
+bad magic numberr
+header size too small
+header size ridiculously largez
+encoding not (yet) supportedr
+unknown encodingz
+bad # of channels
+	_soundposr!
+AUDIO_FILE_MAGICr
+Z	_hdr_size
+_data_size
+AUDIO_UNKNOWN_SIZE
+	_encoding
+_simple_encodings
+AUDIO_FILE_ENCODING_MULAW_8
+AUDIO_FILE_ENCODING_ALAW_8
+_sampwidth
+_framesize
+AUDIO_FILE_ENCODING_LINEAR_8
+AUDIO_FILE_ENCODING_LINEAR_16
+AUDIO_FILE_ENCODING_LINEAR_24
+AUDIO_FILE_ENCODING_LINEAR_32
+_framerate
+_nchannelsr
+_info
+	partition
+tell
+	_data_pos
+AttributeError
+OSError)
+magic
+Au_read.initfpc
+getfp
+Au_read.getfpc
+getnchannels
+Au_read.getnchannelsc
+getsampwidth
+Au_read.getsampwidthc
+getframerate
+Au_read.getframeratec
+getnframes
+Au_read.getnframesc
+ULAW
+ALAW
+NONE
+getcomptype
+Au_read.getcomptypec
+CCITT G.711 u-law
+CCITT G.711 A-law
+not compressedrd
+getcompname
+Au_read.getcompnamec
+	getparams
+Au_read.getparamsc
+getmarkers
+Au_read.getmarkersc
+no marks)
+getmark
+Au_read.getmarkc
+lenrI
+audioopZ
+ulaw2linrK
+nframesr$
+readframes
+Au_read.readframesc
+cannot seekr
+seekrC
+rewind
+Au_read.rewindc
+Au_read.tellc
+position not in rangers
+posr
+setpos$
+Au_read.setposc
+Au_read.closeN)
+d!d"
+d#d$
+d%d&
+d'd(
+d)d*
+d+d,
+d-d.
+d/d0
+d1d2
+Au_writec
+wbTFr+
+Au_write.__init__c
+Au_write.__del__c
+Au_write.__enter__c
+Au_write.__exit__c
+_nframes
+_nframeswritten
+_datawritten
+_datalengthrS
+	_comptyperx
+Au_write.initfpc
+0cannot change parameters after starting to write)
+z"only 1, 2, or 4 channels supported)
+	nchannelsr
+setnchannelsV
+Au_write.setnchannelsc
+number of channels not set)
+Au_write.getnchannelsc
+bad sample width)
+	sampwidthr
+setsampwidthb
+Au_write.setsampwidthc
+sample width not specified)
+Au_write.getsampwidthc
+	framerater
+setframeraten
+Au_write.setframeratec
+frame rate not set)
+Au_write.getframeratec
+# of frames cannot be negative)
+setnframesx
+Au_write.setnframesc
+Au_write.getnframesc
+unknown compression type)
+namer
+setcomptype
+Au_write.setcomptypec
+Au_write.getcomptypec
+Au_write.getcompnamec
+paramsr
+comptypeZ
+compnamer
+	setparams
+Au_write.setparamsc
+Au_write.getparamsc
+Au_write.tellc
+isinstancer#
+	bytearray
+memoryview
+cast
+_ensure_header_writtenr
+lin2ulawrK
+writeframesraw
+Au_write.writeframesrawc
+_patchheader)
+writeframes
+Au_write.writeframesc
+rtzP|
+flushr/
+Au_write.closec
+# of channels not specifiedr
+frame rate not specified)
+_write_headerr9
+Au_write._ensure_header_writtenc
+internal errorra
+_form_length_posrW
+encoding
+header_sizeZ
+lengthr
+Au_write._write_headerc
+Au_write._patchheaderN)
+moder*
+z$mode must be 'r', 'rb', 'w', or 'wb')
+hasattrr
+__doc__
+collectionsr
+AUDIO_FILE_ENCODING_FLOATZ
+AUDIO_FILE_ENCODING_DOUBLEZ
+AUDIO_FILE_ENCODING_ADPCM_G721Z
+AUDIO_FILE_ENCODING_ADPCM_G722Z AUDIO_FILE_ENCODING_ADPCM_G723_3Z AUDIO_FILE_ENCODING_ADPCM_G723_5rJ
+	Exceptionr
+<module>

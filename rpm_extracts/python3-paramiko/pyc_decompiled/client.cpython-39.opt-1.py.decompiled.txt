@@ -1,0 +1,504 @@
+m	Z	m
+m Z 
+l!m"Z"
+l#m$Z$m%Z%
+SSH client & key policies
+hexlifyN)
+ECONNREFUSED
+EHOSTUNREACH)
+Agent)
+DEBUG)
+SSH_PORT)
+DSSKey)
+ECDSAKey)
+Ed25519Key)
+HostKeys)
+string_types)
+RSAKey)
+SSHException
+BadHostKeyException
+NoValidConnectionsError)
+	Transport)
+retry_on_signal
+ClosingContextManagerc
+d.d d!
+d"d#
+d$d%
+d&d'
+d(d)
+d*d+
+	SSHClienta
+    A high-level representation of a session with an SSH server.  This class
+    wraps `.Transport`, `.Channel`, and `.SFTPClient` to take care of most
+    aspects of authenticating and opening channels.  A typical use case is::
+        client = SSHClient()
+        client.load_system_host_keys()
+        client.connect('ssh.example.com')
+        stdin, stdout, stderr = client.exec_command('ls -l')
+    You may pass in explicit overrides for authentication and server host key
+    checking.  The default mechanism is to try to use local key files or an
+    SSH agent (if one is running).
+    Instances of this class may be used as context managers.
+    .. versionadded:: 1.6
+    c
+        Create a new SSHClient.
+        N)	r
+_system_host_keys
+_host_keys
+_host_keys_filename
+_log_channel
+RejectPolicy
+_policy
+_transport
+_agent
+self
+3/usr/lib/python3.9/site-packages/paramiko/client.py
+__init__E
+SSHClient.__init__Nc
+        Load host keys from a system (read-only) file.  Host keys read with
+        this method will not be saved back by `save_host_keys`.
+        This method can be called multiple times.  Each new set of host keys
+        will be merged with the existing set (new replacing old if there are
+        conflicts).
+        If ``filename`` is left as ``None``, an attempt will be made to read
+        keys from the user's local "known hosts" file, as used by OpenSSH,
+        and no exception will be raised if the file can't be read.  This is
+        probably only useful on posix.
+        :param str filename: the filename to read, or ``None``
+        :raises: ``IOError`` --
+            if a filename was provided and the file could not be read
+        Nz
+~/.ssh/known_hosts)
+path
+expanduserr
+load
+IOError
+filenamer
+load_system_host_keysQ
+SSHClient.load_system_host_keysc
+        Load host keys from a local host-key file.  Host keys read with this
+        method will be checked after keys loaded via `load_system_host_keys`,
+        but will be saved back by `save_host_keys` (so they can be modified).
+        The missing host key policy `.AutoAddPolicy` adds keys to this set and
+        saves them, when connecting to a previously-unknown server.
+        This method can be called multiple times.  Each new set of host keys
+        will be merged with the existing set (new replacing old if there are
+        conflicts).  When automatically saving, the last hostname is used.
+        :param str filename: the filename to read
+        :raises: ``IOError`` -- if the filename could not be read
+        N)
+load_host_keysn
+SSHClient.load_host_keysc
+q<q,W
+        Save the host keys back to a file.  Only the host keys loaded with
+        `load_host_keys` (plus any added directly) will be saved -- not any
+        host keys loaded with `load_system_host_keys`.
+        :param str filename: the filename to save to
+        :raises: ``IOError`` -- if the file could not be written
+        N
+wz	{} {} {}
+openr
+items
+write
+formatZ
+get_base64)
+hostname
+keys
+keytype
+keyr
+save_host_keys
+SSHClient.save_host_keysc
+        Get the local `.HostKeys` object.  This can be used to examine the
+        local host keys or change them.
+        :return: the local host keys as a `.HostKeys` object.
+        )
+get_host_keys
+SSHClient.get_host_keysc
+        Set the channel for logging.  The default is ``"paramiko.transport"``
+        but it can be set to anything you want.
+        :param str name: new channel name for logging
+        N)
+namer
+set_log_channel
+SSHClient.set_log_channelc
+        Set policy to use when connecting to servers without a known host key.
+        Specifically:
+        * A **policy** is a "policy class" (or instance thereof), namely some
+          subclass of `.MissingHostKeyPolicy` such as `.RejectPolicy` (the
+          default), `.AutoAddPolicy`, `.WarningPolicy`, or a user-created
+          subclass.
+        * A host key is **known** when it appears in the client object's cached
+          host keys structures (those manipulated by `load_system_host_keys`
+          and/or `load_host_keys`).
+        :param .MissingHostKeyPolicy policy:
+            the policy to use when receiving a host key from a
+            previously-unknown server
+        N)
+inspectZ
+isclassr
+policyr
+set_missing_host_key_policy
+z%SSHClient.set_missing_host_key_policyc
+        Yield pairs of address families and addresses to try for connecting.
+        :param str hostname: the server to connect to
+        :param int port: the server port to connect to
+        :returns: Yields an iterable of ``(family, address)`` tuples
+        TFN)
+socketZ
+getaddrinfoZ	AF_UNSPEC
+SOCK_STREAM)
+portZ
+guessZ	addrinfosZ
+familyZ
+socktype
+protoZ	canonnameZ
+sockaddr
+_families_and_addresses
+z!SSHClient._families_and_addressesTFc
+rJt$
+        Connect to an SSH server and authenticate to it.  The server's host key
+        is checked against the system host keys (see `load_system_host_keys`)
+        and any local host keys (`load_host_keys`).  If the server's hostname
+        is not found in either set of host keys, the missing host key policy
+        is used (see `set_missing_host_key_policy`).  The default policy is
+        to reject the key and raise an `.SSHException`.
+        Authentication is attempted in the following order of priority:
+            - The ``pkey`` or ``key_filename`` passed in (if any)
+              - ``key_filename`` may contain OpenSSH public certificate paths
+                as well as regular private-key paths; when files ending in
+                ``-cert.pub`` are found, they are assumed to match a private
+                key, and both components will be loaded. (The private key
+                itself does *not* need to be listed in ``key_filename`` for
+                this to occur - *just* the certificate.)
+            - Any key we can find through an SSH agent
+            - Any "id_rsa", "id_dsa" or "id_ecdsa" key discoverable in
+              ``~/.ssh/``
+              - When OpenSSH-style public certificates exist that match an
+                existing such private key (so e.g. one has ``id_rsa`` and
+                ``id_rsa-cert.pub``) the certificate will be loaded alongside
+                the private key and used for authentication.
+            - Plain username/password auth, if a password was given
+        If a private key requires a password to unlock it, and a password is
+        passed in, that password will be used to attempt to unlock the key.
+        :param str hostname: the server to connect to
+        :param int port: the server port to connect to
+        :param str username:
+            the username to authenticate as (defaults to the current local
+            username)
+        :param str password:
+            Used for password authentication; is also used for private key
+            decryption if ``passphrase`` is not given.
+        :param str passphrase:
+            Used for decrypting private keys.
+        :param .PKey pkey: an optional private key to use for authentication
+        :param str key_filename:
+            the filename, or list of filenames, of optional private key(s)
+            and/or certs to try for authentication
+        :param float timeout:
+            an optional timeout (in seconds) for the TCP connect
+        :param bool allow_agent:
+            set to False to disable connecting to the SSH agent
+        :param bool look_for_keys:
+            set to False to disable searching for discoverable private key
+            files in ``~/.ssh/``
+        :param bool compress: set to True to turn on compression
+        :param socket sock:
+            an open socket or socket-like object (such as a `.Channel`) to use
+            for communication to the target host
+        :param bool gss_auth:
+            ``True`` if you want to use GSS-API authentication
+        :param bool gss_kex:
+            Perform GSS-API Key Exchange and user authentication
+        :param bool gss_deleg_creds: Delegate GSS-API client credentials or not
+        :param str gss_host:
+            The targets name in the kerberos database. default: hostname
+        :param bool gss_trust_dns:
+            Indicates whether or not the DNS is trusted to securely
+            canonicalize the name of the host being connected to (default
+            ``True``).
+        :param float banner_timeout: an optional timeout (in seconds) to wait
+            for the SSH banner to be presented.
+        :param float auth_timeout: an optional timeout (in seconds) to wait for
+            an authentication response.
+        :param dict disabled_algorithms:
+            an optional dict passed directly to `.Transport` and its keyword
+            argument of the same name.
+        :raises:
+            `.BadHostKeyException` -- if the server's host key could not be
+            verified
+        :raises: `.AuthenticationException` -- if authentication failed
+        :raises:
+            `.SSHException` -- if there was any other error connecting or
+            establishing an SSH session
+        :raises socket.error: if a socket error occurred while connecting
+        .. versionchanged:: 1.15
+            Added the ``banner_timeout``, ``gss_auth``, ``gss_kex``,
+            ``gss_deleg_creds`` and ``gss_host`` arguments.
+        .. versionchanged:: 2.3
+            Added the ``gss_trust_dns`` argument.
+        .. versionchanged:: 2.4
+            Added the ``passphrase`` argument.
+        .. versionchanged:: 2.6
+            Added the ``disabled_algorithms`` argument.
+        Nc
+connectr
+addr
+sockr
+<lambda>]
+z#SSHClient.connect.<locals>.<lambda>)
+gss_kex
+gss_deleg_creds
+disabled_algorithms)
+compress)
+gss_hostZ	trust_dnsZ
+gssapi_requestedz
+[{}]:{}r
+<listcomp>
+z%SSHClient.connect.<locals>.<listcomp>
+timeout)*
+listr@
+settimeoutr
+error
+errnor
+lenr
+use_compressionZ
+set_gss_hostr
+banner_timeout
+auth_timeoutr
+getr
+get_security_optionsZ	key_typesZ
+start_client
+gss_kex_usedZ
+get_remote_server_keyr
+missing_host_key
+get_name
+valuesr
+getpassZ
+getuser
+isinstancer
+_authrK
+username
+password
+pkey
+key_filenamerP
+allow_agent
+look_for_keysrJ
+gss_authrG
+gss_trust_dns
+passphraserI
+errorsZ
+to_tryZ
+server_hostkey_nameZ
+our_server_keysZ
+sec_optsZ
+other_typesZ
+server_keyZ
+our_key
+key_filenamesr
+SSHClient.connectc
+        Close this SSHClient and its underlying `.Transport`.
+        This should be called anytime you are done using the client object.
+        .. warning::
+            Paramiko registers garbage collection hooks that will try to
+            automatically close connections for you, but this is not presently
+            reliable. Failure to explicitly close your client after use may
+            lead to end-of-process hangs!
+        N)
+closer
+SSHClient.close
+        Execute a command on the SSH server.  A new `.Channel` is opened and
+        the requested command is executed.  The command's input and output
+        streams are returned as Python ``file``-like objects representing
+        stdin, stdout, and stderr.
+        :param str command: the command to execute
+        :param int bufsize:
+            interpreted the same way as by the built-in ``file()`` function in
+            Python
+        :param int timeout:
+            set command's channel timeout. See `.Channel.settimeout`
+        :param bool get_pty:
+            Request a pseudo-terminal from the server (default ``False``).
+            See `.Channel.get_pty`
+        :param dict environment:
+            a dict of shell environment variables, to be merged into the
+            default environment that the remote command executes within.
+            .. warning::
+                Servers may silently reject some environment variables; see the
+                warning in `.Channel.set_environment_variable` for details.
+        :return:
+            the stdin, stdout, and stderr of the executing command, as a
+            3-tuple
+        :raises: `.SSHException` -- if the server fails to execute the command
+        .. versionchanged:: 1.10
+            Added the ``get_pty`` kwarg.
+        rO
+r)	r
+open_session
+get_ptyrR
+update_environment
+exec_commandZ
+makefile_stdinZ
+makefileZ
+makefile_stderr)
+command
+bufsizerP
+environment
+chan
+stdin
+stdout
+stderrr
+SSHClient.exec_command
+vt100
+        Start an interactive shell session on the SSH server.  A new `.Channel`
+        is opened and connected to a pseudo-terminal using the requested
+        terminal type and size.
+        :param str term:
+            the terminal type to emulate (for example, ``"vt100"``)
+        :param int width: the width (in characters) of the terminal window
+        :param int height: the height (in characters) of the terminal window
+        :param int width_pixels: the width (in pixels) of the terminal window
+        :param int height_pixels: the height (in pixels) of the terminal window
+        :param dict environment: the command's environment
+        :return: a new `.Channel` connected to the remote shell
+        :raises: `.SSHException` -- if the server fails to invoke a shell
+        )
+invoke_shell)
+term
+widthZ
+heightZ
+width_pixelsZ
+height_pixelsrt
+SSHClient.invoke_shellc
+        Open an SFTP session on the SSH server.
+        :return: a new `.SFTPClient` session object
+        )
+open_sftp_clientr
+	open_sftp(
+SSHClient.open_sftpc
+        Return the underlying `.Transport` object for this SSH connection.
+        This can be used to perform lower-level tasks, like opening specific
+        kinds of channels.
+        :return: the `.Transport` for this connection
+        )
+get_transport0
+SSHClient.get_transportc
+        Attempt to derive a `.PKey` from given string path ``filename``:
+        - If ``filename`` appears to be a cert, the matching private key is
+          loaded.
+        - Otherwise, the filename is assumed to be a private key, and the
+          matching public cert will be loaded if it exists.
+        
+	-cert.pubNz
+Trying discovered key {} in {}z
+Adding public certificate {})
+endswithrU
+from_private_key_filer/
+get_fingerprint
+_logr
+isfileZ
+load_certificate)	r
+klassra
+cert_suffixZ
+key_pathZ	cert_pathr4
+msgr
+_key_from_filepath:
+SSHClient._key_from_filepathc
+r,zD|
+zRt	|
+        Try, in order:
+            - The key(s) passed in, if one was passed in.
+            - Any key we can find through an SSH agent (if allowed).
+            - Any "id_rsa", "id_dsa" or "id_ecdsa" key discoverable in ~/.ssh/
+              (if allowed).
+            - Plain username/password auth, if a password was given.
+        (The password might be needed to unlock a private key [if 'passphrase'
+        isn't also given], or for two-factor authentication [for which it is
+        required].)
+        NFz
+keyboard-interactivera
+Trying SSH key {}z
+Trying SSH agent key {}Z
+rsaZ
+dsaZ
+ecdsaZ
+ed25519)
+.sshZ
+sshz
+~/{}/id_{}r
+z#No authentication methods available)
+setr
+auth_gssapi_keyex
+	ExceptionZ
+auth_gssapi_with_micr
+auth_publickeyr
+get_keysr"
+appendr&
+auth_passwordZ
+auth_interactive_dumb)
+saved_exceptionZ
+two_factorZ
+allowed_typesZ
+two_factor_typesri
+pkey_classr4
+id_Z
+keyfilesr3
+Z	directory
+	full_pathr(
+SSHClient._authc
+levelr
+SSHClient._log)
+NFN)
+__name__
+__module__
+__qualname__
+__doc__r!
+MissingHostKeyPolicya
+    Interface for defining the policy that `.SSHClient` should use when the
+    SSH server's hostname is not in either the system host keys or the
+    application's keys.  Pre-made classes implement policies for automatically
+    adding the key to the application's `.HostKeys` object (`.AutoAddPolicy`),
+    and for automatically rejecting the key (`.RejectPolicy`).
+    This function may be used to ask the user to verify the key, for example.
+    c
+        Called when an `.SSHClient` receives a server key for a server that
+        isn't in either the system or local `.HostKeys` object.  To accept
+        the key, simply return.  To reject, raised an exception (which will
+        be passed to the calling application).
+        Nr
+clientr1
+z%MissingHostKeyPolicy.missing_host_keyN
+AutoAddPolicyz
+    Policy for automatically adding the hostname and new host key to the
+    local `.HostKeys` object, and saving it.  This is used by `.SSHClient`.
+    c
+Adding {} host key for {}: {})
+addr[
+AutoAddPolicy.missing_host_keyNr
+    Policy for automatically rejecting the unknown hostname & key.  This is
+    used by `.SSHClient`.
+    c
+Nz Rejecting {} host key for {}: {}z$Server {!r} not found in known_hosts)
+RejectPolicy.missing_host_keyNr
+WarningPolicyz
+    Policy for logging a Python-style warning for an unknown host key, but
+    accepting it. This is used by `.SSHClient`.
+    c
+Unknown {} host key for {}: {})
+warnings
+warnr/
+WarningPolicy.missing_host_keyNr
+binasciir
+paramiko.agentr
+paramiko.commonr
+paramiko.configr
+paramiko.dsskeyr
+paramiko.ecdsakeyr	
+paramiko.ed25519keyr
+paramiko.hostkeysr
+paramiko.py3compatr
+paramiko.rsakeyr
+paramiko.ssh_exceptionr
+paramiko.transportr
+paramiko.utilr
+objectr
+<module>

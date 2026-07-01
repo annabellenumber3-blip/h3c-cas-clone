@@ -1,0 +1,714 @@
+l	Z	d
+Z$d d!
+Z%d"d#
+Z&d$d%
+Z'd&d'
+Z(d(d)
+l*Z*W
+d*Z,Y
+d+Z,G
+d,d-
+Z-e,
+d.d/
+d/e-
+d0Z0G
+d1d2
+d2e-
+Z1e2d3k
+rVd4d5
+Z3e3d6
+Z4e3d7
+Z6e7d9
+d:Z8e
+Z;e;
+e8e;
+e7d;e<e8
+e-d<
+Z=e=
+?e4e6e8
+SMTP/ESMTP client class.
+This should follow RFC 821 (SMTP), RFC 1869 (ESMTP), RFC 2554 (SMTP
+Authentication) and RFC 2487 (Secure SMTP over TLS).
+Notes:
+Please remember, when doing ESMTP, that the names of the SMTP service
+extensions are NOT the same thing as the option keywords for the RCPT
+and MAIL commands!
+Example:
+  >>> import smtplib
+  >>> s=smtplib.SMTP("localhost")
+  >>> print(s.help())
+  This is Sendmail version 8.8.4
+  Topics:
+      HELO    EHLO    MAIL    RCPT    DATA
+      RSET    NOOP    QUIT    HELP    VRFY
+      EXPN    VERB    ETRN    DSN
+  For more info use "HELP <topic>".
+  To report bugs in the implementation send email to
+      sendmail-bugs@sendmail.org.
+  For local information send email to Postmaster at your site.
+  End of HELP info
+  >>> s.putcmd("vrfy","someone@here")
+  >>> s.getreply()
+  (250, "Somebody OverHere <somebody@here.my.org>")
+  >>> s.quit()
+body_encode)
+SMTPException
+SMTPNotSupportedError
+SMTPServerDisconnected
+SMTPResponseException
+SMTPSenderRefused
+SMTPRecipientsRefused
+SMTPDataError
+SMTPConnectError
+SMTPHeloError
+SMTPAuthenticationError
+	quoteaddr
+	quotedata
+SMTP
+z	auth=(.*)c
+z4Base class for all exceptions raised by this module.N
+__name__
+__module__
+__qualname__
+__doc__
+/usr/lib64/python3.9/smtplib.pyr
+The command or option is not supported by the SMTP server.
+    This exception is raised when an attempt is made to run a command or a
+    command with an option which is not supported by the server.
+    Nr
+Not connected to any SMTP server.
+    This exception is raised when the server unexpectedly disconnects,
+    or when an attempt is made to use the SMTP instance before
+    connecting it to a server.
+    Nr
+Base class for all exceptions that include an SMTP error code.
+    These exceptions are generated in some instances when the SMTP
+    server returns an error code.  The error code is stored in the
+    `smtp_code' attribute of the error, and the `smtp_error' attribute
+    is set to the error message.
+    c
+	smtp_code
+smtp_error
+args)
+self
+code
+msgr
+__init__c
+SMTPResponseException.__init__N
+Sender address refused.
+    In addition to the attributes set by on all SMTPResponseException
+    exceptions, this sets `sender' to the string that the SMTP refused.
+    c
+senderr
+SMTPSenderRefused.__init__Nr"
+All recipient addresses refused.
+    The errors for each recipient are accessible through the attribute
+    'recipients', which is a dictionary of exactly the same sort as
+    SMTP.sendmail() returns.
+    c
+recipientsr
+SMTPRecipientsRefused.__init__Nr"
+z'The SMTP server didn't accept the data.Nr
+z&Error during connection establishment.Nr
+z"The server refused our HELO reply.Nr
+zvAuthentication error.
+    Most probably the server didn't accept the username/password
+    combination provided.
+    Nr
+Quote a subset of the email addresses defined by RFC 821.
+    Should be able to handle anything email.utils.parseaddr can handle.
+    
+<%s>)
+email
+utils
+	parseaddr
+strip
+startswith
+addrstringZ
+displayname
+addrr
+_addr_only
+Quote data for email.
+    Double leading '.', and change Unix newline '\n', or Mac '\r' into
+    Internet CRLF end-of-line.
+    z
+(?m)^\.z
+(?:\r\n|\n|\r(?!\n))
+CRLF
+datar
+(?m)^\.s
+bindatar
+_quote_periods
+	_fix_eols
+d!d"
+dSd#d$
+d%d&
+d'd(
+d)d*
+Z dTd,d-
+Z!dUd.d/
+Z"d0d1
+Z#d2d3
+Z$e$Z%d4d5
+Z&d6d7
+Z'd8d9
+d:d;
+Z(dVd<d=
+Z)dWd>d?
+Z*dXd@dA
+Z+d8d9
+dBdC
+Z,dYdDdE
+Z-dZdFdG
+Z.d[dHdI
+Z/dJdK
+Z0dLdM
+This class manages a connection to an SMTP or ESMTP server.
+    SMTP Objects:
+        SMTP objects have the following attributes:
+            helo_resp
+                This is the message given by the server in response to the
+                most recent HELO command.
+            ehlo_resp
+                This is the message given by the server in response to the
+                most recent EHLO command. This is usually multiline.
+            does_esmtp
+                This is a True value _after you do an EHLO command_, if the
+                server supports ESMTP.
+            esmtp_features
+                This is a dictionary, which, if the server supports ESMTP,
+                will _after you do an EHLO command_, contain the names of the
+                SMTP service extensions this server supports, and their
+                parameters (if any).
+                Note, all extension names are mapped to lower case in the
+                dictionary.
+        See each method's docstrings for details.  In general, there is a
+        method of the same name to perform each SMTP command.  There is also a
+        method called 'sendmail' that will do an entire mail transaction.
+        r
+ehlor&
+_	nNt
+_	n6d
+Initialize a new instance.
+        If specified, `host` is the name of the remote host to which to
+        connect.  If specified, `port` specifies the port to which to connect.
+        By default, smtplib.SMTP_PORT is used.  If a host is specified the
+        connect method is called, and if it returns anything other than a
+        success code an SMTPConnectError is raised.  If specified,
+        `local_hostname` is used as the FQDN of the local host in the HELO/EHLO
+        command.  Otherwise, the local hostname is found using
+        socket.getfqdn(). The `source_address` parameter takes a 2-tuple (host,
+        port) for the socket to bind to as its source address before
+        connecting. If the host is '' and port is 0, the OS default behavior
+        will be used.
+        
+asciir
+.z	127.0.0.1z
+[%s])
+_host
+timeout
+esmtp_features
+command_encoding
+source_address
+_auth_challenge_count
+connect
+closer
+local_hostname
+socketZ
+getfqdnZ
+gethostbynameZ
+gethostnameZ
+gaierror)
+host
+portrE
+fqdnr.
+SMTP.__init__c
+	__enter__
+SMTP.__enter__c
+zDz$|
+QUIT
+docmdr
+messager
+__exit__
+SMTP.__exit__c
+Set the debug output level.
+        A non-false value results in debug messages for connection and for all
+        messages sent to and received from the server.
+        N)
+debuglevel)
+set_debuglevel"
+SMTP.set_debuglevelc
+file)
+print
+datetimeZ
+time
+stderr
+_print_debug+
+SMTP._print_debugc
+0Non-blocking socket (timeout=0) is not supportedr
+connect: to)
+ValueErrorrO
+create_connection)
+_get_socket1
+SMTP._get_socket
+	localhostc
+Connect to a host on a given port.
+        If the hostname ends with a colon (`:') followed by a number, and
+        there is no port specified, that suffix will be stripped off and the
+        number interpreted as the port number to use.
+        Note: This method is automatically invoked by __init__, if a host is
+        specified during instantiation.
+        
+nonnumeric portz
+smtplib.connect
+connect:)
+find
+rfind
+intr[
+OSError
+default_portrV
+auditr\
+sockrR
+getreplyrO
+repr)
+SMTP.connectc
+Send `s' to the server.r
+send:z
+smtplib.send
+Server not connectedz
+please run connect() firstN)
+isinstance
+encoder@
+sendallrc
+send\
+z	SMTP.sendc
+Send a command to the server.r&
+\rz=command and arguments contain prohibited newline characters: N)
+replacer[
+cmdr
+putcmdo
+SMTP.putcmdc
+Get a reply from the server.
+        Returns a tuple consisting of:
+          - server response code (e.g. '250', or such, if all goes well)
+            Note: returns -1 if it can't read response code.
+          - server response string corresponding to response code (multiline
+            responses are converted to a single, multiline string).
+        Raises SMTPServerDisconnected if end-of-file is reached.
+        N
+rbrQ
+z Connection unexpectedly closed: z
+Connection unexpectedly closedr
+reply:i
+Line too long.
+reply: retcode (%s); Msg: %a)
+makefile
+readline
+_MAXLINErc
+lenr
+appendr+
+join)
+resp
+line
+errcode
+errmsgr
+SMTP.getreplyc
+z-Send a command, and return its response code.
+SMTP.docmdc
+zwSMTP 'helo' command.
+        Hostname to send for this command defaults to the FQDN of the local
+        host.
+        
+helo)
+	helo_resp)
+namer
+z	SMTP.heloc
+zx SMTP 'ehlo' command.
+        Hostname to send for this command defaults to the FQDN of the local
+        host.
+        ry
+latin-1rr
+authr&
+z((?P<feature>[A-Za-z0-9][A-Za-z0-9\-]*) ?
+featureN)
+ehlo_msgrE
+	ehlo_resp
+does_esmtprk
+bytesrh
+decode
+split
+OLDSTYLE_AUTH
+match
+groupsr2
+group
+lower
+string
+endr+
+eachZ
+auth_match
+paramsr
+z	SMTP.ehloc
+z7Does the server support a given SMTP service extension?)
+optr
+has_extn
+SMTP.has_extnc
+z;SMTP 'help' command.
+        Returns help text from server.
+helprQ
+z	SMTP.helpc
+z&SMTP 'rset' command -- resets session.r:
+rset)
+z	SMTP.rsetc
+Internal 'rset' command which ignores any SMTPServerDisconnected error.
+        Used internally in the library, since the server disconnected error
+        should appear to the application when the *next* command is issued, if
+        we are doing an internal "safety" reset.
+        N)
+_rset
+SMTP._rsetc
+z-SMTP 'noop' command -- doesn't do anything :>
+noop)
+z	SMTP.noopr
+SMTP 'mail' command -- begins mail xfer session.
+        This method may raise the following exceptions:
+         SMTPNotSupportedError  The options parameter includes 'SMTPUTF8'
+                                but the SMTPUTF8 extension is not supported by
+                                the server.
+        r&
+smtputf8N)
+	<genexpr>
+SMTP.mail.<locals>.<genexpr>r
+utf-8z SMTPUTF8 not supported by serverrp
+mailz	FROM:%s%s)	r
+anyr
+options
+optionlistr
+z	SMTP.mailc
+z;SMTP 'rcpt' command -- indicates 1 recipient for this mail.r&
+rcptz
+TO:%s%s)
+recipr
+z	SMTP.rcptc
+SMTP 'DATA' command -- sends message data to server.
+        Automatically quotes lines beginning with a period per rfc821.
+        Raises SMTPDataError if there is an unexpected reply to the
+        DATA command; the return value from this method is the final
+        response code received when the all data is sent.  If msg
+        is a string, lone '\r' and '\n' characters are converted to
+        '\r\n' characters.  If msg is bytes, it is transmitted as is.
+        r6
+data:ib
+bCRLFro
+repl
+z	SMTP.datac
+z5SMTP 'verify' command -- checks for address validity.
+vrfy
+addressr
+verifyI
+SMTP.verifyc
+z.SMTP 'expn' command -- expands a mailing list.
+expnr
+z	SMTP.expnc
+Call self.ehlo() and/or self.helo() if needed.
+        If there has been no previous EHLO or HELO command this session, this
+        method tries ESMTP EHLO first.
+        This method may raise the following exceptions:
+         SMTPHeloError            The server didn't reply properly to
+                                  the helo greeting.
+        N
+ehlo_or_helo_if_neededW
+SMTP.ehlo_or_helo_if_neededT
+initial_response_okc
+Authentication command - requires response processing.
+        'mechanism' specifies which authentication mechanism is to
+        be used - the valid values are those listed in the 'auth'
+        element of 'esmtp_features'.
+        'authobject' must be a callable object taking a single argument:
+                data = authobject(challenge)
+        It will be called to process the server's challenge response; the
+        challenge argument it is passed will be a bytes.  It should return
+        an ASCII string that will be base64 encoded and sent to the server.
+        Keyword arguments:
+            - initial_response_ok: Allow sending the RFC 4954 initial-response
+              to the AUTH command, if the authentication methods supports it.
+        Nr:
+eolZ
+AUTHrp
+z4Server AUTH mechanism infinite loop. Last response: 
+upper
+encode_base64rm
+base64Z
+decodebytes
+_MAXCHALLENGEr
+Z	mechanismZ
+authobjectr
+initial_responseZ
+responser
+	challenger
+z	SMTP.authc
+zh Authobject to use with CRAM-MD5 authentication. Requires self.user
+        and self.password to be set.Nrp
+md5)
+user
+hmacZ
+HMAC
+passwordrm
+Z	hexdigest
+auth_cram_md5
+SMTP.auth_cram_md5c
+ze Authobject to use with PLAIN authentication. Requires self.user and
+        self.password to be set.z
+auth_plain
+SMTP.auth_plainc
+ze Authobject to use with LOGIN authentication. Requires self.user and
+        self.password to be set.N
+auth_login
+SMTP.auth_loginc
+Log in on an SMTP server that requires authentication.
+        The arguments are:
+            - user:         The user name to authenticate with.
+            - password:     The password for the authentication.
+        Keyword arguments:
+            - initial_response_ok: Allow sending the RFC 4954 initial-response
+              to the AUTH command, if the authentication methods supports it.
+        If there has been no previous EHLO or HELO command this session, this
+        method tries ESMTP EHLO first.
+        This method will return normally if the authentication was successful.
+        This method may raise the following exceptions:
+         SMTPHeloError            The server didn't reply properly to
+                                  the helo greeting.
+         SMTPAuthenticationError  The server didn't accept the username/
+                                  password combination.
+         SMTPNotSupportedError    The AUTH command is not supported by the
+                                  server.
+         SMTPException            No suitable authentication method was
+                                  found.
+        r
+z,SMTP AUTH extension not supported by server.)
+CRAM-MD5Z
+PLAINZ
+LOGINc
+advertised_authlistr
+<listcomp>
+SMTP.login.<locals>.<listcomp>z(No suitable authentication method found.Z
+auth_
+getattrr
+preferred_authsZ
+authlistZ
+authmethodZ
+method_namer
+last_exceptionr
+login
+SMTP.loginc
+Puts the connection to the SMTP server into TLS mode.
+        If there has been no previous EHLO or HELO command this session, this
+        method tries ESMTP EHLO first.
+        If the server supports TLS, this will encrypt the rest of the SMTP
+        session. If you provide the keyfile and certfile parameters,
+        the identity of the SMTP server and client can be checked. This,
+        however, depends on whether the socket module really checks the
+        certificates.
+        This method may raise the following exceptions:
+         SMTPHeloError            The server didn't reply properly to
+                                  the helo greeting.
+        
+starttlsz+STARTTLS extension not supported by server.Z
+STARTTLSr;
+z&No SSL support included in this PythonN
+4context and keyfile arguments are mutually exclusive
+5context and certfile arguments are mutually exclusiver
+Akeyfile and certfile are deprecated, use a custom context insteadr
+certfile
+keyfile
+server_hostname)
+	_have_ssl
+RuntimeErrorr[
+warnings
+warn
+DeprecationWarning
+_create_stdlib_context
+wrap_socketrf
+contextr
+replyr
+SMTP.starttlsc
+This command performs an entire mail transaction.
+        The arguments are:
+            - from_addr    : The address sending this mail.
+            - to_addrs     : A list of addresses to send this mail to.  A bare
+                             string will be treated as a list with 1 address.
+            - msg          : The message to send.
+            - mail_options : List of ESMTP options (such as 8bitmime) for the
+                             mail command.
+            - rcpt_options : List of ESMTP options (such as DSN commands) for
+                             all the rcpt commands.
+        msg may be a string containing characters in the ASCII range, or a byte
+        string.  A string is encoded to bytes using the ascii codec, and lone
+        \r and \n characters are converted to \r\n characters.
+        If there has been no previous EHLO or HELO command this session, this
+        method tries ESMTP EHLO first.  If the server does ESMTP, message size
+        and each of the specified options will be passed to it.  If EHLO
+        fails, HELO will be tried and ESMTP options suppressed.
+        This method will return normally if the mail is accepted for at least
+        one recipient.  It returns a dictionary, with one entry for each
+        recipient that was refused.  Each entry contains a tuple of the SMTP
+        error code and the accompanying error message sent by the server.
+        This method may raise the following exceptions:
+         SMTPHeloError          The server didn't reply properly to
+                                the helo greeting.
+         SMTPRecipientsRefused  The server rejected ALL recipients
+                                (no mail was sent).
+         SMTPSenderRefused      The server didn't accept the from_addr.
+         SMTPDataError          The server replied with an unexpected
+                                error code (other than a refusal of
+                                a recipient).
+         SMTPNotSupportedError  The mail_options parameter includes 'SMTPUTF8'
+                                but the SMTPUTF8 extension is not supported by
+                                the server.
+        Note: the connection will be open even after an exception is raised.
+        Example:
+         >>> import smtplib
+         >>> s=smtplib.SMTP("localhost")
+         >>> tolist=["one@one.org","two@two.org","three@three.org","four@four.org"]
+         >>> msg = '''\
+         ... From: Me@my.org
+         ... Subject: testin'...
+         ...
+         ... This is a test '''
+         >>> s.sendmail("me@my.org",tolist,msg)
+         { "three@three.org" : ( 550 ,"User unknown" ) }
+         >>> s.quit()
+        In the above example, the message was accepted for delivery to three
+        of the four addresses, and one was rejected, with the error code
+        550.  If all addresses are accepted, then the method will return an
+        empty dictionary.
+        r:
+sizez
+size=%dr
+	from_addr
+to_addrsr 
+mail_options
+rcpt_optionsZ
+esmtp_optsZ
+optionr
+senderrsr
+sendmail(
+SMTP.sendmailc
+}	|	d
+Converts message to a bytestring and passes it to sendmail.
+        The arguments are as for sendmail, except that msg is an
+        email.message.Message object.  If from_addr is None or to_addrs is
+        None, these arguments are taken from the headers of the Message as
+        described in RFC 2822 (a ValueError is raised if there is more than
+        one set of 'Resent-' headers).  Regardless of the values of from_addr and
+        to_addr, any Bcc field (or Resent-Bcc field, when the Message is a
+        resent) of the Message object won't be transmitted.  The Message
+        object is then serialized using email.generator.BytesGenerator and
+        sendmail is called to transmit the message.  If the sender or any of
+        the recipient addresses contain non-ASCII and the server advertises the
+        SMTPUTF8 capability, the policy is cloned with utf8 set to True for the
+        serialization, and SMTPUTF8 and BODY=8BITMIME are asserted on the send.
+        If the server does not support SMTPUTF8, an SMTPNotSupported error is
+        raised.  Otherwise the generator is called without modifying the
+        policy.
+        z
+Resent-DateNr&
+Resent-z0message has more than one 'Resent-' header blockZ
+Sender
+Fromr
+z%SMTP.send_message.<locals>.<listcomp>
+BccZ
+Resent-BccFr:
+One or more source or delivery addresses require internationalized email support, but the server does not advertise the required SMTPUTF8 capabilityT)
+utf8)
+policyZ
+SMTPUTF8z
+BODY=8BITMIMEr
+linesep)
+get_allr~
+getaddresses
+copyr
+UnicodeEncodeErrorr
+BytesIO
+	generatorZ
+BytesGeneratorr
+cloneZ
+flatten
+getvaluer
+resentZ
+header_prefixZ
+addr_fieldsZ
+msg_copyZ
+internationalZ
+bytesmsg
+flatmsgr
+send_message
+SMTP.send_messagec
+z(Close the connection to the SMTP server.N)
+SMTP.closec
+Terminate the SMTP session.
+quitNF)
+resr
+z	SMTP.quit)
+NNN)
+	SMTP_PORTrd
+_GLOBAL_DEFAULT_TIMEOUTr!
+SMTP_SSLa
+ This is a subclass derived from SMTP that connects over an SSL
+        encrypted socket (to use this class you need a socket module that was
+        compiled with SSL support). If host is not specified, '' (the local
+        host) is used. If port is omitted, the standard SMTP-over-SSL port
+        (465) is used.  local_hostname and source_address have the same meaning
+        as they do in the SMTP class.  keyfile and certfile are also optional -
+        they can contain a PEM formatted private key and certificate chain file
+        for the SSL connection. context also optional, can contain a
+        SSLContext, and is an alternative to keyfile and certfile; If it is
+        specified both keyfile and certfile must be None.
+        r&
+}	|	
+SMTP_SSL.__init__c
+superr\
+new_socket
+	__class__r
+SMTP_SSL._get_socket)
+SMTP_SSL_PORTrd
+__classcell__r
+LMTPa
+LMTP - Local Mail Transfer Protocol
+    The LMTP protocol, which is very similar to ESMTP, is heavily based
+    on the standard SMTP client. It's common to use Unix sockets for
+    LMTP, so our connect() method must support that as well as a regular
+    host:port server.  local_hostname and source_address have the same
+    meaning as they do in the SMTP class.  To specify a Unix socket,
+    you must use an absolute path as the host, starting with a '/'.
+    Authentication is supported, using the regular SMTP mechanism. When
+    using a Unix socket, LMTP generally don't support or require any
+    authentication, but your mileage might vary.Z
+lhlor&
+Initialize a new instance.)
+LMTP.__init__r]
+z=Connect to the LMTP daemon, on either a Unix or a TCP socket.r
+connect fail:r_
+AF_UNIXZ
+SOCK_STREAMrf
+settimeoutrR
+LMTP.connect)
+	LMTP_PORTrF
+__main__c
+stdout
+write
+flush
+stdinr|
+promptr
+Enter message, end with ^D:r&
+Message length is %dr]
+email.utilsr(
+email.messageZ
+email.generatorr
+email.base64mimer
+__all__r
+compile
+ImportErrorr
+fromaddrr
+toaddrsrS
+serverrP
+<module>

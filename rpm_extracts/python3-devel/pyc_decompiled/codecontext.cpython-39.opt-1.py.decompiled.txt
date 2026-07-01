@@ -1,0 +1,209 @@
+codecontext - display the block context above the edit window
+Once code has scrolled off the top of a window, it can be difficult to
+determine which block you are in.  This extension implements a pane at the top
+of each IDLE edit window which provides block structure hints.  These hints are
+the lines which contain the block opening keywords, e.g. 'if', for the
+enclosing block.  The number of hint lines is determined by the maxlines
+variable in the codecontext section of config-extensions.def. Lines which do
+not open blocks are not shown in the context hints pane.
+For EditorWindows, <<toggle-code-context>> is bound to CodeContext(self).
+toggle_code_context_event.
+maxsize)
+Frame
+Text
+TclError)
+NSEW
+SUNKEN)
+idleConf>
+async
+class
+else
+except
+with
+while
+finally
+elifz
+^(\s*)(\w*)c
+z>Extract the beginning whitespace and first word from codeline.)
+match
+groups)
+codeline
++/usr/lib64/python3.9/idlelib/codecontext.py
+get_spaces_firstword
+Return tuple of (line indent value, codeline, block start keyword).
+    The indentation of empty lines (or comment lines) is INFINITY.
+    If the line does not start a block, the keyword value is False.
+    
+INFINITY
+BLOCKOPENERS)
+spacesZ	firstword
+indent
+openerr
+get_line_info
+CodeContextz,Display block context above the edit window.
+Initialize settings for context block.
+        editwin is the Editor window for the context block.
+        self.text is the editor window text widget.
+        self.context displays the code context text above the editor text.
+          Initially None, it is toggled via <<toggle-code-context>>.
+        self.topvisible is the number of the top text line displayed.
+        self.info is a list of (line number, indent level, line text,
+          block keyword) tuples for the block structure above topvisible.
+          self.info[0] is initialized with a 'dummy' line which
+          starts the toplevel 'block' of the module.
+        self.t1 and self.t2 are two timer events on the editor text widget to
+          monitor for changes to the context text or editor font.
+        N)
+editwin
+text
+_reset)
+selfr&
+__init__1
+CodeContext.__init__c
+context
+cell00
+topvisible
+info
+CodeContext._resetc
+z!Load class variables from config.
+extensionsr$
+maxlines
+type
+defaultN)
+Z	GetOption
+context_depth)
+clsr
+reloadM
+CodeContext.reloadc
+Cancel scheduled events.N)
+after_cancelr
+__del__T
+CodeContext.__del__Nc
+q(t	|
+}	n:|
+Toggle code context display.
+        If self.context doesn't exist, create it to match the size of the editor
+        window text (toggle on).  If it does exist, destroy it (toggle off).
+        Return 'break' to complete the processing of the binding.
+        Nr
+padx
+borderr+
+disabled)
+height
+widthZ
+highlightthicknessr>
+relief
+statez
+<ButtonRelease-1>)
+columnZ
+sticky
+linenumber
+background
+HideZ
+ShowZ
+optionsz
+*ode*ontextz
+ Code Context)
+menu
+indexZ
+label
+break)
+text_frameZ	grid_infoZ	pack_infoZ
+getintZ
+cgetr
+update_font
+update_highlight_colorsZ
+bind
+jumptoline
+timer_eventZ
+gridr
+GetHighlight
+CurrentThemer
+destroyr<
+update_menu_label)
+eventZ
+widgetsr>
+widgetr2
+line_number_colorsZ
+menu_statusr
+toggle_code_context_event]
+z%CodeContext.toggle_code_context_eventr+
+Return a list of block line tuples and the 'last' indent.
+        The tuple fields are (linenum, indent, text, opener).
+        The list represents header lines from new_topvisible back to
+        stopline with successively shorter indents > stopindent.
+        The list is returned ordered by line number.
+        Last indent returned is the smallest indent observed.
+        r+
+.end)
+ranger'
+getr#
+append
+reverse)
+new_topvisibleZ
+stopline
+stopindent
+lines
+lastindentZ
+linenumr
+get_context
+CodeContext.get_contextc
+q6n\|
+Update context information and lines visible in the context pane.
+        No update is done if the text hasn't been scrolled.  If the text
+        was scrolled, the lines that should be shown in the context will
+        be retrieved and the context area will be updated with the code,
+        up to the number of maxlines.
+        z
+@0,0Nr,
+<listcomp>
+z3CodeContext.update_code_context.<locals>.<listcomp>rA
+normalrC
+Z	getlinenor1
+extendr9
+delete
+insert
+join)
+context_stringsZ	showfirstr
+update_code_context
+CodeContext.update_code_contextc
+ Show clicked context line at top of editor.
+        If a selection was made, don't jump; allow copying.
+        If no visible context, show the top line of the file.
+        z	sel.firstr+
+float
+maxr9
+yviewri
+newtopZ
+contextline
+offsetr
+CodeContext.jumptolinec
+z>Event on editor text widget triggered every UPDATEINTERVAL ms.N)
+after
+UPDATEINTERVALrN
+CodeContext.timer_eventc
+mainZ
+EditorWindow
+font)
+GetFontr'
+CodeContext.update_fontc
+foregroundrF
+config)
+colorsrR
+z#CodeContext.update_highlight_colors)
+__name__
+__module__
+__qualname__
+__doc__rm
+classmethodr;
+__main__)
+z"idlelib.idle_test.test_codecontextr^
+	verbosity
+exit)
+sysr
+tkinterr
+tkinter.constantsr
+idlelib.configr
+compiler
+unittestrn
+<module>

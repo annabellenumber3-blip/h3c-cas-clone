@@ -1,0 +1,1280 @@
+a t g
+a#d	a$g
+a&d	a'g
+e.e/<
+e.e/<
+Z2e2d
+e0e2<
+e2e1e2d
+8d e
+j:Z;e
+8d!e
+j<Z=e
+8d"e
+j<Z>e
+8d#e
+j<Z?e
+8d$e
+j:Z@d%d&
+ZAeBd
+d'd(
+ZCd)ZDd*ZEe
+8eDd
+eEeEd+f
+8eDd
+eEd-
+eEd-
+8eDd.
+8eDd0
+ZId1ZJe
+8eDd
+eJeJd+f
+ZKeJd2
+8eDd
+eLeLd+f
+ZMd4ZNe
+8eDd
+eNeNd5f
+ZOd7ZPe
+8eDd8ePePd5f
+8eDd:
+8eDd<
+8eDd>
+8eDd@
+8eDdB
+8eDdD
+8eDdF
+8eDdH
+8eDdJ
+8eDdL
+8eDdN
+8eDdP
+8eDdR
+8eDdT
+8eDdV
+8eDdX
+8eDdZ
+8eDd\
+8eDd^
+8d`e
+Zfdbdc
+Zgddde
+8dfe
+dgdh
+Zjdidj
+dldm
+Zldndo
+dpdq
+8dre
+8dse
+8dte
+8dwe
+Ztdxdy
+Zudzd{
+Zvd|d}
+Zwd~d
+rXe,d
+	r$d
+	r~z
+crackfortran --- read fortran (77,90) code and extract declaration information.
+Copyright 1999-2004 Pearu Peterson all rights reserved,
+Pearu Peterson <pearu@ioc.ee>
+Permission to use, modify, and distribute this software is given under the
+terms of the NumPy License.
+NO WARRANTY IS EXPRESSED OR IMPLIED.  USE AT YOUR OWN RISK.
+$Date: 2005/09/27 07:13:49 $
+Pearu Peterson
+Usage of crackfortran:
+======================
+Command line keys: -quiet,-verbose,-fix,-f77,-f90,-show,-h <pyffilename>
+                   -m <module name for f77 routines>,--ignore-contains
+Functions: crackfortran, crack2fortran
+The following Fortran statements/constructions are supported
+(or will be if needed):
+   block data,byte,call,character,common,complex,contains,data,
+   dimension,double complex,double precision,end,external,function,
+   implicit,integer,intent,interface,intrinsic,
+   logical,module,optional,parameter,private,public,
+   program,real,(sequence?),subroutine,type,use,virtual,
+   include,pythonmodule
+Note: 'virtual' is mapped to 'dimension'.
+Note: 'implicit integer (z) static (z)' is 'implicit static (z)' (this is minor bug).
+Note: code after 'contains' will be ignored until its scope ends.
+Note: 'common' statement is extended: dimensions are moved to variable definitions
+Note: f2py directive: <commentchar>f2py<line> is read as <line>
+Note: pythonmodule is introduced to represent Python module
+Usage:
+  `postlist=crackfortran(files)`
+  `postlist` contains declaration information read from the list of files `files`.
+  `crack2fortran(postlist)` returns a fortran code to be saved to pyf-file
+  `postlist` has the following structure:
+ *** it is a list of dictionaries containing `blocks':
+     B = {'block','body','vars','parent_block'[,'name','prefix','args','result',
+          'implicit','externals','interfaced','common','sortvars',
+          'commonvars','note']}
+     B['block'] = 'interface' | 'function' | 'subroutine' | 'module' |
+                  'program' | 'block data' | 'type' | 'pythonmodule' |
+                  'abstract interface'
+     B['body'] --- list containing `subblocks' with the same structure as `blocks'
+     B['parent_block'] --- dictionary of a parent block:
+                             C['body'][<index>]['parent_block'] is C
+     B['vars'] --- dictionary of variable definitions
+     B['sortvars'] --- dictionary of variable definitions sorted by dependence (independent first)
+     B['name'] --- name of the block (not if B['block']=='interface')
+     B['prefix'] --- prefix string (only if B['block']=='function')
+     B['args'] --- list of argument names if B['block']== 'function' | 'subroutine'
+     B['result'] --- name of the return value (only if B['block']=='function')
+     B['implicit'] --- dictionary {'a':<variable definition>,'b':...} | None
+     B['externals'] --- list of variables being external
+     B['interfaced'] --- list of variables being external and defined
+     B['common'] --- dictionary of common blocks (list of objects)
+     B['commonvars'] --- list of variables used in common blocks (dimensions are moved to variable definitions)
+     B['from'] --- string showing the 'parents' of the current block
+     B['use'] --- dictionary of modules used in current block:
+         {<modulename>:{['only':<0|1>],['map':{<local_name1>:<use_name1>,...}]}}
+     B['note'] --- list of LaTeX comments on the block
+     B['f2pyenhancements'] --- optional dictionary
+          {'threadsafe':'','fortranname':<name>,
+           'callstatement':<C-expr>|<multi-line block>,
+           'callprotoargument':<C-expr-list>,
+           'usercode':<multi-line block>|<list of multi-line blocks>,
+           'pymethoddef:<multi-line block>'
+           }
+     B['entry'] --- dictionary {entryname:argslist,..}
+     B['varnames'] --- list of variable names given in the order of reading the
+                       Fortran code, useful for derived types.
+     B['saved_interface'] --- a string of scanned routine signature, defines explicit interface
+ *** Variable definition is a dictionary
+     D = B['vars'][<variable name>] =
+     {'typespec'[,'attrspec','kindselector','charselector','=','typename']}
+     D['typespec'] = 'byte' | 'character' | 'complex' | 'double complex' |
+                     'double precision' | 'integer' | 'logical' | 'real' | 'type'
+     D['attrspec'] --- list of attributes (e.g. 'dimension(<arrayspec>)',
+                       'external','intent(in|out|inout|hide|c|callback|cache|aligned4|aligned8|aligned16)',
+                       'optional','required', etc)
+     K = D['kindselector'] = {['*','kind']} (only if D['typespec'] =
+                         'complex' | 'integer' | 'logical' | 'real' )
+     C = D['charselector'] = {['*','len','kind']}
+                             (only if D['typespec']=='character')
+     D['='] --- initialization expression string
+     D['typename'] --- name of the type if D['typespec']=='type'
+     D['dimension'] --- list of dimension bounds
+     D['intent'] --- list of intent specifications
+     D['depend'] --- list of variable names on which current variable depends on
+     D['check'] --- list of C-expressions; if C-expr returns zero, exception is raised
+     D['note'] --- list of LaTeX comments on the variable
+ *** Meaning of kind/char selectors (few examples):
+     D['typespec>']*K['*']
+     D['typespec'](kind=K['kind'])
+     character*C['*']
+     character(len=C['len'],kind=C['kind'])
+     (see also fortran type declaration statement formats below)
+Fortran 90 type declaration statement format (F77 is subset of F90)
+====================================================================
+(Main source: IBM XL Fortran 5.1 Language Reference Manual)
+type declaration = <typespec> [[<attrspec>]::] <entitydecl>
+<typespec> = byte                          |
+             character[<charselector>]     |
+             complex[<kindselector>]       |
+             double complex                |
+             double precision              |
+             integer[<kindselector>]       |
+             logical[<kindselector>]       |
+             real[<kindselector>]          |
+             type(<typename>)
+<charselector> = * <charlen>               |
+             ([len=]<len>[,[kind=]<kind>]) |
+             (kind=<kind>[,len=<len>])
+<kindselector> = * <intlen>                |
+             ([kind=]<kind>)
+<attrspec> = comma separated list of attributes.
+             Only the following attributes are used in
+             building up the interface:
+                external
+                (parameter --- affects '=' key)
+                optional
+                intent
+             Other attributes are ignored.
+<intentspec> = in | out | inout
+<arrayspec> = comma separated list of dimension bounds.
+<entitydecl> = <name> [[*<charlen>][(<arrayspec>)] | [(<arrayspec>)]*<charlen>]
+                      [/<init_expr>/ | =<init_expr>] [,<entitydecl>]
+In addition, the following attributes are used: check,depend,note
+TODO:
+    * Apply 'parameter' attribute (e.g. 'integer parameter :: i=2' 'real x(i)'
+                                   -> 'real x(2)')
+    The above may be solved by creating appropriate preprocessor program, for example.
+__version__)
+    
+	strictf77
+sourcecodeform
+quiet
+verbose
+tabchar
+pyffilename
+f77modulename
+skipemptyends
+ignorecontains
+dolowercase
+debug
+groupcounter
+	grouplist
+neededmodule
+expectbegin
+skipblocksuntil
+usermodules
+f90modulevars
+gotnextfile
+filepositiontext
+currentfilename
+skipfunctions
+	skipfuncs
+	onlyfuncs
+include_paths
+previous_context
+=/usr/lib64/python3.9/site-packages/numpy/f2py/crackfortran.py
+reset_global_f2py_vars
+stdout
+writer
+line
+flagr#
+outmess
+abcdefghopqrstuvwxyz$_
+typespec
+realZ
+ijklmn
+integer)3
+intZ
+double
+float
+charZ
+shortZ
+longZ
+void
+case
+while
+returnZ
+signedZ
+unsigned
+forZ
+typedefZ
+sizeof
+union
+struct
+static
+register
+breakZ
+gotoZ
+switch
+continue
+elseZ
+inlineZ
+extern
+delete
+const
+auto
+lenZ
+rank
+shape
+indexZ
+slen
+sizeZ
+minZ
+flenZ
+fshape
+stringZ
+complex_doubleZ
+float_double
+stdin
+stderrr(
+type
+defaultZ
+_bnc
+Nz&rmbadname1: Replacing "%s" with "%s".
+badnames
+errmess
+namer#
+rmbadname1	
+_mr#
+<listcomp>
+rmbadname.<locals>.<listcomp>r#
+namesr#
+	rmbadname
+Nz+undo_rmbadname1: Replacing "%s" with "%s".
+invbadnamesrP
+undo_rmbadname1
+z"undo_rmbadname.<locals>.<listcomp>r#
+undo_rmbadname
+rfind)
+getextension!
+.*\.(for|ftn|f77|f)\Zz
+-\*-\s*fortran\s*-\*-z
+-\*-\s*f90\s*-\*-z
+-\*-\s*fix\s*-\*-z
+[^c*]\s*[^\s\d\t]c
+z(Check if file is in free format Fortran.r
+open
+readline
+_has_f_header
+_has_f90_header
+strip
+_free_f90_start)
+file
+result
+is_free_format2
+}	t	
+rft"|
+s@|	
+t&d#
+t(d$t
+    Read fortran codes from files and
+     1) Get rid of comments, line continuations, and empty lines; lower cases.
+     2) Call dowithline(line) on every line.
+     3) Recursively call itself when statement "include '<filename>'" is met.
+    NFr
+z*\s*include\s*(\'|")(?P<name>[^\'"]*)(\'|")z
+(?P<line>.*)&\s*\Zz
+(\s*&|)(?P<line>.*)z
+.*?'''r
+strrT
+z#readfortrancode.<locals>.<listcomp>
+freez
+	Reading file %s (format:%s%s)
+,strict
+!f2pyr
+f2pyz
+     
+zxreadfortrancode: Found non-(space,digit) char in the first column.
+	Are you sure that this code is in fix form?
+	line=%s
+.pyf
+z.Unexpected end of file when reading multiline
+z6Flag sourcecodeform must be either 'fix' or 'free': %sz
+Line #%d in %s:"%s"
+dowithline
+istopzAreadfortrancode: could not find include file %s in %s. Ignoring.
+beginpatternr
+compile
+range
+	fileinputZ	FileInputrm
+isfirstline
+filename
+path
+splitext
+	is_f_filero
+_has_fix_headerrv
+beginpattern77
+beginpattern90r,
+repr
+expandtabs
+replace
+split_by_unquoted
+lowerrp
+	Exception
+match
+grouprP
+rstrip
+ValueErrorZ
+filelineno
+isfile
+readfortrancode
+dirnamer!
+join
+pathsep
+close)
+ffiler
+saveglobalsZ
+localdolowercase
+contZ	finalline
+includelineZ
+cont1Z
+cont2Z
+mline_mark
+spacedigitsZ
+origfinallinere
+include_dirsZ	foundfileZ
+inc_dirZ
+fn1r#
+zN\s*(?P<before>%s(?=\s*(\b(%s)\b)))\s*(?P<this>(\b(%s)\b))\s*(?P<after>%s)\s*\Zzqcharacter|logical|integer|real|complex|double\s*(precision\s*(complex|)|complex)|type(?=\s*\([\w\s,=(*)]*\))|byte
+.*rM
+|static|automatic|undefined)
+([a-z]+[\w\s(=*+-/)]*?|)
+functionr
+begin)
+z	[a-z\s]*?
+subroutiner
+program|block\s*dataz@|module(?!\s*procedure)|python\s*module|(abstract|)\s*interface|z
+type(?!\s*\()z\end|endprogram|endblockdata|endmodule|endpythonmodule|endinterface|endsubroutine|endfunctionz
+[\w\s]*
+endza(end\s*(if|do|where|select|while|forall|associate|block|critical|enum|team))|(module\s*procedure)z
+[\w]*?
+endif)
+implicitr
+dimension|virtualr
+	dimension)
+externalr
+optionalr
+requiredr
+publicr
+privater
+	intrinsicr
+intent|depend|note|checkr
+\s*\(.*?\).*
+intent)
+	parameterr
+\s*\(.*r
+datar
+callr
+entryr
+callfunr
+commonr
+user
+containsr
+formatr
+Kthreadsafe|fortranname|callstatement|callprotoargument|usercode|pymethoddefr
+f2pyenhancementsz2\s*(?P<before>''')(?P<this>.*?)(?P<after>''')\s*\Z
+	multilinec
+    Splits the line into (line[:i], line[i:]),
+    where i is the index of first occurrence of one of the characters
+    not within quotes, or len(line) if no such index exists
+    zR\A(?P<before>({single_quoted}|{double_quoted}|{not_quoted})*)(?P<after>{char}.*)\Zz
+[^"'{}]z
+[{}]z
+('([^'\\]|(\\.))*')z
+("([^"\\]|(\\.))*"))
+not_quotedr3
+single_quotedZ
+double_quoted
+before
+afterr
+escaper
+	groupdict)
+charactersre
+@,@z
+(),r
+markoutercomma
+splitr
+appendr
+argsline
+_simplifyargs
+z"\s*(?P<result>\b[a-z]+\w*\b)\s*=.*c
+t t!t"t#t$t%t
+t&}	d
+t(j*
+sTt4d
+a8t.|
+a7n~|
+rHt9
+    reset=-1  --- initialize
+    reset=0   --- crack the line
+    reset=1   --- final check if mismatch of blocks occurred
+    Cracked data is saved in grouplist[0].
+    
+body
+vars
+blockrR
+z(crackline: groupcounter=%s groupname=%s
+zYcrackline: Mismatch of blocks encountered. Trying to fix it by assuming "end" statement.
+	externals
+interfacedz5(?P<before>[^"]*)\b%s\b\s*@\(@(?P<args>[^@]*)@\)@.*\Zr
+argsz
+callfun %s(%s) result (%s)rs
+callfun %s(%s)z8crackline: could not resolve function call for line=%s.
+z"crackline:%d: No pattern for line
+z>crackline: groupcounter(=%s) is nonpositive. Check the blocks.
+thiszGcrackline: End group %s does not match with previous Begin group %s
+	%sr
+f2pyenhancementspatternr
+multilinepattern
+	crackliner
+	groupname
+groupcacher
+dimensionpattern
+externalpattern
+intentpattern
+optionalpattern
+requiredpattern
+parameterpattern
+datapattern
+publicpattern
+privatepattern
+intrinsicpattern
+endifpattern
+endpattern
+formatpatternr
+functionpattern
+subroutinepattern
+implicitpattern
+typespattern
+commonpattern
+callpattern
+usepattern
+containspattern
+entrypattern
+crackline_re_1r\
+markouterparenr
+callfunpattern
+analyzeliner
+endswithr"
+resetr
+has_semicolonZ
+semicolon_line
+flr+
+patr
+re_1rR
+@)@r#
+commar
+unmarkouterparenS
+q^q(|
+attrspec
+kindselector
+charselector)
+typename
+note)
+checkr
+z"appenddecl: "%s" not implemented.
+z,appenddecl: Unknown variable definition key:)
+list
+keys
+setattrspec
+setkindselector
+setcharselectorrP
+declZ
+decl2
+force
+appenddeclX
+zD\s*(?P<this>(@\(@.*?@\)@|\*[\d*]+|\*\s*@\(@.*?@\)@|))(?P<after>.*)\Zz
+\s*(?P<name>\b[\w$]+\b)\s*(@\(@\s*(?P<args>[\w\s,]*)\s*@\)@|)\s*((result(\s*@\(@\s*(?P<result>\b[\w$]+\b)\s*@\)@|))|(bind\s*@\(@\s*(?P<bind>.*)\s*@\)@))*\s*\Zz9\s*(?P<name>\b[\w$]+\b)\s*@\(@\s*(?P<args>.*)\s*@\)@\s*\Zz4([-+]?(?:\d+(?:\.\d*)?|\d*\.\d+))[dD]((?:[-+]?\d+)?)zA([-+]?((?:\d+(?:\.\d*)?|\d*\.\d+))[eE]((?:[-+]?\d+)?)|(\d+\.\d*))z
+intent\s*\(.*?\bcallback\bc
+_intentcallbackpatternr
+vdeclr
+_is_intent_callback
+bind)
+nameargspatternr
+callnameargspattern)
+_resolvenameargspattern
+d"d#d
+d/d0
+rfd-t
+n,d-t
+z6t$t
+sft$t
+r,t&|
+	rt|
+dDdC
+n$t.|
+t1dL|
+t1dM|
+dWdX
+dWdX
+dCdZ
+t:t;t<f
+z*t1d[|
+	n$|
+}!|!
+t&|!
+}"}#}$|
+| dU<
+|"| db<
+|#| dc<
+|$| dd<
+s0| |
+}%de|%v
+}&}'W
+dg|%
+}&}'t,|&
+t,|'
+dh|%
+q\t?t@|&
+t@|'
+}(| |
+tA|(
+}.|-
+|.djk
+rv|,
+},|.dkk
+q\|.dlk
+|.dmk
+}-|+d
+|)|.
+})n\|+d
+|*|.
+}*nH|+d%k
+r\|)
+})|)
+|)|*g
+|.})d
+q\|+d%k
+rh|)
+})|)
+rZ|)d
+|)|*g
+}0dnd
+}0|0d
+do|0d
+}1t,|0d
+sl|0d
+dR|/|
+]r}.|.dkk
+|+d4k
+}4|4
+dt}4|3
+|4|5g
+|+d%
+}5|+d%
+|4|.
+|5|.
+}4|4
+dt}4|3
+|4|5g
+}6drt
+}6|3D
+]\}.|.d
+|6|.d
+|6|.d
+qL|6t
+dr|4t
+}7dvt
+}8dx|7v
+|7dx
+dy|7v
+r^|7dy
+}8|8t
+|7dx
+]r}0dR|0v
+d||0t
+}!|!
+|9|!
+|0|9|0<
+tC|:d
+};tEt
+zBanalyzeline: no group yet. Creating program group with name "%s".
+programr
+fromsky
+from)
+block\s*data
+block dataz
+python\s*module
+python modulez
+abstract\s*interface
+abstract interfacer
+_BLOCK_DATA_r
+	interfacer$
+z2analyzeline: No name/args pattern found for line.
+analyzeline.<locals>.<listcomp>r
+z<analyzeline: argument list is malformed (missing argument).
+z&analyzeline: Creating module block %s
+moduler
+zDanalyzeline: Creating additional interface block (groupcounter=%s).
+unknown_interfacez
+%s:%sZ
+unknown_rw
+prefixrs
+varnamesr
+variable)
+z'All arguments will have attribute %s%s
+zXanalyzeline: cannot handle multiple attributes without type specification. Ignoring %r.
+zEanalyzeline: no name pattern found in %s statement for %s. Skipping.
+__user__z8analyzeline: missing __user__ module (could be nothing)
+z;analyzeline: appending intent(callback) %s to %s arguments
+z+analyzeline: intent(callback) %s is ignoredz<analyzeline: intent(callback) %s is already in argument list)
+z(analyzeline: ignoring program arguments
+zManalyzeline: could not extract name,expr in parameter statement "%s" of "%s"
+zGanalyzeline: Overwriting the value of parameter "%s" ("%s") with "%s".
+complexz
++1j*(z1analyzeline: Failed to evaluate %r. Ignoring: %s
+nonez<analyzeline: Overwriting earlier "implicit none" statement.
+z9\s*(?P<this>.*?)\s*(\(\s*(?P<after>[a-z-, ]+)\s*\)\s*|)\ZzDanalyzeline: could not extract info of implicit statement part "%s"
+zManalyzeline: could not extract types pattern of implicit statement part "%s"
+zZanalyzeline: expected "<char>-<char>" instead of "%s" in range list of implicit statement
+z^analyzeline: expected "<char>-<char>" instead of "%s" in range list of implicit statement (2)
+z>analyzeline: implied-DO list "%s" is not supported. Skipping.
+z=analyzeline: changing init expression of "%s" ("%s") to "%s"
+_BLNK_c
+zR\A\s*(?P<name>\b\w+\b)\s*((,(\s*\bonly\b\s*:|(?P<notonly>))\s*(?P<list>.*))|)\s*\Zr
+notonly
+onlyc
+z7\A\s*(?P<local>\b\w+\b)\s*=\s*>\s*(?P<use>\b\w+\b)\s*\ZZ
+localz0analyzeline: Not local=>use pattern found in %s
+mapz0analyzeline: Could not crack the use statement.
+usercodez-analyzeline: No context for multiline block.
+z+analyzeline: No code implemented for line.
+basenamer
+remover
+copyZ
+deepcopyrF
+cracktypespec0
+updatevarsrp
+findr
+namepattern
+printr
+get_parameters
+determineexprtyper
+real16pattern
+finditer
+startr
+eval
+SyntaxError
+	NameError
+	TypeError
+typespattern4implicit
+cracktypespecr
+startswith
+isinstancerx
+appendmultiline)<r
+newnamerR
+needmoduleZ
+needinterface
+selector
+attr
+edecl
+	last_namer
+chr6
+initexpr
+params
+implr
+kindselect
+charselectr
+begcZ
+endc
+ilrt
+inpr|
+llenZ
+olZ	commonkeyZ
+isonlyr
+gcr#
+f2pymultilines
+context_nameZ
+double\s*complex
+double complexz
+double\s*precisionz
+double precisionz>cracktypespec0: no kind/char_selector pattern found for line.
+logicalr/
+	characterrM
+selectpatternr
+z)\s*(?P<name>\b\w+\b)\s*(?P<after>.*)\s*\ZzB\s*(\(\s*(kind\s*=)?\s*(?P<kind>.*)\s*\)|\*\s*(?P<kind2>.*?))\s*\Zz2\s*(\((?P<lenkind>.*)\)|\*\s*(?P<charlen>.*))\s*\Zz
+\s*(kind\s*=\s*(?P<kind>.*?)\s*(@,@\s*len\s*=\s*(?P<len>.*)|)|(len\s*=\s*|)(?P<len2>.*?)\s*(@,@\s*(kind\s*=\s*|)(?P<kind2>.*)|))\s*\Zz
+\s*(@\(@\s*(?!/)\s*(?P<array>.*?)\s*@\)@\s*\*\s*(?P<len>.*?)|(\*\s*(?P<len2>.*?)|)\s*(@\(@\s*(?!/)\s*(?P<array2>.*?)\s*@\)@|))\s*(=\s*(?P<init>.*?)|(@\(@|)/\s*(?P<init2>.*?)\s*/(@\)@|)|)\s*\Zc
+rdq2|
+()[]{}=+-/* r
+exprZ
+expr2rc
+removespaces
+@_@r#
+cbr|
+markinnerspaces
+sLqB|	
+q2n@t
+)1Nc
+updatevars.<locals>.<listcomp>r
+(?P<start>[a-zA-Z]+)rI
+@ @rn
+z;updatevars: no name pattern found for entity=%s. Skipping.
+zIupdatevars: attempt to change the type of "%s" ("%s") to "%s". Ignoring.
+zVupdatevars: attempt to change the kindselector "%s" of "%s" ("%s") to "%s". Ignoring.
+zEupdatevars:%s: attempt to change empty charselector to %r. Ignoring.
+zVupdatevars: attempt to change the charselector "%s" of "%s" ("%s") to "%s". Ignoring.
+zMupdatevars: attempt to change the typename of "%s" ("%s") to "%s". Ignoring.
+array
+init
+z-updatevars: "%s %s" is mapped to "%s %s(%s)"
+dimension(%s)
+z5updatevars:%s: attempt to change %r to %r. Ignoring.
+zTupdatevars: attempt to change the init expression of "%s" ("%s") to "%s". Ignoring.
+z?updatevars: could not crack entity declaration "%s". Ignoring.
+lenarraypatternr
+entitydeclrZ
+el1r6
+enamerY
+not_has_typespecr
+dm1r#
+q|nR|
+z4cracktypespec: no kindselector pattern found for %s
+kind2r
+z4cracktypespec: no charselector pattern found for %s
+charlen
+lenkind)
+kindrt
+\s*\(\s*(?P<name>\w+)\s*\)rR
+z'cracktypespec: no typename found in %s
+z'cracktypespec: no selector used for %s
+itemsrS
+lenkindpatternr
+)	r.
+	automaticr
+selr
+unknownc
+getblockname
+In: %s:%s
+setmesstext
+parent_blockr
+get_usedict
+update)
+usedictr#
+snq(|
+Nz0get_useparameters: no module %s info used by %s
+z+get_useparameters: mapping for %s not impl.zDget_useparameters: overriding parameter %s with value from module %s)
+	param_mapr
+usename
+mapping
+mvarsr[
+get_useparameters/
+}	|	|
+tabr
+postcrack2)
+postcrack2.<locals>.<listcomp>
+%sBlock: %s
+retr
+varr~
+valZ
+new_bodyr#
+    TODO:
+          function return values
+          determine expression types if in argument list
+    rh
+z0postcrack: Expected block dictionary instead of r.
+sortvarsr
+__user__routinesZ
+unknown__user__routinesr
+%s_%ir(
+_user_interface)
+	postcrackr
+dictr
+analyzeargs
+analyzecommon
+analyzevars
+sortvarnames
+analyzebodyr
+isexternalr
+gretZ
+uretr
+userisdefinedZ
+useblockr
+mnamerc
+edefre
+mblockr#
+dependr
+zTsortvarnames: failed to compute dependencies because of cyclic dependencies between z
+indepZ
+depr]
+z2\A\s*\b(?P<name>.*?)\b\s*(\((?P<dims>.*?)\)|)\s*\Z
+dimsc
+z!analyzecommon.<locals>.<listcomp>r
+zNanalyzecommon: failed to extract "<name>[(<dims>)]" from "%s" in common /%s/.
+commonvars)
+Z	hascommonr
+comvarsr6
+      T
+as_interfaceZ
+saved_interfacerh
+pythonmoduler-
+crack2fortrangenr
+as_r#
+z6buildimplicitrules: no implicit rules for routine %s.
+defaultimplicitrulesr
+implicitrules
+	attrrulesr
+buildimplicitrules<
+z2 Like `eval` but returns only integers and floats z
+r=%rN)
+myevalO
+\A\b\w+\b\Zc
+rdqPt
+rzqPt
+    Obtain ``a`` and ``b`` when ``e == "a*x+b"``, where ``x`` is a symbol in
+    xset.
+    >>> getlincoef('2*x + 1', {'x'})
+    (2, 1, 'x')
+    >>> getlincoef('3*x + x*2 + 2 + 1', {'x'})
+    (5, 3, 'x')
+    >>> getlincoef('0', {'x'})
+    (0, 0, None)
+    >>> getlincoef('0*x', {'x'})
+    (0, 0, 'x')
+    >>> getlincoef('x*x', {'x'})
+    (None, None, None)
+    This can be tricked by sufficiently complex expressions
+    >>> getlincoef('(x - 0.5)*(x - 1.5)*(x - 1)*x + 2*x + 3', {'x'})
+    (2.0, 3.0, 'x')
+    r
+\w\s*\([^)]*\b
+(?P<before>.*?)\b
+\b(?P<after>.*)z
+%s(%s)%sr
+NNN)
+getlincoef_re_1r
+searchr
+xsetr|
+len_er+
+c2r#
+getlincoefY
+\A[a-z]\w*\Zr
+}	|	
+rxt	d
+r$n(|
+r&t	d
+r>n(|
+    Parameters
+    ----------
+    dl : sequence of two str objects
+        dimensions of the array
+    args : Iterable[str]
+        symbols used in the expression
+    star : Any
+        unused
+    Returns
+    -------
+    expr : str
+        Some numeric expression as a string
+    arg : Optional[str]
+        If understood, the argument from `args` present in `expr`
+    expr2 : Optional[str]
+        If understood, an expression fragment that should be used as
+        ``"(%s%s".format(something, expr2)``.
+    Examples
+    --------
+    >>> getarrlen(['10*x + 20', '40*x'], {'x'})
+    ('30 * x - 19', 'x', '+19)/(30)')
+    >>> getarrlen(['1', '10*x + 20'], {'x'})
+    ('10 * x + 20', 'x', '-20)/(10)')
+    >>> getarrlen(['10*x + 20', '1'], {'x'})
+    ('-10 * x - 18', 'x', '+18)/(-10)')
+    >>> getarrlen(['20', '1'], {'x'})
+    ('-18', None, None)
+    r
+%s-%sz
+%s+%sz
+-(%s)z
+%s-(%s)z	%s-(%s)+1N)
+%s * %s - %sz	+%s)/(%s)z
+%s * %s + %sz	-%s)/(%s)z
+%s * %sz
+)/(%s)z#	getarrlen:variable "%s" undefined
+(%s)z
+%s-%s-%sz
+%s-%s+%sr
+%s*%sz
++%sz
++%s*%sz
+-%s*%sz
+%s%sz
+%s%s-%sz
+%s%s+%s)
+_varname_matchr,
+starZ
+edlZ
+c1r#
+	getarrlen
+\b[a-z][\w$]*\bc
+z,_get_depend_dict: no dependence info for %s
+isstring
+word_pattern
+findallr
+_get_depend_dictr,
+deps
+wordsZ
+wordr
+depend_dictru
+_calc_depend_dictn	
+qFq6
+    c
+z$get_sorted_names.<locals>.<listcomp>c
+lstZ
+new_lstr#
+get_sorted_namesv	
+)	Nr
+kind(r
+real8pattern)
+_kind_func
+r8d	S
+_selected_int_kind_func
+aarch64Z
+powerZ
+ppcZ
+riscvZ
+s390xZ
+sparc
+platform
+machiner
+radixr
+_selected_real_kind_func
+selected_int_kindZ
+selected_real_kindr
+z \bkind\s*\(\s*(?P<value>.*)\s*\)z-\bselected_int_kind\s*\(\s*(?P<value>.*)\s*\)z4\bselected_(int|real)_kind\s*\(\s*(?P<value>.*)\s*\)r
+.false.
+False)
+.true.
+Truez
+kind("\1")z
+selected_int_kind(\1)Fr
+get_parameters: got "%s" on %s
+z2get_parameters:parameter %s does not have value?!
+)"r?
+Z	islogicalr
+subrD
+isdoubler
+Z	iscomplexr
+global_paramsr[
+g_paramsrR
+funcZ
+param_namesru
+kind_reZ
+selected_int_kind_reZ
+selected_kind_rer]
+replZ
+is_replacedZ
+orig_v_lenZ
+v_r\
+nlr#
+(*)r
+_eval_scalar)
+lengthr[
+_eval_length
+\d+_c
+z,"%s" in evaluating %r (available names: %s)
+_is_kind_numberr
+valuer[
+].}	z
+q*n&|
+}	|	d
+rD|	d
+rp|	d
+nj|	d
+n>|	d
+d d!
+d$d%
+d&d'
+d(d!
+d)d!
+d*d!
+	rRt
+rtd7} n
+d7} t |
+	rRd
+	rR|
+	rF|
+t!d8|
+	r g
+	rR|
+t!d;|
+}!|!
+}&}%|
+]8}'|'|
+d=|'
+]:}(|(d
+r||$|(d
+}$|"d
+t#t$t%t&
+r`d@|&| |
+|"|%f
+dA|&|
+dB|&| |
+|"|%|
+dC|&|
+rldE|
+d3})d
+})|)|
+rLdG|
+},|*
+}-|*|-k
+}+|-
+}*|*|-k
+},t-d
+}.}/}
+}0t/|.|/
+}1}2}3|.|
+t#t0t1
+rT|4
+qTdP|
+}5|5|
+rn|4
+)SNr
+[A-Za-z][\w$]*z
+.*\b%s\br
+Z	undefinedzCanalyzevars: typespec of variable %s is not defined in routine %s.
+NNNNNrv
+analyzevars.<locals>.<listcomp>r
+\n\nz
+\n r
+@:@r
+1 * 
+/(1)rE
+zoanalyzevars: character array "character*%s %s(%s)" is considered as "character %s(%s)"; "intent(c)" is forced.
+z'analyzevars: charselector=%r unhandled.r
+.*?\br
+%s%s(%s,%s)%sz
+%slen(%s)%sz
+%s%s(%s,%i)%s==%sz
+%slen(%s)%s>=%sr
+pure
+	recursiver
+z'analyzevars: prefix (%s) were not used
+KeyErrorrE
+reverserp
+isintent_cZ
+isstringarrayrP
+l_orZ
+isintent_inZ
+isintent_inoutZ
+isintent_inplacer
+isscalarr
+isintent_callbackZ
+isintent_aux
+extend)6r
+genru
+svarsr
+dep_matchesZ
+name_matchr]
+ln0r
+savelindimsrX
+dimr
+tmpr
+shape_macror+
+ddepsZ
+pdre
+ispureZ
+isrecZ
+pr1r.
+neededvarsrR
+\A[a-z]+[\w$]*\Zc
+](}	|	
+}	|	t
+rbt	|
+analyzeargs_re_1r
+ascii_lowercase
+digitsrx
+orig_aZ	a_is_exprr
+nar|
+	expr2name
+qxql|
+args1r
+\A\(.+?,.+?\)\Zz
+\A[+-]?\d+(_(?P<name>\w+)|)\Zz*\A[+-]?[\d.]+[-\d+de.]*(_(?P<name>\w+)|)\Zz
+\A\(.*\)\Zz
+\A(?P<name>\w+)\s*\(.*?\)\s*\Zc
+AssertionErrorr
+_ensure_exprdict
+z:determineexprtype: selected kind types not supported (%s)
+z%determineexprtype.<locals>.<listcomp>rq
+z>determineexprtype: could not determine expressions (%s) type.
+determineexprtype_re_1r
+determineexprtype_re_2r
+determineexprtype_re_3r
+determineexprtype_re_4rF
+determineexprtype_re_5)
+rulesr
+opr6
+rnr#
+z	%s%s%s %sr
+callbackz
+%s%sintent(%s) %sr
+ result (%s)r
+! in %sr
+%s%sentry %s(%s)r$
+z%%s%s%s %s%s%s %s%s%s%s%s%s%send %s %s)
+use2fortran
+common2fortran
+vars2fortranr
+Z	blocktypeZ
+argslr
+intent_lstr
+messZ
+entry_stmtsrc
+%s%scommon %sr
+%s%scommon /%s/ %s)
+%s%suse %s,r
+%s only:r<
+%s%s%sz
+%s%s%s=>%sr
+isintent_%s)
+globalsr
+true_intent_lists
+r>d	|
+nZd!|
+rZd"|
+rPd$|
+rtd&|
+d(d)
+rLd1|
+rzd2|
+)9z&
+    TODO:
+    public sub
+    ...
+    r
+z7vars2fortran: Confused?!: "%s" is not defined in vars.
+zHvars2fortran: Warning: cross-dependence between variables "%s" and "%s"
+%s%sintent(callback) %sz
+%s%sexternal %sz
+%s%soptional %sr.
+z/vars2fortran: No definition for argument "%s".
+z-vars2fortran: No typespec for argument "%s".
+%s(%s)r
+%s*(%s)r
+z	%s(len=%sr~
+%s,kind=%s)z
+%s)z
+%s(kind=%s)rw
+z vars2fortran.<locals>.<listcomp>z
+%s, %sr
+%s%sdimension(%s)r
+%s%sintent(%s)r
+%s%scheck(%s)z
+%s%sdepend(%s)r
+(%s,%s)z
+%s :: %s=%sz
+%s :: %sr
+isoptional
+showr,
+imagr
+noutr
+vardefrW
+Reading fortran codes...
+Post-processing...
+Post-processing (stage 2)...
+files
+postlistr#
+crackfortran
+zE!    -*- f90 -*-
+! Note: the context of this file is case sensitive.
+! This file was auto-generated with f2py (version:%s).
+! See http://cens.ioc.ee/projects/f2py2e/
+f2py_version)
+headerZ
+footerr#
+crack2fortran
+__main__r
+-quietz
+-verboser
+-fixz?Use option -f90 before -fix if Fortran 90 code is in fix form.
+-skipemptyendsz
+--ignore-containsz
+-f77z
+-f90rz
+-showz
+-mr8
+Unknown option %s
+IOError: %s
+  Warning: You have specified module name for non Fortran 77 code
+  that should not need one (expect if you are scanning F90 code
+  for non module blocks but then you should use flag -skipemptyends
+  and also be sure that the files do not contain programs without program statement).
+z Writing fortran code to file %s
+__doc__
+ior'
+auxfuncs
+versionr
+	_MAXCACHEr
+beforethisafterZ
+fortrantypesr
+groupbegins77r
+groupbegins90r
+Z	groupendsr
+endifsr
+__name__r
+funcsrt
+showblocklist
+argvr
+IOErrorZ
+detailrx
+<module>

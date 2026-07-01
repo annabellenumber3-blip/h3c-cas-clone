@@ -1,0 +1,481 @@
+MutableMapping
+Mapping
+MutableSequence
+IteratorN)
+ref)
+Tuple
+Any.
+str_typec
+5/usr/lib/python3.9/site-packages/pyparsing/results.py
+	<genexpr>
+_ParseResultsWithOffset
+tupc
+selfZ
+__init__
+z _ParseResultsWithOffset.__init__c
+__getitem__
+z#_ParseResultsWithOffset.__getitem__c
+__getstate__
+z$_ParseResultsWithOffset.__getstate__c
+argsr
+__setstate__
+z$_ParseResultsWithOffset.__setstate__N)
+__name__
+__module__
+__qualname__
+	__slots__r
+d	e	
+d d!
+d"d#
+d$d%
+d&d'
+d(d)
+dZd*d+
+d,d-
+d.d/
+Z d0d1
+Z!d2d3
+Z"d4d5
+d6d7
+d8d9
+d:d;
+Z&e'd
+d<d=
+Z(e'd
+d>d?
+Z)d[d@dA
+Z*e	d
+dBdC
+Z+e,d
+dDdE
+dFdG
+Z.dHdI
+Z/d\e'd
+dKdL
+Z0dMdN
+Z1dOdP
+Z2dQdR
+Z3dSdT
+Z4dUdV
+Z5e6d]d
+dWdX
+Z7e+Z8e-Z9e/Z:d
+ParseResultsa
+Structured parse results, to provide multiple means of access to
+    the parsed data:
+    - as a list (``len(results)``)
+    - by list index (``results[0], results[1]``, etc.)
+    - by attribute (``results.<results_name>`` - see :class:`ParserElement.set_results_name`)
+    Example::
+        integer = Word(nums)
+        date_str = (integer.set_results_name("year") + '/'
+                    + integer.set_results_name("month") + '/'
+                    + integer.set_results_name("day"))
+        # equivalent form:
+        # date_str = (integer("year") + '/'
+        #             + integer("month") + '/'
+        #             + integer("day"))
+        # parse_string returns a ParseResults object
+        result = date_str.parse_string("1999/12/31")
+        def test(s, fn=repr):
+            print("{} -> {}".format(s, fn(eval(s))))
+        test("list(result)")
+        test("result[0]")
+        test("result['month']")
+        test("result.day")
+        test("'month' in result")
+        test("'minutes' in result")
+        test("result.dump()", str)
+    prints::
+        list(result) -> ['1999', '/', '12', '/', '31']
+        result[0] -> '1999'
+        result['month'] -> '12'
+        result.day -> '31'
+        'month' in result -> True
+        'minutes' in result -> False
+        result.dump() -> ['1999', '/', '12', '/', '31']
+        - day: 31
+        - month: 12
+        - year: 1999
+    N
+_null_values)
+_name
+_parent
+_all_names
+_modal
+_toklist
+_tokdict
+__weakref__c
+ParseResults.Lista
+        Simple wrapper class to distinguish parsed list results that should be preserved
+        as actual Python lists, instead of being converted to :class:`ParseResults`:
+            LBRACK, RBRACK = map(pp.Suppress, "[]")
+            element = pp.Forward()
+            item = ppc.integer
+            element_list = LBRACK + pp.delimited_list(element) + RBRACK
+            # add parse actions to convert from ParseResults to actual Python collection types
+            def as_python_list(t):
+                return pp.ParseResults.List(t.as_list())
+            element_list.add_parse_action(as_python_list)
+            element <<= item | element_list
+            element.run_tests('''
+                100
+                [2,3,4]
+                [[2, 1],3,4]
+                [(2, 1),3,4]
+                (2,3,4)
+                ''', post_parse=lambda s, r: (r[0], type(r[0])))
+        prints:
+            100
+            (100, <class 'int'>)
+            [2,3,4]
+            ([2, 3, 4], <class 'list'>)
+            [[2, 1],3,4]
+            ([[2, 1], 3, 4], <class 'list'>)
+        (Used internally by :class:`Group` when `aslist=True`.)
+        Nc
+Nz.{} may only be constructed with a list, not {})
+isinstance
+list
+	TypeError
+formatr
+type
+__new__)
+clsZ	containedr
+ParseResults.List.__new__)
+__doc__r1
+ListU
+objectr1
+setr'
+_generator_typer4
+dictr*
+toklist
+name
+kwargsr
+ParseResults.__new__Tc
+r|t	t
+strr'
+KeyErrorr.
+IndexError)
+asListZ
+modalr,
+ParseResults.__init__c
+<listcomp>
+z,ParseResults.__getitem__.<locals>.<listcomp>)
+slicer)
+ParseResults.__getitem__c
+getr-
+wkrefr&
+subr
+__setitem__
+ParseResults.__setitem__c
+|	|	|
+qxqln
+lenr)
+range
+indices
+reverser*
+items
+	enumerater
+mylenZ
+removedr:
+occurrences
+value
+positionr
+__delitem__
+ParseResults.__delitem__)
+returnc
+__contains__
+ParseResults.__contains__c
+__len__
+ParseResults.__len__c
+__bool__
+ParseResults.__bool__c
+iterr)
+__iter__
+ParseResults.__iter__c
+__reversed__
+ParseResults.__reversed__c
+keys
+ParseResults.keysc
+z&ParseResults.values.<locals>.<genexpr>
+values
+ParseResults.valuesc
+z%ParseResults.items.<locals>.<genexpr>ra
+ParseResults.itemsc
+        Since ``keys()`` returns an iterator, this method is helpful in bypassing
+        code that looks for the existence of any defined results names.)
+boolr*
+haskeys
+ParseResults.haskeysc
+        Removes and returns item at specified index (default= ``last``).
+        Supports both ``list`` and ``dict`` semantics for ``pop()``. If
+        passed no argument or an integer argument, it will use ``list``
+        semantics and pop tokens from the list of parsed tokens. If passed
+        a non-integer argument (most likely a string), it will use ``dict``
+        semantics and pop the corresponding value from any defined results
+        names. A second default return value argument is supported, just as in
+        ``dict.pop()``.
+        Example::
+            numlist = Word(nums)[...]
+            print(numlist.parse_string("0 123 321")) # -> ['0', '123', '321']
+            def remove_first(tokens):
+                tokens.pop(0)
+            numlist.add_parse_action(remove_first)
+            print(numlist.parse_string("0 123 321")) # -> ['123', '321']
+            label = Word(alphas)
+            patt = label("LABEL") + OneOrMore(Word(nums))
+            print(patt.parse_string("AAB 123 321").dump())
+            # Use pop() in a parse action to remove named result (note that corresponding value is not
+            # removed from list form of results)
+            def remove_LABEL(tokens):
+                tokens.pop("LABEL")
+                return tokens
+            patt.add_parse_action(remove_LABEL)
+            print(patt.parse_string("AAB 123 321").dump())
+        prints::
+            ['AAB', '123', '321']
+            - LABEL: AAB
+            ['AAB', '123', '321']
+        rA
+defaultr
+z-pop() got an unexpected keyword argument {!r}rK
+index
+retZ
+defaultvaluer
+ParseResults.popc
+        Returns named result matching the given key, or if there is no
+        such name, then returns the given ``default_value`` or ``None`` if no
+        ``default_value`` is specified.
+        Similar to ``dict.get()``.
+        Example::
+            integer = Word(nums)
+            date_str = integer("year") + '/' + integer("month") + '/' + integer("day")
+            result = date_str.parse_string("1999/12/31")
+            print(result.get("year")) # -> '1999'
+            print(result.get("hour", "not specified")) # -> 'not specified'
+            print(result.get("hour")) # -> None
+        Nr
+keyZ
+default_valuer
+ParseResults.getc
+        Inserts new element at location index in the list of parsed tokens.
+        Similar to ``list.insert()``.
+        Example::
+            numlist = Word(nums)[...]
+            print(numlist.parse_string("0 123 321")) # -> ['0', '123', '321']
+            # use a parse action to insert the parse location in the front of the parsed results
+            def insert_locn(locn, tokens):
+                tokens.insert(0, locn)
+            numlist.add_parse_action(insert_locn)
+            print(numlist.parse_string("0 123 321")) # -> [0, '0', '123', '321']
+        N)
+insertr*
+ins_stringr:
+ParseResults.insertc
+        Add single element to end of ``ParseResults`` list of elements.
+        Example::
+            numlist = Word(nums)[...]
+            print(numlist.parse_string("0 123 321")) # -> ['0', '123', '321']
+            # use a parse action to compute the sum of the parsed integers, and add it to the end
+            def append_sum(tokens):
+                tokens.append(sum(map(int, tokens)))
+            numlist.add_parse_action(append_sum)
+            print(numlist.parse_string("0 123 321")) # -> ['0', '123', '321', 444]
+        N)
+append)
+itemr
+ParseResults.appendc
+        Add sequence of elements to end of ``ParseResults`` list of elements.
+        Example::
+            patt = OneOrMore(Word(alphas))
+            # use a parse action to append the reverse of the matched strings, to make a palindrome
+            def make_palindrome(tokens):
+                tokens.extend(reversed([t[::-1] for t in tokens]))
+                return ''.join(tokens)
+            patt.add_parse_action(make_palindrome)
+            print(patt.parse_string("lskdj sdlkjf lksd")) # -> 'lskdjsdlkjflksddsklfjkldsjdksl'
+        N)
+__iadd__r)
+extend)
+itemseqr
+ParseResults.extendc
+        Clear all elements and results names.
+        N)
+clearr
+ParseResults.clearc
+__r#
+startswith
+AttributeError)
+__getattr__
+ParseResults.__getattr__c
+copy)
+otherrg
+__add__
+ParseResults.__add__c
+offsetr
+<lambda>
+z'ParseResults.__iadd__.<locals>.<lambda>c
+vlistrC
+	addoffsetr
+z)ParseResults.__iadd__.<locals>.<listcomp>r
+)	r*
+otheritemsZ
+otherdictitemsrH
+ParseResults.__iadd__c
+__radd__
+ParseResults.__radd__c
+{}({!r}, {}))
+as_dictr
+__repr__
+ParseResults.__repr__c
+repr)
+z'ParseResults.__str__.<locals>.<genexpr>
+joinr)
+__str__
+ParseResults.__str__c
+_asStringListr=
+outrl
+ParseResults._asStringListc
+        Returns the parse results as a nested list of matching tokens, all converted to strings.
+        Example::
+            patt = OneOrMore(Word(alphas))
+            result = patt.parse_string("sldkj lsdkj sldkj")
+            # even though the result prints in string-like form, it is actually a pyparsing ParseResults
+            print(type(result), result) # -> <class 'pyparsing.ParseResults'> ['sldkj', 'lsdkj', 'sldkj']
+            # Use as_list() to create an actual list
+            result_list = result.as_list()
+            print(type(result_list), result_list) # -> <class 'list'> ['sldkj', 'lsdkj', 'sldkj']
+        c
+as_list)
+resr
+z(ParseResults.as_list.<locals>.<listcomp>)
+ParseResults.as_listc
+        Returns the named parse results as a nested dictionary.
+        Example::
+            integer = Word(nums)
+            date_str = integer("year") + '/' + integer("month") + '/' + integer("day")
+            result = date_str.parse_string('12/31/1999')
+            print(type(result), repr(result)) # -> <class 'pyparsing.ParseResults'> (['12', '/', '31', '/', '1999'], {'day': [('1999', 4)], 'year': [('12', 0)], 'month': [('31', 2)]})
+            result_dict = result.as_dict()
+            print(type(result_dict), repr(result_dict)) # -> <class 'dict'> {'day': '1999', 'year': '12', 'month': '31'}
+            # even though a ParseResults supports dict-like access, sometime you just need to have a dict
+            import json
+            print(json.dumps(result)) # -> Exception: TypeError: ... is not JSON serializable
+            print(json.dumps(result.as_dict())) # -> {"month": "31", "day": "1999", "year": "12"}
+        c
+to_itemr
+z9ParseResults.as_dict.<locals>.to_item.<locals>.<listcomp>)
+objr
+z%ParseResults.as_dict.<locals>.to_itemc
+z'ParseResults.as_dict.<locals>.<genexpr>)
+ParseResults.as_dictc
+        Returns a new copy of a :class:`ParseResults` object.
+        )
+ParseResults.copyc
+        Returns the results name for this token expression. Useful when several
+        different expressions might match at a particular location.
+        Example::
+            integer = Word(nums)
+            ssn_expr = Regex(r"\d\d\d-\d\d-\d\d\d\d")
+            house_number_expr = Suppress('#') + Word(nums, alphanums)
+            user_data = (Group(house_number_expr)("house_number")
+                        | Group(ssn_expr)("ssn")
+                        | Group(integer)("age"))
+            user_info = OneOrMore(user_data)
+            result = user_info.parse_string("22 111-22-3333 #221B")
+            for item in result:
+                print(item.get_name(), ':', item[0])
+        prints::
+            age : 22
+            ssn : 111-22-3333
+            house_number : 221B
+        c
+z@ParseResults.get_name.<locals>.find_in_parent.<locals>.<genexpr>)
+nextr*
+parr
+find_in_parent<
+z-ParseResults.get_name.<locals>.find_in_parentNrK
+get_name
+ParseResults.get_namer
+|	j	|
+        Diagnostic method for listing out the contents of
+        a :class:`ParseResults`. Accepts an optional ``indent`` argument so
+        that this string can be embedded in a nested display of other data.
+        Example::
+            integer = Word(nums)
+            date_str = integer("year") + '/' + integer("month") + '/' + integer("day")
+            result = date_str.parse_string('12/31/1999')
+            print(result.dump())
+        prints::
+            ['12', '/', '31', '/', '1999']
+            - day: 1999
+            - month: 31
+            - year: 12
+        
+z$ParseResults.dump.<locals>.<genexpr>z
+{}{}- {}: z
+  rK
+indent
+full
+include_list
+_depthc
+{}{}[{}]:
+{}{}{}z
+%s%s[%d]:
+%s%s%s)
+sortedrP
+dumpr
+anyrQ
+NLrP
+ParseResults.dumpc
+        Pretty-printer for parsed results as a list, using the
+        `pprint <https://docs.python.org/3/library/pprint.html>`_ module.
+        Accepts additional positional or keyword args as defined for
+        `pprint.pprint <https://docs.python.org/3/library/pprint.html#pprint.pprint>`_ .
+        Example::
+            ident = Word(alphas, alphanums)
+            num = Word(nums)
+            func = Forward()
+            term = ident | num | Group('(' + func + ')')
+            func <<= ident + Group(Optional(delimited_list(term)))
+            result = func.parse_string("fna a,b,(fnb c,d,200),100")
+            result.pprint(width=40)
+        prints::
+            ['fna',
+             ['a',
+              'b',
+              ['(', 'fnb', ['c', 'd', '200'], ')'],
+              '100']]
+        N)
+pprintr
+ParseResults.pprintc
+ParseResults.__getstate__c
+stater
+inAccumNamesr
+ParseResults.__setstate__c
+__getnewargs__
+ParseResults.__getnewargs__c
+dirr0
+__dir__
+ParseResults.__dir__c
+        Helper classmethod to construct a ``ParseResults`` from a ``dict``, preserving the
+        name-value relations as results names. If an optional ``name`` argument is
+        given, a nested ``ParseResults`` will be returned.
+        c
+	Exceptionr,
+is_iterable
+z+ParseResults.from_dict.<locals>.is_iterable)
+	from_dict)
+ParseResults.from_dict)
+N);r
+__annotations__r!
+classmethodr
+asDictZ
+getNamer
+collections.abcr
+weakrefr
+typingr
+bytesr	
+registerr
+<module>

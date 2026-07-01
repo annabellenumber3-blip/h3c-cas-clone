@@ -1,0 +1,517 @@
+d!d"
+d#d$d%d&d'd(d)d*d+d,d-d.d/d0d1d2d3d4d5d6d7d8d9d:d;d<d=d>d?d@dAdBdCdDdEdFdGdHdIdJdKdLdMdNdOdPdQdRdSdTdUdVdWdXdYdZd[d\d]d^d_d`dadbdcdddedfdgdhdidjdkdldmdndodpdqdrdsdtdudvdwdxdydzd{d|d}d~d
+A class representing a Type 1 font.
+This version reads pfa and pfb files and splits them for embedding in
+pdf files. It also supports SlantFont and ExtendFont transformations,
+similarly to pdfTeX and friends. There is no support yet for subsetting.
+Usage::
+    font = Type1Font(filename)
+    clear_part, encrypted_part, finale = font.parts
+    slanted_font = font.transform({'slant': 0.167})
+    extended_font = font.transform({'extend': 1.2})
+Sources:
+* Adobe Technical Note #5040, Supporting Downloadable PostScript
+  Language Fonts.
+* Adobe Type 1 Font Format, Adobe Systems Incorporated, third printing,
+  v1.1, 1993. ISBN 0-201-57044-0.
+_format_approx
+_apic
+_Tokena
+    A token in a PostScript stream.
+    Attributes
+    ----------
+    pos : int
+        Position, i.e. offset from the beginning of the data.
+    raw : str
+        Raw text of the token.
+    kind : str
+        Description of the token (for debugging or testing).
+    )
+type1font._Token %s at %d: %r)
+_log
+debug
+kindr
+selfr
+;/usr/lib64/python3.9/site-packages/matplotlib/_type1font.py
+__init__7
+_Token.__init__c
+__str__<
+_Token.__str__c
+z&Position one past the end of the token)
+lenr
+endpos?
+_Token.endposc
+z+Is this a name token with one of the names?Fr
+namesr
+is_keywordC
+_Token.is_keywordc
+z.Is this a name token that starts with a slash?Fr
+is_slash_nameG
+_Token.is_slash_namec
+Is this a delimiter token?Fr
+is_delimK
+_Token.is_delimc
+Is this a number token?Fr
+	is_numberO
+_Token.is_numberc
+valueS
+_Token.valueN)
+__name__
+__module__
+__qualname__
+__doc__
+	__slots__r
+_NameToken
+namec
+startswithr
+_NameToken.is_slash_namec
+_NameToken.valueN)
+_BooleanTokenZ
+booleanc
+truer
+_BooleanToken.valueN
+_KeywordToken
+keywordc
+_KeywordToken.is_keywordN)
+_DelimiterTokenZ	delimiterc
+_DelimiterToken.is_delimc
+oppositeu
+_DelimiterToken.oppositeN)
+_WhitespaceTokenZ
+whitespaceN)
+_StringToken
+stringz
+\\([\\()nrtbf]|[0-7]{1,3})
+group
+_replacements
+KeyError
+int)
+matchrJ
+_escape
+_StringToken._escapec
+_escapes_re
+subrQ
+_ws_rer
+binascii
+	unhexlify)
+datar
+_StringToken.valueN)
+compilerV
+classmethodrQ
+	functools
+	lru_cacher 
+_BinaryToken
+binaryc
+_BinaryToken.valueNr-
+_NumberTokenZ
+numberc
+_NumberToken.is_numberc
+floatr
+_NumberToken.valueN)
+skip_wsc
+d	}	|
+|	d	u
+}	qF|
+}	qF|
+}	nV|
+}	n:z
+qFd	S
+    A generator that produces _Token instances from Type-1 font code.
+    The consumer of the generator may send an integer to the tokenizer to
+    indicate that the next token should be _BinaryToken of the given length.
+    Parameters
+    ----------
+    data : bytes
+        The data of the font to tokenize.
+    skip_ws : bool
+        If true, the generator will drop any _WhitespaceTokens from the output.
+    
+ascii
+replacez
+[\0\t\r\f\n ]+|%[^\r\n]*z
+/{0,2}[^]\0\t\r\f\n ()<>{}/%[]+z
+[()\\]z
+^<[0-9a-fA-F\0\t\r\f\n ]*>$z
+[0-7]{1,3}r
+z Unterminated string starting at r>
+\()nrtbfrT
+z$Unterminated hex string starting at z!Malformed hex string starting at r(
+false)
+decoder\
+search
+ValueErrorr:
+indexr)
+textZ
+whitespace_or_comment_reZ
+token_reZ
+instring_reZ
+hex_reZ
+oct_rer
+next_binaryrD
+start
+depth
+charZ
+octal
+	_tokenize
+_BalancedExpressionN)
+    Consume some number of tokens and return a balanced PostScript expression.
+    Parameters
+    ----------
+    initial : _Token
+        The token that triggered parsing a balanced expression.
+    tokens : iterator of _Token
+        Following tokens.
+    data : bytes
+        Underlying data that the token positions point to.
+    Returns
+    -------
+    _BalancedExpression
+    )
+unmatched closing token z
+opening token z
+ closed by z
+unknown delimiter rg
+append
+RuntimeError
+popr8
+nextrt
+initial
+tokensr[
+delim_stack
+tokenrP
+_expression
+	Type1Fonta
+    A class representing a Type-1 font, for use by backends.
+    Attributes
+    ----------
+    parts : tuple
+        A 3-tuple of the cleartext part, the encrypted part, and the finale of
+        zeros.
+    decrypted : bytes
+        The decrypted form of ``parts[1]``.
+    prop : dict[str, Any]
+        A dictionary of font properties. Noteworthy keys include:
+        - FontName: PostScript name of the font
+        - Encoding: dict from numeric codes to glyph names
+        - FontMatrix: bytes object encoding a matrix
+        - UniqueID: optional font identifier, dropped when modifying the font
+        - CharStrings: dict from glyph names to byte code
+        - Subrs: array of byte code subroutines
+        - OtherSubrs: bytes object encoding some PostScript code
+    )
+parts
+	decrypted
+prop
+_pos
+_abbrc
+        Initialize a Type-1 font.
+        Parameters
+        ----------
+        input : str or 3-tuple
+            Either a pfb file name, or a 3-tuple of already-decoded Type-1
+            font `~.Type1Font.parts`.
+        
+rbNr
+eexec
+isinstance
+tupler
+open
+_read
+_split
+_decryptr
+_parse)
+input
+filer[
+Type1Font.__init__c
+d	d	|
+z6Read the font from a file, decoding into usable parts.
+z+Broken pfb file (expected byte 128, got %d)r
+<irT
+z#Unknown segment type %d in pfb file)
+readr)
+struct
+unpackrY
+hexlify)
+rawdatar[
+typeZ
+lengthZ
+segmentr
+Type1Font._readc
+        Split the Type 1 font into its three main parts.
+        The three parts are: (1) the cleartext part, which ends in a
+        eexec operator; (2) the encrypted part; (3) the fixed part,
+        which contains 512 ASCII zeros possibly divided on various
+        lines, a cleartomark operator, and possibly something else.
+        s
+eexecs
+cleartomarki
+z(Insufficiently many zeros in Type 1 fontrT
+rindexr
+inforY
+idxZ
+len1Z
+zerosZ
+idx1rb
+Type1Font._split
+        Decrypt ciphertext using the Type-1 font algorithm.
+        The algorithm is described in Adobe's "Adobe Type 1 Font Format".
+        The key argument can be an integer, or one of the strings
+        'eexec' and 'charstring', which map to the key specified for the
+        corresponding part of Type-1 fonts.
+        The ndiscard argument should be an integer, usually 4.
+        That number of bytes is discarded from the beginning of plaintext.
+        
+charstring
+keyrI
+check_getitemru
+bytes)
+ciphertextr
+ndiscard
+	plaintext
+byter
+Type1Font._decryptc
+        Encrypt plaintext using the Type-1 font algorithm.
+        The algorithm is described in Adobe's "Adobe Type 1 Font Format".
+        The key argument can be an integer, or one of the strings
+        'eexec' and 'charstring', which map to the key specified for the
+        corresponding part of Type-1 fonts.
+        The ndiscard argument should be an integer, usually 4. That
+        number of bytes is prepended to the plaintext before encryption.
+        This function prepends NUL bytes for reproducibility, even though
+        the original algorithm uses random bytes, presumably to avoid
+        cryptanalysis.
+        r
+_encrypt
+Type1Font._encryptc
+q.|	d
+q.|	d
+        Find the values of various font properties. This limited kind
+        of parsing is described in Chapter 10 "Adobe Type Manager
+        Compatibility" of the Type-1 spec.
+        Z
+Regularg
+Weight
+ItalicAngleZ
+isFixedPitchZ
+UnderlinePositionZ
+UnderlineThicknessr
+Subrs
+CharStringsZ
+EncodingZ
+OtherSubrsc
+readonlyZ
+noaccessZ
+executeonlyN
+	<genexpr>%
+z#Type1Font._parse.<locals>.<genexpr>
+defr
+{noaccess def}z
+{noaccess put}z({string currentfile exch readstring pop}r
+FontNameZ
+FullNameZ
+FamilyNameZ
+UnknownzT(?i)([ -](regular|plain|italic|oblique|(semi)?bold|(ultra)?light|extra|condensed))+$rS
+lenIVr
+<listcomp>J
+z$Type1Font._parse.<locals>.<listcomp>N)
+StopIterationr
+_parse_subrs
+_parse_charstrings
+_parse_encoding
+_parse_othersubrs
+setdefaultru
+getr\
+itemsr
+sourcer{
+keyposr
+extrasZ
+Type1Font._parsec
+}	|	
+d	|	
+Nz-Token following /Subrs must be a number, was c
+arrayNr
+z)Type1Font._parse_subrs.<locals>.<genexpr>c
+dupNr
+z>Token following dup in Subrs definition must be a number, was zESecond token following dup in Subrs definition must be a number, was r
+Token preceding subr must be z
+, was r
+)	rx
+ranger
+sendr
+_data
+count_token
+countr
+index_token
+nbytes_tokenr{
+binary_tokenr
+Type1Font._parse_subrsc
+)	Nz3Token following /CharStrings must be a number, was c
+beginNr
+z/Type1Font._parse_charstrings.<locals>.<genexpr>c
+Token following /z1 in CharStrings definition must be a number, was r
+)	rz
+charstringsr{
+Z	glyphnamer
+Type1Font._parse_charstringsc
+StandardEncodingr
+z,Type1Font._parse_encoding.<locals>.<genexpr>r
+z'Parsing encoding: expected number, got z+Parsing encoding: expected slash-name, got )	rx
+_StandardEncodingr
+warningr
+encodingr{
+name_tokenr
+Type1Font._parse_encodingc
+init_posr{
+Type1Font._parse_othersubrsc
+d	d	d
+d	d	d
+}	|	
+d!d"
+|	d	|
+)&a'
+        Return a new font that is slanted and/or extended.
+        Parameters
+        ----------
+        effects : dict
+            A dict with optional entries:
+            - 'slant' : float, default: 0
+                Tangent of the angle that the font is to be slanted to the
+                right. Negative values slant to the left.
+            - 'extend' : float, default: 1
+                Scaling factor for the font width. Values less than 1 condense
+                the glyphs.
+        Returns
+        -------
+        `Type1Font`
+        r
+z'Type1Font.transform.<locals>.<listcomp>Z
+FontMatrixr3
+slantz	_Slant_%di
+extendz
+_Extend_%d)
+[%s]r
+z&Type1Font.transform.<locals>.<genexpr>c
+/FontName/%s defr
+fontnamer
+/ItalicAngle %a defr
+italicangler
+/FontMatrix %s readonly defr
+fontmatrixr
+UniqueIDT)
+reverserg
+text to be replaced with z
+ spans the eexec boundaryr
+lstrip
+rstrip
+split
+eyerN
+roundre
+arctanZ
+joinr
+	bytearrayr~
+sorted
+encoderv
+effectsr
+Z	oldmatrixZ
+modifierr
+Z	newmatrixZ
+replacementsr[
+len0Z
+pos0Z
+pos1r 
+	transform
+Type1Font.transformN)
+staticmethodr
+ord)
+letterr
+<dictcomp>
+.notdef
+spaceZ
+exclamZ
+quotedblZ
+numbersign
+dollar
+percentZ	ampersandZ
+quoterightZ	parenleftZ
+parenrightZ
+asteriskZ
+plusZ
+commaZ
+hyphenZ
+periodZ
+slashZ
+zeroZ
+oneZ
+twoZ
+threeZ
+fourZ
+fiveZ
+sixZ
+sevenZ
+eightZ
+nine
+colonZ	semicolonZ
+lessZ
+equalZ
+greaterZ
+questionZ
+bracketleftZ	backslashZ
+bracketrightZ
+asciicircumZ
+underscoreZ	quoteleftZ	braceleftZ
+barZ
+bracerightZ
+asciitildeZ
+exclamdownZ
+centZ
+sterlingZ
+fractionZ
+yenZ
+florinZ
+sectionZ
+currencyZ
+quotesingleZ
+quotedblleftZ
+guillemotleftZ
+guilsinglleftZ
+guilsinglrightZ
+endashZ
+daggerZ	daggerdblZ
+periodcenteredZ	paragraphZ
+bulletZ
+quotesinglbaseZ
+quotedblbaseZ
+quotedblrightZ
+guillemotrightZ
+ellipsisZ
+perthousandZ
+questiondownZ
+graveZ
+acuteZ
+circumflex
+tildeZ
+macronZ
+breveZ	dotaccentZ
+dieresisZ
+ringZ
+cedillaZ
+hungarumlautZ
+ogonekZ
+caronZ
+emdashZ
+ordfeminineZ
+LslashZ
+OslashZ
+ordmasculineZ
+dotlessiZ
+lslashZ
+oslashZ
+germandbls)br
+)!r$
+loggingr\
+numpyr
+matplotlib.cbookr
+Z	getLoggerr!
+boolrs
+ascii_lettersr
+<module>

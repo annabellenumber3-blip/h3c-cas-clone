@@ -1,0 +1,306 @@
+This class holds Cheroot WSGI server implementation.
+Simplest example on how to use this server::
+    from cheroot import wsgi
+    def my_crazy_app(environ, start_response):
+        status = '200 OK'
+        response_headers = [('Content-type','text/plain')]
+        start_response(status, response_headers)
+        return [b'Hello world!']
+    addr = '0.0.0.0', 8070
+    server = wsgi.Server(addr, my_crazy_app)
+    server.start()
+The Cheroot WSGI server can serve as many WSGI applications
+as you want in one instance by using a PathInfoDispatcher::
+    path_map = {
+        '/': my_crazy_app,
+        '/blog': my_blog_app,
+    }
+    d = wsgi.PathInfoDispatcher(path_map)
+    server = wsgi.Server(addr, d)
+absolute_import
+division
+print_functionN)
+filter
+server)
+threadpool)
+ntob
+btonc
+Serverz8A subclass of HTTPServer which calls a WSGI application.
+Initialize WSGI Server instance.
+        Args:
+            bind_addr (tuple): network interface to listen to
+            wsgi_app (callable): WSGI application callable
+            numthreads (int): number of threads for WSGI thread pool
+            server_name (str): web server name to be advertised via
+                Server HTTP header
+            max (int): maximum number of worker threads
+            request_queue_size (int): the 'backlog' arg to
+                socket.listen(); max queued connections
+            timeout (int): the timeout in seconds for accepted connections
+            shutdown_timeout (int): the total time, in seconds, to
+                wait for worker threads to cleanly exit
+            accepted_queue_size (int): maximum number of active
+                requests in queue
+            accepted_queue_timeout (int): timeout for putting request
+                into queue
+        )
+gateway
+server_name
+peercreds_enabled
+peercreds_resolve_enabledr
+accepted_queue_size
+accepted_queue_timeoutN)
+superr
+__init__
+wsgi_gateways
+wsgi_version
+wsgi_app
+request_queue_size
+timeout
+shutdown_timeoutr
+ThreadPool
+requests)
+self
+	bind_addrr
+numthreadsr
+	__class__
+0/usr/lib/python3.9/site-packages/cheroot/wsgi.pyr
+Server.__init__c
+Set minimum number of threads.
+Server.numthreadsc
+valuer%
+__name__
+__module__
+__qualname__
+__doc__r
+propertyr"
+setter
+__classcell__r%
+Gatewayz/A base class to interface HTTPServer with WSGI.c
+zzInitialize WSGI Gateway instance with request.
+        Args:
+            req (HTTPRequest): current HTTP request
+        FN)
+started_response
+get_environ
+remaining_bytes_out)
+reqr#
+Gateway.__init__c
+Create a mapping of gateways and their versions.
+        Returns:
+            dict[tuple[int,int],class]: map of gateway version and
+                corresponding class
+        c
+version)
+gwr%
+<dictcomp>z
+z'Gateway.gateway_map.<locals>.<dictcomp>)
+__subclasses__)
+clsr%
+gateway_mapq
+Gateway.gateway_mapc
+;Return a new environ dict targeting the given wsgi.version.N)
+NotImplementedErrorr(
+Gateway.get_environc
+s8t	d
+Process the current request.
+        From :pep:`333`:
+            The start_response callable must not actually transmit
+            the response headers. Instead, it must store them for the
+            server or gateway to transmit only after the first
+            iteration of the application return value that yields
+            a NON-EMPTY string, or upon the application's first
+            invocation of the write() callable.
+        Nz"WSGI Applications must yield bytes
+close)
+start_responser
+isinstance
+sixZ
+binary_type
+ValueError
+write
+ensure_headers_sent
+hasattrr@
+response
+chunkr%
+respond
+Gateway.respondNc
+z)WSGI callable to begin the HTTP response.z:WSGI start_response called a second time with no exc_info.TNz/WSGI response header key %r is not of type str.z1WSGI response header value %r is not of type str.z
+content-length)
+AssertionErrorr6
+sent_headersrC
+reraise
+_encode_status
+statusrB
+	TypeError
+lower
+intr5
+outheaders
+appendrE
+headers
+exc_info
+out_headerr%
+Gateway.start_responsec
+Cast status to bytes representation of current Python version.
+        According to :pep:`3333`, when using Python 3, the response status
+        and headers must be bytes masquerading as Unicode; that is, they
+        must be of type "str" but are restricted to code points in the
+        "latin-1" set.
+        z(WSGI response status is not of type str.
+ISO-8859-1)
+PY2rB
+encode)
+Gateway._encode_statusc
+WSGI callable to write unbuffered data to the client.
+        This method is also used internally by start_response (to write
+        data from the iterable returned by the WSGI application).
+        z(WSGI write called before start_response.Nz
+500 Internal Server ErrorzLThe requested resource returned more bytes than the declared Content-Length.r
+z2Response body exceeds the declared Content-Length.)
+lenr5
+simple_responserF
+chunklenZ
+rbor%
+Gateway.write)
+classmethodr=
+staticmethodrL
+Gateway_10z8A Gateway class to interface HTTPServer with WSGI 1.0.x.r
+j	p4d
+ACTUAL_SERVER_PROTOCOL
+	PATH_INFO
+QUERY_STRINGZ
+REMOTE_ADDRZ
+REMOTE_PORTZ
+REQUEST_METHOD
+REQUEST_URI
+SCRIPT_NAMEZ
+SERVER_NAMEZ
+SERVER_PROTOCOLZ
+SERVER_SOFTWAREz
+wsgi.errors
+wsgi.inputz
+wsgi.input_terminatedz
+wsgi.multiprocessz
+wsgi.multithreadz
+wsgi.run_oncez
+wsgi.url_schemez
+wsgi.versionZ
+SERVER_PORTZ
+X_REMOTE_PIDZ
+X_REMOTE_UIDZ
+X_REMOTE_GIDZ
+X_REMOTE_USERZ
+X_REMOTE_GROUPZ
+REMOTE_USERr
+HTTP_{header_name!s}
+header_nameN)
+formatr
+upper
+replace)
+	<genexpr>+
+z)Gateway_10.get_environ.<locals>.<genexpr>Z
+HTTP_CONTENT_TYPENZ
+CONTENT_TYPEZ
+HTTP_CONTENT_LENGTHZ
+CONTENT_LENGTH)%r6
+connr
+protocolr
+path
+remote_addrrN
+remote_port
+methodZ
+urir
+request_protocolZ
+software
+stderrZ
+rfile
+boolZ
+chunked_read
+schemer7
+string_typesZ
+peer_pidZ
+peer_uidZ
+peer_gidZ	peer_userZ
+peer_group
+RuntimeError
+updateZ	inheaders
+items
+popZ
+ssl_env)
+req_connr4
+clr%
+Gateway_10.get_environN)
+Gateway_u0z
+A Gateway class to interface HTTPServer with WSGI u.0.
+    WSGI u.0 is an experimental protocol, which uses Unicode for keys
+    and values in both Python 2 and Python 3.
+    )
+wsgi.url_encodingz
+utf-8r^
+dict
+_decode_keyrr
+setdefaultrC
+decoderj
+UnicodeDecodeErrorrq
+_decode_value)
+env_10r4
+encr#
+Gateway_u0.get_environc
+itemrT
+Gateway_u0._decode_keyc
+bytesrz
+Z	skip_keysr%
+Gateway_u0._decode_value)
+PathInfoDispatcherz6A WSGI dispatcher for dispatch based on the PATH_INFO.c
+Initialize path info WSGI app dispatcher.
+        Args:
+            apps (dict[str,object]|list[tuple[str,object]]): URI prefix
+                and WSGI app pairs
+        c
+appr%
+by_path_len
+z0PathInfoDispatcher.__init__.<locals>.by_path_lenT)
+reversec
+rstrip)
+<listcomp>
+z/PathInfoDispatcher.__init__.<locals>.<listcomp>N)
+listrr
+AttributeError
+sort
+apps)
+PathInfoDispatcher.__init__c
+Process incoming WSGI request.
+        Ref: :pep:`3333`
+        Args:
+            environ (Mapping): a dict containing WSGI environment variables
+            start_response (callable): function, which sets response
+                status and headers
+        Returns:
+            list[bytes]: iterable containing bytes to be returned in
+                HTTP response body
+        r^
+z	{path!s}/)
+404 Not Found)
+Content-Typez
+text/plain)
+Content-Length
+startswithre
+copy
+getrY
+environrA
+__call__
+PathInfoDispatcher.__call__N)
+WSGIServerZ
+WSGIGatewayZ
+WSGIGateway_u0Z
+WSGIGateway_10Z
+WSGIPathInfoDispatcher)
+__future__r
+typeZ
+__metaclass__rl
+Z	six.movesr
+workersr
+_compatr	
+HTTPServerr
+globalsrq
+<module>

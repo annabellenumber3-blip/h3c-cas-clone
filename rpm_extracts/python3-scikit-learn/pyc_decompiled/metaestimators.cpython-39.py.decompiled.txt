@@ -1,0 +1,222 @@
+Utilities for meta-estimators
+List
+Any)
+MethodTypeN)
+wraps)
+ABCMeta
+abstractmethod)
+attrgetter)
+update_wrapper)
+suppress
+_safe_indexing)
+_safe_tags)
+BaseEstimator
+available_if
+if_delegate_has_methodc
+_BaseCompositionzJHandles parameter management for classifiers composed of named estimators.Z
+stepsc
+selfr
+B/usr/lib64/python3.9/site-packages/sklearn/utils/metaestimators.py
+__init__
+_BaseComposition.__init__Tc
+qpqN|
+deep
+get_paramsTz
+%s__%s)
+superr
+getattr
+update
+	TypeError
+ValueError
+hasattr
+items)	r
+attrr
+outZ
+estimators
+name
+	estimator
+value
+	__class__r
+_get_params 
+_BaseComposition._get_paramsc
+setattr
+popr
+isinstance
+listr
+keys
+_replace_estimatorr
+set_params)
+paramsr 
+item_names
+_set_params6
+_BaseComposition._set_paramsc
+	enumerater+
+new_valZ
+new_estimators
+estimator_namer3
+z#_BaseComposition._replace_estimatorc
+Nz$Names provided are not unique: {0!r}Fr
+z:Estimator names conflict with constructor arguments: {0!r}c
+.0r#
+<listcomp>^
+z4_BaseComposition._validate_names.<locals>.<listcomp>z.Estimator names must not contain __: got {0!r})
+setr
+formatr.
+intersectionr
+sorted)
+names
+invalid_namesr
+_validate_namesT
+z _BaseComposition._validate_names)
+__name__
+__module__
+__qualname__
+__doc__r
+__annotations__r
+__classcell__r
+	metaclassc
+_AvailableIfDescriptorav
+Implements a conditional property using the descriptor protocol.
+    Using this class to create a decorator will raise an ``AttributeError``
+    if check(self) returns a falsey value. Note that if check raises an error
+    this will also result in hasattr returning false.
+    See https://docs.python.org/3/howto/descriptor.html for an explanation of
+    descriptors.
+    c
+check
+attribute_namer	
+_AvailableIfDescriptor.__init__Nc
+This z
+ has no attribute c
+args
+kwargs
+attr_errr
+z+_AvailableIfDescriptor.__get__.<locals>.out)
+AttributeError
+reprrB
+ownerr"
+__get__x
+_AvailableIfDescriptor.__get__)
+An attribute that is available only if check returns a truthy value
+    Parameters
+    ----------
+    check : callable
+        When passed the object with the decorated method, this should return
+        a truthy value if the attribute is available, and either return False
+        or raise an AttributeError if not available.
+    Examples
+    --------
+    >>> from sklearn.utils.metaestimators import available_if
+    >>> class HelloIfEven:
+    ...    def __init__(self, x):
+    ...        self.x = x
+    ...
+    ...    def _x_is_even(self):
+    ...        return self.x % 2 == 0
+    ...
+    ...    @available_if(_x_is_even)
+    ...    def say_hello(self):
+    ...        print("Hello")
+    ...
+    >>> obj = HelloIfEven(1)
+    >>> hasattr(obj, "say_hello")
+    False
+    >>> obj.x = 2
+    >>> hasattr(obj, "say_hello")
+    True
+    >>> obj.say_hello()
+    Hello
+    c
+<lambda>
+available_if.<locals>.<lambda>r
+_IffHasAttrDescriptorat
+Implements a conditional property using the descriptor protocol.
+    Using this class to create a decorator will raise an ``AttributeError``
+    if none of the delegates (specified in ``delegate_names``) is an attribute
+    of the base object or the first found delegate does not have an attribute
+    ``attribute_name``.
+    This allows ducktyping of the decorated method based on
+    ``delegate.attribute_name``. Here ``delegate`` is the first item in
+    ``delegate_names`` for which ``hasattr(object, delegate) is True``.
+    See https://docs.python.org/3/howto/descriptor.html for an explanation of
+    descriptors.
+    c
+_check
+delegate_names)
+_IffHasAttrDescriptor.__init__c
+Nzrif_delegate_has_method was deprecated in version 1.1 and will be removed in version 1.3. Use if_available instead.FT)
+warnings
+warn
+FutureWarningr[
+delegateZ
+delegate_namer
+_IffHasAttrDescriptor._check)
+Create a decorator for methods that are delegated to a sub-estimator
+    This enables ducktyping by hasattr returning True according to the
+    sub-estimator.
+    .. deprecated:: 1.3
+        `if_delegate_has_method` is deprecated in version 1.1 and will be removed in
+        version 1.3. Use `available_if` instead.
+    Parameters
+    ----------
+    delegate : str, list of str or tuple of str
+        Name of the sub-estimator that can be accessed as an attribute of the
+        base object. If a list or a tuple of names are provided, the first
+        sub-estimator that is an attribute of the base object will be used.
+    c
+z(if_delegate_has_method.<locals>.<lambda>)
+tupler`
+Create subset of dataset and properly handle kernels.
+    Slice X, y according to indices for cross-validation, but take care of
+    precomputed kernel-matrices or pairwise affinities / distances.
+    If ``estimator._pairwise is True``, X needs to be square and
+    we slice rows and columns. If ``train_indices`` is not None,
+    we slice rows using ``indices`` (assumed the test set) and columns
+    using ``train_indices``, indicating the training set.
+    Labels y will always be indexed only along the first axis.
+    Parameters
+    ----------
+    estimator : object
+        Estimator to determine whether we should slice only rows or rows and
+        columns.
+    X : array-like, sparse matrix or iterable
+        Data to be indexed. If ``estimator._pairwise is True``,
+        this needs to be a square array-like or sparse matrix.
+    y : array-like, sparse matrix or iterable
+        Targets to be indexed.
+    indices : array of int
+        Rows to select from X and y.
+        If ``estimator._pairwise is True`` and ``train_indices is None``
+        then ``indices`` will also be used to slice columns.
+    train_indices : array of int or None, default=None
+        If ``estimator._pairwise is True`` and ``train_indices is not None``,
+        then ``train_indices`` will be use to slice the columns of X.
+    Returns
+    -------
+    X_subset : array-like, sparse matrix or list
+        Indexed data.
+    y_subset : array-like, sparse matrix or list
+        Indexed targets.
+    Z
+pairwise)
+shapezXPrecomputed kernels or affinity matrices have to be passed as arrays or sparse matrices.r
+z"X should be a square kernel matrixN)
+ix_r
+indicesZ
+train_indicesZ
+X_subsetZ
+y_subsetr
+_safe_split
+N) rE
+typingr
+typesr
+	functoolsr
+abcr
+operatorr
+numpyrd
+contextlibr
+utilsr
+utils._tagsr
+baser
+__all__r
+<module>

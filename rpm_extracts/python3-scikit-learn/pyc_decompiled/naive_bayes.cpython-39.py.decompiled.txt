@@ -1,0 +1,911 @@
+The :mod:`sklearn.naive_bayes` module implements Naive Bayes algorithms. These
+are supervised learning methods based on applying Bayes' theorem with strong
+(naive) feature independence assumptions.
+ABCMeta
+abstractmethod)
+	logsumexp
+BaseEstimator
+ClassifierMixin)
+binarize)
+LabelBinarizer)
+label_binarize)
+deprecated)
+safe_sparse_dot)
+_check_partial_fit_first_call)
+check_is_fitted
+check_non_negative)
+_check_sample_weight)
+BernoulliNB
+GaussianNB
+MultinomialNB
+ComplementNB
+CategoricalNBc
+_BaseNBz.Abstract base class for naive Bayes estimatorsc
+Compute the unnormalized posterior log probability of X
+        I.e. ``log P(c) + log P(x|c)`` for all rows x of X, as an array-like of
+        shape (n_samples, n_classes).
+        predict, predict_proba, and predict_log_proba pass the input through
+        _check_X and handle it over to _joint_log_likelihood.
+        N
+self
+9/usr/lib64/python3.9/site-packages/sklearn/naive_bayes.py
+_joint_log_likelihood/
+_BaseNB._joint_log_likelihoodc
+zgTo be overridden in subclasses with the actual checks.
+        Only used in predict* methods.
+        Nr
+_check_X:
+_BaseNB._check_Xc
+        Perform classification on an array of test vectors X.
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            The input samples.
+        Returns
+        -------
+        C : ndarray of shape (n_samples,)
+            Predicted target values for X.
+        r
+axis)
+classes_
+argmax
+jllr
+predictA
+_BaseNB.predictc
+        Return log-probability estimates for the test vector X.
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            The input samples.
+        Returns
+        -------
+        C : array-like of shape (n_samples, n_classes)
+            Returns the log-probability of the samples for each class in
+            the model. The columns correspond to the classes in sorted
+            order, as they appear in the attribute :term:`classes_`.
+        r
+atleast_2d
+log_prob_xr
+predict_log_probaT
+_BaseNB.predict_log_probac
+        Return probability estimates for the test vector X.
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            The input samples.
+        Returns
+        -------
+        C : array-like of shape (n_samples, n_classes)
+            Returns the probability of the samples for each class in
+            the model. The columns correspond to the classes in sorted
+            order, as they appear in the attribute :term:`classes_`.
+        )
+expr'
+predict_probak
+_BaseNB.predict_probaN)
+__name__
+__module__
+__qualname__
+__doc__r
+	metaclassc
+    Gaussian Naive Bayes (GaussianNB).
+    Can perform online updates to model parameters via :meth:`partial_fit`.
+    For details on algorithm used to update feature means and variance online,
+    see Stanford CS tech report STAN-CS-79-773 by Chan, Golub, and LeVeque:
+        http://i.stanford.edu/pub/cstr/reports/cs/tr/79/773/CS-TR-79-773.pdf
+    Read more in the :ref:`User Guide <gaussian_naive_bayes>`.
+    Parameters
+    ----------
+    priors : array-like of shape (n_classes,)
+        Prior probabilities of the classes. If specified, the priors are not
+        adjusted according to the data.
+    var_smoothing : float, default=1e-9
+        Portion of the largest variance of all features that is added to
+        variances for calculation stability.
+        .. versionadded:: 0.20
+    Attributes
+    ----------
+    class_count_ : ndarray of shape (n_classes,)
+        number of training samples observed in each class.
+    class_prior_ : ndarray of shape (n_classes,)
+        probability of each class.
+    classes_ : ndarray of shape (n_classes,)
+        class labels known to the classifier.
+    epsilon_ : float
+        absolute additive value to variances.
+    n_features_in_ : int
+        Number of features seen during :term:`fit`.
+        .. versionadded:: 0.24
+    feature_names_in_ : ndarray of shape (`n_features_in_`,)
+        Names of features seen during :term:`fit`. Defined only when `X`
+        has feature names that are all strings.
+        .. versionadded:: 1.0
+    sigma_ : ndarray of shape (n_classes, n_features)
+        Variance of each feature per class.
+        .. deprecated:: 1.0
+           `sigma_` is deprecated in 1.0 and will be removed in 1.2.
+           Use `var_` instead.
+    var_ : ndarray of shape (n_classes, n_features)
+        Variance of each feature per class.
+        .. versionadded:: 1.0
+    theta_ : ndarray of shape (n_classes, n_features)
+        mean of each feature per class.
+    See Also
+    --------
+    BernoulliNB : Naive Bayes classifier for multivariate Bernoulli models.
+    CategoricalNB : Naive Bayes classifier for categorical features.
+    ComplementNB : Complement Naive Bayes classifier.
+    MultinomialNB : Naive Bayes classifier for multinomial models.
+    Examples
+    --------
+    >>> import numpy as np
+    >>> X = np.array([[-1, -1], [-2, -1], [-3, -2], [1, 1], [2, 1], [3, 2]])
+    >>> Y = np.array([1, 1, 1, 2, 2, 2])
+    >>> from sklearn.naive_bayes import GaussianNB
+    >>> clf = GaussianNB()
+    >>> clf.fit(X, Y)
+    GaussianNB()
+    >>> print(clf.predict([[-0.8, -1]]))
+    [1]
+    >>> clf_pf = GaussianNB()
+    >>> clf_pf.partial_fit(X, Y, np.unique(Y))
+    GaussianNB()
+    >>> print(clf_pf.predict([[-0.8, -1]]))
+    [1]
+    Ng
+priors
+var_smoothingc
+__init__
+GaussianNB.__init__c
+Fit Gaussian Naive Bayes according to X, y.
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            Training vectors, where `n_samples` is the number of samples
+            and `n_features` is the number of features.
+        y : array-like of shape (n_samples,)
+            Target values.
+        sample_weight : array-like of shape (n_samples,), default=None
+            Weights applied to individual samples (1. for unweighted).
+            .. versionadded:: 0.17
+               Gaussian Naive Bayes supports fitting with *sample_weight*.
+        Returns
+        -------
+        self : object
+            Returns the instance itself.
+        )
+_refit
+sample_weight)
+_validate_data
+_partial_fitr!
+unique
+GaussianNB.fitc
+*Validate X, used only in predict* methods.F
+reset
+GaussianNB._check_Xc
+Compute online update of Gaussian mean and variance.
+        Given starting sample count, mean, and variance, a new set of
+        points X, and optionally sample weights, return the updated mean and
+        variance. (NB - each dimension (column) in X is treated as independent
+        -- you get variance, not covariance).
+        Can take scalar mean and variance, or vector mean and variance to
+        simultaneously update a number of independent Gaussians.
+        See Stanford CS tech report STAN-CS-79-773 by Chan, Golub, and LeVeque:
+        http://i.stanford.edu/pub/cstr/reports/cs/tr/79/773/CS-TR-79-773.pdf
+        Parameters
+        ----------
+        n_past : int
+            Number of samples represented in old mean and variance. If sample
+            weights were given, this should contain the sum of sample
+            weights represented in old mean and variance.
+        mu : array-like of shape (number of Gaussians,)
+            Means for Gaussians in original set.
+        var : array-like of shape (number of Gaussians,)
+            Variances for Gaussians in original set.
+        sample_weight : array-like of shape (n_samples,), default=None
+            Weights applied to individual samples (1. for unweighted).
+        Returns
+        -------
+        total_mu : array-like of shape (number of Gaussians,)
+            Updated mean for each Gaussian over the combined set.
+        total_var : array-like of shape (number of Gaussians,)
+            Updated variance for each Gaussian over the combined set.
+        r
+weights
+shape
+float
+sumr!
+average
+varZ
+mean)
+n_pastZ
+murF
+n_newZ
+new_muZ
+new_varZ
+n_totalZ
+total_muZ
+old_ssdZ
+new_ssdZ	total_ssdZ	total_varr
+_update_mean_variance
+z GaussianNB._update_mean_variancec
+Incremental fit on a batch of samples.
+        This method is expected to be called several times consecutively
+        on different chunks of a dataset so as to implement out-of-core
+        or online learning.
+        This is especially useful when the whole dataset is too big to fit in
+        memory at once.
+        This method has some performance and numerical stability overhead,
+        hence it is better to call partial_fit on chunks of data that are
+        as large as possible (as long as fitting in the memory budget) to
+        hide the overhead.
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            Training vectors, where `n_samples` is the number of samples and
+            `n_features` is the number of features.
+        y : array-like of shape (n_samples,)
+            Target values.
+        classes : array-like of shape (n_classes,), default=None
+            List of all the classes that can possibly appear in the y vector.
+            Must be provided at the first call to partial_fit, can be omitted
+            in subsequent calls.
+        sample_weight : array-like of shape (n_samples,), default=None
+            Weights applied to individual samples (1. for unweighted).
+            .. versionadded:: 0.17
+        Returns
+        -------
+        self : object
+            Returns the instance itself.
+        Fr5
+classesr7
+partial_fitC
+GaussianNB.partial_fitFc
+Actual implementation of Gaussian NB fitting.
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            Training vectors, where `n_samples` is the number of samples and
+            `n_features` is the number of features.
+        y : array-like of shape (n_samples,)
+            Target values.
+        classes : array-like of shape (n_classes,), default=None
+            List of all the classes that can possibly appear in the y vector.
+            Must be provided at the first call to partial_fit, can be omitted
+            in subsequent calls.
+        _refit : bool, default=False
+            If true, act as though this were the first time we called
+            _partial_fit (ie, throw away any past fitting and start over).
+        sample_weight : array-like of shape (n_samples,), default=None
+            Weights applied to individual samples (1. for unweighted).
+        Returns
+        -------
+        self : object
+        Nr>
+dtype
+.Number of priors must match number of classes.
+?z"The sum of the priors should be 1.z
+Priors must be non-negative.z6Number of features %d does not match previous data %d.zBThe target label(s) %s in y do not exist in the initial classes %s)
+maxZ
+epsilon_rC
+zeros
+theta_
+var_
+float64
+class_count_r0
+asarray
+ValueErrorZ
+iscloserE
+class_prior_r:
+in1d
+allZ
+searchsortedrG
+first_call
+n_features
+	n_classesr0
+msgZ
+unique_yZ
+unique_y_in_classesZ
+X_iZ
+sw_iZ
+N_iZ	new_thetaZ	new_sigmar
+GaussianNB._partial_fitc
+ranger!
+sizer 
+logrX
+pirS
+append
+arrayr&
+joint_log_likelihoodr^
+jointiZ
+n_ijr
+z GaussianNB._joint_log_likelihoodzWAttribute `sigma_` was deprecated in 1.0 and will be removed in1.2. Use `var_` instead.c
+sigma_
+GaussianNB.sigma_)
+NFN)
+staticmethodrG
+propertyre
+_BaseDiscreteNBz
+Abstract base class for naive Bayes on discrete/categorical data
+    Any estimator based on this class should provide:
+    __init__
+    _joint_log_likelihood(X) as per _BaseNB
+    _update_feature_log_prob(alpha)
+    _count(X, Y)
+    c
+Update counts that are used to calculate probabilities.
+        The counts make up a sufficient statistic extracted from the data.
+        Accordingly, this method is called each time `fit` or `partial_fit`
+        update the model. `class_count_` and `feature_count_` must be updated
+        here along with any model specific counts.
+        Parameters
+        ----------
+        X : {ndarray, sparse matrix} of shape (n_samples, n_features)
+            The input samples.
+        Y : ndarray of shape (n_samples, n_classes)
+            Binarized class labels.
+        Nr
+_count
+_BaseDiscreteNB._countc
+Update feature log probabilities based on counts.
+        This method is called each time `fit` or `partial_fit` update the
+        model.
+        Parameters
+        ----------
+        alpha : float
+            smoothing parameter. See :meth:`_check_alpha`.
+        Nr
+alphar
+_update_feature_log_prob
+z(_BaseDiscreteNB._update_feature_log_probc
+csrF
+accept_sparser?
+_BaseDiscreteNB._check_XTc
+z Validate X and y in fit methods.rn
+_check_X_y'
+_BaseDiscreteNB._check_X_yNc
+Update class log priors.
+        The class log priors are based on `class_prior`, class count or the
+        number of classes. This method is called each time `fit` or
+        `partial_fit` update the model.
+        NrM
+ignore)
+class_log_prior_
+	fit_prior
+warnings
+catch_warnings
+simplefilter
+RuntimeWarningrU
+full)
+class_priorr\
+log_class_countr
+_update_class_log_prior+
+z'_BaseDiscreteNB._update_class_log_priorc
+rxt	
+z6Smoothing parameter alpha = %.1e. alpha should be > 0.zAalpha should be a scalar or a numpy array with shape [n_features]zCalpha too small will result in numeric errors, setting alpha = %.1e)
+minrl
+isinstanceZ
+ndarrayrC
+n_features_in_
+_ALPHA_MINrv
+warn
+maximumrd
+_check_alphaC
+_BaseDiscreteNB._check_alphac
+}	|	j
+Incremental fit on a batch of samples.
+        This method is expected to be called several times consecutively
+        on different chunks of a dataset so as to implement out-of-core
+        or online learning.
+        This is especially useful when the whole dataset is too big to fit in
+        memory at once.
+        This method has some performance overhead hence it is better to call
+        partial_fit on chunks of data that are as large as possible
+        (as long as fitting in the memory budget) to hide the overhead.
+        Parameters
+        ----------
+        X : {array-like, sparse matrix} of shape (n_samples, n_features)
+            Training vectors, where `n_samples` is the number of samples and
+            `n_features` is the number of features.
+        y : array-like of shape (n_samples,)
+            Target values.
+        classes : array-like of shape (n_classes,), default=None
+            List of all the classes that can possibly appear in the y vector.
+            Must be provided at the first call to partial_fit, can be omitted
+            in subsequent calls.
+        sample_weight : array-like of shape (n_samples,), default=None
+            Weights applied to individual samples (1. for unweighted).
+        Returns
+        -------
+        self : object
+            Returns the instance itself.
+        r 
+z1X.shape[0]=%d and y.shape[0]=%d are incompatible.F
+copyN
+hasattrrr
+_init_countersr
+concatenate
+	ones_likerV
+astyperT
+_BaseDiscreteNB.partial_fitc
+Fit Naive Bayes classifier according to X, y.
+        Parameters
+        ----------
+        X : {array-like, sparse matrix} of shape (n_samples, n_features)
+            Training vectors, where `n_samples` is the number of samples and
+            `n_features` is the number of features.
+        y : array-like of shape (n_samples,)
+            Target values.
+        sample_weight : array-like of shape (n_samples,), default=None
+            Weights applied to individual samples (1. for unweighted).
+        Returns
+        -------
+        self : object
+            Returns the instance itself.
+        r
+fit_transformr 
+labelbinrj
+_BaseDiscreteNB.fitc
+feature_count_
+_BaseDiscreteNB._init_countersc
+poor_scoreTr
+_more_tags
+_BaseDiscreteNB._more_tagszoAttribute `n_features_` was deprecated in version 1.0 and will be removed in 1.2. Use `n_features_in_` instead.c
+n_features_
+_BaseDiscreteNB.n_features_)
+    Naive Bayes classifier for multinomial models.
+    The multinomial Naive Bayes classifier is suitable for classification with
+    discrete features (e.g., word counts for text classification). The
+    multinomial distribution normally requires integer feature counts. However,
+    in practice, fractional counts such as tf-idf may also work.
+    Read more in the :ref:`User Guide <multinomial_naive_bayes>`.
+    Parameters
+    ----------
+    alpha : float, default=1.0
+        Additive (Laplace/Lidstone) smoothing parameter
+        (0 for no smoothing).
+    fit_prior : bool, default=True
+        Whether to learn class prior probabilities or not.
+        If false, a uniform prior will be used.
+    class_prior : array-like of shape (n_classes,), default=None
+        Prior probabilities of the classes. If specified, the priors are not
+        adjusted according to the data.
+    Attributes
+    ----------
+    class_count_ : ndarray of shape (n_classes,)
+        Number of samples encountered for each class during fitting. This
+        value is weighted by the sample weight when provided.
+    class_log_prior_ : ndarray of shape (n_classes,)
+        Smoothed empirical log probability for each class.
+    classes_ : ndarray of shape (n_classes,)
+        Class labels known to the classifier
+    feature_count_ : ndarray of shape (n_classes, n_features)
+        Number of samples encountered for each (class, feature)
+        during fitting. This value is weighted by the sample weight when
+        provided.
+    feature_log_prob_ : ndarray of shape (n_classes, n_features)
+        Empirical log probability of features
+        given a class, ``P(x_i|y)``.
+    n_features_ : int
+        Number of features of each sample.
+        .. deprecated:: 1.0
+            Attribute `n_features_` was deprecated in version 1.0 and will be
+            removed in 1.2. Use `n_features_in_` instead.
+    n_features_in_ : int
+        Number of features seen during :term:`fit`.
+        .. versionadded:: 0.24
+    feature_names_in_ : ndarray of shape (`n_features_in_`,)
+        Names of features seen during :term:`fit`. Defined only when `X`
+        has feature names that are all strings.
+        .. versionadded:: 1.0
+    See Also
+    --------
+    BernoulliNB : Naive Bayes classifier for multivariate Bernoulli models.
+    CategoricalNB : Naive Bayes classifier for categorical features.
+    ComplementNB : Complement Naive Bayes classifier.
+    GaussianNB : Gaussian Naive Bayes.
+    References
+    ----------
+    C.D. Manning, P. Raghavan and H. Schuetze (2008). Introduction to
+    Information Retrieval. Cambridge University Press, pp. 234-265.
+    https://nlp.stanford.edu/IR-book/html/htmledition/naive-bayes-text-classification-1.html
+    Examples
+    --------
+    >>> import numpy as np
+    >>> rng = np.random.RandomState(1)
+    >>> X = rng.randint(5, size=(6, 100))
+    >>> y = np.array([1, 2, 3, 4, 5, 6])
+    >>> from sklearn.naive_bayes import MultinomialNB
+    >>> clf = MultinomialNB()
+    >>> clf.fit(X, y)
+    MultinomialNB()
+    >>> print(clf.predict(X[2:3]))
+    [3]
+    rN
+MultinomialNB.__init__c
+requires_positive_XTr
+MultinomialNB._more_tagsc
+%Count and smooth feature occurrences.z
+MultinomialNB (input X)r
+MultinomialNB._countc
+=Apply smoothing to raw counts and recompute log probabilitiesr
+reshape
+feature_log_prob_
+smoothed_fcZ
+smoothed_ccr
+z&MultinomialNB._update_feature_log_probc
+8Calculate the posterior log probability of the samples X)
+z#MultinomialNB._joint_log_likelihood
+The Complement Naive Bayes classifier described in Rennie et al. (2003).
+    The Complement Naive Bayes classifier was designed to correct the "severe
+    assumptions" made by the standard Multinomial Naive Bayes classifier. It is
+    particularly suited for imbalanced data sets.
+    Read more in the :ref:`User Guide <complement_naive_bayes>`.
+    .. versionadded:: 0.20
+    Parameters
+    ----------
+    alpha : float, default=1.0
+        Additive (Laplace/Lidstone) smoothing parameter (0 for no smoothing).
+    fit_prior : bool, default=True
+        Only used in edge case with a single class in the training set.
+    class_prior : array-like of shape (n_classes,), default=None
+        Prior probabilities of the classes. Not used.
+    norm : bool, default=False
+        Whether or not a second normalization of the weights is performed. The
+        default behavior mirrors the implementations found in Mahout and Weka,
+        which do not follow the full algorithm described in Table 9 of the
+        paper.
+    Attributes
+    ----------
+    class_count_ : ndarray of shape (n_classes,)
+        Number of samples encountered for each class during fitting. This
+        value is weighted by the sample weight when provided.
+    class_log_prior_ : ndarray of shape (n_classes,)
+        Smoothed empirical log probability for each class. Only used in edge
+        case with a single class in the training set.
+    classes_ : ndarray of shape (n_classes,)
+        Class labels known to the classifier
+    feature_all_ : ndarray of shape (n_features,)
+        Number of samples encountered for each feature during fitting. This
+        value is weighted by the sample weight when provided.
+    feature_count_ : ndarray of shape (n_classes, n_features)
+        Number of samples encountered for each (class, feature) during fitting.
+        This value is weighted by the sample weight when provided.
+    feature_log_prob_ : ndarray of shape (n_classes, n_features)
+        Empirical weights for class complements.
+    n_features_ : int
+        Number of features of each sample.
+        .. deprecated:: 1.0
+            Attribute `n_features_` was deprecated in version 1.0 and will be
+            removed in 1.2. Use `n_features_in_` instead.
+    n_features_in_ : int
+        Number of features seen during :term:`fit`.
+        .. versionadded:: 0.24
+    feature_names_in_ : ndarray of shape (`n_features_in_`,)
+        Names of features seen during :term:`fit`. Defined only when `X`
+        has feature names that are all strings.
+        .. versionadded:: 1.0
+    See Also
+    --------
+    BernoulliNB : Naive Bayes classifier for multivariate Bernoulli models.
+    CategoricalNB : Naive Bayes classifier for categorical features.
+    GaussianNB : Gaussian Naive Bayes.
+    MultinomialNB : Naive Bayes classifier for multinomial models.
+    References
+    ----------
+    Rennie, J. D., Shih, L., Teevan, J., & Karger, D. R. (2003).
+    Tackling the poor assumptions of naive bayes text classifiers. In ICML
+    (Vol. 3, pp. 616-623).
+    https://people.csail.mit.edu/jrennie/papers/icml03-nb.pdf
+    Examples
+    --------
+    >>> import numpy as np
+    >>> rng = np.random.RandomState(1)
+    >>> X = rng.randint(5, size=(6, 100))
+    >>> y = np.array([1, 2, 3, 4, 5, 6])
+    >>> from sklearn.naive_bayes import ComplementNB
+    >>> clf = ComplementNB()
+    >>> clf.fit(X, y)
+    ComplementNB()
+    >>> print(clf.predict(X[2:3]))
+    [3]
+    rN
+normc
+ComplementNB.__init__c
+ComplementNB._more_tagsc
+Count feature occurrences.z
+ComplementNB (input X)r
+feature_all_ri
+ComplementNB._countc
+z6Apply smoothing to raw counts and compute the weights.r
+keepdimsN)
+comp_countZ
+loggedZ
+summed
+feature_log_probr
+z%ComplementNB._update_feature_log_probc
+z0Calculate the class scores for the samples in X.r
+z"ComplementNB._joint_log_likelihoodr
+Naive Bayes classifier for multivariate Bernoulli models.
+    Like MultinomialNB, this classifier is suitable for discrete data. The
+    difference is that while MultinomialNB works with occurrence counts,
+    BernoulliNB is designed for binary/boolean features.
+    Read more in the :ref:`User Guide <bernoulli_naive_bayes>`.
+    Parameters
+    ----------
+    alpha : float, default=1.0
+        Additive (Laplace/Lidstone) smoothing parameter
+        (0 for no smoothing).
+    binarize : float or None, default=0.0
+        Threshold for binarizing (mapping to booleans) of sample features.
+        If None, input is presumed to already consist of binary vectors.
+    fit_prior : bool, default=True
+        Whether to learn class prior probabilities or not.
+        If false, a uniform prior will be used.
+    class_prior : array-like of shape (n_classes,), default=None
+        Prior probabilities of the classes. If specified, the priors are not
+        adjusted according to the data.
+    Attributes
+    ----------
+    class_count_ : ndarray of shape (n_classes,)
+        Number of samples encountered for each class during fitting. This
+        value is weighted by the sample weight when provided.
+    class_log_prior_ : ndarray of shape (n_classes,)
+        Log probability of each class (smoothed).
+    classes_ : ndarray of shape (n_classes,)
+        Class labels known to the classifier
+    feature_count_ : ndarray of shape (n_classes, n_features)
+        Number of samples encountered for each (class, feature)
+        during fitting. This value is weighted by the sample weight when
+        provided.
+    feature_log_prob_ : ndarray of shape (n_classes, n_features)
+        Empirical log probability of features given a class, P(x_i|y).
+    n_features_ : int
+        Number of features of each sample.
+        .. deprecated:: 1.0
+            Attribute `n_features_` was deprecated in version 1.0 and will be
+            removed in 1.2. Use `n_features_in_` instead.
+    n_features_in_ : int
+        Number of features seen during :term:`fit`.
+        .. versionadded:: 0.24
+    feature_names_in_ : ndarray of shape (`n_features_in_`,)
+        Names of features seen during :term:`fit`. Defined only when `X`
+        has feature names that are all strings.
+        .. versionadded:: 1.0
+    See Also
+    --------
+    CategoricalNB : Naive Bayes classifier for categorical features.
+    ComplementNB : The Complement Naive Bayes classifier
+        described in Rennie et al. (2003).
+    GaussianNB : Gaussian Naive Bayes (GaussianNB).
+    MultinomialNB : Naive Bayes classifier for multinomial models.
+    References
+    ----------
+    C.D. Manning, P. Raghavan and H. Schuetze (2008). Introduction to
+    Information Retrieval. Cambridge University Press, pp. 234-265.
+    https://nlp.stanford.edu/IR-book/html/htmledition/the-bernoulli-model-1.html
+    A. McCallum and K. Nigam (1998). A comparison of event models for naive
+    Bayes text classification. Proc. AAAI/ICML-98 Workshop on Learning for
+    Text Categorization, pp. 41-48.
+    V. Metsis, I. Androutsopoulos and G. Paliouras (2006). Spam filtering with
+    naive Bayes -- Which naive Bayes? 3rd Conf. on Email and Anti-Spam (CEAS).
+    Examples
+    --------
+    >>> import numpy as np
+    >>> rng = np.random.RandomState(1)
+    >>> X = rng.randint(5, size=(6, 100))
+    >>> Y = np.array([1, 2, 3, 4, 4, 5])
+    >>> from sklearn.naive_bayes import BernoulliNB
+    >>> clf = BernoulliNB()
+    >>> clf.fit(X, Y)
+    BernoulliNB()
+    >>> print(clf.predict(X[2:3]))
+    [3]
+    rN
+BernoulliNB.__init__c
+Z	threshold)
+superr
+	__class__r
+BernoulliNB._check_Xc
+BernoulliNB._check_X_yc
+BernoulliNB._countc
+z$BernoulliNB._update_feature_log_probc
+z/Expected input with %d features, got %d insteadr
+n_features_XZ
+neg_probr#
+z!BernoulliNB._joint_log_likelihood)
+__classcell__r
+Naive Bayes classifier for categorical features.
+    The categorical Naive Bayes classifier is suitable for classification with
+    discrete features that are categorically distributed. The categories of
+    each feature are drawn from a categorical distribution.
+    Read more in the :ref:`User Guide <categorical_naive_bayes>`.
+    Parameters
+    ----------
+    alpha : float, default=1.0
+        Additive (Laplace/Lidstone) smoothing parameter
+        (0 for no smoothing).
+    fit_prior : bool, default=True
+        Whether to learn class prior probabilities or not.
+        If false, a uniform prior will be used.
+    class_prior : array-like of shape (n_classes,), default=None
+        Prior probabilities of the classes. If specified, the priors are not
+        adjusted according to the data.
+    min_categories : int or array-like of shape (n_features,), default=None
+        Minimum number of categories per feature.
+        - integer: Sets the minimum number of categories per feature to
+          `n_categories` for each features.
+        - array-like: shape (n_features,) where `n_categories[i]` holds the
+          minimum number of categories for the ith column of the input.
+        - None (default): Determines the number of categories automatically
+          from the training data.
+        .. versionadded:: 0.24
+    Attributes
+    ----------
+    category_count_ : list of arrays of shape (n_features,)
+        Holds arrays of shape (n_classes, n_categories of respective feature)
+        for each feature. Each array provides the number of samples
+        encountered for each class and category of the specific feature.
+    class_count_ : ndarray of shape (n_classes,)
+        Number of samples encountered for each class during fitting. This
+        value is weighted by the sample weight when provided.
+    class_log_prior_ : ndarray of shape (n_classes,)
+        Smoothed empirical log probability for each class.
+    classes_ : ndarray of shape (n_classes,)
+        Class labels known to the classifier
+    feature_log_prob_ : list of arrays of shape (n_features,)
+        Holds arrays of shape (n_classes, n_categories of respective feature)
+        for each feature. Each array provides the empirical log probability
+        of categories given the respective feature and class, ``P(x_i|y)``.
+    n_features_ : int
+        Number of features of each sample.
+        .. deprecated:: 1.0
+            Attribute `n_features_` was deprecated in version 1.0 and will be
+            removed in 1.2. Use `n_features_in_` instead.
+    n_features_in_ : int
+        Number of features seen during :term:`fit`.
+        .. versionadded:: 0.24
+    feature_names_in_ : ndarray of shape (`n_features_in_`,)
+        Names of features seen during :term:`fit`. Defined only when `X`
+        has feature names that are all strings.
+        .. versionadded:: 1.0
+    n_categories_ : ndarray of shape (n_features,), dtype=np.int64
+        Number of categories for each feature. This value is
+        inferred from the data or set by the minimum number of categories.
+        .. versionadded:: 0.24
+    See Also
+    --------
+    BernoulliNB : Naive Bayes classifier for multivariate Bernoulli models.
+    ComplementNB : Complement Naive Bayes classifier.
+    GaussianNB : Gaussian Naive Bayes.
+    MultinomialNB : Naive Bayes classifier for multinomial models.
+    Examples
+    --------
+    >>> import numpy as np
+    >>> rng = np.random.RandomState(1)
+    >>> X = rng.randint(5, size=(6, 100))
+    >>> y = np.array([1, 2, 3, 4, 5, 6])
+    >>> from sklearn.naive_bayes import CategoricalNB
+    >>> clf = CategoricalNB()
+    >>> clf.fit(X, y)
+    CategoricalNB()
+    >>> print(clf.predict(X[2:3]))
+    [3]
+    rN
+min_categoriesc
+CategoricalNB.__init__c
+Fit Naive Bayes classifier according to X, y.
+        Parameters
+        ----------
+        X : {array-like, sparse matrix} of shape (n_samples, n_features)
+            Training vectors, where `n_samples` is the number of samples and
+            `n_features` is the number of features. Here, each feature of X is
+            assumed to be from a different categorical distribution.
+            It is further assumed that all categories of each feature are
+            represented by the numbers 0, ..., n - 1, where n refers to the
+            total number of categories for the given feature. This can, for
+            instance, be achieved with the help of OrdinalEncoder.
+        y : array-like of shape (n_samples,)
+            Target values.
+        sample_weight : array-like of shape (n_samples,), default=None
+            Weights applied to individual samples (1. for unweighted).
+        Returns
+        -------
+        self : object
+            Returns the instance itself.
+        
+CategoricalNB.fitc
+Incremental fit on a batch of samples.
+        This method is expected to be called several times consecutively
+        on different chunks of a dataset so as to implement out-of-core
+        or online learning.
+        This is especially useful when the whole dataset is too big to fit in
+        memory at once.
+        This method has some performance overhead hence it is better to call
+        partial_fit on chunks of data that are as large as possible
+        (as long as fitting in the memory budget) to hide the overhead.
+        Parameters
+        ----------
+        X : {array-like, sparse matrix} of shape (n_samples, n_features)
+            Training vectors, where `n_samples` is the number of samples and
+            `n_features` is the number of features. Here, each feature of X is
+            assumed to be from a different categorical distribution.
+            It is further assumed that all categories of each feature are
+            represented by the numbers 0, ..., n - 1, where n refers to the
+            total number of categories for the given feature. This can, for
+            instance, be achieved with the help of OrdinalEncoder.
+        y : array-like of shape (n_samples,)
+            Target values.
+        classes : array-like of shape (n_classes,), default=None
+            List of all the classes that can possibly appear in the y vector.
+            Must be provided at the first call to partial_fit, can be omitted
+            in subsequent calls.
+        sample_weight : array-like of shape (n_samples,), default=None
+            Weights applied to individual samples (1. for unweighted).
+        Returns
+        -------
+        self : object
+            Returns the instance itself.
+        r
+CategoricalNB.partial_fitc
+CategoricalNB._more_tagsc
+intFT
+force_all_finiter?
+CategoricalNB (input X)
+CategoricalNB._check_Xc
+CategoricalNB._check_X_yc
+<listcomp>L
+z0CategoricalNB._init_counters.<locals>.<listcomp>)
+category_count_r
+CategoricalNB._init_countersc
+)	Nr
+z0'min_categories' should have integral type. Got z	 instead.rK
+z$'min_categories' should have shape (z',) when an array-like is provided. Got )
+issubdtyperL
+signedintegerrV
+int64rC
+n_categories_XZ
+min_categories_
+n_categories_r
+_validate_n_categoriesN
+z$CategoricalNB._validate_n_categoriesc
+constant)
+pad)
+	cat_countZ
+highest_feature
+diffr
+_update_cat_count_dimse
+z4CategoricalNB._count.<locals>._update_cat_count_dimsc
+)	r_
+boolrL
+typer!
+bincountZ
+nonzero)	
+	X_featurerj
+maskrA
+counts
+indicesr
+_update_cat_countl
+z/CategoricalNB._count.<locals>._update_cat_countr
+)	rU
+CategoricalNB._countc
+)	r_
+smoothed_cat_countZ
+smoothed_class_countr
+z&CategoricalNB._update_feature_log_probc
+NFr>
+_check_n_featuresr!
+total_llr
+z#CategoricalNB._joint_log_likelihood)
+)#r-
+abcr
+numpyr!
+scipy.specialr
+baser
+preprocessingr
+utilsr
+utils.extmathr
+utils.multiclassr
+utils.validationr
+__all__r
+<module>

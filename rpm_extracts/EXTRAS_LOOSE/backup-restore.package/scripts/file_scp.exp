@@ -1,0 +1,73 @@
+#!/usr/bin/expect
+# Author : guozhonghua/02084
+# Des    : scp file
+# Usage  : Get multiple files from remote server: expect file_scp.exp root@192.168.0.5:/root/vms/* ./temp 22 password
+#        : Send one file to remote server: expect file_scp.exp ./temp/vm_data_file.dat root@192.168.0.5:/root/vms 22 password
+# Params :
+#      $0: original directory(get from remote directory, as root@hostname:/root/gzh/*);
+#          one file(send from local to remote server, ./gzhtest/vm_data_file.dat)
+#      $1: destinantion directory
+#      $2: server port
+#      $3: password
+if {$argc<4} {
+    send_user "usage: $argv0 org_file dest_path port password"
+    exit 4
+}
+
+set org_dir [lindex $argv 0]
+set des_dir [lindex $argv 1]
+set ser_port [lindex $argv 2]
+set password [lindex $argv 3]
+if {"$password" == "0"} {
+    set pubarg yes
+} else {
+    set pubarg no
+}
+# replace // with / in org_dir
+regsub -all {//} $org_dir / org_dir
+# replace // with / in des_dir
+regsub -all {//} $des_dir / des_dir
+spawn scp -oPubkeyAuthentication=$pubarg -oUserKnownHostsFile=/dev/null -oConnectTimeout=120 -oTCPKeepAlive=yes -oServerAliveInterval=60 -oServerAliveCountMax=3 -r -P  $ser_port $org_dir $des_dir
+set timeout 999999
+expect "*(yes/no)*" {
+    send "yes\r"
+    #expect "password:"
+    #send "$password\r"
+    exp_continue
+} "Permission denied, please try again" {
+    send_user "\n"
+    # User name or password error
+    exit 51
+} "*assword:" {
+    send "$password\r"
+    #expect "ls:" {  exit 3
+    #   } "password:" { exit 1
+    #   }
+    exp_continue
+} "ssh:" {
+    # server ip or port error
+    send_user "\n"
+    exit 50
+} "scp:" {
+    # no privileges, make directory failed
+    send_user "\n"
+    exit 53
+} "not responding" {
+    # server not responding
+    send_user "\n"
+    exit 50
+} "lost connection" {
+    # network of server down or poweroff
+    send_user "\n"
+    exit 50
+} "Connection closed by foreign host" {
+    # network of client down
+    send_user "\n"
+    exit 50
+} timeout {
+    # send_user "time out, server address or port error"
+    send_user "\n"
+    exit 50
+} eof {
+    exit 0
+}

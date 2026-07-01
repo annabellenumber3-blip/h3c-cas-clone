@@ -1,0 +1,526 @@
+DPw~#k
+)!zZLosses and corresponding default initial estimators for gradient boosting
+decision trees.
+ABCMeta)
+abstractmethodN)
+expit
+	logsumexp
+	TREE_LEAF)
+_weighted_percentile
+DummyClassifier
+DummyRegressorc
+LossFunctionaM
+Abstract base class for various loss functions.
+    Parameters
+    ----------
+    n_classes : int
+        Number of classes.
+    Attributes
+    ----------
+    K : int
+        The number of regression trees to be induced;
+        1 for regression and binary classification;
+        ``n_classes`` for multi-class classification.
+    Fc
+self
+	n_classes
+A/usr/lib64/python3.9/site-packages/sklearn/ensemble/_gb_losses.py
+__init__#
+LossFunction.__init__c
+z-Default ``init`` estimator for loss function.N)
+NotImplementedError
+init_estimator&
+LossFunction.init_estimatorNc
+Compute the loss.
+        Parameters
+        ----------
+        y : ndarray of shape (n_samples,)
+            True labels.
+        raw_predictions : ndarray of shape (n_samples, K)
+            The raw predictions (i.e. values from the tree leaves).
+        sample_weight : ndarray of shape (n_samples,), default=None
+            Sample weights.
+        Nr
+raw_predictions
+sample_weightr
+__call__*
+LossFunction.__call__c
+Compute the negative gradient.
+        Parameters
+        ----------
+        y : ndarray of shape (n_samples,)
+            The target labels.
+        raw_predictions : ndarray of shape (n_samples, K)
+            The raw predictions (i.e. values from the tree leaves) of the
+            tree ensemble at iteration ``i - 1``.
+        Nr
+kargsr
+negative_gradient:
+LossFunction.negative_gradient
+Update the terminal regions (=leaves) of the given tree and
+        updates the current predictions of the model. Traverses tree
+        and invokes template method `_update_terminal_region`.
+        Parameters
+        ----------
+        tree : tree.Tree
+            The tree object.
+        X : ndarray of shape (n_samples, n_features)
+            The data array.
+        y : ndarray of shape (n_samples,)
+            The target labels.
+        residual : ndarray of shape (n_samples,)
+            The residuals (usually the negative gradient).
+        raw_predictions : ndarray of shape (n_samples, K)
+            The raw predictions (i.e. values from the tree leaves) of the
+            tree ensemble at iteration ``i - 1``.
+        sample_weight : ndarray of shape (n_samples,)
+            The weight of each sample.
+        sample_mask : ndarray of shape (n_samples,)
+            The sample mask to be used.
+        learning_rate : float, default=0.1
+            Learning rate shrinks the contribution of each tree by
+             ``learning_rate``.
+        k : int, default=0
+            The index of the estimator being updated.
+        
+axis)	Z
+apply
+copy
+whereZ
+children_leftr
+_update_terminal_region
+value
+take)
+tree
+residualr
+sample_mask
+learning_rate
+terminal_regionsZ
+masked_terminal_regions
+leafr
+update_terminal_regionsH
+z$LossFunction.update_terminal_regionsc	
+z=Template method for updating terminal regions (i.e., leaves).Nr
+z$LossFunction._update_terminal_regionc
+Return the initial raw predictions.
+        Parameters
+        ----------
+        X : ndarray of shape (n_samples, n_features)
+            The data array.
+        estimator : object
+            The estimator to use to compute the predictions.
+        Returns
+        -------
+        raw_predictions : ndarray of shape (n_samples, K)
+            The initial raw predictions. K is equal to 1 for binary
+            classification and regression, and equal to the number of classes
+            for multiclass classification. ``raw_predictions`` is casted
+            into float64.
+        Nr
+	estimatorr
+get_init_raw_predictions
+z%LossFunction.get_init_raw_predictions)
+__name__
+__module__
+__qualname__
+__doc__
+is_multi_classr
+	metaclassc
+RegressionLossFunctionz)Base class for regression loss functions.c
+superr
+	__class__r
+RegressionLossFunction.__init__c
+Make sure estimator has the required fit and predict methods.
+        Parameters
+        ----------
+        estimator : object
+            The init estimator to check.
+        
+predictzNThe init parameter must be a valid estimator and support both fit and predict.N
+hasattr
+ValueError
+check_init_estimator
+z+RegressionLossFunction.check_init_estimatorc
+reshape
+astyper&
+float64)
+predictionsr
+z/RegressionLossFunction.get_init_raw_predictions)
+__classcell__r
+LeastSquaresErrorz
+Loss function for least squares (LS) estimation.
+    Terminal regions do not need to be updated for least squares.
+    Parameters
+    ----------
+    n_classes : int
+        Number of classes.
+    c
+mean
+strategyr
+z LeastSquaresError.init_estimatorNc
+Compute the least squares loss.
+        Parameters
+        ----------
+        y : ndarray of shape (n_samples,)
+            True labels.
+        raw_predictions : ndarray of shape (n_samples, K)
+            The raw predictions (i.e. values from the tree leaves).
+        sample_weight : ndarray of shape (n_samples,), default=None
+            Sample weights.
+        Nr
+ravel
+sumr
+LeastSquaresError.__call__c
+Compute half of the negative gradient.
+        Parameters
+        ----------
+        y : ndarray of shape (n_samples,)
+            The target labels.
+        raw_predictions : ndarray of shape (n_samples,)
+            The raw predictions (i.e. values from the tree leaves) of the
+            tree ensemble at iteration ``i - 1``.
+        
+z#LeastSquaresError.negative_gradientr"
+Least squares does not need to update terminal regions.
+        But it has to update the predictions.
+        Parameters
+        ----------
+        tree : tree.Tree
+            The tree object.
+        X : ndarray of shape (n_samples, n_features)
+            The data array.
+        y : ndarray of shape (n_samples,)
+            The target labels.
+        residual : ndarray of shape (n_samples,)
+            The residuals (usually the negative gradient).
+        raw_predictions : ndarray of shape (n_samples, K)
+            The raw predictions (i.e. values from the tree leaves) of the
+            tree ensemble at iteration ``i - 1``.
+        sample_weight : ndarray of shape (n,)
+            The weight of each sample.
+        sample_mask : ndarray of shape (n,)
+            The sample mask to be used.
+        learning_rate : float, default=0.1
+            Learning rate shrinks the contribution of each tree by
+             ``learning_rate``.
+        k : int, default=0
+            The index of the estimator being updated.
+        N)
+(z)LeastSquaresError.update_terminal_regionsc	
+z)LeastSquaresError._update_terminal_region)
+)	r7
+LeastAbsoluteErrorz
+Loss function for least absolute deviation (LAD) regression.
+    Parameters
+    ----------
+    n_classes : int
+        Number of classes
+    c
+quantile
+z!LeastAbsoluteError.init_estimatorNc
+Compute the least absolute error.
+        Parameters
+        ----------
+        y : ndarray of shape (n_samples,)
+            True labels.
+        raw_predictions : ndarray of shape (n_samples, K)
+            The raw predictions (i.e. values from the tree leaves).
+        sample_weight : ndarray of shape (n_samples,), default=None
+            Sample weights.
+        Nr>
+absrR
+LeastAbsoluteError.__call__c
+Compute the negative gradient.
+        1.0 if y - raw_predictions > 0.0 else -1.0
+        Parameters
+        ----------
+        y : ndarray of shape (n_samples,)
+            The target labels.
+        raw_predictions : ndarray of shape (n_samples, K)
+            The raw predictions (i.e. values from the tree leaves) of the
+            tree ensemble at iteration ``i - 1``.
+        r
+z$LeastAbsoluteError.negative_gradientc	
+z1LAD updates terminal regions to median estimates.r
+percentileN)
+terminal_region
+diffr
+z*LeastAbsoluteError._update_terminal_region)
+HuberLossFunctionah
+Huber loss function for robust regression.
+    M-Regression proposed in Friedman 2001.
+    Parameters
+    ----------
+    alpha : float, default=0.9
+        Percentile at which to extract score.
+    References
+    ----------
+    J. Friedman, Greedy Function Approximation: A Gradient Boosting
+    Machine, The Annals of Statistics, Vol. 29, No. 5, 2001.
+    
+alpha
+gamma
+HuberLossFunction.__init__c
+z HuberLossFunction.init_estimatorNc
+}	nZt
+}	|	S
+Compute the Huber loss.
+        Parameters
+        ----------
+        y : ndarray of shape (n_samples,)
+            True labels.
+        raw_predictions : ndarray of shape (n_samples, K)
+            The raw predictions (i.e. values from the tree leaves) of the
+            tree ensemble.
+        sample_weight : ndarray of shape (n_samples,), default=None
+            Sample weights.
+        N
+)	rR
+shape)
+gamma_maskZ
+sq_lossZ
+lin_loss
+lossr
+HuberLossFunction.__call__c
+Compute the negative gradient.
+        Parameters
+        ----------
+        y : ndarray of shape (n_samples,)
+            The target labels.
+        raw_predictions : ndarray of shape (n_samples, K)
+            The raw predictions (i.e. values from the tree leaves) of the
+            tree ensemble at iteration ``i - 1``.
+        sample_weight : ndarray of shape (n_samples,), default=None
+            Sample weights.
+        Nre
+dtype)
+zerosrf
+signrc
+z#HuberLossFunction.negative_gradientc	
+minimumrZ
+medianZ
+diff_minus_medianr
+z)HuberLossFunction._update_terminal_region)
+QuantileLossFunctionz
+Loss function for quantile regression.
+    Quantile regression allows to estimate the percentiles
+    of the conditional distribution of the target.
+    Parameters
+    ----------
+    alpha : float, default=0.9
+        The percentile.
+    ra
+QuantileLossFunction.__init__c
+z#QuantileLossFunction.init_estimatorNc
+Compute the Quantile loss.
+        Parameters
+        ----------
+        y : ndarray of shape (n_samples,)
+            True labels.
+        raw_predictions : ndarray of shape (n_samples, K)
+            The raw predictions (i.e. values from the tree leaves) of the
+            tree ensemble.
+        sample_weight : ndarray of shape (n_samples,), default=None
+            Sample weights.
+        Nr>
+maskrh
+QuantileLossFunction.__call__c
+z&QuantileLossFunction.negative_gradientc	
+valr
+z,QuantileLossFunction._update_terminal_region)
+ClassificationLossFunctionz-Base class for classification loss functions.c
+Template method to convert raw predictions into probabilities.
+        Parameters
+        ----------
+        raw_predictions : ndarray of shape (n_samples, K)
+            The raw predictions (i.e. values from the tree leaves) of the
+            tree ensemble.
+        Returns
+        -------
+        probas : ndarray of shape (n_samples, K)
+            The predicted probabilities.
+        Nr
+_raw_prediction_to_probaK
+z3ClassificationLossFunction._raw_prediction_to_probac
+Template method to convert raw predictions to decisions.
+        Parameters
+        ----------
+        raw_predictions : ndarray of shape (n_samples, K)
+            The raw predictions (i.e. values from the tree leaves) of the
+            tree ensemble.
+        Returns
+        -------
+        encoded_predictions : ndarray of shape (n_samples, K)
+            The predicted encoded labels.
+        Nr
+_raw_prediction_to_decisionZ
+z6ClassificationLossFunction._raw_prediction_to_decisionc
+Make sure estimator has fit and predict_proba methods.
+        Parameters
+        ----------
+        estimator : object
+            The init estimator to check.
+        rC
+predict_probazTThe init parameter must be a valid estimator and support both fit and predict_proba.NrE
+z/ClassificationLossFunction.check_init_estimatorN)
+BinomialDeviancea
+Binomial deviance loss function for binary classification.
+    Binary classification is a special case; here, we only need to
+    fit one tree instead of ``n_classes`` trees.
+    Parameters
+    ----------
+    n_classes : int
+        Number of classes.
+    c
+z-{0:s} requires 2 classes; got {1:d} class(es)r>
+formatrB
+BinomialDeviance.__init__c
+priorrP
+BinomialDeviance.init_estimatorNc
+Compute the deviance (= 2 * negative log-likelihood).
+        Parameters
+        ----------
+        y : ndarray of shape (n_samples,)
+            True labels.
+        raw_predictions : ndarray of shape (n_samples, K)
+            The raw predictions (i.e. values from the tree leaves) of the
+            tree ensemble.
+        sample_weight : ndarray of shape (n_samples,), default=None
+            Sample weights.
+        N
+Z	logaddexprS
+BinomialDeviance.__call__c
+Compute half of the negative gradient.
+        Parameters
+        ----------
+        y : ndarray of shape (n_samples,)
+            True labels.
+        raw_predictions : ndarray of shape (n_samples, K)
+            The raw predictions (i.e. values from the tree leaves) of the
+            tree ensemble at iteration ``i - 1``.
+        )
+z"BinomialDeviance.negative_gradientc	
+Make a single Newton-Raphson step.
+        our node estimate is given by:
+            sum(w * (y - prob)) / sum(w * prob * (1 - prob))
+        we take advantage that: y - prob = residual
+        r
+	numerator
+denominatorr
+z(BinomialDeviance._update_terminal_regionc
+onesrf
+probar
+z)BinomialDeviance._raw_prediction_to_probac
+argmaxr
+z,BinomialDeviance._raw_prediction_to_decisionc
+finfo
+float32
+clip
+logrJ
+probasZ
+proba_pos_classr
+z)BinomialDeviance.get_init_raw_predictions)
+MultinomialDeviancez
+Multinomial deviance loss function for multi-class classification.
+    For multi-class classification we need to fit ``n_classes`` trees at
+    each stage.
+    Parameters
+    ----------
+    n_classes : int
+        Number of classes.
+    Tc
+z#{0:s} requires more than 2 classes.rw
+MultinomialDeviance.__init__c
+z"MultinomialDeviance.init_estimatorNc
+Compute the Multinomial deviance.
+        Parameters
+        ----------
+        y : ndarray of shape (n_samples,)
+            True labels.
+        raw_predictions : ndarray of shape (n_samples, K)
+            The raw predictions (i.e. values from the tree leaves) of the
+            tree ensemble.
+        sample_weight : ndarray of shape (n_samples,), default=None
+            Sample weights.
+        r
+weights)	r&
+rangeZ
+averagerS
+MultinomialDeviance.__call__r
+Compute negative gradient for the ``k``-th class.
+        Parameters
+        ----------
+        y : ndarray of shape (n_samples,)
+            The target labels.
+        raw_predictions : ndarray of shape (n_samples, K)
+            The raw predictions (i.e. values from the tree leaves) of the
+            tree ensemble at iteration ``i - 1``.
+        k : int, default=0
+            The index of the class.
+        Nr>
+nan_to_num
+expr
+kwargsr
+z%MultinomialDeviance.negative_gradientc	
+z"Make a single Newton-Raphson step.r
+z+MultinomialDeviance._update_terminal_regionc
+newaxisrq
+z,MultinomialDeviance._raw_prediction_to_probac
+z/MultinomialDeviance._raw_prediction_to_decisionc
+)	rt
+z,MultinomialDeviance.get_init_raw_predictions)
+ExponentialLossa
+Exponential loss function for binary classification.
+    Same loss as AdaBoost.
+    Parameters
+    ----------
+    n_classes : int
+        Number of classes.
+    References
+    ----------
+    Greg Ridgeway, Generalized Boosted Models: A guide to the gbm package, 2007
+    c
+ExponentialLoss.__init__c
+ExponentialLoss.init_estimatorNc
+Compute the exponential loss
+        Parameters
+        ----------
+        y : ndarray of shape (n_samples,)
+            True labels.
+        raw_predictions : ndarray of shape (n_samples, K)
+            The raw predictions (i.e. values from the tree leaves) of the
+            tree ensemble.
+        sample_weight : ndarray of shape (n_samples,), default=None
+            Sample weights.
+        N
+ExponentialLoss.__call__c
+Compute the residual (= negative gradient).
+        Parameters
+        ----------
+        y : ndarray of shape (n_samples,)
+            True labels.
+        raw_predictions : ndarray of shape (n_samples, K)
+            The raw predictions (i.e. values from the tree leaves) of the
+            tree ensemble at iteration ``i - 1``.
+        r
+z!ExponentialLoss.negative_gradientc	
+z'ExponentialLoss._update_terminal_regionc
+z(ExponentialLoss._raw_prediction_to_probac
+intrq
+z+ExponentialLoss._raw_prediction_to_decisionc
+z(ExponentialLoss.get_init_raw_predictions)
+squared_errorZ
+absolute_errorZ
+ladZ
+huberrW
+devianceZ
+log_lossZ
+exponential)
+abcr
+numpyr&
+scipy.specialr
+tree._treer
+utils.statsr
+dummyr
+LOSS_FUNCTIONSr
+<module>

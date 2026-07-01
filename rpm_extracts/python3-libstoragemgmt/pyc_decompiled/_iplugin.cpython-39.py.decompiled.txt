@@ -1,0 +1,367 @@
+m	Z	
+ABCMeta)
+abstractmethod)
+LsmError
+ErrorNumber)
+with_metaclassc
+IPluginzU
+    Plug-in interface that all plug-ins must implement for basic
+    operation.
+    r
+        Method first called to setup the plug-in (except for plugin_info)
+        This would be the place to make a connection to the array.
+        Returns None on success, else LsmError exception
+        N
+selfZ
+passwordZ
+timeout
+flagsr
+0/usr/lib/python3.9/site-packages/lsm/_iplugin.py
+plugin_register
+IPlugin.plugin_registerc
+        Sets any time-outs for the plug-in (ms)
+        Returns None on success, else LsmError exception
+        Nr
+time_out_set(
+IPlugin.time_out_setc
+        Retrieves the current time-out
+        Returns time-out in ms, else raise LsmError
+        Nr
+time_out_get1
+IPlugin.time_out_getc
+        Called when the client wants to finish up or the socket goes eof.
+        Plug-in should clean up all resources.  Note: In the case where
+        the socket goes EOF and the plugin_unregister runs into errors the
+        exception(s) will not be delivered to the client!
+        Returns None on success, else LsmError exception
+        Nr
+plugin_unregister:
+IPlugin.plugin_unregisterc
+        Returns the stats of the given job.
+        Returns a tuple ( status (enumeration), percent_complete,
+                            completed item).
+        else LsmError exception.
+        Nr
+job_idr
+job_statusF
+IPlugin.job_statusc
+        Frees resources for a given job.
+        Returns None on success, else raises an LsmError
+        Nr
+job_freeQ
+IPlugin.job_freec
+        Returns the capabilities for the selected system, raises LsmError
+        Nr
+systemr
+capabilitiesZ
+IPlugin.capabilitiesc
+        Returns the description and version for plug-in, raises LsmError
+        Note: Make sure plugin can handle this call before plugin_register is
+        called.
+        Nr
+plugin_infoa
+IPlugin.plugin_infoNc
+        Returns an array of pool objects.  Pools are used in both block and
+        file system interfaces, thus the reason they are in the base class.
+        Raises LsmError on error
+        Nr
+search_keyZ
+search_valuer
+poolsk
+IPlugin.poolsc
+        Returns an array of system objects.  System information is used to
+        distinguish resources from on storage array to another when the plug=in
+        supports the ability to have more than one array managed by it
+        Raises LsmError on error
+        Nr
+systemsu
+IPlugin.systems)
+__name__
+__module__
+__qualname__
+__doc__
+_abstractmethodr
+d2d	d
+Z	d6d
+d=d!d"
+d>d#d$
+d?d%d&
+d@d'd(
+dAd)d*
+dBd+d,
+dCd-d.
+IStorageAreaNetworkNr
+        Returns an array of volume objects
+        Raises LsmError on error
+        
+Not supportedN
+NO_SUPPORTr
+volumes
+IStorageAreaNetwork.volumesc
+        Creates a volume, given a pool, volume name, size and provisioning
+        Returns a tuple (job_id, new volume)
+        Note: Tuple return values are mutually exclusive, when one
+        is None the other must be valid.
+        r"
+poolZ
+volume_name
+size_bytesZ
+provisioningr
+volume_create
+	z!IStorageAreaNetwork.volume_createc
+        Deletes a volume.
+        Returns Job id or None if completed, else raises LsmError on errors.
+        r"
+volumer
+volume_delete
+z!IStorageAreaNetwork.volume_deletec
+        Re-sizes a volume.
+        Returns a tuple (job_id, re-sized_volume)
+        Note: Tuple return values are mutually exclusive, when one
+        is None the other must be valid.
+        r"
+new_size_bytesr
+volume_resize
+z!IStorageAreaNetwork.volume_resizec
+        Replicates a volume from the specified pool.  In this library, to
+        replicate means to create a new volume which is a copy of the source.
+        Returns a tuple (job_id, replicated volume)
+        Note: Tuple return values are mutually exclusive, when one
+        is None the other must be valid.
+        r"
+rep_type
+volume_src
+namer
+volume_replicate
+	z$IStorageAreaNetwork.volume_replicatec
+        Returns the number of bytes per block for volume_replicate_range
+        call.  Callers of volume_replicate_range need to use this when
+        calculating start and block lengths.
+        Note: bytes per block may not match volume blocksize.
+        Returns bytes per block, Raises LsmError on error
+        r"
+!volume_replicate_range_block_size
+z5IStorageAreaNetwork.volume_replicate_range_block_sizec
+        Replicates a portion of a volume to itself or another volume.  The src,
+        dest and number of blocks values change with vendor, call
+        volume_replicate_range_block_size to get block unit size.
+        Returns Job id or None if completed, else raises LsmError on errors.
+        r"
+volume_destZ
+rangesr
+volume_replicate_range
+	z*IStorageAreaNetwork.volume_replicate_rangec
+        Makes a volume available to the host
+        Returns None on success, else raises LsmError on errors.
+        r"
+volume_enable
+z!IStorageAreaNetwork.volume_enablec
+        Makes a volume unavailable to the host
+        Returns None on success, else raises LsmError on errors.
+        r"
+volume_disable
+z"IStorageAreaNetwork.volume_disablec
+        Register a user/password for the specified initiator for CHAP
+        authentication.  in_user & in_password are for inbound CHAP, out_user &
+        out_password are for outbound CHAP.
+        Note: Setting in_user, in_password or out_user, out_password to None
+        will disable authentication.
+        Raises LsmError on error
+        r"
+init_idZ
+in_userZ
+in_passwordZ
+out_userZ
+out_passwordr
+iscsi_chap_auth
+z#IStorageAreaNetwork.iscsi_chap_authc
+        Allows an access group to access a volume.
+        Returns None on success, else raises LsmError on errors.
+        r"
+access_groupr)
+volume_mask
+IStorageAreaNetwork.volume_maskc
+        Revokes access for an access group for a volume
+        Returns None on success, else raises LsmError on errors.
+        r"
+volume_unmask
+z!IStorageAreaNetwork.volume_unmaskc
+        Returns a list of access groups, raises LsmError on errors.
+        r"
+access_groups
+z!IStorageAreaNetwork.access_groupsc
+	init_typer
+access_group_create
+z'IStorageAreaNetwork.access_group_createc
+        Deletes an access group, Raises LsmError on error
+        r"
+access_group_delete
+z'IStorageAreaNetwork.access_group_deletec
+        Adds an initiator to an access group, Raises LsmError on error
+        r"
+access_group_initiator_add
+z.IStorageAreaNetwork.access_group_initiator_addc
+        Deletes an initiator from an access group, Raises LsmError on error
+        r"
+access_group_initiator_delete
+z1IStorageAreaNetwork.access_group_initiator_deletec
+        Returns the list of volumes that access group has access to.
+        Raises LsmError on error
+        r"
+"volumes_accessible_by_access_group
+z6IStorageAreaNetwork.volumes_accessible_by_access_groupc
+        Returns the list of access groups that have access to the specified,
+        Raises LsmError on error
+        r"
+access_groups_granted_to_volume 
+z3IStorageAreaNetwork.access_groups_granted_to_volumec
+        Returns True if this volume has other volumes which are dependant on
+        it.  Implies that this volume cannot be deleted or possibly modified
+        because it would affect its children.
+        r"
+volume_child_dependency'
+z+IStorageAreaNetwork.volume_child_dependencyc
+        If this volume has child dependency, this method call will fully
+        replicate the blocks removing the relationship between them.  This
+        should return None (success) if volume_child_dependency would return
+        False.
+        Note:  This operation could take a very long time depending on the size
+        of the volume and the number of child dependencies.
+        Returns None if complete else job id, raises LsmError on errors.
+        r"
+volume_child_dependency_rm/
+z.IStorageAreaNetwork.volume_child_dependency_rmc
+target_ports=
+z IStorageAreaNetwork.target_ports)
+Z	d#d
+INetworkAttachedStoragezT
+    Class the represents Network attached storage (Common NFS/CIFS operations)
+    Nr
+        Returns a list of file systems on the controller. Raises LsmError on
+        errors.
+        Nr
+INetworkAttachedStorage.fsc
+        WARNING: Destructive
+        Deletes a file system and everything it contains
+        Returns None on success, else job id
+        r"
+	fs_deleteL
+z!INetworkAttachedStorage.fs_deletec
+        Re-size a file system
+        Returns a tuple (job_id, re-sized file system)
+        Note: Tuple return values are mutually exclusive, when one
+        is None the other must be valid.
+        r"
+	fs_resizeU
+z!INetworkAttachedStorage.fs_resizec
+        Creates a file system given a pool, name and size.
+        Note: size is limited to 2**64 bytes so max size of a single volume
+        at this time is 16 Exabytes
+        Returns a tuple (job_id, file system)
+        Note: Tuple return values are mutually exclusive, when one
+        is None the other must be valid.
+        r"
+	fs_create_
+z!INetworkAttachedStorage.fs_createc
+        Creates a thin, point in time read/writable copy of src to dest.
+        Optionally uses snapshot as backing of src_fs
+        Returns a tuple (job_id, file system)
+        Note: Tuple return values are mutually exclusive, when one
+        is None the other must be valid.
+        r"
+src_fsZ
+dest_fs_name
+snapshotr
+fs_clonek
+	z INetworkAttachedStorage.fs_clonec
+        Creates a thinly provisioned clone of src to dest.
+        Note: Source and Destination are required to be on same filesystem
+        Returns Job id or None if completed, else raises LsmError on errors.
+        r"
+src_file_nameZ
+dest_file_namerO
+fs_file_clonev
+z%INetworkAttachedStorage.fs_file_clonec
+        Returns a list of snapshots for the supplied file system,
+        Raises LsmError on error
+        r"
+fs_snapshots
+z$INetworkAttachedStorage.fs_snapshotsc
+        Snapshot is a point in time read-only copy
+        Create a snapshot on the chosen file system
+        Returns a tuple (job_id, snap shot created)
+        Note: Tuple return values are mutually exclusive, when one
+        is None the other must be valid.
+        Note:  Snapshot name may not match
+        what was passed in (depends on array implementation)
+        r"
+snapshot_namer
+fs_snapshot_create
+z*INetworkAttachedStorage.fs_snapshot_createc
+        Frees the re-sources for the given snapshot on the supplied filesystem.
+        Returns Job id or None if completed, else raises LsmError on errors.
+        r"
+fs_snapshot_delete
+z*INetworkAttachedStorage.fs_snapshot_deleteFc
+        WARNING: Destructive!
+        Reverts a file-system or just the specified files from the snapshot.
+        If a list of files is supplied but the array cannot restore just them
+        then the operation will fail with an LsmError raised.
+        If files == None and all_files = True then all files on the
+        file-system are restored.
+        Restore_file if not None must be the same length as files with each
+        index in each list referring to the associated file.
+        Returns None on success, else job id, LsmError exception on error
+        r"
+filesZ
+restore_filesZ	all_filesr
+fs_snapshot_restore
+z+INetworkAttachedStorage.fs_snapshot_restorec
+        Returns True if the specified filesystem or specified file on this
+        file system has child dependencies.  This implies that this filesystem
+        or specified file on this file system cannot be deleted or possibly
+        modified because it would affect its children.
+        r"
+fs_child_dependency
+z+INetworkAttachedStorage.fs_child_dependencyc
+        If this filesystem or specified file on this filesystem has child
+        dependency this method will fully replicate the blocks removing the
+        relationship between them.  This should return None(success) if
+        fs_child_dependency would return False.
+        Note:  This operation could take a very long time depending on the size
+        of the filesystem and the number of child dependencies.
+        Returns Job id or None if completed, else raises LsmError on errors.
+        r"
+fs_child_dependency_rm
+z.INetworkAttachedStorage.fs_child_dependency_rm)
+INfsr
+        Returns the types of authentication that are available for NFS
+        r"
+export_auth
+INfs.export_authNc
+        Get a list of all exported file systems on the controller.
+        r"
+exports
+INfs.exportsc
+        Exports a filesystem as specified in the export
+        r"
+fs_idZ
+export_pathZ	root_listZ
+rw_listZ
+ro_listZ
+anon_uidZ
+anon_gidZ	auth_type
+optionsr
+	export_fs
+INfs.export_fsc
+        Removes the specified export
+        r"
+exportr
+export_remove
+INfs.export_remove)
+abcr
+_ABCMetar
+lsmr
+sixr
+objectr
+<module>

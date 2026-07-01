@@ -1,0 +1,513 @@
+l	Z	d
+m Z!
+l"m#Z#
+l"m$Z$
+l"m%Z%
+l"m&Z&
+l"m'Z'
+l"m(Z(
+l"m)Z*
+d d!
+d"d#
+d$d%
+d&d'
+e!j4g
+d)d*g
+d,d-
+e!j4g
+d)d*g
+d.d/
+d0d)d*g
+d1d2
+d0d)d*g
+d3d4
+d0d)d*g
+d5d6
+d0d)d*g
+d7d8
+d9d:
+d;d<
+d=d>
+d0d)d*g
+d?d@
+d0d)d*g
+dAdB
+d0d)e
+dDdE
+e!j4g
+d)d*g
+dFdG
+d0d)d*g
+dHdI
+e!j4g
+d)d*g
+dJdK
+e!j4g
+d)d*g
+dLdM
+e!j4g
+d)d*g
+dNdO
+e!j4g
+d)d*g
+dPdQ
+ZFdRdS
+e!j4g
+d)d*g
+dTdU
+ZHdVdW
+dXeJe
+e!j4g
+eLdY
+dZd[
+Kd)d*g
+eMeNeLdY
+d\d]
+ZOd^d_
+d`d!
+dadbdcg
+ddde
+dfdg
+ZRdhdi
+djdk
+sleep)
+with_numpy
+setup_autokill)
+teardown_autokill)
+with_multiprocessing)
+with_dev_shm)
+raises
+parametrize
+skipif
+xfail
+param)
+make_memmap)
+Parallel
+delayed)
+MemmappingPool)
+_TestingMemmappingExecutor)
+has_shareable_memory)
+ArrayMemmapForwardReducer)
+_strided_from_memmap)
+_get_temp_dir)
+_WeakArrayKeyMap)
+_get_backing_memmapc
+timeout)
+__name__
+?/usr/lib/python3.9/site-packages/joblib/test/test_memmapping.py
+setup_module 
+teardown_module$
+arrayr
+check_memmap_and_send_back(
+Dummy helper function to be executed in subprocesses
+    Check that the provided array has the expected values in the provided
+    range.
+    N
+testing
+assert_array_equal
+args
+dataZ
+positionZ
+expectedr
+check_array-
+Dummy helper function to be executed in subprocesses
+    Check that the input array has the right values in the provided range
+    and perform an inplace modification to double the values in the range by
+    two.
+    
+inplace_double8
+z9Check that it is possible to reduce a memmap backed array
+	test.mmapi
+dtype
+shape
+modeg
+order
+offset
+consr&
+reducerr
+reconstruct_array_or_memmaph
+zEtest_memmap_based_array_reducing.<locals>.reconstruct_array_or_memmapr2
+join
+strpath
+memmap
+float64
+aranger/
+flush
+reshape
+asarray
+tmpdirr$
+filename
+buffer
+a_reconstructed
+b_reconstructed
+c_reconstructed
+d_reconstructedZ
+a3_reconstructedZ
+b3_reconstructedr
+ test_memmap_based_array_reducingG
+win32z2PermissionError only easily triggerable on Windows)
+reasonc
+if 1:
+    import os
+    import numpy as np
+    import time
+    from joblib.externals.loky.backend import resource_tracker
+    resource_tracker.VERBOSE = 1
+    # Start the resource tracker
+    resource_tracker.ensure_running()
+    time.sleep(1)
+    # Create a file containing numpy data
+    memmap = np.memmap(r"{filename}", dtype=np.float64, shape=10, mode='w+')
+    memmap[:] = np.arange(10).astype(np.int8).data
+    memmap.flush()
+    assert os.path.exists(r"{filename}")
+    del memmap
+    # Create a np.memmap backed by this file
+    memmap = np.memmap(r"{filename}", dtype=np.float64, shape=10, mode='w+')
+    resource_tracker.register(r"{filename}", "file")
+    # Ask the resource_tracker to delete the file backing the np.memmap , this
+    # should raise PermissionError that the resource_tracker will log.
+    resource_tracker.maybe_unlink(r"{filename}", "file")
+    # Wait for the resource_tracker to process the maybe_unlink before cleaning
+    # up the memmap
+    time.sleep(2)
+    )
+stderr
+stdoutz'tried to unlink {}, got PermissionError)
+format
+subprocess
+Popen
+executable
+PIPE
+wait
+communicate)
+msgr
+2test_resource_tracker_retries_when_permissionerror
+zNtest_high_dimension_memmap_array_reducing.<locals>.reconstruct_array_or_memmap)
+e_reconstructedr
+)test_high_dimension_memmap_array_reducing
+uint8
+stridesZ
+total_buffer_lenZ
+unlink_on_gc_collectr)
+mmap
+ALLOCATIONGRANULARITYr
+fname
+sizer8
+memmap_objZ
+memmap_backed_objr
+test__strided_from_memmap
+factoryZ
+multiprocessing
+loky)
+idsc
+z@Check that subprocess can access and update shared memory memmap
+poolrj
+max_nbytes
+temp_folderr+
+ranger/
+<listcomp>
+z)test_pool_with_memmap.<locals>.<listcomp>r
+mkdirrB
+float32
+fill
+mapr*
+onesr	
+AssertionErrorr(
+RuntimeError
+ValueError
+	terminate
+pool_temp_folderrc
+test_pool_with_memmap
+z?Check that subprocess can access and update shared memory arrayrx
+a_viewr
+z4test_pool_with_memmap_array_view.<locals>.<listcomp>r
+ test_pool_with_memmap_array_view>
+backendc
+if 1:
+        import numpy as np
+        from joblib import Parallel, delayed
+        data = np.random.rand(int(2e6)).reshape((int(1e6), 2))
+        # Build a complex cyclic reference that is likely to delay garbage
+        # collection of the memmapped array in the worker processes.
+        first_list = current_list = [data]
+        for i in range(10):
+            current_list = [current_list]
+        first_list.append(current_list)
+        if __name__ == "__main__":
+            results = Parallel(n_jobs=2, backend="{b}")(
+                delayed(len)(current_list) for i in range(10))
+            assert results == [1] * 10
+    r
+-test_permission_error_windows_reference_cyclee
+if 1:
+        import os
+        import time
+        import numpy as np
+        from joblib import Parallel, delayed
+        from testutils import return_slice_of_data
+        data = np.ones(int(2e6))
+        if __name__ == '__main__':
+            # warm-up call to launch the workers and start the resource_tracker
+            _ = Parallel(n_jobs=2, verbose=5, backend='{b}')(
+                delayed(id)(i) for i in range(20))
+            time.sleep(0.5)
+            slice_of_data = Parallel(n_jobs=2, verbose=5, backend='{b}')(
+                delayed(return_slice_of_data)(data, 0, 20) for _ in range(10))
+    r
+PYTHONPATHrV
+environ
+copy
+path
+dirname
+__file__r[
+version_info
+3test_permission_error_windows_memmap_sent_to_parent
+Y@r)
+n_jobsr
+getattr
+	<genexpr>
+z6test_parallel_isolated_temp_folders.<locals>.<genexpr>r:
+intr
+filename_1
+filename_2r
+#test_parallel_isolated_temp_folders
+)	Nr
+z9test_managed_backend_reuse_temp_folder.<locals>.<genexpr>r:
+&test_managed_backend_reuse_temp_folder
+z]test_memmapping_temp_folder_thread_safety.<locals>.concurrent_get_filename.<locals>.<genexpr>r:
+addr
+Z	temp_dirsrc
+concurrent_get_filename
+zJtest_memmapping_temp_folder_thread_safety.<locals>.concurrent_get_filename)
+targetr&
+	threadingZ
+Thread
+startrA
+temp_dirs_thread_1Z
+temp_dirs_thread_2r
+)test_memmapping_temp_folder_thread_safety
+if 1:
+        import os
+        import numpy as np
+        from joblib import Parallel, delayed
+        from joblib.externals.loky.backend import resource_tracker
+        from concurrent.futures import ThreadPoolExecutor, wait
+        resource_tracker.VERBOSE = 0
+        array = np.arange(int(1e2))
+        temp_dirs_thread_1 = set()
+        temp_dirs_thread_2 = set()
+        def raise_error(array):
+            raise ValueError
+        def parallel_get_filename(array, temp_dirs):
+            with Parallel(backend="loky", n_jobs=2, max_nbytes=10) as p:
+                for i in range(10):
+                    [filename] = p(
+                        delayed(getattr)(array, "filename") for _ in range(1)
+                    )
+                    temp_dirs.add(os.path.dirname(filename))
+        def parallel_raise(array, temp_dirs):
+            with Parallel(backend="loky", n_jobs=2, max_nbytes=10) as p:
+                for i in range(10):
+                    [filename] = p(
+                        delayed(raise_error)(array) for _ in range(1)
+                    )
+                    temp_dirs.add(os.path.dirname(filename))
+        executor = ThreadPoolExecutor(max_workers=2)
+        # both function calls will use the same loky executor, but with a
+        # different Parallel object.
+        future_1 = executor.submit({f1}, array, temp_dirs_thread_1)
+        future_2 = executor.submit({f2}, array, temp_dirs_thread_2)
+        # Wait for both threads to terminate their backend
+        wait([future_1, future_2])
+        future_1.result()
+        future_2.result()
+    )
+parallel_get_filenamer
+parallel_raiser:
+f2rW
+functions_and_returncodesr
+returncoderc
+?test_multithreaded_parallel_termination_resource_tracker_silent
+if 1:
+        from joblib import Parallel, delayed
+        def raise_error(i):
+            raise ValueError
+        def nested_loop(f):
+            Parallel(backend="loky", n_jobs=2)(
+                delayed(f)(i) for i in range(10)
+            )
+        if __name__ == "__main__":
+            Parallel(backend="loky", n_jobs=2)(
+                delayed(nested_loop)(func) for func in [raise_error]
+            )
+    rV
+<test_nested_loop_error_in_grandchild_resource_tracker_silentH
+if 1:
+        import os
+        import time
+        import numpy as np
+        from joblib import Parallel, delayed
+        from testutils import return_slice_of_data
+        data = np.ones(100)
+        if __name__ == '__main__':
+            for i in range(5):
+                slice_of_data = Parallel(
+                    n_jobs=2, max_nbytes=1, backend='{b}')(
+                        delayed(return_slice_of_data)(data, 0, 20)
+                        for _ in range(10)
+                    )
+                slice_of_data = Parallel(
+                    n_jobs=2, max_nbytes=1, backend='{b}')(
+                        delayed(return_slice_of_data)(data, 0, 20)
+                        for _ in range(10)
+                    )
+    r
+'test_many_parallel_calls_on_same_objecti
+z8test_memmap_returned_as_regular_array.<locals>.<genexpr>r:
+resultr
+%test_memmap_returned_as_regular_array
+marksc
+2test_resource_tracker_silent_when_reference_cycles
+z0Check that large arrays are not copied in memoryr2
+verboser3
+smallr
+z9test_memmapping_pool_for_large_arrays.<locals>.<listcomp>r
+larger
+objectrj
+?z&temporary folder of {} was not deletedN)
+listdir
+_temp_folderr 
+existsr
+dumped_filenamesZ
+objects
+resultsr
+%test_memmapping_pool_for_large_arrays
+if 1:
+        import os
+        import numpy as np
+        from joblib import Parallel, delayed
+        from testutils import print_filename_and_raise
+        data = np.random.rand(1000)
+        def get_temp_folder(parallel_obj, backend):
+            if "{b}" == "loky":
+                return p._backend._workers._temp_folder
+            else:
+                return p._backend._pool._temp_folder
+        if __name__ == "__main__":
+            try:
+                with Parallel(n_jobs=2, backend="{b}", max_nbytes=100) as p:
+                    temp_folder = get_temp_folder(p, "{b}")
+                    p(delayed(print_filename_and_raise)(data)
+                              for i in range(1))
+            except ValueError:
+                # the temporary folder should be deleted by the end of this
+                # call
+                assert not os.path.exists(temp_folder)
+    r
+decode
+split)
+&test_child_raises_parent_exits_cleanly	
+)	z2Check that large arrays memmapping can be disabledr2
+zBtest_memmapping_pool_for_large_arrays_disabled.<locals>.<listcomp>r
+)	rB
+.test_memmapping_pool_for_large_arrays_disabledD
+z1Check that memmapping uses /dev/shm when possibleg
+~Ar2
+z"/dev/shm/joblib_memmapping_folder_rh
+z(temporary folder of pool was not deletedN)
+SYSTEM_SHARED_MEM_FS_MIN_SIZEr
+	orig_sizerc
+folder_prefixrM
+'test_memmapping_on_large_enough_dev_shm_
+$test_memmapping_on_too_small_dev_shm
+z:Check that large arrays are not copied in memory in returnr2
+apply_asyncr
+getr
+resr
+/test_memmapping_pool_for_large_arrays_in_return
+z4Multiplication function to be executed by subprocessr
+n_timesr
+_worker_multiply
+Check that memmaps with a bad buffer are returned as regular arrays
+    Unary operations and ufuncs on memmap instances return a new memmap
+    instance with an in-memory buffer (probably a numpy bug).
+    r2
+6test_workaround_against_bad_memmap_with_copied_buffers
+argr
+identity
+factory,retry_nor2
+{}, {})
+)	rv
+retry_norJ
+objrc
+ test_pool_memmap_with_big_offset
+test.tmpdirr
+win)
+platform
+startswith)
+pool_folder_nameZ
+pool_folderZ
+shared_memr
+test_pool_get_temp_dir
+z1This test fails with a PermissionError on Windows
+	mmap_moder5
+valuer
+func
+z4test_numpy_arrays_use_different_memory.<locals>.funcc
+zerosr
+z:test_numpy_arrays_use_different_memory.<locals>.<listcomp>rj
+z9test_numpy_arrays_use_different_memory.<locals>.<genexpr>)
+	enumerater
+arraysr
+&test_numpy_arrays_use_different_memory
+collectr
+Z	containerZ
+retriesr
+assert_empty_after_gc_collect/
+z>test_weak_array_key_map.<locals>.assert_empty_after_gc_collect
+KeyErrorr
+get_set_get_collectV
+z4test_weak_array_key_map.<locals>.get_set_get_collectc
+z+test_weak_array_key_map.<locals>.<listcomp>r
+CPython)
+_datar	
+python_implementation)
+unique_idsr
+test_weak_array_key_map,
+pickleZ
+PicklingError
+dumps)
+#test_weak_array_key_map_no_picklingg
+arr.datrj
+accessr8
+openrq
+filenoZ
+ACCESS_READr
+ndarrayrm
+testfiler
+_read_arrayt
+z%test_direct_mmap.<locals>._read_arrayc
+test_direct_mmap.<locals>.funcr)
+z#test_direct_mmap.<locals>.<genexpr>c
+worker
+z test_direct_mmap.<locals>.workerc
+strrA
+tofiler
+refr
+test_direct_mmapm
+	itertools
+timer
+joblib.test.commonr
+joblib.testingr	
+joblib.backportsr
+joblib.parallelr
+joblib.poolr
+joblib.executorr
+TestExecutorZ
+joblib._memmapping_reducerr
+_memmapping_reducerr
+get_memmapping_executorr
+list
+productr
+<module>

@@ -1,0 +1,334 @@
+d d!
+Z d1d#d$
+a#a$d%d&
+Z%d'd(
+Z&d2d)d*
+Z'd+d,
+Z(d3d-d.
+Z)d/d0
+)4zudistutils.util
+Miscellaneous utility functions -- anything that doesn't fit into
+one of the other *util.py modules.
+DistutilsPlatformError)
+newer)
+spawn)
+log)
+DistutilsByteCompileError
+"_optim_args_from_interpreter_flagsc
+rVd d!l
+Return a string that identifies the current platform.  This is used mainly to
+    distinguish platform-specific build directories and platform-specific built
+    distributions.  Typically includes the OS name and version and the
+    architecture (as supplied by 'os.uname()'), although the exact information
+    included depends on the OS; eg. on Linux, the kernel version isn't
+    particularly important.
+    Examples of returned values:
+       linux-i586
+       linux-alpha (?)
+       solaris-2.6-sun4u
+    Windows will return one of:
+       win-amd64 (64bit Windows on AMD64 (aka x86_64, Intel64, EM64T, etc)
+       win32 (all others - specifically, sys.platform is returned)
+    For other non-POSIX platforms, currently just returns 'sys.platform'.
+    
+amd64
+	win-amd64z
+(arm)
+	win-arm32z
+(arm64)
+	win-arm64Z
+_PYTHON_HOST_PLATFORM
+posix
+uname
+linuxz
+%s-%sZ
+sunosr
+solarisz
+%d.%s
+32bitZ
+64bit)
+.%sZ
+aixr
+aix_platform
+cygwinz
+[\d.]+
+darwinz
+%s-%s-%s)
+name
+version
+lower
+platform
+environ
+hasattrr
+replace
+maxsizeZ
+py38compatr
+compile
+ASCII
+match
+group
+_osx_supportZ
+distutils.sysconfigZ
+get_platform_osx
+	sysconfigZ
+get_config_vars)
+osname
+host
+releaser
+machineZ
+bitnessr
+rel_re
+	distutils
+>/usr/lib/python3.9/site-packages/setuptools/_distutils/util.py
+get_host_platform
+win32r
+x86Z
+x64Z
+armZ
+arm64Z
+VSCMD_ARG_TGT_ARCH)
+getr"
+TARGET_TO_PLATr3
+get_platformd
+MACOSX_DEPLOYMENT_TARGETc
+For testing only. Do not call.N)
+_syscfg_macosx_verr3
+_clear_cached_macosx_veru
+Get the version of macOS latched in the Python interpreter configuration.
+    Returns the version as a string or None if can't obtain one. Cached.Nr
+get_config_var
+MACOSX_VERSION_VAR)
+verr3
+!get_macosx_target_ver_from_syscfgz
+Return the version of macOS for which we are building.
+    The target version defaults to the version in sysconfig latched at time
+    the Python interpreter was built, unless overridden by an environment
+    variable. If neither source has a value, then None is returned
+$zE mismatch: now "%s" but "%s" during configure; must use 10.3 or later)
+split_versionr
+syscfg_verZ
+env_verZ
+my_msgr3
+get_macosx_target_ver
+zEConvert a dot-separated string into a list of numbers for comparisonsc
+<listcomp>
+z!split_version.<locals>.<listcomp>
+split)
+Return 'pathname' as a name that will work on the native filesystem,
+    i.e. split it on '/' and put it back together again using the current
+    directory separator.  Needed because filenames in the setup script are
+    always supplied in Unix style, and have to be converted to the local
+    convention before we can actually use them in the filesystem.  Raises
+    ValueError on non-Unix-ish systems if 'pathname' either starts or
+    ends with a slash.
+    r
+path '%s' cannot be absolute
+path '%s' cannot end with '/'rD
+ValueErrorrE
+remove
+curdir
+path
+join)
+pathname
+pathsr3
+convert_path
+Return 'pathname' with 'new_root' prepended.  If 'pathname' is
+    relative, this is equivalent to "os.path.join(new_root,pathname)".
+    Otherwise, it requires making 'pathname' relative and then joining the
+    two, which is tricky on DOS/Windows and Mac OS.
+    r
+\z!nothing known about platform '%s')
+isabsrM
+splitdriver
+new_rootrN
+driverL
+change_root
+rXz$d
+rnt	
+Ensure that 'os.environ' has all the environment variables we
+    guarantee that users can use in config files, command-line options,
+    etc.  Currently this includes:
+      HOME - user's home directory (Unix only)
+      PLAT - description of the current platform, including hardware
+             and OS (see 'get_platform()')
+    Nr
+HOMEr
+PLATr
+_environ_checkedr
+getpwuid
+getuid
+ImportError
+KeyErrorr7
+check_environ
+    Perform variable substitution on 'string'.
+    Variables are indicated by format-style braces ("{var}").
+    Variable is substituted by the value found in the 'local_vars'
+    dictionary or in 'os.environ' if it's not in 'local_vars'.
+    'os.environ' is first checked/augmented to guarantee that it contains
+    certain values: see 'check_environ()'.  Raise ValueError for any
+    variables not found in either 'local_vars' or 'os.environ'.
+    c
+str)
+valuer3
+	<genexpr>
+subst_vars.<locals>.<genexpr>z
+invalid variable N)
+dictr
+update
+items
+_subst_compat
+format_mapr\
+local_vars
+lookup
+varr3
+subst_vars
+    Replace shell/Perl-style variable substitution with
+    format-style. For compatibility.
+    c
+_subst
+_subst_compat.<locals>._substz
+\$([a-zA-Z_][a-zA-Z_0-9]*)r
+Nz+shell/Perl-style substitions are deprecated)
+warnings
+warn
+DeprecationWarning)
+replro
+error: c
+prefixr3
+grok_environment_error
+[^\\\'\"%s ]*z
+'(?:[^'\\]|\\.)*'z
+"(?:[^"\\]|\\.)*")
+string
+whitespace
+_wordchars_re
+_squote_re
+_dquote_rer3
+_init_regex#
+Split a string up according to Unix shell-like rules for quotes and
+    backslashes.  In short: words are delimited by spaces, as long as those
+    spaces are not escaped by a backslash, or inside a quoted string.
+    Single and double quotes are equivalent, and the quote characters can
+    be backslash-escaped.  The backslash is stripped from any two-character
+    escape sequence, leaving only the escaped character.  The quote
+    characters are stripped from any quoted string.  Returns a list of
+    words.
+    Nr
+"z!this can't happen (bad char '%c')z"bad string (mismatched %s quotes?)r
+stripr*
+appendrw
+lstriprz
+RuntimeErrorrI
+span)
+words
+posr1
+begr3
+split_quoted)
+Perform some action that affects the outside world (eg.  by
+    writing to the filesystem).  Such actions are special because they
+    are disabled by the 'dry_run' flag.  This method takes care of all
+    that bureaucracy for you; all you have to do is supply the
+    function to call and an argument tuple for it (to embody the
+    "external action" being performed), and an optional message to
+    print.
+    Nz
+%s%r
+__name__r
+info)
+func
+args
+verbose
+dry_runr3
+executef
+Convert a string representation of truth to true (1) or false (0).
+    True values are 'y', 'yes', 't', 'true', 'on', and '1'; false values
+    are 'n', 'no', 'f', 'false', 'off', and '0'.  Raises ValueError if
+    'val' is anything else.
+    )
+trueZ
+falseZ
+invalid truth value %rN)
+valr3
+	strtobooly
+s0t!|
+Byte-compile a collection of Python source files to .pyc
+    files in a __pycache__ subdirectory.  'py_files' is a list
+    of files to compile; any files that don't end in ".py" are silently
+    skipped.  'optimize' must be one of the following:
+      0 - don't optimize
+      1 - normal optimization (like "python -O")
+      2 - extra optimization (like "python -OO")
+    If 'force' is true, all files are recompiled regardless of
+    timestamps.
+    The source filename encoded in each bytecode file defaults to the
+    filenames listed in 'py_files'; you can modify these with 'prefix' and
+    'basedir'.  'prefix' is a string that will be stripped off of each
+    source filename, and 'base_dir' is a directory name that will be
+    prepended (after 'prefix' is stripped).  You can supply either or both
+    (or neither) of 'prefix' and 'base_dir', as you wish.
+    If 'dry_run' is true, doesn't actually do anything that would
+    affect the filesystem.
+    Byte-compilation is either done directly in this interpreter process
+    with the standard py_compile module, or indirectly by writing a
+    temporary script and executing it.  Normally, you should let
+    'byte_compile()' figure out to use direct compilation or not (see
+    the source for details).  The 'direct' flag is used by the script
+    generated in indirect mode; unless you know what you're doing, leave
+    it set to None.
+    r
+byte-compiling is disabled.T)
+mkstempz
+.py)
+mktempz$writing byte-compilation script '%s'
+wz2from distutils.util import byte_compile
+files = [
+byte_compile(files, optimize=%r, force=%r,
+             prefix=%r, base_dir=%r,
+             verbose=%r, dry_run=0,
+             direct=1)
+removing %s)
+optimizationz1invalid prefix: filename %r doesn't start with %rz
+byte-compiling %s to %sz%skipping byte-compilation of %s to %s)#
+subprocessr
+dont_write_bytecoder
+tempfiler
+fdopen
+open
+writerM
+repr
+executable
+extendr
+py_compiler(
+	importlib
+util
+cache_from_sourcer
+basenamer
+debug)
+py_files
+optimize
+forceru
+base_dirr
+directr
+Z	script_fdZ
+script_namer
+script
+cmdr(
+file
+cfile
+dfileZ
+cfile_baser3
+byte_compile
+Return a version of the string escaped for inclusion in an
+    RFC-822 header, by ensuring there are 8 spaces space after each newline.
+    
+        )
+header
+linesrH
+rfc822_escape
+__doc__r
+importlib.utilr
+distutils.errorsr
+distutils.dep_utilr
+distutils.spawnr
+py35compatr
+<module>

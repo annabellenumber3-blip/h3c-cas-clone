@@ -1,0 +1,1468 @@
+l	Z	G
+Provides the `CCompilerOpt` class, used for handling the CPU/hardware
+optimization, starting from parsing the command arguments, to managing the
+relation between the CPU baseline and dispatch-able features,
+also generating the required C headers and ending with compiling
+the sources with proper compiler's flags.
+`CCompilerOpt` doesn't provide runtime detection for the CPU features,
+instead only focuses on the compiler side, but it creates abstract C headers
+that can be used later for the final runtime dispatching process.
+d"d 
+d#d$d%d 
+d&d'd(d 
+d)d*d+d 
+d,d-d.
+d/d0d1d
+d3d4d5d 
+d6d4d5d 
+d7d4d.
+d8d9d.
+d:d9d.
+d;d<d
+d=d>
+d?d@d.
+dAdBdCdDd
+dFdDdGdHd
+dIdBdJdKd
+dLdM
+dNdKdOdPdQ
+dRdKdSdTd
+dUdVdWdXd
+dYdZd[
+d!d^d
+d_d`
+dad.
+d!dbd.
+d#dcd
+d&ddd.
+d)ddd.
+d,ded.
+dgdh
+didj
+_Configa
+An abstract class holds all configurable attributes of `CCompilerOpt`,
+    these class attributes can be used to change the default behavior
+    of `CCompilerOpt` in order to fit other requirements.
+    Attributes
+    ----------
+    conf_nocache : bool
+        Set True to disable memory and file cache.
+        Default is False.
+    conf_noopt : bool
+        Set True to forces the optimization to be disabled,
+        in this case `CCompilerOpt` tends to generate all
+        expected headers in order to 'not' break the build.
+        Default is False.
+    conf_cache_factors : list
+        Add extra factors to the primary caching factors. The caching factors
+        are utilized to determine if there are changes had happened that
+        requires to discard the cache and re-updating it. The primary factors
+        are the arguments of `CCompilerOpt` and `CCompiler`'s properties(type, flags, etc).
+        Default is list of two items, containing the time of last modification
+        of `ccompiler_opt` and value of attribute "conf_noopt"
+    conf_tmp_path : str,
+        The path of temporary directory. Default is auto-created
+        temporary directory via ``tempfile.mkdtemp()``.
+    conf_check_path : str
+        The path of testing files. Each added CPU feature must have a
+        **C** source file contains at least one intrinsic or instruction that
+        related to this feature, so it can be tested against the compiler.
+        Default is ``./distutils/checks``.
+    conf_target_groups : dict
+        Extra tokens that can be reached from dispatch-able sources through
+        the special mark ``@targets``. Default is an empty dictionary.
+        **Notes**:
+            - case-insensitive for tokens and group names
+            - sign '#' must stick in the begin of group name and only within ``@targets``
+        **Example**:
+            .. code-block:: console
+                $ "@targets #avx_group other_tokens" > group_inside.c
+            >>> CCompilerOpt.conf_target_groups["avx_group"] = \
+            "$werror $maxopt avx2 avx512f avx512_skx"
+            >>> cco = CCompilerOpt(cc_instance)
+            >>> cco.try_dispatch(["group_inside.c"])
+    conf_c_prefix : str
+        The prefix of public C definitions. Default is ``"NPY_"``.
+    conf_c_prefix_ : str
+        The prefix of internal C definitions. Default is ``"NPY__"``.
+    conf_cc_flags : dict
+        Nested dictionaries defining several compiler flags
+        that linked to some major functions, the main key
+        represent the compiler name and sub-keys represent
+        flags names. Default is already covers all supported
+        **C** compilers.
+        Sub-keys explained as follows:
+        "native": str or None
+            used by argument option `native`, to detect the current
+            machine support via the compiler.
+        "werror": str or None
+            utilized to treat warning as errors during testing CPU features
+            against the compiler and also for target's policy `$werror`
+            via dispatch-able sources.
+        "maxopt": str or None
+            utilized for target's policy '$maxopt' and the value should
+            contains the maximum acceptable optimization by the compiler.
+            e.g. in gcc `'-O3'`
+        **Notes**:
+            * case-sensitive for compiler names and flags
+            * use space to separate multiple flags
+            * any flag will tested against the compiler and it will skipped
+              if it's not applicable.
+    conf_min_features : dict
+        A dictionary defines the used CPU features for
+        argument option `'min'`, the key represent the CPU architecture
+        name e.g. `'x86'`. Default values provide the best effort
+        on wide range of users platforms.
+        **Note**: case-sensitive for architecture names.
+    conf_features : dict
+        Nested dictionaries used for identifying the CPU features.
+        the primary key is represented as a feature name or group name
+        that gathers several features. Default values covers all
+        supported features but without the major options like "flags",
+        these undefined options handle it by method `conf_features_partial()`.
+        Default value is covers almost all CPU features for *X86*, *IBM/Power64*
+        and *ARM 7/8*.
+        Sub-keys explained as follows:
+        "implies" : str or list, optional,
+            List of CPU feature names to be implied by it,
+            the feature name must be defined within `conf_features`.
+            Default is None.
+        "flags": str or list, optional
+            List of compiler flags. Default is None.
+        "detect": str or list, optional
+            List of CPU feature names that required to be detected
+            in runtime. By default, its the feature name or features
+            in "group" if its specified.
+        "implies_detect": bool, optional
+            If True, all "detect" of implied features will be combined.
+            Default is True. see `feature_detect()`.
+        "group": str or list, optional
+            Same as "implies" but doesn't require the feature name to be
+            defined within `conf_features`.
+        "interest": int, required
+            a key for sorting CPU features
+        "headers": str or list, optional
+            intrinsics C header file
+        "disable": str, optional
+            force disable feature, the string value should contains the
+            reason of disabling.
+        "autovec": bool or None, optional
+            True or False to declare that CPU feature can be auto-vectorized
+            by the compiler.
+            By default(None), treated as True if the feature contains at
+            least one applicable flag. see `feature_can_autovec()`
+        "extra_checks": str or list, optional
+            Extra test case names for the CPU feature that need to be tested
+            against the compiler.
+            Each test case must have a C file named ``extra_xxxx.c``, where
+            ``xxxx`` is the case name in lower case, under 'conf_check_path'.
+            It should contain at least one intrinsic or function related to the test case.
+            If the compiler able to successfully compile the C file then `CCompilerOpt`
+            will add a C ``#define`` for it into the main dispatch header, e.g.
+            ```#define {conf_c_prefix}_XXXX`` where ``XXXX`` is the case name in upper case.
+        **NOTES**:
+            * space can be used as separator with options that supports "str or list"
+            * case-sensitive for all values and feature name must be in upper-case.
+            * if flags aren't applicable, its will skipped rather than disable the
+              CPU feature
+            * the CPU feature will disabled if the compiler fail to compile
+              the test file
+    FNZ
+checksZ
+NPY_Z
+NPY__z
+-march=nativez
+-O3z
+-Werror)
+native
+werrorz--Werror-implicit-function-declaration -Werrorz
+-xHostz
+/QxHostz
+/O3z
+/Werrorz
+/O2z
+/WX)
+clang
+iccw
+msvcz
+SSE SSE2z
+SSE SSE2 SSE3
+VSX VSX2z
+NEON NEON_FP16 NEON_VFPV4 ASIMD
+x86Z
+x64Z
+ppc64Z
+ppc64leZ
+armhfZ
+aarch64
+xmmintrin.h
+SSE2)
+interest
+headers
+implies
+SSEz
+emmintrin.h)
+pmmintrin.h
+SSE3z
+tmmintrin.h
+SSSE3z
+smmintrin.h
+SSE41z
+popcntintrin.h
+POPCNT)
+SSE42z
+immintrin.h)
+implies_detect
+AVXz
+x86intrin.h
+F16C
+z	FMA3 AVX2Z
+AVX512F_REDUCE)
+extra_checks
+AVX512F
+AVX512CDz
+AVX512ER AVX512PF
+AVX512_KNL)
+group
+detectr 
+z)AVX5124FMAPS AVX5124VNNIW AVX512VPOPCNTDQ
+AVX512_KNM
+AVX512VL AVX512BW AVX512DQ
+AVX512_SKXz
+AVX512BW_MASK AVX512DQ_MASK)
+AVX512VNNI
+AVX512_CLX)
+AVX512IFMA AVX512VBMI
+AVX512_CNL
+AVX512_CLX AVX512_CNLz(AVX512VBMI2 AVX512BITALG AVX512VPOPCNTDQ
+AVX512_ICLz	altivec.hZ
+VSX_ASM)
+VSX)
+VSX2z
+arm_neon.h)
+NEON
+	NEON_FP16z
+NEON_FP16 NEON_VFPV4
+ASIMD
+ASIMDHP)
+FMA4r&
+FMA3
+AVX2r+
+VSX3r=
+NEON_VFPV4r?
+ASIMDDP
+ASIMDFHMc
+d d/d
+d6d7
+d8d7
+d8d7
+d:d9d
+d;d<d
+d=d<d
+d@dAd
+dBdCdD
+dEdCdD
+rVdG|
+dMdNdO
+dPdNdO
+dQdNdO
+dRdNdO
+)[a7
+Return a dictionary of supported CPU features by the platform,
+        and accumulate the rest of undefined options in `conf_features`,
+        the returned dict has same rules and notes in
+        class attribute `conf_features`, also its override
+        any options that been set in 'conf_features'.
+        z
+-msse)
+flagsz
+-msse2z
+-msse3z
+-mssse3z
+-msse4.1z
+-mpopcntz
+-msse4.2z
+-mavxz
+-mf16cz
+-mxopz
+-mfma4z
+-mfmaz
+-mavx2z	-mavx512fz
+-mavx512cdz
+-mavx512er -mavx512pfz/-mavx5124fmaps -mavx5124vnniw -mavx512vpopcntdqz -mavx512vl -mavx512bw -mavx512dqz
+-mavx512vnniz
+-mavx512ifma -mavx512vbmiz.-mavx512vbmi2 -mavx512bitalg -mavx512vpopcntdq)
+z!Intel Compiler doesn't support it)
+disablez	F16C AVX2z
+-march=core-avx2)
+AVX2 AVX512CDz
+-march=common-avx512z
+AVX2 AVX512Fz
+-xKNLz
+-xKNMz
+-xSKYLAKE-AVX512z
+-xCASCADELAKEz
+-xCANNONLAKEz
+-xICELAKE-CLIENTz	/arch:SSEz
+/arch:SSE2z
+/arch:SSE3z
+/arch:SSSE3z
+/arch:SSE4.1z
+/arch:SSE4.2z	/arch:AVXz
+/arch:CORE-AVX2z
+/Qx:COMMON-AVX512z
+/Qx:KNLz
+/Qx:KNMz
+/Qx:SKYLAKE-AVX512z
+/Qx:CASCADELAKEz
+/Qx:CANNONLAKEz
+/Qx:ICELAKE-CLIENTz
+nmmintrin.h)
+ammintrin.hz
+/arch:AVX2z	F16C FMA3z
+AVX2 AVX512CD AVX512_SKXz
+/arch:AVX512z
+AVX512F AVX512_SKXz MSVC compiler doesn't support itr<
+-mvsxz
+-mcpu=power8F)
+-mcpu=power9 -mtune=power9)
+-maltivec -mvsxr;
+-mpower8-vectorz
+-mpower9-vectorrE
+NEON_FP16 NEON_VFPV4 ASIMDT)
+autovecz
+NEON NEON_VFPV4 ASIMDz
+NEON NEON_FP16 ASIMDz
+NEON NEON_FP16 NEON_VFPV4z
+-march=armv8.2-a+fp16z
+-march=armv8.2-a+dotprodz
+-march=armv8.2-a+fp16fml)
+-mfpu=neonz"-mfpu=neon-fp16 -mfp16-format=ieeez
+-mfpu=neon-vfpv4z'-mfpu=neon-fp-armv8 -march=armv8-a+simd)
+cc_noopt
+	cc_on_x86
+	cc_on_x64
+	cc_is_gcc
+cc_is_clang
+dict
+	cc_is_icc
+cc_is_iccw
+cc_is_msvc
+cc_on_ppc64le
+cc_on_ppc64
+cc_on_aarch64
+cc_on_armhf)
+selfZ
+on_x86Z
+is_unixZ
+on_power
+partial
+C/usr/lib64/python3.9/site-packages/numpy/distutils/ccompiler_opt.py
+conf_features_partial/
+_Config.conf_features_partialc
+rmtree
+IOErrorr[
+shutil
+tmpr[
+rm_temp	
+z!_Config.__init__.<locals>.rm_temp)
+conf_tmp_path
+tempfilera
+mkdtemp
+atexit
+register
+conf_cache_factors
+path
+getmtime
+__file__
+conf_nocache)
+__init__
+_Config.__init__)
+__name__
+__module__
+__qualname__
+__doc__rm
+conf_nooptrh
+join
+dirname
+realpathrl
+conf_check_path
+conf_target_groups
+conf_c_prefix
+conf_c_prefix_rQ
+conf_cc_flags
+conf_min_features
+conf_featuresr]
+_Distutilsa
+A helper class that provides a collection of fundamental methods
+    implemented in a top of Python and NumPy Distutils.
+    The idea behind this class is to gather all methods that it may
+    need to override in case of reuse 'CCompilerOpt' in environment
+    different than of what NumPy has.
+    Parameters
+    ----------
+    ccompiler : `CCompiler`
+        The generate instance that returned from `distutils.ccompiler.new_compiler()`.
+    c
+_ccompiler)
+	ccompilerr[
+_Distutils.__init__Nc
+Wrap CCompiler.compile()Z
+extra_postargs)
+isinstance
+list
+popr
+compile)
+sourcesrI
+kwargsr[
+dist_compile'
+_Distutils.dist_compilec
+}	~	n
+}	~	0
+zgReturn True if 'CCompiler.compile()' able to compile
+        a source file with certain flags.
+        r
+CompileErrorZ
+spawnN
+compiler_typer
+macros
+output_dirT
+stderr)
+distutils.errorsr
+getattr
+setattr
+_dist_test_spawn_paths
+_dist_test_spawnr
+dist_log)
+sourcerI
+bk_spawn
+cc_type
+test
+	dist_test0
+_Distutils.dist_testc
+n t	j
+        Return a tuple containing info about (platform, compiler, extra_args),
+        required by the abstract class '_CCompiler' for discovering the
+        platform environment. This is also used as a cache factor in order
+        to detect any changes happening from outside.
+        
+_dist_infor
+intelemZ
+intelemwZ
+x86_64)
+intelZ
+intelwZ
+inteler
+get_platform
+compilerZ
+compiler_soZ
+unix
+__iter__r
+CFLAGSZ
+CPPFLAGS)
+hasattrr
+distutils.utilr
+lenrt
+environ
+get)
+platformr
+cc_infor
+extra_argsr[
+	dist_infoJ
+_Distutils.dist_infoc
+Raise a compiler errorr
+	_dist_str)
+argsr
+dist_erroro
+_Distutils.dist_errorc
+Raise a distutils errorr
+DistutilsErrorN)
+dist_fatalu
+_Distutils.dist_fatalFr
+Print a console messager
+logN)
+numpy.distutilsr
+warn
+info)
+outr[
+_Distutils.dist_logc
+zALoad a module from file, required by the abstract class '_Cache'.r
+npy_load_moduleTr
+numpy.compatr
+	Exceptionr~
+namerj
+dist_load_module
+_Distutils.dist_load_modulec
+z+Return a string to print by log and errors.c
+appendrt
+to_strr[
+z$_Distutils._dist_str.<locals>.to_strr
+CCompilerOpt.%s[%d] : r
+<listcomp>
+z(_Distutils._dist_str.<locals>.<listcomp>)
+inspect
+stackZ
+function
+linenort
+startr
+_Distutils._dist_strc
+        Fix msvc SDK ENV path same as distutils do
+        without it we get c1: fatal error C1356: unable to find mspdbcore.dll
+        
+_pathsNrj
+getenvr
+displayZ
+old_pathr[
+z!_Distutils._dist_test_spawn_pathsz/.*(warning D9002|invalid argument for option).*c
+	d	|
+universal_newlinesz
+Flags in commandz/aren't supported by the compiler, output -> 
+Commandz(failed with exit status %d output -> 
+subprocessZ
+check_outputZ
+STDOUT
+matchr~
+_dist_warn_regexr
+CalledProcessError
+output
+returncode
+OSError)
+_Distutils._dist_test_spawn)
+staticmethodr
+_Cachea#
+An abstract class handles caching functionality, provides two
+    levels of caching, in-memory by share instances attributes among
+    each other and by store attributes into files.
+    **Note**:
+        any attributes that start with ``_`` or ``conf_`` will be ignored.
+    Parameters
+    ----------
+    cache_path: str or None
+        The path of cache file, if None then cache in file will disabled.
+    *factors:
+        The caching factors that need to utilize next to `conf_cache_factors`.
+    Attributes
+    ----------
+    cache_private: set
+        Hold the attributes that need be skipped from "in-memory cache".
+    cache_infile: bool
+        Utilized during initializing this class, to determine if the cache was able
+        to loaded from the specified cache path in 'cache_path'.
+    z
+^(_|conf_)Nc
+cache is disabled by `Config`z
+load cache from file ->
+cachez)unable to load the cache file as a moduleTr
+hash
+dataz
+invalid cache filez
+hit the file cachez
+miss the file cachez
+hit the memory cache)
+cache_me
+cache_private
+cache_infile
+_cache_pathrm
+cache_hashrh
+_cache_hashri
+existsr
+itemsr
+_share_cacher
+__dict__r
+_cache_ignorerf
+cache_flush)
+cache_path
+factorsZ	cache_mod
+attr
+valZ
+other_cacher[
+_Cache.__init__c
+__del__
+_Cache.__del__c
+q,t	j
+snt	
+        Force update the cache.
+        Nz
+write cache to path ->T)
+compact
+            # AUTOGENERATED DON'T EDIT
+            # Please make changes to the code generator             (distutils/ccompiler_opt.py)
+            hash = {}
+            data = \
+            )
+copy
+keysr
+makedirs
+pprintZ
+pformat
+open
+write
+textwrap
+dedent
+formatr
+cdictr
+	repr_dict
+_Cache.cache_flushc
+ord)
+chashr
+charr[
+_Cache.cache_hashc
+        A static method that can be treated as a decorator to
+        dynamically cache certain methods.
+        c
+valuesr
+Z	cache_keyZ
+cbr[
+cache_wrap_meN
+z _Cache.me.<locals>.cache_wrap_mer[
+z	_Cache.me)
+_CCompileray
+A helper class for `CCompilerOpt` containing all utilities that
+    related to the fundamental compiler's functions.
+    Attributes
+    ----------
+    cc_on_x86 : bool
+        True when the target architecture is 32-bit x86
+    cc_on_x64 : bool
+        True when the target architecture is 64-bit x86
+    cc_on_ppc64 : bool
+        True when the target architecture is 64-bit big-endian PowerPC
+    cc_on_armhf : bool
+        True when the target architecture is 32-bit ARMv7+
+    cc_on_aarch64 : bool
+        True when the target architecture is 64-bit Armv8-a+
+    cc_on_noarch : bool
+        True when the target architecture is unknown or not supported
+    cc_is_gcc : bool
+        True if the compiler is GNU or
+        if the compiler is unknown
+    cc_is_clang : bool
+        True if the compiler is Clang
+    cc_is_icc : bool
+        True if the compiler is Intel compiler (unix like)
+    cc_is_iccw : bool
+        True if the compiler is Intel compiler (msvc like)
+    cc_is_nocc : bool
+        True if the compiler isn't supported directly,
+        Note: that cause a fail-back to gcc
+    cc_has_debug : bool
+        True if the compiler has debug flags
+    cc_has_native : bool
+        True if the compiler has native flags
+    cc_noopt : bool
+        True if the compiler has definition 'DISABLE_OPT*',
+        or 'cc_on_noarch' is True
+    cc_march : str
+        The target architecture name, or "unknown" if
+        the architecture isn't supported
+    cc_name : str
+        The compiler name, or "unknown" if the compiler isn't supported
+    cc_flags : dict
+        Dictionary containing the initialized flags of `_Config.conf_cc_flags`
+    c
+q>q6|
+qfqrqf|
+cc_is_cached)
+.*(x|x86_|amd)64.*)
+.*(win32|x86|i386|i686).*)
+.*(powerpc|ppc)64(el|le).*)
+.*(powerpc|ppc)64.*)
+.*(aarch64|arm64).*)
+.*arm.*)
+cc_on_noarchr
+.*(gcc|gnu\-g).*)
+z	.*clang.*)
+.*(intelw|intelemw|iccw).*)
+.*(intel|icc).*)
+.*msvc.*)
+cc_is_noccr
+cc_has_debugz$.*(O0|Od|ggdb|coverage|debug:full).*)
+cc_has_nativez".*(-march=native|-xHost|/QxHost).*)
+.*DISABLE_OPT.*FTz]unable to detect CPU architecture which lead to disable the optimization. check dist_info:<<
+z&Optimization is disabled by the Configz
+unable to detect compiler type which leads to treating it as GCC. this is a normal behavior if you're using gcc-like compiler such as MinGW or IBM/XLC.check dist_info:<<
+unknownr
+cc_on_)
+cc_is_z=undefined flag for compiler '%s', leave an empty dict instead)
+IGNORECASEr
+cc_marchr
+cc_name
+cc_flagsr{
+split
+cc_test_flagsr
+detect_archZ
+detect_compilerZ
+detect_argsr
+compiler_infor
+sectionr
+rgexr0
+searchin
+archr
+compiler_flagsrI
+nflagsr
+_CCompiler.__init__c
+        Returns True if the compiler supports 'flags'.
+        z
+testing flagsz
+test_flags.c
+testing failedTr
+	test_pathr
+_CCompiler.cc_test_flagsc
+        Remove the conflicts that caused due gathering implied features flags.
+        Parameters
+        ----------
+        'flags' list, compiler flags
+            flags should be sorted from the lowest to the highest interest.
+        Returns
+        -------
+        list, filtered from any conflicts.
+        Examples
+        --------
+        >>> self.cc_normalize_flags(['-march=armv8.2-a+fp16', '-march=armv8.2-a+dotprod'])
+        ['armv8.2-a+fp16+dotprod']
+        >>> self.cc_normalize_flags(
+            ['-msse', '-msse2', '-msse3', '-mssse3', '-msse4.1', '-msse4.2', '-mavx', '-march=core-avx2']
+        )
+        ['-march=core-avx2']
+        )	r
+_cc_normalize_unixrT
+_cc_normalize_win)
+cc_normalize_flags
+_CCompiler.cc_normalize_flagsz
+^(-mcpu=|-march=|-x[A-Z0-9\-])z7^(?!(-mcpu=|-march=|-x[A-Z0-9\-]))(?!-m[a-z0-9\-\.]*.$)z
+^(-mfpu|-mtune)z
+[0-9.]c
+s@q(|
+floatrt
+findall
+_cc_normalize_arch_ver)
+tokens
+	ver_flags,
+z0_CCompiler._cc_normalize_unix.<locals>.ver_flagsr
+	enumerate
+reversedr
+_cc_normalize_unix_mrgxr
+filter
+_cc_normalize_unix_frgx
+searchrt
+_cc_normalize_unix_krgx
+insert)
+cur_flagZ
+lower_flagsZ
+upper_flagsZ
+filterdr
+subflagsZ
+xflagZ
+xver
+_Z	xsubflagsZ
+final_flagsZ
+matchedr
+_CCompiler._cc_normalize_unixz
+^(?!(/arch\:|/Qx\:))z
+^(/arch|/Qx:)c
+_cc_normalize_win_mrgxr
+_cc_normalize_win_frgxr 
+_CCompiler._cc_normalize_winN)
+d d!
+d'd#d$
+_Featurea
+A helper class for `CCompilerOpt` that managing CPU features.
+    Attributes
+    ----------
+    feature_supported : dict
+        Dictionary containing all CPU features that supported
+        by the platform, according to the specified values in attribute
+        `_Config.conf_features` and `_Config.conf_features_partial()`
+    feature_min : set
+        The minimum support of CPU features, according to
+        the specified values in attribute `_Config.conf_min_features`.
+    c
+feature_is_cachedc
+featurer[
+<dictcomp>
+z%_Feature.__init__.<locals>.<dictcomp>rJ
+feature '%s' is disabled,Tr
+feature_supportedr
+updater
+feature_minr|
+upperr"
+)	rY
+Z	pfeatures
+feature_nameZ
+cfeatureZ
+disabledZ
+optionZ
+ovalZ
+min_f
+_Feature.__init__Nc
+        Returns a set of CPU feature names that supported by platform and the **C** compiler.
+        Parameters
+        ----------
+        names: sequence or None, optional
+            Specify certain CPU features to test it against the **C** compiler.
+            if None(default), it will test all current supported features.
+            **Note**: feature names must be in upper-case.
+        force_flags: list or None, optional
+            If None(default), default compiler flags for every CPU feature will
+            be used during the test.
+        macros : list of tuples, optional
+            A list of C macro definitions.
+        Nr
+force_flagsr
+feature_is_supportedr"
+namesr6
+supported_namesr
+feature_names
+_Feature.feature_namesc
+        Returns True if a certain feature is exist and covered within
+        `_Config.conf_features`.
+        Parameters
+        ----------
+        'name': str
+            feature name in uppercase.
+        )
+isupperr}
+feature_is_exist
+_Feature.feature_is_existFc
+        Sort a list of CPU features ordered by the lowest interest.
+        Parameters
+        ----------
+        'names': sequence
+            sequence of supported feature names in uppercase.
+        'reverse': bool, optional
+            If true, the sorted features is reversed. (highest interest)
+        Returns
+        -------
+        list, sorted CPU features
+        c
+z<_Feature.feature_sorted.<locals>.sort_cb.<locals>.<listcomp>r
+maxr
+rankr
+sort_cb
+z(_Feature.feature_sorted.<locals>.sort_cb)
+reverse
+key)
+sorted)
+feature_sorted
+_Feature.feature_sortedc
+        Return a set of CPU features that implied by 'names'
+        Parameters
+        ----------
+        names: str or sequence of str
+            CPU feature name(s) in uppercase.
+        keep_origins: bool
+            if False(default) then the returned set will not contain any
+            features from 'names'. This case happens only when two features
+            imply each other.
+        Examples
+        --------
+        >>> self.feature_implies("SSE3")
+        {'SSE', 'SSE2'}
+        >>> self.feature_implies("SSE2")
+        {'SSE'}
+        >>> self.feature_implies("SSE2", keep_origins=True)
+        # 'SSE2' found here since 'SSE' and 'SSE2' imply each other
+        {'SSE', 'SSE2'}
+        c
+union)
+_callerr
+get_impliesrY
+z-_Feature.feature_implies.<locals>.get_impliesr
+difference_update)
+keep_originsr
+feature_implies
+_Feature.feature_impliesc
+z/same as feature_implies() but combining 'names')
+feature_implies_c
+_Feature.feature_implies_cc
+        Return list of features in 'names' after remove any
+        implied features and keep the origins.
+        Parameters
+        ----------
+        'names': sequence
+            sequence of CPU feature names in uppercase.
+        Returns
+        -------
+        list of CPU features sorted as-is 'names'
+        Examples
+        --------
+        >>> self.feature_ahead(["SSE2", "SSE3", "SSE41"])
+        ["SSE41"]
+        # assume AVX2 and FMA3 implies each other and AVX2
+        # is the highest interest
+        >>> self.feature_ahead(["SSE2", "SSE3", "SSE41", "AVX2", "FMA3"])
+        ["AVX2"]
+        # assume AVX2 and FMA3 don't implies each other
+        >>> self.feature_ahead(["SSE2", "SSE3", "SSE41", "AVX2", "FMA3"])
+        ["AVX2", "FMA3"]
+        r
+z*_Feature.feature_ahead.<locals>.<listcomp>r
+aheadr[
+feature_ahead
+_Feature.feature_aheadc
+rjq |
+        same as 'feature_ahead()' but if both features implied each other
+        and keep the highest interest.
+        Parameters
+        ----------
+        'names': sequence
+            sequence of CPU feature names in uppercase.
+        Returns
+        -------
+        list of CPU features sorted as-is 'names'
+        Examples
+        --------
+        >>> self.feature_untied(["SSE2", "SSE3", "SSE41"])
+        ["SSE2", "SSE3", "SSE41"]
+        # assume AVX2 and FMA3 implies each other
+        >>> self.feature_untied(["SSE2", "SSE3", "SSE41", "FMA3", "AVX2"])
+        ["SSE2", "SSE3", "SSE41", "AVX2"]
+        r
+z+_Feature.feature_untied.<locals>.<listcomp>r
+remover
+finalZ
+tiedr[
+feature_untiedE
+_Feature.feature_untiedc
+        same as `feature_implies_c()` but stop collecting implied
+        features when feature's option that provided through
+        parameter 'keyisfalse' is False, also sorting the returned
+        features.
+        c
+qPq |
+NTrL
+tnamesr$
+keyisfalserY
+tilu
+z%_Feature.feature_get_til.<locals>.tilr
+	<setcomp>
+z+_Feature.feature_get_til.<locals>.<setcomp>)
+feature_get_tiln
+_Feature.feature_get_tilc
+        Return a list of CPU features that required to be detected
+        sorted from the lowest to highest interest.
+        r 
+feature_detect
+_Feature.feature_detectc
+        Return a list of CPU features flags sorted from the lowest
+        to highest interest.
+        rI
+feature_flags
+_Feature.feature_flagsc
+        Test a certain CPU feature against the compiler through its own
+        check file.
+        Parameters
+        ----------
+        name: str
+            Supported CPU feature name.
+        force_flags: list or None, optional
+            If None(default), the returned flags from `feature_flags()`
+            will be used.
+        macros : list of tuples, optional
+            A list of C macro definitions.
+        Nz$testing feature '%s' with flags (%s)r
+cpu_%s.cz
+feature test file is not existr
+lowerr
+feature_test
+_Feature.feature_testc
+        Check if a certain CPU feature is supported by the platform and compiler.
+        Parameters
+        ----------
+        name: str
+            CPU feature name in uppercase.
+        force_flags: list or None, optional
+            If None(default), default compiler flags for every CPU feature will
+            be used during test.
+        macros : list of tuples, optional
+            A list of C macro definitions.
+        NrY
+Z	supported
+implr[
+_Feature.feature_is_supportedc
+        check if the feature can be auto-vectorized by the compiler
+        rK
+z0_Feature.feature_can_autovec.<locals>.<listcomp>rI
+any)
+canZ
+valid_flagsr[
+feature_can_autovec
+_Feature.feature_can_autovecc
+}	|	r
+        Return a list of supported extra checks after testing them against
+        the compiler.
+        Parameters
+        ----------
+        names: str
+            CPU feature name in uppercase.
+        r)
+z%Testing extra checks for feature '%s'z
+extra_%s.cz
+extra check file does not existr
+testing failed for checksTr
+Z	availableZ
+not_availableZ
+chkr
+is_supportedr[
+feature_extra_checks
+_Feature.feature_extra_checksr
+        Generate C preprocessor definitions and include headers of a CPU feature.
+        Parameters
+        ----------
+        'feature_name': str
+            CPU feature name in uppercase.
+        'tabs': int
+            if > 0, align the generated strings to the right depend on number of tabs.
+        Returns
+        -------
+        str, generated C preprocessor
+        Examples
+        --------
+        >>> self.feature_c_preprocessor("SSE3")
+        /** SSE3 **/
+        #define NPY_HAVE_SSE3 1
+        #include <pmmintrin.h>
+        Nz
+/** %s **/z
+#define %sHAVE_%s 1c
+#include <%s>r[
+z3_Feature.feature_c_preprocessor.<locals>.<listcomp>r
+#ifndef %sHAVE_%sz
+	#define %sHAVE_%s 1z
+#endifr
+tabsr[
+preprZ
+extra_defsZ
+edefr[
+feature_c_preprocessor 
+_Feature.feature_c_preprocessor)
+_Parsea
+A helper class that parsing main arguments of `CCompilerOpt`,
+    also parsing configuration statements in dispatch-able sources.
+    Parameters
+    ----------
+    cpu_baseline: str or None
+        minimal set of required CPU features or special options.
+    cpu_dispatch: str or None
+        dispatched set of additional CPU features or special options.
+    Special options can be:
+        - **MIN**: Enables the minimum CPU features that utilized via `_Config.conf_min_features`
+        - **MAX**: Enables all supported CPU features by the Compiler and platform.
+        - **NATIVE**: Enables all CPU features that supported by the current machine.
+        - **NONE**: Enables nothing
+        - **Operand +/-**: remove or add features, useful with options **MAX**, **MIN** and **NATIVE**.
+            NOTE: operand + is only added for nominal reason.
+    NOTES:
+        - Case-insensitive among all CPU features and special options.
+        - Comma or space can be used as a separator.
+        - If the CPU feature is not supported by the user platform or compiler,
+          it will be skipped rather than raising a fatal error.
+        - Any specified CPU features to 'cpu_dispatch' will be skipped if its part of CPU baseline features
+        - 'cpu_baseline' force enables implied features.
+    Attributes
+    ----------
+    parse_baseline_names : list
+        Final CPU baseline's feature names(sorted from low to high)
+    parse_baseline_flags : list
+        Compiler flags of baseline features
+    parse_dispatch_names : list
+        Final CPU dispatch-able feature names(sorted from low to high)
+    parse_target_groups : dict
+        Dictionary containing initialized target groups that configured
+        through class attribute `conf_target_groups`.
+        The key is represent the group name and value is a tuple
+        contains three items :
+            - bool, True if group has the 'baseline' option.
+            - list, list of CPU features.
+            - list, list of extra compiler flags.
+    c
+MAXOPT)
+KEEP_BASELINEZ	KEEP_SORTri
+WERRORZ
+AUTOVEC
+parse_is_cachedz
+check requested baseline
+cpu_baselinez&check requested dispatch-able features
+cpu_dispatchc
+parse_baseline_namesr<
+z"_Parse.__init__.<locals>.<setcomp>r
+skip featuresz
+since its part of baselinez
+initialize targets groupsz
+parse target groupFT)
+_parse_policy_not_keepbase
+_parse_policy_keepsort
+_parse_policy_not_keepsort
+_parse_policy_maxopt
+_parse_policy_werror
+_parse_policy_autovec
+_parse_policiesr
+parse_baseline_flags
+parse_dispatch_names
+parse_target_groupsrL
+_parse_arg_featuresr9
+differencer
+strip
+_parse_target_tokensrj
+baseline_namesZ
+cpu_dispatch_Z
+conflict_baselineZ
+group_namer
+GROUP_NAME
+has_baseline
+features
+extra_flagsr[
+_Parse.__init__c
+rpq6|
+        Fetch and parse configuration statements that required for
+        defining the targeted CPU features, statements should be declared
+        in the top of source in between **C** comment and start
+        with a special mark **@targets**.
+        Configuration statements are sort of keywords representing
+        CPU features names, group of statements and policies, combined
+        together to determine the required optimization.
+        Parameters
+        ----------
+        source: str
+            the path of **C** source file.
+        Returns
+        -------
+        - bool, True if group has the 'baseline' option
+        - list, list of CPU features
+        - list, list of extra compiler flags
+        z!looking for '@targets' inside -> r
+@targets
+reached the max of linesNz(expected to find '%s' within a C commentz
+expected to end with '%s')
+findr
+max_to_reachZ
+start_withZ	start_posZ
+end_withZ
+end_posZ
+current_line
+liner[
+parse_targets
+_Parse.parse_targetsz
+\s|,|([+-])c
+}	|	s
+expected a string in '%s'Tr
+$zYtarget groups and policies aren't allowed from arguments, only from dispatch-able sourcesr
+NONEZ
+NATIVEr
+z-native option isn't supported by the compiler)
+DETECT_FEATURESr
+MAXZ
+MINz&, '%s' isn't a known feature or option)
+_parse_regex_argr2
+arg_nameZ
+req_featuresZ
+final_featuresr
+TOKZ
+features_tor
+_Parse._parse_arg_featuresz
+\s|[*,/]|([()])c
+qT|	d
+expected one token at leastr
+ze+/- are 'not' allowed from target's groups or @targets, only from cpu_baseline and cpu_dispatch parmsr
+zCpolicies aren't allowed inside multi-target '()', only CPU featuresr
+zHtarget groups aren't allowed inside multi-target '()', only CPU featuresr
+z"unclosed multi-target, missing ')'r
+z$multi-target opener '(' wasn't foundr
+BASELINEz/baseline isn't allowed inside multi-target '()'Tz
+invalid target name '%s'z
+skip targetsz.not part of baseline or dispatch-able featuresz
+policy '%s' force enables '%s'z
+policy '%s' is ON)
+_parse_regex_targetr
+_parse_token_policy
+_parse_token_group
+_parse_multi_target
+tupler
+final_targetsr
+skippedZ
+policiesZ
+multi_targetr
+targetsZ
+is_enabled
+depsr
+haveZ
+nhave
+funcr[
+_Parse._parse_target_tokensc
+validate policy tokenr
+z*'$' must stuck in the begin of policy namez6'%s' is an invalid policy name, available policies are)
+tokenr[
+_Parse._parse_token_policyc
+rzd	}
+validate group tokenr
+z)'#' must stuck in the begin of group nameFz&'%s' is an invalid target group name, z
+available target groups areTc
+z-_Parse._parse_token_group.<locals>.<listcomp>c
+ghas_baselineZ
+gtargetsZ
+gextra_flagsr[
+_Parse._parse_token_groupc
+z9validate multi targets that defined between parentheses()z
+empty multi-target '()'c
+tarr
+z._Parse._parse_multi_target.<locals>.<listcomp>z#invalid target name in multi-targetc
+allrM
+_Parse._parse_multi_targetc
+skip all baseline featuresNFc
+z5_Parse._parse_policy_not_keepbase.<locals>.<listcomp>z
+skip baseline features)
+is_baser[
+z!_Parse._parse_policy_not_keepbasec
+z$leave a notice that $keep_sort is onz/policy 'keep_sort' is on, dispatch-able targetszo
+are 'not' sorted depend on the highest interest butas specified in the dispatch-able source or the extra group)
+_Parse._parse_policy_keepsortc
+z%sorted depend on the highest interestTrL
+z!_Parse._parse_policy_not_keepsortc
+z&append the compiler optimization flagsz3debug mode is detected, policy 'maxopt' is skipped.z5optimization is disabled, policy 'maxopt' is skipped.r
+zOcurrent compiler doesn't support optimization flags, policy 'maxopt' is skippedTr
+_Parse._parse_policy_maxoptc
+z#force warnings to treated as errorsr
+zTcurrent compiler doesn't support werror flags, warnings will 'not' treated as errorsTr
+z'compiler warnings are treated as errors)
+_Parse._parse_policy_werrorc
+z=skip features that has no auto-vectorized support by compilerNc
+z0_Parse._parse_policy_autovec.<locals>.<listcomp>z!skip non auto-vectorized features)
+_Parse._parse_policy_autovecN)
+CCompilerOptz
+    A helper class for `CCompiler` aims to provide extra build options
+    to effectively control of compiler optimizations that are directly
+    related to CPU features.
+    
+minr=
+NzSnative flag is specified through environment variables. force cpu-baseline='native'r
+sources_status
+	hit_cache)
+_requested_baseline
+_requested_dispatchr
+CCompilerOpt.__init__c
+        Returns True if the class loaded from the cache file
+        )
+	is_cachedg
+CCompilerOpt.is_cachedc
+        Returns a list of final CPU baseline compiler flags
+        )
+cpu_baseline_flagsm
+CCompilerOpt.cpu_baseline_flagsc
+        return a list of final CPU baseline feature names
+        rm
+cpu_baseline_namess
+CCompilerOpt.cpu_baseline_namesc
+        return a list of final CPU dispatch feature names
+        )
+cpu_dispatch_namesy
+CCompilerOpt.cpu_dispatch_namesc
+rZ|	
+}	|	|
+	|	|
+        Compile one or more dispatch-able sources and generates object files,
+        also generates abstract C config headers and macros that
+        used later for the final runtime dispatching process.
+        The mechanism behind it is to takes each source file that specified
+        in 'sources' and branching it into several files depend on
+        special configuration statements that must be declared in the
+        top of each source which contains targeted CPU features,
+        then it compiles every branched source with the proper compiler flags.
+        Parameters
+        ----------
+        sources : list
+            Must be a list of dispatch-able sources file paths,
+            and configuration statements must be declared inside
+            each file.
+        src_dir : str
+            Path of parent directory for the generated headers and wrapped sources.
+            If None(default) the files will generated in-place.
+        ccompiler: CCompiler
+            Distutils `CCompiler` instance to be used for compilation.
+            If None (default), the provided instance during the initialization
+            will be used instead.
+        **kwargs : any
+            Arguments to pass on to the `CCompiler.compile()`
+        Returns
+        -------
+        list : generated object files
+        Raises
+        ------
+        CompileError
+            Raises by `CCompiler.compile()` on compiling failure.
+        DistutilsError
+            Some errors during checking the sanity of configuration statements.
+        See Also
+        --------
+        parse_targets :
+            Parsing the configuration statements of dispatch-able sources.
+        
+include_dirs)
+nochanger
+setdefaultri
+startswithrt
+_generate_config
+_wrap_targetr
+src_dirr
+to_compile
+baseline_flagsr
+srcr
+tar_srcrI
+objectsZ
+srcsr[
+try_dispatch
+CCompilerOpt.try_dispatchc
+        Generate the dispatch header which contains the #definitions and headers
+        for platform-specific instruction-sets for the enabled CPU baseline and
+        dispatch-able features.
+        Its highly recommended to take a look at the generated header
+        also the generated source files via `try_dispatch()`
+        in order to get the full picture.
+        z"generate CPU dispatch header: (%s)z
+dispatch header dir z
+ does not exist, creating itTr
+z3	%sWITH_CPU_EXPAND_(MACRO_TO_CALL(%s, __VA_ARGS__))
+z9CCompilerOpt.generate_dispatch_header.<locals>.<listcomp>c
+                /*
+                 * AUTOGENERATED DON'T EDIT
+                 * Please make changes to the code generator (distutils/ccompiler_opt.py)
+                */
+                #define {pfx}WITH_CPU_BASELINE  "{baseline_str}"
+                #define {pfx}WITH_CPU_DISPATCH  "{dispatch_str}"
+                #define {pfx}WITH_CPU_BASELINE_N {baseline_len}
+                #define {pfx}WITH_CPU_DISPATCH_N {dispatch_len}
+                #define {pfx}WITH_CPU_EXPAND_(X) X
+                #define {pfx}WITH_CPU_BASELINE_CALL(MACRO_TO_CALL, ...) \
+                {baseline_calls}
+                #define {pfx}WITH_CPU_DISPATCH_CALL(MACRO_TO_CALL, ...) \
+                {dispatch_calls}
+            r
+pfxZ
+baseline_strZ
+dispatch_str
+baseline_len
+dispatch_len
+baseline_calls
+dispatch_callsr
+                #ifdef {pfx}CPU_TARGET_{name}
+                {pre}
+                #endif /*{pfx}CPU_TARGET_{name}*/
+                )
+prez
+            /******* baseline features *******/
+            {baseline_pre}
+            /******* dispatch features *******/
+            {dispatch_pre}
+            )
+baseline_pre
+dispatch_preN)
+header_pathr}
+dispatch_namesr
+header_dirr
+generate_dispatch_header
+z%CCompilerOpt.generate_dispatch_headerFc
+Platform)
+CPU baselinez
+CPU dispatchZ
+ArchitectureZ
+unsupportedZ
+Compilerz	unix-like)
+	Requestedz
+optimization disabledr
+Enabledr
+noneZ
+Flagsz
+Extra checksr
+(%s)z
+[%d] 
+	Generatedr
+Detectc
+secsr%
+z'CCompilerOpt.report.<locals>.<listcomp>c
+rows
+colr[
+: rf
+reprr
+) rY
+full
+reportZ
+platform_rowsZ
+baseline_rowsZ
+dispatch_rowsr}
+target_sourcesr
+Z	generatedr
+pretty_namerI
+textZ
+secs_lenZ
+cols_lenZ
+tabZ
+padZ
+secr
+CCompilerOpt.reportc
+{0}.{2}{1}z
+wrap dispatch-able target -> z
+#define %sCPU_TARGET_c
+target_joinr[
+z-CCompilerOpt._wrap_target.<locals>.<listcomp>rf
+            /**
+             * AUTOGENERATED DON'T EDIT
+             * Please make changes to the code generator              (distutils/ccompiler_opt.py)
+             */
+            #define {pfx}CPU_TARGET_MODE
+            #define {pfx}CPU_TARGET_CURRENT {target_name}
+            {target_defs}
+            #include "{path}"
+            )
+target_namerj
+target_defs)
+basenamer
+splitextrZ
+abspath)
+dispatch_src
+targetr
+ext_namer
+Z	wrap_pathr
+CCompilerOpt._wrap_targetc
+cache_hash:r
+generate dispatched config -> r
+z1CCompilerOpt._generate_config.<locals>.<listcomp>z
+CHK(%s)r[
+z2	%sCPU_DISPATCH_EXPAND_(CB((%s), %s, __VA_ARGS__))r
+z(	%sCPU_DISPATCH_EXPAND_(CB(__VA_ARGS__))r
+            // cache_hash:{cache_hash}
+            /**
+             * AUTOGENERATED DON'T EDIT
+             * Please make changes to the code generator (distutils/ccompiler_opt.py)
+             */
+            #ifndef {pfx}CPU_DISPATCH_EXPAND_
+                #define {pfx}CPU_DISPATCH_EXPAND_(X) X
+            #endif
+            #undef {pfx}CPU_DISPATCH_BASELINE_CALL
+            #undef {pfx}CPU_DISPATCH_CALL
+            #define {pfx}CPU_DISPATCH_BASELINE_CALL(CB, ...) \
+            {baseline_calls}
+            #define {pfx}CPU_DISPATCH_CALL(CHK, CB, ...) \
+            {dispatch_calls}
+            )
+readliner
+intr_
+config_pathr
+Z	last_hashr
+req_detectr
+CCompilerOpt._generate_config)
+    Create a new instance of 'CCompilerOpt' and generate the dispatch header
+    which contains the #definitions and headers of platform-specific instruction-sets for
+    the enabled CPU baseline and dispatch-able features.
+    Parameters
+    ----------
+    compiler : CCompiler instance
+    dispatch_hpath : str
+        path of the dispatch header
+    **kwargs: passed as-is to `CCompilerOpt(...)`
+    Returns
+    -------
+    new instance of CCompilerOpt
+    )
+dispatch_hpathr
+new_ccompiler_opt
+iori
+<module>

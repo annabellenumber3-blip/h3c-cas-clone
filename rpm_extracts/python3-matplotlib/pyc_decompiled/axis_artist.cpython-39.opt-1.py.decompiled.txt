@@ -1,0 +1,640 @@
+m Z 
+e!e$
+The :mod:`.axis_artist` module implements custom artists to draw axis elements
+(axis lines and labels, tick lines and labels, grid lines).
+Axis lines and labels and tick lines and labels are managed by the `AxisArtist`
+class; grid lines are managed by the `GridlinesCollection` class.
+There is one `AxisArtist` per Axis; it can be accessed through
+the ``axis`` dictionary of the parent Axes (which should be a
+`mpl_toolkits.axislines.Axes`), e.g. ``ax.axis["bottom"]``.
+Children of the AxisArtist are accessed as attributes: ``.line`` and ``.label``
+for the axis line and label, ``.major_ticks``, ``.major_ticklabels``,
+``.minor_ticks``, ``.minor_ticklabels`` for the tick lines and labels (e.g.
+``ax.axis["bottom"].line``).
+Children properties (colors, fonts, line widths, etc.) can be set using
+setters, e.g. ::
+  # Make the major ticks of the bottom axis red.
+  ax.axis["bottom"].major_ticks.set_color("red")
+However, things like the locations of ticks, and their ticklabels need to be
+changed from the side of the grid_helper.
+axis_direction
+--------------
+`AxisArtist`, `AxisLabel`, `TickLabels` have an *axis_direction* attribute,
+which adjusts the location, angle, etc. The *axis_direction* must be one of
+"left", "right", "bottom", "top", and follows the Matplotlib convention for
+rectangular axis.
+For example, for the *bottom* axis (the left and right is relative to the
+direction of the increasing coordinate),
+* ticklabels and axislabel are on the right
+* ticklabels and axislabel have text angle of 0
+* ticklabels are baseline, center-aligned
+* axislabel is top, center-aligned
+The text angles are actually relative to (90 + angle of the direction to the
+ticklabel), which gives 0 for bottom axis.
+=================== ====== ======== ====== ========
+Parameter           left   bottom   right  top
+=================== ====== ======== ====== ========
+ticklabels location left   right    right  left
+axislabel location  left   right    right  left
+ticklabels angle    90     0        -90    180
+axislabel angle     180    0        0      180
+ticklabel va        center baseline center baseline
+axislabel va        center top      center bottom
+ticklabel ha        right  center   right  center
+axislabel ha        right  center   right  center
+=================== ====== ======== ====== ========
+Ticks are by default direct opposite side of the ticklabels. To make ticks to
+the same side of the ticklabels, ::
+  ax.axis["bottom"].major_ticks.set_tick_out(True)
+The following attributes can be customized (use the ``set_xxx`` methods):
+* `Ticks`: ticksize, tick_out
+* `TickLabels`: pad
+* `AxisLabel`: pad
+methodcallerN)
+_api
+cbook)
+LineCollection)
+Line2D)
+	PathPatch)
+Path)
+Affine2D
+Bbox
+IdentityTransform
+ScaledTranslation
+AxislineStylec
+AttributeCopierc
+        Return the underlying artist that actually defines some properties
+        (e.g., color) of this artist.
+        z
+get_ref_artist must overriddenN)
+RuntimeError
+self
+I/usr/lib64/python3.9/site-packages/mpl_toolkits/axisartist/axis_artist.py
+get_ref_artist^
+AttributeCopier.get_ref_artistc
+get_
+auto)
+superr
+Z	attr_name
+getterZ
+prop
+	__class__r
+get_attribute_from_ref_artiste
+z-AttributeCopier.get_attribute_from_ref_artist)
+__name__
+__module__
+__qualname__r
+__classcell__r
+TicksaO
+    Ticks are derived from Line2D, and note that ticks themselves
+    are markers. Thus, you should use set_mec, set_mew, etc.
+    To change the tick size (length), you need to use
+    set_ticksize. To change the direction of the ticks (ticks are
+    in opposite direction of ticklabels by default), use
+    set_tick_out(False).
+    FN)
+axisc
+colorr
+markeredgewidth
+	_ticksize
+locs_angles_labels
+set_tick_out
+_axisr
+__init__Z
+set_snap)
+ticksizeZ
+tick_outr!
+kwargsr
+Ticks.__init__c
+majorTicksZ	tick1liner
+Ticks.get_ref_artistc
+_str_equal
+mcolorsZ
+_check_color_likeZ
+_colorZ
+stale)
+	set_color
+Ticks.set_colorc
+	get_color
+Ticks.get_colorc
+markeredgecolorr0
+get_markeredgecolor
+Ticks.get_markeredgecolorc
+get_markeredgewidth
+Ticks.get_markeredgewidthc
+z7Set whether ticks are drawn inside or outside the axes.N
+Z	_tick_out)
+Ticks.set_tick_outc
+z:Return whether ticks are drawn inside or outside the axes.r4
+get_tick_out
+Ticks.get_tick_outc
+z"Set length of the ticks in points.N
+set_ticksize
+Ticks.set_ticksizec
+z%Return length of the ticks in points.r7
+get_ticksize
+Ticks.get_ticksizec
+locs_angles)
+set_locs_angles
+Ticks.set_locs_anglesr$
+get_visibleZ
+new_gcZ
+set_foregroundr2
+set_linewidthr3
+Z	set_alphaZ
+_alpha
+get_transformr	
+scale
+points_to_pixelsr%
+rotate_degr;
+transform_non_affine
+array
+axesZ
+viewLim
+containsZ
+draw_markers
+_tickvert_pathr
+get_affineZ
+restore)
+rendererZ
+path_transZ
+marker_transform
+locZ
+angleZ
+locsr
+draw
+Ticks.draw)
+__doc__r)
+	LabelBasez
+    A base class for AxisLabel and TickLabels. The position and angle
+    of the text are calculated by to offset_ref_angle,
+    text_ref_angle, and offset_radius attributes.
+    c
+anchorT)
+_ref_angle
+_offset_radiusr
+set_rotation_mode
+_text_follow_ref_angle)
+argsr+
+LabelBase.__init__c
+_text_ref_angle
+LabelBase._text_ref_anglec
+_offset_ref_angle
+LabelBase._offset_ref_angle
+right
+left
+bottom
+top)
+get_rotationrC
+deg2radrS
+set_transformr	
+	translate
+set_rotationrR
+angle_orig
+theta
+LabelBase.drawNc
+figure
+_get_rendererr@
+get_window_extent
+frozen)	r
+bboxr
+LabelBase.get_window_extent)
+propertyrR
+__getitem__
+_get_opposite_directionrI
+	AxisLabela
+    Axis Label. Derived from Text. The position of the text is updated
+    in the fly, so changing text position has no effect. Otherwise, the
+    properties can be changed as a normal Text.
+    To change the pad between ticklabels and axis label, use set_pad.
+    rV
+axis_directionr!
+_pad
+_external_padrK
+set_axis_direction)
+AxisLabel.__init__c
+        Set the internal pad in points.
+        The actual pad will be the sum of the internal pad and the
+        external pad (the latter is set automatically by the AxisArtist).
+        N
+padr
+set_pad#
+AxisLabel.set_padc
+        Return the internal pad in points.
+        See `.set_pad` for more details.
+        rr
+get_pad,
+AxisLabel.get_padc
+	get_labelr
+AxisLabel.get_ref_artistc
+__from_axes__)
+get_textr(
+_text)
+AxisLabel.get_text)
+center)
+check_getitem
+_default_alignmentsZ
+set_vaZ
+set_ha)
+set_default_alignmentC
+AxisLabel.set_default_alignmentr>
+_default_angles
+set_default_angleM
+AxisLabel.set_default_anglec
+        Adjust the text angle and text alignment of axis label
+        according to the matplotlib convention.
+        =====================    ========== ========= ========== ==========
+        property                 left       bottom    right      top
+        =====================    ========== ========= ========== ==========
+        axislabel angle          180        0         0          180
+        axislabel va             center     top       center     bottom
+        axislabel ha             right      center    right      center
+        =====================    ========== ========= ========== ==========
+        Note that the text angles are actually relative to (90 + angle
+        of the direction to the ticklabel), which gives 0 for bottom
+        axis.
+        N)
+AxisLabel.set_axis_directionc
+AxisLabel.get_colorc
+AxisLabel.drawc
+)	re
+AxisLabel.get_window_extent)
+dictr
+TickLabelsa
+    Tick Labels. While derived from Text, this single artist draws all
+    ticklabels. As in AxisLabel, the position of the text is updated
+    in the fly, so changing text position has no effect. Otherwise,
+    the properties can be changed as a normal Text. Unlike the
+    ticklabels of the mainline matplotlib, properties of single
+    ticklabel alone cannot modified.
+    To change the pad between ticks and ticklabels, use set_pad.
+    rV
+_axislabel_pad)
+TickLabels.__init__c
+get_ticklabelsr
+TickLabels.get_ref_artistc
+        Adjust the text angle and text alignment of ticklabels
+        according to the matplotlib convention.
+        The *label_direction* must be one of [left, right, bottom, top].
+        =====================    ========== ========= ========== ==========
+        property                 left       bottom    right      top
+        =====================    ========== ========= ========== ==========
+        ticklabels angle         90         0         -90        180
+        ticklabel va             center     baseline  center     baseline
+        ticklabel ha             right      center    right      center
+        =====================    ========== ========= ========== ==========
+        Note that the text angles are actually relative to (90 + angle
+        of the direction to the ticklabel), which gives 0 for bottom
+        axis.
+        N)
+_axis_direction
+label_directionr
+TickLabels.set_axis_directionc
+invert_axis_direction
+z TickLabels.invert_axis_directionc
+}	|	}
+        Calculate the ticklabel offsets from the tick and their total heights.
+        The offset only takes account the offset due to the vertical alignment
+        of the ticklabels: if axis direction is bottom and va is 'top', it will
+        return 0; if va is 'baseline', it will return (height-descent).
+        
+	<genexpr>
+z5TickLabels._get_ticklabels_offsets.<locals>.<genexpr>rz
+baselinec
+!get_texts_widths_heights_descentsZ
+get_vaZ
+get_ha
+max)
+whd_listr
+max_ascentZ
+max_descentr
+_get_ticklabels_offsets
+z"TickLabels._get_ticklabels_offsets)
+sbqJ|
+_locs_angles_labels
+striprM
+set_x
+set_y
+set_textrK
+total_widthrs
+TickLabels.drawc
+set_locs_angles_labels
+z!TickLabels.set_locs_angles_labelsNc
+append)
+bboxesr
+get_window_extents
+TickLabels.get_window_extentsc
+        Return a list of ``(width, height, descent)`` tuples for ticklabels.
+        Empty labels are left out.
+        )
+ismath)
+_preprocess_mathZ
+get_text_width_height_descentZ
+_fontpropertiesr
+_locZ
+_angle
+labelZ
+clean_liner
+whdr
+z,TickLabels.get_texts_widths_heights_descents)
+GridlinesCollection
+majorZ
+both)
+whichr!
+        Parameters
+        ----------
+        which : {"major", "minor"}
+        axis : {"both", "x", "y"}
+        N)
+_whichr(
+set_grid_helper)
+GridlinesCollection.__init__c
+	set_whichE
+GridlinesCollection.set_whichc
+set_axisH
+GridlinesCollection.set_axisc
+_grid_helper)
+grid_helperr
+z#GridlinesCollection.set_grid_helperc
+Z	transpose)
+<listcomp>R
+z,GridlinesCollection.draw.<locals>.<listcomp>)	r
+update_limrD
+get_gridlinesr
+set_segmentsr
+GridlinesCollection.draw)	r
+d d!
+dAd"d#
+d$d%
+d&d'd(d)d*
+d+d,
+d-d.
+d/d0
+d1d2
+d3d4
+d5d6
+d7d8
+dBd9d:
+Z e!j"d;d<
+Z#dCd=d>
+AxisArtistz
+    An artist which draws axis (a line along which the n-th axes coord
+    is constant) line, ticks, ticklabels, and axis label.
+    g
+LABELPAD^
+AxisArtist.LABELPADc
+        Parameters
+        ----------
+        axes : `mpl_toolkits.axisartist.axislines.Axes`
+        helper : `~mpl_toolkits.axisartist.axislines.AxisArtistHelper`
+        Nr
+_axis_artist_helperr
+dpi_scale_trans
+offset_transformZ
+yaxisr!
+xaxis
+_axisline_styler
+_init_line
+_init_ticks
+_init_offsetText
+_init_label
+_ticklabel_add_angle
+_axislabel_add_anglerq
+helper
+offsetrm
+AxisArtist.__init__c
+        Adjust the direction, text angle, text alignment of
+        ticklabels, labels following the matplotlib convention for
+        the rectangle axes.
+        The *axis_direction* must be one of [left, right, bottom, top].
+        =====================    ========== ========= ========== ==========
+        property                 left       bottom    right      top
+        =====================    ========== ========= ========== ==========
+        ticklabels location      "-"        "+"       "+"        "-"
+        axislabel location       "-"        "+"       "+"        "-"
+        ticklabels angle         90         0         -90        180
+        ticklabel va             center     baseline  center     baseline
+        ticklabel ha             right      center    right      center
+        axislabel angle          180        0         0          180
+        axislabel va             center     top       center     bottom
+        axislabel ha             right      center    right      center
+        =====================    ========== ========= ========== ==========
+        Note that the direction "+" and "-" are relative to the direction of
+        the increasing coordinate. Also, the text angles are actually
+        relative to (90 + angle of the direction to the ticklabel),
+        which gives 0 for bottom axis.
+        )
+major_ticklabelsrq
+set_ticklabel_direction
+set_axislabel_direction)
+AxisArtist.set_axis_directionc
+        Adjust the direction of the ticklabel.
+        Note that the *label_direction*\s '+' and '-' are relative to the
+        direction of the increasing coordinate.
+        Parameters
+        ----------
+        tick_direction : {"+", "-"}
+        r
+tick_directionN)
+z"AxisArtist.set_ticklabel_directionc
+minor_ticklabelsr
+invert_ticklabel_direction
+z%AxisArtist.invert_ticklabel_directionc
+        Adjust the direction of the axislabel.
+        Note that the *label_direction*\s '+' and '-' are relative to the
+        direction of the increasing coordinate.
+        Parameters
+        ----------
+        label_direction : {"+", "-"}
+        r
+z"AxisArtist.set_axislabel_directionc
+Z	transAxesr
+AxisArtist.get_transformc
+        Return axis artist helper instance.
+        )
+get_helper
+AxisArtist.get_helperc
+        Set the axisline style.
+        The new style is completely defined by the passed attributes. Existing
+        style attributes are forgotten.
+        Parameters
+        ----------
+        axisline_style : str or None
+            The line style, e.g. '->', optionally followed by a comma-separated
+            list of attributes. Alternatively, the attributes can be provided
+            as keywords.
+            If *None* this returns a string containing the available styles.
+        Examples
+        --------
+        The following two commands are equal:
+        >>> set_axisline_style("->,size=1.5")
+        >>> set_axisline_style("->", size=1.5)
+        N)
+pprint_styles
+isinstanceZ
+_Baser
+axisline_styler+
+set_axisline_style
+AxisArtist.set_axisline_stylec
+z"Return the current axisline style.)
+get_axisline_style
+AxisArtist.get_axisline_stylec
+)	zY
+        Initialize the *line* artist that is responsible to draw the axis line.
+        Nz
+axes.edgecolorFz
+axes.linewidthz
+lines.solid_capstylez
+lines.solid_joinstyle)
+fillZ	linewidthZ
+capstyleZ	joinstyle
+	transform)
+get_line_transformrD
+get_line
+rcParams
+line)
+tranr
+AxisArtist._init_linec
+set_pathr
+set_line_mutation_scaler
+get_sizerI
+_draw_line
+AxisArtist._draw_linec
+major_tick_sizez
+tick.major.size)
+minor_tick_sizez
+tick.minor.sizez
+tick.labelsizeZ
+major_tick_padz
+tick.major.pad)
+fontsizers
+minor_tick_padz
+tick.minor.pad)
+	axis_namer
+get_tick_transformrD
+getr
+major_ticks
+minor_ticksr
+trans
+sizer
+AxisArtist._init_ticksc
+        Return a pair of:
+        - list of locs and angles for ticks
+        - list of locs, angles and labels for ticklabels.
+        rQ
+Z	tick_iterZ
+ticks_loc_angleZ
+ticklabels_loc_angle_labelZ
+ticklabel_add_anglerH
+angle_normal
+angle_tangentr
+angle_labelZ
+angle_tickr
+_get_tick_infoE
+AxisArtist._get_tick_infoc
+get_tick_iteratorsrD
+dpi_corZ
+ticklabel_padZ
+majortick_iterZ
+minortick_iterZ
+tick_loc_angleZ
+ticklabel_loc_angle_labelr
+_update_ticks[
+AxisArtist._update_ticksc
+_draw_offsetTextr
+_draw_ticksx
+AxisArtist._draw_ticks)
+axes fractionr
+offset pointsz
+xtick.color)
+xycoordsZ
+xytextZ
+textcoordsr"
+horizontalalignmentZ
+verticalalignment)
+_offsetText_pos
+mtextZ
+Annotationr
+offsetTextr\
+_set_artist_props)
+	directionr
+AxisArtist._init_offsetTextc
+Z	formatterZ
+get_offsetZ
+set_sizer
+xyann)
+_update_offsetText
+AxisArtist._update_offsetTextc
+AxisArtist._draw_offsetTextc
+Z	labelsizez
+axes.labelsizez
+axes.labelweight)
+fontweightr!
+labelpadrn
+get_axislabel_transformrD
+set_figurere
+AxisArtist._init_labelc
+get_axislabel_pos_anglerD
+set)
+axislabel_padr
+_update_label
+AxisArtist._update_labelc
+_draw_label
+AxisArtist._draw_labelc
+	set_label
+AxisArtist.set_labelc
+widthZ
+height)
+z,AxisArtist.get_tightbbox.<locals>.<listcomp>)
+union)
+_bboxr
+get_tightbbox
+AxisArtist.get_tightbboxc
+gid)
+open_groupr
+get_gidr
+close_groupr
+AxisArtist.drawc
+        Toggle visibility of ticks, ticklabels, and (axis) label.
+        To turn all off, ::
+          axis.toggle(all=False)
+        To turn all off but ticks on ::
+          axis.toggle(all=False, ticks=True)
+        To turn all on but (axis) label off ::
+          axis.toggle(all=True, label=False))
+        )
+TTTN)
+FFF)
+NNN)
+set_visibler
+allZ
+ticksZ
+ticklabelsr
+_ticksZ
+_ticklabelsZ
+_labelr
+toggle
+AxisArtist.toggle)
+NNNN)&r
+zorderri
+setterr)
+martistZ
+allow_rasterizationrI
+)*rJ
+operatorr
+numpyrC
+matplotlibr
+matplotlib.artistZ
+artistr
+matplotlib.colorsZ
+colorsr-
+matplotlib.text
+textr
+matplotlib.collectionsr
+matplotlib.linesr
+matplotlib.patchesr
+matplotlib.pathr
+matplotlib.transformsr	
+TextrK
+Artistr
+<module>

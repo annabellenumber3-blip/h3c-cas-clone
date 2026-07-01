@@ -1,0 +1,486 @@
+l	Z	d
+l m!Z!
+Common API for all public keys.
+	unhexlify)
+md5)
+default_backend)
+serialization)
+algorithms
+modes
+Cipher)
+util)
+o600)
+encodebytes
+decodebytes
+string_types)
+SSHException
+PasswordRequiredException)
+Messages
+openssh-key-v1
+Invalid key
+sixZ
+indexbytesr
+range)
+dataZ
+padding_length
+1/usr/lib/python3.9/site-packages/paramiko/pkey.py
+_unpad_openssh/
+d!d"
+d#d$
+dFd%d&
+d'd(
+dGd)d*
+dHd+d,
+Z!dId-d.
+Z"dJd/d0
+Z#dKd1d2
+Z$dLd3d4
+Z%d5d6
+Z&d7d8
+Z'd9d:
+Z(d;d<
+Z)dMd=d>
+Z*dNd?d@
+Z+dAdB
+Z,dCdD
+PKeyz%
+    Base class for public keys.
+    
+cipher
+keysizeZ	blocksize
+moder
+AES-128-CBCz
+AES-256-CBCz
+DES-EDE3-CBCr
+z3^-{5}BEGIN (RSA|DSA|EC|OPENSSH) PRIVATE KEY-{5}\s*$z1^-{5}END (RSA|DSA|EC|OPENSSH) PRIVATE KEY-{5}\s*$Nc
+        Create a new instance of this public key type.  If ``msg`` is given,
+        the key's public part(s) will be filled in from the message.  If
+        ``data`` is given, the key's public part(s) will be filled in from
+        the string.
+        :param .Message msg:
+            an optional SSH `.Message` containing a public key of this type.
+        :param str data: an optional string containing a public key
+            of this type
+        :raises: `.SSHException` --
+            if a key cannot be created from the ``data`` or ``msg`` given, or
+            no key was passed in.
+        Nr
+self
+msgr
+__init___
+PKey.__init__c
+        Return a string of an SSH `.Message` made up of the public part(s) of
+        this key.  This string is suitable for passing to `__init__` to
+        re-create the key object later.
+        
+bytes
+asbytesq
+PKey.asbytesc
+__str__y
+PKey.__str__c
+        Compare this key to another.  Returns 0 if this key is equivalent to
+        the given key, or non-0 if they are different.  Only the public parts
+        of the key are compared, so a public key will compare equal to its
+        corresponding private key.
+        :param .PKey other: key to compare to.
+        )
+hash
+cmpr-
+otherZ
+__cmp__
+PKey.__cmp__c
+isinstancer
+_fields
+__eq__
+PKey.__eq__c
+__hash__
+PKey.__hash__c
+NotImplementedErrorr,
+PKey._fieldsc
+        Return the name of this private key implementation.
+        :return:
+            name of this private key type, in SSH terminology, as a `str` (for
+            example, ``"ssh-rsa"``).
+        
+get_name
+PKey.get_namec
+        Return the number of significant bits in this key.  This is useful
+        for judging the relative security of a key.
+        :return: bits in the key (as an `int`)
+        r
+get_bits
+PKey.get_bitsc
+        Return ``True`` if this key has the private part necessary for signing
+        data.
+        Fr
+can_sign
+PKey.can_signc
+        Return an MD5 fingerprint of the public part of this key.  Nothing
+        secret is revealed.
+        :return:
+            a 16-byte `string <str>` (binary) of the MD5 fingerprint, in SSH
+            format.
+        )
+digestr,
+get_fingerprint
+PKey.get_fingerprintc
+        Return a base64 string containing the public part of this key.  Nothing
+        secret is revealed.  This format is compatible with that used to store
+        public key files or recognized host keys.
+        :return: a base64 `string <str>` containing the public part of the key.
+        
+replacer,
+get_base64
+PKey.get_base64c
+        Sign a blob of data with this private key, and return a `.Message`
+        representing an SSH signature message.
+        :param str data:
+            the data to sign.
+        :param str algorithm:
+            the signature algorithm to use, if different from the key's
+            internal name. Default: ``None``.
+        :return: an SSH signature `message <.Message>`.
+        .. versionchanged:: 2.9
+            Added the ``algorithm`` kwarg.
+        r*
+	algorithmr
+sign_ssh_data
+PKey.sign_ssh_datac
+        Given a blob of data, and an SSH message representing a signature of
+        that data, verify that it was signed with this key.
+        :param str data: the data that was signed.
+        :param .Message msg: an SSH signature message
+        :return:
+            ``True`` if the signature verifies correctly; ``False`` otherwise.
+        Fr
+verify_ssh_sig
+PKey.verify_ssh_sigc
+        Create a key object by reading a private key file.  If the private
+        key is encrypted and ``password`` is not ``None``, the given password
+        will be used to decrypt the key (otherwise `.PasswordRequiredException`
+        is thrown).  Through the magic of Python, this factory method will
+        exist in all subclasses of PKey (such as `.RSAKey` or `.DSSKey`), but
+        is useless on the abstract PKey class.
+        :param str filename: name of the file to read
+        :param str password:
+            an optional password to use to decrypt the key file, if it's
+            encrypted
+        :return: a new `.PKey` based on the given private key
+        :raises: ``IOError`` -- if there was an error reading the file
+        :raises: `.PasswordRequiredException` -- if the private key file is
+            encrypted, and ``password`` is ``None``
+        :raises: `.SSHException` -- if the key file is invalid
+        )
+filename
+passwordr
+clsrE
+keyr
+from_private_key_file
+PKey.from_private_key_filec
+        Create a key object by reading a private key from a file (or file-like)
+        object.  If the private key is encrypted and ``password`` is not
+        ``None``, the given password will be used to decrypt the key (otherwise
+        `.PasswordRequiredException` is thrown).
+        :param file_obj: the file-like object to read from
+        :param str password:
+            an optional password to use to decrypt the key, if it's encrypted
+        :return: a new `.PKey` based on the given private key
+        :raises: ``IOError`` -- if there was an error reading the key
+        :raises: `.PasswordRequiredException` --
+            if the private key file is encrypted, and ``password`` is ``None``
+        :raises: `.SSHException` -- if the key file is invalid
+        )
+file_objrF
+from_private_key
+PKey.from_private_keyc
+        Write private key contents into a file.  If the password is not
+        ``None``, the key is encrypted before writing.
+        :param str filename: name of the file to write
+        :param str password:
+            an optional password to use to encrypt the key file
+        :raises: ``IOError`` -- if there was an error writing the file
+        :raises: `.SSHException` -- if the key is invalid
+        
+Not implemented in PKeyN
+	Exception)
+write_private_key_file
+PKey.write_private_key_filec
+        Write private key contents into a file (or file-like) object.  If the
+        password is not ``None``, the key is encrypted before writing.
+        :param file_obj: the file-like object to write into
+        :param str password: an optional password to use to encrypt the key
+        :raises: ``IOError`` -- if there was an error writing to the file
+        :raises: `.SSHException` -- if the key is invalid
+        rL
+write_private_key
+PKey.write_private_keyc
+        Read an SSH2-format private key file, looking for a string of the type
+        ``"BEGIN xxx PRIVATE KEY"`` for some ``xxx``, base64-decode the text we
+        find, and return it as a string.  If the private key is encrypted and
+        ``password`` is not ``None``, the given password will be used to
+        decrypt the key (otherwise `.PasswordRequiredException` is thrown).
+        :param str tag: ``"RSA"`` or ``"DSA"``, the tag used to mark the
+            data block.
+        :param str filename: name of the file to read.
+        :param str password:
+            an optional password to use to decrypt the key file, if it's
+            encrypted.
+        :return: data blob (`str`) that makes up the private key.
+        :raises: ``IOError`` -- if there was an error reading the file.
+        :raises: `.PasswordRequiredException` -- if the private key file is
+            encrypted, and ``password`` is ``None``.
+        :raises: `.SSHException` -- if the key file is invalid.
+        
+open
+_read_private_key)
+tagrE
+_read_private_key_file,
+PKey._read_private_key_filec
+not a valid {} private key fileZ
+OPENSSHz#encountered {} key, expected {} key)
+	readlines
+	BEGIN_TAG
+match
+groupr
+format
+END_TAG
+_read_private_key_pem
+_PRIVATE_KEY_FORMAT_ORIGINAL
+_read_private_key_openssh
+_PRIVATE_KEY_FORMAT_OPENSSH)
+lines
+start
+line_range
+keytype
+endr
+pkformatr
+PKey._read_private_keyc
+Nz={}._read_private_key() spat out an unknown key format id '{}')
+	__class__
+__name__)
+errr
+_got_bad_key_format_idh
+PKey._got_bad_key_format_idc
+r8qZ|
+}	|	d
+: r:
+base64 decoding error: {}z	proc-typez
+4,ENCRYPTEDz"Unknown private key structure "{}"z
+dek-info
+,z(Can't parse DEK-info in private key filez
+Unknown private key cipher "{}"z
+Private key file is encryptedr!
+backend)
+split
+strip
+lowerr
+join
+base64
+binascii
+Errorr
+_CIPHER_TABLEr
+generate_key_bytesr
+	decryptor
+update
+finalize)
+headers
+liner
+eZ	proc_typeZ
+encryption_typeZ
+saltstrr!
+saltrH
+PKey._read_private_key_pemc
+	|	d
+        Read the new OpenSSH SSH2 private key format available
+        since OpenSSH version 6.5
+        Reference:
+        https://github.com/openssh/openssh-portable/blob/master/PROTOCOL.key
+        r:
+z)unexpected OpenSSH key header encounteredZ
+sssurr
+z.unsupported: private keyfile has multiple keysZ
+bcryptz
+aes256-cbcz
+aes256-ctrz,unknown cipher `{}` used in private key filez
+utf-8z
+private key file is encryptedZ
+ignore_few_roundsr
+nonez.unknown cipher or kdf used in private key fileZ
+uusrz/OpenSSH private key file checkints do not match)
+OPENSSH_AUTH_MAGIC
+_uint32_cstruct_unpackr
+CBCZ
+decoder
+kdfr
+AESr
+auth_magicZ
+cstructr!
+kdfnameZ
+kdf_optionsZ
+num_pubkeysZ	remainderZ
+pubkeyZ
+privkey_blobr#
+roundsZ
+key_ivrH
+ivru
+decrypted_privkeyZ	checkint1Z	checkint2re
+keydatar
+PKey._read_private_key_opensshc
+        Used to read new OpenSSH private key format.
+        Unpacks a c data structure containing a mix of 32-bit uints and
+        variable length strings prefixed by 32-bit uint size field,
+        according to the specified format. Returns the unpacked vars
+        in a tuple.
+        Format strings:
+          s - denotes a string
+          i - denotes a long integer, encoded as a byte string
+          u - denotes a 32-bit unsigned integer
+          r - the remainder of the input string, returned as a string
+        r
+struct
+unpack
+appendr	
+inflate_longrN
+tuple)
+Z	strformatZ
+idxrU
+s_sizer
+PKey._uint32_cstruct_unpackc
+        Write an SSH2-format private key file in a form that can be read by
+        paramiko or openssh.  If no password is given, the key is written in
+        a trivially-encoded format (base64) which is completely insecure.  If
+        a password is given, DES-EDE3-CBC is used.
+        :param str tag:
+            ``"RSA"`` or ``"DSA"``, the tag used to mark the data block.
+        :param filename: name of the file to write.
+        :param str data: data blob that makes up the private key.
+        :param str password: an optional password to use to encrypt the file.
+        :raises: ``IOError`` -- if there was an error writing the file.
+        
+O_WRONLY
+O_TRUNC
+O_CREATr
+fdopenrR
+chmod
+_write_private_key)
+argsrU
+_write_private_key_file"
+PKey._write_private_key_filec
+NoEncryptionZ
+BestAvailableEncryptionr
+writeZ
+private_bytesZ
+EncodingZ
+PEMr
+encryptionr
+PKey._write_private_keyc
+rRn<|
+        Perform message type-checking & optional certificate loading.
+        This includes fast-forwarding cert ``msg`` objects past the nonce, so
+        that the subsequent fields are the key numbers; thus the caller may
+        expect to treat the message as key material afterwards either way.
+        The obtained key type is returned for classes which need to know what
+        it was (e.g. ECDSA.)
+        Nz
+Key object may not be emptyz%Invalid key (class: {}, data type: {})
+rewind
+get_text
+load_certificater
+get_stringr\
+key_typeZ	cert_typeZ	key_typesZ
+cert_types
+type_ri
+_check_type_and_load_certL
+PKey._check_type_and_load_certc
+        Supplement the private key contents with data loaded from an OpenSSH
+        public key (``.pub``) or certificate (``-cert.pub``) file, a string
+        containing such a file, or a `.Message` object.
+        The .pub contents adds no real value, since the private key
+        file includes sufficient information to derive the public
+        key info. For certificates, however, this can be used on
+        the client side to offer authentication requests to the server
+        based on certificate instead of raw public key.
+        See:
+        https://github.com/openssh/openssh-portable/blob/master/PROTOCOL.certkeys
+        Note: very little effort is made to validate the certificate contents,
+        that is for the server to decide if it is good enough to authenticate
+        successfully.
+        
+from_message
+	from_file
+from_stringz0PublicBlob type {} incompatible with key type {}N)
+path
+isfile
+getattr
+PublicBlobr
+startswithr;
+ValueErrorr\
+public_blob)
+value
+constructor
+blobri
+PKey.load_certificate)
+N).rh
+__module__
+__qualname__
+__doc__r
+Z	TripleDESrt
+compilerX
+propertyr5
+classmethodrI
+    OpenSSH plain public key or OpenSSH signed public key (certificate).
+    Tries to be as dumb as possible and barely cares about specific
+    per-key-type data.
+    .. note::
+        Most of the time you'll want to call `from_file`, `from_string` or
+        `from_message` for useful instantiation, the main constructor is
+        basically "I should be using ``attrs`` for this."
+    Nc
+        Create a new public blob of given type and contents.
+        :param str type_: Type indicator, eg ``ssh-rsa``.
+        :param blob: The blob bytes themselves.
+        :param str comment: A comment, if one was given (e.g. file-based.)
+        N)
+key_blob
+comment)
+PublicBlob.__init__c
+        Create a public blob from a ``-cert.pub``-style file on disk.
+        N)
+readr
+stringr
+PublicBlob.from_filec
+)	zI
+        Create a public blob from a ``-cert.pub``-style string.
+        Nr&
+z%Not enough fields for public blob: {}r
+z!key type={!r}, but blob type={!r}z
+Invalid PublicBlob contents: {})
+IndexErrorr
+fieldsr(
+Z	blob_typeZ
+deetsr
+PublicBlob.from_stringc
+        Create a public blob from a network `.Message`.
+        Specifically, a cert-bearing pubkey auth packet, because by definition
+        OpenSSH-style certificates 'are' their own network representation."
+        )
+messager
+PublicBlob.from_messagec
+{} public key/certificatez
+- {})
+retr
+PublicBlob.__str__c
+PublicBlob.__eq__c
+__ne__
+PublicBlob.__ne__)
+hashlibr
+cryptography.hazmat.backendsr
+cryptography.hazmat.primitivesr
+Z&cryptography.hazmat.primitives.ciphersr
+paramikor	
+paramiko.commonr
+paramiko.py3compatr
+paramiko.ssh_exceptionr
+paramiko.messager
+objectr
+<module>

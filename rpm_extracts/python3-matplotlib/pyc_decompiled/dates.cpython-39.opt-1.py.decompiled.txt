@@ -1,0 +1,1196 @@
+m	Z	m
+m Z m!Z!m"Z"
+j'j(Z)dbd
+Z*e+e
+Z6e1e0
+Z7e2e1
+Z8e8e0
+Z9e9e4
+Z<Z=Z>Z?Z@ZAZBe<e=e>e?e@eAeBf
+ZHdcd
+jJeId
+jLjM
+ZNddd
+ZOd!d"
+ZPd#d$
+ZQd%d&
+ZRded'd(
+jJd)d*
+ZTd+d,
+ZUd-d.
+ZVd/d0
+d1d2
+d2e!jX
+d3d4
+d4e!jX
+d5d6
+d6e!jX
+d7d8
+d9d:
+d:e!j]
+d;d<
+d<e^
+d=d>
+d>e^
+d?d@
+d@e_
+dAdB
+dBe_
+dCdD
+dDe_
+dEdF
+dFe_
+dGdH
+dHe_
+dIdJ
+dJe_
+dKdL
+dLe_
+dMdN
+dNe^
+jidOdPdQ
+dRdS
+jidOdTdQ
+dUdV
+jidWdXdQ
+dfdZd[
+d\d]
+d]e"jm
+d^d_
+d_en
+d`da
+Zpep
+e"jqe
+e"jqe
+e"jqe
+)ga9
+Matplotlib provides sophisticated date plotting capabilities, standing on the
+shoulders of python :mod:`datetime` and the add-on module dateutil_.
+By default, Matplotlib uses the units machinery described in
+`~matplotlib.units` to convert `datetime.datetime`, and `numpy.datetime64`
+objects when plotted on an x- or y-axis. The user does not
+need to do anything for dates to be formatted, but dates often have strict
+formatting needs, so this module provides many axis locators and formatters.
+A basic example using `numpy.datetime64` is::
+    import numpy as np
+    times = np.arange(np.datetime64('2001-01-02'),
+                      np.datetime64('2002-02-03'), np.timedelta64(75, 'm'))
+    y = np.random.randn(len(times))
+    fig, ax = plt.subplots()
+    ax.plot(times, y)
+.. seealso::
+    - :doc:`/gallery/text_labels_and_annotations/date`
+    - :doc:`/gallery/ticks/date_concise_formatter`
+    - :doc:`/gallery/ticks/date_demo_convert`
+.. _date-format:
+Matplotlib date format
+----------------------
+Matplotlib represents dates using floating point numbers specifying the number
+of days since a default epoch of 1970-01-01 UTC; for example,
+1970-01-01, 06:00 is the floating point number 0.25. The formatters and
+locators require the use of `datetime.datetime` objects, so only dates between
+year 0001 and 9999 can be represented.  Microsecond precision
+is achievable for (approximately) 70 years on either side of the epoch, and
+20 microseconds for the rest of the allowable range of dates (year 0001 to
+9999). The epoch can be changed at import time via `.dates.set_epoch` or
+:rc:`dates.epoch` to other dates if necessary; see
+:doc:`/gallery/ticks/date_precision_and_epochs` for a discussion.
+.. note::
+   Before Matplotlib 3.3, the epoch was 0000-12-31 which lost modern
+   microsecond precision and also made the default axis limit of 0 an invalid
+   datetime.  In 3.3 the epoch was changed as above.  To convert old
+   ordinal floats to the new epoch, users can do::
+     new_ordinal = old_ordinal + mdates.date2num(np.datetime64('0000-12-31'))
+There are a number of helper functions to convert between :mod:`datetime`
+objects and Matplotlib dates:
+.. currentmodule:: matplotlib.dates
+.. autosummary::
+   :nosignatures:
+   datestr2num
+   date2num
+   num2date
+   num2timedelta
+   drange
+   set_epoch
+   get_epoch
+.. note::
+   Like Python's `datetime.datetime`, Matplotlib uses the Gregorian calendar
+   for all conversions between dates and floating point numbers. This practice
+   is not universal, and calendar differences can cause confusing
+   differences between what Python and Matplotlib give as the number of days
+   since 0001-01-01 and what other software and databases yield.  For
+   example, the US Naval Observatory uses a calendar that switches
+   from Julian to Gregorian in October, 1582.  Hence, using their
+   calculator, the number of days between 0001-01-01 and 2006-04-01 is
+   732403, whereas using the Gregorian calendar via the datetime
+   module we find::
+     In [1]: date(2006, 4, 1).toordinal() - date(1, 1, 1).toordinal()
+     Out[1]: 732401
+All the Matplotlib date converters, tickers and formatters are timezone aware.
+If no explicit timezone is provided, :rc:`timezone` is assumed, provided as a
+string.  If you want to use a different timezone, pass the *tz* keyword
+argument of `num2date` to any date tickers or locators you create.  This can
+be either a `datetime.tzinfo` instance or a string with the timezone name that
+can be parsed by `~dateutil.tz.gettz`.
+A wide range of specific and general purpose date tick locators and
+formatters are provided in this module.  See
+:mod:`matplotlib.ticker` for general information on tick locators
+and formatters.  These are described below.
+The dateutil_ module provides additional code to handle date ticking, making it
+easy to place ticks on any kinds of dates.  See examples below.
+.. _dateutil: https://dateutil.readthedocs.io
+Date tickers
+------------
+Most of the date tickers can locate single or multiple values.  For example::
+    # import constants for the days of the week
+    from matplotlib.dates import MO, TU, WE, TH, FR, SA, SU
+    # tick on mondays every week
+    loc = WeekdayLocator(byweekday=MO, tz=tz)
+    # tick on mondays and saturdays
+    loc = WeekdayLocator(byweekday=(MO, SA))
+In addition, most of the constructors take an interval argument::
+    # tick on mondays every second week
+    loc = WeekdayLocator(byweekday=MO, interval=2)
+The rrule locator allows completely general date ticking::
+    # tick every 5th easter
+    rule = rrulewrapper(YEARLY, byeaster=1, interval=5)
+    loc = RRuleLocator(rule)
+The available date tickers are:
+* `MicrosecondLocator`: Locate microseconds.
+* `SecondLocator`: Locate seconds.
+* `MinuteLocator`: Locate minutes.
+* `HourLocator`: Locate hours.
+* `DayLocator`: Locate specified days of the month.
+* `WeekdayLocator`: Locate days of the week, e.g., MO, TU.
+* `MonthLocator`: Locate months, e.g., 7 for July.
+* `YearLocator`: Locate years that are multiples of base.
+* `RRuleLocator`: Locate using a `rrulewrapper`.
+  `rrulewrapper` is a simple wrapper around dateutil_'s `dateutil.rrule`
+  which allow almost arbitrary date tick specifications.
+  See :doc:`rrule example </gallery/ticks/date_demo_rrule>`.
+* `AutoDateLocator`: On autoscale, this class picks the best `DateLocator`
+  (e.g., `RRuleLocator`) to set the view limits and the tick locations.  If
+  called with ``interval_multiples=True`` it will make ticks line up with
+  sensible multiples of the tick intervals.  E.g. if the interval is 4 hours,
+  it will pick hours 0, 4, 8, etc as ticks.  This behaviour is not guaranteed
+  by default.
+Date formatters
+---------------
+The available date formatters are:
+* `AutoDateFormatter`: attempts to figure out the best format to use.  This is
+  most useful when used with the `AutoDateLocator`.
+* `ConciseDateFormatter`: also attempts to figure out the best format to use,
+  and to make the format as compact as possible while still having complete
+  date information.  This is most useful when used with the `AutoDateLocator`.
+* `DateFormatter`: use `~datetime.datetime.strftime` format strings.
+rrule
+YEARLY
+MONTHLY
+WEEKLY
+DAILY
+HOURLY
+MINUTELY
+SECONDLY)
+relativedelta)
+_api
+cbook
+ticker
+units)+
+datestr2num
+date2num
+num2date
+num2timedelta
+drange
+	epoch2num
+	num2epoch
+	set_epoch
+	get_epoch
+DateFormatter
+ConciseDateFormatter
+AutoDateFormatter
+DateLocator
+RRuleLocator
+AutoDateLocator
+YearLocator
+MonthLocator
+WeekdayLocator
+DayLocator
+HourLocator
+MinuteLocator
+SecondLocator
+MicrosecondLocatorr
+MICROSECONDLYr
+DateConverter
+ConciseDateConverter
+rrulewrapperc
+    Generate tzinfo from a string or return tzinfo. If None,
+    retrieve the preferred timezone from the rcParams dictionary.
+    N
+timezone
+UTCz8 is not a valid timezone as parsed by dateutil.tz.gettz.z%tz must be string or tzinfo subclass.)
+rcParamsr2
+isinstance
+dateutil
+gettz
+ValueError
+datetime
+tzinfo
+	TypeError)
+6/usr/lib64/python3.9/site-packages/matplotlib/dates.py
+_get_tzinfo
+PD:A
+    Reset the Matplotlib date epoch so it can be set again.
+    Only for use in tests and examples.
+    N)
+_epochr>
+_reset_epoch_test_example
+    Set the epoch (origin for dates) for datetime calculations.
+    The default epoch is :rc:`dates.epoch` (by default 1970-01-01T00:00).
+    If microsecond accuracy is desired, the date being plotted needs to be
+    within approximately 70 years of the epoch. Matplotlib internally
+    represents dates as days since the epoch, so floating point dynamic
+    range needs to be within a factor of 2^52.
+    `~.dates.set_epoch` must be called before any dates are converted
+    (i.e. near the import section) or a RuntimeError will be raised.
+    See also :doc:`/gallery/ticks/date_precision_and_epochs`.
+    Parameters
+    ----------
+    epoch : str
+        valid UTC date parsable by `numpy.datetime64` (do not include
+        timezone).
+    Nz.set_epoch must be called before dates plotted.)
+RuntimeError)
+epochr>
+    Get the epoch used by `.dates`.
+    Returns
+    -------
+    epoch : str
+        String for the epoch (parsable by `numpy.datetime64`).
+    Nz
+date.epoch)
+    Convert `numpy.datetime64` or an ndarray of those types to Gregorian
+    date as UTC float relative to the epoch (see `.get_epoch`).  Roundoff
+    is float64 precision.  Practically: microseconds for dates between
+    290301 BC, 294241 AD, milliseconds for larger dates
+    (see `numpy.datetime64`).
+    z
+datetime64[s]z
+timedelta64[ns]
+NaT)
+astype
+datetime64r
+float64
+SEC_PER_DAYZ
+int64
+nan)
+dsecondsZ
+extra
+NaT_intZ
+d_intr>
+_dt64_to_ordinalf<
+    Convert Gregorian float of the date, preserving hours, minutes,
+    seconds and microseconds.  Return value is a `.datetime`.
+    The input date *x* is a float in ordinal days at UTC, and the output will
+    be the specified `.datetime` object corresponding to that time in
+    timezone *tz*, or if *tz* is ``None``, in the timezone specified in
+    :rc:`timezone`.
+    
+0001-01-01z
+10000-01-01z
+Date ordinal z
+ converts to z
+ (using epoch z;), but Matplotlib dates must be between year 0001 and 9999.r2
+microsecondrB
+seconds)
+timedelta64
+round
+MUSECONDS_PER_DAYr:
+tolist
+replacer7
+astimezone
+absrW
+	timedelta)
+msr>
+_from_ordinalfT
+otypesc
+    Convert a date string to a datenum using `dateutil.parser.parse`.
+    Parameters
+    ----------
+    d : str or sequence of str
+        The dates to convert.
+    default : datetime.datetime, optional
+        The default date to use when fields are missing in *d*.
+    
+defaultNc
+parser
+parse
+.0rH
+<listcomp>
+datestr2num.<locals>.<listcomp>)
+asarray
+size
+$_dateutil_parser_parse_np_vectorized)
+    Convert datetime objects to Matplotlib dates.
+    Parameters
+    ----------
+    d : `datetime.datetime` or `numpy.datetime64` or sequences of these
+    Returns
+    -------
+    float or sequence of floats
+        Number of days since the epoch.  See `.get_epoch` for the
+        epoch, which can be changed by :rc:`date.epoch` or `.set_epoch`.  If
+        the epoch is "1970-01-01T00:00:00" (default) then noon Jan 1 1970
+        ("1970-01-01T12:00:00") returns 0.5.
+    Notes
+    -----
+    The Gregorian calendar is assumed; this is not universal practice.
+    For details see the module docstring.
+    r
+date2num.<locals>.<listcomp>z
+datetime64[us])
+_unpack_to_numpyrJ
+iterablerj
+issubdtypeZ
+dtyperK
+getattrrI
+tzir>
+    Convert a Julian date (or sequence) to a Matplotlib date (or sequence).
+    Parameters
+    ----------
+    j : float or sequence of floats
+        Julian dates (days relative to 4713 BC Jan 1, 12:00:00 Julian
+        calendar or 4714 BC Nov 24, 12:00:00, proleptic Gregorian calendar).
+    Returns
+    -------
+    float or sequence of floats
+        Matplotlib dates (days relative to `.get_epoch`).
+    
+0000-12-31T00:00:00)
+float
+JULIAN_OFFSET
+subtract)
+ep0rP
+julian2num
+    Convert a Matplotlib date (or sequence) to a Julian date (or sequence).
+    Parameters
+    ----------
+    n : float or sequence of floats
+        Matplotlib dates (days relative to `.get_epoch`).
+    Returns
+    -------
+    float or sequence of floats
+        Julian dates (days relative to 4713 BC Jan 1, 12:00:00).
+    rr
+add)
+num2julian
+    Convert Matplotlib dates to `~datetime.datetime` objects.
+    Parameters
+    ----------
+    x : float or sequence of floats
+        Number of days (fraction part represents hours, minutes, seconds)
+        since the epoch.  See `.get_epoch` for the
+        epoch, which can be changed by :rc:`date.epoch` or `.set_epoch`.
+    tz : str or `~datetime.tzinfo`, default: :rc:`timezone`
+        Timezone of *x*. If a string, *tz* is passed to `dateutil.tz`.
+    Returns
+    -------
+    `~datetime.datetime` or sequence of `~datetime.datetime`
+        Dates are returned in timezone *tz*.
+        If *x* is a sequence, a sequence of `~datetime.datetime` objects will
+        be returned.
+    Notes
+    -----
+    The Gregorian calendar is assumed; this is not universal practice.
+    For details, see the module docstring.
+    )
+_from_ordinalf_np_vectorizedr[
+days)
+<lambda>
+    Convert number of days to a `~datetime.timedelta` object.
+    If *x* is a sequence, a sequence of `~datetime.timedelta` objects will
+    be returned.
+    Parameters
+    ----------
+    x : float, sequence of floats
+        Number of days. The fraction part represents hours, minutes, seconds.
+    Returns
+    -------
+    `datetime.timedelta` or list[`datetime.timedelta`]
+    )
+$_ordinalf_to_timedelta_np_vectorizedr[
+    Return a sequence of equally spaced Matplotlib dates.
+    The dates start at *dstart* and reach up to, but not including *dend*.
+    They are spaced by *delta*.
+    Parameters
+    ----------
+    dstart, dend : `~datetime.datetime`
+        The date limits.
+    delta : `datetime.timedelta`
+        Spacing of the dates.
+    Returns
+    -------
+    `numpy.array`
+        A list floats representing Matplotlib dates.
+    rB
+total_secondsrL
+ceilZ
+linspace)
+dstartZ
+dend
+delta
+step
+numZ
+dinterval_endr>
+([a-zA-Z]+)z
+}$\1$\\mathdefault{
+$\mathdefault{z
+$\mathdefault{}$
+subr\
+text
+ret_textr>
+_wrap_in_texX
+    Format a tick (in days since the epoch) with a
+    `~datetime.datetime.strftime` format string.
+    N
+usetexc
+        Parameters
+        ----------
+        fmt : str
+            `~datetime.datetime.strftime` format string
+        tz : str or `~datetime.tzinfo`, default: :rc:`timezone`
+            Ticks timezone. If a string, *tz* is passed to `dateutil.tz`.
+        usetex : bool, default: :rc:`text.usetex`
+            To enable/disable the use of TeX's math mode for rendering the
+            results of the formatter.
+        N
+text.usetex)
+fmtr3
+_usetex)
+selfr
+__init__n
+DateFormatter.__init__r
+strftimer
+resultr>
+__call__
+DateFormatter.__call__c
+set_tzinfo
+DateFormatter.set_tzinfo)
+__name__
+__module__
+__qualname__
+__doc__r
+    A `.Formatter` which attempts to figure out the best format to use for the
+    date, and to make it as compact as possible, but still be complete. This is
+    most useful when used with the `AutoDateLocator`::
+    >>> locator = AutoDateLocator()
+    >>> formatter = ConciseDateFormatter(locator)
+    Parameters
+    ----------
+    locator : `.ticker.Locator`
+        Locator that this axis is using.
+    tz : str or `~datetime.tzinfo`, default: :rc:`timezone`
+        Ticks timezone, passed to `.dates.num2date`.
+    formats : list of 6 strings, optional
+        Format strings for 6 levels of tick labelling: mostly years,
+        months, days, hours, minutes, and seconds.  Strings use
+        the same format codes as `~datetime.datetime.strftime`.  Default is
+        ``['%Y', '%b', '%d', '%H:%M', '%H:%M', '%S.%f']``
+    zero_formats : list of 6 strings, optional
+        Format strings for tick labels that are "zeros" for a given tick
+        level.  For instance, if most ticks are months, ticks around 1 Jan 2005
+        will be labeled "Dec", "2005", "Feb".  The default is
+        ``['', '%Y', '%b', '%b-%d', '%H:%M', '%H:%M']``
+    offset_formats : list of 6 strings, optional
+        Format strings for the 6 levels that is applied to the "offset"
+        string found on the right side of an x-axis, or top of a y-axis.
+        Combined with the tick labels this should completely specify the
+        date.  The default is::
+            ['', '%Y', '%Y-%b', '%Y-%b-%d', '%Y-%b-%d', '%Y-%b-%d %H:%M']
+    show_offset : bool, default: True
+        Whether to show the offset or not.
+    usetex : bool, default: :rc:`text.usetex`
+        To enable/disable the use of TeX's math mode for rendering the results
+        of the formatter.
+    Examples
+    --------
+    See :doc:`/gallery/ticks/date_concise_formatter`
+    .. plot::
+        import datetime
+        import matplotlib.dates as mdates
+        base = datetime.datetime(2005, 2, 1)
+        dates = np.array([base + datetime.timedelta(hours=(2 * i))
+                          for i in range(732)])
+        N = len(dates)
+        np.random.seed(19680801)
+        y = np.cumsum(np.random.randn(N))
+        fig, ax = plt.subplots(constrained_layout=True)
+        locator = mdates.AutoDateLocator()
+        formatter = mdates.ConciseDateFormatter(locator)
+        ax.xaxis.set_major_locator(locator)
+        ax.xaxis.set_major_formatter(formatter)
+        ax.plot(dates, y)
+        ax.set_title('Concise Date Formatter')
+    NTr
+        Autoformat the date labels.  The default format is used to form an
+        initial string, and then redundant elements are removed.
+        
+z=formats argument must be a list of 6 format strings (or None))
+%H:%Mr
+%S.%fzBzero_formats argument must be a list of 6 format strings (or None)r
+%b-%d
+zDoffset_formats argument must be a list of 6 format strings (or None))
+%Y-%b
+%Y-%b-%dr
+%Y-%b-%d %H:%Mr
+_locator
+defaultfmt
+lenr:
+formats
+zero_formats
+offset_formats
+offset_string
+show_offsetr3
+locatorr8
+ConciseDateFormatter.__init__c
+	formatterr>
+ConciseDateFormatter.__call__c
+	|	d
+value
+z5ConciseDateFormatter.format_ticks.<locals>.<listcomp>c
+Z	timetuple)
+tdtr>
+rstriprg
+	<genexpr>I
+z4ConciseDateFormatter.format_ticks.<locals>.<genexpr>rc
+arrayr
+range
+uniquer
+secondrW
+minr
+valuesZ
+tickdatetimeZ
+tickdateZ
+fmtsZ
+zerofmtsZ
+offsetfmtsr
+levelr
+zerovals
+labelsZ
+trailing_zerosr>
+format_ticks
+z!ConciseDateFormatter.format_ticksc
+get_offset]
+ConciseDateFormatter.get_offsetc
+%Y-%m-%d %H:%M:%S)
+format_data_short`
+z&ConciseDateFormatter.format_data_short)
+NNNNT)
+N)	r
+    A `.Formatter` which attempts to figure out the best format to use.  This
+    is most useful when used with the `AutoDateLocator`.
+    `.AutoDateFormatter` has a ``.scale`` dictionary that maps tick scales (the
+    interval in days between one major tick) to format strings; this dictionary
+    defaults to ::
+        self.scaled = {
+            DAYS_PER_YEAR: rcParams['date.autoformatter.year'],
+            DAYS_PER_MONTH: rcParams['date.autoformatter.month'],
+            1: rcParams['date.autoformatter.day'],
+            1 / HOURS_PER_DAY: rcParams['date.autoformatter.hour'],
+            1 / MINUTES_PER_DAY: rcParams['date.autoformatter.minute'],
+            1 / SEC_PER_DAY: rcParams['date.autoformatter.second'],
+            1 / MUSECONDS_PER_DAY: rcParams['date.autoformatter.microsecond'],
+        }
+    The formatter uses the format string corresponding to the lowest key in
+    the dictionary that is greater or equal to the current scale.  Dictionary
+    entries can be customized::
+        locator = AutoDateLocator()
+        formatter = AutoDateFormatter(locator)
+        formatter.scaled[1/(24*60)] = '%M:%S' # only show min and sec
+    Custom callables can also be used instead of format strings.  The following
+    example shows how to use a custom format function to strip trailing zeros
+    from decimal seconds and adds the date to the first ticklabel::
+        def my_format_function(x, pos=None):
+            x = matplotlib.dates.num2date(x)
+            if pos == 0:
+                fmt = '%D %H:%M:%S.%f'
+            else:
+                fmt = '%H:%M:%S.%f'
+            label = x.strftime(fmt)
+            label = label.rstrip("0")
+            label = label.rstrip(".")
+            return label
+        formatter.scaled[1/(24*60)] = my_format_function
+    N
+%Y-%m-%dr
+        Autoformat the date labels.
+        Parameters
+        ----------
+        locator : `.ticker.Locator`
+            Locator that this axis is using.
+        tz : str or `~datetime.tzinfo`, default: :rc:`timezone`
+            Ticks timezone. If a string, *tz* is passed to `dateutil.tz`.
+        defaultfmt : str
+            The default format to use if none of the values in ``self.scaled``
+            are greater than the unit returned by ``locator._get_unit()``.
+        usetex : bool, default: :rc:`text.usetex`
+            To enable/disable the use of TeX's math mode for rendering the
+            results of the formatter. If any entries in ``self.scaled`` are set
+            as functions, then it is up to the customized function to enable or
+            disable TeX's math mode itself.
+        Nr
+date.autoformatter.yearz
+date.autoformatter.monthrB
+date.autoformatter.dayz
+date.autoformatter.hourz
+date.autoformatter.minutez
+date.autoformatter.secondz
+date.autoformatter.microsecond)
+_formatterr3
+DAYS_PER_YEAR
+DAYS_PER_MONTH
+HOURS_PER_DAY
+MINUTES_PER_DAYrL
+scaled)
+AutoDateFormatter.__init__c
+_set_locator
+AutoDateFormatter._set_locatorc
+scaler
+locator_unit_scaler>
+z-AutoDateFormatter.__call__.<locals>.<genexpr>r
+z Unexpected type passed to {0!r}.)
+	_get_unit
+AttributeError
+next
+sortedr
+itemsr
+callabler=
+format)
+AutoDateFormatter.__call__)
+    A simple wrapper around a `dateutil.rrule` allowing flexible
+    date tick specifications.
+    Nc
+        Parameters
+        ----------
+        freq : {YEARLY, MONTHLY, WEEKLY, DAILY, HOURLY, MINUTELY, SECONDLY}
+            Tick frequency. These constants are defined in `dateutil.rrule`,
+            but they are accessible from `matplotlib.dates` as well.
+        tzinfo : `datetime.tzinfo`, optional
+            Time zone information. The default is None.
+        **kwargs
+            Additional keyword arguments are passed to the `dateutil.rrule`.
+        
+freqN)
+_base_tzinfo
+_update_rrule)
+kwargsr>
+rrulewrapper.__init__c
+z'Set parameters for an existing wrapper.N)
+_construct
+updater
+rrulewrapper.setc
+dtstartrS
+untilz<until cannot be aware if dtstart is naive and tzinfo is None)
+copyr
+_tzinfor
+_rrule)
+rrulewrapper._update_rrulec
+localizeT)
+is_dstrS
+hasattrr
+_attach_tzinfo
+rrulewrapper._attach_tzinfoFc
+)	z>Decorator function that allows rrule methods to handle tzinfo.Nc
+argr
+normalize_arg&
+z9rrulewrapper._aware_return_wrapper.<locals>.normalize_argc
+zMrrulewrapper._aware_return_wrapper.<locals>.normalize_args.<locals>.<genexpr>c
+<dictcomp>1
+zNrrulewrapper._aware_return_wrapper.<locals>.normalize_args.<locals>.<dictcomp>)
+tupler
+argsr
+normalize_args/
+z:rrulewrapper._aware_return_wrapper.<locals>.normalize_argsc
+inner_func8
+z6rrulewrapper._aware_return_wrapper.<locals>.inner_funcc
+zJrrulewrapper._aware_return_wrapper.<locals>.inner_func.<locals>.<listcomp>r>
+dtsr
+	functools
+wraps)
+returns_listr
+_aware_return_wrapper
+z"rrulewrapper._aware_return_wrapperc
+afterZ
+before>
+xafterZ
+xbefore
+betweenT)
+__dict__rq
+namer
+__getattr__D
+rrulewrapper.__getattr__c
+stater>
+__setstate__Q
+rrulewrapper.__setstate__)
+    Determines the tick locations when plotting dates.
+    This class is subclassed by other Locators and
+    is not meant to be used on its own.
+    r
+byhour
+byminute
+bysecondNc
+        Parameters
+        ----------
+        tz : str or `~datetime.tzinfo`, default: :rc:`timezone`
+            Ticks timezone. If a string, *tz* is passed to `dateutil.tz`.
+        Nr
+DateLocator.__init__c
+        Set timezone info.
+        Parameters
+        ----------
+        tz : str or `~datetime.tzinfo`, default: :rc:`timezone`
+            Ticks timezone. If a string, *tz* is passed to `dateutil.tz`.
+        Nr
+DateLocator.set_tzinfoc
+z/Convert axis data interval to datetime objects.)
+axisZ
+get_data_intervalr
+dmin
+dmaxr>
+datalim_to_dtr
+DateLocator.datalim_to_dtc
+z.Convert the view interval to datetime objects.)
+get_view_intervalr
+vmin
+vmaxr>
+viewlim_to_dtz
+DateLocator.viewlim_to_dtc
+        Return how many days a unit of the locator is; used for
+        intelligent autoscaling.
+        rB
+DateLocator._get_unitc
+        Return the number of units for each tick.
+        rB
+_get_interval
+DateLocator._get_intervalc
+        Given the proposed upper and lower extent, adjust the range
+        if it is too close to being singular (i.e. a range of ~0).
+        rA
+isfiniter
+dater
+unit
+intervalr>
+nonsingular
+DateLocator.nonsingular)
+hms0dr
+superr
+rule)
+	__class__r>
+RRuleLocator.__init__c
+tick_valuesr
+RRuleLocator.__call__c
+_create_rruler
+raise_if_exceeds)
+start
+stopZ
+datesr>
+RRuleLocator.tick_valuesc
+OverflowErrorr;
+utcr
+RRuleLocator._create_rrulec
+_freq
+get_unit_generic)
+RRuleLocator._get_unitc
+DAYS_PER_WEEKr
+RRuleLocator.get_unit_genericc
+	_intervalr
+RRuleLocator._get_interval)
+staticmethodr'
+__classcell__r>
+    On autoscale, this class picks the best `DateLocator` to set the view
+    limits and the tick locations.
+    Attributes
+    ----------
+    intervald : dict
+        Mapping of tick frequencies to multiples allowed for that ticking.
+        The default is ::
+            self.intervald = {
+                YEARLY  : [1, 2, 4, 5, 10, 20, 40, 50, 100, 200, 400, 500,
+                           1000, 2000, 4000, 5000, 10000],
+                MONTHLY : [1, 2, 3, 4, 6],
+                DAILY   : [1, 2, 3, 7, 14, 21],
+                HOURLY  : [1, 2, 3, 4, 6, 12],
+                MINUTELY: [1, 5, 10, 15, 30],
+                SECONDLY: [1, 5, 10, 15, 30],
+                MICROSECONDLY: [1, 2, 5, 10, 20, 50, 100, 200, 500,
+                                1000, 2000, 5000, 10000, 20000, 50000,
+                                100000, 200000, 500000, 1000000],
+            }
+        where the keys are defined in `dateutil.rrule`.
+        The interval is used to specify multiples that are appropriate for
+        the frequency of ticking. For instance, every 7 days is sensible
+        for daily ticks, but for minutes/seconds, 15 or 30 make sense.
+        When customizing, you should only modify the values for the existing
+        keys. You should not add or delete entries.
+        Example for forcing ticks every 3 hours::
+            locator = AutoDateLocator()
+            locator.intervald[HOURLY] = [3]  # only show every 3 hours
+    Nr
+        Parameters
+        ----------
+        tz : str or `~datetime.tzinfo`, default: :rc:`timezone`
+            Ticks timezone. If a string, *tz* is passed to `dateutil.tz`.
+        minticks : int
+            The minimum number of ticks desired; controls whether ticks occur
+            yearly, monthly, etc.
+        maxticks : int
+            The maximum number of ticks desired; controls the interval between
+            ticks (ticking every other, every 3, etc.).  For fine-grained
+            control, this can be a dictionary mapping individual rrule
+            frequency constants (YEARLY, MONTHLY, etc.) to their own maximum
+            number of ticks.  This can be used to keep the number of ticks
+            appropriate to the format chosen in `AutoDateFormatter`. Any
+            frequency not specified in this dictionary is given a default
+            value.
+        interval_multiples : bool, default: True
+            Whether ticks should be chosen to be multiple of the interval,
+            locking them to 'nicer' locations.  For example, this will force
+            the ticks to be at hours 0, 6, 12, 18 when hourly ticking is done
+            at 6 hour intervals.
+        r
+_freqs
+minticks
+maxticksr
+dict
+fromkeys
+interval_multiples
+	intervaldr
+	_byranges)
+AutoDateLocator.__init__c
+get_locator)
+AutoDateLocator.__call__c
+AutoDateLocator.tick_valuesc
+AutoDateLocator.nonsingularc
+AutoDateLocator._get_unitc
+z*Pick the best locator based on a distance.rD
+NNrB
+AutoDateLocator was unable to pick an appropriate interval for this date range. It may be necessary to add an interval value to the AutoDateLocator's intervald dictionary. Defaulting to r
+bymonth
+bymonthdayr
+zOPlotting microsecond time intervals for dates far from the epoch (time origin: zL) is not well-supported. See matplotlib.dates.set_epoch to change the epoch.)$r
+years
+MONTHS_PER_YEAR
+monthsr
+hours
+MIN_PER_HOURZ
+minutesrJ
+floorr
+	enumerate
+ziprC
+warn_externalr&
+set_axisr
+tdeltaZ
+numYearsZ	numMonthsZ
+numDaysZ
+numHoursZ
+numMinutesZ
+numSecondsZ
+numMicrosecondsZ
+numsZ
+use_rrule_locatorZ
+byranges
+AutoDateLocator.get_locator)
+)	r%
+    Make ticks on a given day of each year that is a multiple of base.
+    Examples::
+      # Tick every year on Jan 1st
+      locator = YearLocator()
+      # Tick every 5 years on July 4th
+      locator = YearLocator(5, month=7, day=4)
+    rB
+        Parameters
+        ----------
+        base : int, default: 1
+            Mark ticks every *base* years.
+        month : int, default: 1
+            The month on which to place the ticks, starting from 1. Default is
+            January.
+        day : int, default: 1
+            The day on which to place the ticks.
+        tz : str or `~datetime.tzinfo`, default: :rc:`timezone`
+            Ticks timezone. If a string, *tz* is passed to `dateutil.tz`.
+        )
+_Edge_integer
+base)
+month
+dayr8
+YearLocator.__init__c
+)	NrB
+yearr[
+hourZ
+minuter
+maxrZ
+ler]
+getr\
+yminZ
+ymax
+YearLocator._create_rrule)
+    Make ticks on occurrences of each month, e.g., 1, 3, 12.
+    NrB
+        Parameters
+        ----------
+        bymonth : int or list of int, default: all months
+            Ticks will be placed on every month in *bymonth*. Default is
+            ``range(1, 13)``, i.e. every month.
+        bymonthday : int, default: 1
+            The day on which to place the ticks.
+        interval : int, default: 1
+            The interval between each iteration. For example, if
+            ``interval=2``, mark every second occurrence.
+        tz : str or `~datetime.tzinfo`, default: :rc:`timezone`
+            Ticks timezone. If a string, *tz* is passed to `dateutil.tz`.
+        NrB
+MonthLocator.__init__)
+    Make ticks on occurrences of each weekday.
+    rB
+        Parameters
+        ----------
+        byweekday : int or list of int, default: all days
+            Ticks will be placed on every weekday in *byweekday*. Default is
+            every day.
+            Elements of *byweekday* must be one of MO, TU, WE, TH, FR, SA,
+            SU, the constants from :mod:`dateutil.rrule`, which have been
+            imported into the :mod:`matplotlib.dates` namespace.
+        interval : int, default: 1
+            The interval between each iteration. For example, if
+            ``interval=2``, mark every second occurrence.
+        tz : str or `~datetime.tzinfo`, default: :rc:`timezone`
+            Ticks timezone. If a string, *tz* is passed to `dateutil.tz`.
+        )
+	byweekdayr
+WeekdayLocator.__init__)
+    Make ticks on occurrences of each day of the month.  For example,
+    1, 15, 30.
+    NrB
+        Parameters
+        ----------
+        bymonthday : int or list of int, default: all days
+            Ticks will be placed on every day in *bymonthday*. Default is
+            ``bymonthday=range(1, 32)``, i.e., every day of the month.
+        interval : int, default: 1
+            The interval between each iteration. For example, if
+            ``interval=2``, mark every second occurrence.
+        tz : str or `~datetime.tzinfo`, default: :rc:`timezone`
+            Ticks timezone. If a string, *tz* is passed to `dateutil.tz`.
+        rB
+z*interval must be an integer greater than 0Nr@
+DayLocator.__init__)
+    Make ticks on occurrences of each hour.
+    NrB
+        Parameters
+        ----------
+        byhour : int or list of int, default: all hours
+            Ticks will be placed on every hour in *byhour*. Default is
+            ``byhour=range(24)``, i.e., every hour.
+        interval : int, default: 1
+            The interval between each iteration. For example, if
+            ``interval=2``, mark every second occurrence.
+        tz : str or `~datetime.tzinfo`, default: :rc:`timezone`
+            Ticks timezone. If a string, *tz* is passed to `dateutil.tz`.
+        NrA
+HourLocator.__init__)
+    Make ticks on occurrences of each minute.
+    NrB
+        Parameters
+        ----------
+        byminute : int or list of int, default: all minutes
+            Ticks will be placed on every minutes in *byminutes*. Default is
+            ``byminute=range(60)``, i.e., every minute.
+        interval : int, default: 1
+            The interval between each iteration. For example, if
+            ``interval=2``, mark every second occurrence.
+        tz : str or `~datetime.tzinfo`, default: :rc:`timezone`
+            Ticks timezone. If a string, *tz* is passed to `dateutil.tz`.
+        NrB
+MinuteLocator.__init__)
+    Make ticks on occurrences of each second.
+    NrB
+        Parameters
+        ----------
+        bysecond : int or list of int, default: all seconds
+            Ticks will be placed on every second in *bysecond*. Default is
+            ``bysecond = range(60)``, i.e., every second.
+        interval : int, default: 1
+            The interval between each iteration. For example, if
+            ``interval=2``, mark every second occurrence.
+        tz : str or `~datetime.tzinfo`, default: :rc:`timezone`
+            Ticks timezone. If a string, *tz* is passed to `dateutil.tz`.
+        NrB
+SecondLocator.__init__)
+    Make ticks on regular intervals of one or more microsecond(s).
+    .. note::
+        By default, Matplotlib uses a floating point representation of time in
+        days since the epoch, so plotting data with
+        microsecond time resolution does not work well for
+        dates that are far (about 70 years) from the epoch (check with
+        `~.dates.get_epoch`).
+        If you want sub-microsecond resolution time plots, it is strongly
+        recommended to use floating point seconds, not datetime-like
+        time representation.
+        If you really must use datetime.datetime() or similar and still
+        need microsecond precision, change the time origin via
+        `.dates.set_epoch` to something closer to the dates being plotted.
+        See :doc:`/gallery/ticks/date_precision_and_epochs`.
+    rB
+        Parameters
+        ----------
+        interval : int, default: 1
+            The interval between each iteration. For example, if
+            ``interval=2``, mark every second occurrence.
+        tz : str or `~datetime.tzinfo`, default: :rc:`timezone`
+            Ticks timezone. If a string, *tz* is passed to `dateutil.tz`.
+        r
+MultipleLocator
+_wrapped_locator)
+MicrosecondLocator.__init__c
+MicrosecondLocator.set_axis
+3.5z
+`.Axis.set_view_interval`
+alternativec
+set_view_intervalr
+z$MicrosecondLocator.set_view_intervalz
+`.Axis.set_data_interval`c
+set_data_intervalr
+z$MicrosecondLocator.set_data_intervalc
+MicrosecondLocator.__call__c
+nminZ
+nmaxrO
+ticksr>
+MicrosecondLocator.tick_valuesc
+MicrosecondLocator._get_unitc
+z MicrosecondLocator._get_interval)
+deprecatedrh
+zQ``[date2num(datetime.utcfromtimestamp(t)) for t in e]`` or numpy.datetime64 typesrg
+    Convert UNIX time to days since Matplotlib epoch.
+    Parameters
+    ----------
+    e : list of floats
+        Time in seconds since 1970-01-01.
+    Returns
+    -------
+    `numpy.array`
+        Time in days since Matplotlib epoch (see `~.dates.get_epoch()`).
+    
+1970-01-01T00:00:00rH
+z$`num2date(e).timestamp()<.num2date>`c
+    Convert days since Matplotlib epoch to UNIX time.
+    Parameters
+    ----------
+    d : list of floats
+        Time in days since Matplotlib epoch (see `~.dates.get_epoch()`).
+    Returns
+    -------
+    `numpy.array`
+        Time in seconds since 1970-01-01.
+    rk
+3.6z<`AutoDateLocator` and `AutoDateFormatter` or vendor the coder
+}	d	}
+    Create a date locator with *numticks* (approx) and a date formatter
+    for *span* in days.  Return value is (locator, formatter).
+    r
+%b %Yz	%a, %b %d)
+%b %dz
+%H:%M
+%b %dz
+%H:%M:%S)
+mathr
+spanr8
+numticksZ
+minsZ
+hrsr
+wksrR
+date_ticker_factory#
+    Converter for `datetime.date` and `datetime.datetime` data, or for
+    date/time data represented as it would be converted by `date2num`.
+    The 'unit' tag for such data is None or a tzinfo instance.
+    T
+_interval_multiplesr
+DateConverter.__init__c
+        Return the `~matplotlib.units.AxisInfo` for *unit*.
+        *unit* is a tzinfo instance or None.
+        The *axis* argument is required but not used.
+        
+majloc
+majfmtZ
+labelZ
+default_limits)
+AxisInfo
+dateminZ
+datemaxr>
+axisinfo[
+DateConverter.axisinfoc
+        If *value* is not already a number or sequence of numbers, convert it
+        with `date2num`.
+        The *unit* and *axis* arguments are not used.
+        )
+convertm
+DateConverter.convertc
+t	yT
+        Return the tzinfo instance of *x* or of its first element, or None
+        N)
+ndarrayZ
+ravelr
+_safe_first_finiter=
+StopIterationr<
+default_unitsw
+DateConverter.default_units)
+)	r/
+NTrq
+_formats
+_zero_formats
+_offset_formats
+_show_offsetrr
+ConciseDateConverter.__init__c
+ConciseDateConverter.axisinfo)
+NNNT)
+_SwitchableDateConverterz
+    Helper converter-like object that generates and dispatches to
+    temporary ConciseDateConverter or DateConverter instances based on
+    :rc:`date.converter` and :rc:`date.interval_multiples`.
+    c
+concise
+autoz
+date.converterz
+date.interval_multiplesrq
+converter_clsrH
+_get_converter
+z'_SwitchableDateConverter._get_converterc
+z!_SwitchableDateConverter.axisinfoc
+z&_SwitchableDateConverter.default_unitsc
+z _SwitchableDateConverter.convertN)	r
+loggingrn
+dateutil.rruler
+dateutil.relativedeltar
+dateutil.parserr7
+dateutil.tzZ
+numpyrJ
+matplotlibr3
+__all__Z	getLoggerr
+_logr1
+Z	toordinalZ
+EPOCH_OFFSETru
+SEC_PER_MINrQ
+SEC_PER_HOURrL
+SEC_PER_WEEKrZ
+MONDAYZ
+TUESDAYZ	WEDNESDAYZ
+THURSDAYZ
+FRIDAYZ
+SATURDAYZ
+SUNDAYZ
+WEEKDAYSrE
+Z	vectorizer~
+Z	Formatterr
+Locatorr"
+ConversionInterfacer.
+registryrK
+<module>

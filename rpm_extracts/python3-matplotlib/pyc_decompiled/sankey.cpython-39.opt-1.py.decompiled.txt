@@ -1,0 +1,469 @@
+;i<S^1	E
+m	Z	
+Module for creating Sankey diagrams using Matplotlib.
+SimpleNamespace)
+Path)
+	PathPatch)
+Affine2D)
+_docstringz
+Kevin L. Daviesz
+Yannick CopinZ
+BSDz
+2011/09/16
+Sankeyab
+    Sankey diagram.
+      Sankey diagrams are a specific type of flow diagram, in which
+      the width of the arrows is shown proportionally to the flow
+      quantity.  They are typically used to visualize energy or
+      material or cost transfers between processes.
+      `Wikipedia (6/1/2011) <https://en.wikipedia.org/wiki/Sankey_diagram>`_
+    N
+333333
+|	d	
+        Create a new Sankey instance.
+        The optional arguments listed below are applied to all subdiagrams so
+        that there is consistent alignment and formatting.
+        In order to draw a complex Sankey diagram, create an instance of
+        :class:`Sankey` by calling it without any kwargs::
+            sankey = Sankey()
+        Then add simple Sankey sub-diagrams::
+            sankey.add() # 1
+            sankey.add() # 2
+            #...
+            sankey.add() # n
+        Finally, create the full diagram::
+            sankey.finish()
+        Or, instead, simply daisy-chain those calls::
+            Sankey().add().add...  .add().finish()
+        Other Parameters
+        ----------------
+        ax : `~.axes.Axes`
+            Axes onto which the data should be plotted.  If *ax* isn't
+            provided, new Axes will be created.
+        scale : float
+            Scaling factor for the flows.  *scale* sizes the width of the paths
+            in order to maintain proper layout.  The same scale is applied to
+            all subdiagrams.  The value should be chosen such that the product
+            of the scale and the sum of the inputs is approximately 1.0 (and
+            the product of the scale and the sum of the outputs is
+            approximately -1.0).
+        unit : str
+            The physical unit associated with the flow quantities.  If *unit*
+            is None, then none of the quantities are labeled.
+        format : str or callable
+            A Python number formatting string or callable used to label the
+            flows with their quantities (i.e., a number times a unit, where the
+            unit is given). If a format string is given, the label will be
+            ``format % quantity``. If a callable is given, it will be called
+            with ``quantity`` as an argument.
+        gap : float
+            Space between paths that break in/break away to/from the top or
+            bottom.
+        radius : float
+            Inner radius of the vertical paths.
+        shoulder : float
+            Size of the shoulders of output arrows.
+        offset : float
+            Text offset (from the dip or tip of the arrow).
+        head_angle : float
+            Angle, in degrees, of the arrow heads (and negative of the angle of
+            the tails).
+        margin : float
+            Minimum space between Sankey outlines and the edge of the plot
+            area.
+        tolerance : float
+            Acceptable maximum of the magnitude of the sum of flows.  The
+            magnitude of the sum of connected flows cannot be greater than
+            *tolerance*.
+        **kwargs
+            Any additional keyword arguments will be passed to :meth:`add`,
+            which will create the first subdiagram.
+        See Also
+        --------
+        Sankey.add
+        Sankey.finish
+        Examples
+        --------
+        .. plot:: gallery/specialty_plots/sankey_basics.py
+        r
+zS'gap' is negative, which is not allowed because it would cause the paths to overlapz`'radius' is greater than 'gap', which is not allowed because it would cause the paths to overlapzp'head_angle' is negative, which is not allowed because it would cause inputs to look like outputs and vice versaz3'tolerance' is negative, but it must be a magnitudeNr
+xticksZ
+yticksg
+ValueErrorZ
+matplotlib.pyplotZ
+pyplotZ
+figureZ
+add_subplot
+diagrams
+unit
+format
+scale
+radius
+shoulder
+offset
+margin
+tanZ
+pitch
+	tolerance
+array
+extent
+add)
+selfr
+head_angler
+kwargsZ
+pltZ
+7/usr/lib64/python3.9/site-packages/matplotlib/sankey.py
+__init__*
+Sankey.__init__r
+        Return the codes and vertices for a rotated, scaled, and translated
+        90 degree arc.
+        Other Parameters
+        ----------------
+        quadrant : {0, 1, 2, 3}, default: 0
+            Uses 0-based indexing (0, 1, 2, or 3).
+        cw : bool, default: True
+            If True, the arc vertices are produced clockwise; counter-clockwise
+            otherwise.
+        radius : float, default: 1
+            The radius of the arc.
+        center : (float, float), default: (0, 0)
+            (x, y) tuple of the arc's center.
+        r
+LINETO
+CURVE4r 
+column_stack
+list
+zipZ
+tile
+shape)
+quadrant
+centerZ	ARC_CODESZ
+ARC_VERTICES
+verticesr*
+_arc
+Sankey._arcc
+        Add an input to a path and return its tip and label locations.
+        Nr
+RIGHT
+extendr
+DOWNr
+append)
+path
+angle
+flow
+length
+dipdepthZ
+label_location
+signr5
+_add_input
+Sankey._add_inputc
+        Append an output to a path and return its tip and label locations.
+        .. note:: *flow* is negative for an output.
+        Nr
+Z	tipheight
+tiprF
+_add_output
+Sankey._add_outputc
+        A path is not simply reversible by path[::-1] since the code
+        specifies an action to take from the **previous** point.
+        Nr/
+first_actionZ
+reverse_pathZ	next_code
+codeZ
+positionr*
+_revertL
+Sankey._revertc
+	d!|
+d*d+
+qzd }
+j |!|
+}$}%|$|"|
+|%|#|
+j!| |
+}$}%|$|"|
+|%|#|
+q2d }
+	r |
+	r |
+|!d"
+|!d"
+}$}%|$|"|
+|%|#|
+	q d }
+| d"
+| d"
+}'}(t
+}(d/d0
+d1d+
+j(})|)|"
+}"|)|#
+}#|)|(
+j)j*d
+d3d3d4
+d5d+
+j(})|)|"
+}+t&
+j,|+
+j(},|,|"
+}"|,|)|#
+}#|,|)|(
+d3d3d4
+j)j*|+i
+}*t-j.d6
+#d7|
+#d8d9
+#d:|
+#d;d<
+}/n(|
+#d7|
+#d8d
+#d:|
+#d;d
+}/|.d
+j)j0j1
+}.t2t
+|(|'
+|.|/d>
+}3}4|3d
+r(d?}3nj|
+}5n t7|
+t8d@
+|3d?k
+|3dA7
+}3|3|57
+}3|1
+j)j*|4d
+|3d3d3dB
+:|(d
+:|#d
+j9d.
+:|(d
+:|#d
+j9dC
+"t;|0|
+|"|*|1dD
+        Add a simple Sankey diagram with flows at the same hierarchical level.
+        Parameters
+        ----------
+        patchlabel : str
+            Label to be placed at the center of the diagram.
+            Note that *label* (not *patchlabel*) can be passed as keyword
+            argument to create an entry in the legend.
+        flows : list of float
+            Array of flow values.  By convention, inputs are positive and
+            outputs are negative.
+            Flows are placed along the top of the diagram from the inside out
+            in order of their index within *flows*.  They are placed along the
+            sides of the diagram from the top down and along the bottom from
+            the outside in.
+            If the sum of the inputs and outputs is
+            nonzero, the discrepancy will appear as a cubic Bezier curve along
+            the top and bottom edges of the trunk.
+        orientations : list of {-1, 0, 1}
+            List of orientations of the flows (or a single orientation to be
+            used for all flows).  Valid values are 0 (inputs from
+            the left, outputs to the right), 1 (from and to the top) or -1
+            (from and to the bottom).
+        labels : list of (str or None)
+            List of labels for the flows (or a single label to be used for all
+            flows).  Each label may be *None* (no label), or a labeling string.
+            If an entry is a (possibly empty) string, then the quantity for the
+            corresponding flow will be shown below the string.  However, if
+            the *unit* of the main diagram is None, then quantities are never
+            shown, regardless of the value of this argument.
+        trunklength : float
+            Length between the bases of the input and output groups (in
+            data-space units).
+        pathlengths : list of float
+            List of lengths of the vertical arrows before break-in or after
+            break-away.  If a single value is given, then it will be applied to
+            the first (inside) paths on the top and bottom, and the length of
+            all other arrows will be justified accordingly.  The *pathlengths*
+            are not applied to the horizontal inputs and outputs.
+        prior : int
+            Index of the prior diagram to which this diagram should be
+            connected.
+        connect : (int, int)
+            A (prior, this) tuple indexing the flow of the prior diagram and
+            the flow of this diagram which should be connected.  If this is the
+            first diagram or *prior* is *None*, *connect* will be ignored.
+        rotation : float
+            Angle of rotation of the diagram in degrees.  The interpretation of
+            the *orientations* argument will be rotated accordingly (e.g., if
+            *rotation* == 90, an *orientations* entry of 1 means to/from the
+            left).  *rotation* is ignored if this diagram is connected to an
+            existing one (using *prior* and *connect*).
+        Returns
+        -------
+        Sankey
+            The current `.Sankey` instance.
+        Other Parameters
+        ----------------
+        **kwargs
+           Additional keyword arguments set `matplotlib.patches.PathPatch`
+           properties, listed below.  For example, one may want to use
+           ``fill=False`` or ``label="A legend entry"``.
+        %(Patch:kwdoc)s
+        See Also
+        --------
+        Sankey.finish
+        Nr
+The shapes of 'flows' z
+ and 'orientations' z
+ are incompatiblez
+ and 'labels' zR'trunklength' is negative, which is not allowed because it would cause poor layoutzWThe sum of the flows is nonzero (%f; patchlabel=%r); is the system not at steady state?c
+.0rB
+	<genexpr>
+Sankey.add.<locals>.<genexpr>c
+minrO
+z*The index of the prior diagram is negativez2At least one of the connection indices is negativez"The index of the prior diagram is z
+, but there are only z
+ other diagramszTThe connection index to the source diagram is {}, but that diagram has only {} flowsr
+z(The connection index to this diagram is z
+, but this diagram has only z
+ flowszHThe connection cannot be made, which may occur if the magnitude of flow z
+ of diagram z% is less than the specified tolerancez)The scaled sum of the connected flows is z%, which is not within the tolerance (
+)TFzwThe magnitude of flow %d (%f) is below the tolerance (%f).
+It will not be shown, and it cannot be used in a connection.r/
+The value of orientations[z
+] is z
+, but it must be -1, 0, or 1z
+The lengths of 'flows' (z
+) and 'pathlengths' (z
+) are incompatible)
+<listcomp>(
+Sankey.add.<locals>.<listcomp>r
+ @r.
+_get_angle
+Sankey.add.<locals>._get_anglec
+rotationr*
+_internal.classic_mode
+fcZ	facecolorz
+#bfd1d4
+lwZ	linewidthg
+color)
+z*format must be callable or a format string
+patch
+flows
+angles
+tips
+text
+texts)<r 
+broadcast_tor
+sumr"
+_log
+infor
+	enumerater3
+iterable
+dict
+reversedr2
+MOVETOr
+zerosrH
+poprL
+Z	CLOSEPOLYr
+rotate_degZ
+transform_affiner
+	translate
+mplZ
+rcParams
+nextZ
+_get_patches_for_fillZ
+prop_cyclerr
+Z	add_patchr
+isinstance
+callable
+	TypeErrorr%
+)6r(
+patchlabelrf
+orientations
+labelsZ
+trunklengthZ
+pathlengthsZ
+priorZ
+connectr]
+scaled_flowsZ
+gainZ
+lossZ
+flow_errorZ
+are_inputs
+orientZ
+is_inputZ
+urlengthZ
+ullengthZ
+lrlengthZ
+lllengthrA
+has_left_input
+specZ
+has_right_outputZ
+urpathZ
+llpathZ
+lrpathZ
+ulpathrh
+label_locationsrI
+codesr8
+rotateri
+kwdsrb
+numberZ
+label
+locationZ
+quantityr*
+Sankey.addc
+        Adjust the axes and return a list of information about the Sankey
+        subdiagram(s).
+        Return value is a list of subdiagrams represented with the following
+        fields:
+          ===============   ===================================================
+          Field             Description
+          ===============   ===================================================
+          *patch*           Sankey outline (an instance of
+                            :class:`~matplotlib.patches.PathPatch`)
+          *flows*           values of the flows (positive for input, negative
+                            for output)
+          *angles*          list of angles of the arrows [deg/90]
+                            For example, if the diagram has not been rotated,
+                            an input to the top side will have an angle of 3
+                            (DOWN), and an output from the top side will have
+                            an angle of 1 (UP).  If a flow has been skipped
+                            (because its magnitude is less than *tolerance*),
+                            then its angle will be *None*.
+          *tips*            array in which each row is an [x, y] pair
+                            indicating the positions of the tips (or "dips") of
+                            the flow paths
+                            If the magnitude of a flow is less the *tolerance*
+                            for the instance of :class:`Sankey`, the flow is
+                            skipped and its tip will be at the center of the
+                            diagram.
+          *text*            :class:`~matplotlib.text.Text` instance for the
+                            label of the diagram
+          *texts*           list of :class:`~matplotlib.text.Text` instances
+                            for the labels of flows
+          ===============   ===================================================
+        See Also
+        --------
+        Sankey.add
+        r
+equalZ
+datalim)
+adjustable)
+axisr%
+set_aspectr
+finish
+Sankey.finish)
+__name__
+__module__
+__qualname__
+__doc__r,
+dedent_interpdr'
+logging
+typesr
+numpyr 
+matplotlibru
+matplotlib.pathr
+matplotlib.patchesr
+matplotlib.transformsr
+Z	getLoggerr
+__author__
+__credits__Z
+__license__
+__version__r;
+<module>

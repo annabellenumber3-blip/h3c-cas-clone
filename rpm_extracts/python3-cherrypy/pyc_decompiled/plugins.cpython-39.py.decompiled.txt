@@ -1,0 +1,401 @@
+z2Site services for use with a Web Site Process Bus.
+text_or_bytes)
+ntobc
+SimplePluginzCPlugin base class which auto-subscribes methods for known channels.Nc
+selfr
+</usr/lib/python3.9/site-packages/cherrypy/process/plugins.py
+__init__)
+SimplePlugin.__init__c
+z>Register this object as a (multi-channel) listener on the bus.N)
+	listeners
+getattr
+	subscribe
+channel
+methodr
+SimplePlugin.subscribec
+z0Unregister this object as a listener on the bus.N)
+unsubscriber
+SimplePlugin.unsubscribe)
+__name__
+__module__
+__qualname__
+__doc__r
+r e	
+s e	e
+q [	[
+SignalHandlera
+Register bus channels (and listeners) for system signals.
+    You can modify what signals your application listens for, and what it does
+    when it receives signals, by modifying :attr:`SignalHandler.handlers`,
+    a dict of {signal name: callback} pairs. The default set is::
+        handlers = {'SIGTERM': self.bus.exit,
+                    'SIGHUP': self.handle_SIGHUP,
+                    'SIGUSR1': self.bus.graceful,
+                   }
+    The :func:`SignalHandler.handle_SIGHUP`` method calls
+    :func:`bus.restart()<cherrypy.process.wspbus.Bus.restart>`
+    if the process is daemonized, but
+    :func:`bus.exit()<cherrypy.process.wspbus.Bus.exit>`
+    if the process is attached to a TTY. This is because Unix window
+    managers tend to send SIGHUP to terminal windows when the user closes them.
+    Feel free to add signals which are not available on every platform.
+    The :class:`SignalHandler` will ignore errors raised from attempting
+    to register handlers for unknown signals.
+    Z
+SIGZ
+SIG_c
+SIGTERM
+SIGHUP
+SIGUSR1
+javar
+SIGUSR2zASIGUSR1 cannot be set on the JVM platform. Using SIGUSR2 instead.
+SIGINT)
+exit
+handle_SIGHUP
+graceful
+handlers
+platform
+_jython_SIGINT_handler
+_previous_handlers
+getpid
+_original_pidr
+SignalHandler.__init__Nc
+Nz%Keyboard Interrupt: shutting down bus)
+signum
+framer
+z$SignalHandler._jython_SIGINT_handlerc
+Return boolean indicating if the current process is
+        running as a daemon.
+        The criteria to determine the `daemon` condition is to verify
+        if the current pid is not the same as the one that got used on
+        the initial construction of the plugin *and* the stdin is not
+        connected to a terminal.
+        The sole validation of the tty is not enough when the plugin
+        is executing inside other process like in a CI tool
+        (Buildbot, Jenkins).
+        )
+isattyr#
+stdin
+fileno
+_is_daemonizedy
+SignalHandler._is_daemonizedc
+z#Subscribe self.handlers to signals.N)
+items
+set_handler
+ValueError)
+funcr
+SignalHandler.subscribec
+z'Unsubscribe self.handlers from signals.Nz Restoring %s handler to SIG_DFL.z
+Restoring %s handler %r.z?Restored old %s handler %r, but our handler was not registered.
+levelz Unable to restore %s handler %r.
+	traceback)	r'
+signalsr
+_signal
+SIG_DFL
+signalr4
+handler
+signameZ
+our_handlerr
+SignalHandler.unsubscribec
+Subscribe a handler for the given signal (number or name).
+        If the optional 'listener' argument is provided, it will be
+        subscribed as a listener for the given signal's channel.
+        If the given signal name or number is not available on the current
+        platform, ValueError is raised.
+        Nz
+No such signal: %rz
+Listening for %s.)
+isinstancer
+KeyErrorr?
+_handle_signalr'
+listenerr+
+prevr
+SignalHandler.set_handlerc
+z?Python signal handler (self.set_handler subscribes it for you).z
+Caught signal %s.N)
+publish)
+SignalHandler._handle_signalc
+z!Restart if daemonized, else exit.z+SIGHUP caught while daemonized. Restarting.z*SIGHUP caught but not daemonized. Exiting.N)
+restartr
+SignalHandler.handle_SIGHUP)
+varsr=
+startswithr
+Z	e	j
+DropPrivilegesz
+Drop privileges. uid/gid arguments not available on Windows.
+    Special thanks to `Gavin Baker
+    <http://antonym.org/2005/12/dropping-privileges-in-python.html>`_
+    Nc
+	finalized
+umask)
+DropPrivileges.__init__c
+z/The uid under which to run. Availability: Unix.)
+_uidr0
+DropPrivileges.uidc
+Nz'pwd module not available; ignoring uid.r6
+pwdr
+getpwnamrR
+valr
+z/The gid under which to run. Availability: Unix.)
+_gidr0
+DropPrivileges.gidc
+Nz'grp module not available; ignoring gid.r6
+grpr
+getgrnamrX
+The default permission mode for newly created files and directories.
+        Usually expressed in octal format, for example, ``0644``.
+        Availability: Unix, Windows.
+        )
+_umaskr0
+DropPrivileges.umaskc
+Nz-umask function not available; ignoring umask.r6
+AttributeErrorr
+z+Return the current (uid, gid) if available.rK
+getpwuidr(
+getuidrY
+getgrgid
+getgid)
+name
+groupr
+current_ids!
+z)DropPrivileges.start.<locals>.current_idsz"Already running as uid: %r gid: %rz
+uid/gid not setr6
+Started as uid: %r gid: %rz
+Running as uid: %r gid: %rz
+umask already set to: %03oz
+umask not setz
+umask old: %03o, new: %03oT)
+setgid
+	setgroups
+setuidrQ
+Z	old_umaskr
+start
+DropPrivileges.start
+NNN)
+propertyrO
+setterrP
+priorityr
+Daemonizera
+Daemonize the running script.
+    Use this with a Web Site Process Bus via::
+        Daemonizer(bus).subscribe()
+    When this component finishes, the process is completely decoupled from
+    the parent environment. Please note that when this component is used,
+    the return code from the parent process will still be 0 if a startup
+    error occurs in the forked children. Errors in the initial daemonizing
+    process still return proper exit codes. Therefore, if you use this
+    plugin to daemonize, don't use the return code as an accurate indicator
+    of whether the process fully started. In fact, that return code only
+    indicates if the process successfully finished the first fork.
+    
+	/dev/nullc
+stdout
+stderrrN
+Daemonizer.__init__c
+Already deamonized.
+zHThere are %r active threads. Daemonizing now may cause strange failures.r6
+	threadingZ
+activeCount
+	enumerate
+	daemonizer.
+Daemonizer.start
+msgr
+<lambda>~
+Daemonizer.<lambda>c
+Nz>{sys.argv[0]}: fork #{n} failed: ({exc.errno}) {exc.strerror}
+Forking once.z
+Forking twice.r
+Daemonized to PID: %s)
+flushrn
+ranger(
+fork
+_exit
+OSErrorr
+format
+setsidrQ
+open
+dup2r/
+loggerZ
+error_tmplr|
+pidrw
+Daemonizer.daemonizeN)
+staticmethodrr
+PIDFilez!Maintain a PID file via a WSPBus.c
+pidfilerN
+PIDFile.__init__c
+PID %r already written to %r.
+utf8z
+PID %r written to %r.T)	r(
+writer
+PIDFile.start
+PID file removed: %r.)
+remover
+KeyboardInterrupt
+SystemExit
+	Exceptionr0
+PIDFile.exitN)
+PerpetualTimera
+A responsive subclass of threading.Timer whose run() method repeats.
+    Use this timer only when you really need a very interruptible timer;
+    this checks its 'finished' condition up to 20 times a second, which can
+    results in pretty high CPU usage
+    c
+z:Override parent constructor to allow 'bus' to be provided.r
+popr
+superr
+args
+kwargs
+	__class__r
+PerpetualTimer.__init__c
+Nz,Error in perpetual timer thread function %r.r9
+finished
+wait
+intervalZ
+isSet
+functionr
+PerpetualTimer.run)
+__classcell__r
+BackgroundTaska
+A subclass of threading.Thread whose run() method repeats.
+    Use this class for most repeating tasks. It uses time.sleep() to wait
+    for each interval, which isn't very responsive; that is, even if you call
+    self.cancel(), you'll have to wait until the sleep() call finishes before
+    the thread stops. To compensate, it defaults to being daemonic, which means
+    it won't delay stopping the whole process.
+    Nc
+NFT)
+runningr
+daemon)
+BackgroundTask.__init__c
+cancel
+BackgroundTask.cancelc
+NTz,Error in background task thread function %r.r9
+time
+sleepr
+BackgroundTask.run)
+_	d	d
+MonitorzAWSPBus listener to periodically run a callback in its own thread.N
+callback
+	frequency
+threadr`
+Monitor.__init__c
+z0Start our callback in its own background thread.r
+Started monitor thread %r.z"Monitor thread %r already started.)
+setNamerf
+threadnamer
+Monitor.startr
+z+Stop our callback's background task thread.Nz
+No thread running for %s.z
+Joining %r
+Stopped thread %r.)
+currentThread
+getNamer
+join)
+stop2
+Monitor.stopc
+z:Stop the callback's background task thread and restart it.N)
+Monitor.graceful)
+AutoreloaderaQ
+Monitor which re-executes the process when files change.
+    This :ref:`plugin<plugins>` restarts the process (via :func:`os.execv`)
+    if any of the files it monitors change (or is deleted). By default, the
+    autoreloader monitors all imported modules; you can add to the
+    set by adding to ``autoreload.files``::
+        cherrypy.engine.autoreload.files.add(myFile)
+    If there are imported files you do *not* wish to monitor, you can
+    adjust the ``match`` attribute, a regular expression. For example,
+    to stop monitoring cherrypy itself::
+        cherrypy.engine.autoreload.match = r'^(?!cherrypy).+'
+    Like all :class:`Monitor<cherrypy.process.plugins.Monitor>` plugins,
+    the autoreload plugin takes a ``frequency`` argument. The default is
+    1 second; that is, the autoreloader will examine files once each second.
+    Nro
+mtimes
+files
+matchr
+Autoreloader.__init__c
+z2Start our own background task thread for self.run.N)
+Autoreloader.startr
+z1Return a Set of sys.modules filenames to monitor.N)
+filter
+compiler
+listr#
+modules
+keys
+getr
+_file_for_module)
+search_mod_namesZ
+modsr
+sysfiless
+Autoreloader.sysfilesc
+z(Return the relevant file for the module.)
+_archive_for_zip_module
+_file_for_file_module
+moduler
+Autoreloader._file_for_modulec
+z7Return the archive filename for the module if relevant.N)
+__loader__
+archiver[
+z$Autoreloader._archive_for_zip_modulec
+Return the file for the module.N)
+__file__
+_make_absoluter[
+z"Autoreloader._file_for_file_modulec
+z8Ensure filename is absolute to avoid effect of os.chdir.)
+path
+isabs
+normpathr
+_module__file__base)
+filenamer
+Autoreloader._make_absolutec
+z:Reload the process if registered files have been modified.z
+.pycN
+Restarting because %s changed.r
+endswithr
+stat
+st_mtimer~
+oldtime
+mtimer
+Autoreloader.run)
+classmethodr
+ThreadManagera
+Manager for HTTP request threads.
+    If you have control over thread creation and destruction, publish to
+    the 'acquire_thread' and 'release_thread' channels (for each thread).
+    This will register/unregister the current thread and publish to
+    'start_thread' and 'stop_thread' listeners in the bus as needed.
+    If threads are created and destroyed by code you do not control
+    (e.g., Apache), then, at the beginning of every HTTP request,
+    publish to 'acquire_thread' only. You should not publish to
+    'release_thread' in this case, since you do not know whether
+    the thread will be re-used or not. The bus will call
+    'stop_thread' listeners for you when it stops.
+    Nc
+acquire_thread
+start_thread
+release_thread
+stop_thread)
+threadsr
+setdefaultr
+ThreadManager.__init__c
+Run 'start_thread' listeners for the current thread.
+        If the current thread has already been seen, any 'start_thread'
+        listeners will not be run again.
+        ro
+_thread
+	get_identr
+lenr
+thread_ident
+ThreadManager.acquire_threadc
+z;Release the current thread and run 'stop_thread' listeners.Nr
+ThreadManager.release_threadc
+z8Release all threads and run all 'stop_thread' listeners.r
+clearr
+ThreadManager.stop)
+cherrypy._cpcompatr
+getcwdr
+objectr
+ImportErrorrL
+Timerr
+Threadr
+<module>

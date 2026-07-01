@@ -1,0 +1,365 @@
+d!d"
+j e"e
+d!d"
+j e$e
+d!d"
+j e&e
+d!d"
+Z'd4Z
+j e(e
+d!d"
+j e*e
+d!d"
+j e,e
+d!d"
+j e.e
+d!d"
+j e0e
+d!d"
+j e2e
+d!d"
+Z3dRZ
+dWZ4e
+j e5e
+e4d!d"
+Z6dXZ
+d]Z4e
+j e7e
+e4d!d"
+Z8d^Z
+dcZ4e
+j e9e
+e4d!d"
+Z:ddZ
+diZ4e
+j e;e
+e4d!d"
+j e=e
+e4d!d"
+j e?e
+e4d!d"
+j eAe
+e4d!d"
+ZBd|S
+Implementation of Elliptic-Curve Digital Signatures.
+Classes and methods for elliptic-curve signatures:
+private keys, public keys, signatures,
+NIST prime-modulus curves with modulus lengths of
+192, 224, 256, 384, and 521 bits.
+Example:
+  # (In real-life applications, you would probably want to
+  # protect against defects in SystemRandom.)
+  from random import SystemRandom
+  randrange = SystemRandom().randrange
+  # Generate a public/private key pair using the NIST Curve P-192:
+  g = generator_192
+  n = g.order()
+  secret = randrange( 1, n )
+  pubkey = Public_key( g, g * secret )
+  privkey = Private_key( pubkey, secret )
+  # Signing a hash value:
+  hash = randrange( 1, n )
+  signature = privkey.sign( hash, randrange( 1, n ) )
+  # Verifying a signature for a hash value:
+  if pubkey.verifies( hash, signature ):
+    print_("Demo verification succeeded.")
+  else:
+    print_("*** Demo verification failed.")
+  # Verification fails if the hash value is modified:
+  if pubkey.verifies( hash-1, signature ):
+    print_("**** Demo verification failed to reject tampered hash.")
+  else:
+    print_("Demo verification correctly rejected tampered hash.")
+Version of 2009.05.16.
+Revision history:
+      2005.12.31 - Initial version.
+      2008.11.25 - Substantial revisions introducing new classes.
+      2009.05.16 - Warn against using random.randrange in real applications.
+      2009.05.17 - Use random.SystemRandom by default.
+Written in 2005 by Peter Pearson and placed in the public domain.
+int2byte
+ellipticcurve)
+numbertheory)
+bit_length)
+remove_whitespacec
+RSZeroErrorN
+__name__
+__module__
+__qualname__
+//usr/lib/python3.9/site-packages/ecdsa/ecdsa.pyr	
+InvalidPointErrorNr
+	Signaturez
+ECDSA signature.c
+selfr
+__init__I
+Signature.__init__c
+	|	|
+Returns two public keys for which the signature is valid
+        hash is signed hash
+        generator is the used generator of the signature
+        
+curve
+orderr
+square_root_mod_primer
+PointJacobi
+inverse_mod
+Public_key)
+hash
+	generatorr
+alphaZ
+beta
+Pk1Z
+Pk2r
+recover_public_keysM
+Signature.recover_public_keysN)
+__doc__r
+Public key for ECDSA.Tc
+Low level ECDSA public key object.
+        :param generator: the Point that generates the group (the base point)
+        :param point: the Point that defines the public key
+        :param bool verify: if True check if point is valid point on curve
+        :raises InvalidPointError: if the point parameters are invalid or
+            point does not lay on the curve
+        r
+z)The public point has x or y out of range.z
+Point does not lay on the curvez Generator point must have order.r
+Generator point order is bad.N)
+pointr
+contains_point
+cofactorr
+INFINITY)
+verifyr"
+Public_key.__init__c
+Return True if the keys are identical, False otherwise.
+        Note: for comparison, only placement on the same curve and point
+        equality is considered, use of the same generator point is not
+        considered.
+        )
+isinstancer
+NotImplemented
+otherr
+__eq__
+Public_key.__eq__c
+z7Return False if the keys are identical, True otherwise.r
+__ne__
+Public_key.__ne__c
+zkVerify that signature is a valid signature of hash.
+        Return True if the signature is valid.
+        r
+mul_add)
+hasattrr2
+Z	signature
+verifies
+Public_key.verifiesN)
+Private_keyz
+Private key for ECDSA.c
+zYpublic_key is of class Public_key;
+        secret_multiplier is a large integer.
+        N)
+public_key
+secret_multiplier)
+Private_key.__init__c
+z9Return True if the points are identical, False otherwise.)
+Private_key.__eq__c
+z9Return False if the points are identical, True otherwise.r
+Private_key.__ne__c
+}	|	d
+t	|	|
+Return a signature for the provided hash, using the provided
+        random nonce.  It is absolutely vital that random_k be an unpredictable
+        number in the range [1, self.public_key.point.order()-1].  If
+        an attacker can guess random_k, he can compute our private key from a
+        single signature.  Also, if an attacker knows a few high-order
+        bits (or a few low-order bits) of random_k, he can compute our private
+        key from many signatures.  The generation of nonces with adequate
+        cryptographic strength is very difficult and far beyond the scope
+        of this comment.
+        May raise RuntimeError, in which case retrying with a new
+        random value k is in order.
+        r
+z!amazingly unlucky random number rz!amazingly unlucky random number s)
+random_kr4
+sign
+Private_key.signN)
+z7Convert integer x into a string of bytes, as per X9.62.r
+appendr
+reverse
+join)
+resultZ
+ordinalr
+int_to_string
+z8Convert a string of bytes into an integer, as per X9.62.r
+ord)
+string_to_int	
+zmConvert an integer into a string of bytes, compute
+     its SHA-1 hash, and convert the result to an integer.r
+sha1)
+hashlibrJ
+digest)
+digest_integer
+z=Is (x,y) a valid public key based on the specified generator?r
+point_is_valid 
+DB7C 2ABF62E3 5E668076 BEAD208B
+DB7C 2ABF62E3 5E668076 BEAD2088z
+659E F8BA0439 16EEDE89 11702B22z
+09487239 995A5EE7 6B55F9C2 F098z
+A89C E5AF8724 C0A23E0E 0FF77500z
+DB7C 2ABF62E3 5E7628DF AC6561C5T)
+6127 C24C05F3 8A0AAAF6 5C0EF02Cz
+51DE F1815DB5 ED74FCC3 4C85D709z
+4BA30AB5 E892B4E1 649DD092 8643z
+ADCD 46F5882E 3747DEF3 6E956E97z
+36DF 0AAFD8B8 D7597CA1 0520D04B
+z#FFFFFFFD FFFFFFFF FFFFFFFF FFFFFFFFz#E87579C1 1079F43D D824993C 2CEE5ED3z#161FF752 8B899B2D 0C28607C A52C5B86z#CF5AC839 5BAFEB13 C02DA292 DDED7A83z#FFFFFFFE 00000000 75A30D1B 9038A115
+z,FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF 7FFFFFFFz,1C97BEFC 54BD7A8B 65ACF89F 81D4D4AD C565FA45z,4A96B568 8EF57328 46646989 68C38BB9 13CBFC82z,23A62855 3168947D 59DCC912 04235137 7AC5FB32z/01 00000000 00000000 0001F4C8 F927AED3 CA752257l
+&^#a
+    64210519 E59C80E7 0FA7E9AB 72243049 FEB8DEEC C146B9B1z:
+    188DA80E B03090F6 7CBF20EB 43A18800 F4FF0AFD 82FF1012z:
+    07192B95 FFC8DA78 631011ED 6B24CDD5 73F977A1 1E794811zN
+    2695994666715063979466701508701963067355791626002630814351
+    0066298881zN
+    2695994666715063979466701508701962594045780771442439172168
+    2722368061zG
+    B4050A85 0C04B3AB F5413256 5044B0B7 D7BFD8BA 270B3943
+    2355FFB4zG
+    B70E0CBD 6BB4BF7F 321390B9 4A03C1D3 56C21122 343280D6
+    115C1D21zG
+    BD376388 B5F723FB 4C22DFE6 CD4375A0 5A074764 44D58199
+    85007E34zX
+    1157920892103562487626974469494075735300861434152903141955
+    33631308867097853951zX
+    115792089210356248762697446949407573529996955224135760342
+    422259061068512044369zP
+    5AC635D8 AA3A93E7 B3EBBD55 769886BC 651D06B0 CC53B0F6
+    3BCE3C3E 27D2604BzP
+    6B17D1F2 E12C4247 F8BCE6E5 63A440F2 77037D81 2DEB33A0
+    F4A13945 D898C296zP
+    4FE342E2 FE1A7F9B 8EE7EB4A 7C0F9E16 2BCE3357 6B315ECE
+    CBB64068 37BF51F5z~
+    3940200619639447921227904010014361380507973927046544666794
+    8293404245721771496870329047266088258938001861606973112319z~
+    3940200619639447921227904010014361380507973927046544666794
+    6905279627659399113263569398956308152294913554433653942643zt
+    B3312FA7 E23EE7E4 988E056B E3F82D19 181D9C6E FE814112
+    0314088F 5013875A C656398D 8A2ED19D 2A85C8ED D3EC2AEFzt
+    AA87CA22 BE8B0537 8EB1C71E F320AD74 6E1D3B62 8BA79B98
+    59F741E0 82542A38 5502F25D BF55296C 3A545E38 72760AB7zt
+    3617DE4A 96262C6F 5D9E98BF 9292DC29 F8F41DBD 289A147C
+    E9DA3113 B5F0B8C0 0A60B1CE 1D7E819D 7A431D7C 90EA0E5FZ
+6864797660130609714981900799081393217269435300143305409394463459185543183397656052122559640661454554977296311391480858037121987999716643812574028291115057151Z
+6864797660130609714981900799081393217269435300143305409394463459185543183397655394245057746333217197532963996371363321113864768612440380340372808892707005449z
+         051 953EB961 8E1C9A1F 929A21A0 B68540EE A2DA725B
+    99B315F3 B8B48991 8EF109E1 56193951 EC7E937B 1652C0BD
+    3BB1BF07 3573DF88 3D2C34F1 EF451FD4 6B503F00z
+          C6 858E06B7 0404E9CD 9E3ECB66 2395B442 9C648139
+    053FB521 F828AF60 6B4D3DBA A14B5E77 EFE75928 FE1DC127
+    A2FFA8DE 3348B3C1 856A429B F97E7E31 C2E5BD66z
+         118 39296A78 9A3BC004 5C8A5FB4 2C7D1BD9 98F54449
+    579B4468 17AFBD17 273E662C 97EE7299 5EF42640 C550B901
+    3FAD0761 353C7086 A272C240 88BE9476 9FD16650
+w>?3
+T!v?B>b
+I;m:Hl
+AAl 3z
+W8]u@
+0#Wdo
+b**N`
+w,8s_
+cDqR
+w,8s_
+%~_QP
+=GQi
+r~x[1z$
+MmTLv
+_n&!qzQ
+MmTLv
+6&]&D
+hu%`0
+}@%\
+(lM[
+"4f}hu%`0
+[Ip*@
+cpf^
+3OhIR:6.
+vBT0
+C7U{h
+N"R#<
+I;BQh0B
+|~Tl
+yo4,
+vBT0
+C7U{h
+    3EE30B568FBAB0F883CCEBD46D3F3BB8A2A73513F5EB79DA66190EB085FFA9
+    F492F375A97D860EB4zZ
+    520883949DFDBC42D3AD198640688A6FE13F41349554B49ACC31DCCD884539
+    816F5EB4AC8FB1F1A6zZ
+    D35E472036BC4FB7E13C785ED201E065F98FCFA6F6F40DEF4F92B9EC7893EC
+    28FCD412B1F1B32E27zZ
+    43BD7E9AFB53D8B85289BCC48EE5BFE6F20137D10A087EB6E7871E2A10A599
+    C710AF8D0D39E20611zZ
+    14FDD05545EC1CC8AB4093247F77275E0743FFED117182EAA9C77877AAAC6A
+    C7D35245D1692E8EE1zZ
+    D35E472036BC4FB7E13C785ED201E065F98FCFA5B68F12A32D482EC7EE8658
+    E98691555B44C59311zj
+    7BC382C63D8C150C3C72080ACE05AFA0C2BEA28E4FB22787139165EFBA91F9
+    0F8AA5814A503AD4EB04A8C7DD22CE2826zj
+    04A8C7DD22CE28268B39B55416F0447C2FB77DE107DCD2A62E880EA53EEB62
+    D57CB4390295DBC9943AB78696FA504C11zj
+    8CB91E82A3386D280F5D6F7E50E641DF152F7109ED5456B412B1DA197FB711
+    23ACD3A729901D1A71874700133107EC53zj
+    1D1C64F068CF45FFA2A63A81B7C13F6B8847A3E77EF14FE3DB7FCAFE0CBD10
+    E8E826E03436D646AAEF87B2E247D4AF1Ezj
+    8ABE1D7520F9C2A45CB1EB8E95CFD55262B70B29FEEC5864E19C054FF991292
+    80E4646217791811142820341263C5315zj
+    8CB91E82A3386D280F5D6F7E50E641DF152F7109ED5456B31F166E6CAC0425
+    A7CF3AB6AF6B7FC3103B883202E9046565z
+    7830A3318B603B89E2327145AC234CC594CBDD8D3DF91610A83441CAEA9863
+    BC2DED5D5AA8253AA10A2EF1C98B9AC8B57F1117A72BF2C7B9E7C1AC4D77FC94CAz
+    3DF91610A83441CAEA9863BC2DED5D5AA8253AA10A2EF1C98B9AC8B57F1117
+    A72BF2C7B9E7C1AC4D77FC94CADC083E67984050B75EBAE5DD2809BD638016F723z
+    AADD9DB8DBE9C48B3FD4E6AE33C9FC07CB308DB3B3C9D20ED6639CCA703308
+    717D4D9B009BC66842AECDA12AE6A380E62881FF2F2D82C68528AA6056583A48F3z
+    81AEE4BDD82ED9645A21322E9C4C6A9385ED9F70B5D916C1B43B62EEF4D009
+    8EFF3B1F78E2D0D48D50D1687B93B97D5F7C6D5047406A5E688B352209BCB9F822z
+    7DDE385D566332ECC0EABFA9CF7822FDF209F70024A57B1AA000C55B881F81
+    11B2DCDE494A5F485E5BCA4BD88A2763AED1CA2B2FA8F0540678CD1E0F3AD80892z
+    AADD9DB8DBE9C48B3FD4E6AE33C9FC07CB308DB3B3C9D20ED6639CCA703308
+    70553E5C414CA92619418661197FAC10471DB1D381085DDADDB58796829CA90069N)Cr'
+sixr
+utilr
+_compatr
+RuntimeErrorr	
+objectr
+_GxZ
+_GyZ
+CurveFpZ
+curve_112r1r
+generator_112r1Z
+curve_112r2Z
+generator_112r2Z
+curve_128r1Z
+generator_128r1Z
+curve_160r1Z
+generator_160r1Z	curve_192Z
+generator_192Z	curve_224Z
+generator_224Z	curve_256Z
+generator_256Z	curve_384Z
+generator_384Z	curve_521Z
+generator_521Z
+curve_secp256k1Z
+generator_secp256k1Z
+curve_brainpoolp160r1Z
+generator_brainpoolp160r1Z
+curve_brainpoolp192r1Z
+generator_brainpoolp192r1Z
+curve_brainpoolp224r1Z
+generator_brainpoolp224r1Z
+curve_brainpoolp256r1Z
+generator_brainpoolp256r1Z
+curve_brainpoolp320r1Z
+generator_brainpoolp320r1Z
+curve_brainpoolp384r1Z
+generator_brainpoolp384r1Z
+curve_brainpoolp512r1Z
+generator_brainpoolp512r1r
+<module>

@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+  <springProperty scope="context" name="logPath" source="log.path"/>
+  <!--<property name="logPath" value="D:/log/cvk-agent"/>-->
+  <!-- ch.qos.logback.core.ConsoleAppender 控制台输出 -->
+  <appender name="stdout" class="ch.qos.logback.core.ConsoleAppender">
+    <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+      <level>INFO</level>
+    </filter>
+    <encoder>
+      <pattern>
+        [%highlight(%-5level)] %d{HH:mm:ss} [%thread] Req[%X{req_id}] %logger{36} - %msg%n
+      </pattern>
+    </encoder>
+  </appender>
+
+  <!-- ch.qos.logback.core.rolling.RollingFileAppender 文件日志输出 -->
+  <appender name="file" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <file>${logPath}/performance-monitor-service.log</file>
+    <filter class="com.h3c.h3cloud.performance.monitor.service.filter.DefaultLogFilter">
+    </filter>
+    <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+      <fileNamePattern>${logPath}/performance-monitor-service-%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+      <maxHistory>90</maxHistory>
+      <maxFileSize>100MB</maxFileSize>
+    </rollingPolicy>
+    <encoder>
+      <pattern>
+        [%-5level] %d{HH:mm:ss} [%thread] Req[%X{req_id}] %logger{36} - %msg%n
+      </pattern>
+    </encoder>
+  </appender>
+
+  <!-- 接口调用日志 -->
+  <appender name="accessLog" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <file>${logPath}/access.log</file>
+    <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+      <fileNamePattern>
+        ${logPath}/access-%d{yyyy-MM-dd}.%i.log.gz
+      </fileNamePattern>
+      <maxHistory>90</maxHistory>
+      <maxFileSize>100MB</maxFileSize>
+    </rollingPolicy>
+    <encoder>
+      <pattern>
+        [%-5level] %d{HH:mm:ss} [%thread] Req[%X{req_id}] %logger{36} - %msg%n
+      </pattern>
+    </encoder>
+  </appender>
+  <appender name="performanceCallLog" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <file>${logPath}/call.log</file>
+    <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+      <fileNamePattern>
+        ${logPath}/call-%d{yyyy-MM-dd}.%i.log.gz
+      </fileNamePattern>
+      <MaxHistory>90</MaxHistory>
+      <maxFileSize>100MB</maxFileSize>
+    </rollingPolicy>
+    <encoder>
+      <pattern>
+        [%-5level] %d{HH:mm:ss} [%thread] Req[%X{req_id}] %logger{36} - %msg%n
+      </pattern>
+    </encoder>
+  </appender>
+
+  <root level="INFO">
+    <appender-ref ref="stdout"/>
+    <appender-ref ref="file"/>
+  </root>
+  <logger name="com.h3c.h3cloud.performance.monitor.service.mapper.clickhouse" level="DEBUG">
+    <appender-ref ref="stdout"/>
+    <appender-ref ref="file"/>
+  </logger>
+  <logger name="com.h3c.h3cloud.performance.monitor.service.advice.LogAspect" level="INFO">
+    <appender-ref ref="accessLog"/>
+  </logger>
+</configuration>

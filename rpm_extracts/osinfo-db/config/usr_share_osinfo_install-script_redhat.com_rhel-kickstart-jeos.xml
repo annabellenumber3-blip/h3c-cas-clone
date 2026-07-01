@@ -1,0 +1,230 @@
+<?xml version="1.0"?>
+<libosinfo version="0.0.1">
+  <!-- Licensed under the GNU General Public License version 2 or later.
+     See http://www.gnu.org/licenses/ for a copy of the license text -->
+  <install-script id="http://redhat.com/rhel/kickstart/jeos">
+    <profile>jeos</profile>
+    <expected-filename>rhel.ks</expected-filename>
+    <config>
+      <param name="admin-password" policy="required"/>
+      <param name="user-login" policy="optional"/>
+      <param name="user-password" policy="optional"/>
+      <param name="hostname" policy="optional"/>
+      <param name="l10n-keyboard" policy="optional"/>
+      <param name="l10n-language" policy="optional"/>
+      <param name="l10n-timezone" policy="optional"/>
+      <param name="target-disk" policy="optional"/>
+      <param name="script-disk" policy="optional"/>
+    </config>
+    <injection-method>cdrom</injection-method>
+    <injection-method>disk</injection-method>
+    <injection-method>floppy</injection-method>
+    <injection-method>initrd</injection-method>
+    <template>
+      <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
+        <xsl:output method="text"/>
+        <xsl:template name="hostname">
+          <xsl:choose>
+            <xsl:when test="config/hostname != ''">
+              <xsl:value-of select="config/hostname"/>
+            </xsl:when>
+            <xsl:otherwise>
+              <xsl:text>locahost</xsl:text>
+            </xsl:otherwise>
+          </xsl:choose>
+        </xsl:template>
+        <xsl:template name="target-disk">
+          <xsl:choose>
+            <xsl:when test="config/target-disk != ''">
+              <xsl:value-of select="config/target-disk"/>
+            </xsl:when>
+            <xsl:when test="os/version &gt; 5.5 or contains(os/version, '-unknown')">
+              <!-- virtio -->
+              <xsl:text>/dev/vda</xsl:text>
+            </xsl:when>
+            <xsl:otherwise>
+              <!-- IDE -->
+              <xsl:text>/dev/sda</xsl:text>
+            </xsl:otherwise>
+          </xsl:choose>
+        </xsl:template>
+        <xsl:template name="script-disk">
+          <xsl:variable name="script-disk">
+            <xsl:choose>
+              <xsl:when test="config/script-disk != ''">
+                <xsl:value-of select="config/script-disk"/>
+              </xsl:when>
+              <xsl:when test="os/version &gt; 5.5 or contains(os/version, '-unknown')">
+                <xsl:text>/dev/sda</xsl:text>
+              </xsl:when>
+              <xsl:otherwise>
+                <xsl:text>/dev/sdb</xsl:text>
+              </xsl:otherwise>
+            </xsl:choose>
+          </xsl:variable>
+          <xsl:value-of select="substring-after($script-disk, '/dev/')"/>
+        </xsl:template>
+        <xsl:template match="/command-line">
+          <xsl:choose>
+            <xsl:when test="os/version &gt; 7">
+              <xsl:text>inst.ks=</xsl:text>
+            </xsl:when>
+            <xsl:otherwise>
+              <xsl:text>ks=</xsl:text>
+            </xsl:otherwise>
+          </xsl:choose>
+          <xsl:choose>
+            <xsl:when test="script/preferred-injection-method = 'initrd'">
+              <xsl:text>file:/</xsl:text>
+            </xsl:when>
+            <xsl:otherwise>
+              <xsl:text>hd:</xsl:text>
+              <xsl:call-template name="script-disk"/>
+              <xsl:text>:/</xsl:text>
+            </xsl:otherwise>
+          </xsl:choose>
+          <xsl:value-of select="script/expected-filename"/>
+          <xsl:if test="script/installation-source = 'network'">
+            <xsl:choose>
+              <xsl:when test="os/version &lt; 7 or os/version = '6-unknown'">
+                <xsl:text> method=</xsl:text>
+              </xsl:when>
+              <xsl:otherwise>
+                <xsl:text> inst.repo=</xsl:text>
+              </xsl:otherwise>
+            </xsl:choose>
+            <xsl:call-template name="installation-url"/>
+          </xsl:if>
+        </xsl:template>
+        <xsl:template name="version">
+          <xsl:choose>
+            <xsl:when test="os/version &lt; 7 or os/version = '6-unknown'">
+              <xsl:text>6</xsl:text>
+            </xsl:when>
+            <xsl:when test="os/version &lt; 8 or os/version = '7-unknown'">
+              <xsl:text>7</xsl:text>
+            </xsl:when>
+            <xsl:otherwise>
+              <xsl:text>8</xsl:text>
+              <xsl:if test="contains(os/name, 'Stream')">
+                <xsl:text>-stream</xsl:text>
+              </xsl:if>
+            </xsl:otherwise>
+          </xsl:choose>
+        </xsl:template>
+        <xsl:template name="arch">
+          <xsl:choose>
+            <xsl:when test="config/hardware-arch = 'x86_64'">
+              <xsl:text>x86_64</xsl:text>
+            </xsl:when>
+            <xsl:otherwise>
+              <xsl:text>i386</xsl:text>
+            </xsl:otherwise>
+          </xsl:choose>
+        </xsl:template>
+        <xsl:template name="installation-url">
+          <xsl:choose>
+            <xsl:when test="config/installation-url != ''">
+              <xsl:value-of select="config/installation-url"/>
+            </xsl:when>
+            <xsl:when test="tree/url != ''">
+              <xsl:value-of select="tree/url"/>
+            </xsl:when>
+            <xsl:when test="os/distro = 'centos'">
+              <xsl:text>http://mirror.centos.org/centos/</xsl:text>
+              <xsl:call-template name="version"/>
+              <xsl:choose>
+                <xsl:when test="os/version &lt; 8">
+                  <xsl:text>/os/</xsl:text>
+                  <xsl:call-template name="arch"/>
+                </xsl:when>
+                <xsl:otherwise>
+                  <xsl:text>/BaseOS/</xsl:text>
+                  <xsl:call-template name="arch"/>
+                  <xsl:text>/os/</xsl:text>
+                </xsl:otherwise>
+              </xsl:choose>
+            </xsl:when>
+            <xsl:when test="os/distro = 'almalinux'">
+              <xsl:text>http://repo.almalinux.org/almalinux/</xsl:text>
+              <xsl:call-template name="version"/>
+              <xsl:text>/BaseOS/</xsl:text>
+              <xsl:call-template name="arch"/>
+              <xsl:text>/os/</xsl:text>
+            </xsl:when>
+            <xsl:when test="os/distro = 'rocky'">
+              <xsl:text>https://download.rockylinux.org/pub/rocky/</xsl:text>
+              <xsl:call-template name="version"/>
+              <xsl:text>/BaseOS/</xsl:text>
+              <xsl:call-template name="arch"/>
+              <xsl:text>/os/</xsl:text>
+            </xsl:when>
+            <xsl:when test="os/distro = 'circle'">
+              <xsl:text>https://mirror.cclinux.org/pub/circle/</xsl:text>
+              <xsl:call-template name="version"/>
+              <xsl:text>/BaseOS/</xsl:text>
+              <xsl:call-template name="arch"/>
+              <xsl:text>/os/</xsl:text>
+            </xsl:when>
+          </xsl:choose>
+        </xsl:template>
+        <xsl:template match="/install-script-config">
+# Install script for <xsl:value-of select="os/short-id"/> profile <xsl:value-of select="script/profile"/>
+<xsl:if test="script/installation-source = 'media'"><xsl:if test="os/version &lt; 8 or os/version = '6-unknown' or os/version = '7-unknown'">
+install
+  </xsl:if>
+cdrom
+</xsl:if>
+text
+<!-- FIXME: RHEL requires keyboard layout to be a console layout so to do this right, we'll need
+            mapping from language to console layout. -->
+keyboard us
+lang <xsl:value-of select="config/l10n-language"/>
+skipx
+network --onboot yes --bootproto dhcp --hostname=<xsl:call-template name="hostname"/>
+rootpw '<xsl:value-of select="config/admin-password"/>'
+firewall --disabled
+<xsl:if test="os/version &lt; 8 or os/version = '6-unknown' or os/version = '7-unknown'">
+authconfig --enableshadow --enablemd5
+</xsl:if>
+selinux --enforcing
+timezone --utc <xsl:value-of select="config/l10n-timezone"/>
+bootloader --location=mbr
+zerombr
+
+clearpart --all --drives=<xsl:call-template name="target-disk"/>
+
+autopart
+reboot
+
+<xsl:if test="script/installation-source = 'network' or contains(media/variant, 'netinst')">
+url --url=<xsl:call-template name="installation-url"/>
+</xsl:if>
+
+%packages
+<xsl:choose><xsl:when test="os/version &lt; 7 or os/version = '6-unknown'">
+@base
+  </xsl:when><xsl:otherwise><xsl:choose><xsl:when test="os/distro = 'centos' and os/version &lt; 8">
+@^minimal
+      </xsl:when><xsl:otherwise>
+@standard
+      </xsl:otherwise></xsl:choose></xsl:otherwise></xsl:choose>
+@core
+%end
+
+%post --erroronfail
+
+if test -n '<xsl:value-of select="config/user-login"/>' &amp;&amp; test -n '<xsl:value-of select="config/user-password"/>'; then
+  useradd -G wheel <xsl:value-of select="config/user-login"/> # Add user
+  echo '<xsl:value-of select="config/user-password"/>' |passwd --stdin <xsl:value-of select="config/user-login"/>
+fi
+
+# Create an osinfo-install-successful file in /root
+touch /root/osinfo-install-successful
+
+%end
+        </xsl:template>
+      </xsl:stylesheet>
+    </template>
+  </install-script>
+</libosinfo>

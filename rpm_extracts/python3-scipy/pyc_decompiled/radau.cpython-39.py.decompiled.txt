@@ -1,0 +1,326 @@
+Z e d
+Z!e d
+Z#d Z$d!Z%d
+Z&d"d#
+Z'd$d%
+d&d'
+d(d)
+	lu_factor
+lu_solve)
+csc_matrix
+issparse
+eye)
+splu)
+group_columns
+validate_max_step
+validate_tol
+select_initial_step
+norm
+num_jac
+warn_extraneous
+validate_first_step)
+	OdeSolver
+DenseOutputg.!	
+g{g]
+gUUUUUU
+gUUUUUU
+?gUUUUUU
+)	aQ
+Solve the collocation system.
+    Parameters
+    ----------
+    fun : callable
+        Right-hand side of the system.
+    t : float
+        Current time.
+    y : ndarray, shape (n,)
+        Current state.
+    h : float
+        Step to try.
+    Z0 : ndarray, shape (3, n)
+        Initial guess for the solution. It determines new values of `y` at
+        ``t + h * C`` as ``y + Z0``, where ``C`` is the Radau method constants.
+    scale : float
+        Problem tolerance scale, i.e. ``rtol * abs(y) + atol``.
+    tol : float
+        Tolerance to which solve the system. This value is compared with
+        the normalized by `scale` error.
+    LU_real, LU_complex
+        LU decompositions of the system Jacobians.
+    solve_lu : callable
+        Callable which solves a linear system given a LU decomposition. The
+        signature is ``solve_lu(LU, b)``.
+    Returns
+    -------
+    converged : bool
+        Whether iterations converged.
+    n_iter : int
+        Number of completed iterations.
+    Z : ndarray, shape (3, n)
+        Found solution.
+    rate : float
+        The rate of convergence.
+    r
+NFr	
+shape
+MU_REAL
+MU_COMPLEX
+empty
+empty_like
+range
+NEWTON_MAXITER
+allZ
+isfinite
+TI_REAL
+TI_COMPLEX
+real
+imagr
+scaleZ
+LU_real
+LU_complex
+solve_lu
+M_realZ	M_complex
+dW_norm_oldZ
+	converged
+rate
+f_realZ	f_complexZ
+dW_realZ
+dW_complexZ
+dW_norm
+@/usr/lib64/python3.9/site-packages/scipy/integrate/_ivp/radau.py
+solve_collocation_system0
+Predict by which factor to increase/decrease the step size.
+    The algorithm is described in [1]_.
+    Parameters
+    ----------
+    h_abs, h_abs_old : float
+        Current and previous values of the step size, `h_abs_old` can be None
+        (see Notes).
+    error_norm, error_norm_old : float
+        Current and previous values of the error norm, `error_norm_old` can
+        be None (see Notes).
+    Returns
+    -------
+    factor : float
+        Predicted factor.
+    Notes
+    -----
+    If `h_abs_old` and `error_norm_old` are both not None then a two-step
+    algorithm is used, otherwise a one-step algorithm is used.
+    References
+    ----------
+    .. [1] E. Hairer, S. P. Norsett G. Wanner, "Solving Ordinary Differential
+           Equations II: Stiff and Differential-Algebraic Problems", Sec. IV.8.
+    Nr
+ignore)
+divideg
+errstate
+min)
+h_abs
+	h_abs_old
+error_norm
+error_norm_oldZ
+multiplier
+factorr@
+predict_factor
+Radaua$
+Implicit Runge-Kutta method of Radau IIA family of order 5.
+    The implementation follows [1]_. The error is controlled with a
+    third-order accurate embedded formula. A cubic polynomial which satisfies
+    the collocation conditions is used for the dense output.
+    Parameters
+    ----------
+    fun : callable
+        Right-hand side of the system. The calling signature is ``fun(t, y)``.
+        Here ``t`` is a scalar, and there are two options for the ndarray ``y``:
+        It can either have shape (n,); then ``fun`` must return array_like with
+        shape (n,). Alternatively it can have shape (n, k); then ``fun``
+        must return an array_like with shape (n, k), i.e., each column
+        corresponds to a single column in ``y``. The choice between the two
+        options is determined by `vectorized` argument (see below). The
+        vectorized implementation allows a faster approximation of the Jacobian
+        by finite differences (required for this solver).
+    t0 : float
+        Initial time.
+    y0 : array_like, shape (n,)
+        Initial state.
+    t_bound : float
+        Boundary time - the integration won't continue beyond it. It also
+        determines the direction of the integration.
+    first_step : float or None, optional
+        Initial step size. Default is ``None`` which means that the algorithm
+        should choose.
+    max_step : float, optional
+        Maximum allowed step size. Default is np.inf, i.e., the step size is not
+        bounded and determined solely by the solver.
+    rtol, atol : float and array_like, optional
+        Relative and absolute tolerances. The solver keeps the local error
+        estimates less than ``atol + rtol * abs(y)``. Here `rtol` controls a
+        relative accuracy (number of correct digits). But if a component of `y`
+        is approximately below `atol`, the error only needs to fall within
+        the same `atol` threshold, and the number of correct digits is not
+        guaranteed. If components of y have different scales, it might be
+        beneficial to set different `atol` values for different components by
+        passing array_like with shape (n,) for `atol`. Default values are
+        1e-3 for `rtol` and 1e-6 for `atol`.
+    jac : {None, array_like, sparse_matrix, callable}, optional
+        Jacobian matrix of the right-hand side of the system with respect to
+        y, required by this method. The Jacobian matrix has shape (n, n) and
+        its element (i, j) is equal to ``d f_i / d y_j``.
+        There are three ways to define the Jacobian:
+            * If array_like or sparse_matrix, the Jacobian is assumed to
+              be constant.
+            * If callable, the Jacobian is assumed to depend on both
+              t and y; it will be called as ``jac(t, y)`` as necessary.
+              For the 'Radau' and 'BDF' methods, the return value might be a
+              sparse matrix.
+            * If None (default), the Jacobian will be approximated by
+              finite differences.
+        It is generally recommended to provide the Jacobian rather than
+        relying on a finite-difference approximation.
+    jac_sparsity : {None, array_like, sparse matrix}, optional
+        Defines a sparsity structure of the Jacobian matrix for a
+        finite-difference approximation. Its shape must be (n, n). This argument
+        is ignored if `jac` is not `None`. If the Jacobian has only few non-zero
+        elements in *each* row, providing the sparsity structure will greatly
+        speed up the computations [2]_. A zero entry means that a corresponding
+        element in the Jacobian is always zero. If None (default), the Jacobian
+        is assumed to be dense.
+    vectorized : bool, optional
+        Whether `fun` is implemented in a vectorized fashion. Default is False.
+    Attributes
+    ----------
+    n : int
+        Number of equations.
+    status : string
+        Current status of the solver: 'running', 'finished' or 'failed'.
+    t_bound : float
+        Boundary time.
+    direction : float
+        Integration direction: +1 or -1.
+    t : float
+        Current time.
+    y : ndarray
+        Current state.
+    t_old : float
+        Previous time. None if no steps were made yet.
+    step_size : float
+        Size of the last successful step. None if no steps were made yet.
+    nfev : int
+        Number of evaluations of the right-hand side.
+    njev : int
+        Number of evaluations of the Jacobian.
+    nlu : int
+        Number of LU decompositions.
+    References
+    ----------
+    .. [1] E. Hairer, G. Wanner, "Solving Ordinary Differential Equations II:
+           Stiff and Differential-Algebraic Problems", Sec. IV.8.
+    .. [2] A. Curtis, M. J. D. Powell, and J. Reid, "On the estimation of
+           sparse Jacobian matrices", Journal of the Institute of Mathematics
+           and its Applications, 13, pp. 117-120, 1974.
+    
+MbP?g
+>NFc
+nlur
+selfr@
+Radau.__init__.<locals>.luc
+solve
+z Radau.__init__.<locals>.solve_luZ
+csc)
+formatc
+overwrite_a)
+overwrite_b)
+T))r
+superrK
+__init__
+y_oldr
+max_stepr
+rtol
+atolr/
+	directionrE
+maxr
+newton_tol
+jac_factor
+_validate_jac
+identityrT
+current_jacr5
+t_boundr\
+jac_sparsityZ
+vectorizedZ
+first_stepZ
+extraneousrT
+	__class__rR
+Radau.__init__c
+njevr
+fun_vectorizedr^
+sparsityr@
+jac_wrappedZ
+z(Radau._validate_jac.<locals>.jac_wrappedr	
+dtype)
+float
+asarrayrt
+z8`jac` is expected to have shape {}, but actually has {}.)
+callablero
+ValueErrorrX
+groupsrq
+Radau._validate_jacc
+d	t&
+d	t&
+t(t)|
+}!t'|
+} t*t+|
+} |!
+sH| d
+}"|!
+g333333
+?)0r0
+absZ	nextafterr`
+infrE
+TOO_SMALL_STEPrl
+zerosr
+maximumr
+MIN_FACTORrD
+MAX_FACTORr[
+t_old
+_compute_dense_output)#rS
+min_steprE
+rejectedZ
+step_accepted
+messager2
+t_newr3
+n_iterr:
+y_newZ
+errorrG
+safetyrI
+recompute_jacZ
+f_newr@
+_step_impl
+Radau._step_implc
+)	r$
+RadauDenseOutputr
+Radau._compute_dense_outputc
+_dense_output_impl
+Radau._dense_output_impl)
+__name__
+__module__
+__qualname__
+__doc__r$
+__classcell__r@
+orderr[
+RadauDenseOutput.__init__c
+axisr
+ndimr$
+tiler
+cumprodr#
+_call_impl"
+RadauDenseOutput._call_impl)
+numpyr$
+scipy.linalgr
+scipy.sparser
+scipy.sparse.linalgr
+scipy.optimize._numdiffr
+commonr
+baser
+arrayr&
+<module>

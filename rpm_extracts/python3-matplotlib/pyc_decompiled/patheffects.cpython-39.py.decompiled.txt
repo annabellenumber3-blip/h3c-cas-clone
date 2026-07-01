@@ -1,0 +1,336 @@
+Defines classes for path effects. The path effects are supported in `.Text`,
+`.Line2D` and `.Patch`.
+.. seealso::
+   :doc:`/tutorials/advanced/patheffects_guide`
+RendererBase)
+colors)
+patches)
+transforms)
+PathNc
+AbstractPathEffectz
+    A base class for path effects.
+    Subclasses should override the ``draw_path`` method to add effect
+    functionality.
+    
+        Parameters
+        ----------
+        offset : (float, float), default: (0, 0)
+            The (x, y) offset to apply to the path, measured in points.
+        N)
+_offset)
+self
+offset
+</usr/lib64/python3.9/site-packages/matplotlib/patheffects.py
+__init__
+AbstractPathEffect.__init__c
+z(Apply the offset to the given transform.)
+mtransformsZ
+Affine2D
+	translate
+points_to_pixelsr
+rendererr
+_offset_transform"
+z$AbstractPathEffect._offset_transformc
+        Update the given GraphicsContext with the given dict of properties.
+        The keys in the dictionary are used to identify the appropriate
+        ``set_`` method on the *gc*.
+        
+dashesNZ
+set_z
+Unknown property {0})
+copy
+popZ
+set_dashes
+items
+getattr
+callable
+AttributeError
+format)
+new_gc_dictr
+set_methodr
+_update_gc'
+AbstractPathEffect._update_gcNc
+        Derived should override this method. The arguments are the same
+        as :meth:`matplotlib.backend_bases.RendererBase.draw_path`
+        except the first argument is a renderer.
+        )
+isinstance
+PathEffectRenderer
+	_renderer
+	draw_path
+tpath
+affine
+rgbFacer
+AbstractPathEffect.draw_path)
+__name__
+__module__
+__qualname__
+__doc__r
+    Implements a Renderer which contains another renderer.
+    This proxy then intercepts draw calls, calling the appropriate
+    :class:`AbstractPathEffect` draw method.
+    .. note::
+        Not all methods have been overridden on this RendererBase subclass.
+        It may be necessary to add further methods to extend the PathEffects
+        capabilities further.
+    c
+        Parameters
+        ----------
+        path_effects : iterable of :class:`AbstractPathEffect`
+            The path effects which this renderer represents.
+        renderer : `matplotlib.backend_bases.RendererBase` subclass
+        N)
+_path_effectsr$
+path_effectsr
+PathEffectRenderer.__init__c
+	__class__r$
+copy_with_path_effect`
+z(PathEffectRenderer.copy_with_path_effectNc
+path_effectr
+PathEffectRenderer.draw_pathc
+lenr.
+super
+draw_markersr2
+marker_pathZ
+marker_trans
+path
+args
+kwargsr3
+PathEffectRenderer.draw_markersc
+draw_path_collectionr2
+master_transform
+pathsr:
+z'PathEffectRenderer.draw_path_collectionc
+_get_text_path_transformZ
+get_rgb
+set_linewidthr%
+prop
+angleZ
+ismathr9
+Z	transformZ
+colorr
+_draw_text_as_path
+z%PathEffectRenderer._draw_text_as_pathc
+flipyZ
+get_canvas_width_height
+new_gcr
+_text2pathZ
+height
+width)
+object
+__getattribute__)
+namer
+z#PathEffectRenderer.__getattribute__)
+__classcell__r
+Normalz
+    The "identity" PathEffect.
+    The Normal PathEffect's sole purpose is to draw the original artist with
+    no special path effect.
+    N)
+    Create a PathEffect class combining *effect_class* and a normal draw.
+    c
+z)_subclass_with_normal.<locals>.withEffectc
+z3_subclass_with_normal.<locals>.withEffect.draw_path)
+withEffect
+withz*
+    A shortcut PathEffect for applying `.z
+` and then
+    drawing the original Artist.
+    With this class you can use ::
+        artist.set_path_effects([path_effects.withzN()])
+    as a shortcut for ::
+        artist.set_path_effects([path_effects.zA(),
+                                 path_effects.Normal()])
+    )
+effect_classrL
+_subclass_with_normal
+Strokez0A line based PathEffect which re-draws a stroke.
+        The path will be stroked with its gc updated with the given
+        keyword arguments, i.e., the keyword arguments should be valid
+        gc parameter values.
+        N)
+Stroke.__init__c
+Draw the path with updated gc.N)
+copy_propertiesr!
+restore)
+gc0r
+Stroke.draw_path)
+SimplePatchShadowz#A simple shadow via a filled patch.
+333333
+        Parameters
+        ----------
+        offset : (float, float), default: (2, -2)
+            The (x, y) offset of the shadow in points.
+        shadow_rgbFace : color
+            The shadow color.
+        alpha : float, default: 0.3
+            The alpha transparency of the created shadow patch.
+        rho : float, default: 0.3
+            A scale factor to apply to the rgbFace color if *shadow_rgbFace*
+            is not specified.
+        **kwargs
+            Extra keywords are stored and passed through to
+            :meth:`AbstractPathEffect._update_gc`.
+        Nr]
+_shadow_rgbFace
+mcolors
+to_rgba
+_alpha
+_rhorR
+shadow_rgbFace
+alpha
+rhor;
+SimplePatchShadow.__init__c
+        Overrides the standard draw_path to add the shadow offset and
+        necessary color changes for the shadow.
+        N
+noner
+set_foreground
+	set_alphara
+SimplePatchShadow.draw_path)
+NNr]
+SimpleLineShadowz
+A simple shadow via a line.rZ
+        Parameters
+        ----------
+        offset : (float, float), default: (2, -2)
+            The (x, y) offset to apply to the path, in points.
+        shadow_color : color, default: 'black'
+            The shadow color.
+            A value of ``None`` takes the original artist's color
+            with a scale factor of *rho*.
+        alpha : float, default: 0.3
+            The alpha transparency of the created shadow patch.
+        rho : float, default: 0.3
+            A scale factor to apply to the rgbFace color if *shadow_color*
+            is ``None``.
+        **kwargs
+            Extra keywords are stored and passed through to
+            :meth:`AbstractPathEffect._update_gc`.
+        N)
+_shadow_colorr_
+shadow_colorrd
+SimpleLineShadow.__init__c
+get_foregroundrb
+SimpleLineShadow.draw_path)
+PathPatchEffectza
+    Draws a `.PathPatch` instance whose Path comes from the original
+    PathEffect artist.
+    rQ
+        Parameters
+        ----------
+        offset : (float, float), default: (0, 0)
+            The (x, y) offset to apply to the path, in points.
+        **kwargs
+            All keyword arguments are passed through to the
+            :class:`~matplotlib.patches.PathPatch` constructor. The
+            properties which cannot be overridden are "path", "clip_box"
+            "transform" and "clip_path".
+        )
+mpatchesZ	PathPatch
+patchrS
+PathPatchEffect.__init__c
+)	rt
+_pathZ
+set_transformr
+set_clip_boxZ
+get_clip_rectangleZ
+get_clip_pathZ
+set_clip_pathZ
+draw)
+Z	clip_pathr
+PathPatchEffect.draw_path)
+TickedStrokea
+    A line-based PathEffect which draws a path with a ticked style.
+    This line style is frequently used to represent constraints in
+    optimization.  The ticks may be used to indicate that one side
+    of the line is invalid or to represent a closed boundary of a
+    domain (i.e. a wall or the edge of a pipe).
+    The spacing, length, and angle of ticks can be controlled.
+    This line style is sometimes referred to as a hatched line.
+    See also the :doc:`contour demo example
+    </gallery/lines_bars_and_markers/lines_with_ticks_demo>`.
+    See also the :doc:`contours in optimization example
+    </gallery/images_contours_and_fields/contours_in_optimization_demo>`.
+    rQ
+F@r[
+        Parameters
+        ----------
+        offset : (float, float), default: (0, 0)
+            The (x, y) offset to apply to the path, in points.
+        spacing : float, default: 10.0
+            The spacing between ticks in points.
+        angle : float, default: 45.0
+            The angle between the path and the tick in degrees.  The angle
+            is measured as if you were an ant walking along the curve, with
+            zero degrees pointing directly ahead, 90 to your left, -90
+            to your right, and 180 behind you.
+        length : float, default: 1.414
+            The length of the tick relative to spacing.
+            Recommended length = 1.414 (sqrt(2)) when angle=45, length=1.0
+            when angle=90 and length=2.0 when angle=60.
+        **kwargs
+            Extra keywords are stored and passed through to
+            :meth:`AbstractPathEffect._update_gc`.
+        Examples
+        --------
+        See :doc:`/gallery/misc/tickedstroke_demo`.
+        N)
+_spacing
+_angle
+_lengthrR
+spacingrC
+lengthr;
+TickedStroke.__init__c
+| |!
+closed_onlyNr
+MbP?rh
+dtype)#rE
+radiansrx
+arrayZ
+cosZ
+sinr
+transform_pathZ
+to_polygons
+sizeZ
+hypotZ
+concatenateZ
+cumsum
+intZ
+ceilZ
+linspaceZ
+interp
+dotry
+emptyr{
+tiler
+MOVETOZ
+LINETOr%
+invertedrV
+transZ
+thetaZ
+trans_matrixZ
+spacing_pxZ	transpathZ
+polys
+dsrB
+s_totalZ
+numZ
+s_tickZ
+x_tickZ
+y_tickZ
+delta_s
+maskZ
+dxyZ
+x_endZ
+y_endZ
+xytZ
+codes
+TickedStroke.draw_path)	r*
+sqrtr
+matplotlib.backend_basesr
+matplotlibr
+matplotlib.pathr
+numpyr|
+withStrokerY
+withSimplePatchShadowrp
+withTickedStroker
+<module>

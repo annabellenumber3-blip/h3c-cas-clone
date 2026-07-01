@@ -1,0 +1,220 @@
+m	Z	m
+d!d"
+Z d#d$
+Z!d%d&
+Z"d'd(
+Z#d)d*
+Z$d+d,
+Z%d-d.
+Z&d/d0
+Z'd1d2
+Z(d3d4
+Z)d5d6
+Z*d7d8
+d9d:
+d:e,
+Z-d;d<
+Z.d=d>
+Z/d?d@
+divisionN)
+sha256)
+int2byte
+next
+der)
+normalise_bytes)
+-Convert a bytestring to string of 0's and 1'sZ
+bigr
+from_bytes
+zfill
+ent_256
+./usr/lib/python3.9/site-packages/ecdsa/util.py
+entropy_to_bits&
+ordr
+	<genexpr>/
+z"entropy_to_bits.<locals>.<genexpr>)
+joinr
+bit_length4
+orderr
+orderlen>
+Return a random integer k such that 1 <= k < order, uniformly
+    distributed across that range. Worst case should be a mean of 2 loops at
+    (2**k)+2.
+    Note that this function is not declared to be forwards-compatible: we may
+    change the behavior in future releases. The entropy= argument (which
+    should get a callable that behaves like os.urandom) can be used to
+    achieve stability within a given release (for repeatable unit tests), but
+    should not be used as a long-term-compatible key generation algorithm.
+    r
+baser
+urandomr&
+entropyZ
+upper_2Z	upper_256r
+ent_2Z
+rand_numr
+	randrangeB
+PRNGc
+block_generator
+	generator)
+self
+seedr
+__init__`
+PRNG.__init__c
+<listcomp>d
+z!PRNG.__call__.<locals>.<listcomp>r
+ranger
+bytes)
+numbytes
+__call__c
+PRNG.__call__c
+prng-%d-%sr
+encode
+digest)
+counterZ
+byter
+PRNG.block_generatorN)
+__name__
+__module__
+__qualname__r4
+binascii
+hexlify)
+numberr
+%randrange_from_seed__overshoot_modulou
+numbitsr
+lsb_of_ones
+math
+log)
+bitsr9
+	extrabitsr
+bits_and_bytes
+hashmodrI
+_bytesrJ
+#randrange_from_seed__truncate_bytes
+maxbytesr*
+topbitsrD
+"randrange_from_seed__truncate_bits
+string_to_number)
+generateZ	extrabyteZ
+guessr
+ randrange_from_seed__trytryagain
+strrB
+	unhexlifyr<
+numr(
+fmt_str
+stringr
+number_to_string
+number_to_string_crop
+string_to_number_fixedlen
+r_str
+s_strr
+sigencode_strings
+    Encode the signature to raw format (:term:`raw encoding`)
+    It's expected that this function will be used as a `sigencode=` parameter
+    in :func:`ecdsa.keys.SigningKey.sign` method.
+    :param int r: first parameter of the signature
+    :param int s: second parameter of the signature
+    :param int order: the order of the curve over which the signature was
+        computed
+    :return: raw encoding of ECDSA signature
+    :rtype: bytes
+    
+sigencode_string
+    Encode the signature into the ECDSA-Sig-Value structure using :term:`DER`.
+    Encodes the signature to the following :term:`ASN.1` structure::
+        Ecdsa-Sig-Value ::= SEQUENCE {
+            r       INTEGER,
+            s       INTEGER
+        }
+    It's expected that this function will be used as a `sigencode=` parameter
+    in :func:`ecdsa.keys.SigningKey.sign` method.
+    :param int r: first parameter of the signature
+    :param int s: second parameter of the signature
+    :param int order: the order of the curve over which the signature was
+        computed
+    :return: DER encoding of ECDSA signature
+    :rtype: bytes
+    )
+encode_sequenceZ
+encode_integer
+sigencode_der
+sigencode_strings_canonize
+sigencode_string_canonize%
+sigencode_der_canonize+
+MalformedSignatureaB
+    Raised by decoding functions when the signature is malformed.
+    Malformed in this context means that the relevant strings or integers
+    do not match what a signature over provided curve would create. Either
+    because the byte strings have incorrect lengths or because the encoded
+    values are too large.
+    N)
+__doc__r
+    Decoder for :term:`raw encoding`  of ECDSA signatures.
+    raw encoding is a simple concatenation of the two integers that comprise
+    the signature, with each encoded using the same amount of bytes depending
+    on curve size/order.
+    It's expected that this function will be used as the `sigdecode=`
+    parameter to the :func:`ecdsa.keys.VerifyingKey.verify` method.
+    :param signature: encoded signature
+    :type signature: bytes like object
+    :param order: order of the curve over which the signature was computed
+    :type order: int
+    :raises MalformedSignature: when the encoding of the signature is invalid
+    :return: tuple with decoded 'r' and 's' values of signature
+    :rtype: tuple of ints
+    r
+zWInvalid length of signature, expected {0} bytes long, provided string is {1} bytes longN)
+formatr[
+Z	signaturer(
+sigdecode_string>
+    Decode the signature from two strings.
+    First string needs to be a big endian encoding of 'r', second needs to
+    be a big endian encoding of the 's' parameter of an ECDSA signature.
+    It's expected that this function will be used as the `sigdecode=`
+    parameter to the :func:`ecdsa.keys.VerifyingKey.verify` method.
+    :param list rs_strings: list of two bytes-like objects, each encoding one
+        parameter of signature
+    :param int order: order of the curve over which the signature was computed
+    :raises MalformedSignature: when the encoding of the signature is invalid
+    :return: tuple with decoded 'r' and 's' values of signature
+    :rtype: tuple of ints
+    r
+z3Invalid number of strings provided: {0}, expected 2zjInvalid length of first string ('r' parameter), expected {0} bytes long, provided string is {1} bytes longzkInvalid length of second string ('s' parameter), expected {0} bytes long, provided string is {1} bytes long)
+rs_stringsr(
+sigdecode_strings_
+    Decoder for DER format of ECDSA signatures.
+    DER format of signature is one that uses the :term:`ASN.1` :term:`DER`
+    rules to encode it as a sequence of two integers::
+        Ecdsa-Sig-Value ::= SEQUENCE {
+            r       INTEGER,
+            s       INTEGER
+        }
+    It's expected that this function will be used as as the `sigdecode=`
+    parameter to the :func:`ecdsa.keys.VerifyingKey.verify` method.
+    :param sig_der: encoded signature
+    :type sig_der: bytes like object
+    :param order: order of the curve over which the signature was computed
+    :type order: int
+    :raises UnexpectedDER: when the encoding of signature is invalid
+    :return: tuple with decoded 'r' and 's' values of signature
+    :rtype: tuple of ints
+    r!
+trailing junk after DER sig: %sz#trailing junk after DER numbers: %s)
+remove_sequenceZ
+UnexpectedDERrB
+remove_integer)
+sig_derr(
+emptyr]
+restr^
+sigdecode_der
+N)1Z
+__future__r
+sysZ
+hashlibr
+sixr
+_compatr
+oid_ecPublicKeyZ
+encode_oidZ
+encoded_oid_ecPublicKeyZ
+oid_ecDHZ	oid_ecMQV
+version_infor
+	Exceptionri
+<module>

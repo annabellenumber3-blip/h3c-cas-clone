@@ -1,0 +1,387 @@
+Request body processing for CherryPy.
+.. versionadded:: 3.2
+Application authors have complete control over the parsing of HTTP request
+entities. In short,
+:attr:`cherrypy.request.body<cherrypy._cprequest.Request.body>`
+is now always set to an instance of
+:class:`RequestBody<cherrypy._cpreqbody.RequestBody>`,
+and *that* class is a subclass of :class:`Entity<cherrypy._cpreqbody.Entity>`.
+When an HTTP request includes an entity body, it is often desirable to
+provide that information to applications in a form other than the raw bytes.
+Different content types demand different approaches. Examples:
+ * For a GIF file, we want the raw bytes in a stream.
+ * An HTML form is better parsed into its component fields, and each text field
+   decoded from bytes to unicode.
+ * A JSON body should be deserialized into a Python dict or list.
+When the request contains a Content-Type header, the media type is used as a
+key to look up a value in the
+:attr:`request.body.processors<cherrypy._cpreqbody.Entity.processors>` dict.
+If the full media
+type is not found, then the major type is tried; for example, if no processor
+is found for the 'image/jpeg' type, then we look for a processor for the
+'image' types altogether. If neither the full type nor the major type has a
+matching processor, then a default processor is used
+(:func:`default_proc<cherrypy._cpreqbody.Entity.default_proc>`). For most
+types, this means no processing is done, and the body is left unread as a
+raw byte stream. Processors are configurable in an 'on_start_resource' hook.
+Some processors, especially those for the 'text' types, attempt to decode bytes
+to unicode. If the Content-Type request header includes a 'charset' parameter,
+this is used to decode the entity. Otherwise, one or more default charsets may
+be attempted, although this decision is up to each processor. If a processor
+successfully decodes an Entity or Part, it should set the
+:attr:`charset<cherrypy._cpreqbody.Entity.charset>` attribute
+on the Entity or Part to the name of the successful charset, so that
+applications can easily re-encode or transcode the value if they wish.
+If the Content-Type of the request entity is of major type 'multipart', then
+the above parsing process, and possibly a decoding process, is performed for
+each part.
+For both the full entity and multipart parts, a Content-Disposition header may
+be used to fill :attr:`name<cherrypy._cpreqbody.Entity.name>` and
+:attr:`filename<cherrypy._cpreqbody.Entity.filename>` attributes on the
+request.body or the Part.
+.. _custombodyprocessors:
+Custom Processors
+=================
+You can add your own processors for any specific or major MIME type. Simply add
+it to the :attr:`processors<cherrypy._cprequest.Entity.processors>` dict in a
+hook/tool that runs at ``on_start_resource`` or ``before_request_body``.
+Here's the built-in JSON tool for an example::
+    def json_in(force=True, debug=False):
+        request = cherrypy.serving.request
+        def json_processor(entity):
+            '''Read application/json data into request.json.'''
+            if not entity.headers.get("Content-Length", ""):
+                raise cherrypy.HTTPError(411)
+            body = entity.fp.read()
+            try:
+                request.json = json_decode(body)
+            except ValueError:
+                raise cherrypy.HTTPError(400, 'Invalid JSON document')
+        if force:
+            request.body.processors.clear()
+            request.body.default_proc = cherrypy.HTTPError(
+                415, 'Expected an application/json content type')
+        request.body.processors['application/json'] = json_processor
+We begin by defining a new ``json_processor`` function to stick in the
+``processors`` dictionary. All processor functions take a single argument,
+the ``Entity`` instance they are to process. It will be called whenever a
+request is received (for those URI's where the tool is turned on) which
+has a ``Content-Type`` of "application/json".
+First, it checks for a valid ``Content-Length`` (raising 411 if not valid),
+then reads the remaining bytes on the socket. The ``fp`` object knows its
+own length, so it won't hang waiting for data that never arrives. It will
+return when all data has been read. Then, we decode those bytes using
+Python's built-in ``json`` module, and stick the decoded result onto
+``request.json`` . If it cannot be decoded, we raise 400.
+If the "force" argument is True (the default), the ``Tool`` clears the
+``processors`` dict so that request entities of other ``Content-Types``
+aren't parsed at all. Since there's no entry for those invalid MIME
+types, the ``default_proc`` method of ``cherrypy.request.body`` is
+called. But this does nothing by default (usually to provide the page
+handler an opportunity to handle it.)
+But in our case, we want to raise 415, so we replace
+``request.body.default_proc``
+with the error (``HTTPError`` instances, when called, raise themselves).
+If we were defining a custom processor, we can do so without making a ``Tool``.
+Just add the config entry::
+    request.body.processors = {'application/json': json_processor}
+Note that you can only replace the ``processors`` dict wholesale this way,
+not update the existing one.
+DEFAULT_BUFFER_SIZE
+unquote)
+ntou)
+httputilc
+)	z+Bytes version of urllib.parse.unquote_plus.
+replace
+split
+range
+bytes
+ValueError
+join)
+atoms
+itemZ
+7/usr/lib/python3.9/site-packages/cherrypy/_cpreqbody.py
+unquote_plus
+s<q2|
+q2q$W
+z?Read application/x-www-form-urlencoded data into entity.params.
+RThe request entity could not be decoded. The following charsets were attempted: %sN)
+read
+attempt_charsetsr
+appendr
+decode
+isinstance
+list
+UnicodeDecodeError
+charset
+cherrypy
+	HTTPError
+repr
+items
+params)	
+entity
+qsr*
+aparamZ
+pairr
+valuer
+process_urlencoded
+rJqnqJ|
+)	z+Read all multipart parts into entity.parts.
+boundary
+^[ -~]{0,200}[!-~]$z&Invalid boundary in multipart form: %rz
+asciiN)
+content_typer/
+strip
+matchr
+encode
+readline
+part_class
+from_fpr"
+partsr%
+process
+done)
+partr
+process_multipart
+zKRead all multipart/form-data parts into entity.parts or entity.params.
+    N)	rF
+namer%
+filename
+	fullvaluer/
+kept_partsrE
+process_multipart_form_data
+zEThe behavior of 3.2 and lower. Deprecated and will be changed in 3.3.NrA
+_old_process_multipart
+Entitya
+An HTTP request body, or MIME multipart body.
+    This class collects information about the HTTP request entity. When a
+    given entity is of MIME type "multipart", each part is parsed into its own
+    Entity instance, and the set of parts stored in
+    :attr:`entity.parts<cherrypy._cpreqbody.Entity.parts>`.
+    Between the ``before_request_body`` and ``before_handler`` tools, CherryPy
+    tries to process the request body (if any) by calling
+    :func:`request.body.process<cherrypy._cpreqbody.RequestBody.process>`.
+    This uses the ``content_type`` of the Entity to look up a suitable
+    processor in
+    :attr:`Entity.processors<cherrypy._cpreqbody.Entity.processors>`,
+    a dict.
+    If a matching processor cannot be found for the complete Content-Type,
+    it tries again using the major type. For example, if a request with an
+    entity of type "image/jpeg" arrives, but no processor can be found for
+    that complete type, then one is sought for the major type "image". If a
+    processor is still not found, then the
+    :func:`default_proc<cherrypy._cpreqbody.Entity.default_proc>` method
+    of the Entity is called (which does nothing by default; you can
+    override this too).
+    CherryPy includes processors for the "application/x-www-form-urlencoded"
+    type, the "multipart/form-data" type, and the "multipart" major type.
+    CherryPy 3.2 processes these types almost exactly as older versions.
+    Parts are passed as arguments to the page handler using their
+    ``Content-Disposition.name`` if given, otherwise in a generic "parts"
+    argument. Each such part is either a string, or the
+    :class:`Part<cherrypy._cpreqbody.Part>` itself if it's a file. (In this
+    case it will have ``file`` and ``filename`` attributes, or possibly a
+    ``value`` attribute). Each Part is itself a subclass of
+    Entity, and has its own ``process`` method and ``processors`` dict.
+    There is a separate processor for the "multipart" major type which is more
+    flexible, and simply stores all multipart parts in
+    :attr:`request.body.parts<cherrypy._cpreqbody.Entity.parts>`. You can
+    enable it with::
+        cherrypy.request.body.processors['multipart'] =             _cpreqbody.process_multipart
+    in an ``on_start_resource`` tool.
+    
+utf-8N
+!application/x-www-form-urlencoded)
+multipart/form-data
+	multipartc
+Content-Typer
+decr
+<listcomp>
+z#Entity.__init__.<locals>.<listcomp>
+Content-LengthZ
+chunked
+Transfer-Encodingr5
+Content-DispositionrG
+z	filename*
+processors
+copyr"
+headersr/
+elementsr9
+HeaderElementZ
+from_str
+default_content_type
+getr$
+lengthr
+startswith
+endswithr
+str)
+selfr"
+clenZ
+disp
+encodingZ
+langrH
+__init__
+Entity.__init__c
+size
+fp_outr
+Entity.readc
+Entity.readlinec
+	readlines)
+sizehintr
+Entity.readlinesc
+__iter__
+Entity.__iter__c
+StopIteration)
+liner
+__next__
+Entity.__next__c
+next
+Entity.nextc
+z\Read the request body into fp_out (or make_file() if None).
+        Return fp_out.
+        N)
+	make_filer#
+read_into_file
+Entity.read_into_filec
+Return a file-like object into which the request body will be read.
+        By default, this will return a TemporaryFile. Override as needed.
+        See also :attr:`cherrypy._cpreqbody.Part.maxrambytes`.)
+tempfileZ
+TemporaryFilerj
+Entity.make_filec
+z@Return this entity as a string, whether stored in a file or not.r
+file
+seekr#
+decode_entity)
+Entity.fullvaluec
+z-Return a given byte encoded value as a stringr 
+Entity.decode_entityc
+z:Execute the best-match processor for the given media type.N
+KeyErrorr
+default_proc)
+procZ
+toptyper
+Entity.processc
+z[Called if a more-specific processor is not found for the
+        ``Content-Type``.
+        Nr
+Entity.default_proc)
+__name__
+__module__
+__qualname__
+__doc__r$
+e	d	d
+Partz/A MIME part entity, part of a multipart entity.z
+us-asciirM
+text/plaini
+Part.__init__c
+read_headers)
+clsr"
+Part.from_fpc
+Illegal end of headers.
+z"MIME requires CRLF terminators: %rr
+ISO-8859-1
+Z	HeaderMapr>
+EOFErrorr`
+existingr
+Part.read_headersc
+}	|	S
+Read bytes from self.fp and return or write them to a file.
+        If the 'fp_out' argument is None (the default), all bytes read are
+        returned in a single byte string.
+        If the 'fp_out' argument is not None, it must be a file-like
+        object that supports the 'write' method; all bytes read will be
+        written to the fp, and that fp is returned.
+        s
+Illegal end of multipart body.r
+finishr`
+maxrambytesrq
+writer
+Z	endmarker
+delimZ
+prev_lf
+lines
+seenrm
+strippedline
+resultr
+read_lines_to_boundary
+Part.read_lines_to_boundaryc
+Part.default_procc
+Part.read_into_file)
+classmethodr@
+infc
+SizedReaderFc
+maxbytes
+buffer
+bufsize
+bytes_readrC
+has_trailers)
+SizedReader.__init__Nc
+Read bytes from the request body and return or write them to a file.
+        A number of bytes less than or equal to the 'size' argument are read
+        off the socket. The actual number of bytes read are tracked in
+        self.bytes_read. The number may be smaller than 'size' when 1) the
+        client sends fewer bytes, 2) the 'Content-Length' request header
+        specifies fewer bytes than requested, or 3) the number of bytes read
+        exceeds self.maxbytes (in which case, 413 is raised).
+        If the 'fp_out' argument is None (the default), all bytes read are
+        returned in a single byte string.
+        If the 'fp_out' argument is not None, it must be a file-like
+        object that supports the 'write' method; all bytes read will be
+        written to the fp, and None is returned.
+        Nr
+MaxSizeExceeded
+Maximum request length: %r)
+minr
+	Exception
+exc_info
+	__class__r}
+argsr
+)	rb
+Z	remaining
+chunks
+dataZ
+datalen
+	chunksize
+SizedReader.readc
+z0Read a line from the request body and return it.Nr
+findr%
+posZ	remainderr
+SizedReader.readlinec
+sHqj|
+r:qjq:|
+z1Read lines from the request body and return them.Nr
+SizedReader.readlinesc
+read_trailer_linesr
+Illegal header line.s
+hasattrr"
+trailersr
+title
+cherootZ
+serverZ
+comma_separated_headersr]
+SizedReader.finish)
+N)	r}
+RequestBodyz
+The entity of the HTTP request.r
+qBq"|
+text/)
+iso-8859-1z
+Latin-1z
+latin-1r
+request_params)
+RequestBody.__init__c
+z5Process the request entity based on its Content-Type.rT
+Trailer)
+servingZ
+requestrZ
+superr
+RequestBody.process)
+__classcell__r
+ImportErrorr;
+urllib.parser
+cheroot.serverr
+cherrypy._cpcompatr
+cherrypy.libr
+objectrL
+floatr
+<module>

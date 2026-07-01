@@ -1,0 +1,322 @@
+############################################################################
+#    File Name: util_shellfuncs
+# Date Created: 2013-01-20
+#       Author: guozhonghua/02084
+#  Description: The Shell common function definition
+#      Caution:
+#-----------------------------------------------------------------------------
+#  Modification History
+#  DATE        NAME             DESCRIPTION
+#
+##############################################################################
+
+##############################################################################
+# funcion   : get current datetime
+##############################################################################
+utildate() {
+    date "+${__UTIL_DATEFMT}"
+}
+
+##############################################################################
+# funcion   : get current month, eg. 201106
+##############################################################################
+utilCurrentMonth() {
+    date "+%Y%m"
+}
+
+##############################################################################
+#    Func Name: util_printlog
+# Date Created: 2013-1-20 
+#       Author: guozhonghua/02084
+#  Description: print log to a log file; if debug and we're connected to a tty,
+#               then output to stderr,otherwise, to logfile.
+#        usage: $0 $1 $2 $3  
+#               $1 : the caller's name, usually, it is the shell name; must 
+#               $2 : the log level, it must be one of {crit|err|warn|info|debug}; must
+#               $3 : the message string; must
+#       Output: None
+#       Return: 0
+#      Caution: 
+#-----------------------------------------------------------------------------
+#  Modification History 
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+util_printlog() {
+    # check the invalidity of the params.
+    if [ $# -lt 3 ]; then
+        util_printlog testshell err "Not enough arguments [$#] to util_printlog."
+        return 0
+    fi
+    
+    #save the parameters
+    __UTIL_LOG_FROM="$1"
+    shift    
+    __UTIL_LOG_PRIO="$1"
+    shift
+    __UTIL_LOG_MSG="$*"
+
+    #format the log/debug level.
+    case "${__UTIL_LOG_PRIO}" in
+          crit)     __UTIL_LOG_PRIO="CRIT";;
+          err)      __UTIL_LOG_PRIO="ERROR";;
+          warn)     __UTIL_LOG_PRIO="WARNING";;
+          info)     __UTIL_LOG_PRIO="INFO";;
+          debug)    __UTIL_LOG_PRIO="DEBUG";;
+          *)        __UTIL_LOG_PRIO=`echo ${__UTIL_LOG_PRIO}| tr '[a-z]' '[A-Z]'`;;
+    esac
+    
+    #make up the full message
+    __UTIL_HOSTNAME=`hostname`
+    __UTIL_LOG_MSG=`utildate`" ["${__UTIL_HOSTNAME}"] ["$$"] ("${__UTIL_LOG_FROM}"): "${__UTIL_LOG_PRIO}":"${__UTIL_LOG_MSG}
+
+    #buildup the log file name
+    __UTIL_LOGFILE="/var/log/caslog/cas_util_shell_"`utilCurrentMonth`".log"    
+    #echo ${__UTIL_LOGFILE}
+
+    #
+    #if [ "${__UTIL_LOG_PRIO}" = "DEBUG" -a tty >/dev/null ]; then
+    #    echo ${__UTIL_LOG_MSG}
+    #else
+        echo -e ${__UTIL_LOG_MSG} >> ${__UTIL_LOGFILE}
+    #fi
+}
+
+############################################################################
+#    Func Name: util_is_ipv4
+# Date Created: 2018-10-10
+#       Author: tuguoyi/14581
+#  Description: Test an IPv4 address for validity:
+#        Input: $1 IPv4 address
+#       Output: 
+#       Return: 0 if true, 1 if false
+#      Caution:
+#-----------------------------------------------------------------------------
+#  Modification History
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+function util_is_ipv4()
+{
+    local ip=$1
+    local stat=1
+    if [[ $ip =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
+        OIFS=$IFS
+        IFS='.'
+        ip=($ip)
+        IFS=$OIFS
+        [[ ${ip[0]} -le 255 && ${ip[1]} -le 255 \
+            && ${ip[2]} -le 255 && ${ip[3]} -le 255 ]]
+        stat=$?
+    fi
+    return $stat
+}
+
+############################################################################
+#    Func Name: util_is_ipv6
+# Date Created: 2018-10-10
+#       Author: tuguoyi/14581
+#  Description: Test an IPv6 address for validity:
+#        Input: $1 IPv6 address
+#       Output: 
+#       Return: 0 if true, 1 if false
+#      Caution:
+#-----------------------------------------------------------------------------
+#  Modification History
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+function util_is_ipv6()
+{
+    local ip=$1
+    local stat=1
+    if [[ $ip =~ ^([A-Fa-f0-9]{0,4}:){1,7}[A-Fa-f0-9]{1,4}$ ]]; then
+        stat=0
+    fi
+    return $stat
+}
+
+############################################################################
+#    Func Name: util_is_valid_ip
+# Date Created: 2018-10-10
+#       Author: tuguoyi/14581
+#  Description: Test an IPv4 or IPv6 address for validity:
+#        Input: $1 IP address
+#       Output: 
+#       Return: 0 if true, 1 if false
+#      Caution:
+#-----------------------------------------------------------------------------
+#  Modification History
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+function util_is_valid_ip()
+{
+    local ip=$1
+
+    if util_is_ipv4 $ip; then
+        return 0
+    elif util_is_ipv6 $ip; then
+        return 0
+    fi
+    return 1
+}
+
+
+############################################################################
+#    Func Name: util_strip_ipv6_square_braces
+# Date Created: 2018-10-22
+#       Author: tuguoyi/14581
+#  Description: If the IPv6 address is enclosed by square braces, then strip those braces
+#        Input: $1 IPv6 address
+#       Output:
+#       Return: return the IPv6 address
+#      Caution:
+#-----------------------------------------------------------------------------
+#  Modification History
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+function util_strip_ipv6_square_braces()
+{
+    local ip=$1
+    echo $ip | grep "^\[.*:.*\]$" > /dev/null 2>&1
+    if [ $? == 0 ] ; then
+        ip=$(echo $ip | cut -d "[" -f 2 | cut -d "]" -f 1)
+    fi
+    echo $ip
+    return 0
+}
+
+##############################################################################
+#    Func Name: util_split_string
+# Date Created: 2018-12-17
+#       Author: wuchongyun/14408
+#  Description: split string
+#        Input: $1: string; $2: separator;
+#       Output:
+#       Return: the separated string array
+#      Caution:
+#-----------------------------------------------------------------------------
+#  Modification History
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+function util_split_string()
+{
+    string=$1
+    separator=$2
+    OLD_IFS="$IFS"
+    IFS=$separator
+    array=($string)
+    IFS="$OLD_IFS"
+    echo ${array[*]}
+}
+
+##############################################################################
+#    Func Name: util_getIpv6FullAddress
+# Date Created: 2018-12-17
+#       Author: wuchongyun/14408
+#  Description: get the full format value of a ipv6 address
+#       Input:  $1: ipv6 address;
+#       Output: ipv6 address full format value
+#       Return: 0 OK; 1 failed
+#       Caution:
+#-----------------------------------------------------------------------------
+#  Modification History
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+function util_getIpv6FullAddress()
+{
+    local ipv6_addr_len=8
+    local value_wide=4
+    local ip=$1
+    local separator=":"
+
+   #if input ipv4 address just return this ip back
+    if util_is_ipv4 $ip; then
+         echo $ip
+         return 0
+    fi
+
+    ip=${ip/"::"/":FFFF:"}
+    ip_array=(`util_split_string $ip $separator`)
+    ip_valid_array=()
+    ip_full=""
+    valid_num=0
+    str_len=0
+    value_pre=''
+    zero_start=0
+    zero_pre_len=0
+    zero_num=0
+    is_first=1
+    i=0
+    for value in ${ip_array[@]}; do
+        if [ "X$value" != "X" ]; then
+            if [ $value = "FFFF" ]; then
+                zero_start=$valid_num
+                continue
+            fi
+
+            value_pre=''
+            str_len=${#value}
+            if [ $str_len -lt $value_wide ]; then
+                zero_pre_len=$(echo "$value_wide - $str_len" | bc)
+                for((i=1;i<=zero_pre_len;i++));
+                do
+                    value_pre='0'${value_pre}
+                done
+
+                full_value=${value_pre}${value}
+            else
+                full_value=${value}
+            fi
+
+            ip_valid_array[$valid_num]=$full_value
+            let valid_num+=1
+        else
+            return 1
+        fi
+    done
+
+    if [ $valid_num -gt $ipv6_addr_len ]; then
+        return 1
+    fi
+
+    zero_num=`expr $ipv6_addr_len - $valid_num`
+
+    #no need to fill omit 0000 value
+    if [ $valid_num -eq $ipv6_addr_len ]; then
+        for value in ${ip_valid_array[@]}
+        do
+            if [ $is_first = 1 ]; then
+                is_first=0
+                ip_full=$value
+            else
+                ip_full=$ip_full":"$value
+            fi
+        done
+        echo $ip_full
+        return 0
+    fi
+
+    for((i=0; i<$zero_start; i++));
+    do
+        if [ "X$ip_full" = "X" ]; then
+            ip_full=${ip_valid_array[$i]}
+        else
+            ip_full=$ip_full":"${ip_valid_array[$i]}
+       fi
+    done
+
+    for((i=0; i<=zero_num-1; i++));
+    do
+        ip_full=$ip_full":0000"
+    done
+
+    for((i=$zero_start; i<$valid_num; i++))
+    do
+        ip_full=$ip_full':'${ip_valid_array[${i}]}
+    done
+
+    echo $ip_full
+    return 0
+}
+
+###############################################################################
+## end of file
+###############################################################################

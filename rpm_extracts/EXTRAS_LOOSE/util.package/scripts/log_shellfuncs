@@ -1,0 +1,77 @@
+###############################################################################
+# common functions for the log shells.
+#
+# Copyright (c) 2011 xxx
+#                    All Rights Reserved.
+#
+###############################################################################
+
+__LOG_DATEFMT="%Y-%m-%d %H:%M:%S"
+
+##############################################################################
+# funcion   : get current datetime
+##############################################################################
+logdate() {
+    date "+${__LOG_DATEFMT}"
+}
+
+##############################################################################
+# funcion   : get current month, eg. 201106
+##############################################################################
+GetCurrentMonth() {
+    date "+%Y%m"
+}
+
+##############################################################################
+#    Func Name: printlog
+#  Description: print log to a log file
+#        usage: $0 $1 $2 $3  
+#               $1 : the caller's name, usually, it is the shell name; must 
+#               $2 : the log level, it must be one of {crit|err|warn|info|debug}; must
+#               $3 : the message string; must
+#       Output: None
+#       Return: 0
+#-----------------------------------------------------------------------------
+#  Modification History 
+#  DATE        NAME             DESCRIPTION
+##############################################################################
+log_printlog() {
+    # check the invalidity of the params.
+    if [ $# -lt 3 ]; then
+        log_printlog testshell err "Not enough arguments [$#] to log_printlog."
+        return 0
+    fi
+    
+    #save the parameters
+    __LOG_FROM="$1"
+    shift    
+    __LOG_PRIO="$1"
+    shift
+    __LOG_MSG="$*"
+
+    #format the log/debug level.
+    case "${__LOG_PRIO}" in
+          crit)     __LOG_PRIO="CRIT";;
+          err)      __LOG_PRIO="ERROR";;
+          warn)     __LOG_PRIO="WARNING";;
+          info)     __LOG_PRIO="INFO";;
+          debug)    __LOG_PRIO="DEBUG";;
+          *)        __LOG_PRIO=`echo ${__LOG_PRIO}| tr '[a-z]' '[A-Z]'`;;
+    esac
+    
+    #make up the full message
+    __HOSTNAME=`hostname`
+    __LOG_MSG=`logdate`" ["${__HOSTNAME}"]("${__LOG_FROM}"): "${__LOG_PRIO}":"${__LOG_MSG}
+
+    #buildup the log file name
+    __LOGFILE="/var/log/caslog/log_shell_"`GetCurrentMonth`".log"    
+    #echo ${__LOGFILE}
+
+    #
+    #if [ "${__HA_LOG_PRIO}" = "DEBUG" -a tty >/dev/null ]; then
+    #    echo ${__LOG_MSG}
+    #else
+        echo -e ${__LOG_MSG} >> ${__LOGFILE}
+    #fi
+}
+

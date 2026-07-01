@@ -1,0 +1,318 @@
+Z	dFd
+d d!
+d"d#
+d$d%
+d&d'
+d(d)
+d*d+
+d,d-
+d.d/
+d0d1
+d2d3
+m!Z!m"Z"m#Z#m$Z$
+d5d6
+Z%d7d8
+Z&d9d:
+Z'd;d<
+Z(d=d>
+Z)d?d@
+Z*dAdB
+Z+dCdD
+Z,e-dEk
+l.Z.d
+l/Z/e.
+)HzNfontTools.misc.bezierTools.py -- tools for working with bezier path segments.
+print_function
+division
+absolute_import)
+calcBounds)
+approximateCubicArcLength
+approximateCubicArcLengthC
+approximateQuadraticArcLength
+approximateQuadraticArcLengthC
+calcCubicArcLength
+calcCubicArcLengthC
+calcQuadraticArcLength
+calcQuadraticArcLengthC
+calcCubicBounds
+calcQuadraticBounds
+	splitLine
+splitQuadratic
+splitCubic
+splitQuadraticAtT
+splitCubicAtT
+solveQuadratic
+solveCubic
+zt?c
+z1Return the arc length for a cubic bezier segment.)
+complex)
+	tolerance
+>/usr/lib/python3.9/site-packages/fontTools/misc/bezierTools.pyr
+midZ
+deriv3r
+_split_cubic_into_two%
+absr'
+_calcCubicArcLengthCRecurse)	
+multr#
+archZ
+boxZ
+oneZ
+twor
+zFReturn the arc length for a cubic bezier segment using complex points.
+	conjugate
+real)
+_dot>
+math
+sqrtZ
+asinh)
+_intSecAtanB
+Return the arc length for a qudratic bezier segment.
+    pt1 and pt3 are the "anchor" points, pt2 is the "handle".
+        >>> calcQuadraticArcLength((0, 0), (0, 0), (0, 0)) # empty segment
+        0.0
+        >>> calcQuadraticArcLength((0, 0), (50, 0), (80, 0)) # collinear points
+        80.0
+        >>> calcQuadraticArcLength((0, 0), (0, 50), (0, 80)) # collinear points vertical
+        80.0
+        >>> calcQuadraticArcLength((0, 0), (50, 20), (100, 40)) # collinear points
+        107.70329614269008
+        >>> calcQuadraticArcLength((0, 0), (0, 100), (100, 0))
+        154.02976155645263
+        >>> calcQuadraticArcLength((0, 0), (0, 50), (100, 0))
+        120.21581243984076
+        >>> calcQuadraticArcLength((0, 0), (50, -10), (80, 50))
+        102.53273816445825
+        >>> calcQuadraticArcLength((0, 0), (40, 0), (-40, 0)) # collinear points, control point outside
+        66.66666666666667
+        >>> calcQuadraticArcLength((0, 0), (40, 0), (0, 0)) # collinear points, looping back
+        40.0
+    )
+|	|	
+Return the arc length for a qudratic bezier segment using complex points.
+    pt1 and pt3 are the "anchor" points, pt2 is the "handle".y
+epsilonr9
+scaleZ
+origDist
+Lenr
+v0r1
+Return the bounding rectangle for a qudratic bezier segment.
+    pt1 and pt3 are the "anchor" points, pt2 is the "handle".
+        >>> calcQuadraticBounds((0, 0), (50, 100), (100, 0))
+        (0, 0, 100, 50.0)
+        >>> calcQuadraticBounds((0, 0), (100, 0), (100, 100))
+        (0.0, 0.0, 100, 100)
+    
+<listcomp>
+z'calcQuadraticBounds.<locals>.<listcomp>)
+calcQuadraticParameters
+appendr
+ax2Z
+roots
+pointsr
+Return the approximate arc length for a cubic bezier segment.
+    pt1 and pt4 are the "anchor" points, pt2 and pt3 are the "handles".
+        >>> approximateCubicArcLength((0, 0), (25, 100), (75, 100), (100, 0))
+        190.04332968932817
+        >>> approximateCubicArcLength((0, 0), (50, 0), (100, 50), (100, 100))
+        154.8852074945903
+        >>> approximateCubicArcLength((0, 0), (50, 0), (100, 0), (150, 0)) # line; exact result should be 150.
+        149.99999999999991
+        >>> approximateCubicArcLength((0, 0), (50, 0), (100, 0), (-50, 0)) # cusp; exact result should be 150.
+        136.9267662156362
+        >>> approximateCubicArcLength((0, 0), (50, 0), (100, -50), (-50, 0)) # cusp
+        154.80848416537057
+    )
+Return the approximate arc length for a cubic bezier segment of complex points.
+    pt1 and pt4 are the "anchor" points, pt2 and pt3 are the "handles".g333333
+Return the bounding rectangle for a cubic bezier segment.
+    pt1 and pt4 are the "anchor" points, pt2 and pt3 are the "handles".
+        >>> calcCubicBounds((0, 0), (25, 100), (75, 100), (100, 0))
+        (0, 0, 100, 75.0)
+        >>> calcCubicBounds((0, 0), (50, 0), (100, 50), (100, 100))
+        (0.0, 0.0, 100, 100)
+        >>> print("%f %f %f %f" % calcCubicBounds((50, 0), (0, 100), (100, 100), (50, 0)))
+        35.566243 0.000000 64.433757 75.000000
+    
+z#calcCubicBounds.<locals>.<listcomp>c
+calcCubicParametersr
+ax3Z
+ay3Z
+bx2Z
+by2Z
+xRootsZ
+yRootsrU
+Split the line between pt1 and pt2 at position 'where', which
+    is an x coordinate if isHorizontal is False, a y coordinate if
+    isHorizontal is True. Return a list of two line segments if the
+    line was successfully split, or a list containing the original
+    line.
+        >>> printSegments(splitLine((0, 0), (100, 100), 50, True))
+        ((0, 0), (50, 50))
+        ((50, 50), (100, 100))
+        >>> printSegments(splitLine((0, 0), (100, 100), 100, True))
+        ((0, 0), (100, 100))
+        >>> printSegments(splitLine((0, 0), (100, 100), 0, True))
+        ((0, 0), (0, 0))
+        ((0, 0), (100, 100))
+        >>> printSegments(splitLine((0, 0), (100, 100), 0, False))
+        ((0, 0), (0, 0))
+        ((0, 0), (100, 100))
+        >>> printSegments(splitLine((100, 0), (0, 0), 50, False))
+        ((100, 0), (50, 0))
+        ((50, 0), (0, 0))
+        >>> printSegments(splitLine((0, 100), (0, 0), 50, True))
+        ((0, 100), (0, 50))
+        ((0, 50), (0, 0))
+    r
+where
+isHorizontalZ
+pt1xZ
+pt1yZ
+pt2xZ
+pt2yrK
+midPtr
+Split the quadratic curve between pt1, pt2 and pt3 at position 'where',
+    which is an x coordinate if isHorizontal is False, a y coordinate if
+    isHorizontal is True. Return a list of curve segments.
+        >>> printSegments(splitQuadratic((0, 0), (50, 100), (100, 0), 150, False))
+        ((0, 0), (50, 100), (100, 0))
+        >>> printSegments(splitQuadratic((0, 0), (50, 100), (100, 0), 50, False))
+        ((0, 0), (25, 50), (50, 50))
+        ((50, 50), (75, 50), (100, 0))
+        >>> printSegments(splitQuadratic((0, 0), (50, 100), (100, 0), 25, False))
+        ((0, 0), (12.5, 25), (25, 37.5))
+        ((25, 37.5), (62.5, 75), (100, 0))
+        >>> printSegments(splitQuadratic((0, 0), (50, 100), (100, 0), 25, True))
+        ((0, 0), (7.32233, 14.6447), (14.6447, 25))
+        ((14.6447, 25), (50, 75), (85.3553, 25))
+        ((85.3553, 25), (92.6777, 14.6447), (100, -7.10543e-15))
+        >>> # XXX I'm not at all sure if the following behavior is desirable:
+        >>> printSegments(splitQuadratic((0, 0), (50, 100), (100, 0), 50, True))
+        ((0, 0), (25, 50), (50, 50))
+        ((50, 50), (50, 50), (50, 50))
+        ((50, 50), (75, 50), (100, 0))
+    c
+z"splitQuadratic.<locals>.<listcomp>)
+sorted
+_splitQuadraticAtT)	r
+	solutionsr
+Split the cubic curve between pt1, pt2, pt3 and pt4 at position 'where',
+    which is an x coordinate if isHorizontal is False, a y coordinate if
+    isHorizontal is True. Return a list of curve segments.
+        >>> printSegments(splitCubic((0, 0), (25, 100), (75, 100), (100, 0), 150, False))
+        ((0, 0), (25, 100), (75, 100), (100, 0))
+        >>> printSegments(splitCubic((0, 0), (25, 100), (75, 100), (100, 0), 50, False))
+        ((0, 0), (12.5, 50), (31.25, 75), (50, 75))
+        ((50, 75), (68.75, 75), (87.5, 50), (100, 0))
+        >>> printSegments(splitCubic((0, 0), (25, 100), (75, 100), (100, 0), 25, True))
+        ((0, 0), (2.29379, 9.17517), (4.79804, 17.5085), (7.47414, 25))
+        ((7.47414, 25), (31.2886, 91.6667), (68.7114, 91.6667), (92.5259, 25))
+        ((92.5259, 25), (95.202, 17.5085), (97.7062, 9.17517), (100, 1.77636e-15))
+    c
+splitCubic.<locals>.<listcomp>)
+_splitCubicAtT)
+Split the quadratic curve between pt1, pt2 and pt3 at one or more
+    values of t. Return a list of curve segments.
+        >>> printSegments(splitQuadraticAtT((0, 0), (50, 100), (100, 0), 0.5))
+        ((0, 0), (25, 50), (50, 50))
+        ((50, 50), (75, 50), (100, 0))
+        >>> printSegments(splitQuadraticAtT((0, 0), (50, 100), (100, 0), 0.5, 0.75))
+        ((0, 0), (25, 50), (50, 50))
+        ((50, 50), (62.5, 50), (75, 37.5))
+        ((75, 37.5), (87.5, 25), (100, 0))
+    )
+tsr?
+Split the cubic curve between pt1, pt2, pt3 and pt4 at one or more
+    values of t. Return a list of curve segments.
+        >>> printSegments(splitCubicAtT((0, 0), (25, 100), (75, 100), (100, 0), 0.5))
+        ((0, 0), (12.5, 50), (31.25, 75), (50, 75))
+        ((50, 75), (68.75, 75), (87.5, 50), (100, 0))
+        >>> printSegments(splitCubicAtT((0, 0), (25, 100), (75, 100), (100, 0), 0.5, 0.75))
+        ((0, 0), (12.5, 50), (31.25, 75), (50, 75))
+        ((50, 75), (59.375, 75), (68.75, 68.75), (77.3438, 56.25))
+        ((77.3438, 56.25), (85.9375, 43.75), (93.75, 25), (100, 0))
+    )
+list
+insertrT
+range
+calcQuadraticPoints)
+segmentsrK
+delta
+delta_2
+t1_2
+c1yr
+} }!|
+| |!f
+calcCubicPoints)"r?
+delta_3rs
+t1_3ro
+d1xZ
+d1yr
+acos
+Solve a quadratic equation where a, b and c are real.
+        a*x*x + b*x + c = 0
+    This function returns a list of roots. Note that the returned list
+    is neither guaranteed to be sorted nor to contain unique values!
+    
+rDDr
+|	}	t
+Solve a cubic equation where a, b, c and d are real.
+        a*x*x*x + b*x*x + c*x + d = 0
+    This function returns a list of roots. Note that the returned list
+    is neither guaranteed to be sorted nor to contain unique values!
+    >>> solveCubic(1, 1, -6, 0)
+    [-3.0, -0.0, 2.0]
+    >>> solveCubic(-10.0, -9.0, 48.0, -29.0)
+    [-2.9, 1.0, 1.0]
+    >>> solveCubic(-9.875, -9.0, 47.625, -28.75)
+    [-2.911392, 1.0, 1.0]
+    >>> solveCubic(1.0, -4.5, 6.75, -3.375)
+    [1.5, 1.5, 1.5]
+    >>> solveCubic(-12.0, 18.0, -9.0, 1.50023651123)
+    [0.5, 0.5, 0.5]
+    >>> solveCubic(
+    ...     9.0, 0.0, 0.0, -7.62939453125e-05
+    ... ) == [-0.0, -0.0, -0.0]
+    True
+    rW
+"@rE
+gUUUUUU
+float
+round
+epsilonDigitsrw
+minr7
+pow)
+R2_Q3r8
+thetaZ
+rQ2Z
+a1_3rA
+y3rO
+y4rY
+        >>> _segmentrepr([1, [2, 3], [], [[2, [3, 4], [0.1, 2.2]]]])
+        '(1, (2, 3), (), ((2, (3, 4), (0.1, 2.2))))'
+    z
+(%s)z
+_segmentrepr)
+z _segmentrepr.<locals>.<listcomp>N)
+iter
+	TypeError
+join)
+zlHelper for the doctests, displaying each segment in a list of
+    segments on a single line as a tuple.
+    N)
+printr
+segmentr
+printSegmentsi
+__main__)
+__doc__Z
+__future__r
+fontTools.misc.arrayToolsr
+fontTools.misc.py23r6
+__all__r
+__name__
+sysZ
+doctest
+exitZ
+testmodZ
+failedr
+<module>

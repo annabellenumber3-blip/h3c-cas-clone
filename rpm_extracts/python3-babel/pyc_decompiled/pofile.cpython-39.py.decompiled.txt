@@ -1,0 +1,385 @@
+m	Z	
+    babel.messages.pofile
+    ~~~~~~~~~~~~~~~~~~~~~
+    Reading and writing of files in the ``gettext`` PO (portable object)
+    format.
+    :copyright: (c) 2013-2021 by the Babel Team.
+    :license: BSD, see LICENSE for more details.
+print_functionN)
+Catalog
+Message)
+wraptext)
+	text_type
+cmpc
+Reverse `escape` the given string.
+    >>> print(unescape('"Say:\\n  \\"hello, world!\\"\\n"'))
+    Say:
+      "hello, world!"
+    <BLANKLINE>
+    :param string: the string to unescape
+    c
+group)
+match
+9/usr/lib/python3.9/site-packages/babel/messages/pofile.py
+replace_escapes 
+z!unescape.<locals>.replace_escapesz
+\\([\\trn"])r
+compile
+sub)
+stringr
+unescape
+Reverse the normalization done by the `normalize` function.
+    >>> print(denormalize(r'''""
+    ... "Say:\n"
+    ... "  \"hello, world!\"\n"'''))
+    Say:
+      "hello, world!"
+    <BLANKLINE>
+    >>> print(denormalize(r'''""
+    ... "Say:\n"
+    ... "  \"Lorem ipsum dolor sit "
+    ... "amet, consectetur adipisicing"
+    ... " elit, \"\n"'''))
+    Say:
+      "Lorem ipsum dolor sit amet, consectetur adipisicing elit, "
+    <BLANKLINE>
+    :param string: the string to denormalize
+    r
+splitlines
+startswith
+mapr
+join)
+escaped_lines
+linesr
+denormalize-
+PoFileErrorzDException thrown by PoParser when an invalid po file is encountered.c
+{message} on {lineno})
+message
+lineno)
+superr#
+__init__
+format
+catalog
+liner%
+selfr$
+	__class__r
+PoFileError.__init__)
+__name__
+__module__
+__qualname__
+__doc__r'
+__classcell__r
+_NormalizedStringc
+_strs
+append)
+args
+argr
+_NormalizedString.__init__c
+strip)
+_NormalizedString.appendc
+_NormalizedString.denormalizec
+boolr5
+__nonzero__b
+_NormalizedString.__nonzero__c
+linesepr 
+__repr__g
+_NormalizedString.__repr__c
+otherr
+__cmp__j
+_NormalizedString.__cmp__c
+__gt__p
+_NormalizedString.__gt__c
+__lt__s
+_NormalizedString.__lt__c
+__ge__v
+_NormalizedString.__ge__c
+__le__y
+_NormalizedString.__le__c
+__eq__|
+_NormalizedString.__eq__c
+__ne__
+_NormalizedString.__ne__N)
+__bool__r@
+PoFileParserz
+Support class to  read messages from a ``gettext`` PO (portable object) file
+    and add them to a `Catalog`
+    See `read_po` for simple cases.
+    )
+msgid
+msgstr
+msgctxt
+msgid_pluralFc
+ignore_obsolete
+counter
+offset
+abort_invalid
+_reset_message_state)
+PoFileParser.__init__c
+messages
+translations
+	locations
+flags
+user_comments
+auto_comments
+context
+obsolete
+in_msgid
+	in_msgstr
+in_msgctxtr;
+z!PoFileParser._reset_message_statec
+        Add a message to the catalog based on the current parser state and
+        clear the state ready to process the next message.
+        r
+<listcomp>
+z-PoFileParser._add_message.<locals>.<listcomp>r
+z5msg has more translations than num_plurals of catalogN)
+sort
+lenrW
+tupler"
+isinstance
+list
+ranger)
+num_plurals
+_invalid_pofilerT
+setrZ
+idxZ
+translationrP
+_add_message
+PoFileParser._add_messagec
+_finish_current_message
+z$PoFileParser._finish_current_messagec
+!_process_string_continuation_line
+_process_keyword_line)
+_process_message_line
+z"PoFileParser._process_message_linec
+[z$Keyword must be followed by a stringz0Start of line didn't match any expected keyword.)
+FTrO
+	_keywordsr
+IndexErrorrm
+splitrX
+intr]
+keywordr8
+msgr
+z"PoFileParser._process_keyword_linec
+z<Got line starting with " but not in msgid, msgstr or msgctxt)
+z.PoFileParser._process_string_continuation_linec
+lstripr{
+rfindr|
+ValueErrorrY
+location
+posr%
+flag
+commentr
+_process_comment	
+PoFileParser._process_commentc
+        Reads from the file-like object `fileobj` and adds any po file
+        units found in it to the `Catalog` supplied to the constructor.
+        
+	enumerater9
+decoder)
+charsetr
+fileobjr%
+parse$
+PoFileParser.parsec
+WARNING:z!WARNING: Problem on line {0}: {1}r
+printr(
+repr)
+PoFileParser._invalid_pofileN)
+Read messages from a ``gettext`` PO (portable object) file from the given
+    file-like object and return a `Catalog`.
+    >>> from datetime import datetime
+    >>> from babel._compat import StringIO
+    >>> buf = StringIO('''
+    ... #: main.py:1
+    ... #, fuzzy, python-format
+    ... msgid "foo %(name)s"
+    ... msgstr "quux %(name)s"
+    ...
+    ... # A user comment
+    ... #. An auto comment
+    ... #: main.py:3
+    ... msgid "bar"
+    ... msgid_plural "baz"
+    ... msgstr[0] "bar"
+    ... msgstr[1] "baaz"
+    ... ''')
+    >>> catalog = read_po(buf)
+    >>> catalog.revision_date = datetime(2007, 4, 1)
+    >>> for message in catalog:
+    ...     if message.id:
+    ...         print((message.id, message.string))
+    ...         print(' ', (message.locations, sorted(list(message.flags))))
+    ...         print(' ', (message.user_comments, message.auto_comments))
+    (u'foo %(name)s', u'quux %(name)s')
+      ([(u'main.py', 1)], [u'fuzzy', u'python-format'])
+      ([], [])
+    ((u'bar', u'baz'), (u'bar', u'baaz'))
+      ([(u'main.py', 3)], [])
+      ([u'A user comment'], [u'An auto comment'])
+    .. versionadded:: 1.0
+       Added support for explicit charset argument.
+    :param fileobj: the file-like object to read the PO file from
+    :param locale: the locale identifier or `Locale` object, or `None`
+                   if the catalog is not bound to a locale (which basically
+                   means it's a template)
+    :param domain: the message domain
+    :param ignore_obsolete: whether to ignore obsolete messages in the input
+    :param charset: the character set of the catalog.
+    :param abort_invalid: abort read if po file is invalid
+    )
+locale
+domainr
+parserr
+read_poL
+zL(\s+|[^\s\w]*\w+[a-zA-Z]-(?=\w+[a-zA-Z])|(?<=[\w\!\"\'\&\.\,\?])-{2,}(?=\w))c
+Escape the given string so that it can be included in double-quoted
+    strings in ``PO`` files.
+    >>> escape('''Say:
+    ...   "hello, world!"
+    ... ''')
+    '"Say:\\n  \\"hello, world!\\"\\n"'
+    :param string: the string to escape
+    z
+"%s"
+\nrr
+replace)
+escape
+qLq"|
+Convert a string into a format that is appropriate for .po files.
+    >>> print(normalize('''Say:
+    ...   "hello, world!"
+    ... ''', width=None))
+    ""
+    "Say:\n"
+    "  \"hello, world!\"\n"
+    >>> print(normalize('''Say:
+    ...   "Lorem ipsum dolor sit amet, consectetur adipisicing elit, "
+    ... ''', width=32))
+    ""
+    "Say:\n"
+    "  \"Lorem ipsum dolor sit "
+    "amet, consectetur adipisicing"
+    " elit, \"\n"
+    :param string: the string to normalize
+    :param prefix: a string that should be prepended to every line
+    :param width: the maximum line width; use `None`, 0, or a negative number
+                  to completely disable line wrapping
+    r
+prefixr
+normalize.<locals>.<listcomp>)	rg
+WORD_SEPr{
+reverser6
+popr 
+widthZ	prefixlenr!
+chunksZ
+size
+	normalize
+rrq`
+r\|	
+Write a ``gettext`` PO (portable object) template file for a given
+    message catalog to the provided file-like object.
+    >>> catalog = Catalog()
+    >>> catalog.add(u'foo %(name)s', locations=[('main.py', 1)],
+    ...             flags=('fuzzy',))
+    <Message...>
+    >>> catalog.add((u'bar', u'baz'), locations=[('main.py', 3)])
+    <Message...>
+    >>> from babel._compat import BytesIO
+    >>> buf = BytesIO()
+    >>> write_po(buf, catalog, omit_header=True)
+    >>> print(buf.getvalue().decode("utf8"))
+    #: main.py:1
+    #, fuzzy, python-format
+    msgid "foo %(name)s"
+    msgstr ""
+    <BLANKLINE>
+    #: main.py:3
+    msgid "bar"
+    msgid_plural "baz"
+    msgstr[0] ""
+    msgstr[1] ""
+    <BLANKLINE>
+    <BLANKLINE>
+    :param fileobj: the file-like object to write to
+    :param catalog: the `Catalog` instance
+    :param width: the maximum line width for the generated output; use `None`,
+                  0, or a negative number to completely disable line wrapping
+    :param no_location: do not emit a location comment for every message
+    :param omit_header: do not include the ``msgid ""`` entry at the top of the
+                        output
+    :param sort_output: whether to sort the messages in the output by msgid
+    :param sort_by_file: whether to sort the messages in the output by their
+                         locations
+    :param ignore_obsolete: whether to ignore obsolete messages and not include
+                            them in the output; by default they are included as
+                            comments
+    :param include_previous: include the old msgid as a comment when
+                             updating the catalog
+    :param include_lineno: include line number in the location comment
+    r
+keyr
+_normalize
+write_po.<locals>._normalizec
+backslashreplace)
+encoder
+write)
+text)
+_write
+write_po.<locals>._writec
+#%s %s
+_widthr*
+_write_comment
+z write_po.<locals>._write_commentc
+qpnR|
+)	Nz
+%smsgctxt %s
+%smsgid %s
+%smsgid_plural %s
+%smsgstr[%d] %s
+%smsgstr %s
+)	ri
+idrj
+_write_message
+z write_po.<locals>._write_messageNr$
+sort_byr
+subsequent_indentr
+<lambda>S
+write_po.<locals>.<lambda>
+%s:%d
+%srv
+msgid %s
+msgid_plural %sz
+#~ )
+_sort_messagesr
+header_commentr
+sortedrY
+	TypeErrorr6
+seprZ
+previous_idrg
+values)
+no_locationZ
+omit_headerZ
+sort_outputZ
+sort_by_filerR
+include_previousZ
+include_linenor
+comment_headerr!
+locsrY
+filenamer%
+write_po
+    Sort the given message iterable by the given criteria.
+    Always returns a list.
+    :param messages: An iterable of Messages.
+    :param sort_by: Sort by which criteria? Options are `message` and `location`.
+    :return: list[Message]
+    r$
+z _sort_messages.<locals>.<lambda>r
+NNFNF)
+FFFFFFT)
+__future__r
+babel.messages.catalogr
+babel.utilr
+babel._compatr
+	Exceptionr#
+objectr3
+<module>

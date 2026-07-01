@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="css/bootstrap.min.css" rel="stylesheet" integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
+    <script src="js/jquery-3.7.1.min.js"></script>
+    <script src="js/bootstrap.bundle.min.js"></script>
+    <link href="css/noty.css" rel="stylesheet"/>
+    <script src="js/noty.min.js"></script>
+    <style>
+        .table {
+            border-collapse: collapse;
+            margin: 20px auto;
+            width: 80%;
+        }
+        th, td {
+            border: 1px solid #dddddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        a {
+            text-decoration: none;
+            color: #2a50d7;
+            cursor: pointer;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div style="width: 80%; margin: 20px auto 0;">
+        <button type="button" class="btn btn-primary btn-sm" id="modifyButton" onclick="showForm()">参数配置</button>
+        <p id="setForm" style="margin-top: 20px;"></p>
+        <form id="displayForm" class="hidden">
+            <label for="interval" data-toggle="tooltip" title="采集频率：监控数据采集间隔时间">采集频率:</label>
+            <select name="interval" id="interval">
+                <option value="10">10s</option>
+                <option value="20">20s</option>
+                <option value="30">30s</option>
+                <option value="40">40s</option>
+                <option value="50">50s</option>
+                <option value="60">1min</option>
+            </select>
+            <label for="sampling" style="margin-left: 20px;" data-toggle="tooltip" title="数据保留时长：监控数据保留时间，过期后自动清理">数据保留时长:</label>
+            <select name="sampling" id="sampling">
+                <option value="1">1天</option>
+                <option value="2">2天</option>
+                <option value="3">3天</option>
+            </select>
+            <button type="button" class="btn btn-primary btn-sm" onclick="saveForm()" style="margin-left: 20px;">保存</button>
+            <button type="button" class="btn btn-light btn-sm" onclick="cancelEdit()" style="margin-left: 20px;">取消</button>
+        </form>
+    </div>
+    <div style="width: 80%; height: 20px; margin: 20px auto 0; position: relative;">
+        <div style="position: absolute; right: 0; top: 0;">
+<!--            <input type="text" placeholder="请输入服务名称" style="font-size: 12px; line-height: 22px;" id="inputValue" oninput="refresh()">-->
+<!--            <button type="button" class="btn btn-dark btn-sm" style="margin-left: -5px; font-size: 12px;"  onclick="refresh()">搜索</button>-->
+            <span title="刷新" onclick="refresh()" style="cursor: pointer;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-repeat" viewBox="0 0 16 16">
+                <path d="M11.534 7h3.932a.25.25 0 0 1 .192.41l-1.966 2.36a.25.25 0 0 1-.384 0l-1.966-2.36a.25.25 0 0 1 .192-.41zm-11 2h3.932a.25.25 0 0 0 .192-.41L2.692 6.23a.25.25 0 0 0-.384 0L.342 8.59A.25.25 0 0 0 .534 9z"/>
+                <path fill-rule="evenodd" d="M8 3c-1.552 0-2.94.707-3.857 1.818a.5.5 0 1 1-.771-.636A6.002 6.002 0 0 1 13.917 7H12.9A5.002 5.002 0 0 0 8 3zM3.1 9a5.002 5.002 0 0 0 8.757 2.182.5.5 0 1 1 .771.636A6.002 6.002 0 0 1 2.083 9H3.1z"/>
+              </svg>
+            </span>
+        </div>
+    </div>
+    <table class="table">
+        <thead>
+          <tr>
+            <th scope="col">服务名称</th>
+            <th scope="col">状态</th>
+            <th scope="col">运行时长</th>
+            <th scope="col">CPU利用率</th>
+            <th scope="col">堆内存（MB）</th>
+            <th scope="col">堆内存使用率</th>
+            <th scope="col">非堆内存（MB）</th>
+            <th scope="col">非堆内存使用率</th>
+            <th scope="col">线程数</th>
+          </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+
+    <script>
+      var displayForm = document.getElementById('displayForm');
+      var setForm = document.getElementById('setForm');
+      var intervalSelect = document.getElementById('interval');
+      var samplingSelect = document.getElementById('sampling');
+      var requestData = {
+          service: '',
+      }
+      var configData =  {
+          keepDays: '',
+          sampleInterval: '',
+      }
+
+    // 在页面加载完毕后立即执行
+    document.addEventListener('DOMContentLoaded', function() {
+      getConfigData();
+      getTableData();
+      $(function () {
+        $('[data-toggle="tooltip"]').tooltip()
+      })
+    });
+    function showForm() {
+      getConfigData();
+      modifyButton.classList.add('hidden');
+      displayForm.classList.remove('hidden');
+      setForm.classList.add('hidden');
+    }
+
+    function saveForm() {
+      modifyButton.classList.remove('hidden');
+      displayForm.classList.add('hidden');
+      setForm.classList.remove('hidden');
+      setConfigData();
+    }
+
+    function cancelEdit() {
+      getConfigData();
+      modifyButton.classList.remove('hidden');
+      displayForm.classList.add('hidden');
+      setForm.classList.remove('hidden');;
+    }
+    function setConfigData() {
+      configData.keepDays = samplingSelect.value;
+      configData.sampleInterval = intervalSelect.value;
+      $.ajax({
+        url: '/performance/core-service-mon/config',
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        data: JSON.stringify(configData),
+        success: function(data) {
+          if (data.errorCode === 0) {
+            new Noty({
+              text: '配置成功',
+              timeout: 500, // 设置0.5秒后自动关闭
+              css: {
+                text: 'color: green' // 设置文本颜色为绿色
+              },
+              progressBar: false,
+              closeWith: ['click', 'button']
+            }).show();
+          } else {
+            new Noty({
+              text: '配置失败: ' + data.failureMessage,
+              timeout: 1000, // 设置1秒后自动关闭
+              progressBar: false,
+              closeWith: ['click', 'button']
+            }).show();
+          }
+        getConfigData();
+        },
+      });
+    }
+    function formatSecondsToMinutes(seconds) {
+      if (seconds === 60) {
+          return '1min';
+      } else {
+        return `${seconds}s`;
+      }
+    }
+    function getConfigData() {
+      $.ajax({
+        url: '/performance/core-service-mon/config',
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        success: function(data) {
+            setForm.innerHTML = `采集频率: ${formatSecondsToMinutes(data.data.sampleInterval)} <span style="padding-left: 20px;">数据保留时长: ${data.data.keepDays}天</span>`;
+            intervalSelect.value = data.data.sampleInterval;
+            samplingSelect.value = data.data.keepDays;
+        },
+      });
+    }
+    function getTableData() {
+        // 遍历数据生成表格内容
+        var tableBody = document.querySelector('.table tbody');
+        tableBody.innerHTML = ''; // 清空表格内容
+        $.ajax({
+            url: '/performance/core-service-mon/services',
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            data: requestData,
+            success: function (data) {
+                let serviceList = data.data;
+                serviceList.forEach(function (serviceData) {
+                    // // 遍历数据生成表格内容
+                    let row = document.createElement('tr');
+                    tableBody.innerHTML = ''; // 清空表格内容
+                    row.innerHTML = `
+                              <th scope="row">${serviceData.name}</th>
+                              <td>---</td>
+                              <td>---</td>
+                              <td>---</td>
+                              <td>---</td>
+                              <td>---</td>
+                              <td>---</td>
+                              <td>---</td>
+                              <td>---</td>
+                            `;
+
+                    let updateRowData = function(status, summary) {
+                        if (row.children[1].innerText === '---') {
+                            row.children[1].innerText = status || '---';
+                        }
+                        if (summary) {
+                            row.children[0].addEventListener('click', function () {
+                                window.location.href = 'charts.html?service=' + serviceData.type;
+                            });
+                            row.children[0].style.cursor = 'pointer';
+                            row.children[0].style.color = '#2a50d7'; // 添加手型指示
+                            row.children[2].innerText = convertTime(summary.uptime);
+                            row.children[3].innerText = summary.cpuUsage + '%';
+                            row.children[4].innerText = summary.heapMem;
+                            row.children[5].innerText = summary.heapMemUsage + '%';
+                            row.children[6].innerText = summary.nonHeapMem;
+                            row.children[7].innerText = summary.nonHeapMemUsage + '%';
+                            row.children[8].innerText = summary.threads;
+                        }
+                        tableBody.appendChild(row);
+                    };
+                    $.ajax({
+                        url: '/performance/core-service-mon/service-status?type=' + serviceData.type,
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        success: function (statusData) {
+                            updateRowData(statusData.data)
+                        }
+                    });
+                    $.ajax({
+                        url: '/performance/core-service-mon/summary?type=' + serviceData.type,
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        data: requestData,
+                        success: function (data) {
+                            updateRowData(null, data.data);
+                        }
+                    })
+                })
+            },
+        })
+    }
+    function refresh() {
+        location.reload();
+        // 获取输入框的值
+        // var inputValue = document.getElementById('inputValue').value;
+        // requestData.service = inputValue;
+        // getTableData();
+    }
+
+    // 将秒转换成x天x时x分x秒表示
+    function convertTime(seconds) {
+        const days = Math.floor(seconds / (24 * 3600));
+        seconds %= 24 * 3600;
+        const hours = Math.floor(seconds / 3600);
+        seconds %= 3600;
+        const minutes = Math.floor(seconds / 60);
+        const sec = seconds % 60;
+
+        let result = '';
+
+        if (days > 0) {
+            result += `${days}天`;
+        }
+        if (hours > 0 || result) {
+            result += `${hours}时`;
+        }
+        if (minutes > 0 || result) {
+            result += `${minutes}分`;
+        }
+        if (sec > 0 || result) {
+            result += `${sec}秒`;
+        }
+
+        return result || '0秒';
+    }
+    </script>
+</body>
+</html>

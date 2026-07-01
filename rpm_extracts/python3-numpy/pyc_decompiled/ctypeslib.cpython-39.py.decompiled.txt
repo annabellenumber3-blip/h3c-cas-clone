@@ -1,0 +1,382 @@
+>,P%
+m	Z	
+Z"d(d
+Z%e%
+Z)d d!
+Z*d"d#
+Z+d)d$d%
+d&d'
+)*a7
+============================
+``ctypes`` Utility Functions
+============================
+See Also
+--------
+load_library : Load a C library.
+ndpointer : Array restype/argtype with verification.
+as_ctypes : Create a ctypes array from an ndarray.
+as_array : Create an ndarray from a ctypes array.
+References
+----------
+.. [1] "SciPy Cookbook: ctypes", https://scipy-cookbook.readthedocs.io/items/Ctypes.html
+Examples
+--------
+Load the C library:
+>>> _lib = np.ctypeslib.load_library('libmystuff', '.')     #doctest: +SKIP
+Our result type, an ndarray that must be of type double, be 1-dimensional
+and is C-contiguous in memory:
+>>> array_1d_double = np.ctypeslib.ndpointer(
+...                          dtype=np.double,
+...                          ndim=1, flags='CONTIGUOUS')    #doctest: +SKIP
+Our C-function typically takes an array and updates its values
+in-place.  For example::
+    void foo_func(double* x, int length)
+    {
+        int i;
+        for (i = 0; i < length; i++) {
+            x[i] = i*i;
+        }
+    }
+We wrap it using:
+>>> _lib.foo_func.restype = None                      #doctest: +SKIP
+>>> _lib.foo_func.argtypes = [array_1d_double, c_int] #doctest: +SKIP
+Then, we're ready to call ``foo_func``:
+>>> out = np.empty(15, dtype=np.double)
+>>> _lib.foo_func(out, len(out))                #doctest: +SKIP
+load_library
+	ndpointer
+c_intp
+	as_ctypes
+as_array
+as_ctypes_type
+integer
+ndarray
+dtype
+asarray
+frombuffer)
+	_flagdict
+flagsobjc
+        Dummy object that raises an ImportError if ctypes is not available.
+        Raises
+        ------
+        ImportError
+            If ctypes is not available.
+        z
+ctypes is not available.N)
+ImportError)
+args
+kwds
+5/usr/lib64/python3.9/site-packages/numpy/ctypeslib.py
+_dummyC
+intpc
+]D}	t
+        It is possible to load a library using
+        >>> lib = ctypes.cdll[<full_path_name>] # doctest: +SKIP
+        But there are cross-platform considerations, such as library file extensions,
+        plus the fact Windows will just load the first library it finds with that name.
+        NumPy supplies the load_library function as a convenience.
+        Parameters
+        ----------
+        libname : str
+            Name of the library, which can have 'lib' as a prefix,
+            but without an extension.
+        loader_path : str
+            Where the library can be found.
+        Returns
+        -------
+        ctypes.cdll[libpath] : library object
+           A ctypes library object
+        Raises
+        ------
+        OSError
+            If there is no library with the expected extension, or the
+            library is defective and cannot be loaded.
+        z
+1.0.1r
+NzAAll features of ctypes interface may not work with ctypes < 1.0.1
+stacklevel
+get_shared_lib_extensionT)
+is_python_extz
+no file with expected extension)
+ctypes
+__version__
+warnings
+warn
+path
+splitextZ
+numpy.distutils.misc_utilr
+insert
+abspath
+isdir
+dirname
+join
+existsZ
+cdll
+OSError)
+libnameZ
+loader_pathr
+extr
+so_extZ
+libname_extZ
+so_ext2
+libdirZ
+libpathr
+flaglist
+valr
+_num_fromflags
+C_CONTIGUOUSZ
+F_CONTIGUOUSZ
+ALIGNEDZ	WRITEABLEZ
+OWNDATAZ
+UPDATEIFCOPYZ
+WRITEBACKIFCOPYc
+_flagnamesr
+append)
+valuer
+_flags_fromnum
+_ndptrc
+argument must be an ndarrayz
+array must have data type %sz
+array must have %d dimension(s)z
+array must have shape %sz
+array must have flags %s)
+isinstancer	
+	TypeError
+_dtype_r
+_ndim_
+ndim
+_shape_
+shape
+_flags_
+flagsr*
+objr
+from_param
+_ndptr.from_paramN)
+__name__
+__module__
+__qualname__
+classmethodrA
+_concrete_ndptrz
+    Like _ndptr, but with `_shape_` and `_dtype_` specified.
+    Notably, this means the pointer has enough information to reconstruct
+    the array, which is not generally true.
+    c
+        This method is called when this class is used as the .restype
+        attribute for a shared-library function, to automatically wrap the
+        pointer into an array.
+        )
+contents)
+selfr
+_check_retval_
+_concrete_ndptr._check_retval_c
+        Get an ndarray viewing the data pointed to by this pointer.
+        This mirrors the `contents` attribute of a normal ctypes pointer
+        
+axis)
+_dtyper7
+c_char
+itemsize
+cast
+POINTERrG
+squeeze)
+full_dtypeZ
+full_ctype
+bufferr
+_concrete_ndptr.contentsN)
+__doc__rI
+propertyrG
+}	|	t
+    Array-checking restype/argtypes.
+    An ndpointer instance is used to describe an ndarray in restypes
+    and argtypes specifications.  This approach is more flexible than
+    using, for example, ``POINTER(c_double)``, since several restrictions
+    can be specified, which are verified upon calling the ctypes function.
+    These include data type, number of dimensions, shape and flags.  If a
+    given array does not satisfy the specified restrictions,
+    a ``TypeError`` is raised.
+    Parameters
+    ----------
+    dtype : data-type, optional
+        Array data-type.
+    ndim : int, optional
+        Number of array dimensions.
+    shape : tuple of ints, optional
+        Array shape.
+    flags : str or tuple of str
+        Array flags; may be one or more of:
+          - C_CONTIGUOUS / C / CONTIGUOUS
+          - F_CONTIGUOUS / F / FORTRAN
+          - OWNDATA / O
+          - WRITEABLE / W
+          - ALIGNED / A
+          - WRITEBACKIFCOPY / X
+          - UPDATEIFCOPY / U
+    Returns
+    -------
+    klass : ndpointer type object
+        A type object, which is an ``_ndtpr`` instance containing
+        dtype, ndim, shape and flags information.
+    Raises
+    ------
+    TypeError
+        If a given array does not satisfy the specified restrictions.
+    Examples
+    --------
+    >>> clib.somefunc.argtypes = [np.ctypeslib.ndpointer(dtype=np.float64,
+    ...                                                  ndim=1,
+    ...                                                  flags='C_CONTIGUOUS')]
+    ... #doctest: +SKIP
+    >>> clib.somefunc(np.array([1, 2, 3], dtype=np.float64))
+    ... #doctest: +SKIP
+    N
+strip
+upper
+<listcomp>(
+ndpointer.<locals>.<listcomp>z
+invalid flags specification
+anyz
+_%dd
+	<genexpr>F
+ndpointer.<locals>.<genexpr>z
+ndpointer_%s)
+split
+intr
+	Exceptionr6
+tuple
+_pointer_type_cache
+KeyError
+names
+idr%
+type)
+eZ	cache_key
+name
+base
+klassr
+z7 Create an ndarray of the given element type and shape N
+element_typer;
+dimr
+_ctype_ndarrayY
+        Return a dictionary mapping native endian scalar dtype to ctypes types
+        c
+ctyper
+<dictcomp>m
+z(_get_scalar_type_map.<locals>.<dictcomp>)
+c_byteZ
+c_shortZ
+c_intZ
+c_longZ
+c_longlongZ
+c_ubyteZ
+c_ushortZ
+c_uintZ
+c_ulongZ
+c_ulonglongZ
+c_floatZ
+c_doubleZ
+c_bool)
+simple_typesr
+_get_scalar_type_mapb
+=z Converting {!r} to a ctypes type
+newbyteorder
+_scalar_type_maprc
+NotImplementedError
+format
+	byteorderZ
+__ctype_be__Z
+__ctype_le__)
+dtype_with_endianZ
+dtype_nativerm
+_ctype_from_dtype_scalars
+subdtype
+_ctype_from_dtyperl
+element_dtyper;
+_ctype_from_dtype_subarray
+}	|	d
+}	|	d
+<lambda>
+z._ctype_from_dtype_structured.<locals>.<lambda>)
+offsetrh
+z/_ctype_from_dtype_structured.<locals>.<genexpr>r
+union)
+_fields_Z
+_pack_rC
+Overlapping fields
+struct)
+fieldsr/
+sorted
+maxr
+sizeofrM
+Union
+dictru
+Z	Structure)
+field_datarh
+field_dtyper~
+sizer
+last_offsetZ
+paddingr
+_ctype_from_dtype_structured
+        Convert a dtype into a ctypes type.
+        Parameters
+        ----------
+        dtype : dtype
+            The dtype to convert
+        Returns
+        -------
+        ctype
+            A ctype scalar, union, array, or struct
+        Raises
+        ------
+        NotImplementedError
+            If the conversion is not possible
+        Notes
+        -----
+        This function does not losslessly round-trip in either direction.
+        ``np.dtype(as_ctypes_type(dt))`` will:
+         - insert padding fields
+         - reorder fields to be sorted by offset
+         - discard field titles
+        ``as_ctypes_type(np.dtype(ctype))`` will:
+         - discard the class names of `ctypes.Structure`\ s and
+           `ctypes.Union`\ s
+         - convert single-element `ctypes.Union`\ s into single-element
+           `ctypes.Structure`\ s
+         - insert padding fields
+        )
+        Create a numpy array from a ctypes array or POINTER.
+        The numpy array shares the memory with the ctypes object.
+        The shape parameter must be given if converting from a ctypes POINTER.
+        The shape parameter is ignored if converting from a ctypes array
+        Nz=as_array() requires a shape argument when called on a pointer)
+_Pointerr6
+_type_rN
+p_arr_typer
+Create and return a ctypes object from a numpy array.  Actually
+        anything that exposes the __array_interface__ is accepted.
+stridesz
+strided arrays not supported
+version
+z,only __array_interface__ version 3 supported
+dataz
+readonly arrays unsupportedZ
+typestrr;
+__array_interface__r6
+from_addressZ
+__keep)
+addr
+readonlyZ
+ctype_scalarZ
+result_type
+resultr
+NNNN)
+N),rQ
+__all__r
+numpyr
+numpy.core.multiarrayr
+objectZ
+_ndptr_baseZ
+numpy.core._internalZ
+coreZ	_internalZ
+nicZ
+_getintp_ctypeZ
+c_void_pr,
+<module>
