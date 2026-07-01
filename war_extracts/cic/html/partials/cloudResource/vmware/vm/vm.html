@@ -1,0 +1,101 @@
+<!-- vmware云主机详细信息页面 -->
+<div class="cas-panel" style="min-width:924px" ng-controller="vmwareVmController">
+	<!-- 导航 -->
+	<div class="panel-heading cas-panel-heading">
+		<!-- 云主机下显示 -->
+		<ol ng-if="hostName == ''" class="breadcrumb" style="display:inline;">
+            <li class="active"><a ui-sref='main.cloudHost' ><span translate="cloudHost.cloudHost"></span></a></li>
+            <li class="active"><span translate="cloudHost.cloudHost"></span>：{{entryName}}</li>
+        </ol>
+        <!-- 云资源下显示 -->
+        <ol ng-if="hostName != ''" class="breadcrumb" style="display:inline;">
+			<li><a ui-sref='main.cloudResource' ><span translate="cloudResource.cloudResource"></span></a></li>
+			<li><a ui-sref="main.vmware.dashboard({id:'{{cloudId}}', name:'{{cloudName}}', apiVersion:'{{apiVersion}}' })"><span translate="cloudResource.cloudResource"></span>：{{cloudName}}</a></li>
+            <li><a ui-sref="main.vmwareHostpool.dashboard({id:'{{cloudId}}', name:'{{cloudName}}', hpKey:'{{hpKey}}', hpName:'{{hpName}}', apiVersion:'{{apiVersion}}'  })"><span translate="hostpool.hostpool"></span>：{{hpName}}</a></li>
+            <li ng-if="clusterKey != ''"><a ui-sref="main.vmwareCluster.dashboard({id:'{{cloudId}}', name:'{{cloudName}}', hpKey:'{{hpKey}}', hpName:'{{hpName}}', clusterKey:'{{clusterKey}}', clusterName:'{{clusterName}}', apiVersion:'{{apiVersion}}'  })"><span translate="cluster.cluster"></span>：{{clusterName}}</a></li>
+            <li><a ui-sref="main.vmwareHost.dashboard({id:'{{cloudId}}', name:'{{cloudName}}', hpKey:'{{hpKey}}', hpName:'{{hpName}}', clusterKey:'{{clusterKey}}', clusterName:'{{clusterName}}', hostKey:'{{hostKey}}', hostName:'{{hostName}}', apiVersion:'{{apiVersion}}' })"><span translate="host.host"></span>：{{hostName}}</a></li>
+            <li class="active"><span translate="host.vm"></span>：{{entryName}}</li>
+        </ol>
+		<!-- <span class="glyphicon glyphicon-question-sign link-help" custom-title="{{'help'|translate}}"
+			aria-hidden="true" ng-click="openHelp('cloudVm/vmMgmt')"></span> -->
+	</div>
+	<!-- 主体内容 -->
+	<div class="panel-body" content-style>
+		<!-- 操作按钮 -->
+		<div class="section">
+			<div class="btn-group" role="group" aria-label="...">
+				<!-- 启动 -->
+				<label has-permission="VIRT_HOST_START" ng-if ="vm.enableStart == false" class="btn btn-default btn-menu btn-forbidden">
+				  <span class="sm-icon icon-start-gray"></span><span translate="menu.start"></span>
+				</label>
+				<label has-permission="VIRT_HOST_START" ng-if ="vm.enableStart == true"  class="btn btn-default btn-menu" ng-click="operateVmwareVm('start')">
+				  <span class="sm-icon icon-start"></span><span translate="menu.start"></span>
+				</label>
+				<!-- 休眠 -->
+				<label has-permission="VIRT_HOST_SLEEP" ng-if ="vm.enableSleep == false" class="btn btn-default btn-menu btn-forbidden">
+				  <span class="sm-icon icon-vm-sleep-gray"></span><span translate="menu.sleep"></span>
+				</label>
+				<label has-permission="VIRT_HOST_SLEEP" ng-if ="vm.enableSleep == true"  class="btn btn-default btn-menu" ng-click="operateVmwareVm('sleep')">
+				  <span class="sm-icon icon-vm-sleep"></span><span translate="menu.sleep"></span>
+				</label>
+				<!-- 重启 -->
+				<label has-permission="VIRT_HOST_RESTART" ng-if ="vm.enableReboot == false" class="btn btn-default btn-menu btn-forbidden">
+				  <span class="sm-icon icon-vm-reboot-gray"></span><span translate="menu.restart"></span>
+				</label>
+				<label has-permission="VIRT_HOST_RESTART" ng-if ="vm.enableReboot == true"  class="btn btn-default btn-menu" ng-click="operateVmwareVm('restart')">
+				  <span class="sm-icon icon-vm-reboot"></span><span translate="menu.restart"></span>
+				</label>
+				<!-- 关闭 -->
+				<label has-permission="VIRT_HOST_SHUTDOWN" ng-if ="vm.enableShutdown == false" class="btn btn-default btn-menu btn-forbidden">
+				  <span class="sm-icon icon-vm-shutdown-gray"></span><span translate="menu.shutdown"></span>
+				</label>
+				<label has-permission="VIRT_HOST_SHUTDOWN" ng-if ="vm.enableShutdown == true" class="btn btn-default btn-menu " ng-click="operateVmwareVm('shutdown')">
+				  <span class="sm-icon icon-vm-shutdown"></span><span translate="menu.shutdown"></span>
+				</label>
+				<!-- 关闭电源 -->
+				<label has-permission="VIRT_HOST_CLOSE" ng-if ="vm.enableClose == false" class="btn btn-default btn-menu btn-forbidden" >
+				  <span class="sm-icon icon-vm-power-off-gray"></span><span translate="menu.close"></span>
+				</label>
+				<label has-permission="VIRT_HOST_CLOSE" ng-if ="vm.enableClose == true" class="btn btn-default btn-menu " ng-click="operateVmwareVm('close')">
+				  <span class="sm-icon icon-vm-power-off"></span><span translate="menu.close"></span>
+				</label>
+				<!-- 删除 -->
+				<label has-permission="VIRT_HOST_DEL" ng-if ="vm.enableDelete == false" class="btn btn-default btn-menu btn-forbidden" >
+				  <span class="sm-icon icon-delete-gray"></span><span translate="menu.delete"></span>
+				</label>
+				<label has-permission="VIRT_HOST_DEL" ng-if ="vm.enableDelete == true" class="btn btn-default btn-menu" ng-click="deleteVm()">
+				  <span class="sm-icon icon-delete"></span><span translate="menu.delete"></span>
+				</label>
+				<!-- 迁移 -->
+				<label has-permission="VIRT_HOST_MIGRATE" ng-if ="vm.enableMigrate == false" class="btn btn-default btn-menu btn-forbidden" >
+				  <span class="sm-icon icon-vm-migrate-gray"></span><span translate="menu.migrate"></span>
+				</label>
+				<label has-permission="VIRT_HOST_MIGRATE" ng-if ="vm.enableMigrate == true" class="btn btn-default btn-menu " ng-click="migrateVm()">
+				  <span class="sm-icon icon-vm-migrate"></span><span translate="menu.migrate"></span>
+				</label>
+				<!-- 快照虚拟机 -->
+				<label has-permission="VIRT_HOST_SNAPSHOT" ng-if ="vm.enableSnapshot == false" class="btn btn-default btn-menu btn-forbidden" >
+				  <span class="sm-icon icon-vm-snapshot-gray"></span><span translate="menu.createSnapshot"></span>
+				</label>
+				<label has-permission="VIRT_HOST_SNAPSHOT" ng-if ="vm.enableSnapshot == true" class="btn btn-default btn-menu " ng-click="createSnapshot()">
+				  <span class="sm-icon icon-vm-snapshot"></span><span translate="menu.createSnapshot"></span>
+				</label>
+				<!-- 克隆为模板 -->
+				<label has-permission="VIRT_HOST_CLONE_TEMPLET" ng-if ="vm.enableCloneTemplate == false" class="btn btn-default btn-menu btn-forbidden" >
+				  <span class="sm-icon icon-vm-clone-to-template-gray"></span><span translate="menu.cloneTemplate"></span>
+				</label>
+				<label has-permission="VIRT_HOST_CLONE_TEMPLET" ng-if ="vm.enableCloneTemplate == true" class="btn btn-default btn-menu " ng-click="cloneTemplate()">
+				  <span class="sm-icon icon-vm-clone-to-template"></span><span translate="menu.cloneTemplate"></span>
+				</label>
+			</div>
+		</div>
+		<!-- tab面板 -->
+		<div class="section">
+			<castabset>
+		      <castab active="{{currentTab=='dashboard'}}" href=".dashboard" icon="icon-summary-gray" heading="{{::'vmware.summary'|translate}}"></castab>
+		      <castab active="{{currentTab=='performance'}}" href=".performance" icon="icon-performance-monitor-gray" heading="{{::'cluster.performanceMonitor'|translate}}"></castab>
+		    </castabset>
+		</div>
+	    <div id="vmwareVmDetail" class="content" ui-view></div>	
+	</div>
+</div>

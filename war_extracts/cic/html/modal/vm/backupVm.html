@@ -1,0 +1,425 @@
+<!-- 立即备份窗口-->
+<div class="modal-header">
+	 <button type="button" class="close" custom-title="{{::'common.close'|translate}}"  ng-click="cancel()">
+		<span class="icon-closenew"></span>
+	</button>
+	<button ng-if="entryNodeType == 'cloudResource'" type="button" class="close cornerhelp" custom-title="{{::'help'|translate}}" ng-click="openHelp('cloudResource/vm/backupVM')">
+		<span class="icon-helpnew"></span>
+	</button>
+	<button ng-if="entryNodeType == 'cloudHost'" type="button" class="close cornerhelp" custom-title="{{::'help'|translate}}" ng-click="openHelp('cloudVm/backupVM')">
+		<span class="icon-helpnew"></span>
+	</button>
+	<button ng-if="entryNodeType == 'virtualDesktopPool'" type="button" class="close cornerhelp" custom-title="{{::'help'|translate}}" ng-click="openHelp('cloudService/virtualDesktopPool/desktop/backupVM')">
+		<span class="icon-helpnew"></span>
+	</button>
+	<button ng-if="entryNodeType == 'org'" type="button" class="close cornerhelp" custom-title="{{::'help'|translate}}" ng-click="openHelp('org/VM/backupVM')">
+		<span class="icon-helpnew"></span>
+	</button>
+	<h4 class="modal-title" translate="backupVm.immediateBackup"></h4>
+</div>
+<!-- 内容 -->
+<div class="modal-body row">
+    <div class="form-horizontal col-md-8">
+    	<carousel-form titles="stepTitles" cancel="ok()"  btntext="{{::'backupVm.importBackupStrategy'|translate}}" >
+	    	<!-- 第一页	基本信息-->
+	        <slide-form valid="valids.stepOneOver()" active="slide.active" tab-index='0'>
+       			 <form name="form1" class="form-horizontal" ng-keypress="enter($event)" role="form" novalidate>
+       			 	<input type="hidden" id="form1" value="{{form1.$valid}}"> 
+       			 	<!-- 备份文件名 -->
+					<div class="form-group" ng-class="{'has-error': (form1.backupFileName.$dirty && form1.backupFileName.$invalid)}">
+						<label for="backupFileName_id" class="control-label"><span translate="backupVm.backupFileName"></span><span style="color: red">*</span></label>
+						<div class="control-input">
+						     <div class="input-group input-xlarge">
+								   <input type="text" checkname rpccheck="cloudBackup/isBackupNameExists" ng-maxlength=120 class="form-input form-control" ng-model="backup.backupName"  ng-trim="false" id="backupFileName_id" name="backupFileName" required>
+								   <span class="input-group-addon help-addon" ng-messages="form1.backupFileName.$error" ng-if="form1.backupFileName.$dirty">
+										 <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{::'require'|translate}}"></span></span>
+										 <span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{::'maxlen'|translate}}120"></span></span>
+										 <span ng-message="checkname"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{::'checkname'|translate}}"></span></span>
+										 <span ng-message="rpccheck"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{::'backupVm.backupFileNameExist'|translate}}"></span></span>
+							        </span>
+							  </div>
+					   </div>
+				  </div>
+	        		 <!-- 保留个数 -->
+		            <div class="form-group" ng-class="{'has-error': (form1.keepNum.$dirty && form1.keepNum.$invalid)}">
+						   <label for="inputHAminCount" class="control-label">
+								  <span translate="backupVm.keepNum"></span>
+						   </label>
+			               <div class="control-input">
+							   <div class="input-group"  >
+							      <input id="keepNum" name="keepNum" type="text" class="spinner-only"  ng-model="backup.keepTimes" checkint spinner spinner-min="1" spinner-max="30">
+							   	   <span class="input-group-addon help-addon" ng-messages="form1.keepNum.$error">
+	                            		<span ng-if="form1.keepNum.$valid||!form1.keepNum.$dirty">
+	                                		<span class="icon-occupying"></span>
+	                            		</span>
+	                            		<span ng-if="form1.keepNum.$dirty">
+	                                		<span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+	                                		<span ng-message="spinnerMax"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxValueIs'|translate}}30"></span></span>
+	                                		<span ng-message="spinnerMin"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'minValueIs'|translate}}1"></span></span>
+	                                		<span ng-message="int"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'invalidint'|translate}}"></span></span>
+	                            		</span>
+	                        	  </span>
+							   </div>
+						  </div>
+						</div>
+				    <!-- 磁盘读速率限制 -->
+				    <div class="form-group" ng-class="{'has-error': (form1.diskreadlimit.$dirty && form1.diskreadlimit.$invalid)}">
+			                   <label for="diskreadlimit" class="control-label"><span translate="backupVm.readRatio"></span></label>
+			                   <div class="control-input">
+		                            <div  class="input-group width300">
+		                              <input id="diskreadlimit" name="diskreadlimit" type="text" class="spinner-input-short" checkint spinner spinner-max=10000 spinner-min=0 ng-init="backup.readRatio = 500"  ng-model="backup.readRatio">
+		                              <span class="input-group-addon last-child-angle unit-addon">MB/S</span>
+		                               <span class="input-group-addon help-addon" ng-messages="form1.diskreadlimit.$error">
+		                      		 	<span ng-if="form1.diskreadlimit.$valid||!form1.diskreadlimit.$dirty">
+			                            			 <span class="icon-help-gray" tooltip-placement="right" tooltip="{{'cloudResource.backupReadLimited' | translate}}"></span>
+			                      				</span>
+					                	<span ng-if="form1.diskreadlimit.$dirty" style="color:#A94442;">
+					              		    <span ng-message="spinnerMax"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxValueIs'|translate}}10000"></span></span>
+					                    	<span ng-message="spinnerMin"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'minValueIs'|translate}}0"></span></span>
+					                    	<span ng-message="int"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'invalidint'|translate}}"></span></span>
+					                	</span>
+				               		</span>
+		                       </div>
+			             </div>
+			        </div>
+			        <!-- 磁盘写速率限制 -->
+				    <div class="form-group" ng-class="{'has-error': (form1.diskwritelimit.$dirty && form1.diskwritelimit.$invalid)}">
+			                   <label for="diskwritelimit" class="control-label"><span translate="backupVm.writeRatio"></span></label>
+			                   <div class="control-input">
+		                            <div  class="input-group width300">
+		                              <input id="diskwritelimit" name="diskwritelimit" checkint type="text" class="spinner-input-short" spinner spinner-max=10000 spinner-min=0  ng-init="backup.writeRatio = 500" ng-model="backup.writeRatio">
+		                              <span class="input-group-addon last-child-angle unit-addon">MB/S</span>
+		                              <span class="input-group-addon help-addon" ng-messages="form1.diskwritelimit.$error">
+				                       			<span ng-if="form1.diskwritelimit.$valid||!form1.diskwritelimit.$dirty">
+			                            			 <span class="icon-help-gray" tooltip-placement="right" tooltip="{{'cloudResource.backupWriteLimited' | translate}}"></span>
+			                      				</span>
+							                	<span ng-if="form1.diskwritelimit.$dirty" style="color:#A94442;">
+							              		    <span ng-message="spinnerMax"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxValueIs'|translate}}10000"></span></span>
+							                    	<span ng-message="spinnerMin"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'minValueIs'|translate}}0"></span></span>
+							                    	<span ng-message="int"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'invalidint'|translate}}"></span></span>
+							                	</span>
+						               </span>
+		                       </div>
+			             </div>
+			        </div>
+				    <!-- 临时目录 -->
+				    <div class="form-group" ng-class="{'has-error': (form1.tmpDir.$dirty && form1.tmpDir.$invalid)}">
+		               <label for="tmpDir_id" class="control-label"><span translate="backupVm.tempDir"></span><span style="color: red">*</span></label>
+		               <div class="control-input">
+							  <div class="input-group  width300">
+					              <input checkpath type="text"  ng-maxlength=120 class="form-input form-control" ng-model="backup.tmpDir" ng-init="backup.tmpDir='/vms/vmbackuptmp'" ng-trim="false" id="tmpDir_id" name="tmpDir" required>
+								  <span class="input-group-addon help-addon" ng-messages="form1.tmpDir.$error">
+								  	<span ng-if="form1.tmpDir.$valid||!form1.tmpDir.$dirty">
+			                             <span class="icon-help-gray" tooltip-placement="right" tooltip="{{'securityMng.backupPathTip3' | translate}}"></span>
+			                      	</span>
+								  	<span ng-if="form1.tmpDir.$dirty">
+								     	<span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right"  tooltip="{{::'require'|translate}}"></span></span>
+								     	<span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{::'maxlen'|translate}}120"></span></span>
+								     	<span ng-message="checkpath"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{::'invalidpath'|translate}}"></span></span>
+								     </span>
+								    </span>
+		                       </div>
+						</div>
+				    </div>
+		            <!-- 备份设置 -->
+				   <div class="form-group" >
+				         <label for="startHA" class="switch-label"><span translate="backupVm.compress"></span></label>
+					     <div class="input-group">
+		                   <div id="startHA" toggle-switch is-disabled="isExistBlock" class="switch-success" ng-model="tmp.isCompression"></div>
+						</div>
+<!-- 				    <label for="unique-id0" class="control-label"><span translate="backupVm.backupset"></span></label> -->
+<!-- 		               <div class="control-input"> -->
+<!-- 						     <div id="isCompressionDiv" cascheckbox style="margin-left:0px;margin-right:0px" class="cas-checkbox labeled-btn" ng-model="backup.isCompression" ng-init="backup.isCompression = 1" value=1 false-value=0> -->
+<!-- 						      <input id="isCompression" name="isCompression" type="checkbox" ng-checked='backup.isCompression == 1'> -->
+<!-- 						      <div class="corner-label"> -->
+<!-- 						        <i class="glyphicon glyphicon-ok icon"></i> -->
+<!-- 						      </div> -->
+<!-- 						      <div class="box"> -->
+<!-- 						        <span class="box-name" translate="backupVm.compress"></span> -->
+<!-- 						      </div> -->
+<!-- 						    </div> -->
+<!-- 						</div> -->
+					</div>
+					
+										
+					<!-- 备份类型 -->
+			        <div class="form-group">
+		                <label for="backupType_id" class="control-label"><span translate="backupVm.backupType"></span></label>
+		                <div class="control-input">
+		                        <!-- 整机备份 -->
+		                        <div cascheckbox id="domainBackupId" class="cas-checkbox labeled-btn radio" ng-model="backup.backupType" value='0'>
+			                        <input id="backupTypeId1" name="backupType" type="radio" ng-checked='backup.backupType == 0' >
+			                        <div class="corner-label">
+			                            <i class="glyphicon glyphicon-ok icon"></i>
+			                        </div>
+			                        <div class="box">
+			                            <span class="box-name" style="width:103px;" translate="backupVm.domainBackup"></span>
+			                        </div>
+		                        </div>
+		                        <!-- 磁盘备份 -->
+		                        <div cascheckbox id="diskBackupId" class="cas-checkbox labeled-btn radio" ng-model="backup.backupType" value='1'>
+			                        <input id="backupTypeId2" name="backupType" type="radio" ng-checked='backup.backupType == 1'>
+			                        <div class="corner-label">
+			                            <i class="glyphicon glyphicon-ok icon"></i>
+			                        </div>
+			                        <div class="box">
+			                            <span class="box-name" style="width:102px;" translate="backupVm.diskBackup"></span>
+			                        </div>
+		                        </div>
+		                        <span style="float: right; margin-right: 91px; margin-top: 9px;">
+                             		<span class="icon-help-gray" tooltip-placement="right" tooltip="{{::'backupVm.backupTip'|translate}}"></span>
+                        		</span>
+		                  </div>
+		            </div>
+				</form>
+        	</slide-form>
+        	<!-- 第二页	备份设置-->
+        	<slide-form valid="valids.stepTwoOver()" tab-index='1'>
+        		<form name="form2" class="form-horizontal" role="form" novalidate>
+        			<input type="hidden" id="form2" value="{{form2.$valid}}">
+        			 <!-- 备份目的地 -->
+					  <div class="form-group">
+			               <label for="backupdest_id0" class="control-label"><span translate="backupVm.backupDest"></span></label>
+			<!--                <div class="control-input"> -->
+			<!-- 					   <div class="input-group" style="width:302px;"> -->
+			<!-- 						   <select-input class="" options="levels.options" bind-model="backup.dest" ng-init="backup.dest = '0'"  -->
+			<!-- 						   input-id="backupdest_id" input-name="backupdest"> -->
+			<!-- 						 </select-input> -->
+			<!-- 						 <span class="input-group-addon help-addon"> -->
+			<!-- 						   <span class="icon-occupying"></span> -->
+			<!-- 					     </span> -->
+			<!-- 					   </div> -->
+			<!-- 				</div>    -->
+							<div class="control-input">
+							   <div id="backupdest_idDiv0" cascheckbox style="margin-left:0px;margin-right:0px" class="cas-checkbox labeled-btn radio" ng-model="backup.storeMode" ng-init="backup.storeMode=0" value=0>
+							      <input id="backupdest_id0" name="backupdest" type="radio" ng-checked = "backup.storeMode==0" >
+							      <div class="corner-label">
+							        <i class="glyphicon glyphicon-ok icon"></i>
+							      </div>
+							      <div class="box">
+							        <span class="box-name box-name-two" translate="backupVm.localDir"></span>
+							      </div>
+							    </div>
+							    
+							   <div id="backupdest_idDiv1" cascheckbox style="margin-left:0px"  class="cas-checkbox labeled-btn radio" ng-model="backup.storeMode" value=1>
+							      <input id="backupdest_id1" name="backupdest" type="radio" ng-checked = "backup.storeMode==1" >
+							      <div class="corner-label">
+							        <i class="glyphicon glyphicon-ok icon"></i>
+							      </div>
+							      <div class="box">
+							        <span class="box-name box-name-two" translate="backupVm.remoteServer"></span>
+							      </div>
+							   </div>
+							</div>
+					  </div>
+					  <!-- 远端配置 -->
+					  <div ng-if="backup.storeMode == '1'">
+						  <!-- IP地址 -->
+						  <div class="form-group" ng-class="{'has-error': (form2.backupIp.$dirty && form2.backupIp.$invalid)}">
+			                  <label for="backupIp" class="control-label"><span translate="ip"></span><span style="color:red">*</span></label>
+			                  <div class="control-input">
+			                      <div class="input-group input-xlarge">
+			                          <input type="text" ip ng-maxlength=130 class="form-input form-control" ng-model="backup.targetAddr"  ng-trim="false" id="backupIp" name="backupIp" required>
+			                          <span class="input-group-addon help-addon" ng-messages="form2.backupIp.$error" ng-if="form2.backupIp.$dirty">
+		                                   <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{::'require'|translate}}"></span></span>
+		                                   <span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{::'maxlen'|translate}}130"></span></span>
+		                                   <span ng-message="ip"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{::'invalidip'|translate}}"></span></span>
+			                          </span>
+			                      </div>
+			                  </div>
+			              </div>
+				          <!-- 用户名 -->
+				          <div class="form-group" ng-class="{'has-error': (form2.username.$dirty && form2.username.$invalid)}">
+			                 <label for="username_id" class="control-label"><span translate="username"></span><span style="color: red">*</span></label>
+			                 <div class="control-input">
+			                      <div class="input-group input-xlarge">
+			                          <input type="text" ng-maxlength=32 class="form-input form-control" ng-model="backup.userName"  ng-trim="false" id="username_id" name="username" required >
+			                          <span class="input-group-addon help-addon" ng-messages="form2.username.$error" ng-if="form2.username.$dirty">
+		                                  <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{::'require'|translate}}"></span></span>
+		                                  <span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{::'maxlen'|translate}}32"></span></span>
+			                          </span>
+			                      </div>
+			                  </div>   
+			              </div>
+				          <!-- 密码 -->
+				          <div class="form-group" ng-class="{'has-error': (form2.pwd.$dirty && form2.pwd.$invalid)}">
+			                 <label for="pwd" class="control-label"><span translate="password"></span><span style="color: red">*</span></label>
+			                 <div class="control-input">
+			                     <div class="input-group input-xlarge">
+			                         <input type="password"  ng-maxlength=32  class="form-input form-control" ng-model="backup.password" ng-trim="false" id="inputpwd" name="pwd" required>
+			                         <span class="input-group-addon help-addon" ng-messages="form2.pwd.$error" ng-if="form2.pwd.$dirty">
+		                                 <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{::'require'|translate}}"></span></span>
+		                                 <span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{::'maxlen'|translate}}32"></span></span>
+			                          </span>
+			                      </div>
+			                  </div>
+			             </div>
+					  </div>
+					  
+			          <!-- 备份位置 -->
+					  <div class="form-group" ng-class="{'has-error': (form2.backupLocation.$dirty && form2.backupLocation.$invalid)}">
+			               <label for="backupLocation_id" class="control-label"><span translate="backupVm.backupLocation"></span><span style="color: red">*</span></label>
+			               <div class="control-input">
+							  <div class="input-group input-xlarge">
+					              <input checkpath type="text"  ng-maxlength=120 class="form-input form-control" ng-model="backup.directory"  ng-trim="false" id="backupLocation_id" name="backupLocation" required>
+					               <span ng-if="backup.storeMode==0" class="input-group-btn help-addon" tooltip-placement="right" tooltip="{{::'securityMng.backupPathTip1'|translate}}">
+						    		<img class="icon-prompt" src="css/img/gray/Icon_help_16x16.svg"/>
+						    	   </span>
+						    	   <span ng-if="backup.storeMode==1" class="input-group-btn help-addon" tooltip-placement="right" tooltip="{{::'securityMng.backupPathTip2'|translate}}">
+						    		<img class="icon-prompt" src="css/img/gray/Icon_help_16x16.svg"/>
+						    	   </span>
+								   <span class="input-group-addon help-addon" ng-messages="form2.backupLocation.$error" ng-if="form2.backupLocation.$dirty">
+										 <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{::'require'|translate}}"></span></span>
+										 <span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{::'maxlen'|translate}}120"></span></span>
+										 <span ng-message="checkpath"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{::'invalidpath'|translate}}"></span></span>
+								   </span>
+								
+			                      </div>
+							</div>
+					  </div>
+					  
+					  <!-- 远端类型 -->
+			          <div ng-if="backup.storeMode == '1'" class="form-group">
+			              <label class="control-label"><span translate="cloudResource.connectType"></span></label>
+			              <div class="control-input">
+			                  <!-- FTP -->
+			                  <div id="FTPDiv" cascheckbox style="margin-right:0px" class="cas-checkbox labeled-btn radio" ng-model="backup.type"  value='0'>
+			                    <input id="FTP" name="remotetype" type="radio" ng-checked = "backup.type == 0" >
+			                    <div class="corner-label">
+			                      <i class="glyphicon glyphicon-ok icon"></i>
+			                    </div>
+			                    <div class="box">
+			                      <span class="box-name" style="width:62px" translate="FTP"></span>
+			                    </div>
+			                  </div>
+			                  <!-- SCP -->
+			                  <div id="SCPDiv" cascheckbox style="margin-left:0px" class="cas-checkbox labeled-btn radio" ng-model="backup.type" value=1>
+			                    <input id="SCP" name="remotetype" type="radio" ng-checked = "backup.type == 1">
+			                    <div class="corner-label">
+			                      <i class="glyphicon glyphicon-ok icon"></i>
+			                    </div>
+			                    <div class="box">
+			                      <span class="box-name" style="width:62px" translate="SCP"></span>
+			                    </div>
+			                  </div>
+			                  <!-- 连接测试 -->
+			                  <button style="margin-left:-5px;" class="btn btn-green" ng-disabled="form2.$invalid" ng-click="connectTest()" translate="connectTest"></button>
+			              </div>
+			          </div>
+					  
+			          <!-- 备份类型 -->
+					  <div class="form-group">
+			               <label for="unique-id0" class="control-label"><span translate="backupVm.backupMode"></span><span style="color: red">*</span></label>
+			               <div class="control-input">
+							   <div id="allbackupDiv" cascheckbox style="margin-left:0px;margin-right:0px" class="cas-checkbox labeled-btn radio" ng-model="backup.backupMode" value=0>
+							      <input id="allbackup" name="backupMode" type="radio" ng-checked = "backup.backupMode == 0" >
+							      <div class="corner-label">
+							        <i class="glyphicon glyphicon-ok icon"></i>
+							      </div>
+							      <div class="box">
+							        <span class="box-name" style="width:62px" translate="backupVm.allbackup"></span>
+							      </div>
+							    </div>
+							    
+							   <div id="incbackupDiv" cascheckbox style="margin-left:0px;margin-right:0px"  class="cas-checkbox labeled-btn radio" ng-model="backup.backupMode" value= 1>
+							      <input id="incbackup" name="backupMode" type="radio" ng-checked = "backup.backupMode == 1">
+							      <div class="corner-label">
+							        <i class="glyphicon glyphicon-ok icon"></i>
+							      </div>
+							      <div class="box">
+							        <span class="box-name" style="width:62px" translate="backupVm.incbackup"></span></div>
+							    </div>
+							    
+							   <div id="diffbackupDiv" cascheckbox style="margin-left:0px;margin-right:0px"  class="cas-checkbox labeled-btn radio" ng-model="backup.backupMode" value= 2>
+							      <input id="diffbackup" name="backupMode" type="radio" ng-checked = "backup.backupMode == 2">
+							      <div class="corner-label">
+							        <i class="glyphicon glyphicon-ok icon"></i>
+							      </div>
+							      <div class="box">
+							        <span class="box-name" style="width:62px" translate="backupVm.diffbackup"></span></div>
+							    </div>
+							</div>
+						</div>
+        		</form>
+        	</slide-form>
+        	        	
+        	<!-- 第三页 --> 
+			<slide-form valid="valids.stepThreeOver()" id="backupStorages" is-add="backup.backupType == 1" tab-index=2>
+				<input type="hidden" id ="form3" value="true">
+				<!-- 虚拟机列表 -->
+		            <div style="width: 100%; height: 268px;" class="table"  ng-grid="gridOptions"></div>
+			</slide-form>
+        	
+        </carousel-form>
+    </div>
+    <div class="detail-table col-md-4">
+		<table class="table table-striped">
+			<tr>
+				<td ><h4 translate="configDetail"></h4></td>
+			</tr>
+			<tr>
+				<td><span translate="backupVm.backupFileName"></span></td>
+				<td custom-title shortcut cut-str="{{backup.backupName}}">{{backup.backupName}}</td>
+			</tr>
+			<tr>
+				<td><span translate="backupVm.keepNum"></span></td>
+				<td custom-title shortcut cut-str="{{backup.keepTimes}}">{{backup.keepTimes}}</td>
+			</tr>
+			<tr>
+				<td><span translate="backupVm.readRatio"></span></td>
+				<td>{{backup.readRatio}}<span ng-if ="backup.readRatio !=''">MB/S</span></td>
+			</tr>
+			<tr >
+				<td><span translate="backupVm.writeRatio"></span></td>
+				<td >{{backup.writeRatio}}<span ng-if ="backup.writeRatio !=''">MB/S</span></td>
+			</tr>
+			
+			<tr>
+				<td><span translate="backupVm.tempDir"></span></td>
+				<td custom-title shortcut cut-str="{{backup.tmpDir}}">{{backup.tmpDir}}</td>
+			</tr>
+			<tr>
+				<td><span translate="backupVm.compress"></span></td>
+				<td>{{tmp.isCompression|yes}}</td>
+			</tr>
+			
+			<tr>
+				<td><span translate="backupVm.backupType"></span></td>
+				<td>{{backup.backupType|backupType}}</td>
+			</tr>
+			
+			<tr ng-if="backup.backupType == 1">
+				<td ><span translate="backupVm.backupDisks"></span></td>
+				<td  custom-title shortcut cut-str="{{disksConfirm}}">{{disksConfirm}}</td>
+			</tr>
+			
+			<tr ng-if="stepIndex == 1">
+				<td><span translate="backupVm.backupDest"></span></td>
+				<td ng-if="backup.storeMode == 0" translate="backupVm.localDir"></td>
+				<td ng-if="backup.storeMode == 1" translate="backupVm.remoteServer"></td>
+			</tr>
+			<tr ng-if="stepIndex == 1 && backup.storeMode == 1">
+				<td><span translate="ip"></span></td>
+				<td>{{backup.targetAddr}}</td>
+			</tr>
+			<tr ng-if="stepIndex == 1 && backup.storeMode == 1">
+				<td><span translate="username"></span></td>
+				<td>{{backup.userName}}</td>
+			</tr>
+<!-- 			<tr ng-if="stepIndex == 1"> -->
+<!-- 				<td><span translate="password"></span></td> -->
+<!-- 				<td ng-if="backup.storeMode == 0" translate="backupVm.localDir"></td> -->
+<!-- 			</tr> -->
+			<tr ng-if="stepIndex == 1">
+				<td><span translate="backupVm.backupLocation"></span></td>
+				<td custom-title shortcut cut-str="{{backup.directory}}">{{backup.directory}}</td>
+			</tr>
+			<tr ng-if="stepIndex == 1">
+				<td><span translate="backupVm.backupMode"></span></td>
+				<td ng-if="backup.backupMode == 0" translate="backupVm.allbackup"></td>
+				<td ng-if="backup.backupMode == 1" translate="backupVm.incbackup"></td>
+				<td ng-if="backup.backupMode == 2" translate="backupVm.diffbackup"></td>
+			</tr>
+		</table>
+	</div>
+</div>

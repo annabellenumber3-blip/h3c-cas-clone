@@ -1,0 +1,176 @@
+<div class="panel panel-default cas-panel" ng-controller="CerConfigCtrl">
+<div class="panel-heading cas-panel-heading">
+		<ol class="breadcrumb">
+            <li><a ui-sref='main.systemMng' ><span translate="systemMng.systemMng"></span></a></li>
+            <li class="active"><span translate="cerConfig"></span></li>
+		</ol>
+		<span class="glyphicon glyphicon-question-sign link-help" custom-title="{{::'help'|translate}}"
+			aria-hidden="true" ng-click="openHelp('sysMgmt/CerAuth/CerAuthMgmt')"></span>
+	</div>
+	<div class="panel-body">
+		<div class="section">
+			<div class='lead' >
+		      <span class="pic Icon_common_display Icon_security_cert">
+		      </span>
+		      <span class='desc lead-text-align' translate="cerConfigHeader"></span>
+		    </div>
+		</div> 
+		<div class="cas-list-body oneWithOnlyLead-calc">
+	  		<form name="form" class="form-horizontal"  role="form" novalidate style="padding-left:15px;">
+				 <fieldset>
+		          		<div class="col-lg-12">
+				        <!-- 启用双因子登陆 -->
+		       				<div class="form-group"'>
+								<label class="switch-label" translate="cerLoginMode"></label>
+								<div class="control-input">
+									<div class="input-group width260">
+										<div toggle-switch class="switch-success" ng-model="param.enable"></div>
+										<span class="help-addon" custom-title="{{'cerConfigNoties'|translate}}">
+											<img class="icon-prompt" src="css/img/gray/Icon_help_16x16.svg"/>
+										</span>
+									</div>
+								</div>
+							</div>
+			            </div>
+			      <div ng-show="param.enable==true">
+		          		<div class="col-lg-12">
+						   <!-- 根证书文件-->
+						   <div class="form-group">
+								<label class="switch-label"><span
+									translate="baseCerFile"></span> <span style="color: red">*</span></label>
+								<div class="control-input" id="cer_select_files_btn">
+									<div class="input-group">
+										<input type="text" class="form-control first-child-angle selectInput"
+											ng-model="cerFilePath" ng-trim="false"
+											id="cerFilePath_id" name="cerFilePath" required readonly>
+										<span class="input-group-btn" style="background: white; border-left: 0;">
+											<button class="btn btn-default" type="button" translate="addDomain.viewImage"></button>
+										</span>
+									</div>
+								</div>
+							</div>
+							<div id="cer_select_files_btn_alert"></div>
+							<!-- 请选择cer文件 -->
+							<div id="cer_select_files"style="display:none; ;">
+								<span></span>
+							</div>
+							<div id="cer_stream_files_queue" style="display:none;"></div>
+							<div id="cer_stream_message_container"style="display:none;"></div>
+				        </div>
+		  			<div class="col-lg-12">
+			  			<!-- 启用定时同步 -->
+	                   <div class="form-group">
+	                       	<label for="enableBackupTime" class="switch-label"><span translate="enableCRLUpdate"></span></label>
+	                       	<div class="control-input">
+	                            <div class="input-group">
+			                   		<div toggle-switch  class="switch-success" ng-model="param.enableCrl"></div>
+			              		</div>
+		               		</div>
+		  				</div>
+				  		<div ng-if="param.enableCrl==true">
+				  			<!-- ＣＲＬ链接 -->
+				  			<div class="form-group">
+			                    <label for="crlLink" class="control-label "><span translate="crlLinkUrl"></span><span style="color: red">*</span></label>
+					               <div class="control-input">
+					                  <div class="input-group input-xlarge">
+					                  		<input ng-trim="false" ng-maxlength=128 required id="crlLinkId" name="crlLink" style="float:left;" class="form-input form-control" ng-model="model.cerUrl" type="text" />
+					               	  		<span class="input-group-addon help-addon"  ng-messages="form.crlLink.$error">
+					               	  		<span ng-if="form.crlLink.$dirty">
+					               	  			<span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxlen'|translate}}32"></span></span>
+		                    					<span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+					               	  		</span>
+	                    				</span>
+					                  </div>
+					               </div>
+		                    </div>
+							<!-- 频率 -->
+			                <div class="form-group">
+			                    <label for="frequency_id" class="control-label"><span translate="cloudResource.frequency"></span><span style="color: red">*</span></label>
+			                    <div class="control-input">
+		                            <div class="input-group">
+		                                <select-input options="frequency.options" bind-model="model.frequency" input-id="frequency_id" input-name="frequency"></select-input>
+		                            </div>
+			                    </div>
+		                    </div>
+		                   <!-- 日期 -->
+		                   <div class="form-group" ng-if="model.frequency=='0'" ng-class="{'has-error': (form.dayName.$dirty && form.dayName.$invalid)}">
+		                      <label class="control-label"><span translate="cloudResource.date"></span><span style="color: red">*</span></label>
+		                      <div class="control-input">
+		                              <div  class="input-group" >
+		                                <input id="day" name="dayName" type="text" style='width:225px' checkint spinner spinner-max=31 spinner-min=1  ng-model="model.day" required>
+		                                <span class="input-group-addon help-addon" ng-messages="form.dayName.$error">
+			                            <span ng-if="form.dayName.$valid||!form.dayName.$dirty">
+			                                <span class="icon-occupying"></span>
+			                            </span>
+			                            <span ng-if="form.dayName.$dirty">
+			                                <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+			                                <span ng-message="spinnerMax"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxValueIs'|translate}}31"></span></span>
+			                                <span ng-message="spinnerMin"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'minValueIs'|translate}}1"></span></span>
+			                            </span>
+			                        </span>
+		                              </div>
+		                       </div>
+		                   </div>
+		                   <!-- 星期 -->
+		                   <div class="form-group" ng-if="model.frequency=='1'">
+		                             <label for="week_id" class="control-label"><span translate="cloudResource.week"></span><span style="color: red">*</span></label>
+		                             <div class="control-input">
+		                                 <div class="input-group">
+		                                     <select-input options="week.options" bind-model="model.week" input-id="week_id" input-name="week"></select-input>
+		                                 </div>
+		                             </div>   
+		                    </div>
+			                <!-- 时间 -->
+		        			<div class="form-group" >
+		            			<label class="control-label"><span translate="cloudResource.time"></span><span style="color:red">*</span></label>
+		            			<div class="control-input">
+		                   			<div class="input-group" style="float:left;width:108px;padding:0;" ng-class="{'has-error': (form.hourName.$invalid)}">
+		                       			<input type="text" style='width:35px' id="hourId" name="hourName" checkint spinner spinner-min=0 spinner-max=23  ng-model="model.hour" required>
+		                       			<span class="input-group-addon inner-addon last-child-angle" style="background-color:#EEEEEE;">{{'cloudResource.hour'|translate}}</span>
+		                       		<span class="input-group-addon help-addon" ng-messages="form.hourName.$error" style="display:inline-block;width:33px !important;">
+			                            <span ng-if="form.hourName.$valid">
+			                                <span class="icon-occupying"></span>
+			                            </span>
+			                            <span>
+			                                <span ng-message="int"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'invalidint'|translate}}"></span></span>
+			                                <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+			                                <span ng-message="spinnerMax"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxValueIs'|translate}}23"></span></span>
+			                                <span ng-message="spinnerMin"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'minValueIs'|translate}}0"></span></span>
+			                            </span>
+			                        </span>
+		                   			</div>
+		               			</div>
+		               			<div class="control-input" style='float:left'>
+		                   			<div class="input-group" style="width:108px;padding:0;float:left;margin-left:4px" ng-class="{'has-error': (form.minuteName.$invalid)}">
+		                       			<input type="text" style="width:35px;" id="minuteId" name="minuteName" checkint spinner spinner-min=0 spinner-max=59 step=1 ng-model="model.minute" required>
+		                      		    <span class="input-group-addon inner-addon last-child-angle" style="background-color:#EEEEEE;">{{'cloudResource.minute'|translate}}</span>
+		                      		    <span class="input-group-addon help-addon" ng-messages="form.minuteName.$error" style="display:inline-block;width:40px !important;">
+			                            <span ng-if="form.minuteName.$valid">
+			                                <span class="icon-occupying"></span>
+			                            </span>
+			                            <span>
+			                                <span ng-message="int"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'invalidint'|translate}}"></span></span>
+			                                <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+			                               <span ng-message="spinnerMax"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxValueIs'|translate}}59"></span></span>
+			                               <span ng-message="spinnerMin"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'minValueIs'|translate}}0"></span></span>
+			                            </span>
+			                            </span>
+		                   			</div>
+		               			</div>
+			    			</div>
+                 		</div>
+               		</div>
+               	</div>
+		  		</fieldset>
+		  		<div style="margin-left:380px;"  has-permission="CER_AUTH_MANAGE">
+		  			<label class="btn btn-default btn-menu" ng-click="resetCerConfig()">
+						<span class="sm-icon icon-reset"></span><span translate="common.reset"></span>
+					</label>
+					<label class="btn btn-default btn-menu" ng-click="saveCerConfig()" ng-if="!form.$invalid && (!param.enable || !isUploading)">
+						<span class="sm-icon icon-save"></span><span translate="common.save">></span>
+					</label>
+                 </div>
+		 	</form>
+		 </div>
+	</div>
+</div>

@@ -1,0 +1,164 @@
+
+<!-- 增加计算资源 -->
+<div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" ng-click="cancel()" custom-title="{{'common.close'|translate}}">
+        <span class="icon-closenew"></span>
+    </button>
+	<button type="button" class="close cornerhelp" custom-title="{{'help'|translate}}" ng-click="openHelp('resourcePool/addResourcePool')">
+		<span class="icon-helpnew"></span>
+	</button>
+    <h4 class="modal-title"><span translate="resourcePool.addResourcePool"></span></h4>
+</div>
+<div class="modal-body row">
+    <div class="form-horizontal col-md-9">
+	    <carousel-form titles="stepTitles" cancel="ok()"> 
+	    <!-- 增加资源池 -->
+	    <slide-form valid="valids.stepOneOver()" active="slide.active">
+		<form name="rpForm1" class="form-horizontal" role="form" novalidate>
+			<input type="hidden" id="rpForm1" value="{{rpForm1.$valid}}">
+                	<!-- 资源池名称 -->
+                    <div class="form-group" ng-class="{'has-error': (rpForm1.name.$dirty && rpForm1.name.$invalid)}">
+                       	<label for="name" class="control-label"><span translate="resourcePool.name"></span><span style="color: red">*</span></label> 
+                       	<div class="input-group input-xlarge">
+                        	<input type="text" check-special-char rpccheck="resourcePool/exist" nocheck="{{isAdd==false}}"  ng-maxlength=32 class="form-control" style="width:310px;!important" ng-model="model.name"  ng-trim="false" id="name" name="name" required >
+                      		<span class="input-group-addon help-addon" ng-messages="rpForm1.name.$error">
+	                       		<span ng-if="rpForm1.name.$valid||!rpForm1.name.$dirty">
+	                            	<span class="icon-occupying"></span>
+	                        	</span>
+	                     		<span ng-if="rpForm1.name.$dirty">
+	                    			<span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+	                            	<span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxlen'|translate}}32"></span></span>
+	                            	<span ng-message="specialChar"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{::'checkname2'|translate}}"></span></span>
+	                            	<span ng-message="rpccheck"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'resourcePool.sameNameExist'|translate}}"></span></span>
+	                           	</span>
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <!-- 描述 -->
+                    <div class="form-group" ng-class="{'has-error': (rpForm1.description.$dirty && rpForm1.description.$invalid)}">
+					   	<label class="col-sm-1 control-label"><span translate="resourcePool.desc"></span></label>
+						<div class="input-group input-xlarge">
+						 	<input type="text" ng-maxlength=120 class="form-control" style="width:310px;!important" ng-model="model.description"  ng-trim="false" id="description" name="description">
+							<span class="input-group-addon help-addon" ng-messages="rpForm1.description.$error">
+								<span ng-if="rpForm1.description.$valid||!rpForm1.description.$dirty">
+									<span class="icon-occupying"></span>
+								</span>
+								<span ng-if="rpForm1.description.$dirty">
+									<span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxlen'|translate}}120"></span></span>
+								</span>
+							</span>
+						</div>
+					</div>
+					
+					<!-- 选择云资源 -->
+                	<div class="form-group" ng-class="{'has-error': (rpForm1.cloudResource.$invalid && rpForm1.cloudResource.$dirty)}">  
+                        <label class="control-label">
+                            <span translate="resourcePool.selCloudResource"></span><span style="color:red">*</span>
+                        </label> 
+                        <div class="control-input">
+                            <div class="input-group input-xlarge">
+                                <input id="cloudResource" name="cloudResource" ng-click="selectCloudResource()" style="width:270px;!important" class="form-control first-child-angle selectInput" type="text" ng-model="model.cloudResourceName" readonly required>
+                                <span class="input-group-addon inner-addon last-child-angle" style="cursor:pointer;" ng-click="selectCloudResource()">
+                                    <span class="icon-search-gray" type="button"></span>
+                                </span>
+                                <span class="input-group-addon help-addon" ng-messages="rpForm1.cloudResource.$error">
+                                    <span ng-if="rpForm1.cloudResource.$valid||!rpForm1.cloudResource.$dirty">
+                                        <span class="icon-occupying"></span>
+                                    </span>
+                                    <span ng-if="rpForm1.cloudResource.$dirty">
+                                         <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+                                    </span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- 允许使用本地存储 -->
+					<div class="form-group" ng-if="model.cloudResourceType == 2">
+						<label class="control-label"><span translate="resourcePool.useLocalStorageConfirm"></span></label>
+						<div class="control-input">
+							<div class="input-group">
+								<div toggle-switch class="switch-success" ng-model="model.useLocalStorageFlag"></div>
+								<span class="input-group-addon help-addon">
+									<span class="icon-help-gray" custom-title="{{'resourcePool.useLocalStorageTip' | translate}}"></span>
+								</span>
+							</div>
+						</div>
+					</div>
+                    
+		</form>
+		</slide-form>
+	    
+    	<!-- 选择集群 -->
+	    	<slide-form valid="valids.stepTwoOver()" >
+                <div style="width: 100%;height: 250px;" class="table"  ng-grid="gridOptions"></div>
+        	</slide-form>
+	    <!-- 选择网络资源 -->
+	    	<slide-form valid="valids.stepThreeOver()">
+               	<div class="">
+					<div  ng-class="{true: 'tab-pane fade in active', false: 'tab-pane fade'}" id="vswitch">
+						<div style="width: 100%;height: 250px;" class="table"  ng-grid="vswitchOptions"></div>
+					</div>
+			    </div>
+        	</slide-form>
+        <!-- 选择存储资源 -->
+        	<slide-form valid="valids.stepFourOver()">
+               	<div class="">
+					<div ng-if="isCVM"  ng-class="{true: 'tab-pane fade in active', false: 'tab-pane fade'}" id="storage">
+				    	<div style="width: 100%;height: 250px;" class="table"  ng-grid="storageOptions1"></div>
+					</div>
+					<div ng-if="!isCVM"  ng-class="{true: 'tab-pane fade in active', false: 'tab-pane fade'}" id="storage">
+				    	<div style="width: 100%;height: 250px;" class="table"  ng-grid="storageOptions2"></div>
+					</div>
+			    </div>
+        	</slide-form>
+        <!-- 选择网络策略模板 -->
+        	<!-- 资源池网络策略模板删除<slide-form valid="valids.stepFiveOver()" is-add="showPortProfile">
+               	<div class="">
+					<div  ng-class="{true: 'tab-pane fade in active', false: 'tab-pane fade'}" id="portProfile">
+				    	<div style="width: 100%;height: 250px;" class="table"  ng-grid="portProfileOptions"></div>
+					</div>
+			    </div>
+        	</slide-form> -->
+	    </carousel-form>
+	</div>
+	    <!-- 右侧确认信息 -->
+    <div class="detail-table col-md-3">
+        <table class="table table-striped">
+            <tr>
+                <td class="gray"><h4 translate="configDetail"></h4></td>
+            </tr>
+             <tr>
+                <td class="white"><span translate="resourcePool.name"></span></td>
+                <td class="white" shortcut short-width=110 cut-str="{{model.name}}" custom-title>{{model.name}}</td>
+            </tr>
+             <tr>
+                <td class="white"><span translate="resourcePool.desc"></span></td>
+                <td class="white" shortcut short-width=110 cut-str="{{model.description}}" custom-title>{{model.description}}</td>
+            </tr>
+             <tr>
+                <td class="white"><span translate="resourcePool.selCloudResource"></span></td>
+                <td class="white" shortcut short-width=110 cut-str="{{model.cloudResourceName}}" custom-title>{{model.cloudResourceName}}</td>
+            </tr>
+            <tr>
+                <td class="white"><span translate="cluster.cluster"></span></td>
+                <td class="white" shortcut short-width=110 cut-str="{{clusterName}}" custom-title>{{clusterName}}</td>
+            </tr>
+            <tr>
+                <td class="gray"><span translate="netstrategy.NetResource"></span></td>
+                <td class="gray" shortcut short-width=110  cut-str="{{netResource}}" custom-title>{{netResource}}</td>
+            </tr>
+            <tr>
+                <td class="white"><span translate="org.storageResource"></span></td>
+                <td class="white" shortcut short-width=110 cut-str="{{storageResource}}" custom-title>{{storageResource}}</td>
+            </tr><!-- <tr ng-if="showPortProfile">
+                <td class="gray"><span translate="resourcePool.portProfile"></span></td>
+                <td class="gray" shortcut short-width=110 cut-str="{{portProfileResource}}" custom-title>{{portProfileResource}}</td>
+            </tr> -->
+            <!-- 资源池网络策略模板删除 <tr ng-if="showPortProfile">
+                <td class="gray"><span translate="resourcePool.portProfile"></span></td>
+                <td class="gray" shortcut short-width=110 cut-str="{{portProfileResource}}" custom-title>{{portProfileResource}}</td>
+            </tr> -->
+        </table>
+    </div>
+</div>

@@ -1,0 +1,669 @@
+z5Generic linux scsi subsystem and multipath utilities.
+exceptions
+execute_cmd)
+ProcessExecutionError)
+retry)
+unlink_symbol_linkz
+\w{3} \d+ \d\d:\d\d:\d\d \|.*$z
+\((?P<wwid>.+)\))
+unchanged:z
+reject:z
+reload:z	switchpg:z
+rename:z
+create:z
+resize:c
+DevicePathNotRemovedN)
+__name__
+__module__
+__qualname__
+#./fsm/device/initiator/linuxscsi.pyr
+d d!
+d#d$
+d%d&
+d'd(
+d)d*
+d,d-
+d.d/
+d0d1
+d2d3
+d4d5
+d6d7
+d8d9
+j d:
+d;d<
+Z!d=d>
+Z"d?d@
+Z#dAdB
+Z$dCdD
+j&dEdF
+dGdH
+Z'dIdJ
+Z(dKdL
+Z)dMdN
+Z*dOdP
+Z+dQdR
+Z,dSdT
+dUdV
+Z.dWdX
+dYdZ
+Z0d[d\
+Z1d]d^
+Z2d_d`
+Z3dadb
+Z4dcdd
+Z5dedf
+Z6dgdh
+Z7didj
+Z8dkdl
+Z9dmdn
+Z:dodp
+Z;dqdr
+Z<dsZ=dtdu
+Z>dvdw
+Z?dxdy
+Z@dzd{
+ZAd|d}
+	LinuxSCSI
+t10.z
+eui.z
+naa.c
+z0Translates /dev/disk/by-path/ entry to /dev/sdX.
+/dev/N)
+path
+realpath
+startswith)
+selfr
+namer
+get_name_from_path'
+LinuxSCSI.get_name_from_pathc
+blkidz
+UUID=
+device
+look up device fail: %s)
+strip
+split
+	Exception
+error
+str)
+uuid
+device_name
+excr
+get_name_from_uuid-
+LinuxSCSI.get_name_from_uuidc
+z%Read the WWN value for a SCSI device.z
+/lib/udev/scsi_idz
+--pageZ
+0x83z
+--whitelisted
+timeout
+check_exit_codez
+get %s scsi wwn error - %sN
+dev_pathr$
+get_scsi_wwn8
+LinuxSCSI.get_scsi_wwnc
+)	N)
+multipathdZ
+show
+statusz
+error receiving packetr-
+z,multipathd is not running: exit code %(err)s
+errFT)
+	exit_code)
+enforce_multipath
+cmdr$
+_errr3
+is_multipath_runningF
+LinuxSCSI.is_multipath_runningc
+disablequeueing
+	multipathz#disable %s multipath queue fail: %sF
+okr.
+stdoutr%
+multipath_diable_queueingX
+z#LinuxSCSI.multipath_diable_queueingc
+restorequeueingr8
+z#restore %s multipath queue fail: %sFr9
+multipath_restore_queueingc
+z$LinuxSCSI.multipath_restore_queueingc
+zAGiven an iSCSI session return the host, channel, target, and lun.z*/sys/class/iscsi_host/host*/device/sessionz
+/target*r
+-z'No hctl found on session %s with lun %sN
+/z'HCTL %s found on session %s with lun %s)
+globr
+info
+index
+debug)
+session
+glob_str
+pathsr%
+channel
+target
+host
+resr
+get_hctln
+LinuxSCSI.get_hctlr?
+zASend an iSCSI scan request given the host and optionally the ctl.zAScanning host %(host)s c: %(channel)s, t: %(target)s, l: %(lun)s))
+z /sys/class/scsi_host/host%s/scanz
+%(c)s %(t)s %(l)s)
+echo_scsi_command)
+scan_iscsi
+LinuxSCSI.scan_iscsic
+z'Used to echo strings to scsi subsystem.
+process_input
+teeN)
+dictr
+content
+args
+kwargsr
+LinuxSCSI.echo_scsi_commandNc
+}	|	
+Find the device name given a session and the hctl.
+        :param session: A string with the session number
+        :param hctl: An iterable with the host, channel, target, and lun as
+                     passed to scan.  ie: ('5', '-', '-', '0')
+        :parame scsi_wwn: expected device wwn to find device on all targets
+        r?
+<listcomp>
+z1LinuxSCSI.device_name_by_hctl.<locals>.<listcomp>zj/sys/class/scsi_host/host%(h)s/device/session%(s)s/target%(h)s:%(c)s:%(t)s/%(h)s:%(c)s:%(t)s:%(l)s/block/*r
+sNz-LUN id maybe changed for %s, search on targetz^/sys/class/scsi_host/host%(h)s/device/session%(s)s/target%(h)s:%(c)s:%(t)s/%(h)s:%(c)s:%(t)s:*)
+%s/wwid
+%s/block/*z$Found device %s by wwn %s, LUN id %sr>
+z:Searching for a device in session %s and hctl %s yield: %s)
+sortedrB
+open
+readr
+IOError
+	WWN_TYPES
+warning)
+hctl
+scsi_wwnr
+devicesr
+targetsrK
+wwid
+prefix
+	udev_wwidr
+device_name_by_hctl
+LinuxSCSI.device_name_by_hctlc
+}	|	
+r\|	d
+<Return the wwid from sysfs in any of devices in udev format.z
+/sys/block/%s/dm/uuid
+Failed to read the DM uuid: %sz
+/dev/disk/by-id/scsi-rY
+dm-z
+/sys/class/block/%s/slavesc
+device_namesr
+	<genexpr>
+z*LinuxSCSI.get_sysfs_wwn.<locals>.<genexpr>r-
+get_sysfs_wwidrB
+islink
+statr
+listdir
+OSError
+len)
+mpath
+Z	wwn_pathsZ
+wwn_pathr
+slaves_pathZ
+dm_devsr
+get_sysfs_wwn
+LinuxSCSI.get_sysfs_wwnc
+/sys/block/%s/device/wwidNrc
+LinuxSCSI.get_sysfs_wwidc
+z=Determine what path was used by Nova/Cinder to access volume.r
+device_pathr-
+connection_propertiesZ
+device_infor
+get_dev_path
+LinuxSCSI.get_dev_pathc
+Check if a device needs to be flushed when detaching.
+        A device representing a single path connection to a volume must only be
+        flushed if it has been used directly by Nova or Cinder to write data.
+        If the path has been used via a multipath DM or if the device was part
+        of a multipath but a different single path was used for I/O (instead of
+        the multipath) then we don't need to flush.
+        Fr
+/dev)
+	path_used
+was_multipathr
+requires_flush
+LinuxSCSI.requires_flushFc
+]*}	d
+Remove LUNs and multipath associated with devices names.
+        :param devices_names: Iterable with real device names ('sda', 'sdb')
+        :param is_multipath: Whether this is a multipath connection or not
+        :param force: Whether to forcefully disconnect even if flush fails.
+        :param exc: ExceptionChainer where to add exceptions if forcing
+        :param path_used: What path was used by Nova/Cinder for I/O
+        :param was_multipath: If the path used for I/O was a multipath
+        :returns: Multipath device map name if found and not flushed
+        Nz%Removing %(type)s devices %(devices)sZ
+multipathedz
+single pathed
+typern
+Flushing %s failedr
+Some devices remain from %s)
+ExceptionChainerr 
+join
+find_sysfs_multipath_dm
+get_dm_name
+context
+flush_multipath_devicer
+remove_scsi_device
+wait_for_luns_removal
+_remove_scsi_symlinks)
+devices_namesZ
+is_multipath
+forcer&
+multipath_nameZ
+multipath_dmr#
+flushr
+remove_connection-
+LinuxSCSI.remove_connectionc
+Find the dm device name given a list of device names
+        :param device_names: Iterable with device names, not paths. ie: ['sda']
+        :returns: String with the dm name or None if not found. ie: 'dm-0'
+        z
+/sys/block/%s/holders/dm-*r
+rsplit)
+dev_nameZ
+dmsr%
+z!LinuxSCSI.find_sysfs_multipath_dmc
+Get the Device map name given the device name of the dm on sysfs.
+        :param dm: Device map name as seen in sysfs. ie: 'dm-0'
+        :returns: String with the name, or empty string if not available.
+                  ie: '360002ac000000000000006ec0001e2d7'
+        
+/sys/block/z
+/dm/nameNr-
+LinuxSCSI.get_dm_namec
+Flush multipath device %sr8
+-fr`
+attemptsr+
+interval)
+device_map_namer
+z LinuxSCSI.flush_multipath_deviceTc
+z/Removes a scsi device based upon /dev/sdX name.z
+/sys/block/%s/device/deleter
+remove_scsi_device path=%sNr
+z+Remove SCSI device %(device)s with %(path)s)
+Removing %s failed
+replacer 
+existsr
+flush_device_iorR
+LinuxSCSI.remove_scsi_devicec
+rjz$t
+z6This is used to flush any remaining IO in the buffers.z
+Flushing IO for device %s
+blockdevz
+--flushbufsr`
+z=Failed to flush IO buffers prior to removing device: %(code)s
+codeN)	r
+LinuxSCSI.flush_device_ioc
+z4Wait for device paths to be removed from the system.r
+z2Checking to see if SCSI luns %s have been removed.c
+z3LinuxSCSI.wait_for_luns_removal.<locals>.<listcomp>
+SCSI luns %s have been removed.N
+%s still exist.z.Lun path %(lun_path)s was not removed in time.
+lun_path)
+range
+time
+sleepr
+Z	dev_namesZ	str_namesZ
+exist
+msgr
+LinuxSCSI.wait_for_luns_removalc
+devr
+z3LinuxSCSI._remove_scsi_symlinks.<locals>.<listcomp>z
+/dev/disk/by-id/scsi-*Z	no_errorsT)
+appendr
+links
+unlink
+linkr
+LinuxSCSI._remove_scsi_symlinksc
+Add a wwid to the list of know multipath wwids.
+        This has the effect of multipathd being willing to create a dm for a
+        multipath even when there's only 1 device.
+        r8
+wwid 'z
+' added
+multipath_add_wwid
+LinuxSCSI.multipath_add_wwidc
+Add a path to multipathd for monitoring.
+        This has the effect of multipathd checking an already checked device
+        for multipath.
+        Together with `multipath_add_wwid` we can create a multipath when
+        there's only 1 path.
+        r1
+addr
+multipath_add_path
+LinuxSCSI.multipath_add_pathc
+Look for the multipath device file for a lun WWN.
+        Multipath devices can show up in several places on
+        a linux system.
+        1) When multipath friendly names are ON:
+            a device file will show up in
+            /dev/disk/by-id/dm-uuid-mpath-<WWN>
+            /dev/disk/by-id/dm-name-mpath<N>
+            /dev/disk/by-id/scsi-mpath<N>
+            /dev/mapper/mpath<N>
+        2) When multipath friendly names are OFF:
+            /dev/disk/by-id/dm-uuid-mpath-<WWN>
+            /dev/disk/by-id/scsi-<WWN>
+            /dev/mapper/<WWN>
+        z.Find Multipath device file for lun WWN %(wwn)s
+wwnz%/dev/disk/by-id/dm-uuid-mpath-%(wwn)sz
+/dev/mapper/%(wwn)sz7couldn't find a valid multipath device path for %(wwn)sN)
+wait_for_pathr
+DeviceNotFoundrl
+wwn_dictr
+find_multipath_device_path
+z$LinuxSCSI.find_multipath_device_path)
+	exceptionc
+Wait for a path to show up.z!Checking to see if %s exists yet.z
+%(path)s doesn't exists yet.r
+Lun device not found at %sz
+%s has shown up.N)
+LinuxSCSI.wait_for_pathc
+qHd	|
+sg_scan
+idrG
+: r-
+scsirL
+dev_info
+linerC
+itemZ
+pairr
+get_device_info
+LinuxSCSI.get_device_infoc
+Get the size in bytes of a lun.r
+--getsize64r
+Get device size failed, %sN)
+sixZ	text_typer
+	isnumeric
+int)
+varr
+get_device_size#
+LinuxSCSI.get_device_sizec
+isinstance
+list
+_format_lun_idr
+lun_idsZ	processed
+lun_idr
+process_lun_id3
+LinuxSCSI.process_lun_idc
+0x%04x%04x00000000i
+LinuxSCSI._format_lun_idrw
+retriesc
+z'Wait for block device to be Read-Write.z#Checking to see if %s is read-only.Z
+lsblkr
+NAME,RO
+lsblk output: %sr
+Block device %s is read-onlyr8
+z!Block device %s is not read-only.N)
+splitlinesr
+BlockDeviceReadOnly)
+blkdevsZ
+blkdevZ
+blkdev_parts
+wait_for_rwF
+LinuxSCSI.wait_for_rwc
+}	|	d
+Discover multipath devices for a mpath device.
+        This uses the slow multipath -l command to find a
+        multipath device description, then screen scrapes
+        the output to discover the multipath device name
+        and it's devices.
+        Nr8
+z#multipath call failed exit %(code)sr
+multipath -l %s)
+match
+MULTIPATH_ERROR_REGEXr
+z3LinuxSCSI.find_multipath_device.<locals>.<listcomp>r
+/dev/mapper/%sz!Couldn't find multipath device %srq
+z!Found multipath device = %(mdev)s
+mdevr`
+policyre
+ |-`r>
+/dev/%sr_
+CommandExecutionFailedr
+MULTIPATH_DEVICE_ACTIONSr
+MULTIPATH_WWID_REGEX
+search
+grouprE
+find
+lstripr
+linesZ	mdev_nameZ
+wwid_searchZ
+mdev_idZ
+device_linesZ
+dev_liner
+addressr
+find_multipath_devicee
+LinuxSCSI.find_multipath_devicec
+Issue a multipathd reconfigure.
+        When attachments come and go, the multipathd seems
+        to get lost and not see the maps.  This causes
+        resize map to fail 100%.  To overcome this we have
+        to issue a reconfigure prior to resize map.
+        r1
+reconfigurer
+multipath_reconfigure
+LinuxSCSI.multipath_reconfigurec
+Restart multipath service.Z
+servicez
+multipath-toolsZ
+restartr
+multipath_restart
+LinuxSCSI.multipath_restartc
+zXSet multipathd pr status make multipath persistent feature works
+        in given device
+multipathd map z
+ setprstatusT
+shell
+set_multipathd_pr_status
+z"LinuxSCSI.set_multipathd_pr_statusc
+z\unset multipathd pr status make multipath persistent feature no work
+        in given devicer
+ unsetprstatusTr
+unset_multipathd_pr_status
+z$LinuxSCSI.unset_multipathd_pr_statusc
+Issue a multipath resize map on device.
+        This forces the multipath daemon to update it's
+        size information a particular multipath device.
+        r1
+resize
+mapr
+mpath_idr$
+multipath_resize_map
+LinuxSCSI.multipath_resize_mapc
+Signal the SCSI subsystem to test for lun resize.
+        This function tries to signal the local system's kernel
+        that an already attached lun might have been resized.
+        z
+extend lun %sFr-
+LUN device info = %sz#%(host)s:%(channel)s:%(id)s:%(lun)srL
+z&/sys/bus/scsi/drivers/sd/%(device_id)s
+	device_idz
+Starting size: %sz
+%(scsi_path)s/rescan
+	scsi_pathr
+Tz$Lun size after scsi device rescan %sz
+Get all lun_paths size failedz'mpath(%(device)s) current size %(size)s)
+sizeZ
+failzYMultipathd failed to update the size mapping of multipath device %(scsi_wwn)s lun %(lun)s)
+Nz#mpath(%(device)s) new size %(size)s)
+Z	lun_pathsZ
+use_multipathZ
+get_path_flagrm
+rescan_pathZ
+new_sizeZ
+mpath_device
+resultr
+extend_lun
+LinuxSCSI.extend_lunc
+z3Verify that specified device have the expected WWN.Nz
+/dev/dm-rw
+z3Validate device failed for %s expected %s, found %s)
+expected_wwnr
+Z	real_pathr%
+Z	found_wwnr
+verify_device_wwn
+LinuxSCSI.verify_device_wwnc
+z|Call udevadm trigger to reproduce device's symlink.
+        :param dev_sysname: the device's sys name. ie: ['sda']
+        
+udevadmZ
+triggerz
+--sysname-match=r,
+settler
+Udevadm trigger %s failed: %s.N)
+dev_sysnameZ
+trigger_cmdr&
+trigger_udev*
+LinuxSCSI.trigger_udevc
+Preempt abort remote host's register key, this will lead preempt its
+        lun write permission.
+        Preempt abort might failed when multiple nodes do the something,
+        ignore excetption, only one thing need to do is check the result.
+        z
+sg_persist -n -o -A -T 5 -K z
+ -S 
+--key
+ -d 
+z;Local host(%s) preempt abort key(%s) for dev(%s) failed: %sNFz8Local host(%s) preempt abort key(%s) for dev(%s) succeed)
+optionsZ
+host_keyr
+preempt_abort<
+LinuxSCSI.preempt_abortc
+)	Nz
+sg_turs r
+z"Device %s cannot been accessed(%s)Fz
+Device %s can been accessed)
+is_device_readyP
+LinuxSCSI.is_device_readyc
+Register key for given device.
+^dmrw
+NTz2Register dev(%s) failed: device is not accessible.Fz
+sg_persist -n -o -I -S r
+Register dev(%s) failed(%s).z
+Register dev(%s) succeed.)
+get_mpath_slaves
+register_devr
+slaver5
+LinuxSCSI.register_devc
+Tz4Unregister dev(%s) failed: device is not accessible.Fz
+sg_persist -n -o -G -K r
+z Unregister dev(%s) successfully.z
+Unregister dev(%s) failed(%s).)
+unregister_devr
+LinuxSCSI.unregister_devc
+Reserve type 5 reservation for given device
+        This reservation type only allowed registered hosts to write this lun,
+        other hosts only have read permission.
+        z
+sg_persist -n -o -R -T 5 -K r
+Reserve dev(%s) failed(%s)NFz
+Reserve dev(%s) succeed)
+reserve_dev
+LinuxSCSI.reserve_devc
+z,Release type 5 reservation for given device.r
+NTzARelease reservation for dev(%s) failed: device is not accessible.Fz
+sg_persist -n -o -L -T 5 -K r
+z2Release reservation key(%s) for dev(%s) failed(%s)z'Release reservation for dev(%s) succeed)
+release_reservationr
+keyr
+LinuxSCSI.release_reservationc
+zbReleases the persistent reservation (if any) and clears all
+        registrations from the device.z.Clear dev(%s) failed: device is not accessibleFz
+sg_persist -n -o -C -K r
+Clear dev(%s) failed(%s).Nz
+Clear dev(%s) succeed.)
+	clear_dev
+LinuxSCSI.clear_devc
+z,Get the register key which hold reservation.z
+sg_persist -n -i -r -d r
+\s+key=0x(\S+)\s+Nr)
+Can not get reservation key.)
+IGNORECASEr
+_errorr
+get_reservation_key
+LinuxSCSI.get_reservation_keyc
+z-Get all registered keys on this given device.z
+sg_persist -n -i -k -d r
+z-Get registration keys failed: output is emptyr
+\s+0x(\S+)\s*r)
+Get registration keys error: %sN)
+keysr5
+get_registration_keys
+LinuxSCSI.get_registration_keysc
+z'Get multipath's all slave path devices.Nrw
+z.LinuxSCSI.get_mpath_slaves.<locals>.<listcomp>r
+/slaves/r
+slavesr
+LinuxSCSI.get_mpath_slavesc
+z*Check if device support fence scsi or not.z
+sg_persist -c r
+z$Write Exclusive, registrants only: 1z4Device(%s) not support type5 persistent reservation.Fz-Can not get device fence scsi capability - %sN)
+type5_pr_strr&
+is_support_fence_scsi
+LinuxSCSI.is_support_fence_scsic
+z$Force given multipath devmap reload.r8
+multipath_reload_map
+LinuxSCSI.multipath_reload_map)
+tcp:z
+iser:c
+zcDelete a path to multipathd.
+        This will remove map if this map only have one path.
+        r1
+delr
+multipath_del_path
+LinuxSCSI.multipath_del_pathc
+}	~	d
+}	~	0
+full iscsi session is : %s 
+data
+target_iqns
+target_portalsz
+get iqns %s; and portal %s Fr
+z/start rescan iscsi session with id=%s, iqn=%s 
+iscsiadmz
+-mrF
+-RTz<no session found for pool %s, try is_pool_ready_for_failbackz
+rescan_iscsi_session error: %s )
+	connector
+get_iscsi_sessions_fullr 
+initialize_connection
+VALID_SESSIONS_PREFIXr
+checkerZ
+is_pool_ready_for_failback
+wait_udev_event_finishr
+pool
+sessions
+iqns
+portalZ
+atLeast1Sessionrb
+rescan_iscsi_session
+LinuxSCSI.rescan_iscsi_sessionc
+Nz<has_iscsi_session check whether session for [%s] is valide. z-has_iscsi_session full iscsi session is : %s r
+z-has_iscsi_session get iqns %s; and portal %s r
+has_iscsi_session error: %s F)	r 
+has_iscsi_session4
+LinuxSCSI.has_iscsi_sessionc
+pool is  : %s 
+rescan_and_reload_mapsE
+z LinuxSCSI.rescan_and_reload_mapsc
+z"wait_udev_event_finish failed: %s.)
+z LinuxSCSI.wait_udev_event_finish)
+FNNF)
+FNT)
+N)Cr	
+staticmethodr7
+__doc__rB
+loggingr
+fsmr
+fsm.utils.os_utilsr
+Z	getLoggerr	
+compiler
+FsmExceptionr
+objectr
+<module>

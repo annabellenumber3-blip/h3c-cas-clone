@@ -1,0 +1,156 @@
+<!-- LDAP用户导出配置 -->
+<div class="cas-panel" >
+	<div class="panel-heading cas-panel-heading">
+		<ol class="breadcrumb">
+		   <li><a ui-sref='main.systemMng' ><span translate="systemMng.systemMng"></span></a></li>
+		   <li><a ui-sref='main.ldapUserSync' ><span translate="ldap.ldapUserSync"></span></a></li>
+           <li class="active"><span translate="ldap.ldapUserExport"></span></li>
+		</ol>
+		<span class="glyphicon glyphicon-question-sign link-help" custom-title="{{::'help'|translate}}"
+			aria-hidden="true" ng-click="openHelp('sysMgmt/ldap/ldapUserInfoExp')"></span>
+	</div>
+	
+	<div class="panel-body" ng-controller="ldapExportCtrl">
+		<div class="section">
+			<div class='lead' >
+		      <span class="pic Icon-ldap-user-export Icon_common_display">
+		      </span>
+		      <span class='desc'><span translate="ldap.ldapDesc"></span></span>
+		    </div>
+		</div>
+	    
+		<div ng-if="!showAttribute" class="panel-body" style="padding:0px 0px 0px 45px;">
+			<form name="form" class="form-horizontal" role="form" novalidate >
+				<fieldset>
+					<legend>
+						<h5 style="padding-top:20px;"><span translate="ldap.ldapTitle"></span></h5>
+					</legend>
+					<!-- LDAP服务器 -->
+		             <div class="form-group">
+			              <label for="ldapServer" class="control-label "><span translate="ldap.ldapServer"></span><span style="color:red">*</span></label>
+			              <div class="input-group" ><!-- style="width:300px;" -->
+			                 <select-input class="" options="ldapServer.options" bind-model="model.ldapServer" input-id="ldapServer" input-name="ldapServer"> 
+			                 </select-input>
+			                 <!--<span class="input-group-addon help-addon">
+			                 	<span class="icon-help-gray" custom-title="{{'ldap.required' | translate}}"></span>
+			                 </span>  -->
+			              </div>
+		             </div>
+					
+				
+					
+					<!-- 过滤条件 -->
+		             <div class="form-group " ng-class="{'has-error' : form.filterCdn.$invalid}">
+			              <label for="filterCdn" class="control-label ">
+			              	<span translate="ldap.filterCondition"></span><span style="color:red">*</span>
+			              </label>
+			              <div class="control-input">
+			              	<div class="input-group input-xlarge">
+			                  	<input id="filterCdn" class="form-input form-control" ng-model="model.filterCondition" type="text" ng-maxlength=128 name="filterCdn" required>
+			              		<span class="input-group-addon help-addon" ng-messages="form.filterCdn.$error">
+                    				<span ng-if="form.filterCdn.$valid||!form.filterCdn.$dirty">
+										<span class="icon-help-gray" custom-title="{{'ldap.clauseTip' | translate}}"></span>
+                                    </span>
+                    				<span ng-if="form.filterCdn.$valid||form.filterCdn.$dirty">
+                    					<span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+                        				<span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxlen'|translate}}128"></span></span>
+                    				</span>
+                   				</span>
+                   			</div>
+			              </div>	              
+			              
+		             </div>
+
+				    <div class="btn-group" style="margin-left:180px;">
+						<label class="btn btn-default btn-menu" ng-if="model.ldapServer!=''" ng-click="ldapSearch()"> 
+							<span class="sm-icon icon-search"></span><span class="ng-scope" translate="ldap.query"></span> 
+						</label> 
+						
+						<label class="btn btn-default btn-menu btn-forbidden" ng-if="model.ldapServer==''">
+							<span class="sm-icon icon-search"></span><span translate="ldap.query"></span>
+						</label>						
+						
+						<label class="btn btn-default btn-menu" ng-click="ldapServerReset()"> 
+							<span class="sm-icon icon-reset"></span><span class="ng-scope" translate="ldap.reset"></span> 
+						</label> 
+					</div>
+				</fieldset>
+			</form>
+		</div>
+		<!-- 属性列表 -->
+		<div ng-if="showAttribute" style="height:500px;">
+		    <div  class="cas-list-body oneListWithLead-calc">
+		      	<div id="ldapAttributeGridList" list-style class="table" ng-grid="gridOptions"></div>
+		    </div>
+	    </div>
+	    <div ng-if="showAttribute" style="margin-top:-100px;">
+		    <form name="form2" class="form-horizontal" role="form2" novalidate >
+		    	<!-- 导出文件名 -->
+				<div class="form-group" style="width:35%;float:left;margin-left:10px;" ng-class="{'has-error' : (form2.exportName.$invalid && form2.exportName.$dirty)}">
+					<label for="exportName" class="control-label" style="width:95px;"> 
+						<span translate="ldap.exportName"></span><span style="color:red">*</span>
+					</label>
+					
+					<div class="control-input">
+						<div class="input-group input-xlarge">
+							<input check-special-char type="text" class="form-input form-control" ng-model="model.exportName" ng-trim="false" ng-maxlength=128 id="exportName" name="exportName" required>
+							<span class="input-group-addon help-addon" ng-messages="form2.exportName.$error">
+								<span ng-if="form2.exportName.$valid||!form2.exportName.$dirty">
+	                                <span class="icon-occupying"></span>
+	                            </span>
+	                            
+	                            <span ng-if="form2.exportName.$dirty">
+	                                <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+	                                <span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxlen'|translate}}128"></span></span>
+	                                <span ng-message="specialChar"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'checkname2'|translate}}"></span></span>
+	                            </span>
+							</span>
+						</div>
+					</div>
+				</div>	
+				<!-- 文件格式 -->
+				<div style="width:20%;float:left;">
+					<label for="fileFormat" class="control-label" style="width:85px;">
+						<span translate="ldap.fileFormat"></span><span style="color:red">*</span>
+					</label>
+					<div class="input-group" style="width:100px;">
+		            	<select-input class="" options="format.options" bind-model="model.format" input-id="fileFormat" input-name="fileFormat"> </select-input>
+					</div>					
+				</div>	
+				<!-- 列分隔符 -->
+				<div style="width:20%;float:left;" >
+					<label for="columnSeparateSign" class="control-label" style="width:85px;">
+						<span translate="ldap.columnSeparateSign"></span><span style="color:red">*</span>
+					</label>
+					<div class="input-group" style="width:100px;">
+		            	<select-input input-readonly="{{model.format==0}}" class="" options="columnSeparateSign.options" bind-model="model.columnSeparateSign" input-id="columnSeparateSign" input-name="columnSeparateSign"> </select-input>
+					</div>								
+				</div>
+				
+				<!-- 导出属性名称 -->
+				<div style="width:20%;float:left;">
+					<label for="exportAttrName" class="control-label" style="width:105px;">
+						<span translate="ldap.exportAttrName"></span><span style="color:red">*</span>
+					</label>
+					<div class="input-group" style="width:100px;">
+		            	<select-input class="" options="exportAttrName.options" bind-model="model.exportAttrName" input-id="exportAttrName" input-name="exportAttrName"> </select-input>
+					</div>								
+				</div>
+				
+				<div style="text-align:left;margin-left:500px;padding-top:50px;">
+					<label class="btn btn-default btn-menu" ng-click="exportLdapUser()" ng-if="!form2.$invalid">
+						<span class="sm-icon icon-export"></span><span translate="ldap.export"></span>
+					</label>
+					
+					<label class="btn btn-default btn-menu btn-forbidden" ng-if="form2.$invalid">
+						<span class="sm-icon icon-export"></span><span translate="ldap.export"></span>
+					</label>
+					
+					<label id="saveLabel" class="btn btn-default btn-menu" ng-click="goBack()">
+						<span class="sm-icon icon-goback"></span><span class="ng-scope" translate="ldap.back"></span>
+				  	</label>
+				</div> 				
+		    </form>	    
+	    </div>
+	</div>	
+</div>

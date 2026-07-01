@@ -1,0 +1,563 @@
+<!-- 组织部署虚拟机 -->
+<div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" ng-click="cancel()" custom-title="{{'common.close'|translate}}">
+        <span class="icon-closenew"></span>
+    </button>
+	<button type="button" class="close cornerhelp" custom-title="{{'help'|translate}}" ng-click="openHelp('cloudService/workFlow/handleWorkFlow')">
+		<span class="icon-helpnew"></span>
+	</button>
+    <h4 class="modal-title"><span translate="template.deploy"></span></h4>
+</div>
+<div class="modal-body row">
+    <div class="form-horizontal col-md-8">
+	    <carousel-form titles="stepTitles" cancel="ok()"> 
+    	<!-- 虚拟机基本信息 -->
+	    	<slide-form valid="valids.stepOneOver()" active="slide.active">
+            	<form name="form1" class="form-horizontal" role="form" novalidate>
+            	<input type="hidden" id="form1" value="{{form1.$valid}}">
+            	<!-- 虚拟机名称 -->
+		         	<div class="form-group" ng-class="{'has-error' : (form1.domainName.$invalid && form1.domainName.$dirty)}" ng-if="model.isPublicCloud">
+						<label for="domainName" class="control-label" > <span translate="addDomain.domainName"></span><span style="color:red">*</span></label>
+						<div class="control-input input-group input-xlarge">
+							<input type="text" class="form-input form-control" ng-model="model.domainName" ng-trim="false" checkname rpccheck="{{domainUrl}}" ng-maxlength=64 id="domainName" name="domainName" required>
+		                    <span class="input-group-addon help-addon" ng-messages="form1.domainName.$error">
+	                            <span ng-if="form1.domainName.$valid||!form1.domainName.$dirty">
+	                                <span class="icon-occupying"></span>
+	                            </span>
+	                            <span ng-if="form1.domainName.$dirty">
+	                               <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+								   <span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxlen'|translate}}64"></span></span>
+								   <span ng-message="checkname"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'checkname'|translate}}"></span></span>
+								   <span ng-message="rpccheck"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'template.templateExist'|translate}}"></span></span>
+	                            </span>
+                            </span>
+						</div>
+					</div>
+					
+					<!-- 显示名称 -->
+		         	<div class="form-group" ng-class="{'has-error' : (form1.displayName.$invalid && form1.displayName.$dirty)}" ng-if="!model.isPublicCloud">
+						<label for="displayName" class="control-label" > <span translate="addDomain.title"></span><span style="color:red">*</span></label>
+						<div class="control-input input-group input-xlarge">
+								<input type="text" check-special-char class="form-input form-control" ng-model="model.title" ng-trim="false" ng-maxlength=64 id="displayName" name="displayName" required>
+			                    <span class="input-group-addon help-addon" ng-messages="form1.displayName.$error">
+		                            <span ng-if="form1.displayName.$valid||!form1.displayName.$dirty">
+		                                <span class="icon-occupying"></span>
+		                            </span>
+		                            <span ng-if="form1.displayName.$dirty">
+		                               <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+									   <span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxlen'|translate}}64"></span></span>
+									   <span ng-message="specialChar"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{::'checkname2'|translate}}"></span></span>
+		                            </span>
+	                            </span>
+						</div>
+					</div>
+					<!-- 实施意见 -->
+					<div class="form-group" ng-class="{'has-error' : (form1.reason.$invalid && form1.reason.$dirty)}">
+						<label for="reason" class="control-label" ><span translate="workflow.reason"></span></label>
+						<div class="control-input input-group input-xlarge">
+							<input type="text" ng-maxlength=120 class="form-input form-control" ng-trim="false" ng-model="model.reason" id="reason" name="reason" >
+							<span class="input-group-addon help-addon" ng-messages="form1.reason.$error">
+		                           <span ng-if="form1.reason.$valid||!form1.reason.$dirty">
+		                               <span class="icon-occupying"></span>
+		                           </span>
+		                           <span ng-if="form1.reason.$dirty">
+		                               <span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxlen'|translate}}120"></span></span>
+		                           </span>
+		                     </span>
+						</div>
+					</div>
+					<!-- 资源池 -->
+					<div class="form-group" ng-if="!isManualDefinition">
+						<label for="resourcePool" class="control-label"><span translate="resourcePool.name"></span><span style="color:red">*</span></label>
+						<div class="control-input input-group width260" >
+							<select-input class="" options="deployInfo.resourcePoolOptions" bind-model="model.resourcePoolNum" input-id="resourcePool" input-name="resourcePool" required></select-input>
+						</div>
+					</div>		
+					<!-- 虚拟桌面池 -->
+					<div class="form-group">
+						<label for="virDesk" class="control-label"><span translate="org.virDesk"></span></label>
+						<div class="control-input input-group width260" >
+							<select-input class="" options="virDesks" bind-model="model.virDeskNum" input-id="virDesk" input-name="virDesk"></select-input>
+						</div>
+					</div>
+					<!-- 通过模板部署 -->
+					<div class="form-group">
+						<label for="deployType" class="control-label"><span translate="org.deployByTemplate"></span></label>
+						 <div class="control-input">
+							 <div class="input-group">
+								 <div id="deployTypeDiv" toggle-switch  class="switch-success" ng-model="model.deployType"></div>
+							 </div>
+						 </div>
+					</div>
+					<!-- 快速部署 -->
+					<div class="form-group" ng-if="model.deployType==true">
+						<label for="deployModel" class="control-label"><span translate="cloudBusiness.fastDeploy"></span></label>
+						<div class="control-input">
+							 <div class="input-group">
+						    	<div id="fastDeploy" toggle-switch class="switch-success" ng-model="model.deployMode"></div>
+					  	  	</div>
+				  	  	</div>
+					</div>
+					<!-- 选择模板 -->
+					<div class="form-group" ng-if="model.deployType==true">
+						<label for="template_name" class="control-label"><span translate="template.template"></span><span class="required">*</span></label>
+						<div class="input-group width260" ng-click="selectTemplate()">
+							<input type="text" class="form-control first-child-angle selectInput" ng-readonly="true" ng-model="templateName" required id="template_name" input-id="template_name" input-name="template_name"> 
+							<span class="input-group-addon inner-addon last-child-angle">
+                    			<span class="icon-search-gray" type="button"></span>
+                    		</span>
+						</div>
+					</div>
+            	</form>
+        	</slide-form>
+	    <!-- 虚拟机配置信息 -->
+	    	<slide-form valid="valids.stepTwoOver()">
+	    		<form name="form2" class="form-horizontal" role="form" novalidate>
+	    		<input type="hidden" id="form2" value="{{form2.$valid}}">
+	    			<div class="form-group" ng-class="{'has-error' : (form2.cpuSocket.$invalid && form2.cpuSocket.$dirty)}">
+		    			<label for="cpu_socket" class="control-label short large">
+				            <span translate="addDomain.cpu"></span><span style="color: red">*</span>
+				        </label>
+				        <div class="control-input">
+				        	<div class="input-group input-xlarge" ng-if="enableAdjustSetting == 1">
+				        		<div class="input-group width260" >
+					                <input id= "cpuSocket" name="cpuSocket" type="text" class="spinner-input" spinner spinner-max="{{maxCpu}}" spinner-min=1  ng-model="model.cpuSockets" checkint>
+					                <span class="input-group-addon unit-addon last-child-angle">{{'addDomain.ge'|translate}}</span>
+					            </div>
+					            <span class="input-group-addon help-addon" ng-messages="form2.cpuSocket.$error">
+				                    <span ng-if="form2.cpuSocket.$valid||!form2.cpuSocket.$dirty">
+				                        <span class="icon-occupying"></span>
+				                    </span>
+				                    <span ng-if="form2.cpuSocket.$dirty">
+				                        <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{::'require'|translate}}"></span></span>
+				                        <span ng-message="spinnerMax"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxValueIs'|translate}}{{maxCpu}}"></span></span>
+								        <span ng-message="spinnerMin"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'minValueIs'|translate}}1"></span></span>
+								        <span ng-message="int"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'invalidint'|translate}}"></span></span>
+				                    </span>
+               					</span>
+				        	</div>
+				            
+				            <div class="input-group width260" ng-if="enableAdjustSetting != 1">
+				            	<p class="form-control-static">{{model.cpuSockets}} {{'addDomain.ge'|translate}}</p>
+				            </div>
+				        </div> 
+	    			</div>
+	    			<div class="form-group" ng-class="{'has-error' : (form2.cpuCore.$invalid && form2.cpuCore.$dirty)}">
+		    			<label for="cpuCore" class="control-label short large">
+				            <span translate="addDomain.cpuCoreNum"></span><span style="color: red">*</span>
+				        </label>
+				        <div class="control-input">
+				        	<div class="input-group input-xlarge" ng-if="enableAdjustSetting == 1">
+				        		<div class="input-group width260" >
+					                <input id= "cpuCore" name='cpuCore' type="text" class="spinner-input" spinner spinner-max="{{maxCpu}}" spinner-min=1  ng-model="model.cpuCores" checkint>
+					                <span class="input-group-addon unit-addon last-child-angle">{{'addDomain.core'|translate}}</span>
+					            </div>
+					            <span class="input-group-addon help-addon" ng-messages="form2.cpuCore.$error">
+				                    <span ng-if="form2.cpuCore.$valid||!form2.cpuCore.$dirty">
+				                        <span class="icon-occupying"></span>
+				                    </span>
+				                    <span ng-if="form2.cpuCore.$dirty">
+				                        <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{::'require'|translate}}"></span></span>
+				                    	<span ng-message="spinnerMax"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxValueIs'|translate}}{{maxCpu}}"></span></span>
+							        	<span ng-message="spinnerMin"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'minValueIs'|translate}}1"></span></span>
+							        	<span ng-message="int"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'invalidint'|translate}}"></span></span>
+				                    </span>
+				                </span>
+				        	</div>
+				            
+				            <div class="input-group width260" ng-if="enableAdjustSetting != 1">
+				            	<p class="form-control-static">{{model.cpuCores}} {{'addDomain.core'|translate}}</p>
+				            </div>
+				        </div>    
+				    </div>
+				    <div class="form-group" ng-class="{'has-error':form2.maxCapacity.$invalid}">
+				   		<label for="cpu_socket" class="control-label short large">
+				            <span translate="addDomain.domainMemory"></span><span style="color: red">*</span>
+				        </label>
+					    <div class="control-input">
+			                <div class="input-group input-xlarge" ng-if="enableAdjustSetting == 1">
+			                	<div class="input-group width260" >
+				                	<span ng-if="model.memoryUnit=='MB'">
+	                   			    	<input id= "maxCapacity" name="maxCapacity" type="text"  ng-model="model.memoryInit" checkint spinner spinner-min="{{minMem}}" spinner-max="{{maxMem}}" class="spinner-input" memcheck required>
+	                   			    </span>
+		                     		<span ng-if="model.memoryUnit=='GB'">
+		                     			<input  id= "maxCapacity" name="maxCapacity" type="text"  ng-model="model.memoryInit" checkintfloat decimal="2" spinner spinner-min="{{minMem}}" spinner-max="{{maxMem}}" class="spinner-input" memcheck required>  
+		                     		</span>
+				                    <span class="input-group-btn" style="width:60px;">
+					                    <select-input class="" options="memoryUnit" bind-model="model.memoryUnit" input-id="memoryUnit" input-name="memoryUnit" right-angle="true">
+					                    </select-input>
+				                    </span>
+			               		 </div>
+			                	<span class="input-group-addon help-addon"  ng-messages="form2.maxCapacity.$error">
+					 				<span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+				 					<span ng-message="spinnerMax"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxValueIs'|translate}}{{maxMem}}"></span></span>
+			                    	<span ng-message="spinnerMin"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'minValueIs'|translate}}{{minMem}}"></span></span>
+				 					<span ng-message="intfloat"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'invalidintfloat'|translate}}"></span></span>
+					 				<span ng-message="int"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'invalidint'|translate}}"></span></span>
+					 				<span ng-message="memcheck"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'vm.memMultipleError'|translate}}"></span></span>
+			 					</span>
+			                </div>
+			                <div class="input-group width260" ng-if="enableAdjustSetting != 1">
+				            	<p class="form-control-static">{{model.memoryInit}} {{model.memoryUnit}}</p>
+				            </div>
+			            </div>
+				    </div>
+				    <div ng-if = "model.deployType == false">
+				    <!-- 操作系统选择 -->
+                    <div class="form-group">
+                        <label for="osList" class="control-label short large"><span translate="addDomain.os"></span><span style="color:red">&nbsp;</span></label>
+                        <div class="control-input">
+		                    <div id="windowsOSDiv" cascheckbox class="cas-checkbox labeled-btn radio" ng-model="model.system" value='0'>
+			                    <input id="windowsOS" name="os" type="radio" ng-checked ="model.system == 0">
+			                    <div class="corner-label">
+			                        <i class="glyphicon glyphicon-ok icon"></i>
+			                    </div>
+			                    <div class="box">
+		                        	<img src="css/img/gray/Icon_os_windows.svg" class="osimg"/>
+			                    </div>
+		                    </div>
+		                    <div id="linuxOSDiv" cascheckbox class="cas-checkbox labeled-btn radio" ng-model="model.system" value='1'>
+		                        <input id="linuxOS" name="os" type="radio" ng-checked ="model.system == 1">
+		                        <div class="corner-label">
+		                            <i class="glyphicon glyphicon-ok icon"></i>
+		                        </div>
+		                        <div class="box">
+		                        	<img src="css/img/gray/Icon_os_linux.svg" class="osimg"/>
+		                        </div>
+	                        </div>
+	                    </div>
+	                </div>
+	                <!-- 操作系统列表 -->
+		            <div class="form-group">
+		                <label for="osList" class="control-label short large"><span translate="addDomain.version"></span><span style="color:red">&nbsp;</span></label>
+		                <div class="control-input">
+		                    <div class="input-group width260">
+		                        <select-input class="" options="osList" input-id="osSelect" input-name="osSelect"  bind-model="model.osVersion" cutWidth="30">
+		                        </select-input>
+		                    </div>
+		                </div>
+		            </div>
+		            <!-- 文件名称 -->
+		            <div class="form-group" ng-class="{'has-error' : (form2.filename.$invalid && form2.filename.$dirty)}">
+						<label for="filename" class="control-label short large" > <span translate="host.filename"></span><span style="color:red">*</span></label>
+						<div class="control-input input-group input-xlarge">
+								<input type="text" class="form-input form-control" placeholder="{{'diskFileNameInput'|translate}}" ng-model="model.filename" checkname ng-trim="false" ng-maxlength=100 id="filename" name="filename" required>
+			                    <span class="input-group-addon help-addon" ng-messages="form2.filename.$error">
+		                            <span ng-if="form2.filename.$valid||!form2.filename.$dirty">
+		                                <span class="icon-occupying"></span>
+		                            </span>
+		                            <span ng-if="form2.filename.$dirty">
+		                              	<span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+									   	<span ng-message="checkname"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'checkname'|translate}}"></span></span>
+								   		<span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxlen'|translate}}100"></span></span>
+		                            </span>
+	                            </span>
+						</div>
+					</div>
+		            <!-- 格式 -->
+		            <div class="form-group">
+		                <label for="fileFormat" class="control-label short large"><span translate="storagePool.format"></span><span style="color:red">&nbsp;</span></label>
+		                <div class="control-input">
+		                    <div class="input-group width260">
+		                        <select-input class="" options="fileFormatList" input-id="fileFormat" input-name="fileFormat"  bind-model="model.fileFormatNum" 
+		                        ng-init="model.fileFormatNum = 0">
+		                        </select-input>
+		                    </div>
+		                </div>
+		            </div>
+		            <!-- 最大容量 -->
+		            <div class="form-group" ng-class="{'has-error':form2.storage.$invalid}">
+				   		<label for="storage" class="control-label short large">
+				            <span translate="vstorage.maxCapacity"></span><span style="color: red">*</span>
+				        </label>
+					    <div class="control-input" ng-if="model.storageUnit=='MB'">
+					    	<div class="input-group input-xlarge">
+					    		<div class="input-group width260" >
+				                    <input id= "storage" name="storage" type="text" ng-model="model.storageInit" class="spinner-input" spinner spinner-max=1024 spinner-min=10 checkint required>                                               
+					                <span class="input-group-btn" style="width:60px;">
+					                    <select-input class="" options="stUnit" ng-init="model.storageUnit='MB'" bind-model="model.storageUnit" input-id="storageUnit" input-name="storageUnit" right-angle="true"></select-input>
+				                    </span>
+			                    
+			                	</div>
+			                	<span class="input-group-addon help-addon" ng-messages="form2.storage.$error">
+		                            <span ng-if="form2.storage.$valid||!form2.storage.$dirty">
+		                                <span class="icon-occupying"></span>
+		                            </span>
+				                	<span>
+								 		<span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{::'require'|translate}}"></span></span>
+							 			<span ng-message="spinnerMax"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxValueIs'|translate}}1024"></span></span>
+					                    <span ng-message="spinnerMin"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'minValueIs'|translate}}10"></span></span>
+							 			<span ng-message="int"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'invalidint'|translate}}"></span></span>
+							 		</span>	
+							 	</span>
+					    	</div>
+			            </div>
+				   		<div class="control-input" ng-if="model.storageUnit!='MB'">
+					    	<div class="input-group input-xlarge">
+					    		<div class="input-group width260" >
+				                    <input id= "storage" name="storage" type="text" ng-model="model.storageInit" class="spinner-input" spinner spinner-max=1024 spinner-min=1 checkintfloat decimal=2 required>                                               
+				                    <span class="input-group-btn" style="width:60px;">
+					                    <select-input class="" options="stUnit" ng-init="model.storageUnit='GB'" bind-model="model.storageUnit" input-id="storageUnit" input-name="storageUnit" right-angle="true"></select-input>
+				                    </span>
+				                    
+			               		 </div>
+			               		 <span class="input-group-addon help-addon" ng-messages="form2.storage.$error">
+		                            <span ng-if="form2.storage.$valid||!form2.storage.$dirty">
+		                                <span class="icon-occupying"></span>
+		                            </span>
+			               		 	<span>
+								 		<span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{::'require'|translate}}"></span></span>
+							 			<span ng-message="spinnerMax"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxValueIs'|translate}}1024"></span></span>
+					                    <span ng-message="spinnerMin"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'minValueIs'|translate}}1"></span></span>
+							 			<span ng-message="int"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'invalidint'|translate}}"></span></span>
+							 		</span>
+							 	</span>	
+					    	</div>
+			            </div>
+				    </div>
+				    </div>
+		            <!-- 到期日期 -->
+		            <div class="form-group">
+		                <label for="expireDate" class="control-label  short large">
+		                    <span translate="common.expireDate"></span>
+		                </label>
+		                <div class="control-input">
+		                    <div class="input-group date input-large"  date-cell="#expireDateInput" jes-date format="YYYY-MM-DD" picker-position="right" 
+		                    isinit-val="{{initExpireDate}}" initial-date="model.expireDate" ng-model="model.expireDate" min-date="today">
+		                        <input id="expireDateInput" class="form-input form-control selectInput first-child-angle calendar-input-img" type="text" readonly>
+		                    </div>
+		                </div>
+		            </div>
+		            <!-- 设置网络策略模板 -->
+					<div class="form-group" ng-if="flag != 3 && model.deployType == false">
+						<label for="profile" class="control-label short large"><span
+							translate="common.profile"></span></label>
+						<div class="input-group width260 ">
+							<input type="text" class="form-control first-child-angle"
+								ng-model="model.profileName" id="profile"
+								input-id="profile" input-name="profile" ng-click="selectNetProfile()">
+							<span class="input-group-addon add-on inner-addon last-child-angle" ng-click="selectNetProfile()"
+								id="chooseUser"> <span class="icon-search-gray"
+								type="button"></span>
+							</span> 
+							<span class="input-group-addon add-on inner-addon last-child-angle"
+								style="cursor: pointer;" ng-click="clearNetProfile()"> <span
+								class="icon-delete-gray" type="button"></span>
+						    </span>
+						</div>
+					</div>
+					<!-- 设置虚拟交换机 -->
+					<div class="form-group" ng-if="flag != 3 && model.deployType == false">
+						<label for="vswitch" class="control-label  short large"><span
+							translate="cluster.vswitch"></span></label>
+						<div class="input-group width260 ">
+							<input type="text" class="form-control first-child-angle"
+								ng-model="model.vswitchName" id="vswitch"
+								input-id="vswitch" input-name="vswitch" ng-click="selectVswitch()">
+							<span class="input-group-addon inner-addon last-child-angle" ng-click="selectVswitch()"
+								id="chooseUser"> <span class="icon-search-gray"
+								type="button"></span>
+							</span> 
+							<span class="input-group-addon inner-addon last-child-angle"
+								style="cursor: pointer;" ng-click="clearVswitch()"> 
+								<span class="icon-delete-gray" type="button"></span>
+						    </span>
+						</div>
+					</div>  
+					<!-- 防火墙 
+					<div class="form-group" >
+						<label for="firewall" class="control-label short large"><span
+							translate="cloudSecurity.firewall"></span></label>
+						<div class="input-group width260 ">
+							<input type="text" class="form-control first-child-angle"
+								ng-model="model.firewallName" id="firewall"
+								input-id="firewall" input-name="firewall" ng-click="selectFirewall()">
+							<span class="input-group-addon add-on inner-addon last-child-angle" ng-click="selectFirewall()"
+								id="chooseUser"> <span class="icon-search-gray"
+								type="button"></span>
+							</span> 
+							<span class="input-group-addon add-on inner-addon last-child-angle"
+								style="cursor: pointer;" ng-click="clearFirewall()"> <span
+								class="icon-delete-gray" type="button"></span>
+						    </span>
+						</div>
+					</div>
+					-->
+				<!-- 设置存储池 -->
+				<div class="form-group" ng-if="flag != 3 && model.virDeskNum == 0">
+					<label for="storagePool" class="control-label  short large"><span
+						translate="common.storagePool"></span></label>
+					<div class="input-group width260 ">
+						<input type="text" class="form-control first-child-angle"
+							ng-model="model.storageName" id="storagePool"
+							input-id="storagePool" input-name="storagePool" ng-click="selectStorePool()">
+						<span class="input-group-addon inner-addon last-child-angle" ng-click="selectStorePool()"
+							id="chooseUser"> <span class="icon-search-gray"
+							type="button"></span>
+						</span> 
+						<span class="input-group-addon inner-addon last-child-angle"
+							style="cursor: pointer;" ng-click="clearStorePool()"> 
+							<span class="icon-delete-gray" type="button"></span>
+					    </span>
+					</div>
+				</div>												
+	  		    <!----------- 高级配置    网络信息  ------------>
+	  		    <div class="form-group" style="margin-top:20px" ng-if="showFormat">
+					<form name="form4" class="form-horizontal" role="form" style="padding:0;" novalidate>
+		          	    <input type="hidden" id ="form4" value="{{form4.$valid}}">
+						<div class="panel-body"  id="divNetinfo" style="padding:0px;">
+						    <div style="width: 100%; height: 260px;" class="table"  ng-grid="gridOptions1"></div>
+						</div>
+					</form>
+				</div>
+	            <div>
+	             	<a href="#" style="color: #1f90c8; margin-left:23px; text-decoration:none;" ng-if="flag !=3 && model.deployType == true" ng-click="designatedFormat()"><sapn ng-bind="advance"></sapn></a>	
+	            </div>
+	    	</form>
+        	</slide-form>
+        	<!-- 扩展字段信息 -->
+        	<slide-form valid="valids.stepThreeOver()" is-add="isDefineField" tab-index="3">
+	    		<form name="form3" class="form-horizontal" style="height:270px;overflow-y:scroll;" role="form3" novalidate>
+	        		<input type="hidden" id="form3" value="{{form3.$valid}}">
+	        		<div ng-repeat="field in defineFields">
+		    			<div class="form-group" ng-class="{'has-error' : (form3.{{field.columnName}}.$invalid && form3.{{field.columnName}}.$dirty)}">
+		    				<label  for="{{field.columnName}}" class="control-label short large gird-ellipsis" custom-title='{{field.fieldName}}'>{{field.fieldName}}<span ng-if="field.fieldAllowBlank!=0" style="color:red">*</span><span style="color:red">&nbsp;</span></label>
+			                <div class="control-input">
+			                	<div class="input-group input-xlarge" ng-if="field.fieldType == 0">
+					                <input id= "cpuSocket" name="{{field.columnName}}" type="text" style="width:226px;" ng-model='field.value' spinner spinner-max={{field.fieldMax}} spinner-min={{field.fieldMin}} ng-required="field.fieldAllowBlank!=0" checkint>
+					            	<span class="input-group-addon help-addon" ng-messages="form3.{{field.columnName}}.$error">
+					            	    <span>(</span><span>{{field.fieldMin}}</span><span>~</span><span>{{field.fieldMax}}</span><span>)</span>
+			                            <span ng-show="form3.{{field.columnName}}.$valid || !form3.{{field.columnName}}.$dirty">
+			                                <span class="icon-occupying"></span>
+			                            </span>
+			                            <span ng-show="form3.{{field.columnName}}.$dirty">
+			                               <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+										   <span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxlen'|translate}}{{field.fieldLen}}"></span></span>
+										   <span ng-message="spinnerMax"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxValueIs'|translate}}{{field.fieldMax}} "></span></span>
+								        <span ng-message="spinnerMin"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'minValueIs'|translate}}{{field.fieldMin}}"></span></span>
+								           <span ng-message="checkint"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'checkint'|translate}}"></span></span>							           
+			                            </span>
+		                            </span>
+					            </div>
+			                    <div class="input-group input-xlarge" ng-if="field.fieldType == 1">
+			                    	<input type="text" name="{{field.columnName}}"  class="form-input form-control" id="{{field.columnName}}" name="{{field.columnName}}" ng-trim="false" ng-model='field.value' ng-maxlength={{field.fieldLen}} ng-required="field.fieldAllowBlank!=0" checkname>
+			                    	<span class="input-group-addon help-addon" ng-messages="form3.{{field.columnName}}.$error">
+			                            <span ng-show="form3.{{field.columnName}}.$valid || !form3.{{field.columnName}}.$dirty">
+			                                <span class="icon-occupying"></span>
+			                            </span>
+			                            <span ng-show="form3.{{field.columnName}}.$dirty">
+			                               <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+										   <span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxlen'|translate}}{{field.fieldLen}}"></span></span>
+										   <span ng-message="checkname"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'checkname'|translate}}"></span></span>
+			                            </span>
+		                            </span>
+			                    </div>
+			                    <div class="input-group input-xlarge" ng-if="field.fieldType == 2">
+			                    	<input type="text" name="{{field.columnName}}"  class="form-input form-control" id="{{field.columnName}}" name="{{field.columnName}}" ng-trim="false" ng-model='field.value' ng-maxlength={{field.fieldLen}} ng-required="field.fieldAllowBlank!=0">
+			                    	<span class="input-group-addon help-addon" ng-messages="form3.{{field.columnName}}.$error">
+			                            <span ng-show="form3.{{field.columnName}}.$valid || !form3.{{field.columnName}}.$dirty">
+			                                <span class="icon-occupying"></span>
+			                            </span>
+			                            <span ng-show="form3.{{field.columnName}}.$dirty">
+			                               <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+										   <span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxlen'|translate}}{{field.fieldLen}}"></span></span>
+			                            </span>
+		                            </span>
+			                    </div>
+			                    <div class="input-group width260" ng-if="field.fieldType == 3" ng-required="field.fieldAllowBlank!=0">
+			                    	<select-input class="" options="field.appendDefineOptions" bind-model='field.value' input-id="vmAppendDefine" input-name="vmAppendDefine" >
+			                        </select-input>
+			                    </div>
+			                </div>
+			            </div>
+	        		</div>
+	    		</form>
+        	</slide-form>
+	    </carousel-form>
+	</div>
+	    <!-- 右侧确认信息 -->
+    <div class="detail-table col-md-4">
+        <table class="table table-striped">
+            <tr>
+                <td ><h4 translate="configDetail"></h4></td>
+            </tr>
+            <tr ng-if="model.isPublicCloud">
+                <td ><span translate="addDomain.domainName"></span></span></td>
+                <td  shortcut cut-str="{{model.domainName}}" custom-title>{{model.domainName}}</td>
+            </tr>
+            <tr>
+                <td ><span translate="addDomain.title"></span></td>
+                <td shortcut cut-str="{{model.title}}" custom-title>{{model.title}}</td>
+            </tr>
+             <tr>
+                <td ><span translate="workflow.reason"></span></td>
+                <td  shortcut cut-str="{{model.reason}}" custom-title>{{model.reason}}</td>
+            </tr>
+            <tr>
+                <td ><span translate="resourcePool.resourcePool"></span></td>
+                <td  shortcut cut-str="{{model.resourcePoolName}}" custom-title>{{resourcePool.resourcePool}}</td>
+            </tr>
+            <tr>
+                <td ><span translate="org.virDesk"></span></td>
+                <td  shortcut cut-str="{{virDesks[model.virDeskNum].label}}" custom-title>{{virDesks[model.virDeskNum].label}}</td>
+            </tr>
+            <tr>
+                <td ><span translate="org.deployByTemplate"></span></td>
+                <td><span ng-if="model.deployType == true" translate="common.yes"></span><span ng-if="model.deployType == false" translate="common.no"></span></td>
+            </tr>
+            <tr ng-if="model.deployMode==1 && model.deployType == true">
+                <td ><span translate="template.deployWay"></span></td>
+                <td >{{'cloudBusiness.fastDeploy'|translate}}</td>
+            </tr>
+            <tr ng-if="model.deployType == true">
+                <td ><span translate="template.template"></span></td>
+                <td >{{templateName}}</td>
+            </tr>
+            <tr ng-if="stepIndex>0">
+                <td ><span translate="addDomain.cpu"></span></td>
+                <td >{{model.cpuSockets}} * {{model.cpuCores}}</td>
+            </tr>
+            <tr ng-if="stepIndex>0">
+                <td ><span translate="addDomain.domainMemory"></span></td>
+                <td >{{model.memoryInit}} {{model.memoryUnit}}</td>
+            </tr>
+            
+            <tr ng-if="stepIndex>0 && model.deployType == false">
+                <td ><span translate="common.os"></span></td>
+                <td ><span ng-if="model.system == 0">Windows</span><span ng-if="model.system == 1">Linux</span></td>
+            </tr>
+            <tr ng-if="stepIndex>0 && model.deployType == false">
+                <td ><span translate="addDomain.version"></span></td>
+                <td >{{model.osVersion}}</td>
+            </tr>
+            <tr ng-if="stepIndex>0 && model.deployType == false">
+                <td ><span translate="host.filename"></span></td>
+                <td >{{model.filename}}</td>
+            </tr>
+            <tr ng-if="stepIndex>0 && model.deployType == false">
+                <td ><span translate="storagePool.format"></span></td>
+                <td ><span ng-if="model.fileFormatNum == 0" translate="storagePool.qcow2"></span><span ng-if="model.fileFormatNum == 1" translate="storagePool.raw"></span></td>
+            </tr>
+            <tr ng-if="stepIndex>0 &&  model.deployType == false">
+                <td ><span translate="vstorage.maxCapacity"></span></td>
+                <td >{{model.storageInit}} {{model.storageUnit}}</td>
+            </tr>
+            <tr ng-if="stepIndex>0 && model.deployType == false">
+                <td ><span translate="common.expireDate"></span></td>
+                <td >{{model.expireDate}}</td>
+            </tr>
+            <tr ng-if="stepIndex>0 && model.deployType == false">
+                <td ><span translate="common.profile"></span></td>
+                <td >{{model.profileName}}</td>
+            </tr>
+            <tr ng-if="stepIndex>0 && model.deployType == false">
+                <td ><span translate="cluster.vswitch"></span></td>
+                <td >{{model.vswitchName}}</td>
+            </tr>
+             <tr ng-if="stepIndex>0 && flag != 3">
+                <td ><span translate="common.storagePool"></span></td>
+                <td >{{model.storageName}}</td>
+            </tr>
+        </table>
+    </div>
+</div>

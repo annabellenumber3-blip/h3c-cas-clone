@@ -1,0 +1,487 @@
+exceptions)
+base)
+synchronized)
+os_utils)
+nvmeof_comp)
+/dev/
+d d!
+d"d#
+d$d%
+d&d'
+j e!d(
+d)d*
+j e!d(
+dad+d,
+j e!d-
+d.d/
+j e!d0
+d1d2
+j d3d4
+j dbd5d6
+Z'd7d8
+Z(d9d:
+d;d<
+d=d>
+d?d@
+Z,dAdB
+Z-dCdD
+dcdEdF
+dGdH
+dIdJ
+dKdL
+dMdN
+dOdP
+dQdR
+dSdT
+dUdV
+dWdX
+dYdZ
+d[d\
+d]d^
+Z;d_d`
+NVMeOFConnectorz1Connector class to attach/detach NVMe-oF volumes.NFc
+driver
+device_scan_attempts)
+superr
+__init__
+use_multipath
+priv_rootwrap
+execute
+_execute
+src_dev_path)
+self
+root_helperr
+args
+kwargs
+	__class__
++./fsm/device/initiator/connectors/nvmeof.pyr
+NVMeOFConnector.__init__c
+DEV_SEARCH_PATHr
+get_search_path5
+NVMeOFConnector.get_search_pathc
+device_path
+volume_replicas
+/dev/md/
+aliasr
+target_nqn
+vol_uuid)
+lenr
+get_nvme_device_path
+	exception
+VolumeDeviceNotFound)
+connection_propertiesr
+get_volume_paths9
+z NVMeOFConnector.get_volume_pathsc
+nvme
+versionTz
+nvme not present on systemz0Unknown error when checking presence of nvme: %sF)
+custom_execute
+	Exception
+isinstance
+OSError
+errno
+ENOENT
+debug
+warning)
+excr
+nvme_presentO
+NVMeOFConnector.nvme_presentc
+|	r\|	|
+z:The NVMe-oF connector properties (initiator uuid and nqn.)r
+uuidz
+system uuid
+nqn)
+_get_host_uuid
+_get_system_uuidr9
+_get_host_nqn)
+nvmf
+retr;
+suuidr
+get_connector_properties\
+z(NVMeOFConnector.get_connector_propertiesc
+findmnt
+SOURCET
+run_as_rootr
+blkid
+UUIDrC
+valuez-Process execution error in _get_host_uuid: %s
+_root_helper
+split
+putils
+ProcessExecutionErrorr4
+str)
+lines
+errZ	blkid_cmd
+_err
+NVMeOFConnector._get_host_uuidc
+/etc/nvme/hostnqn
+open
+read
+strip
+IOError
+	priv_nvmeZ
+create_hostnqnr/
+host_nqnr
+NVMeOFConnector._get_host_nqnc
+catz
+/sys/class/dmi/id/product_uuidT
+Z	dmidecodez
+-ssystem-uuidz$dmidecode returned empty system-uuidzXUnable to locate dmidecode. For Cinder RSD Backend, please make sure it is installed: %s
+outrR
+z NVMeOFConnector._get_system_uuidc
+qNt	
+/dev/nvme[0-9]+n[0-9]+r-
+listr!
+check_exit_coderG
+z+_get_nvme_devices returned %(nvme_devices)s
+nvme_devicesz>Failed to list available NVMe connected controllers, retrying.
+zOFailed to retrieve available connected NVMe controllers when running nvme list.
+message)
+ranger
+match
+append
+groupr4
+time
+sleepr
+CommandExecutionFailed)
+patternrP
+retryr`
+line
+result
+msgr
+_get_nvme_devices
+z!NVMeOFConnector._get_nvme_devicesc
+Nz)all_nvme_devices are %(all_nvme_devices)s
+all_nvme_devicesr
+setr)
+VolumePathsNotFoundra
+current_nvme_devicesrw
+pathr
+_get_device_path
+z NVMeOFConnector._get_device_pathc
+diskz
+by-idz
+nvme-%sz+Try to retrieve symlink to %(device_path)s.r
+readlinkz
+-eTrD
+device)
+osr{
+joinr
+rstriprM
+wwidr
+_get_device_path_by_wwid
+z(NVMeOFConnector._get_device_path_by_wwidc
+Z	exit_code)
+_try_connect_nvme
+z!NVMeOFConnector._try_connect_nvmec
+list-subsysrC
+jsonTr^
+ret_valr
+_get_nvme_subsys
+z NVMeOFConnector._get_nvme_subsysc
+Nz@Filter NVMe devices belonging to controller %(nvme_controller)s.
+nvme_controllerz
+/dev/%sn[0-9]+c
+nvme_name_patternr
+<lambda>
+z6NVMeOFConnector._filter_nvme_devices.<locals>.<lambda>)
+filter)
+nvme_devices_filteredr
+_filter_nvme_devices
+z$NVMeOFConnector._filter_nvme_devicesr!
+retriesc
+Failed to find nvme device)
+errorr)
+NotFound)
+	nvme_namerz
+_is_nvme_available
+z"NVMeOFConnector._is_nvme_availablec
+traddr=%s trsvcid=%sz
+Failed to get nvme subsystemsZ
+SubsystemsFr
+NQNZ
+PathsZ	TransportZ
+Address
+Name)
+loadsr/
+nvme_transport_type
+conn_nqn
+target_portal
+portr
+nvme_addressr`
+subsystemsZ
+subsystems_len
+iZ	subsystemr{
+_wait_for_blk
+NVMeOFConnector._wait_for_blkc
+}	~	q
+}	~	q
+}	~	0
+/sys/block/rA
+/wwidrU
+)	rL
+devicesrq
+datarT
+get_available_path_by_wwid_
+z*NVMeOFConnector.get_available_path_by_wwid
+connect_volumec
+Discover and attach the volume.
+        :param connection_properties: The dictionary that describes all
+                                      of the target volume attributes.
+               connection_properties must include:
+               nqn - NVMe subsystem name to the volume to be connected
+               target_port - NVMe target port that hosts the nqn sybsystem
+               target_portal - NVMe target ip that hosts the nqn sybsystem
+        :type connection_properties: dict
+        :returns: dict
+        r%
+type
+blockr;
+target_portZ
+transport_typer\
+volume_wwidr-
+connect
+-trB
+-arH
+Waiting for nvme failedz#nvme connect: NVMe device not foundrg
+z the %s time to match nvme devicer!
+path: %s, nvme: %sr{
+z*NVMe device to be connected to is %(path)s)
+_connect_volume_replicatedrv
+extendr
+device_infor
+device_wwidrP
+Z	availabler{
+attemptrT
+NVMeOFConnector.connect_volumec
+Flush the volume.
+        Disconnect of volumes happens on storage system side. Here we could
+        remove connections to subsystems if no volumes are left. But new
+        volumes can pop up asynchronously in the meantime. So the only thing
+        left is flushing or disassembly of a correspondng RAID device.
+        :param connection_properties: The dictionary that describes all
+                                      of the target volume attributes.
+               connection_properties must include:
+               device_path - path to the volume to be connected
+        :type connection_properties: dict
+        :param device_info: historical difference, but same as connection_props
+        :type device_info: dict
+        r%
+force
+ignore_errorsr;
+z[Trying to disconnect device %(device_path)s with subnqn %(conn_nqn)s that is not connected.)
+N)	r&
+_disconnect_volume_replicatedrv
+_linuxscsiZ
+flush_device_iorM
+disconnect_volume
+z!NVMeOFConnector.disconnect_volume
+extend_lunc
+Update the local kernel's size information.
+        Try and update the local kernel's size information
+        for an nvme-of lun.
+        Z
+failz2Multipathd failed to update the size mapping of %sNz
+Lun size after extend %s)
+realpathr
+multipath_resize_mapr4
+multipath_reconfigure
+get_device_size
+info)
+new_sizer
+NVMeOFConnector.extend_lun
+extend_volumec
+Update the local kernel's size information.
+        Try and update the local kernel's size information
+        for an LVM volume.
+        r%
+volume_nguid)
+zICouldn't find any volume paths on the host to extend volume for %(props)sZ
+propsN)
+_extend_volume_replicatedr,
+volume_pathsr{
+NVMeOFConnector.extend_volumec
+connect to volume on host
+        connection_properties for NVMe-oF must include:
+        target_portals - list of ip,port,transport for each portal
+        target_nqn - NVMe-oF Qualified Name
+        vol_uuid - UUID for volume/replica
+        r 
+portalsz
+_connect_target_volume: %sNr~
+_connect_target_volumerl
+_handle_replicated_volume
+_handle_single_replica
+nvmeof_agentZ
+NVMeOFAgentZ
+ensure_running)	r
+volume_alias
+host_device_pathsZ
+replicaZ
+rep_host_device_path
+z*NVMeOFConnector._connect_volume_replicatedc
+linux_raid_member)
+end_raid
+_get_fs_type)
+z-NVMeOFConnector._disconnect_volume_replicatedc
+mdadmz
+--growz
+--size
+maxr$
+	run_mdadmr(
+z)NVMeOFConnector._extend_volume_replicatedc
+Nz+No successful connections: %(host_devices)sZ
+host_devicesr~
+z-No accessible volume device: %(host_devices)s)
+connect_to_portalsr4
+rescan)
+host_device_path
+any_connectr
+z&NVMeOFConnector._connect_target_volumec
+z(connect to any of NVMe-oF target portalsFr
+RoCEv2Z
+rdmaZ
+tcpr
+128z
+-1Tz
+Could not connect to portal %s)
+run_nvme_clir/
+executorr$
+target_portalsr
+portalZ
+portal_addressZ
+portal_portZ
+portal_transport
+nvme_commandr
+z"NVMeOFConnector.connect_to_portalsc
+Nz!/sys/class/nvme-fabrics/ctl/nvme*r]
+/subsysnqnTrD
+/stateZ
+livez
+nvmeof ctrl device not live: %sr~
+globr
+rfindrM
+ctrlsZ
+ctrlrQ
+staterT
+_get_nvme_controller
+z$NVMeOFConnector._get_nvme_controllerc
+/sys/class/nvme-fabrics/ctl/rA
+n*r]
+/uuidTrD
+Z	nvme_ctrlZ
+blocksr
+uuid_linesrS
+z$NVMeOFConnector.get_nvme_device_pathc
+NFr"
+z1Cannot create MD as %s out of %s legs were found.r~
+1)	r
+_is_device_in_raid
+stop_and_assemble_raidr'
+create_raid)
+num_of_replicasZ
+path_in_raidZ
+dev_pathr
+paths_foundr
+z)NVMeOFConnector._handle_replicated_volumec
+md_pathr
+z&NVMeOFConnector._handle_single_replicac
+q6q(W
+NTrD
+[!] Could not run mdadm: %srJ
+raise_exception
+cmd_outputrQ
+NVMeOFConnector.run_mdadmc
+z	--examine
+:TrD
+raid_expectedrQ
+z"NVMeOFConnector._is_device_in_raidc
+destr
+ks_readlink
+NVMeOFConnector.ks_readlinkc
+q^qPt
+cat /proc/mdstat | grep z
+ | awk '{print $1;}'Z
+bashz
+[!] cmd = TrD
+[!] cmd_output = z
+[!] Could not run cmd: %s)	r4
+device_nameZ
+get_md_cmdrP
+get_md_name
+NVMeOFConnector.get_md_namec
+z+sleeping 1 sec -allow auto assemble link = z
+ md path = r!
+basenamer4
+	stop_raid
+assemble_raidr/
+drivesr
+	read_onlyZ
+md_namer
+Z	assembled
+link
+driver
+z&NVMeOFConnector.stop_and_assemble_raidc
+--assemblez
+--runrC
+Tz [!] Could not _assemble_raid: %s)
+NVMeOFConnector.assemble_raidc
+-CrC
+--levelz
+--raid-devices=z
+--bitmap=internalz
+--homehost=anyz
+--failfastz
+--assume-cleanr
+Z	raid_typer
+namer
+num_drivesr
+NVMeOFConnector.create_raidc
+[!] is_exist = %sz
+[!] Exception_stop_raid!)
+is_raid_existsri
+existsr4
+remove_raid
+remove)
+raid_existsr
+cmd_outZ
+is_existr
+NVMeOFConnector.end_raidc
+--stopr
+NVMeOFConnector.stop_raidc
+--detailr
+[!] line = F
+NVMeOFConnector.is_raid_existsc
+--remover
+NVMeOFConnector.remove_raidc
+z4nvme %(nvme_command)s: stdout=%(out)s stderr=%(err)s)
+[!] )
+NVMeOFConnector.run_nvme_clic
+Nz	ns-rescan)
+ctr_devicer
+NVMeOFConnector.rescanc
+TYPErC
+fs_typerQ
+NVMeOFConnector._get_fs_type)
+__name__
+__module__
+__qualname__
+__doc__
+DEVICE_SCAN_ATTEMPTS_DEFAULTr
+staticmethodr
+classmethodr9
+utilsrr
+tracer
+__classcell__r
+)!r2
+os.pathr
+loggingZ
+fsmr
+fsm.device.initiator.connectorsr
+fsm.utils.lock_utilsr
+Z	fsm.utilsr
+fsm.device.initiatorr
+Z fsm.device.initiator.nvmeof_compr
+Z	getLoggerr
+BaseLinuxConnectorr
+<module>

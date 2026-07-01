@@ -1,0 +1,149 @@
+<!-- 设置网络参数 -->
+<div class="modal-header">
+	 <button type="button" class="close" custom-title="{{::'common.close'|translate}}"  ng-click="cancel()">
+		<span class="icon-closenew"></span>
+	</button>
+	<h4 class="modal-title" translate="vm.setNetParam"></h4>
+</div>
+<div class="modal-body">
+<div class="alert alert-danger" role="alert" translate="vm.setNetParamHead"></div>
+	<div class="form-horizontal" id="divform">
+		<form name="form" class="form-horizontal" ng-keypress="enter($event)"  role="form" novalidate>
+			
+			<div class="form-group">
+				<label for="enableHandDistribute" class="switch-label" style="width:120px;">
+					<!-- <span translate="template.enableHandDistribute"></span> -->
+				</label>
+			    <div class="input-group">
+			    <cas-ace-check id="setNetType" name="setNetType" type="radio" text="{{::'common.default' | translate}}" checked-value="0" checked="{{entry.sysIpType == 0}}" ng-model="entry.sysIpType" text-width="80px"></cas-ace-check>
+			    <cas-ace-check id="setNetType" name="setNetType" type="radio" text="DHCP" checked-value="1" ng-model="entry.sysIpType" checked="{{entry.sysIpType == 1}}" text-width="80px"></cas-ace-check>
+			    <cas-ace-check id="setNetType" name="setNetType" type="radio" text="{{::'template.byhandDistribute' | translate}}" checked-value="2" checked="{{entry.sysIpType == 2}}" ng-model="entry.sysIpType" text-width="80px"></cas-ace-check>
+            		<!--<div id="enableHandDistribute" toggle-switch class="switch-success" ng-model="entry.sysIpType" ng-init="entry.sysIpType=1"></div> -->
+            	</div>
+			</div>			
+			
+			<!-- IP地址分配方式
+		 	<div class="form-group">
+           		 <label for="unique-id0" class="control-label"><span translate="template.ipDistributeWay"></span></label>
+           		 <div class="control-input">
+					<div id="dhcpDiv" cascheckbox style='margin-left:0px;margin-right:15px' class="cas-checkbox labeled-btn radio"  ng-model="entry.sysIpType" value="1">
+				   		 <input id="dhcp" name="ipDistributeWay" type="radio" ng-checked="entry.sysIpType == 1">
+				    	 <div class="corner-label">
+				      		<i class="glyphicon glyphicon-ok icon"></i>
+				     	</div>
+				     	<div class="box"> <span class="box-name" style="width:70px;" translate="template.dhcp"></span></div>
+					</div>
+					<div id="byhandDistributeDiv" cascheckbox style='margin-left:0px;margin-right:15px'  class="cas-checkbox labeled-btn radio" ng-model="entry.sysIpType" value="2">
+				  	 	<input id="byhandDistribute" name="ipDistributeWay" type="radio" ng-checked="entry.sysIpType == 2">
+				     	<div class="corner-label">
+				       		<i class="glyphicon glyphicon-ok icon"></i>
+				     	</div>
+				     	<div class="box"> <span class="box-name" style="width:70px;" translate="template.byhandDistribute"></span></div>
+					</div>
+				</div>
+			</div>-->
+			<!-- IP地址 -->
+			<div class="form-group" ng-class="{'has-error': (form.ipAddress.$dirty && form.ipAddress.$invalid && entry.sysIpType==2)}">
+				<label for="ipAddress" class="control-label"><span translate="template.ipAddress"></span><span ng-if="entry.sysIpType==2" class="required">*</span></label>
+				<div class="control-input">
+				     <div class="input-group input-xlarge">
+					   <input ng-disabled="entry.sysIpType!=2" type="text" ip  class="form-input form-control" ng-model="entry.sysIp"  ng-trim="false" id="ipAddress" name="ipAddress" required>
+						<span ng-if="entry.sysIpType==2" class="input-group-addon help-addon" ng-messages="form.ipAddress.$error">
+						 <span ng-if="form.ipAddress.$valid||!form.ipAddress.$dirty">
+						       <span class="icon-occupying"></span>
+						 </span>
+						 <span ng-if="form.ipAddress.$dirty">
+							 <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+							 <span ng-message="ip"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'invalidip'|translate}}"></span></span>
+						 </span>
+					 	</span>
+                     </div>
+				</div>
+		  </div>
+		  <!-- 子网掩码 -->
+		  <div class="form-group" ng-class="{'has-error': (form.subnetMask.$dirty && form.subnetMask.$invalid && entry.sysIpType==2)}">
+				<label for="subnetMask" class="control-label"><span translate="template.subnetMask"></span><span ng-if="entry.sysIpType==2" class="required">*</span></label>
+				<div class="control-input">
+				     <div class="input-group input-xlarge">
+					   <input ng-focus="netFocus()" ng-disabled="entry.sysIpType!=2" type="text" mask  class="form-input form-control" ng-model="entry.sysMask"  ng-trim="false" id="subnetMask" name="subnetMask" required>
+						<span ng-if="entry.sysIpType==2" class="input-group-addon help-addon" ng-messages="form.subnetMask.$error">
+						 <span ng-if="form.subnetMask.$valid||!form.subnetMask.$dirty">
+						       <span class="icon-occupying"></span>
+						 </span>
+						 <span ng-if="form.subnetMask.$dirty">
+							 <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+							 <span ng-message="mask"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'invalidMask'|translate}}"></span></span>
+						 </span>
+					 	</span>
+                     </div>
+				</div>
+		  </div>
+		  <!-- 默认网关 -->
+		  <div class="form-group" ng-class="{'has-error': (form.defaultGateway.$dirty && form.defaultGateway.$invalid && entry.sysIpType==2)}">
+				<label for="defaultGateway" class="control-label"><span translate="template.defaultGateway"></span></label>
+				<div class="control-input">
+				     <div class="input-group input-xlarge">
+					   <input ng-disabled="entry.sysIpType!=2" type="text" ip  class="form-input form-control" ng-model="entry.sysGateway"  ng-trim="false" id="defaultGateway" name="defaultGateway">
+						<span ng-if="entry.sysIpType==2" class="input-group-addon help-addon" ng-messages="form.defaultGateway.$error">
+						 <span ng-if="form.defaultGateway.$valid||!form.defaultGateway.$dirty">
+						       <span class="icon-occupying"></span>
+						 </span>
+						 <span ng-if="form.defaultGateway.$dirty">
+							 <span ng-message="ip"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'invalidip'|translate}}"></span></span>
+						 </span>
+					 	</span>
+                     </div>
+				</div>
+		  </div>
+		  <!-- 主DNS服务器 -->
+		  <div class="form-group" ng-class="{'has-error': (form.theDnsServer.$dirty && form.theDnsServer.$invalid && entry.sysIpType==2)}">
+				<label for="theDnsServer" class="control-label"><span translate="template.theDnsServer"></span></label>
+				<div class="control-input">
+				     <div class="input-group input-xlarge">
+					   <input ng-disabled="entry.sysIpType!=2" type="text" ip  class="form-input form-control" ng-model="entry.sysDns"  ng-trim="false" id="theDnsServer" name="theDnsServer">
+						<span ng-if="entry.sysIpType==2" class="input-group-addon help-addon" ng-messages="form.theDnsServer.$error">
+						 <span ng-if="form.theDnsServer.$valid||!form.theDnsServer.$dirty">
+						       <span class="icon-occupying"></span>
+						 </span>
+						 <span ng-if="form.theDnsServer.$dirty">
+							 <span ng-message="ip"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'invalidip'|translate}}"></span></span>
+						 </span>
+					 	</span>
+                     </div>
+				</div>
+		  </div>
+		<!-- 备DNS服务器 -->
+		  <div class="form-group" ng-class="{'has-error': (form.forDnsServer.$dirty && form.forDnsServer.$invalid && entry.sysIpType==2)}">
+				<label for="forDnsServer" class="control-label"><span translate="template.forDnsServer"></span></label>
+				<div class="control-input">
+				     <div class="input-group input-xlarge">
+					   <input ng-disabled="entry.sysIpType!=2" type="text" ip  class="form-input form-control" ng-model="entry.secondaryDns"  ng-trim="false" id="forDnsServer" name="forDnsServer">
+						<span ng-if="entry.sysIpType==2" class="input-group-addon help-addon" ng-messages="form.forDnsServer.$error">
+						 <span ng-if="form.forDnsServer.$valid||!form.forDnsServer.$dirty">
+						       <span class="icon-occupying"></span>
+						 </span>
+						 <span ng-if="form.forDnsServer.$dirty">
+							 <span ng-message="ip"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'invalidip'|translate}}"></span></span>
+						 </span>
+					 	</span>
+                     </div>
+				</div>
+		  </div>
+		<!-- 设置IP绑定-->
+		  <div ng-if="entry.sysIpType==2" class="form-group">
+			 <div id="setBindIpDiv" cascheckbox class="cas-checkbox labeled-btn checkbox"	 ng-model="entry.isBindIp" value='1'>
+				<input id="setBindIp" name="setBindIp" type="checkbox">
+				<div class="corner-label"> <i class="glyphicon glyphicon-ok icon"></i>
+				</div>
+				<div class="box" style="margin-left:120px;">
+					<span class="box-name" translate="template.setBindIp"></span>
+				</div>
+			</div>
+		 </div>
+		</form>
+	</div>
+</div>
+ <div class="modal-footer">
+	  <button id="setNetParamBtn" class="btn btn-green" ng-disabled="entry.sysIpType==2&&form.$invalid" ng-click="ok()" translate="common.confirm"></button>
+	  <button class="btn btn-black" ng-click="cancel()" translate="common.cancel"></button>
+ </div>

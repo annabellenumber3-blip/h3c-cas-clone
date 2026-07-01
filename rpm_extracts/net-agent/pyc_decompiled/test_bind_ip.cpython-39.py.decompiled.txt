@@ -1,0 +1,61 @@
+Utility)
+testbasec
+TestBindIPc
+superr
+myinitZ
+_start_ovsZ
+_start_netagent)
+self
+	__class__
+</usr/lib/python3.9/site-packages/na_tests/ft/test_bind_ip.pyr
+TestBindIP.myinitc
+cd {test_dir}
+ovs-vsctl add-br br0 -- set bridge br0 fail-mode=standalone --     add-port br0 p1 -- set interface p1 ofport_request=1 type=dummy --     add-port br0 p2 -- set interface p2 ofport_request=2 type=dummy
+    
+ovs-ofctl mod-port br0 br0 noforward
+na-ctl --retry=-1 add-listen --id=1 --event="set Interface p1 other_config:bind-ip=1.2.3.5"
+ovs-vsctl set Interface p1 other_config:bind-ip=1.2.3.5
+na-ctl wait --id=1
+ovs-appctl revalidator/purge
+ovs-appctl netdev-dummy/receive p1 'in_port(1),eth(src=50:54:00:00:00:0c,dst=50:54:00:00:00:05),eth_type(0x0800),ipv4(src=1.2.3.6,dst=1.2.3.5,proto=1,tos=0,ttl=64,frag=no),icmp(type=8,code=0)'
+ovs-appctl time/warp 100
+ovs-appctl dpif/dump-flows br0 > br0_flows.txt
+grep 'actions:2' br0_flows.txt
+if test $? -ne 1; then
+    exit 2
+ovs-appctl revalidator/purge
+ovs-appctl netdev-dummy/receive p1 'in_port(1),eth(src=50:54:00:00:00:0c,dst=50:54:00:00:00:05),eth_type(0x0800),ipv4(src=1.2.3.5,dst=1.2.3.6,proto=1,tos=0,ttl=64,frag=no),icmp(type=8,code=0)'
+ovs-appctl time/warp 100
+ovs-appctl dpif/dump-flows br0 > br0_flows1.txt
+grep 'actions:2' br0_flows1.txt
+if test $? -ne 0; then
+    exit 3
+na-ctl add-listen --id=2 --event="remove Interface p1 other_config:bind-ip"
+ovs-vsctl remove Interface p1 other_config bind-ip
+na-ctl wait --id=2
+ovs-appctl revalidator/purge
+ovs-appctl netdev-dummy/receive p1 'in_port(1),eth(src=50:54:00:00:00:0c,dst=50:54:00:00:00:05),eth_type(0x0800),ipv4(src=1.2.3.6,dst=1.2.3.5,proto=1,tos=0,ttl=64,frag=no),icmp(type=8,code=0)'
+ovs-appctl time/warp 100
+ovs-appctl dpif/dump-flows br0 > br0_flows2.txt
+grep 'actions:2' br0_flows2.txt
+if test  $? -ne 0; then
+    exit 4
+test_dirTr
+z)test bind ip failed: shell return code:%d)
+cmd_execute
+formatZ	_test_dirZ
+assertEqual)
+retr
+test_bind_ip
+TestBindIP.test_bind_ip)
+__name__
+__module__
+__qualname__r
+__classcell__r
+__main__)	Z
+unittestZ
+na_tests.common.utilityr
+na_tests.commonr
+TestCaseBaser
+mainr
+<module>

@@ -1,0 +1,23 @@
+[Unit]
+Description=DRBD -- please disable. Unless you are NOT using a cluster manager.
+Wants=network-online.target sshd.service
+After=network-online.target sshd.service drbdproxy.service
+Before=pacemaker.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+
+# Do not trigger asking for participation in the users count.
+# A check for INIT_VERSION already exists, just set it to something.
+Environment=INIT_VERSION=systemd
+
+ExecStart=/lib/drbd/scripts/drbd start
+ExecStop=/lib/drbd/scripts/drbd stop
+
+# Re-adjust everything on reload
+ExecReload=/lib/drbd/scripts/drbd reload
+
+[Install]
+WantedBy=multi-user.target
+

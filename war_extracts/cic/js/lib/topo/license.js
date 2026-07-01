@@ -1,0 +1,12 @@
+twaver.Util.validateLicense(
+"l=1.0\n"+
+"type=3\n"+
+"gis=1\n"+
+"3d=0\n"+
+"start=2013-08-26\n"+
+"licensee=H3C TECHNOLOGIES CO., LTD.\n"+
+"licensedUser=1 LICE\n"+
+"periodOfValidity=Permanent\n"+
+"buyer=H3C TECHNOLOGIES CO., LTD.\n"+
+"signature=5f4d8ca84d209d654f402859529a8dfaf1b112bfaf315b9dee43883b4edecc28d4bf6c9db30e7ae0d1b4818a0382dab1844d42b535f239c0953d100b12b1af912162eedf816e66a8476956476646327928535fda9cab8488378af53c1557c5f367602fedbf2b18dd6fe6cea0bd65579f2a5d81fe1730e6f0620b5b2174c1b71029d3a04fa8c4072f4eaf021301c1e4a69ce416e2c9fa55edb3676767fe39a552dd6e53e94acb571438531ac24b2acc2e4a9d8f083dfeafc7188d3e4e71ba59ca108a2483667fee2c26a5f15866719520e409a2ed5b14c1cde2fc3cfb3b8d448d2558ee63246494073572f1b096614688e05662fb0be7af1ee8421c7544610cae"
+);

@@ -1,0 +1,650 @@
+z"OCFS2 Filesystem client utilities.
+exceptions)
+BaseFSClient)
+settings)
+RestApiClient)
+os_utils)
+cache)
+Nodec
+Ocfs2Clientz'Perform OCFS2 administration operation.Nc
+ocfs2)
+superr	
+__init__
+Ocfs2Cluster
+_cluster)
+selfZ
+mount_options
+	__class__
+./fsm/fs_client/ocfs2.pyr
+Ocfs2Client.__init__c
+Mount given share.z
+%s was already mountedN)
+is_mounted
+infor
+verify_cluster_consistencyZ	_do_mountZ
+_mount_options)
+share
+mount_point
+flagsr
+mount#
+Ocfs2Client.mountc
+tunefs.ocfs2z
+Extend fs failed, %s)
+execute_cmd
+	Exceptionr
+error
+strr
+ExtendPoolFailed)
+dev_name
+excr
+extend-
+Ocfs2Client.extendc
+get_cluster_instance4
+z Ocfs2Client.get_cluster_instancec
+Return a list including type and name.
+        [('-', 'test'), ('d', 'hellodir'), ('l', 'symlk'), ('-', 'regular')]
+        NOTE:debugfs.ocfs2 cannot list latest created file
+        
+z*Abandon to list %s that beyond two levels.
+debugfs.ocfs2
+ls -l 
+timeout
+z#List files in directory failed, %s.Nz%\s*\d+\s+([a-z\-]).*\s\d+:\d+\s+(.*)$z
+List files %s)
+splitr
+warningr
+StorageDevIOError
+findall
+debug)
+	directoryr
+retr
+	_list_dir7
+Ocfs2Client._list_dirc
+lost+foundr&
+dir)
+parent
+type_)
+filez!Unidentified type %s for file %s.)	r8
+startswith
+path
+joinr
+_grab_filesr
+root_dir
+root
+item
+relative_pathZ
+absolute_pathr
+Ocfs2Client._grab_filesc
+Get errors-continue feature setr'
+statsr)
+Query stats of %s error, %s.N
+Errors continue Switch:
+lstrip)
+devr4
+liner
+get_errors_continue[
+Ocfs2Client.get_errors_continuec
+)	z'Turn on/off the feature errors-continuez,Errors-continue is already %s on %s, ignoredNr
+-Er)
+z)Turn %s errors-continue for %s failed: %srK
+warnr
+get_tunefs_timeoutr
+SetVAAIFailed)
+switchr)
+msgr
+set_errors_continuej
+Ocfs2Client.set_errors_continuec
+z1Check if a disk is formatted to OCFS2 filesystem.z
+mounted.ocfs2
+-dr)
+FTz"Check filesystem format failed, %sN)
+stripr,
+QueryFsAttrFailed)
+unused_errr7
+is_ocfs2_formatted}
+Ocfs2Client.is_ocfs2_formattedc
+z%Enable or disable the fstrim feature.Z
+refresh
+updateT
+	check_allr
+Network to %s is unreachabler
+Turn %s fstrim failed, %sNzMLocal fs is umount but remote node was mounted, toggle fstrim is not allowed.)
+cluster_mounted_noder
+SetVAAIPreCheckFailedr
+action
+device
+mountpoint
+	node_info
+mounted_nodes
+unknown_nodesrU
+set_fstrim
+Ocfs2Client.set_fstrimc
+	d	|
+z(VAAI feature include: disk lock, fstrim.r?
+dlockZ
+fstrimZ	writesamer
+-Qz	%D %K %W
+vaai features %sz
+Query vaai features failed, %sNz
+errors-continue)
+dict
+zipr
+featuresr4
+statusr 
+show_vaai_feature
+Ocfs2Client.show_vaai_featurec
+capacity
+	available
+allocationz#Query capacity failed in dir %s, %srm
+statvfsr
+f_frsize
+f_blocks
+f_bavail)
+sizer 
+stat_capacity
+Ocfs2Client.stat_capacity)
+__name__
+__module__
+__qualname__
+__doc__r
+__classcell__r
+Ocfs2ClusterMixinc
+z&Query the cluster size of OCFS2 in KB.r
+z!Query the cluster size failed, %sz
+Query the cluster size failed.N)
+intrX
+OperationFailed)
+get_cluster_size
+z"Ocfs2ClusterMixin.get_cluster_sizec
+z,d	t
+z^Check if dlock metadata space is reserved when formatted to
+        OCFS2 filesystme.
+        Fr
+	disk-lockTz&Query the disk lock feature failed, %sN)
+_is_dlock_format
+z"Ocfs2ClusterMixin._is_dlock_formatc
+enable
+disablez.Query the fence scsi feature switch failed, %srK
+is_enabled_fencescsi
+z&Ocfs2ClusterMixin.is_enabled_fencescsic
+z'Query the write same feature failed, %srK
+is_enabled_writesame
+z&Ocfs2ClusterMixin.is_enabled_writesamec
+z%Reserve disk space used by disk lock.r
+--fs-featurer
+z'Convert to disk lock format failed, %s.N)
+_convert_to_dlock_format
+z*Ocfs2ClusterMixin._convert_to_dlock_formatc
+Check unmap lba from conf file, if invaild query and record.
+        Ocfs2 fstrim uses sg_unmap in kernel that depends on unmap
+        capability. This is not a good practice and hope to optimize it.
+        
+/etc/cvk/block_limits.confz
+modeNr
+Block must be positive, refreshz
+First line is empty, refreshz
+Check unmap lba conf fail, %s)
+open
+readlinerX
+ValueError
+BaseExceptionr
+_refresh_unmap_lba)
+block_confZ
+first_line
+countr 
+check_unmap_lba
+z!Ocfs2ClusterMixin.check_unmap_lbac
+"Maximum unmap LBA count"z-sg_vpd -p bl %s | grep %s | awk '{print $NF}'r*
+shell
+check_exit_coder
+Query result invalid, %sr
+Fail to get %s on %s, %s)
+writer
+conf_strr4
+Z	lba_countr
+z$Ocfs2ClusterMixin._refresh_unmap_lbac
+ls %s | grep %s
+destz
+Query heartbeat dir failed, %sFT
+ssh_execute
+ProcessExecutionError
+	exit_coder
+NetworkUnreachabler
+node_iprD
+dir_namer4
+_is_hb_dir_exist'
+z"Ocfs2ClusterMixin._is_hb_dir_existc
+)	Nz
+o2hb-%sr
+ps -ef | grep "\[%s\]"r
+z!Query heartbeat thread failed, %sFTr
+uuidZ
+hb_thread_namer4
+_is_hb_thread_exist6
+z%Ocfs2ClusterMixin._is_hb_thread_existc
+Query the max slots failed, %s)
+	max_slotsr6
+_get_max_slotsG
+z Ocfs2ClusterMixin._get_max_slotsc
+z!Get timeout parameter failed, %s.
+O2cbConfr|
+o2cb_heartbeat_thresholdr
+o2cbr)
+z$Ocfs2ClusterMixin.get_tunefs_timeoutc
+hbr)
+z Get heart beat blocks failed, %s)
+_show_hb_blocks`
+z!Ocfs2ClusterMixin._show_hb_blocksc
+z*Transport configure file from remote node.z
+/tmp/ocfs2_remote_conf/
+mkdirz
+-pF)
+/etc/cvk/user_info.conf
+permit_user_sshr9
+Use ssh user %s
+scpr
+z$Pull conf file %s form %s failed, %sr
+Pull remote conf file to %s)
+randomr,
+basename
+netaddrZ
+valid_ipv6
+existsr
+	readlinesrX
+work_dirZ
+stampr
+fdrO
+paramsZ
+ssh_user
+srcr 
+_pull_remote_confj
+z#Ocfs2ClusterMixin._pull_remote_confc
+}	|	
+z#Query and extract recycle attributer?
+recycle switchz
+recycle blknumz
+lower limitz
+upper limitr
+%Qr)
+z'Query the recycle attributes failed, %srK
+recycle_attrsr4
+attrs
+attr
+valuer 
+get_recycle_attrs
+z#Ocfs2ClusterMixin.get_recycle_attrsN)
+staticmethodr
+d d!
+d"d#
+d$d%
+d&d'
+    Provide various operations on ocfs2 cluster including configuration file
+    retrieving and configure ocfs2 cluster work parameter.
+    ** We assume a node only belongs to a single cluster.
+    c
+Ocfs2ClusterConf
+confr
+Ocfs2Cluster.__init__Nc
+Check if nodes in cluster mounted the filesystem.
+        :param node_ip: specify the node by a node ip, or check all nodes
+                        in cluster, ususally used with uuid together.
+        :returns: return True if mount on cluster node, False for else, raise
+                  exception if connect remote node fail.
+        
+findmnt -n -t ocfs2 
+Mount point must be input.TFz
+Query mount info failed, %sr
+ip_addressr9
+ignore_error
+	exception
+	ssh_error)
+get_local_node_name
+get_node_address
+get_all_nodes
+append
+ssh_execute_cmd_on_nodes)
+local_name
+local_ip
+node_ips
+noder7
+Ocfs2Cluster.is_mountedFc
+Find one or more nodes who mounted the filesystem in cluster.
+        Finds mount info by mount point.
+        :param check_all: if True return all mounted nodes, False only one node.
+        :returns: mounted nodes and unknown nodes(network unreachable) tuple
+        r
+z!Ocfs2Cluster.cluster_mounted_nodec
+z5Get the free size in KB when filesystem was umounted.r'
+stat //global_bitmapr)
+Free:\s(\d+)r
+Get the free size failed, %sz
+Query the free size failed.N
+cluster_sizer5
+free_cluster
+	free_sizer 
+_get_free_size
+Ocfs2Cluster._get_free_sizec
+z"Get the total size of ocfs2 in KB.r'
+Bitmap Total:\s(\d+)r
+Get the total size failed, %sz
+Query the total size failed.Nr
+total_clusterZ
+total_sizer 
+get_total_size
+Ocfs2Cluster.get_total_sizec
+zhTurn on/off disk lock.
+        :param switch: on or off
+        :param dev:  block device name
+        z8Filesystem is mounted, setting lock type is not allowed.z2Filesystem was not mounted when setting lock type.r
+Get free size %s KB in OCFS2i
+z&Available space %s KB is less than 1G.z
+Convert to disk lock format.
+offr
+--disk-lockz
+Turn %s disk lock failed, %sN)
+dlock_switchr4
+toggle_disk_lock	
+Ocfs2Cluster.toggle_disk_lockc
+z#Turn on/off the feature write same.z9Filesystem is mounted, setting write same is not allowed.z3Filesystem was not mounted when setting write same.r
+--writesamer)
+Turn %s write same failed, %srK
+toggle_write_same,
+Ocfs2Cluster.toggle_write_samec
+z#Turn on/off the feature fence scsi.
+unknownr
+--fencescsir)
+Turn %s fence scsi failed, %srK
+SetFenceScsiFeatureSwitchFailed)	r
+cur_switchZ
+switch_from_devr)
+toggle_fence_scsi@
+Ocfs2Cluster.toggle_fence_scsic
+}	~	n
+}	~	0
+z0Set recycle switch or limit attributes on local.z
+tunefs.ocfs2 -R '-o z
+ -U z
+ -L z
+z	/.recycleT
+Command %s success on localz
+Command %s failed, %sN)
+vcacheZ
+get_aggregate_deviceZ
+src_dev_pathrR
+clear_pathr
+SetRecycleFailed)
+pool
+opera
+upper_limit
+lower_limitr4
+aggregate_dev_pathr)
+recycle_pathr 
+_set_recycleZ
+Ocfs2Cluster._set_recyclec
+z'Set recycle attributes remote or local.Tr\
+Get ip in cluster.conf failedz
+/pools/recycle-paramsz
+Content-Typez
+application/jsonZ	pool_nameZ
+operatez
+upper-limitz
+lower-limitz
+http://%s:%sZ
+post
+bodyZ
+headersr)
+z(Call remote set recycle failed on %s, %sr
+z/Fail to set recycle on all remote mounted nodesNz'Call API on host %s set recycle success)
+get_local_node_addressr^
+name
+json
+dumpsr
+fsm_portr
+call_apir
+Z	mount_ipsZ
+local_mountZ
+endpoint
+headerr
+mount_ipZ
+addrZ
+clientr 
+set_recycleu
+Ocfs2Cluster.set_recyclec
+Compare local cluster configuration with the specified node.
+        This method is specifically designed to support multithreading and
+        share the results via a shared dictionary with fixed keys, which is
+        thread safe.
+        :param node_id: Specify a node by the node number.
+        
+node_number
+!Find node %s failed in local conf
+z=Fs is not mounted on %s, maybe mount on other cluster or CVM.)
+ipz'/sys/kernel/config/cluster/%s/heartbeat)
+z/Fs heartbeat is active but is not mounted on %s
+enable_cacheZ
+conf_z
+Found conf cache for %s, use itz"Local conf %s is different with %s
+%s is the same with %sN)
+	_get_uuidr
+ClusterConfInconsistent
+replace
+upperr
+HeartbeatInvalid
+get_cluster_namer
+CACHESr
+getr2
+LOCAL_CVK_CONF_PATHr
+remove
+add)
+node_idra
+uuid_upper
+cluster_name
+hb_dirrD
+remote_confr
+check_conf_consistency
+z#Ocfs2Cluster.check_conf_consistencyc
+r\t	
+z4Compare local o2cb parameters with a specified node.r
+o2cb_z
+Found o2cb cache for %s, use itz$Local params %s is different with %sr
+O2cbParamsInconsistentr
+O2CB_CONF_FILEr
+local_confr
+check_o2cb_params_consistency
+z*Ocfs2Cluster.check_o2cb_params_consistencyc
+r\q>d
+]N}	t
+rd|	d
+rdd	}
+zxObserve the heartbeat to found active nodes.
+        The nodes detected could be stale for short time to wait.
+        z!(\d+):\s+(\d+)\s+(\w+)\s+(\w+)\s+
+0000000000000000FNr&
+z!Filesystem is mounted on nodes %s)	r
+time
+sleepr+
+nodesZ	start_out
+startZ
+end_out
+endZ
+end_itemZ
+is_foundrI
+get_mounted_nodes
+Ocfs2Cluster.get_mounted_nodesc
+z-Determine the uuid from the content metadata.Z
+blkidz
+UUIDz
+Get uuid from %s failed, %sN)	r
+Ocfs2Cluster._get_uuidc
+}	t	j
+ Try to check the residual heartbeat region.
+        It could not eliminate the residual heartbeat completely, so adding
+        this check.
+        Another process refers to the mount point by cloning a new mount
+        namespace, leading to the s_active.count in struct super_block of VFS
+        could not be decreased to zero, and umount returns exit code zero from
+        VFS, but ocfs2_dismount_volume actually not be executed, then there is
+        a residual heartbeat region.
+        r?
+z*/sys/kernel/config/cluster/%s/heartbeat/%sz
+/sys/kernel/debug/ocfs2/%sz
+ocfs2_hb_ctl -K -u %sTF)
+z2ocfs2_hb_ctl remove %s heartbeat fail, possible %sz
+Found residual heartbeat on %s, detailed info can be found via "for file in $(find /proc -name "mounts"); do echo $file; grep pool_name $file; done"z%There is a residual heartbeat region.z"pgrep -l "fsck.ocfs2|tunefs.ocfs2"z%It is possible %s started a heartbeatN)
+check_same_uuid_lunr
+ResidualHbr
+DeviceBusy)
+ocfs2_debug_dirZ
+same_uuid_flagZ
+hb_remove_cmdZ
+cmd_outr6
+_check_residual_hb
+Ocfs2Cluster._check_residual_hbc
+}	|	r
+z4Check the consistency of cluster with mounted nodes.z6There is not enough slot to mount, need %d but only %sr9
+Found local node %s in slotmap)
+max_workersc
+submitr
+executorr
+<listcomp>d
+z;Ocfs2Cluster.verify_cluster_consistency.<locals>.<listcomp>c
+result)
+futurer
+z#This is the first node to mount %s.)
+NotFoundSlotr
+get_local_node_number
+concurrent
+futuresZ
+ThreadPoolExecutorZ
+as_completedr
+node_idsr
+local_idZ
+thread_numr
+resultsr 
+z'Ocfs2Cluster.verify_cluster_consistencyc
+z#/sys/kernel/debug/o2hb/%s/livenodesz
+Get live nodes failed, %s)
+readrX
+live_nodesr
+get_live_nodesr
+Ocfs2Cluster.get_live_nodesc
+Nz/blkid -o device -t UUID=%s | grep "/dev/mapper"r*
+z5there are LUN devices with the same UUID, they are %sFz
+check same uuid lun failed, %s)
+z Ocfs2Cluster.check_same_uuid_lun)
+z?Provide various operations on ocfs2 cluster configuration file.c
+Even if we don't have ocfs2 cluster.conf file at hand while
+        instantiate this class, we may still use this class to generate the
+        configuration file and configure the whole ocfs2 cluster. So let it
+        znOcfs2 cluster configuration file is not existed! Do not forget to configure this cluster later if you have to.N)
+_conf_file)
+	conf_filer
+Ocfs2ClusterConf.__init__c
+--config-file=z
+list-clustersrK
+List cluster failed, %s)
+z!Ocfs2ClusterConf.get_cluster_namec
+number
+	node_namer
+get_node_number
+z Ocfs2ClusterConf.get_node_numberNc
+z!Ocfs2ClusterConf.get_node_addressc
+node_ip_addressr
+get_node_name
+Ocfs2ClusterConf.get_node_namec
+The cluster nodes is a list, a structure example:
+        [
+            {
+                'ip_port': '7100',
+                'cluster': 'host_pool',
+                'ip_address': '10.125.33.89',
+                'number': '2',
+                'name': 'cvknode89'
+            },
+            {
+                'ip_port': '7100',
+                'cluster': 'host_pool',
+                'ip_address': '10.125.33.90',
+                'number': '1',
+                'name': 'cvknode90'
+            }
+        ]
+        z"Can not find ocfs2 cluster config.r
+list-nodesr
+node:z
+\s*=\s*)
+z2Ocfs2ClusterConf.get_all_nodes.<locals>.<listcomp>z
+List cluster nodes failed, %s)
+Ocfs2ClusterConf.get_all_nodesc
+socketZ
+gethostnamer
+z$Ocfs2ClusterConf.get_local_node_namec
+z&Ocfs2ClusterConf.get_local_node_numberc
+z'Ocfs2ClusterConf.get_local_node_addressc
+z/Defines behavior for the equality operator, --.Fc
+elemtr
+<lambda>
+z)Ocfs2ClusterConf.__eq__.<locals>.<lambda>)
+isinstancer
+sortedr
+otherr
+other_confr
+__eq__
+Ocfs2ClusterConf.__eq__c
+__ne__
+Ocfs2ClusterConf.__ne__c
+cluster name:%s, nodes:%s)
+__repr__
+Ocfs2ClusterConf.__repr__)
+Load o2cb configure file.c
+get_parameters
+itemsr
+paramr
+O2cbConf.__init__c
+s~qbt
+Return a dictionary contains all parameter and value.
+        example:
+        {
+            'o2cb_heartbeat_threshold': '61',
+            'o2cb_reconnect_delay_ms': '2000',
+            'o2cb_keepalive_delay_ms': '10000',
+            'o2cb_bootcluster': 'host_pool',
+            'o2cb_fence_method': 'umount'
+        }
+        z
+%s is not exist.
+rNrK
+.*=.*r
+match
+lower)
+contentrO
+param_nameZ
+param_valuer
+O2cbConf.get_parametersc
+O2CB has no parameter %s)
+KeyError
+AttributeError)
+__getattr__3
+O2cbConf.__getattr__c
+__setattr__9
+O2cbConf.__setattr__c
+o2cb_bootclusterZ
+o2cb_enabledTF)
+pop)
+local_paramsZ
+other_paramsr
+O2cbConf.__eq__c
+O2cbConf.__ne__)
+)#ry
+loggingrC
+fsmr
+fsm.fs_client.baser
+fsm.settingsr
+fsm.utils.http_utilsr
+Z	fsm.utilsr
+fsm.utils.cacher
+fsm.utils.anytreer
+concurrent.futuresr
+Z	getLoggerrv
+objectr{
+<module>

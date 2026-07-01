@@ -1,0 +1,372 @@
+<!-- 增加虚拟桌面池 -->
+<div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" ng-click="cancel()" custom-title="{{'common.close'|translate}}">
+        <span class="icon-closenew"></span>
+    </button>
+	<button ng-show="isAdd==true" type="button" class="close cornerhelp" custom-title="{{'help'|translate}}" ng-click="openHelp('cloudService/virtualDesktopPool/addVirtualDesktopPoolInOrg')">
+		<span class="icon-helpnew"></span>
+	</button>
+	<button ng-show="isAdd==false" type="button" class="close cornerhelp" custom-title="{{'help'|translate}}" ng-click="openHelp('cloudService/virtualDesktopPool/editVirtualDesktopPoolInOrg')">
+		<span class="icon-helpnew"></span>
+	</button>
+    <h4 class="modal-title">{{title}}</h4>
+</div>
+<!-- 步骤向导 -->
+<div class="modal-body row">
+    <div class="form-horizontal col-md-8">
+	    <carousel-form titles="stepTitles" cancel="ok()"> 
+	    <!-- 第一步基本设置 -->
+            <slide-form valid="valids.stepOneOver()" active="slide.active" is-add="true" tab-index="0">
+                <form name="form1" class="form-horizontal" role="form" novalidate>
+                	<input type="hidden" id="form1" value="{{form1.$valid}}">
+                	<!-- 桌面池名称 -->
+                    <div class="form-group" ng-class="{'has-error': (form1.name.$dirty && form1.name.$invalid)}">
+                       	<label for="name" class="control-label"><span translate="virdesk.name"></span><span style="color: red">*</span></label> 
+                       	<div class="input-group input-xlarge">
+                        	<input type="text" check-special-char rpccheck="desktop/exist" nocheck="{{isAdd==false}}"  ng-maxlength=32 class="form-input form-control" ng-model="model.name"  ng-trim="false" id="name" name="name" required ng-readonly="isAdd!=true">
+                      		<span class="input-group-addon help-addon" ng-messages="form1.name.$error">
+	                       		<span ng-if="form1.name.$valid||!form1.name.$dirty">
+	                            	<span class="icon-occupying"></span>
+	                        	</span>
+	                     		<span ng-if="form1.name.$dirty">
+	                    			<span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+	                            	<span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxlen'|translate}}64"></span></span>
+	                            	<span ng-message="specialChar"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{::'checkname2'|translate}}"></span></span>
+	                            	<span ng-message="rpccheck"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'virdesk.sameNameExist'|translate}}"></span></span>
+	                           	</span>
+                            </span>
+                        </div>
+                    </div>
+                    <!-- 描述 -->
+                    <div class="form-group" ng-class="{'has-error': (form1.description.$dirty && form1.description.$invalid)}">
+					   	<label class="col-sm-1 control-label"><span translate="virdesk.desc"></span></label>
+						<div class="input-group input-xlarge">
+						 	<input type="text" ng-maxlength=120 class="form-input form-control" ng-model="model.description"  ng-trim="false" id="description" name="description">
+							<span class="input-group-addon help-addon" ng-messages="form1.description.$error">
+								<span ng-if="form1.description.$valid||!form1.description.$dirty">
+									<span class="icon-occupying"></span>
+								</span>
+								<span ng-if="form1.description.$dirty">
+									<span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxlen'|translate}}120"></span></span>
+								</span>
+							</span>
+						</div>
+					</div>
+					<!-- 桌面数量 -->
+		            <div class="form-group" ng-class="{'has-error': (form1.maxVmNum.$invalid && form1.maxVmNum.$dirty)}" >
+                        <label for="maxVmNum" class="control-label">
+                            <span translate="virdesk.deskNum"></span><span style="color: red">*</span>
+                        </label>
+                        <div class="control-input">
+                            <div class="input-group width260">
+                                <input id="maxVmNum" name="maxVmNum" type="text" class="spinner-only" spinner checkint spinner-min="{{min}}" spinner-max=200 ng-model="model.maxVmNum" required> 
+                                <span class="input-group-addon help-addon" ng-messages="form1.maxVmNum.$error">
+							    	<span ng-if="form1.maxVmNum.$valid||!form1.maxVmNum.$dirty">
+										 <span class="icon-occupying"></span>
+									</span>
+									<span ng-if="form1.maxVmNum.$dirty">
+										 <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+										 <span ng-message="spinnerMax"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxValueIs'|translate}}200"></span></span>
+		                            	 <span ng-message="spinnerMin"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'minValueIs'|translate}}{{min}}"></span></span>
+		                            	 <span ng-message="int"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'invalidint'|translate}}"></span></span>
+									</span>
+					   			</span>                                              
+                            </div>
+                        </div>
+                    </div>
+					<!-- 分配方式 -->
+					<div class="form-group ">
+						<label for="assignMode" class="control-label ">
+							<span translate="virdesk.assignMode"></span>
+						</label>
+						<div class="input-group width260" ng-class="{'disable':!isAdd}">
+							<select-input class="" options="levels.assignModeOptions" input-readonly="{{isAdd!=true}}"
+								bind-model="model.assignMode" input-id="assignMode"
+								input-name="assignMode">
+							</select-input>
+						</div>
+					</div>
+					<!-- 立即部署 -->
+                	<div class="form-group" ng-if="model.assignMode == 2">
+                        <label for="audioMode" class="switch-label">
+                        	<span translate="virdesk.deploy"></span>
+                        </label>
+                        <div class="control-input">
+                             <div class="input-group">
+			                     <div toggle-switch  is-disabled="BatchDeploy" class="switch-success" ng-model="data.deploy"></div>
+			                 </div>
+		                </div>
+                    </div>
+                </form>
+            </slide-form>
+            <!-- 第二步 配置所属组织 -->
+            <slide-form valid="valids.stepTwoOver()" is-add="true" tab-index="1">
+                <form name="form2" class="form-horizontal" role="form" novalidate>
+                	<input type="hidden" id="form2" value="{{form2.$valid}}">
+                	<!-- 所属组织 -->
+                	<div class="form-group" ng-class="{'has-error': (form2.virdesk.$invalid && form1.virdesk.$dirty)}">  
+                        <label class="control-label">
+                            <span translate="virdesk.virDesktopOrg"></span><span style="color:red">*</span>
+                        </label> 
+                        <div class="control-input">
+                            <div class="input-group" ng-if="editable==true" style="width:300px"  ng-click="selectOrg()">
+                                <input id="org" name="org" class="form-control first-child-angle selectInput" type="text" ng-model="orgName" readonly required>
+                                <span class="input-group-addon inner-addon last-child-angle">
+                                    <span class="icon-search-gray" type="button"></span>
+                                </span>
+                                <span class="input-group-addon help-addon" ng-messages="form2.org.$error">
+                                    <span ng-if="form2.org.$valid||!form2.org.$dirty">
+                                        <span class="icon-occupying"></span>
+                                    </span>
+                                    <span ng-if="form2.org.$dirty">
+                                         <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+                                    </span>
+                                </span>
+                            </div>
+                        	<div class="input-group width260" ng-if="editable!=true">
+                                <input id="orgName" name="orgName" type="text" class="width260 form-control" ng-model="orgName" readonly> 
+                            </div>
+                        </div>
+                    </div>
+                    <!-- 使用的资源池 -->
+                    <div class="form-group" ng-class="{'has-error': (form2.resourcePool.$invalid && form1.resourcePool.$dirty)}">  
+                        <label class="control-label">
+                            <span translate="virdesk.virAtResourcePool"></span><span style="color:red">*</span>
+                        </label> 
+                        <div class="control-input">
+                            <div class="input-group" ng-if="editable==true" style="width:300px"  ng-click="selectResourcePool()">
+                                <input id="resourcePool" name="resourcePool" class="form-control first-child-angle selectInput" type="text" ng-model="resourcePoolName" readonly required>
+                                <span class="input-group-addon inner-addon last-child-angle">
+                                    <span class="icon-search-gray" type="button"></span>
+                                </span>
+                                <span class="input-group-addon help-addon" ng-messages="form2.resourcePool.$error">
+                                    <span ng-if="form2.resourcePool.$valid||!form2.resourcePool.$dirty">
+                                        <span class="icon-occupying"></span>
+                                    </span>
+                                    <span ng-if="form2.resourcePool.$dirty">
+                                         <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+                                    </span>
+                                </span>
+                            </div>
+                            <div class="input-group width260" ng-if="editable!=true">
+                                <input id="resourcePoolName" name="resourcePoolName" type="text" class="width260 form-control" ng-model="resourcePoolName" readonly> 
+                            </div>
+                        </div>
+                    </div>
+                    <!-- 虚拟机模板 -->
+                	<div class="form-group" ng-class="{'has-error': (form2.templet.$invalid && form1.templet.$dirty)}">  
+                        <label class="control-label">
+                            <span translate="virdesk.templet"></span><span style="color:red">*</span>
+                        </label> 
+                        <div class="control-input">
+                            <div class="input-group" style="width:300px"  ng-click="selectTemplate()">
+                                <input id="templet" name="templet" class="form-control first-child-angle selectInput" type="text" ng-model="templateName" readonly required>
+                                <span class="input-group-addon inner-addon last-child-angle">
+                                    <span class="icon-search-gray" type="button"></span>
+                                </span>
+                                <span class="input-group-addon help-addon" ng-messages="form2.templet.$error">
+                                    <span ng-if="form2.templet.$valid||!form2.templet.$dirty">
+                                        <span class="icon-occupying"></span>
+                                    </span>
+                                    <span ng-if="form2.templet.$dirty">
+                                         <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+                                    </span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                	<!-- 使用的存储 -->
+                	<div class="form-group" ng-class="{'has-error': (form2.store.$invalid && form1.store.$dirty)}">  
+                        <label class="control-label">
+                            <span translate="virdesk.virDesktopStore"></span><span style="color:red">*</span>
+                        </label> 
+                        <div class="control-input">
+                            <div class="input-group" style="width:300px"  ng-click="selectStore()">
+                                <input id="store" name="store" class="form-control first-child-angle selectInput" type="text" ng-model="model.storageTitle" readonly required>
+                                <span class="input-group-addon inner-addon last-child-angle">
+                                    <span class="icon-search-gray" type="button"></span>
+                                </span>
+                                <span class="input-group-addon help-addon" ng-messages="form2.store.$error">
+                                    <span ng-if="form2.store.$valid||!form2.store.$dirty">
+                                        <span class="icon-occupying"></span>
+                                    </span>
+                                    <span ng-if="form2.store.$dirty">
+                                         <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+                                    </span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- 用户分组（选择浮动桌面池时显示） -->
+                    <div ng-if="model.assignMode == 2" class="form-group" ng-class="{'has-error': (form2.Store.$invalid && form1.cluster.$dirty)}">  
+                        <label class="control-label">
+                            <span translate="virdesk.userGroup"></span><span style="color:red">*</span>
+                        </label>
+                        <div class="control-input">
+                            <div class="input-group" style="width:300px"  ng-click="selectUserGroup()">
+                                <input id="userGroup" name="userGroup" class="form-control first-child-angle selectInput" type="text" ng-model="groupNames" readonly required>
+                                <span class="input-group-addon inner-addon last-child-angle">
+                                    <span class="icon-search-gray" type="button"></span>
+                                </span>
+                                <span class="input-group-addon help-addon" ng-messages="form2.userGroup.$error">
+                                    <span ng-if="form2.userGroup.$valid||!form2.userGroup.$dirty">
+                                        <span class="icon-occupying"></span>
+                                    </span>
+                                    <span ng-if="form2.userGroup.$dirty">
+                                         <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+                                    </span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </slide-form>
+            <!-- 第三步 设置桌面外设映射规则 -->
+            <slide-form valid="valids.stepThreeOver()" is-add="model.system == 0" tab-index="2">
+                <form name="form3" class="form-horizontal" role="form" novalidate>
+                	<input type="hidden" id="form3" value="{{form3.$valid}}">
+                	<!-- 会话颜色深度 -->
+					<div class="form-group ">
+						<label for="assignMode" class="control-label ">
+							<span translate="virdesk.sessionColorDept"></span>
+						</label>
+						<div class="input-group width260">
+							<select-input class="" options="levels.sessionColorDeptOptions"
+								bind-model="model.colorDepth" input-id="colorDepth"
+								input-name="colorDepth">
+							</select-input>
+						</div>
+					</div>
+                	<!-- 本地磁盘映射 -->
+                	<div class="form-group">
+                        <label for="redirectClipboard" class="switch-label">
+                        	<span translate="virdesk.localDiskMapping"></span>
+                        </label>
+                        <div class="control-input">
+                             <div class="input-group">
+			                   <div toggle-switch  class="switch-success" ng-model="model.redirectClipboard"></div>
+							   <span class="input-group-btn help-addon" style="height:30px;" tooltip-placement="right" tooltip="{{::'virdesk.openLocalDiskMapping'|translate}}">
+							   		<img class="icon-prompt" src="css/img/gray/Icon_help_16x16.svg"/>
+							   </span>
+			               </div>
+		               </div>
+                    </div>
+                	<!-- 剪贴板映射 -->
+                	<div class="form-group">
+                        <label for="redirectDrives" class="switch-label">
+                        	<span translate="virdesk.clipBoardMapping"></span>
+                        </label>
+                        <div class="control-input">
+                             <div class="input-group">
+			                   <div toggle-switch  class="switch-success" ng-model="model.redirectDrives"></div>
+							   <span class="input-group-btn help-addon" style="height:30px;" tooltip-placement="right" tooltip="{{::'virdesk.openClipBoardMapping'|translate}}">
+							   		<img class="icon-prompt" src="css/img/gray/Icon_help_16x16.svg"/>
+							   </span>
+			               </div>
+		               </div>
+                    </div>
+                	<!-- 打印机映射 -->
+                	<div class="form-group">
+                        <label for="redirectPrinters" class="switch-label">
+                        	<span translate="virdesk.printerMapping"></span>
+                        </label>
+                        <div class="control-input">
+                             <div class="input-group">
+			                   <div toggle-switch  class="switch-success" ng-model="model.redirectPrinters"></div>
+							   <span class="input-group-btn help-addon" style="height:30px;" tooltip-placement="right" tooltip="{{::'virdesk.openPrinterMapping'|translate}}">
+							   		<img class="icon-prompt" src="css/img/gray/Icon_help_16x16.svg"/>
+							   </span>
+			               </div>
+		               </div>
+                    </div>
+                	<!-- USB映射 -->
+                	<div class="form-group">
+                        <label for="redirectUsb" class="switch-label">
+                        	<span translate="virdesk.usbMapping"></span>
+                        </label>
+                        <div class="control-input">
+                             <div class="input-group">
+			                   <div toggle-switch  class="switch-success" ng-model="model.redirectUsb"></div>
+							   <span class="input-group-btn help-addon" style="height:30px;" tooltip-placement="right" tooltip="{{::'virdesk.openUsbMapping'|translate}}">
+							   		<img class="icon-prompt" src="css/img/gray/Icon_help_16x16.svg"/>
+							   </span>
+			               </div>
+		               </div>
+                    </div>
+                	<!-- 串口映射 -->
+                	<div class="form-group">
+                        <label for="redirectComports" class="switch-label">
+                        	<span translate="virdesk.serialPortMapping"></span>
+                        </label>
+                        <div class="control-input">
+                             <div class="input-group">
+			                   <div toggle-switch  class="switch-success" ng-model="model.redirectComports"></div>
+							   <span class="input-group-btn help-addon" style="height:30px;" tooltip-placement="right" tooltip="{{::'virdesk.openSerialPortMapping'|translate}}">
+							   		<img class="icon-prompt" src="css/img/gray/Icon_help_16x16.svg"/>
+							   </span>
+			               </div>
+		               </div>
+                    </div>
+                	<!-- 本地音频映射 -->
+                	<div class="form-group">
+                        <label for="audioMode" class="switch-label">
+                        	<span translate="virdesk.localAudioMapping"></span>
+                        </label>
+                        <div class="control-input">
+                             <div class="input-group">
+			                   <div toggle-switch  class="switch-success" ng-model="model.audioMode"></div>
+							   <span class="input-group-btn help-addon" style="height:30px;" tooltip-placement="right" tooltip="{{::'virdesk.openLocalAudioMapping'|translate}}">
+							   		<img class="icon-prompt" src="css/img/gray/Icon_help_16x16.svg"/>
+							   </span>
+			               </div>
+		               </div>
+                    </div>
+                </form>
+            </slide-form>
+	    </carousel-form>
+	 </div>
+	    <!-- 右侧确认信息 -->
+    <div class="detail-table col-md-4">
+        <table class="table table-striped">
+            <tr>
+                <td class="gray"><h4 translate="configDetail"></h4></td>
+            </tr>
+            <tr>
+                <td class="white"><span translate="virdesk.name"></span></td>
+                <td class="white" shortcut cut-str="{{model.name}}" custom-title>{{model.name}}</td>
+            </tr>
+            <tr>
+                <td class="gray"><span translate="virdesk.desc"></span></td>
+                <td class="gray" shortcut cut-str="{{model.description}}" custom-title>{{model.description}}</td>
+            </tr>
+            <tr>
+                <td class="white"><span translate="virdesk.deskNum"></span></td>
+                <td class="white" shortcut cut-str="{{model.maxVmNum}}">{{model.maxVmNum}}</td>
+            </tr>
+            <tr>
+                <td class="gray"><span translate="virdesk.assignMode"></span></td>
+                <td class="gray" shortcut cut-str="{{assignMode}}" custom-title>{{assignMode}}</td>
+            </tr>
+            <tr>
+                <td class="white"><span translate="virdesk.virDesktopOrg"></span></td>
+                <td class="white" shortcut cut-str="{{orgName}}">{{orgName}}</td>
+            </tr>
+            <tr>
+                <td class="white"><span translate="virdesk.virAtResourcePool"></span></td>
+                <td class="white" shortcut cut-str="{{resourcePoolName}}" custom-title>{{resourcePoolName}}</td>
+            </tr>
+            <tr>
+                <td class="gray"><span translate="virdesk.templet"></span></td> 
+                <td class="gray" shortcut cut-str="{{templateName}}" custom-title>{{templateName}}</td>
+            </tr>
+            <tr>
+                <td class="gray"><span translate="virdesk.virDesktopStore"></span></td> 
+                <td class="gray" shortcut cut-str="{{model.storageTitle}}">{{model.storagePoolName}}</td>
+            </tr>
+            <tr ng-if="model.assignMode == 2">
+                <td class="white"><span translate="virdesk.userGroup"></span></td>
+                <td class="white" shortcut cut-str="{{groupNames}}" custom-title>{{groupNames}}</td>
+            </tr>
+        </table>
+    </div>
+</div>

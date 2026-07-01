@@ -1,0 +1,252 @@
+Nz6/****************************************************
+WmiClassa
+Represents WMI class and provides methods to generate C code.
+    This class holds one or more instances of WmiClassVersion because with the
+    Windows 2012 release, Microsoft introduced "v2" version of Msvm_* family of
+    classes that need different URI for making wsman requests and also have
+    some additional/changed properties (though many of the properties are the
+    same as in "v1". Therefore, this class makes sure that C code is generated
+    for each of them while avoiding name conflicts, identifies common members,
+    and defined *_WmiInfo structs holding info about each version so the driver
+    code can make the right choices based on which Hyper-V host it's connected
+    to.
+    Nc
+name
+list
+versions
+common)
+selfr
+#scripts_pkg/hyperv_wmi_generator.py
+__init__.
+WmiClass.__init__c
+Prepares the class for code generation
+        Makes sure that "versioned" classes are sorted by version, identifies
+        common properties and ensures that they are aligned by name and
+        type in each version
+        c
+version)
+clsr
+<lambda><
+z"WmiClass.prepare.<locals>.<lambda>
+%s_%s)
+sortedr
+lenr
+_align_property_members)
+firstr
+prepare3
+WmiClass.preparec
+Generate C header code and return it as string
+        Declares:
+          <class_name>_Data - used as one of hypervObject->data members
+          <class_name>_TypeInfo - used as wsman XmlSerializerInfo
+          <class_name> - "inherits" hypervObject struct
+        
+ * %s
+#define %s_CLASSNAME \
+	    "%s"
+#define %s_WQL_SELECT \
+    "SELECT * FROM %s "
+z.extern hypervWmiClassInfoListPtr %s_WmiInfo;
+upper
+	separator
+_declare_data_structs
+_declare_hypervObject_struct)
+name_upper
+headerr
+generate_classes_headerJ
+z WmiClass.generate_classes_headerc
+Returns a C code string defining wsman data structs
+        Defines:
+          <class_name>_Data structs
+          <class_name>_WmiInfo - list holding metadata (e.g. request URIs) for
+                                 each known version of WMI class.
+        r
+SER_START_ITEMS(%s_Data)
+SER_END_ITEMS(%s_Data);
+hypervCimType %s_Typemap[] = {
+    { "", "", 0 },
+properties
+generate_classes_source
+generate_typemap
+_define_WmiInfo_struct)
+sourcer
+propertyr
+z WmiClass.generate_classes_sourcec
+Returns C string for typdefsz
+typedef struct _%s %s;
+Nz!typedef struct _%s_Data %s_Data;
+typedefr
+generate_classes_typedef
+z!WmiClass.generate_classes_typedefc
+Returns string C code declaring data structs.
+        The *_Data structs are members of hypervObject data union. Each one has
+        corresponding *_TypeInfo that is used for wsman unserialization of
+        response XML into the *_Data structs. If there's a "common" member, it
+        won't have corresponding *_TypeInfo because this is a special case only
+        used to provide a common "view" of v1, v2 etc members
+        r
+struct _%s_Data {
+#define %s_RESOURCE_URI \
+SER_DECLARE_TYPE(%s_Data);
+uri_info
+resourceUrir&
+WmiClass._declare_data_structsc
+z8Return string for C code declaring hypervObject instancez
+/* must match hypervObject */
+struct _%s {
+    union {
+        %s_Data *common;
+        %s_Data *%s;
+    } data;
+z     hypervWmiClassInfoPtr info;
+    %s *next;
+z%WmiClass._declare_hypervObject_structc
+Return string for C code defining *_WmiInfo struct
+        Those structs hold info with meta-data needed to make wsman requests for
+        each version of WMI class
+        zChypervWmiClassInfoListPtr %s_WmiInfo = &(hypervWmiClassInfoList) {
+    .count = %d,
+z)    .objs = (hypervWmiClassInfoPtr []) {
+z         &(hypervWmiClassInfo) {
+z"            .name = %s_CLASSNAME,
+            .version = "%s",
+            .version = NULL,
+            .rootUri = %s,
+z,            .resourceUri = %s_RESOURCE_URI,
+z0            .serializerInfo = %s_Data_TypeInfo,
+z'            .propertyInfo = %s_Typemap
+        },
+    }
+rootUri)
+WmiClass._define_WmiInfo_structc
+q.q$d
+)	aW
+Identifies common properties in all class versions.
+        Makes sure that properties in all versions are ordered with common
+        members first and that they are in the same order. This makes the
+        generated C structs memory aligned and safe to access via the "common"
+        struct that "shares" members with v1, v2 etc.
+        
+%s_%s_%sr
+z2WmiClass._align_property_members.<locals>.<lambda>r
+type
+is_arrayr
+valuesr
+append)
+num_classesr
+property_infor
+propr
+info
+index
+count
+tmpr2
+z WmiClass._align_property_members)
+__name__
+__module__
+__qualname__
+__doc__r
+ClassUriInfoz3Prepares URI information needed for wsman requests.c
+ROOT_CIMV2z8http://schemas.microsoft.com/wbem/wsman/1/wmi/root/cimv2Z
+Msvm_zAhttp://schemas.microsoft.com/wbem/wsman/1/wmi/root/virtualizationZ
+ROOT_VIRTUALIZATIONZ
+/v2Z
+ROOT_VIRTUALIZATION_V2z
+%s/%s)
+startswith)
+wmi_namer
+baseUrir
+ClassUriInfo.__init__N
+WmiClassVersionz)Represents specific version of WMI class.c
+WmiClassVersion.__init__NrC
+PropertyZ
+BOOLZ
+STRZ
+INT8Z
+INT16Z
+INT32Z
+INT64Z
+UINT8Z
+UINT16Z
+UINT32Z
+UINT64)
+boolean
+stringZ
+datetimeZ
+int8Z
+sint8Z
+int16Z
+sint16Z
+int32Z
+sint32Z
+int64Z
+sint64Z
+uint8Z
+uint16Z
+uint32Z
+uint64c
+unhandled property type %s)
+typemap
+report_errorr3
+Property.__init__c
+    XML_TYPE_DYN_ARRAY %s;
+    XML_TYPE_%s %s;
+z Property.generate_classes_headerc
+Nz7    SER_NS_DYN_ARRAY(%s_RESOURCE_URI, "%s", 0, 0, %s),
+z)    SER_NS_%s(%s_RESOURCE_URI, "%s", 1),
+class_namer
+z Property.generate_classes_sourcec
+    { "%s", "%s", %s },
+lower
+strr4
+Property.generate_typemapN)
+  GEN      r1
+print
+open)
+filenamer
+open_and_printw
+error: r
+exit)
+messager
+line %d: invalid block header
+line %d: invalid propertyz
+splitr
+find
+wmi_version_separator
+endswithr6
+wmi_classes_by_namer
+block
+numberZ
+header_itemsr
+ns_separator
+line
+itemsr4
+parse_class
+}	|	D
+usage: %s srcdir builddirr
+hypervz
+hyperv_wmi_generator.inputr1
+z$hyperv_wmi_classes.generated.typedefz
+hyperv_wmi_classes.generated.hz
+hyperv_wmi_classes.generated.cZ
+classz
+line %d: nested block found
+endz./* Generated by hyperv_wmi_generator.py */
+argvrI
+path
+joinrQ
+	readlinesr9
+lstrip
+rstriprA
+writer
+keysr
+input_filenameZ
+output_dirnameZ
+classes_typedefZ
+classes_headerZ
+classes_sourcer]
+notice
+namesr
+main
+__main__)
+os.pathr 
+<module>

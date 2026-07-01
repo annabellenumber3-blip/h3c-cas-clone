@@ -1,0 +1,456 @@
+l	Z	d
+z#SCSI LUN protection and Fence scsi.
+exceptions)
+	LinuxSCSI)
+Ocfs2Client)
+runloop)
+Ocfs2Cluster)
+SingletonMetaClass)
+os_utilsz
+/etc/fence_scsi/fence_scsiz
+/var/lock/cas_mpath.lockz
+/var/lock/cas_fencescsi.lockz
+/etc/multipath.confz
+/etc/multipath.conf.tempZ
+0xabcd0256c
+d!d"
+d#d$
+d%d&
+d'd(
+d)d*
+d+d,
+d-d.
+d/d0
+d1d2
+d3d4
+d5d6
+d7d8
+d9d:
+d;d<
+Z d=d>
+Z!d?d@
+Z"dAdB
+Z#dCdD
+Z$dEdF
+Z%dGdH
+Z&dIdJ
+Z'dKdL
+Z(dMdN
+Z)dOdP
+Z*dQdR
+Z+dSdT
+Z,dUdV
+Z-dWdX
+Z.dYdZ
+Z/d_d\d]
+FenceSCSIAgentz)SCSI LUN protection and Fence scsi agent.Nc
+FenceSCSIAgent init)
+o2hb_node_leave)
+events)
+warningr
+	linuxscsir
+ocfs2_cluster
+Queue
+event_queue
+_handle_event_start
+_nl_srvZ
+subscribe_event
+listen_ocfs2_event)
+selfZ
+nl_srv
+&./fsm/device/agent/fence_scsi_agent.py
+__init__&
+FenceSCSIAgent.__init__c
+z9Get device fence scsi switch flag from device superblock.
+unknown
+enable
+disable
+off)
+is_enabled_fencescsi)
+switch
+retr
+get_feature_switch5
+z!FenceSCSIAgent.get_feature_switchc
+Set device fence scsi status.
+        options["--action"] = on: register key and type 5 reservation
+        for given devices, giving lun protection and access right;
+        options["--action"] = off: fence scsi for given devices,
+        preempt remote hosts' key and cancel their lun access right.
+        :param options: a diction contents options["devices"], options["--key"]
+        and options["--action"]
+        :returns: False - set action failed; True - set action successfully.
+        r
+--actionr
+devicesz
+Set scsi status on for %sz-Set status on failed: %s is not block device.F
+--key
+z'Failed to register key %s on device %s.Nz/Failed to create reservation(key=%s, device=%s)z8Failed: keys cannot be same. You can not fence yourself.z
+Set scsi status off for %sz-Set status off failed: %s is not blockdevice.z%Failed to remove key %s on device %s.z#No reservation exists on device %s.z
+Failed to verify %s device(s)T)
+_set_keyr
+debug
+_is_block_devicer
+register_dev
+get_registration_keys
+_dev_write
+get_reservation_keyZ
+reserve_dev
+_get_key
+lower
+error
+preempt_abort)
+options
+countr
+host_keyr
+set_statusA
+FenceSCSIAgent.set_statusc
+Get device fence scsi status.
+        :param options: a diction contents options["devices"], options["--key"]
+        :returns: on - device is under scsi lun protection for given host;
+        off - device not register on for given host.
+        r
+z*get status failed: %s is not block device.z(get status failed: %s is not accessible.r$
+z)No registration for key %s on device %s.
+is_device_readyr*
+statusr
+get_status
+FenceSCSIAgent.get_statusc
+z*check if device exist and is block device.Tz#Failed: device (%s) does not exist.Fz*Failed: device "%s" is not a block device.)
+path
+existsr
+stat
+S_ISBLK
+st_mode)
+FenceSCSIAgent._is_block_devicec
+z<Get the given node id host's registered key on given device.
+zIGet register key by node id failed, may be key value(%s) format is wrong.)
+	Exceptionr
+node_id
+keys
+key_node_idr
+_get_register_key_by_node_id
+z+FenceSCSIAgent._get_register_key_by_node_idc
+Nz	%.12x%.4xr
+cluster_namerD
+first_none_zero_idx
+charr
+_generate_key
+FenceSCSIAgent._generate_keyc
+z-Get the node id which register key belong to.r@
+z%Host key(%s) format error, pls check.r
+_get_node_id_by_key
+z"FenceSCSIAgent._get_node_id_by_keyc
+z&Get the residual keys on given device.r
+append)
+new_key
+residual_keysZ
+new_node_idZ
+exist_keysrE
+_get_residual_keys
+z!FenceSCSIAgent._get_residual_keysc
+Save node key into file.
+.key
+Failed: Cannot open file "%s")
+STORE_PATHr9
+isdir
+dirname
+makedirs
+open
+writer.
+IOErrorr
+	file_path
+key_filer
+FenceSCSIAgent._set_keyc
+Read node key from file.r?
+Cannot open key file "%s")
+readline
+stripr.
+info)
+	key_valuer\
+FenceSCSIAgent._get_keyc
+z&Store scsi lun protect device in file.
+.devz
+\s+rS
+read
+searchrZ
+dev_file
+outr
+FenceSCSIAgent._dev_writec
+z(Read scsi lun protect devices from file.rc
+liner
+<listcomp>
+z,FenceSCSIAgent._dev_read.<locals>.<listcomp>NrT
+devsr\
+	_dev_read
+FenceSCSIAgent._dev_readc
+zAUnregister the local host's key to retrieve LUN write permission.r$
+Nz1Unregister key(%s) for dev(%s) failed, pls check!z,Unregister key(%s) for dev(%s) successfully!z4Cannot get host key, when unregister local host key.)
+unregister_devr*
+_unregister_local_host_key
+z)FenceSCSIAgent._unregister_local_host_keyc
+NTr$
+z)Clear device %s failed - remain pr_key=%sFz
+Clear device %s succeed.)
+TEMP_LOCAL_KEYr)
+Z	clear_devr
+host_key_contain_prr
+clear_reservation3
+z FenceSCSIAgent.clear_reservationc
+Nz&Fence scsi agent received an event: %s
+typer
+defined
+stoppedz
+Ignore event %s)
+on_event)
+event
+event_namer
+fence_scsi_event_handleH
+z&FenceSCSIAgent.fence_scsi_event_handlec
+Handles events coming in from libvirtd and source device.
+        This thread which waits for events to arrive from the
+        libvirt event loop thread or netlink, then dispatches the
+        events to a pool.
+        T)
+blockN)
+getrz
+Z	task_done
+BaseExceptionr
+	exception)
+excr
+_event_handle_threadS
+z#FenceSCSIAgent._event_handle_threadc
+fence_scsi_agent_event)
+target
+nameT)
+	threading
+Threadr
+	setDaemon
+start)
+event_threadr
+z"FenceSCSIAgent._handle_event_startc
+Puts ocfs2 event on the queue for handling.
+        Even fence scsi is turn off, also neeed process this event for
+        kernel wait fsm ack for node leave event!
+        N)
+put)
+z!FenceSCSIAgent.listen_ocfs2_eventc
+z0Return given device if support fence scsi or not)
+is_support_fence_scsi
+z$FenceSCSIAgent.is_support_fence_scsic
+dev_namert
+z2Fence scsi agent received a event %s for device %sru
+max_retry_count)
+delayT)
+_do_pre_unfence_scsir
+LoopingCall
+_do_node_leaver
+run_oncer
+FenceSCSIAgent.on_eventc
+}	|	
+Unknownr
+/dev/Z
+node_num
+index
+seqr
+z%Do node leave for (%s %d %s) finished)	
+_do_fence_scsir
+send_event_ackr
+read_mounts
+items
+splitr
+unused_kwargs
+	pool_namer
+dev_pathZ
+down_node_idZ
+event_indexZ	event_seqZ	fs_client
+	mount_tab
+mount_point
+devicer
+FenceSCSIAgent._do_node_leavec
+dictr
+src_dev_pathr
+event_typeZ
+poolrx
+process_pool_event
+z!FenceSCSIAgent.process_pool_eventc
+Fence given host's lun write permission.
+        Do fence scsi for given remote node to protect the LUN used by
+        other active nodes.
+        If can not get the leave node's key, do nothing, because other
+        node might fence scsi this node already.
+        r
+$Cannot get device fence scsi switch.Nr
+z2Fence scsi feature not enabled, not do fence scsi.
+4Device(%s) not support fence scsi or can not access.r"
+realpathrH
+_check_key_filer5
+real_dev_pathZ
+node_keyr2
+FenceSCSIAgent._do_fence_scsic
+z#Do pre scsi LUN protection process.r
+z8Fence scsi feature not enabled, not do pre unfence scsi.Tr
+z#Set multipathd pr status failed: %sNz%Get local host key failed, pls check.)
+_clean_up_residual_keys
+update_multipath_confr
+set_multipathd_pr_statusrC
+z#FenceSCSIAgent._do_pre_unfence_scsic
+Give write permission of given lun to the local host.
+        By register local host key to this device or take type 5 reservation.
+        z!Render scsi lun permission for %sr
+Tz(Get local host key failed, please check!Fr
+local_host_keyr2
+_render_lun_permission
+z%FenceSCSIAgent._render_lun_permissionc
+_preempt_abort_residual_key)
+residual_keyr
+z&FenceSCSIAgent._clean_up_residual_keysc
+z7Use default key to preempt abort residual key in devicer$
+z*Preempt abort residual key(%s) for dev(%s)N)
+z*FenceSCSIAgent._preempt_abort_residual_keyc
+z(Do fence scsi process before mount pool.r
+zLFence scsi disabled but dev (%s) have residual reservation and clear failed.r
+Unfence scsi %s failedN)
+OperationFailedr
+msgr
+do_unfence_scsi"
+FenceSCSIAgent.do_unfence_scsic
+z9Check if local host contain type 5 persistent reservationz)Cannot get local host key for Device(%s).FT)
+_is_local_contain_pr<
+z#FenceSCSIAgent._is_local_contain_prc
+z;Fence scsi its self to cancel write permission to this lun.z
+Fence scsi local device(%s)r
+z4Fence scsi feature not enabled, not fence scsi self.r
+z4Device(%s) have no key or local host not registered.TF)
+all_keysZ
+only_local_host_register_onr4
+_do_fence_scsi_selfG
+z"FenceSCSIAgent._do_fence_scsi_selfc
+z3Rollback scsi LUN protection when start pool failedz
+Fence scsi roll back failed.N)
+	roll_backi
+FenceSCSIAgent.roll_backc
+q:t	
+$}	|
+ziEnable mpath persist feature to auto set reservation key for
+        reinstate paths or new paths foundedF
+reservation_keyTz
+    reservation_key rS
+defaults {
+New multipath.conf: %srR
+/Update multipath.conf for fence scsi failed: %s
+MPATH_LOCKFILE
+MPATH_CONF
+fcntl
+flock
+fileno
+LOCK_EXr_
+MPATH_CONF_TMP
+writelines
+shutil
+copyr}
+already_setZ
+in_default_sec
+	new_lines
+lockfd
+	conf_filerk
+reservation_str
+new_filer
+#_set_multipath_conf_reservation_keyp
+z2FenceSCSIAgent._set_multipath_conf_reservation_keyc
+s<qjd
+qjq.W
+\s+reservation_key (\S+)\s+r%
+z#multipath.conf reservation_key = %sz-Get multipath.conf reservation_key failed: %s)
+IGNORECASE
+groupr
+matchr
+#_get_multipath_conf_reservation_key
+z2FenceSCSIAgent._get_multipath_conf_reservation_keyc
+s<qPd
+q.t	
+Disable mpath persist feature which auto set reservation key for
+        reinstate paths or new paths founded by remove reservation keyr
+&_remove_multipath_conf_reservation_key
+z5FenceSCSIAgent._remove_multipath_conf_reservation_keyc
+unset_multipathd_pr_status
+_mount_pointr
+z)FenceSCSIAgent.unset_multipathd_pr_statusc
+z'FenceSCSIAgent.set_multipathd_pr_statusc
+z]Update /etc/multipath.conf reservation_key value and make the new
+        configuration worksz"Input host key is none, pls check.Fz"Update multipath.conf file failed.z#Update multipath.conf file succeed.T)
+multipath_reconfigurera
+z$FenceSCSIAgent.update_multipath_confc
+zuCheck if there is no host key file create it.
+        Lun protection and fence scsi will need this host key.
+        z
+Can not found local key file.z#Get cluster name failed, pls check.r?
+Get node id failed, pls check.r
+z'Write local host key(%s) into key file.)
+confZ
+get_cluster_namer/
+get_local_node_number
+ordrL
+cluster_name_numericalZ
+single_charr
+FenceSCSIAgent._check_key_filec
+Do fence scsi upgrade post process for upgrade not interrupt service
+        New feature switch write into device super block, there are no need to
+        do any process for upgrade, because the switch will not change when
+        doing upgrade process.
+        r
+upgrade
+FenceSCSIAgent.upgradec
+Check upgrade process result for fence scsi.
+        New feature switch write into device super block, there are no need to
+        do any process for upgrade, because the switch will not change when
+        doing upgrade process.
+        r
+upgrade_post_check$
+z!FenceSCSIAgent.upgrade_post_checkc
+z+Check if local host mounted the filesystem.z
+findmnt -n -l -t ocfs2 T)
+shellZ
+check_exit_codeFz)Check pool is mounted on local failed, %sN)
+execute_cmdrC
+cmdri
+is_mounted_local-
+FenceSCSIAgent.is_mounted_localc
+z8Check device fence scsi status when feature switch is onr
+state
+fixed
+failedr
+zICheck status failed: switch "on" but no type5 reservation on mounted poolz7Fix fence scsi abnormal status: apply type5 reservationz
+Get local key failed.Z
+no_keyr
+auto fix succeedr
+auto fix failedz
+Pool not mounted on localzCCheck status failed: switch "on" local mounted this pool but no keyzJFix fence scsi abnormal status: register key for switch "on" mounted pool.)
+fixr7
+Z	local_keyr2
+check_status_switch_on9
+z%FenceSCSIAgent.check_status_switch_onc
+z9Check device fence scsi status when feature switch is offr
+zJCheck status failed: switch "off" but exist type5 reservation on this poolzTFix fence scsi abnormal status: switch is off clean up residual keys and reservationr
+check_status_switch_offv
+z&FenceSCSIAgent.check_status_switch_offFc
+Check pool's fence scsi statusz%Check fence scsi status for device %sr
+device offlinez?Check status failed: pool mounted but cannot get feature switch)
+is_mountedr
+check_status
+FenceSCSIAgent.check_status)
+__name__
+__module__
+__qualname__
+__doc__r
+	metaclass)!r
+loggingZ
+queuer
+fsmr
+fsm.device.initiator.linuxscsir
+fsm.fs_client.ocfs2r
+fsm.pool.runnerr
+fsm.utils.import_utilsr
+Z	fsm.utilsr
+Z	getLoggerr
+FENCE_SCSI_LOCKFILEr
+<module>

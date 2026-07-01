@@ -1,0 +1,642 @@
+Utility)
+testbasec
+TestStateFWc
+superr
+myinitZ
+_start_ovsZ
+_start_netagent)
+self
+	__class__
+@/usr/lib/python3.9/site-packages/na_tests/ft/test_stateful_fw.pyr
+TestStateFW.myinitc
+cd {test_dir}
+ovs-vsctl add-br br0 -- set bridge br0 fail-mode=standalone --     add-port br0 p1 -- set interface p1 ofport_request=1 type=dummy --     add-port br0 p2 -- set interface p2 ofport_request=2 type=dummy
+ovs-ofctl mod-port br0 br0 noforward
+fw_by_add_config_fw_default() {{
+    cat <<EOF
+<filter name='fw_config' chain='mac_fw' priority='-800'>
+  <uuid>15fdfa87-ce43-4402-9927-3f6f74524691</uuid>
+  <rule action='drop' direction='in' priority='4' statematch='true'>
+    <all/>
+  </rule>
+  <rule action='drop' direction='out' priority='4' statematch='true'>
+    <all/>
+  </rule>
+  <rule action='drop' direction='in' priority='4' statematch='true'>
+    <all-ipv6/>
+  </rule>
+  <rule action='drop' direction='out' priority='4' statematch='true'>
+    <all-ipv6/>
+  </rule>
+  <rule action='accept' direction='out' priority='10' statematch='true'>
+    <tcp srcipaddr='1.2.3.5' srcipmask='32'/>
+  </rule>
+</filter>
+fw_by_add_config_fw_default > {nwfilterdir}/{fwconfig}.xml
+ovs-appctl revalidator/purge
+na-ctl add-listen --id=1 --event="set Interface p2 other_config:nwfilter={fwconfig}"
+ovs-vsctl set Interface p2 other_config:nwfilter={fwconfig}
+na-ctl wait --id=1
+na-ctl nwfilter update {fwconfig}
+ovs-ofctl dump-flows br0 > br0_flows.txt
+grep "ct_state=+new-est,tcp,reg1=0x.*/0xffff,nw_src=1.2.3.5" br0_flows.txt
+if test $? -ne 0; then
+    exit 2
+ovs-appctl revalidator/purge
+na-ctl add-listen --id=2 --event="remove Interface p2 other_config:nwfilter"
+ovs-vsctl remove Interface p2 other_config nwfilter
+na-ctl wait --id=2
+ovs-ofctl dump-flows br0 > br0_flows1.txt
+grep "ct_state=+new-est,tcp,reg1=0x.*/0xffff,nw_src=1.2.3.5" br0_flows1.txt
+if test $? -ne 1; then
+    exit 3
+Z	fw_config)
+fwconfig
+nwfilterdir
+test_dirTr
+z+test fw config failed: shell return code:%d
+cmd_execute
+formatZ
+nwfilter_dirZ	_test_dirZ
+assertEqual
+retr
+test_fw_config
+TestStateFW.test_fw_configc
+cd {test_dir}
+ovs-vsctl add-br br0 -- set bridge br0 fail-mode=standalone --     add-port br0 p1 -- set interface p1 ofport_request=1 type=dummy --     add-port br0 p2 -- set interface p2 ofport_request=2 type=dummy
+ovs-ofctl mod-port br0 br0 noforward
+fw_by_add_white_icmp_default() {{
+    cat <<EOF
+<filter name='white_icmp' chain='mac_fw' priority='-800'>
+  <uuid>15fdfa87-ce43-4402-9927-3f6f74524691</uuid>
+  <rule action='drop' direction='in' priority='4' statematch='true'>
+    <all/>
+  </rule>
+  <rule action='drop' direction='out' priority='4' statematch='true'>
+    <all/>
+  </rule>
+  <rule action='drop' direction='in' priority='4' statematch='true'>
+    <all-ipv6/>
+  </rule>
+  <rule action='drop' direction='out' priority='4' statematch='true'>
+    <all-ipv6/>
+  </rule>
+  <rule action='accept' direction='out' priority='10' statematch='true'>
+    <icmp srcipaddr='1.2.3.5' srcipmask='32'/>
+  </rule>
+</filter>
+fw_by_add_white_icmp_default > {nwfilterdir}/{whiteicmp}.xml
+na-ctl add-listen --id=1 --event="set Interface p2 other_config:nwfilter={whiteicmp}"
+ovs-vsctl set Interface p2 other_config:nwfilter={whiteicmp}
+na-ctl wait --id=1
+na-ctl nwfilter update {whiteicmp}
+ovs-appctl revalidator/purge
+ovs-appctl netdev-dummy/receive p1 'in_port(1),eth(src=50:54:00:00:00:0c,dst=50:54:00:00:00:05),eth_type(0x0800),ipv4(src=1.2.3.5,dst=1.2.3.6,proto=1,tos=0,ttl=64,frag=no),icmp(type=8,code=0)'
+ovs-appctl time/warp 100
+ovs-appctl dpif/dump-flows br0 > br0_flows.txt
+grep 'actions:ct(commit),2' br0_flows.txt
+if test $? -ne 0; then
+    exit 2
+ovs-appctl revalidator/purge
+ovs-appctl netdev-dummy/receive p1 'in_port(1),eth(src=50:54:00:00:00:0c,dst=50:54:00:00:00:05),eth_type(0x0800),ipv4(src=1.2.3.6,dst=1.2.3.5,proto=1,tos=0,ttl=64,frag=no),icmp(type=8,code=0)'
+ovs-appctl time/warp 100
+ovs-appctl dpif/dump-flows br0 > br0_flows1.txt
+grep 'actions:drop' br0_flows1.txt
+if test $? -ne 0; then
+    exit 3
+white_icmp)
+Z	whiteicmpr
+z,test white icmp failed: shell return code:%dr
+test_white_icmpI
+TestStateFW.test_white_icmpc
+cd {test_dir}
+ovs-vsctl add-br br0 -- set bridge br0 fail-mode=standalone --     add-port br0 p1 -- set interface p1 ofport_request=1 type=dummy --     add-port br0 p2 -- set interface p2 ofport_request=2 type=dummy
+ovs-ofctl mod-port br0 br0 noforward
+fw_by_add_white_tcp_default() {{
+    cat <<EOF
+<filter name='white_tcp' chain='mac_fw' priority='-800'>
+  <uuid>15fdfa87-ce43-4402-9927-3f6f74524691</uuid>
+  <rule action='drop' direction='in' priority='4' statematch='true'>
+    <all/>
+  </rule>
+  <rule action='drop' direction='out' priority='4' statematch='true'>
+    <all/>
+  </rule>
+  <rule action='drop' direction='in' priority='4' statematch='true'>
+    <all-ipv6/>
+  </rule>
+  <rule action='drop' direction='out' priority='4' statematch='true'>
+    <all-ipv6/>
+  </rule>
+  <rule action='accept' direction='out' priority='10' statematch='true'>
+    <tcp srcipaddr='1.2.3.5' srcipmask='32'/>
+  </rule>
+</filter>
+fw_by_add_white_tcp_default > {nwfilterdir}/{whitetcp}.xml
+na-ctl add-listen --id=1 --event="set Interface p2 other_config:nwfilter={whitetcp}"
+ovs-vsctl set Interface p2 other_config:nwfilter={whitetcp}
+na-ctl wait --id=1
+na-ctl nwfilter update {whitetcp}
+ovs-appctl revalidator/purge
+ovs-appctl netdev-dummy/receive p1 'in_port(1),eth(src=50:54:00:00:00:05,dst=50:54:00:00:01:00),eth_type(0x0800),ipv4(src=1.2.3.5,dst=1.2.3.6,proto=6,tos=0,ttl=64,frag=no),tcp(src=8,dst=7),tcp_flags(ack)'
+ovs-appctl time/warp 100
+ovs-appctl dpif/dump-flows br0 > br0_flows.txt
+grep 'actions:ct(commit),2' br0_flows.txt
+if test $? -ne 0; then
+    exit 2
+ovs-appctl revalidator/purge
+ovs-appctl netdev-dummy/receive p1 'in_port(1),eth(src=50:54:00:00:00:05,dst=50:54:00:00:01:00),eth_type(0x0800),ipv4(src=1.2.3.6,dst=1.2.3.5,proto=6,tos=0,ttl=64,frag=no),tcp(src=8,dst=7),tcp_flags(ack)'
+ovs-appctl time/warp 100
+ovs-appctl dpif/dump-flows br0 > br0_flows1.txt
+grep 'actions:drop' br0_flows1.txt
+if test $? -ne 0; then
+    exit 3
+Z	white_tcp)
+whitetcpr
+z+test white tcp failed: shell return code:%dr
+test_white_tcp
+TestStateFW.test_white_tcpc
+cd {test_dir}
+ovs-vsctl add-br br0 -- set bridge br0 fail-mode=standalone --     add-port br0 p1 -- set interface p1 ofport_request=1 type=dummy --     add-port br0 p2 -- set interface p2 ofport_request=2 type=dummy
+ovs-ofctl mod-port br0 br0 noforward
+fw_by_add_white_udp_default() {{
+    cat <<EOF
+<filter name='white_udp' chain='mac_fw' priority='-800'>
+  <uuid>15fdfa87-ce43-4402-9927-3f6f74524691</uuid>
+  <rule action='drop' direction='in' priority='4' statematch='true'>
+    <all/>
+  </rule>
+  <rule action='drop' direction='out' priority='4' statematch='true'>
+    <all/>
+  </rule>
+  <rule action='drop' direction='in' priority='4' statematch='true'>
+    <all-ipv6/>
+  </rule>
+  <rule action='drop' direction='out' priority='4' statematch='true'>
+    <all-ipv6/>
+  </rule>
+  <rule action='accept' direction='out' priority='10' statematch='true'>
+    <udp srcipaddr='1.2.3.6' srcipmask='32'/>
+  </rule>
+</filter>
+fw_by_add_white_udp_default > {nwfilterdir}/{whiteudp}.xml
+na-ctl add-listen --id=1 --event="set Interface p1 other_config:nwfilter={whiteudp}"
+ovs-vsctl set Interface p1 other_config:nwfilter={whiteudp}
+na-ctl wait --id=1
+na-ctl nwfilter update {whiteudp}
+ovs-appctl revalidator/purge
+ovs-appctl netdev-dummy/receive p2 'in_port(2),eth(src=50:54:00:00:00:05,dst=50:54:00:00:01:00),eth_type(0x0800),ipv4(src=1.2.3.6,dst=1.2.3.5,proto=17,tos=0,ttl=64,frag=no),udp(src=7777,dst=80)'
+ovs-appctl time/warp 100
+ovs-appctl dpif/dump-flows br0 > br0_flows.txt
+grep 'actions:ct(commit),1' br0_flows.txt
+if test $? -ne 0; then
+    exit 2
+ovs-appctl revalidator/purge
+ovs-appctl netdev-dummy/receive p2 'in_port(2),eth(src=50:54:00:00:00:05,dst=50:54:00:00:01:00),eth_type(0x0800),ipv4(src=1.2.3.5,dst=1.2.3.6,proto=17,tos=0,ttl=64,frag=no),udp(src=7777,dst=80)'
+ovs-appctl time/warp 100
+ovs-appctl dpif/dump-flows br0 > br0_flows1.txt
+grep 'actions:drop' br0_flows1.txt
+if test $? -ne 0; then
+    exit 3
+Z	white_udp)
+whiteudpr
+z+test white udp failed: shell return code:%dr
+test_white_udp
+TestStateFW.test_white_udpc
+cd {test_dir}
+ovs-vsctl add-br br0 -- set bridge br0 fail-mode=standalone --     add-port br0 p1 -- set interface p1 ofport_request=1 type=dummy --     add-port br0 p2 -- set interface p2 ofport_request=2 type=dummy
+ovs-ofctl mod-port br0 br0 noforward
+fw_by_add_black_icmp_default() {{
+    cat <<EOF
+<filter name='black_icmp' chain='mac_fw' priority='-800'>
+  <uuid>4ef74acc-8778-4219-87e7-10d4e3e5874a</uuid>
+  <rule action='accept' direction='in' priority='4' statematch='true'>
+    <all/>
+  </rule>
+  <rule action='accept' direction='out' priority='4' statematch='true'>
+    <all/>
+  </rule>
+  <rule action='accept' direction='in' priority='4' statematch='true'>
+    <all-ipv6/>
+  </rule>
+  <rule action='accept' direction='out' priority='4' statematch='true'>
+    <all-ipv6/>
+  </rule>
+  <rule action='drop' direction='out' priority='10' statematch='true'>
+    <icmp srcipaddr='1.2.3.5' srcipmask='32'/>
+  </rule>
+</filter>
+fw_by_add_black_icmp_default > {nwfilterdir}/{blackicmp}.xml
+na-ctl --retry=-1 add-listen --id=1 --event="set Interface p2 other_config:nwfilter={blackicmp}"
+ovs-vsctl set Interface p2 other_config:nwfilter={blackicmp}
+na-ctl wait --id=1
+na-ctl nwfilter update {blackicmp}
+ovs-appctl revalidator/purge
+ovs-appctl netdev-dummy/receive p1 'in_port(1),eth(src=50:54:00:00:00:0c,dst=50:54:00:00:00:05),eth_type(0x0800),ipv4(src=1.2.3.5,dst=1.2.3.6,proto=1,tos=0,ttl=64,frag=no),icmp(type=8,code=0)'
+ovs-appctl time/warp 100
+ovs-appctl dpif/dump-flows br0 > br0_flows.txt
+grep 'actions:drop' br0_flows.txt
+if test $? -ne 0; then
+    exit 2
+ovs-appctl revalidator/purge
+ovs-appctl netdev-dummy/receive p1 'in_port(1),eth(src=50:54:00:00:00:0c,dst=50:54:00:00:00:05),eth_type(0x0800),ipv4(src=1.2.3.6,dst=1.2.3.5,proto=1,tos=0,ttl=64,frag=no),icmp(type=8,code=0)'
+ovs-appctl time/warp 100
+ovs-appctl dpif/dump-flows br0 > br0_flows1.txt
+grep 'actions:ct(commit),2' br0_flows1.txt
+if test $? -ne 0; then
+    exit 3
+black_icmp)
+Z	blackicmpr
+z,test black icmp failed: shell return code:%dr
+test_black_icmp
+TestStateFW.test_black_icmpc
+cd {test_dir}
+ovs-vsctl add-br br0 -- set bridge br0 fail-mode=standalone --     add-port br0 p1 -- set interface p1 ofport_request=1 type=dummy --     add-port br0 p2 -- set interface p2 ofport_request=2 type=dummy
+ovs-ofctl mod-port br0 br0 noforward
+fw_by_add_black_tcp_default() {{
+    cat <<EOF
+<filter name='black_tcp' chain='mac_fw' priority='-800'>
+  <uuid>4ef74acc-8778-4219-87e7-10d4e3e5874a</uuid>
+  <rule action='accept' direction='in' priority='4' statematch='true'>
+    <all/>
+  </rule>
+  <rule action='accept' direction='out' priority='4' statematch='true'>
+    <all/>
+  </rule>
+  <rule action='accept' direction='in' priority='4' statematch='true'>
+    <all-ipv6/>
+  </rule>
+  <rule action='accept' direction='out' priority='4' statematch='true'>
+    <all-ipv6/>
+  </rule>
+  <rule action='drop' direction='out' priority='10' statematch='true'>
+    <tcp srcipaddr='1.2.3.5' srcipmask='32'/>
+  </rule>
+</filter>
+fw_by_add_black_tcp_default > {nwfilterdir}/{blacktcp}.xml
+na-ctl --retry=-1 add-listen --id=1 --event="set Interface p2 other_config:nwfilter={blacktcp}"
+ovs-vsctl set Interface p2 other_config:nwfilter={blacktcp}
+na-ctl wait --id=1
+na-ctl nwfilter update {blacktcp}
+ovs-appctl revalidator/purge
+ovs-appctl netdev-dummy/receive p1 'in_port(1),eth(src=50:54:00:00:00:05,dst=50:54:00:00:01:00),eth_type(0x0800),ipv4(src=1.2.3.5,dst=1.2.3.6,proto=6,tos=0,ttl=64,frag=no),tcp(src=8,dst=7),tcp_flags(ack)'
+ovs-appctl time/warp 100
+ovs-appctl dpif/dump-flows br0 > br0_flows.txt
+grep 'actions:drop' br0_flows.txt
+if test $? -ne 0; then
+    exit 2
+ovs-appctl revalidator/purge
+ovs-appctl netdev-dummy/receive p1 'in_port(1),eth(src=50:54:00:00:00:05,dst=50:54:00:00:01:00),eth_type(0x0800),ipv4(src=1.2.3.6,dst=1.2.3.5,proto=6,tos=0,ttl=64,frag=no),tcp(src=8,dst=7),tcp_flags(ack)'
+ovs-appctl time/warp 100
+ovs-appctl dpif/dump-flows br0 > br0_flows1.txt
+grep 'actions:ct(commit),2' br0_flows1.txt
+if test $? -ne 0; then
+    exit 3
+Z	black_tcp)
+blacktcpr
+z+test black tcp failed: shell return code:%dr
+test_black_tcp8
+TestStateFW.test_black_tcpc
+cd {test_dir}
+ovs-vsctl add-br br0 -- set bridge br0 fail-mode=standalone --     add-port br0 p1 -- set interface p1 ofport_request=1 type=dummy --     add-port br0 p2 -- set interface p2 ofport_request=2 type=dummy
+ovs-ofctl mod-port br0 br0 noforward
+fw_by_add_black_udp_default() {{
+    cat <<EOF
+<filter name='black_udp' chain='mac_fw' priority='-800'>
+  <uuid>4ef74acc-8778-4219-87e7-10d4e3e5874a</uuid>
+  <rule action='accept' direction='in' priority='4' statematch='true'>
+    <all/>
+  </rule>
+  <rule action='accept' direction='out' priority='4' statematch='true'>
+    <all/>
+  </rule>
+  <rule action='accept' direction='in' priority='4' statematch='true'>
+    <all-ipv6/>
+  </rule>
+  <rule action='accept' direction='out' priority='4' statematch='true'>
+    <all-ipv6/>
+  </rule>
+  <rule action='drop' direction='out' priority='10' statematch='true'>
+    <udp srcipaddr='1.2.3.5' srcipmask='32'/>
+  </rule>
+</filter>
+fw_by_add_black_udp_default > {nwfilterdir}/{blackudp}.xml
+na-ctl add-listen --id=1 --event="set Interface p2 other_config:nwfilter={blackudp}"
+ovs-vsctl set Interface p2 other_config:nwfilter={blackudp}
+na-ctl wait --id=1
+na-ctl nwfilter update {blackudp}
+ovs-appctl revalidator/purge
+ovs-appctl netdev-dummy/receive p1 'in_port(1),eth(src=50:54:00:00:00:05,dst=50:54:00:00:01:00),eth_type(0x0800),ipv4(src=1.2.3.5,dst=1.2.3.6,proto=17,tos=0,ttl=64,frag=no),udp(src=7777,dst=80)'
+ovs-appctl time/warp 100
+ovs-appctl dpif/dump-flows br0 > br0_flows.txt
+grep 'actions:drop' br0_flows.txt
+if test $? -ne 0; then
+    exit 2
+ovs-appctl revalidator/purge
+ovs-appctl netdev-dummy/receive p1 'in_port(1),eth(src=50:54:00:00:00:05,dst=50:54:00:00:01:00),eth_type(0x0800),ipv4(src=1.2.3.6,dst=1.2.3.5,proto=17,tos=0,ttl=64,frag=no),udp(src=7777,dst=80)'
+ovs-appctl time/warp 100
+ovs-appctl dpif/dump-flows br0 > br0_flows1.txt
+grep 'actions:ct(commit),2' br0_flows1.txt
+if test $? -ne 0; then
+    exit 3
+Z	black_udp)
+blackudpr
+z+test black udp failed: shell return code:%dr
+test_black_udps
+TestStateFW.test_black_udpc
+cd {test_dir}
+ovs-vsctl add-br br0 -- set bridge br0 fail-mode=standalone --     add-port br0 p1 -- set interface p1 ofport_request=1 type=dummy --     add-port br0 p2 -- set interface p2 ofport_request=2 type=dummy
+ovs-ofctl mod-port br0 br0 noforward
+fw_by_add_white_icmp6_default() {{
+    cat <<EOF
+<filter name='white_icmp6' chain='mac_fw' priority='-800'>
+  <uuid>15fdfa87-ce43-4402-9927-3f6f74524691</uuid>
+  <rule action='drop' direction='in' priority='4' statematch='true'>
+    <all/>
+  </rule>
+  <rule action='drop' direction='out' priority='4' statematch='true'>
+    <all/>
+  </rule>
+  <rule action='drop' direction='in' priority='4' statematch='true'>
+    <all-ipv6/>
+  </rule>
+  <rule action='drop' direction='out' priority='4' statematch='true'>
+    <all-ipv6/>
+  </rule>
+  <rule action='accept' direction='out' priority='10' statematch='true'>
+    <icmpv6 srcipaddr='2001:db8::1' srcipmask='128' type='128' code='0'/>
+  </rule>
+</filter>
+fw_by_add_white_icmp6_default > {nwfilterdir}/{whiteicmp6}.xml
+na-ctl add-listen --id=1 --event="set Interface p2 other_config:nwfilter={whiteicmp6}"
+ovs-vsctl set Interface p2 other_config:nwfilter={whiteicmp6}
+na-ctl wait --id=1
+na-ctl nwfilter update {whiteicmp6}
+ovs-appctl revalidator/purge
+ovs-appctl netdev-dummy/receive p1 'in_port(1),eth(src=50:54:00:00:00:0c,dst=50:54:00:00:00:05),eth_type(0x86dd),ipv6(src=2001:db8::1,dst=2001:db8::2,proto=58,frag=no),icmpv6(type=128)'
+ovs-appctl time/warp 100
+ovs-appctl dpif/dump-flows br0 > br0_flows.txt
+grep 'actions:ct(commit),2' br0_flows.txt
+if test $? -ne 0; then
+    exit 2
+ovs-appctl revalidator/purge
+ovs-appctl netdev-dummy/receive p1 'in_port(1),eth(src=50:54:00:00:00:0c,dst=50:54:00:00:00:05),eth_type(0x86dd),ipv6(src=2001:db8::2,dst=2001:db8::1,proto=58,frag=no),icmpv6(type=128)'
+ovs-appctl time/warp 100
+ovs-appctl dpif/dump-flows br0 > br0_flows1.txt
+grep 'actions:drop' br0_flows1.txt
+if test $? -ne 0; then
+    exit 3
+white_icmp6)
+whiteicmp6r
+z-test white icmp6 failed: shell return code:%dr
+test_white_icmp6
+TestStateFW.test_white_icmp6c
+cd {test_dir}
+ovs-vsctl add-br br0 -- set bridge br0 fail-mode=standalone --     add-port br0 p1 -- set interface p1 ofport_request=1 type=dummy --     add-port br0 p2 -- set interface p2 ofport_request=2 type=dummy
+ovs-ofctl mod-port br0 br0 noforward
+fw_by_add_white_tcp6_default() {{
+    cat <<EOF
+<filter name='white_tcp6' chain='mac_fw' priority='-800'>
+  <uuid>15fdfa87-ce43-4402-9927-3f6f74524691</uuid>
+  <rule action='drop' direction='in' priority='4' statematch='true'>
+    <all/>
+  </rule>
+  <rule action='drop' direction='out' priority='4' statematch='true'>
+    <all/>
+  </rule>
+  <rule action='drop' direction='in' priority='4' statematch='true'>
+    <all-ipv6/>
+  </rule>
+  <rule action='drop' direction='out' priority='4' statematch='true'>
+    <all-ipv6/>
+  </rule>
+  <rule action='accept' direction='out' priority='10' statematch='true'>
+    <tcp-ipv6 srcipaddr='2001:db8::1' srcipmask='128'/>
+  </rule>
+</filter>
+fw_by_add_white_tcp6_default > {nwfilterdir}/{whitetcp6}.xml
+ovs-appctl revalidator/purge
+na-ctl add-listen --id=1 --event="set Interface p2 other_config:nwfilter={whitetcp6}"
+ovs-vsctl set Interface p2 other_config:nwfilter={whitetcp6}
+na-ctl wait --id=1
+na-ctl nwfilter update {whitetcp6}
+ovs-appctl revalidator/purge
+ovs-appctl netdev-dummy/receive p1 'in_port(1),eth(src=50:54:00:00:00:05,dst=50:54:00:00:01:00),eth_type(0x86dd),ipv6(src=2001:db8::1,dst=2001:db8::2,proto=6,frag=no),tcp(src=8,dst=7),tcp_flags(ack)'
+ovs-appctl time/warp 100
+ovs-appctl dpif/dump-flows br0 > br0_flows.txt
+grep 'actions:ct(commit),2' br0_flows.txt
+if test $? -ne 0; then
+    exit 2
+ovs-appctl revalidator/purge
+ovs-appctl netdev-dummy/receive p1 'in_port(1),eth(src=50:54:00:00:00:05,dst=50:54:00:00:01:00),eth_type(0x86dd),ipv6(src=2001:db8::2,dst=2001:db8::1,proto=6,frag=no),tcp(src=8,dst=7),tcp_flags(ack)'
+ovs-appctl time/warp 100
+ovs-appctl dpif/dump-flows br0 > br0_flows1.txt
+grep 'actions:drop' br0_flows1.txt
+if test $? -ne 0; then
+    exit 3
+white_tcp6)
+Z	whitetcp6r
+z%test white tcp6: shell return code:%dr
+test_white_tcp6
+TestStateFW.test_white_tcp6c
+cd {test_dir}
+ovs-vsctl add-br br0 -- set bridge br0 fail-mode=standalone --     add-port br0 p1 -- set interface p1 ofport_request=1 type=dummy --     add-port br0 p2 -- set interface p2 ofport_request=2 type=dummy
+ovs-ofctl mod-port br0 br0 noforward
+fw_by_add_white_udp6_default() {{
+    cat <<EOF
+<filter name='white_udp6' chain='mac_fw' priority='-800'>
+  <uuid>15fdfa87-ce43-4402-9927-3f6f74524691</uuid>
+  <rule action='drop' direction='in' priority='4' statematch='true'>
+    <all/>
+  </rule>
+  <rule action='drop' direction='out' priority='4' statematch='true'>
+    <all/>
+  </rule>
+  <rule action='drop' direction='in' priority='4' statematch='true'>
+    <all-ipv6/>
+  </rule>
+  <rule action='drop' direction='out' priority='4' statematch='true'>
+    <all-ipv6/>
+  </rule>
+  <rule action='accept' direction='out' priority='10' statematch='true'>
+    <udp-ipv6 srcipaddr='2001:db8::1' srcipmask='128'/>
+  </rule>
+</filter>
+fw_by_add_white_udp6_default > {nwfilterdir}/{whiteudp6}.xml
+na-ctl add-listen --id=1 --event="set Interface p2 other_config:nwfilter={whiteudp6}"
+ovs-vsctl set Interface p2 other_config:nwfilter={whiteudp6}
+na-ctl wait --id=1
+na-ctl nwfilter update {whiteudp6}
+ovs-appctl revalidator/purge
+ovs-appctl netdev-dummy/receive p1 'in_port(1),eth(src=50:54:00:00:00:09,dst=50:54:00:00:00:0a),eth_type(0x86dd),ipv6(src=2001:db8::1,dst=2001:db8::2,label=0,proto=17,tclass=0x70,hlimit=128,frag=no),udp(src=1,dst=2)'
+ovs-appctl time/warp 100
+ovs-appctl dpif/dump-flows br0 > br0_flows.txt
+grep 'actions:ct(commit),2' br0_flows.txt
+if test $? -ne 0; then
+    exit 2
+ovs-appctl revalidator/purge
+ovs-appctl netdev-dummy/receive p1 'in_port(1),eth(src=50:54:00:00:00:09,dst=50:54:00:00:00:0a),eth_type(0x86dd),ipv6(src=2001:db8::2,dst=2001:db8::1,label=0,proto=17,tclass=0x70,hlimit=128,frag=no),udp(src=1,dst=2)'
+ovs-appctl time/warp 100
+ovs-appctl dpif/dump-flows br0 > br0_flows1.txt
+grep 'actions:drop' br0_flows1.txt
+if test $? -ne 0; then
+    exit 3
+white_udp6)
+Z	whiteudp6r
+z,test white udp6 failed: shell return code:%dr
+test_white_udp6$
+TestStateFW.test_white_udp6c
+cd {test_dir}
+ovs-vsctl add-br br0 -- set bridge br0 fail-mode=standalone --     add-port br0 p1 -- set interface p1 ofport_request=1 type=dummy --     add-port br0 p2 -- set interface p2 ofport_request=2 type=dummy
+ovs-ofctl mod-port br0 br0 noforward
+fw_by_add_black_icmp6_default() {{
+    cat <<EOF
+<filter name='black_icmp6' chain='mac_fw' priority='-800'>
+  <uuid>4ef74acc-8778-4219-87e7-10d4e3e5874a</uuid>
+  <rule action='accept' direction='in' priority='4' statematch='true'>
+    <all/>
+  </rule>
+  <rule action='accept' direction='out' priority='4' statematch='true'>
+    <all/>
+  </rule>
+  <rule action='accept' direction='in' priority='4' statematch='true'>
+    <all-ipv6/>
+  </rule>
+  <rule action='accept' direction='out' priority='4' statematch='true'>
+    <all-ipv6/>
+  </rule>
+  <rule action='drop' direction='out' priority='10' statematch='true'>
+    <icmpv6 srcipaddr='2001:db8::1' srcipmask='128' type='128' code='0'/>
+  </rule>
+</filter>
+fw_by_add_black_icmp6_default > {nwfilterdir}/{blackicmp6}.xml
+na-ctl --retry=-1 add-listen --id=1 --event="set Interface p2 other_config:nwfilter={blackicmp6}"
+ovs-vsctl set Interface p2 other_config:nwfilter={blackicmp6}
+na-ctl wait --id=1
+na-ctl nwfilter update {blackicmp6}
+ovs-appctl revalidator/purge
+ovs-appctl netdev-dummy/receive p1 'in_port(1),eth(src=50:54:00:00:00:0c,dst=50:54:00:00:00:05),eth_type(0x86dd),ipv6(src=2001:db8::1,dst=2001:db8::2,proto=58,frag=no),icmpv6(type=128)'
+ovs-appctl time/warp 100
+ovs-appctl dpif/dump-flows br0 > br0_flows.txt
+grep 'actions:drop' br0_flows.txt
+if test $? -ne 0; then
+    exit 2
+ovs-appctl revalidator/purge
+ovs-appctl netdev-dummy/receive p1 'in_port(1),eth(src=50:54:00:00:00:0c,dst=50:54:00:00:00:05),eth_type(0x86dd),ipv6(src=2001:db8::2,dst=2001:db8::1,proto=58,frag=no),icmpv6(type=128)'
+ovs-appctl time/warp 100
+ovs-appctl dpif/dump-flows br0 > br0_flows1.txt
+grep 'actions:ct(commit),2' br0_flows1.txt
+if test $? -ne 0; then
+    exit 3
+black_icmp6)
+blackicmp6r
+z-test black icmp6 failed: shell return code:%dr
+test_black_icmp6_
+TestStateFW.test_black_icmp6c
+cd {test_dir}
+ovs-vsctl add-br br0 -- set bridge br0 fail-mode=standalone --     add-port br0 p1 -- set interface p1 ofport_request=1 type=dummy --     add-port br0 p2 -- set interface p2 ofport_request=2 type=dummy
+ovs-ofctl mod-port br0 br0 noforward
+fw_by_add_black_tcp6_default() {{
+    cat <<EOF
+<filter name='black_tcp6' chain='mac_fw' priority='-800'>
+  <uuid>4ef74acc-8778-4219-87e7-10d4e3e5874a</uuid>
+  <rule action='accept' direction='in' priority='4' statematch='true'>
+    <all/>
+  </rule>
+  <rule action='accept' direction='out' priority='4' statematch='true'>
+    <all/>
+  </rule>
+  <rule action='accept' direction='in' priority='4' statematch='true'>
+    <all-ipv6/>
+  </rule>
+  <rule action='accept' direction='out' priority='4' statematch='true'>
+    <all-ipv6/>
+  </rule>
+  <rule action='drop' direction='out' priority='10' statematch='true'>
+    <tcp-ipv6 srcipaddr='2001:db8::1' srcipmask='128'/>
+  </rule>
+</filter>
+fw_by_add_black_tcp6_default > {nwfilterdir}/{blacktcp6}.xml
+na-ctl add-listen --id=1 --event="set Interface p2 other_config:nwfilter={blacktcp6}"
+ovs-vsctl set Interface p2 other_config:nwfilter={blacktcp6}
+na-ctl wait --id=1
+na-ctl nwfilter update {blacktcp6}
+ovs-appctl revalidator/purge           # ??? empty flow
+ovs-appctl netdev-dummy/receive p1 'in_port(1),eth(src=50:54:00:00:00:05,dst=50:54:00:00:01:00),eth_type(0x86dd),ipv6(src=2001:db8::1,dst=2001:db8::2,proto=6,tos=0,ttl=64,frag=no),tcp(src=8,dst=7),tcp_flags(ack)'
+ovs-appctl time/warp 100
+ovs-appctl dpif/dump-flows br0 > br0_flows.txt
+grep 'actions:2' br0_flows.txt
+ret=$?
+if test $ret neq 1; then
+    exit 2
+ovs-appctl revalidator/purge
+ovs-appctl netdev-dummy/receive p1 'in_port(1),eth(src=50:54:00:00:00:05,dst=50:54:00:00:01:00),eth_type(0x86dd),ipv6(src=2001:db8::1,dst=2001:db8::2,proto=6,tos=0,ttl=64,frag=no),tcp(src=8,dst=7),tcp_flags(ack)'
+ovs-appctl time/warp 100
+ovs-appctl dpif/dump-flows br0 > br0_flows1.txt
+grep 'actions:2' br0_flows1.txt
+ret=$?
+if test $ret neq 0; then
+    exit 3
+black_tcp6)
+Z	blacktcp6r
+z.test basic tcp_in failed: shell return code:%dr
+test_black_tcp6
+TestStateFW.test_black_tcp6c
+cd {test_dir}
+ovs-vsctl add-br br0 -- set bridge br0 fail-mode=standalone --     add-port br0 p1 -- set interface p1 ofport_request=1 type=dummy --     add-port br0 p2 -- set interface p2 ofport_request=2 type=dummy
+ovs-ofctl mod-port br0 br0 noforward
+fw_by_add_black_udp6_default() {{
+    cat <<EOF
+<filter name='black_udp6' chain='mac_fw' priority='-800'>
+  <uuid>4ef74acc-8778-4219-87e7-10d4e3e5874a</uuid>
+  <rule action='accept' direction='in' priority='4' statematch='true'>
+    <all/>
+  </rule>
+  <rule action='accept' direction='out' priority='4' statematch='true'>
+    <all/>
+  </rule>
+  <rule action='accept' direction='in' priority='4' statematch='true'>
+    <all-ipv6/>
+  </rule>
+  <rule action='accept' direction='out' priority='4' statematch='true'>
+    <all-ipv6/>
+  </rule>
+  <rule action='drop' direction='out' priority='10' statematch='true'>
+    <udp-ipv6 srcipaddr='2001:db8::1' srcipmask='128'/>
+  </rule>
+</filter>
+fw_by_add_black_udp6_default > {nwfilterdir}/{blackudp6}.xml
+na-ctl add-listen --id=1 --event="set Interface p2 other_config:nwfilter={blackudp6}"
+ovs-vsctl set Interface p2 other_config:nwfilter={blackudp6}
+na-ctl wait --id=1
+na-ctl nwfilter update {blackudp6}
+ovs-appctl revalidator/purge
+ovs-appctl netdev-dummy/receive p1 'in_port(1),eth(src=50:54:00:00:00:09,dst=50:54:00:00:00:0a),eth_type(0x86dd),ipv6(src=2001:db8::1,dst=2001:db8::2,proto=17,frag=no),udp(src=1,dst=2)'
+ovs-appctl time/warp 100
+ovs-appctl dpif/dump-flows br0 > br0_flows.txt
+grep 'actions:drop' br0_flows.txt
+if test $? -ne 0; then
+    exit 2
+ovs-appctl revalidator/purge
+ovs-appctl netdev-dummy/receive p1 'in_port(1),eth(src=50:54:00:00:00:09,dst=50:54:00:00:00:0a),eth_type(0x86dd),ipv6(src=2001:db8::2,dst=2001:db8::1,proto=17,frag=no),udp(src=1,dst=2)'
+ovs-appctl time/warp 100
+ovs-appctl dpif/dump-flows br0 > br0_flows1.txt
+grep 'actions:ct(commit),2' br0_flows1.txt
+if test $? -ne 0; then
+    exit 3
+black_udp6)
+Z	blackudp6r
+z,test black udp6 failed: shell return code:%dr
+test_black_udp6
+TestStateFW.test_black_udp6)
+__name__
+__module__
+__qualname__r
+__classcell__r
+__main__)	Z
+unittestZ
+na_tests.common.utilityr
+na_tests.commonr
+TestCaseBaser
+mainr
+<module>

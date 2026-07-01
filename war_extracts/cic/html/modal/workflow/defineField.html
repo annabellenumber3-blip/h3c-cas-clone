@@ -1,0 +1,191 @@
+<!-- 增加字段 -->
+<div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" ng-click="cancel()" custom-title="{{'common.close'|translate}}">
+        <span class="icon-closenew"></span>
+    </button>
+	<h4 class="modal-title" >{{title}}</h4>
+</div>
+<div class="modal-body">
+	<form name="form" class="form-horizontal" ng-keypress="enter($event)" role="form" novalidate>
+	<!-- fieldName -->
+    <div class="form-group" ng-class="{'has-error': (form.fieldName.$dirty && form.fieldName.$invalid)}">
+    	<label for="fieldName" class="control-label"><span translate="field.name"></span><span style="color: red">*</span></label> 
+		<div class="control-input input-group input-xlarge">
+		<input type="text" checkname rpccheck="workflow/field/nameExist"  ng-maxlength=64 class="form-input form-control" ng-model="model.fieldName"  ng-trim="false" id="fieldName" name="fieldName" required>
+			<span class="input-group-addon help-addon" ng-messages="form.fieldName.$error">
+				<span ng-if="form.fieldName.$valid||!form.fieldName.$dirty">
+	   				<span class="icon-occupying"></span>
+	         	</span>
+	 		<span ng-if="form.fieldName.$dirty">
+	          	<span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+	          	<span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxlen'|translate}}64"></span></span>
+	    		<span ng-message="checkname"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'checkname'|translate}}"></span></span>
+	 			<span ng-message="rpccheck"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'field.sameNameExist'|translate}}"></span></span>
+			</span>
+		</span>
+		</div>
+    </div>
+    	<div class="form-group">
+		   	<label class="control-label"><span translate="field.prop"></span><span style="color: red">*</span></label>
+			<div class="control-input input-group width260">
+				<select-input class="" options="fieldAllowBlankOptions" bind-model="model.fieldAllowBlank" input-id="fieldAllowBlank" input-name="fieldAllowBlank"></select-input>
+			</div>
+		</div>
+		<div class="form-group">
+		   	<label class="control-label"><span translate="field.type"></span><span style="color: red">*</span></label>
+			<div class="control-input input-group width260">
+				<select-input class="" options="fieldTypeOptions" bind-model="model.fieldType" input-id="fieldType" input-name="fieldType"></select-input>
+			</div>
+		</div>
+		
+		<div class="form-group"  ng-if="model.fieldType == 0" ng-class="{'has-error': (form.defaultValue.$invalid)}">
+		   	<label for="defaultValue" class="control-label"><span translate="field.defalutValue"></span></label>
+		   	<div class="control-input">
+				<div class="input-group input-xlarge">
+					<div class="input-group width260">
+						<input type="text" class="spinner-only" ng-model="model.defaultValue"  class="spinner-only" spinner spinner-min={{model.fieldMin}} checkint spinner-max={{model.fieldMax}} id="defaultValue" name="defaultValue" >
+					</div>
+					<span class="input-group-addon help-addon" ng-messages="form.defaultValue.$error">
+						<span ng-if="form.defaultValue.$valid">
+			   				<span class="icon-occupying"></span>
+			         	</span>
+				 		<span>
+							<span ng-message="spinnerMax"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxValueIs'|translate}}{{model.fieldMax}}"></span></span>
+			                <span ng-message="spinnerMin"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'minValueIs'|translate}}{{model.fieldMin}}"></span></span>
+							<span ng-message="int"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'invalidint'|translate}}"></span></span>
+						</span>
+					</span>
+				</div>
+		   	</div>
+		</div>
+		<div class="form-group"  ng-if="model.fieldType != 0" ng-class="{'has-error': (form.defaultValue.$invalid)}">
+	    	<label for="defaultValue" class="control-label"><span translate="field.defalutValue"></span></label> 
+			<div class="control-input input-group input-xlarge">
+				<input ng-if="model.fieldType == 1" type="text" checkname ng-maxlength={{model.fieldLen}} class="form-input form-control" ng-model="model.defaultValue"  ng-trim="false" id="defaultValue" name="defaultValue" >
+				<input ng-if="model.fieldType == 2" type="text" ng-maxlength={{model.fieldLen}} class="form-input form-control" ng-model="model.defaultValue"  ng-trim="false" id="defaultValue" name="defaultValue" >
+				<input ng-if="model.fieldType == 3" type="text" ng-maxlength={{model.fieldLen}} class="form-input form-control" ng-model="model.defaultValue"  ng-trim="false" id="defaultValue" name="defaultValue">
+				<span class="input-group-addon help-addon" ng-messages="form.defaultValue.$error">
+					<span ng-if="form.defaultValue.$valid">
+		   				<span class="icon-occupying"></span>
+		         	</span>
+			 		<span>
+			          	<span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxlen'|translate}}{{model.fieldLen}}"></span></span>
+			    		<span ng-message="checkname"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'checkname'|translate}}"></span></span>
+					</span>
+				</span>
+			</div>
+	    </div>
+	    <div ng-show="model.fieldType == 0">
+		    <div class="form-group" ng-class="{'has-error': (form.minValue.$invalid)}">
+			   	<label for="minValue" class="control-label"><span translate="field.minValue"></span><span style="color: red">*</span></label>
+			   	<div class="control-input">
+					<div class="input-group input-xlarge">
+						<div class="input-group width260">
+							<input id= "minValue" name="minValue" type="text" class="spinner-only" spinner spinner-min=-99999999 checkint spinner-max={{model.fieldMax}}  ng-model="model.fieldMin" required>
+						</div>
+						<span class="input-group-addon help-addon" ng-messages="form.minValue.$error">
+							<span ng-if="form.minValue.$valid">
+				   				<span class="icon-occupying"></span>
+				         	</span>
+					 		<span>
+					          	<span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+								<span ng-message="spinnerMax"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxValueIs'|translate}}{{model.fieldMax}}"></span></span>
+				                <span ng-message="spinnerMin"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'minValueIs'|translate}}-99999999"></span></span>
+								<span ng-message="int"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'invalidint'|translate}}"></span></span>
+							</span>
+						</span>
+					</div>
+			   	</div>
+			</div>
+			<div class="form-group" ng-class="{'has-error': (form.maxValue.$invalid)}">
+			   	<label for="maxValue" class="control-label"><span translate="field.maxValue"></span><span style="color: red">*</span></label>
+			   	<div class="control-input">
+					<div class="input-group input-xlarge">
+						<div class="input-group width260">
+							<input id= "maxValue" name="maxValue" type="text" class="spinner-only" spinner spinner-min={{model.fieldMin}}  checkint spinner-max=999999999  ng-model="model.fieldMax" required>
+						</div>
+						<span class="input-group-addon help-addon" ng-messages="form.maxValue.$error">
+								<span ng-if="form.maxValue.$valid">
+					   				<span class="icon-occupying"></span>
+					         	</span>
+						 		<span>
+						          	<span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+									<span ng-message="spinnerMax"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxValueIs'|translate}}999999999"></span></span>
+					                <span ng-message="spinnerMin"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'minValueIs'|translate}}{{model.fieldMin}}"></span></span>
+									<span ng-message="int"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'invalidint'|translate}}"></span></span>
+								</span>
+							</span>
+					</div>
+			   	</div>
+			</div>
+	    </div>
+	    <div ng-if="model.fieldType == 1 || model.fieldType == 2">
+	    	<div class="form-group" ng-class="{'has-error': (form.fieldLen.$dirty && form.fieldLen.$invalid)}">
+			   	<label for="fieldLen" class="control-label"><span translate="field.fieldLen"></span><span style="color: red">*</span></label>
+			   	<div class="control-input">
+					<div class="input-group input-xlarge">
+						<div class="input-group width260">
+							<input id= "fieldLen" name="fieldLen" type="text" class="spinner-only" spinner spinner-min=1  checkint spinner-max=128  ng-model="model.fieldLen" required>
+						</div>
+						<span class="input-group-addon help-addon" ng-messages="form.fieldLen.$error">
+							<span ng-if="form.fieldLen.$valid||!form.fieldLen.$dirty">
+				   				<span class="icon-occupying"></span>
+				         	</span>
+					 		<span ng-if="form.fieldLen.$dirty">
+					          	<span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+								<span ng-message="spinnerMax"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxValueIs'|translate}}128"></span></span>
+				                <span ng-message="spinnerMin"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'minValueIs'|translate}}1"></span></span>
+								<span ng-message="int"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'invalidint'|translate}}"></span></span>
+							</span>
+						</span>
+					</div>
+			   	</div>
+			</div>
+	    </div>
+	    <div ng-if="model.fieldType == 3">
+	    	<div class="form-group" ng-class="{'has-error': (form.selectValue.$dirty && form.selectValue.$invalid)}">
+		    	<label for="selectValue" class="control-label"><span translate="field.selInputValue"></span></label> 
+				<div class=" control-input">
+					<div class="input-group input-xlarge">
+						<div class="input-group width260">
+							<input type="text" ng-maxlength=64 class="form-control" ng-model="model.selectValue"  ng-trim="false" id="selectValue" name="selectValue" aria-describedby="basic-addon2">
+							<span class="input-group-addon inner-addon" ng-click="addSelectValue()"><a href="#" class="icon-add-gray"></a></span>
+						</div>
+						<span class="input-group-addon help-addon" ng-messages="form.selectValue.$error">
+							<span ng-if="form.selectValue.$valid||!form.selectValue.$dirty">
+				   				<span class="icon-occupying"></span>
+				         	</span>
+					 		<span ng-if="form.selectValue.$dirty">
+					          	<span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxlen'|translate}}64"></span></span>
+							</span>
+						</span>
+					</div>
+				</div>
+		    </div>
+			 <div class="form-group">
+			   	<label class="control-label"> </label>
+				<div class="control-input input-group width260">
+					<div custom-title="{{'common.modify'|translate}}" ng-disabled="!model.optionsSelectValue" ng-click="modifySelectValue()" class="btn btn-sm-icon icon-modify-gray" type="button" ></div>
+					<div custom-title="{{'org.remove'|translate}}"  ng-disabled="!model.optionsSelectValue" ng-click="removeSelectValue()" class="btn btn-sm-icon icon-delete-gray" type="button" ></div>
+					<div custom-title="{{'field.moveUp'|translate}}"  ng-disabled="!model.optionsSelectValue" ng-click="moveUpSelectValue()" class="btn btn-sm-icon icon-previous-gray" type="button" ></div>
+					<div custom-title="{{'field.moveDown'|translate}}"  ng-disabled="!model.optionsSelectValue" ng-click="moveDownSelectValue()" class="btn btn-sm-icon icon-next-gray" type="button" ></div>
+					<div custom-title="{{'field.setDefault'|translate}}"  ng-disabled="!model.optionsSelectValue" ng-click="defaultSelectValue()" class="btn btn-sm-icon icon-advanced-gray" type="button" ></div>
+				</div>
+			</div>
+			<div class="form-group">
+			   	<label class="control-label"><span translate="field.selValues"></span></label>
+				<div class="control-input input-group width260">
+					<select multiple class="form-control" ng-model="model.optionsSelectValue">
+					  <option ng-repeat="item in options">{{item.value}}</option>
+					</select>
+				</div>
+			</div>
+			
+	    </div>
+	</form>
+</div>
+<!-- 按钮栏 -->
+<div class="modal-footer">
+	<button id="okBtn" class="btn btn-green"  ng-if="model.opType != 'view'"  ng-disabled="form.$invalid" ng-click="ok()" translate="common.confirm"></button>
+	<button class="btn btn-black" ng-click="cancel()" translate="common.cancel"></button>
+</div>

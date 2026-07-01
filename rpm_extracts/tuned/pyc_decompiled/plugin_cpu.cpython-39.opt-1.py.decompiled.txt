@@ -1,0 +1,433 @@
+l	Z	d
+base)
+commandsz$/sys/devices/system/cpu/cpu0/cpuidlec
+d d!
+d#d$
+d%d&
+d'd(
+d)d*
+d+d,
+d-d.
+dXd/d0
+dYd1d2
+d3d4
+d5d6
+d7d8
+e d9d:d;
+d<d=
+Z!e"d9
+dZd>d?
+Z#d[dAdB
+Z$e dCd:dDdE
+dFdG
+Z%e"dC
+d\dHdI
+Z&dJdK
+Z'e dLd:d;
+dMdN
+Z(dOdP
+Z)dQdR
+Z*dSdT
+Z+e"dL
+d]dUdV
+CPULatencyPlugina
+	`cpu`::
+	Sets the CPU governor to the value specified by the [option]`governor`
+	option and dynamically changes the Power Management Quality of
+	Service (PM QoS) CPU Direct Memory Access (DMA) latency according
+	to the CPU load.
+	`governor`:::
+	The [option]`governor` option of the 'cpu' plug-in supports specifying
+	CPU governors. Multiple governors are separated using '|'. The '|'
+	character is meant to represent a logical 'or' operator. Note that the
+	same syntax is used for the [option]`energy_perf_bias` option. *TuneD*
+	will set the first governor that is available on the system.
+	+    
+	For example, with the following profile, *TuneD* will set the 'ondemand'
+	governor, if it is available. If it is not available, but the 'powersave'
+	governor is available, 'powersave' will be set. If neither of them are
+	available, the governor will not be changed.
+	.Specifying a CPU governor
+	====
+	----
+	[cpu]
+	governor=ondemand|powersave
+	----
+	====
+	`sampling_down_factor`:::
+	The sampling rate determines how frequently the governor checks
+	to tune the CPU. The [option]`sampling_down_factor` is a tunable
+	that multiplies the sampling rate when the CPU is at its highest
+	clock frequency thereby delaying load evaluation and improving
+	performance. Allowed values for sampling_down_factor are 1 to 100000.
+	.The recommended setting for jitter reduction
+	====
+	----
+	[cpu]
+	sampling_down_factor = 100
+	----
+	====
+	`energy_perf_bias`:::
+	[option]`energy_perf_bias` supports managing energy
+	vs. performance policy via x86 Model Specific Registers using the
+	`x86_energy_perf_policy` tool. Multiple alternative Energy Performance
+	Bias (EPB) values are supported. The alternative values are separated
+	using the '|' character. The following EPB values are supported
+	starting with kernel 4.13: "performance", "balance-performance",
+	"normal", "balance-power" and "power".
+	.Specifying alternative Energy Performance Bias values
+	====
+	----
+	[cpu]
+	energy_perf_bias=powersave|power
+	----
+	*TuneD* will try to set EPB to 'powersave'. If that fails, it will
+	try to set it to 'power'.
+	====
+	`latency_low, latency_high, load_threshold`:::
+	If the CPU load is lower than the value specified by
+	the[option]`load_threshold` option, the latency is set to the value
+	specified either by the [option]`latency_high` option or by the
+	[option]`latency_low` option.
+	`force_latency`:::
+	You can also force the latency to a specific value and prevent it from
+	dynamically changing further. To do so, set the [option]`force_latency`
+	option to the required latency value.
+	The maximum latency value can be specified in several ways:
+	 * by a numerical value in microseconds (for example, `force_latency=10`)
+	 * as the kernel CPU idle level ID of the maximum C-state allowed
+	   (for example, force_latency = cstate.id:1)
+	 * as a case sensitive name of the maximum C-state allowed
+	   (for example, force_latency = cstate.name:C1)
+	 * by using 'None' as a fallback value to prevent errors when alternative
+	   C-state IDs/names do not exist. When 'None' is used in the alternatives
+	   pipeline, all the alternatives that follow 'None' are ignored.
+	It is also possible to specify multiple fallback values separated by '|' as
+	the C-state names and/or IDs may not be available on some systems.
+	.Specifying fallback C-state values
+	====
+	----
+	[cpu]
+	force_latency=cstate.name:C6|cstate.id:4|10
+	----
+	This configuration tries to obtain and set the latency of C-state named C6.
+	If the C-state C6 does not exist, kernel CPU idle level ID 4 (state4) latency
+	is searched for in sysfs. Finally, if the state4 directory in sysfs is not found,
+	the last latency fallback value is `10` us. The value is encoded and written into
+	the kernel's PM QoS file `/dev/cpu_dma_latency`.
+	====
+	.Specifying fallback C-state values using 'None'.
+	====
+	----
+	[cpu]
+	force_latency=cstate.name:XYZ|None
+	----
+	In this case, if C-state with the name `XYZ` does not exist
+	[option]`force_latency`, no latency value will be written into the
+	kernel's PM QoS file, and no errors will be reported due to the
+	presence of 'None'.
+	====
+	`min_perf_pct, max_perf_pct, no_turbo`:::
+	These options set the internals of the Intel P-State driver exposed via the kernel's
+	`sysfs` interface.
+	.Adjusting the configuration of the Intel P-State driver
+	====
+	----
+	[cpu]
+	min_perf_pct=100
+	----
+	Limit the minimum P-State that will be requested by the driver. It states
+	it as a percentage of the max (non-turbo) performance level.
+	====
+x86_64F)
+superr
+__init__
+_has_pm_qos
+_archZ
+_is_x86
+	_is_intel
+_is_amd
+_has_energy_perf_bias
+_has_intel_pstate
+_min_perf_pct_save
+_max_perf_pct_save
+_no_turbo_save
+_governors_mapr
+_cmd)
+self
+args
+kwargs
+	__class__
+</usr/lib/python3.9/site-packages/tuned/plugins/plugin_cpu.pyr	
+CPULatencyPlugin.__init__c
+cpu)
+_devices_supported
+setZ
+_free_devices
+_hardware_inventoryZ
+get_devices
+addZ
+sys_nameZ
+_assigned_devices
+devicer
+_init_devices
+CPULatencyPlugin._init_devicesc
+get_device)
+<listcomp>
+z8CPULatencyPlugin._get_device_objects.<locals>.<listcomp>r
+devicesr
+_get_device_objects
+z$CPULatencyPlugin._get_device_objectsc
+load_threshold
+latency_low
+latency_high
+force_latency
+governor
+sampling_down_factor
+energy_perf_bias
+min_perf_pct
+max_perf_pct
+no_turbor
+_get_config_options
+z$CPULatencyPlugin._get_config_optionsc
+)	N)
+i686Z
+i585Z
+i486Z
+i386Z	vendor_idZ
+GenuineIntelTZ
+AuthenticAMDZ
+HygonGenuinez$We are running on an x86 %s platformz
+We are running on %s (non x86))
+platform
+machiner
+procfsZ
+cpuinfo
+tags
+getr
+info
+_check_energy_perf_bias
+_check_intel_pstate)
+intel_archsr
+vendorr
+_check_arch
+CPULatencyPlugin._check_archc
+x86_energy_perf_policy
+Z	no_errorsr
+Tzgunable to run x86_energy_perf_policy tool, ignoring CPU energy performance bias, is the tool installed?zXyour CPU doesn't support MSR_IA32_ENERGY_PERF_BIAS, ignoring CPU energy performance bias)
+execute
+errno
+ENOENTr:
+warning)
+retcode_unsupported
+retcode
+outr
+z(CPULatencyPlugin._check_energy_perf_biasc
+Nz$/sys/devices/system/cpu/intel_pstatez
+intel_pstate detected)
+path
+existsr
+z$CPULatencyPlugin._check_intel_pstatec
+strr
+is_cpu_online
+replace)
+_is_cpu_online
+CPULatencyPlugin._is_cpu_onlinec
+3/sys/devices/system/cpu/%s/cpufreq/scaling_governor)
+_cpu_has_scaling_governor
+z*CPULatencyPlugin._cpu_has_scaling_governorc
+'%s' is not online, skippingFz.there is no scaling governor fo '%s', skippingT)
+debugrO
+_check_cpu_can_change_governor
+z/CPULatencyPlugin._check_cpu_can_change_governorc
+NTFr
+z-Unable to open '%s', disabling PM_QoS controlr-
+loadzILatency settings from non-first CPU plugin instance '%s' will be ignored.)
+_has_static_tuningZ
+_has_dynamic_tuning
+listZ
+_instances
+values
+_first_instancerG
+open
+constsZ
+PATH_CPU_DMA_LATENCY
+O_WRONLY
+_cpu_latency_fd
+OSErrorr:
+errorr
+_latency
+options
+_monitors_repositoryZ
+create
+_load_monitorr>
+nameZ
+assigned_devices
+_first_device
+IndexError
+instancer
+_instance_init
+CPULatencyPlugin._instance_initc
+closerY
+deleterc
+_instance_cleanup
+z"CPULatencyPlugin._instance_cleanupc
+Nz'/sys/devices/system/cpu/intel_pstate/%s)
+	read_file
+strip)
+attrr
+_get_intel_pstate_attr"
+z'CPULatencyPlugin._get_intel_pstate_attrc
+write_to_file)
+valr
+_set_intel_pstate_attr%
+z'CPULatencyPlugin._set_intel_pstate_attrc
+value
+_getset_intel_pstate_attr)
+z*CPULatencyPlugin._getset_intel_pstate_attrc
+_instance_apply_staticrU
+_variables
+expandr]
+_set_latencyr
+force_latency_valueZ	new_valuer
+z'CPULatencyPlugin._instance_apply_staticFc
+_instance_unapply_staticrU
+full_rollbackr
+z)CPULatencyPlugin._instance_unapply_staticc
+_instance_update_dynamic
+_instance_apply_dynamicP
+z(CPULatencyPlugin._instance_apply_dynamicc
+systemr*
+get_loadr]
+z)CPULatencyPlugin._instance_update_dynamicc
+_instance_unapply_dynamic^
+z*CPULatencyPlugin._instance_unapply_dynamicc
+ValueError
+	TypeError
+_str2inta
+CPULatencyPlugin._str2intc
+/%s/r`
+err_ret
+no_error
+latency)
+cstates_latencyrG
+listdir
+cpuidle_states_pathr
+cstate_pathr`
+_read_cstates_latencyg
+z&CPULatencyPlugin._read_cstates_latencyc
+Nz)getting latency for cstate with name '%s'z
+reading cstates latency tabler
+"skipping latency 0 as set by paramz!cstate name mapped to latency: %s)
+no_zeror
+_get_latency_by_cstate_namer
+z,CPULatencyPlugin._get_latency_by_cstate_namec
+Nz'getting latency for cstate with ID '%s'z
+cstate ID is invalidz
+/%s/latencyz
+state%dTr
+cstate ID mapped to latency: %s)
+lidr
+latency_pathr
+_get_latency_by_cstate_id~
+z*CPULatencyPlugin._get_latency_by_cstate_idc
+q2q"|
+parsing latencyz+parsed directly specified latency value: %dr
+cstate.id_no_zero:T)
+cstate.id:
+cstate.name_no_zero:
+cstate.name:)
+none
+Nonez
+latency 'none' specified)
+invalid latency specified: '%s'F)	r
+splitr:
+Z	latenciesr
+_parse_latency
+CPULatencyPlugin._parse_latencyc
+Nztunable to evaluate latency value (probably wrong settings in the 'cpu' section of current profile), disabling PM QoSFz
+setting new cpu latency %d
+struct
+packrG
+writerY
+skipZ
+latency_binr
+CPULatencyPlugin._set_latencyc
+Nz>/sys/devices/system/cpu/%s/cpufreq/scaling_available_governors)
+_get_available_governors
+z)CPULatencyPlugin._get_available_governorsr.
+per_devicec
+z2CPULatencyPlugin._set_governor.<locals>.<listcomp>r
+z.The 'governor' option contains an empty value.z!setting governor '%s' on cpu '%s'rN
+z7Ignoring governor '%s' on cpu '%s', it is not supportedz.None of the scaling governors is supported: %sz
+lenr:
+warn
+join)
+Z	governorsr!
+simr.
+available_governorsr
+_set_governor
+CPULatencyPlugin._set_governorc
+z*could not get current governor on cpu '%s')
+ignore_missingr.
+datar
+_get_governor
+CPULatencyPlugin._get_governor
+ondemandc
+Nz7/sys/devices/system/cpu/cpufreq/%s/sampling_down_factorr
+_sampling_down_factor_path
+z+CPULatencyPlugin._sampling_down_factor_pathr/
+priorityc
+NzIignoring sampling_down_factor setting for CPU '%s', cannot match governorzTignoring sampling_down_factor setting for CPU '%s', governor '%s' doesn't support itz6setting sampling_down_factor to '%s' for governor '%s')
+clearr
+_set_sampling_down_factor
+z*CPULatencyPlugin._set_sampling_down_factorc
+_get_sampling_down_factor
+z*CPULatencyPlugin._get_sampling_down_factorc
+-cT)
+return_err)
+cpu_idrr
+err_msgr
+_try_set_energy_perf_bias
+z*CPULatencyPlugin._try_set_energy_perf_biasr0
+	d	|
+%s is not online, skippingr
+z2Trying to set energy_perf_bias to '%s' on cpu '%s'r
+z5energy_perf_bias successfully set to '%s' on cpu '%s'z"Failed to set energy_perf_bias: %szHCould not set energy_perf_bias to '%s' on cpu '%s', trying another valuezPFailed to set energy_perf_bias on cpu '%s'. Is the value in the profile correct?)
+lstripr
+valsrp
+_set_energy_perf_bias
+z&CPULatencyPlugin._set_energy_perf_biasc
+_try_parse_num4
+CPULatencyPlugin._try_parse_numc
+performance
+normalZ	powersave)
+_energy_perf_policy_to_human?
+z-CPULatencyPlugin._energy_perf_policy_to_humanc
+balance-performancer
+balance-powerZ
+power)
+_energy_perf_policy_to_human_v2C
+z0CPULatencyPlugin._energy_perf_policy_to_human_v2c
+qXt	|
+splitlinesr
+lines
+line
+_get_energy_perf_biasK
+z&CPULatencyPlugin._get_energy_perf_bias)
+__name__
+__module__
+__qualname__
+__doc__r	
+classmethodr4
+command_setr
+command_getr
+__classcell__r
+decoratorsZ
+tuned.logsZ
+tunedZ
+tuned.utils.commandsr
+tuned.constsrW
+logsr9
+Pluginr
+<module>

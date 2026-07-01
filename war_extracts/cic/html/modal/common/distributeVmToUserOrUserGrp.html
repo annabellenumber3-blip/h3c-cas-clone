@@ -1,0 +1,135 @@
+<!-- 分配虚拟机给用户或者用户分组弹出窗口 CAS与VMware共用 -->
+<!-- 标题 -->
+<div class="modal-header">
+   <button type="button" class="close" custom-title="{{::'common.close'|translate}}"  ng-click="cancel()">
+		   <span class="icon-closenew"></span>
+	</button>
+	<button ng-if="entryNodeType == 'cloudResource'" type="button" class="close cornerhelp" custom-title="{{::'help'|translate}}" ng-click="openHelp('cloudResource/vm/distributeCVMvm')">
+		<span class="icon-helpnew"></span>
+	</button>
+	<button ng-if="entryNodeType == 'cloudHost'" type="button" class="close cornerhelp" custom-title="{{::'help'|translate}}" ng-click="openHelp('cloudVm/distributeVm')">
+		<span class="icon-helpnew"></span>
+	</button>
+	<button ng-if="entryNodeType == 'virtualDesktopPool'" type="button" class="close cornerhelp" custom-title="{{::'help'|translate}}" ng-click="openHelp('cloudService/virtualDesktopPool/desktop/distributeDesktoptoUser')">
+		<span class="icon-helpnew"></span>
+	</button>
+	<button ng-if="entryNodeType == 'org'" type="button" class="close cornerhelp" custom-title="{{::'help'|translate}}" ng-click="openHelp('org/VM/distributeVMtoUser')">
+		<span class="icon-helpnew"></span>
+	</button>
+    <h4 class="modal-title" translate="menu.distributeVm"></h4>
+</div>
+<!-- 内容1:单form -->
+<div class="modal-body">
+    <div class="form-horizontal">
+        <form name="form" class="form-horizontal" ng-keypress="enter($event)" role="form" novalidate>
+            <!-- 组织:如果已经分配给了一个组织，则只读显示 -->
+            <!-- 已经有了组织id -->
+            <div class="form-group" ng-if="hasOrg">
+	            <label for="loginName" class="control-label"><span translate="common.organization"></span><span style="color: red">*</span></label>
+	            <div class="control-input" >
+	                 <div class="input-group width260">
+	                     <input id="distr_Name" type="text" ng-readonly="true" class="form-input form-control" ng-model="entity.orgName"  ng-trim="false" name="distrOrgName">
+	                 </div>
+	             </div>   
+	        </div>
+            <!-- 没有组织id -->
+	        <div class="form-group" ng-if="!hasOrg">
+	            <label for="opertorGrp" class="control-label"><span translate="common.organization"></span><span style="color:red">*</span></label>
+	            <div class="control-input">
+	                <div class="input-group width260" ng-click="selectOrg()">
+	                    <input id="distr_Name" ng-readonly="true" required name="distrName" class="form-control first-child-angle selectInput" type="text" ng-model="entity.orgName">
+	                    <span class="input-group-addon inner-addon">
+	                    	<span class="icon-search-gray" type="button" style="cursor:pointer;"></span>
+	                    </span> 
+	                    <!-- <span class="input-group-addon help-addon" ng-messages="form.distrName.$error">
+	                        <span ng-if="form.distrName.$invalid">
+	                             <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+	                        </span>
+	                    </span> -->
+	                </div>
+	            </div>
+	        </div>
+            
+            <!-- 分配方式：用户/用户分组 -->
+            <div class="form-group" style="margin-bottom:2px;">
+             	<label class="control-label"><span translate="common.distributeType"></span></label>
+                <div class="control-input">
+                    <!-- 用户 -->
+                    <div id="incBackupId" cascheckbox class="cas-checkbox labeled-btn" ng-model="entity.type" value='user'>
+                        <input id="distr_type_user" name="distrTypeUser" type="radio" ng-checked="entity.type == 'user'">
+                        <div class="corner-label">
+                            <i class="glyphicon glyphicon-ok icon"></i>
+                        </div>
+                        <div class="box">
+                            <span class="box-name" translate="org.user"></span>
+                        </div>
+                    </div>
+                    <!-- 用户分组 -->
+                    <div id="diffBackupId" cascheckbox class="cas-checkbox labeled-btn" ng-model="entity.type" value='userGrp'>
+                        <input id="distr_type_userGrp" name="distrTypeUserGrp" type="radio" ng-checked="entity.type == 'userGrp'">
+                        <div class="corner-label">
+                            <i class="glyphicon glyphicon-ok icon"></i>
+                        </div>
+                        <div class="box">
+                            <span class="box-name" translate="user.userGroup"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- 选择用户(用户时显示) -->
+            <div class="form-group" ng-if="entity.type == 'user'">
+	            <label for="opertorGrp" class="control-label"><span translate="org.user"></span><span style="color:red">*</span></label>
+	            <div class="control-input">
+	                <div class="input-group width260" ng-click="selectUsers()">
+	                    <input id="distr_user" ng-readonly="true" required name="distrUser" class="form-control first-child-angle selectInput" type="text" ng-model="destrUsers" 
+	                    custom-title="{{destrUsers}}">
+	                    <span class="input-group-addon inner-addon">
+	                    	<span class="icon-search-gray" type="button" style="cursor:pointer;"></span>
+	                    </span>
+	                </div>
+	            </div>
+	        </div>
+            <!-- 选择用户分组(用户分组时显示) -->
+            <div class="form-group" ng-if="entity.type == 'userGrp'">
+	            <label for="opertorGrp" class="control-label"><span translate="user.userGroup"></span><span style="color:red">*</span></label>
+	            <div class="control-input">
+	                <div class="input-group width260" ng-click="selectUserGrp()">
+	                    <input id="distr_userGrp" ng-readonly="true" required name="distrUserGrp" class="form-control first-child-angle selectInput" type="text" ng-model="destrUserGrp" custom-title="{{destrUserGrp}}">
+	                    <span class="input-group-addon inner-addon">
+	                    	<span class="icon-search-gray" type="button" style="cursor:pointer;"></span>
+	                    </span>
+	                </div>
+	            </div>
+	        </div>
+            <!-- 虚拟桌面池 -->
+            <div ng-if="entity.cloudType !=5 " class="form-group">
+                <label for="virDeskList" class="control-label"><span translate="org.virDesk"></span><span style="color:red">&nbsp;</span></label>
+                <div class="control-input">
+                    <div class="input-group width260">
+                        <select-input class="" options="virDeskList" input-id="virDeskSelect" input-name="virDeskSelect"  bind-model="entity.virDesk">
+                        </select-input>
+                        <span class="input-group-addon inner-addon last-child-angle" style="cursor:pointer;">
+	                         <span  class="icon-delete-gray" custom-title="{{'common.clear' | translate}}" ng-click="clearVirDesk()"></span>
+                    	</span>
+                    </div>
+                </div>
+            </div>
+            <!-- 到期日期(用户时显示) -->
+            <div class="form-group" ng-if="entity.type == 'user'">
+                <label for="clearExpireDate" class="control-label">
+                    <span translate="common.expireDate"></span><span style="color: red">&nbsp;</span>
+                </label>
+                <div class="control-input">                    
+                    <div class="input-group date input-large"  date-cell="#expireDate" jes-date picker-position="right" format="YYYY-MM-DD" min-date="minDate" ng-model="entity.expireDate">
+                        <input id="expireDate" name="clearDate0" class="form-input form-control selectInput first-child-angle calendar-input-img" type="text" readonly>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<!-- 内容1:按钮栏 -->
+<div class="modal-footer">
+    <button class="btn btn-green" ng-disabled="form.$invalid" ng-click="ok()" translate="common.confirm"></button>
+    <button class="btn btn-black" ng-click="cancel()" translate="common.cancel"></button>
+</div>

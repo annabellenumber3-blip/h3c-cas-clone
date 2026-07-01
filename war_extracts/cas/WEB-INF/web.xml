@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://java.sun.com/xml/ns/javaee" xmlns:web="http://java.sun.com/xml/ns/javaee" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd" id="WebApp_ID" version="3.0">
+  <display-name>Archetype Created Web Application</display-name>
+  <context-param>
+    <param-name>contextConfigLocation</param-name>
+    <param-value>classpath*:/com/virtual/plat/config/beans-*.xml
+    	</param-value>
+  </context-param>
+
+  <!--  SSO start -->
+  <listener>
+    <listener-class>org.jasig.cas.client.session.SingleSignOutHttpSessionListener</listener-class>
+  </listener>
+  <filter>
+    <filter-name>CAS Single Sign Out Filter</filter-name>
+    <filter-class>org.jasig.cas.client.session.SingleSignOutFilter</filter-class>
+    <init-param>
+      <param-name>casServerUrlPrefix</param-name>
+      <param-value>nosso</param-value>
+    </init-param>
+  </filter>
+  <filter-mapping>
+    <filter-name>CAS Single Sign Out Filter</filter-name>
+    <url-pattern>/*</url-pattern>
+  </filter-mapping>
+
+  <filter>
+    <filter-name>CASFilter</filter-name>
+    <filter-class>com.virtual.plat.security.CasAuthenticationFilter</filter-class>
+    <init-param>
+      <param-name>casServerLoginUrl</param-name>
+      <param-value>nosso/login</param-value>
+    </init-param>
+    <init-param>
+      <param-name>serverName</param-name>
+      <param-value>http://localhost</param-value>
+    </init-param>
+    <init-param>
+      <param-name>useSession</param-name>
+      <param-value>true</param-value>
+    </init-param>
+    <init-param>
+      <param-name>redirectAfterValidation</param-name>
+      <param-value>true</param-value>
+    </init-param>
+  </filter>
+  <filter-mapping>
+    <filter-name>CASFilter</filter-name>
+    <url-pattern>/entry.jsp</url-pattern>
+  </filter-mapping>
+
+  <filter>
+    <filter-name>CAS Validation Filter</filter-name>
+    <filter-class>com.virtual.plat.security.filter.Cas20ProxyReceivingTicketValidationFilter</filter-class>
+    <init-param>
+      <param-name>casServerUrlPrefix</param-name>
+      <param-value>nosso</param-value>
+    </init-param>
+    <init-param>
+      <param-name>serverName</param-name>
+      <param-value>http://localhost</param-value>
+    </init-param>
+  </filter>
+  <filter-mapping>
+    <filter-name>CAS Validation Filter</filter-name>
+    <url-pattern>/*</url-pattern>
+  </filter-mapping>
+
+
+  <filter>
+    <filter-name>CAS HttpServletRequest Wrapper Filter</filter-name>
+    <filter-class>
+      org.jasig.cas.client.util.HttpServletRequestWrapperFilter
+    </filter-class>
+  </filter>
+  <filter-mapping>
+    <filter-name>CAS HttpServletRequest Wrapper Filter</filter-name>
+    <url-pattern>/*</url-pattern>
+  </filter-mapping>
+  <filter>
+    <filter-name>CAS Assertion Thread Local Filter</filter-name>
+    <filter-class>org.jasig.cas.client.util.AssertionThreadLocalFilter</filter-class>
+  </filter>
+  <filter-mapping>
+    <filter-name>CAS Assertion Thread Local Filter</filter-name>
+    <url-pattern>/*</url-pattern>
+  </filter-mapping>
+
+  <!--  SSO end -->
+
+
+  <filter>
+    <filter-name>springSecurityFilterChain</filter-name>
+    <filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>
+  </filter>
+  <filter-mapping>
+    <filter-name>springSecurityFilterChain</filter-name>
+    <url-pattern>/*</url-pattern>
+  </filter-mapping>
+  <filter>
+    <filter-name>CharacterEncodingFilter</filter-name>
+    <filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
+    <init-param>
+      <param-name>encoding</param-name>
+      <param-value>utf-8</param-value>
+    </init-param>
+  </filter>
+  <filter-mapping>
+    <filter-name>CharacterEncodingFilter</filter-name>
+    <url-pattern>/*</url-pattern>
+  </filter-mapping>
+
+  <filter>
+    <filter-name>CasFilter</filter-name>
+    <filter-class>com.virtual.plat.security.casFilter</filter-class>
+  </filter>
+  <filter-mapping>
+    <filter-name>CasFilter</filter-name>
+    <url-pattern>/*</url-pattern>
+  </filter-mapping>
+
+  <listener>
+    <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+  </listener>
+  <listener>
+    <listener-class>org.springframework.web.context.request.RequestContextListener</listener-class>
+  </listener>
+  <listener>
+    <listener-class>com.virtual.plat.server.WarInitializationFailureListener</listener-class>
+  </listener>
+
+  <servlet>
+    <servlet-name>Jersey Spring Web Application</servlet-name>
+    <servlet-class>com.sun.jersey.spi.spring.container.servlet.SpringServlet</servlet-class>
+    <init-param>
+      <param-name>com.sun.jersey.spi.container.ResourceFilters</param-name>
+      <param-value>com.sun.jersey.api.container.filter.RolesAllowedResourceFilterFactory</param-value>
+    </init-param>
+    <init-param>
+      <param-name>com.sun.jersey.spi.container.ContainerRequestFilters</param-name>
+      <param-value>com.virtual.plat.server.rs.ext.LoggingFilter</param-value>
+    </init-param>
+    <init-param>
+      <param-name>com.sun.jersey.spi.container.ContainerResponseFilters</param-name>
+      <param-value>com.virtual.plat.server.rs.ext.LoggingFilter</param-value>
+    </init-param>
+    <init-param>
+      <param-name>com.sun.jersey.spi.container.ContainerResponseFilters</param-name>
+      <param-value>com.virtual.plat.server.rs.ext.linking.LinkFilter</param-value>
+    </init-param>
+    <init-param>
+      <param-name>com.sun.jersey.config.property.packages</param-name>
+      <param-value>com.virtual.plat.server.rs.ext</param-value>
+    </init-param>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>Jersey Spring Web Application</servlet-name>
+    <url-pattern>/casrs/*</url-pattern>
+  </servlet-mapping>
+  <servlet>
+    <servlet-name>dispatcher</servlet-name>
+    <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+    <init-param>
+      <param-name>contextConfigLocation</param-name>
+      <param-value>classpath:/com/virtual/plat/config/dispatcher-servlet.xml</param-value>
+    </init-param>
+    <init-param>
+      <param-name>dispatchOptionsRequest</param-name>
+      <param-value>true</param-value>
+    </init-param>
+    <load-on-startup>1</load-on-startup>
+    <async-supported>true</async-supported>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>dispatcher</servlet-name>
+    <url-pattern>/</url-pattern>
+  </servlet-mapping>
+  <servlet>
+    <servlet-name>entry</servlet-name>
+    <servlet-class>com.virtual.plat.server.servlet.CheckEntryServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>entry</servlet-name>
+    <url-pattern>/checkEntryServlet</url-pattern>
+  </servlet-mapping>
+  <welcome-file-list>
+    <welcome-file>entry.jsp</welcome-file>
+    <welcome-file>index.html</welcome-file>
+  </welcome-file-list>
+  <error-page>
+    <error-code>404</error-code>
+    <location>/404.jsp</location>
+  </error-page>
+  <error-page>
+    <error-code>401</error-code>
+    <location>/401.jsp</location>
+  </error-page>
+</web-app>

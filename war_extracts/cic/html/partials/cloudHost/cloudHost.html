@@ -1,0 +1,140 @@
+<div class="cas-panel" ng-controller="CloudHostCtrl">
+	<div class="panel-heading cas-panel-heading">
+		<ol class="breadcrumb">
+			<li><a ui-sref= "main.cloudService"><span translate="cloudService.cloudService"></span></a></li>
+			<li class="active"><span translate="cloudHost.cloudHost"></span></li>
+		</ol>
+		<span class="glyphicon glyphicon-question-sign link-help" custom-title="{{'help'|translate}}"
+			aria-hidden="true" ng-click="openHelp('cloudVm/vmMgmt')"></span>
+	</div>
+	<div class="panel-body" style="overflow-y:hidden;">
+		<div class="section">
+			<div class='lead' >
+		      <span class="pic Icon-virtual-host Icon_common_display">
+		      </span>
+		      <span class="desc"><span translate="cloudHost.cloudHostHead"></span></span>
+			</div>
+		</div>
+		<nav class="navbar-default" role="navigation">
+			<div class="container-fluid">
+				<div class="btn-group navbar-right" role="group" aria-label="...">
+					<label id="refreshCloudHost" class="btn btn-default btn-menu hidden-xs" ng-click="refreshCloudHost()">
+						<span class="sm-icon icon-refresh"></span>
+						<span translate="common.refresh"></span>
+					</label>
+					<label has-permission="VIRT_HOST_START" ng-if ="vm.enableStart == false" class="btn btn-default btn-menu btn-forbidden">
+					  <span class="sm-icon icon-start-gray"></span><span translate="menu.start"></span>
+					</label>
+					<label has-permission="VIRT_HOST_START" ng-if ="vm.enableStart == true"  class="btn btn-default btn-menu" ng-click="startVm()">
+					  <span class="sm-icon icon-start"></span><span translate="menu.start"></span>
+					</label>
+					
+					<label has-permission="VIRT_HOST_SHUTDOWN" ng-if ="vm.enableShutdown == false" class="btn btn-default btn-menu btn-forbidden">
+					  <span class="sm-icon icon-vm-shutdown-gray"></span><span translate="menu.shutdown"></span>
+					</label>
+					<label has-permission="VIRT_HOST_SHUTDOWN" ng-if ="vm.enableShutdown == true" class="btn btn-default btn-menu " ng-click="shutdownVm()">
+					  <span class="sm-icon icon-vm-shutdown"></span><span translate="menu.shutdown"></span>
+					</label>
+					
+					<label has-permission="VIRT_HOST_CLOSE" ng-if ="vm.enableClose == false" class="btn btn-default btn-menu btn-forbidden" >
+					  <span class="sm-icon icon-vm-power-off-gray"></span><span translate="menu.close"></span>
+					</label>
+					<label has-permission="VIRT_HOST_CLOSE" ng-if ="vm.enableClose == true" class="btn btn-default btn-menu " ng-click="closeVm()">
+					  <span class="sm-icon icon-vm-power-off"></span><span translate="menu.close"></span>
+					</label>
+					
+					<label has-permission="VIRT_HOST_DEL" ng-if ="vm.enableDelete == false" class="btn btn-default btn-menu btn-forbidden" >
+					  <span class="sm-icon icon-delete-gray"></span><span translate="menu.delete"></span>
+					</label>
+					<label has-permission="VIRT_HOST_DEL" ng-if ="vm.enableDelete == true" class="btn btn-default btn-menu" ng-click="deleteVm()">
+					  <span class="sm-icon icon-delete"></span><span translate="menu.delete"></span>
+					</label>
+					<div class="btn btn-default btn-menu" has-permission="VIRT_HOST_PAUSE || VIRT_HOST_RESTORE || VIRT_HOST_SLEEP || VIRT_HOST_RESTART ||
+					VIRT_HOST_DISTRIBUTE || VIRT_HOST_SNAPSHOT || VIRT_HOST_DISTRIBUTE || VIRT_HOST_BACKUP || VIRT_HOST_REVERT || VIRT_HOST_CLONE_TEMPLET || 
+					VIRT_HOST_MIGRATE || VIRT_HOST_UPGRADE_CASTOOLS || VIRT_HOST_CONSOLE" dropdown dropdown-toggle>
+					  <span class="sm-icon icon-more-actions"></span>
+					  <span translate="menu.moreOperate"></span>
+					  <span class="dropdown-toggle icon-xialahao" type="button"></span>
+					  <ul class="dropdown-menu" role="menu">
+				        <li has-permission="VIRT_HOST_PAUSE" ng-if ="vm.enablePause == false && vm.isCloudCvm == true"><a href="#" class="dropdown-forbidden"><span class="sm-icon icon-pause-gray"></span><span translate="menu.pause"></span></a></li>
+				        <li has-permission="VIRT_HOST_PAUSE" ng-if ="vm.enablePause == true && vm.isCloudCvm == true"><a href="#" ng-click="pauseVm()"><span class="sm-icon icon-pause-yellow"></span><span translate="menu.pause"></span></a></li>
+				        
+				        <li has-permission="VIRT_HOST_RESTORE" ng-if ="vm.enableRestore == false && vm.isCloudCvm == true"><a href="#" class="dropdown-forbidden"><span class="sm-icon icon-vm-resume-gray"></span><span translate="menu.resume"></span></a></li>
+				        <li has-permission="VIRT_HOST_RESTORE" ng-if ="vm.enableRestore == true && vm.isCloudCvm == true"><a href="#" ng-click="resumeVm()"><span class="sm-icon icon-vm-resume"></span><span translate="menu.resume"></span></a></li>
+				         
+				        <li has-permission="VIRT_HOST_SLEEP" ng-if ="vm.enableSleep == false"><a href="#" class="dropdown-forbidden"><span class="sm-icon icon-vm-sleep-gray"></span><span translate="menu.sleep"></span></a></li>
+				        <li has-permission="VIRT_HOST_SLEEP" ng-if ="vm.enableSleep == true"><a href="#" ng-click="sleepVm()"><span class="sm-icon icon-vm-sleep"></span><span translate="menu.sleep"></span></a></li>
+				        
+				        <li has-permission="VIRT_HOST_RESTART" ng-if ="vm.enableReboot == false"><a href="#" class="dropdown-forbidden"><span class="sm-icon icon-vm-reboot-gray"></span><span translate="menu.restart"></span></a></li>
+				        <li has-permission="VIRT_HOST_RESTART" ng-if ="vm.enableReboot == true"><a href="#" ng-click="restartVm()"><span class="sm-icon icon-vm-reboot"></span><span translate="menu.restart"></span></a></li>
+				        
+				        <li has-permission="VIRT_HOST_DISTRIBUTE" ng-if ="vm.enableDistribute == false"><a href="#" class="dropdown-forbidden"><span class="sm-icon icon-operator-gray"></span><span translate="menu.distributeVm"></span></a></li>
+				        <li has-permission="VIRT_HOST_DISTRIBUTE" ng-if ="vm.enableDistribute == true"><a href="#" ng-click="distributeVm()"><span class="sm-icon icon-operator"></span><span translate="menu.distributeVm"></span></a></li>
+				        
+						<!-- 快照管理 -->
+						<li has-permission="VIRT_HOST_SNAPSHOT" ng-if ="vm.enableSnapshot == false && vm.isCloudCvm == true" ><a ref="#" class="dropdown-forbidden"><span class="sm-icon icon-vm-snapshot-gray"></span><span translate="menu.snapshotMng"></span></a></li>
+						<li has-permission="VIRT_HOST_SNAPSHOT" ng-if ="vm.enableSnapshot == true && vm.isCloudCvm == true" ><a ref="#" ng-click="snapshotVm()"><span class="sm-icon icon-vm-snapshot"></span><span translate="menu.snapshotMng"></span></a></li>
+				        
+				        <li has-permission="VIRT_HOST_SNAPSHOT" ng-if ="vm.enableSnapshot == false && vm.isCloudCvm == false"><a ref="#" class="dropdown-forbidden"><span class="sm-icon icon-vm-snapshot-gray"></span><span translate="menu.createSnapshot"></span></a></li>
+						<li has-permission="VIRT_HOST_SNAPSHOT" ng-if ="vm.enableSnapshot == true && vm.isCloudCvm == false"><a ref="#" ng-click="createSnapshotVm()"><span class="sm-icon icon-vm-snapshot"></span><span translate="menu.createSnapshot"></span></a></li>
+				        
+				        <li has-permission="VIRT_HOST_DISTRIBUTE" ng-if ="vm.enableDistribute==true"><a href="#" ng-click="revokeDomain()"><span class="sm-icon icon-revokeDomain"></span><span translate="menu.revokeDomain"></span></a>
+  	 					<li has-permission="VIRT_HOST_DISTRIBUTE" ng-if ="vm.enableDistribute==false"><a href="#" class="dropdown-forbidden"><span class="sm-icon icon-revokeDomain-gray"></span><span translate="menu.revokeDomain"></span></a>
+				        
+				        <li has-permission="VIRT_HOST_BACKUP" ng-if ="vm.enableBackup == false && vm.isCloudCvm == true"><a href="#" class="dropdown-forbidden"><span class="sm-icon icon-vm-backup-gray"></span><span translate="menu.backup"></span></a></li>
+				        <li has-permission="VIRT_HOST_BACKUP" ng-if ="vm.enableBackup == true && vm.isCloudCvm == true"><a href="#" ng-click="backupVm()"><span class="sm-icon icon-vm-backup"></span><span translate="menu.backup"></span></a></li>
+				        
+				        <!-- 备份管理 -->
+				        <li has-permission="VIRT_HOST_REVERT" ng-if ="vm.enableBackupMgr == false && vm.isCloudCvm == true"><a href="#" class="dropdown-forbidden"><span class="sm-icon icon-cvm-bakcup-hisotry-gray"></span><span translate="vm.backupMng"></span></a></li>
+				        <li has-permission="VIRT_HOST_REVERT" ng-if ="vm.enableBackupMgr == true && vm.isCloudCvm == true"><a href="#" ng-click="backupMng()"><span class="sm-icon icon-cvm-bakcup-hisotry"></span><span translate="vm.backupMng"></span></a></li>
+				        
+				        <li has-permission="VIRT_HOST_CLONE_TEMPLET" ng-if ="vm.enableCloneTemplate == false && vm.isCloudCvm == false"><a href="#" class="dropdown-forbidden"><span class="sm-icon icon-vm-clone-to-template-gray"></span><span translate="menu.cloneTemplate"></span></a></li>
+			        	<li has-permission="VIRT_HOST_CLONE_TEMPLET" ng-if ="vm.enableCloneTemplate == true && vm.isCloudCvm == false"><a href="#" ng-click="cloneTemplate()"><span class="sm-icon icon-vm-clone-to-template"></span><span translate="menu.cloneTemplate"></span></a></li>
+
+					    <li has-permission="VIRT_HOST_MIGRATE" ng-if ="vm.enableMigrate == false && vm.isCloudCvm == false"><a href="#" class="dropdown-forbidden"><span class="sm-icon icon-vm-migrate-gray"></span><span translate="menu.migrate"></span></a></li>
+				        <li has-permission="VIRT_HOST_MIGRATE" ng-if ="vm.enableMigrate == true && vm.isCloudCvm == false"><a href="#" ng-click="migrateVm()"><span class="sm-icon icon-vm-migrate"></span><span translate="menu.migrate"></span></a></li>
+
+				        <li has-permission="VIRT_HOST_MIGRATE" ng-if ="vm.enableMigrate == true && vm.isCloudCvm == true"><a href="#" ng-click="migrateDomain()"><span class="sm-icon icon-vm-migrate"></span><span translate="menu.migrate"></span></a></li>
+     					<li has-permission="VIRT_HOST_MIGRATE" ng-if ="vm.enableMigrate == false && vm.isCloudCvm == true"><a class="dropdown-forbidden"><span class="sm-icon icon-vm-migrate-gray"></span><span translate="menu.migrate"></span></a></li>
+				        
+     					<!-- 升级Castools -->
+     					<li has-permission="VIRT_HOST_UPGRADE_CASTOOLS" ng-if ="vm.enableUpgradeCastools == false && vm.isCloudCvm == true"><a class="dropdown-forbidden"><span class="sm-icon icon-upgrade-gray"></span><span translate="menu.upgradeCastools"></span></a></li>
+						<li has-permission="VIRT_HOST_UPGRADE_CASTOOLS" ng-if ="vm.enableUpgradeCastools == true && vm.isCloudCvm == true"><a href="#" ng-click="upgradeCastools()"><span class="sm-icon icon-upgrade"></span><span translate="menu.upgradeCastools"></span></a></li>
+				        
+						<li has-permission="VIRT_HOST_CONSOLE" ng-if ="vm.enableConsole == false && vm.isCloudCvm == true"><a ref="#" class="dropdown-forbidden"><span class="sm-icon icon-vm-console"></span><span translate="menu.openConsole"></span></a></li>
+						<li has-permission="VIRT_HOST_CONSOLE" ng-if ="vm.enableConsole == true && vm.isCloudCvm == true"><a ref="#" ng-click="openConsole()"><span class="sm-icon icon-vm-console"></span><span translate="menu.openConsole"></span></a></li>
+						
+				      </ul>
+				</div>
+				<label id="showCloudHostUser" class="btn btn-default btn-menu hidden-xs" ng-click="showCloudHostUser()">
+					<span class="sm-icon glyphicon icon-operator-view"></span>
+					<span>{{showUserTitle}}</span>
+				</label>
+				<label>
+			      <input class="form-control" id="navbarInput-01" type="search" placeholder="{{'vmTitleSearchHolder'|translate}}" ng-model="vmListTitle" maxlength="64">
+				</label>
+			</div>
+			</div>
+        </nav>
+		<div class="cas-list-body rightClick" ng-class="{'twoListWithLeadAndButton-sevenTenths-calc':isShowUser,'oneListWithLead-calc':!isShowUser}">
+			<div id="cloudHostListId"  class="table"  ng-grid="gridOptions"></div>
+			<div cas-context-menu-id="cas-context-menu" cas-context-menu="mySelections" cas-context-menu-type="{{menuType}}" cas-enter-node-type="cloudHost"> </div>
+		</div>
+		<nav class="navbar-default" role="navigation" ng-if="isShowUser2">
+			<div class="container-fluid">
+				<div class="btn-group navbar-left" >
+				 <h5 translate="org.userGroup"></h5>
+				</div>
+				<div class="btn-group navbar-right">
+					<label id="refreshUser" class="btn btn-default btn-menu hidden-xs"   ng-click="refreshUser()">
+						<span class="sm-icon icon-refresh"></span>
+						<span translate="common.refresh"></span>
+					</label>
+				</div>
+			</div>
+		</nav>
+		<div class="cas-list-body twoListWithLeadAndButton-threeTenths-calc" style="min-height:0px;" ng-if="isShowUser2">
+			<div id="cloudHostUserId" class="table"  ng-grid="userOptions"></div>
+		</div>
+	</div>
+</div>

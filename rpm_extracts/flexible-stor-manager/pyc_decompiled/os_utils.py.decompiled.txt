@@ -1,0 +1,376 @@
+l	Z	d
+)!z,System level utilities and helper functions.
+valid_ipv4
+valid_ipv6)
+exceptions)
+settingsc
+ProcessExecutionErrorNc
+superr
+__init__
+	exit_code
+stderr
+stdout
+description)
+selfr
+	__class__
+./fsm/utils/os_utils.pyr	
+ProcessExecutionError.__init__c
+Nz!Unexpected error while running %s
+-z&%s
+Exit code: %s
+Stdout: %r
+Stderr: %rz
+%s Exit code: %s)
+DEBUGr
+messager
+__str__(
+ProcessExecutionError.__str__)
+NNNNN)
+__name__
+__module__
+__qualname__r	
+__classcell__r
+sJd |
+d'd(
+Helper method to shell out and execute a command through subprocess.
+    :param cmd:             Passed to subprocess.Popen.
+    :type cmd:              string
+    :param process_input:   Send to opened process.
+    :type process_input:    string
+    :param shell:           whether or not there should be a shell used to
+                            execute this command. Defaults to false.
+    :type shell:            boolean
+    :param check_exit_code: Single bool, int, or list of allowed exit
+                            codes.  Defaults to [0].  Raise
+                            :class:`ProcessExecutionError` unless
+                            program exits with one of these code.
+    :type check_exit_code:  boolean, int, or [int]
+    :param attempts:        How many times to retry cmd.
+    :type attempts:         int
+    :param delay_on_retry:  True | False. Defaults to True. If set to True,
+                            wait a short amount of time before retrying.
+    :type delay_on_retry:   boolean
+    :param interval:        The multiplier defined in seconds. it is valid
+                            with backoff_rate parameter to controll exponential
+                            backoff retries
+    :type interval:         int
+    :param backoff_rate:    Used for the exponential backoff retries replaces
+                            random sleep times. Disabled if delay_on_retry is
+                            passed as a parameter.
+    :type backoff_rate:     int
+    :param timeout:         Timeout defined in seconds. To use the timeout
+                            mechanism to stop the subprocess with a specific
+                            signal
+    :type timeout:          int
+    :param signal:          Signal to use to stop the process on timeout
+    :param raise_timeout:   Raise an exception on timeout. Defaults to raise
+    :type raise_timeout:            boolean
+    :returns:               Tuple with stdout and stderr
+    )
+zdTimeout mechanism is controlled with timeout, signal,
+        and raise_timeout parameters.
+        z8Stopping %(cmd)s with signal %(signal)s after %(time)ss.)
+signalr
+time
+warningZ
+send_signal)
+proc)
+shared_data
+sig_end
+timeoutr
+on_timeoutl
+execute_cmd.<locals>.on_timeoutc
+Track process creation asynchronously.
+        It will be called upon process creation with
+        the Popen object as a argument.
+        r
+Sleeping for %s seconds
+maxr
+debugr
+sleep
+	threading
+Timer
+start)
+wait_for)
+backoff_rate
+intervalr%
+on_executev
+execute_cmd.<locals>.on_executec
+Track process completion asynchronously.
+        It will be called upon process completion with the
+        Popen object as a argument.
+        r&
+cancel)
+unused_proc)
+on_completion
+z"execute_cmd.<locals>.on_completion
+process_inputN
+shellF
+check_exit_coder
+attemptsr&
+raise_timeoutT
+delay_on_retryr0
+str)
+<listcomp>
+execute_cmd.<locals>.<listcomp>z
+utf-8
+ignore)
+stdinr
+encoding
+errors)
+zS%(desc)r
+command: %(cmd)r
+exit code: %(code)r
+stdout: %(stdout)r
+stderr: %(stderr)r)
+descr
+coder
+zKTimeout on proc %(pid)s after waiting %(time)s seconds when running %(cmd)s)
+pidr
+z0Got an OSError
+command: %(cmd)r
+errno: %(errno)r)
+errnoz
+%r failed. Not Retrying.z
+%r failed. Retrying.
+Y@) 
+popr
+SIGTERM
+isinstance
+bool
+list
+subprocess
+Popen
+PIPEZ
+communicater@
+close
+returncoder
+OSErrorr
+ExecutionTimeout
+errorrF
+randomZ
+randint)
+kwargsr1
+ignore_exit_coder7
+resultZ
+return_coder
+errZ
+str_formatr!
+msgr
+execute_cmd@
+Retrying an action to handle potential failures.
+    :param exception:    Retry on certain exception.
+    :param interval:     The multiplier defined in seconds. it is valid
+                         with backoff_rate parameter to controll exponential
+                         backoff retries.
+    :param retries:      A number of tentative.
+    :backoff_rate:       Exponential backoff retries.
+    :max_interval:       Max interval in seconds beyond which the interval
+                         will not be incremented. If it is set, it will be
+                         retried indefinitely until an exception is thrown.
+    :catch_exception:    Raise any exceptions or not.
+    c
+exc)
+	exceptionr
+_retry_on_exception
+z"retry.<locals>._retry_on_exceptionc
+z#retried %d, sleeping for %s seconds
+minr'
+previous_attempt_numberZ
+unused_attempt_msr.
+max_intervalr
+_backoff_sleep
+retry.<locals>._backoff_sleepc
+Failed attempt %sz Have been at this for %s secondsF)
+delay_since_first_attempt_msZ
+delay_since_first_attempt)
+retriesr
+_print_stop
+retry.<locals>._print_stopr&
+z;Retries must be greater than or equal to 1 (received: %s). c
+retry_on_exceptionZ	wait_funcZ	stop_funcz
+Retrying error: %s)
+retryingZ
+Retrying
+call
+	Exceptionr
+argsrW
+trying
+retr^
+catch_exception
+funcr
+_wrapper
+z+retry.<locals>._decorator.<locals>._wrapper)
+	functools
+wraps)
+_decorator
+retry.<locals>._decorator)
+ValueError)
+)	re
+retry
+rootc
+qRq&W
+z4t	
+Run a command through SSH.
+    :param ip:              Remote node ip address.
+    :param cmd:             The command string to run.
+    :param check_exit_code: If an exception should be raised for non-zero
+                            exit.
+    :param retry:           Max times to retry connecting.
+    :param user:            User name for SSH login that free password
+    :returns:               (stdout, stderr) from command execution through
+                            SSH.
+    rE
+/etc/cvk/user_info.conf
+permit_user_sshr&
+Nzdtimeout 15 ssh -q -o ServerAliveInterval=5 -o ServerAliveCountMax=2 -o ConnectionAttempts=2 %s@%s %sT)
+Execute %s on %s failed, %s
+dest)
+path
+exists
+open
+	readlines
+split
+stripr\
+NetworkUnreachablerj
+ipr6
+user
+outrZ
+line
+paramsZ
+ssh_cmdr^
+ssh_execute,
+z(d	|
+}	~	qHd
+}	~	0
+}	~	
+}	~	q
+}	~	0
+}	~	
+}	~	q
+}	~	0
+Run a command in cluster through SSH.
+    :param local_ip:        local node ip in cluster.
+    :param node_ips:        All ip of the cluster node.
+    :param cmd:             The command string to run.
+    :param check_exit_code: If an exception should be raised for exit_status
+                            not in check_exit_code.
+    :ignore_error:          If true we ignore execute exception and continue,
+                            otherwise we stop and return.
+    :ssh_test               If true test ssh connection before execute command,
+                            otherwise ignore test.
+    :returns:               Dictionary of command execution result through SSH.
+    r6
+ignore_errorF
+ssh_testr_
+Z	ssh_error
+unamez
+Ssh to %s test failNrE
+zEIgnore error because ip type is different. Localip: %s, Remote ip: %s)
+dictrN
+SSHConnectTestFailedr
+append)
+local_ipZ
+node_ipsr
+node_ipr^
+ssh_execute_cmd_on_nodesW
+Unlink system links.
+    By default it will raise an exception if a link does not exist and stop
+    unlinking remaining links.
+    This behavior can be modified passing optional parameters `no_errors` and
+    `raise_at_end`.
+    :param no_errors: Don't raise an exception on error
+    :param raise_at_end: Don't raise an exception on first error, try to
+                         unlink all links and then raise a ChainedException
+                         with all the errors that where found.
+    
+	no_errorsF
+raise_at_endz
+Unlink failed for %sN)
+getr
+ExceptionChainer
+contextry
+unlink)
+linksrW
+linkr
+unlink_symbol_link
+z2Get local ipv4/6, default port used by fsm servicez
+Get local addr info fail, %sN
+socketZ
+gethostnameZ
+getaddrinforj
+add)
+portZ	local_ips
+hostnameZ
+addr_infosr^
+Z	addr_infor
+get_local_ips
+z;Return specify directory file info according to change timer
+getctime
+join)
+<lambda>
+z#get_file_by_ctime.<locals>.<lambda>)
+keyz
+Get path(%s) file info fail, %sN)
+listdir
+sortedrz
+getsizer
+total_sizeZ
+files_info
+path_files
+	path_file
+	file_size
+	file_infor^
+get_file_by_ctime
+zDDelete all files in specify directory and raise exception if residuez
+Delete file %s in %sz
+Delete directory %s in %sz
+Delete path(%s) file fail, %sz&File %s delete by another node, ignoreNz@
+Directory %s add file %s during clear path.
+[91mTry again.
+[0m)
+isfiler
+remove
+isdir
+shutil
+rmtreerT
+ENOENT
+infor
+ReleaseFsSpaceFailed)
+Z	file_pathr^
+clear_path
+Trace calls to the decorated function.
+    This decorator should always be defined as the outermost decorator so it
+    is defined last. This is important so it does not interfere
+    with other decorators.
+    Using this decorator on a function will cause its execution to be logged at
+    `DEBUG` level with arguments, return values, and exceptions.
+    :returns: a function decorator
+    c
+==> %(func)s: call %(all_args)r)
+all_argsi
+z,<== %(func)s: exception (%(time)dms) %(exc)r)
+z,<== %(func)s: return (%(time)dms) %(result)r)
+lenr
+hasattr
+logging
+	getLoggerr
+isEnabledForr
+inspectZ
+getcallargsr(
+round)	rk
+maybe_self
+loggerr
+start_timerY
+total_time
+fZ	func_namer
+trace_logging_wrapper
+z$trace.<locals>.trace_logging_wrapper)
+trace
+__doc__rF
+subprocess32rO
+netaddrr
+fsmr
+fsm.settingsr
+fsm_portr
+<module>

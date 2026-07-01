@@ -1,0 +1,277 @@
+<div class="panel cas-panel panel-default"   ng-controller="DashboardCtrl" style="width:100%;height:100%" >
+	<div class="panel-heading cas-panel-heading">
+		<ol class="breadcrumb" style="display: inline;">
+			<li class="active"><span translate="dashboard.overview"></span></li>
+		</ol>
+	</div>
+	<div tabindex="-1" class="panel-body" style="height:calc(100% - 47px);min-height:500px;outline:none;" id="dashboardExpandPanel" ng-keydown="keydown($event)">
+		<div class="viewflow">
+			<a id="expand" class="dashboardBtn" custom-title="{{'dashboard.expand'|translate}}">
+				<img src="images/icon_full_screen_16x16.png">
+			</a>
+			<div class="status-back" >
+				<h4 class="dashboardh4"><span has-permission="VMWORKFLOW_VIEW||CLOUDDISKFLOW_VIEW||USERREGISTERFLOW_VIEW||CLOUDBACKUPSTRATEGY_VIEW" translate="dashboard.flowHead"></span>
+					<label has-permission="ENTRUST_MNG" id="entrust" class="btn btn-default btn-menu" ng-click="entrust()">
+						<span class="sm-icon icon-host-add"></span><span translate="entrust.entrustHead"></span>
+					</label>
+				</h4>
+				<div class="status-bar">
+					<div class="status" has-permission="VMWORKFLOW_VIEW" id="vmworkFlow" locale-is-en ui-sref='main.workflowVm'>
+						<div class="status-left">
+							<div class="status-pic">
+								<span class="icon"><img class="icon"
+									style="width: 35px; height: 35px; opacity: 0.7; position: absolute; bottom: 40px;"
+									src="images/Icon_vm_workflow.svg"> </span>
+							</div>
+							<div class="status-name">
+								<span style="color: #666666" translate="cloudHost.cloudHost"></span>
+							</div>
+						</div>
+						<div class="status-num">
+							<span id="vmworkFlowTotal" style="color: #217ACA"></span>
+						</div>
+					</div>
+					<div class="status" has-permission="CLOUDDISKFLOW_VIEW" id="cloudDisk" locale-is-en ui-sref="main.workflowDisk">
+						<div class="status-left">
+							<div class="status-pic">
+								<span class="icon"><img class="icon"
+									style="width: 35px; height: 35px; opacity: 0.7; position: absolute; bottom: 40px;"
+									src="images/Icon_vm_disk_workflow.svg"> </span>
+							</div>
+							<div class="status-name">
+								<span style="color: #666666" translate="dashboard.cloudDisk"></span>
+							</div>
+						</div>
+						<div class="status-num">
+							<span id="cloudDiskTotal" style="color: #217ACA"></span>
+						</div>
+					</div>
+					<div class="status" has-permission="USERREGISTERFLOW_VIEW" id="registerUserWorkflow" locale-is-en ui-sref="main.workflowRegister">
+						<div class="status-left">
+							<div class="status-pic">
+								<span class="icon"><img class="icon"
+									style="width: 35px; height: 35px; opacity: 0.7; position: absolute; bottom: 40px;"
+									src="images/Icon_user_preregister_workflow.svg"> </span>
+							</div>
+							<div class="status-name">
+								<span style="color: #666666" translate="dashboard.registerUserWorkflow"></span>
+							</div>
+						</div>
+						<div class="status-num">
+							<span id="registerUserWorkflowTotal" style="color: #217ACA"></span>
+						</div>
+					</div>
+					<div class="status" has-permission="CLOUDBACKUPSTRATEGY_VIEW" id="backStrategy" locale-is-en ui-sref="main.workflowBack">
+						<div class="status-left">
+							<div class="status-pic">
+								<span class="icon"><img class="icon"
+									style="width: 35px; height: 35px; opacity: 0.7; position: absolute; bottom: 40px;"
+									src="images/Icon_vm_backup_cloud.svg"> </span>
+							</div>
+							<div class="status-name">
+								<span style="color: #666666" translate="dashboard.backStrategy"></span>
+							</div>
+						</div>
+						<div class="status-num">
+							<span id="backStrategyTotal" style="color: #217ACA"></span>
+						</div>
+					</div>
+					
+					<div has-permission="CLOUDWORKORDER_VIEW">
+					<h4 class="dashboardh4" translate="dashboard.workOrderHead"></h4>
+					<!-- 第二行 云工单-->
+						<div class="status-bar" >
+								<div class="status" id="workorder" locale-is-en ui-sref='main.cloudWorkorder'>
+									<div class="status-left">
+										<div class="status-pic">
+											<span class="icon"><img class="icon"
+												style="width: 35px; height: 35px; opacity: 0.7; position: absolute; bottom: 40px;"
+												src="css/img/green/Icon_work_order.svg"> </span>
+										</div>
+										<div class="status-name">
+											<span style="color: #666666" translate="dashboard.workOrder"></span>
+										</div>
+									</div>
+									<div class="status-num">
+										<span id="workOrderTotal" style="color: #217ACA">0</span>
+									</div>
+							  </div>
+						</div>
+					</div>
+				</div>
+			</div>
+				<hr/>
+				<div id="orgInfo" class="dashboard-overview-info "> 
+					<h4 class="dashboardh4" translate="dashboard.orgHead"></h4>
+					<!-- 第二行 组织-->
+					<div class="container demo-1" >
+						<div class="main orgElasti">
+							<!-- Elastislide Carousel -->
+							<ul id="org_carousel" class="elastislide-list">
+							</ul>
+						</div>
+					</div>
+					<h4 class="dashboardh4"><span id="orgName"></span ><span translate="dashboard.orgEveryHead"/></h4>
+					<!-- 第三行 虚拟机状态统计+用户数+CPU数+内存数 -->
+					<div class="rowDashboard dashboard-overview-row">
+						<!-- 虚拟机统计-->
+						<div class="square-dashboard-24" id="vmInfo">
+							<h4 translate="dashboard.vmStatusInfo"></h4>
+							<div id="vmCircle" class="circle"> </div>
+							<div id="vmnumBar" class="numBar">
+								<div class="numItem" id="numItem-normal">
+									<label></label><br> <span translate="dashboard.vmOpened"></span>
+								</div>
+								<div class="numItem" id="numItem-close">
+									<label></label><br> <span translate="dashboard.vmClosed"></span>
+								</div>
+								<div class="numItem" id="numItem-error">
+									<label></label><br> <span translate="dashboard.vmUnKnown"></span>
+								</div>
+							</div>
+						</div>
+						
+						<!-- 用户数 -->
+						<div class="square-dashboard-24" id="userinfo">
+							<h4 translate="dashboard.countUser"></h4>
+							<div class = "circle" id = "countUserPic"></div>
+							<div id="usernumBar" class="numBar">
+								<div class="numItem numItem_double" id="numItem-useryes">
+									<label></label><br> <span translate="dashboard.useryes"></span>
+								</div>
+								<div class="numItem numItem_double" id="numItem-userno">
+									<label></label><br> <span translate="dashboard.userno"></span>
+								</div>
+							</div>
+						</div>
+						<div class="square-dashboard-24" id="cpuinfo">
+							<h4 translate="dashboard.countCpuMem"></h4>
+							<!-- CPU -->
+							<div class="remind count">
+								<div class = "countPic" id = "countCpuPic"></div>
+								<div class = "countTable">
+							    	<table>
+								    	<tr><td translate="dashboard.orgCpu"></td><td class="leftText" id = "orgCpu"></td></tr>
+								    	<tr><td translate="dashboard.orgCpuCur"></td><td class="leftText" id = "orgCpuCur"></td></tr>
+								    	<tr><td translate="dashboard.cpuUtilRate"></td><td class="leftText" id = "cpuUtilRate"></td></tr>
+							    	</table>
+							    </div>
+							</div>
+							<!-- 内存 -->
+							<div class="remind count">
+								<div class = "countPic" id = "countMemoryPic"></div>
+								<div class = "countTable">
+							    	<table>
+								    	<tr><td translate="dashboard.orgMem"></td><td class="leftText" id = "orgMem"></td></tr>
+								    	<tr><td translate="dashboard.orgMemCur"></td><td class="leftText" id = "orgMemCur"></td></tr>
+								    	<tr><td translate="dashboard.memUtilRate"></td><td class="leftText" id = "memUtilRate"></td></tr>
+							    	</table>
+							    </div>
+							</div>
+						</div>
+						<div class="square-dashboard-24" id="meminfo">
+							<h4 translate="dashboard.countStorageVm"></h4>
+							<!-- 存储 -->
+							<div class="remind count">
+								<div class = "countPic" id = "countStoragePic"></div>
+								<div class = "countTable">
+							    	<table>
+								    	<tr><td translate="dashboard.orgStorage"></td><td class="leftText" id = "orgStorage"></td></tr>
+								    	<tr><td translate="dashboard.orgStorageCur"></td><td class="leftText" id = "orgStorageCur"></td></tr>
+								    	<tr><td translate="dashboard.storageUtilRate"></td><td class="leftText" id = "storageUtilRate"></td></tr>
+							    	</table>
+							    </div>
+							</div>
+							<!-- 虚拟机数量 -->
+							<div class="remind count">
+								<div class = "countPic" id = "countVmPic"></div>
+								<div class = "countTable">
+							    	<table>
+								    	<tr><td translate="dashboard.orgVmCount"></td><td class="leftText" id = "orgVmCount"></td></tr>
+								    	<tr><td translate="dashboard.orgVmCur"></td><td class="leftText" id = "orgVmCur"></td></tr>
+								    	<tr><td translate="dashboard.vmUtilRate"></td><td class="leftText" id = "vmUtilRate"></td></tr>
+							    	</table>
+							    </div>
+							</div>
+						</div>
+					</div>
+					<!-- 第四行 top5虚拟机CPU利用率+top5虚拟机内存利用率-->
+<!-- 					<div class="rowDashboard"> -->
+<!-- 						top5虚拟机cpu -->
+<!-- 						<div class="square-dashboard-49" id="vmCpuTop5"> -->
+<!-- 							<h4 translate="dashboard.topVmCpu"></h4> -->
+<!-- 							<div id="vmringChart" class="trendChart"> -->
+<!-- 							</div> -->
+<!-- 						</div> -->
+<!-- 						top5虚拟机内存 -->
+<!-- 						<div class="square-dashboard-49" id="vmMemoryTop5"> -->
+<!-- 							<h4 translate="dashboard.topVmMemory"></h4> -->
+<!-- 							<div id="vmbarChart" class="trendChart"></div> -->
+<!-- 						</div> -->
+<!-- 					</div> -->
+					 
+				</div>
+				<hr/>
+				<!-- 资源池信息 -->
+				<div id="resPoolInfo" class="dashboard-overview-info">
+					<h4 class="dashboardh4" translate="dashboard.poolHead"></h4>
+				    <!-- 资源池列表 -->
+				    <div class="container demo-1" >
+						<div class="main resPoolElasti">
+							<!-- Elastislide Carousel -->
+							<ul id="resPool_carousel" class="elastislide-list">
+							</ul>
+						</div>
+					</div>
+					<h4 class="dashboardh4"><span id="poolName"></span ><span translate="dashboard.orgEveryHead"/></h4>
+				    <div class="rowDashboard dashboard-overview-row" >
+					    <!-- 健康度 -->
+						<div id="overview-healthChart" class="square-dashboard-24" >
+	<!-- 						<img id="healthDetailInfo" custom-title="{{'dashboard.healthDetailInfo'|translate}}" src="css/img/toolbar/magnify.png" style="float:right;margin-top:10px;margin-right:5px;"> -->
+							<h4 translate="dashboard.cvmHealth"></h4>
+							<div id="healthChart" class="trendChart overview-backbattery">
+								<div class="health_span"></div>
+							</div>
+						</div>
+					    <!-- CPU超配比 -->
+						<div class="square-dashboard-24" >
+							<h4 translate="dashboard.cpuRate"></h4>
+							<div class = "dashBoard_countPic" id = "poolCountCpuPic">
+							</div>
+							<div class = "dashBoard_countTable">
+						    	<table class="dashBoard_table" >
+							    	<tr><td class="name" translate="dashboard.hostCPUCount"></td><td class="leftText" id = "hostCPUCount"></td></tr>
+							    	<tr><td class="name" translate="dashboard.vmCPUCount"></td><td class="leftText" id = "vmCPUCount"></td></tr>
+							    	<tr><td class="name" translate="dashboard.CPUUtilizationRate"></td><td class="leftText" id = "cpuRate"></td></tr>
+						    	</table>
+							</div>
+						</div>
+						<!-- 内存超配比 -->
+						<div class="square-dashboard-24" >
+							<h4 translate="dashboard.memRate"></h4>
+							<div class = "dashBoard_countPic" id = "poolCountMemoryPic" ></div>
+							<div class = "dashBoard_countTable">
+						    	<table class="dashBoard_table">
+							    	<tr><td class="name" translate="dashboard.hostMemoryCount"></td><td class="leftText" id = "hostMemoryCount"></td></tr>
+							    	<tr><td class="name" translate="dashboard.vmMemoryCount"></td><td class="leftText" id = "vmMemoryCount"></td></tr>
+							    	<tr><td class="name" translate="dashboard.memoryUtilizationRate"></td><td class="leftText" id = "memRate"></td></tr>
+						    	</table>
+						    </div>
+						</div>
+						<!-- 存储超配比 -->
+						<div class="square-dashboard-24" >
+							<h4 translate="dashboard.storeRate"></h4>
+							<div class = "dashBoard_countPic" id = "poolCountStoragePic" ></div>
+							<div class = "dashBoard_countTable">
+						    	<table class="dashBoard_table">
+							    	<tr><td class="name" translate="dashboard.hostStoreCount"></td><td class="leftText" id = "totalStorage"></td></tr>
+							    	<tr><td class="name" translate="dashboard.vmStoreCount"></td><td class="leftText" id = "usedStorage"></td></tr>
+							    	<tr><td class="name" translate="dashboard.storeUtilizationRate"></td><td class="leftText" id = "storageRate"></td></tr>
+						    	</table>
+						    </div>
+						</div>
+				    </div>
+				</div>
+		</div>
+	</div>
+</div>

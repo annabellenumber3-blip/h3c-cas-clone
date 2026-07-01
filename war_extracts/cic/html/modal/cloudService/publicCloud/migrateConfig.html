@@ -1,0 +1,163 @@
+<!-- 云彩虹迁移配置 -->
+
+<!-- 标题 -->
+<div class="modal-header">
+    <button type="button" class="close" custom-title="{{::'common.close'|translate}}"  ng-click="cancel()">
+		<span class="icon-closenew"></span>
+	</button>
+    <button type="button" class="close cornerhelp" title="{{'help'|translate}}" ng-click="openHelp('cloudService/migrateVmBetweenCvm')">
+		<span class="icon-helpnew"></span>
+	</button>
+    <h4 class="modal-title" translate="publicCloud.migrateConfig"></h4>
+</div>
+
+<!-- 步骤向导 -->
+<div class="modal-body row">
+    <div class="form-horizontal col-md-8">
+        <carousel-form titles="stepTitles" cancel="ok()">
+        	<!-- 第一步 -->
+            <slide-form valid="stepValids.stepOneOver()" active="slide.active" tab-index="0">
+            	<form name="form1" class="form-horizontal" role="form" novalidate>
+                    <!-- 隐藏属性，用于js方法操作form是否显示 -->
+                    <input type="hidden" id="form1" value="{{form1.$valid}}">
+                    <!-- 迁移虚拟机 -->
+					<div class="form-group">
+						<label for="domainName" class="control-label">
+						  <span translate="publicCloud.migrateVm"></span><span style="color:red">*</span>
+						</label>
+						<div class="control-input ">
+							<div class="input-group width260">
+					          <input id="domainName" name="domainName" type="text" class="form-input form-control" ng-disabled="true" ng-model="config.domainName" required>
+					      	</div>
+					    </div>
+					</div>
+                    <!-- 源主机 -->
+					<div class="form-group">
+						<label for="sourceHostName" class="control-label">
+						  <span translate="publicCloud.sourceHost"></span><span style="color:red">*</span>
+						</label>
+						<div class="control-input ">
+							<div class="input-group width260">
+					          <input id="sourceHostName" name="sourceHostName" type="text" class="form-input form-control" ng-disabled="true" ng-model="config.sourceHostName" required>
+					      	</div>
+					    </div>
+					</div>
+                    <!-- 目的主机 -->
+					<div class="form-group">
+						<label for="destHostName" class="control-label">
+						  <span translate="publicCloud.destHost"></span><span style="color:red">*</span>
+						</label>
+						<div class="control-input ">
+							<div class="input-group width260">
+					          <input id="destHostName" name="destHostName" type="text" class="form-input form-control" ng-disabled="true" ng-model="config.destHostName" required>
+					      	</div>
+					    </div>
+					</div>
+	            	<!-- 迁移超时时长 -->
+					<div class="form-group" ng-class="{'has-error': (form1.timeout.$dirty && form1.timeout.$invalid)}">
+						<label for="timeout" class="control-label">
+						  <span translate="publicCloud.timeout"></span><span style="color:red">*</span>
+						</label>
+						<div class="control-input ">
+							<div class="input-group width260">
+					          <input id="timeout" name="timeout" style="width:187px;" checkint spinner-min=0 spinner-max=120 spinner ng-model="config.timeout" required>
+					          <span class="input-group-addon inner-addon last-child-angle" style="background-color:#EEEEEE;" translate="minute"></span>
+					          <span class="input-group-addon help-addon" ng-messages="form1.timeout.$error">
+		                    		<span ng-if="form1.timeout.$valid||!form1.timeout.$dirty">
+		                        		<span class="icon-occupying"></span>
+		                        	</span>
+		                        	<span ng-if="form1.timeout.$dirty" style="color:#A94442;">
+		                            	<span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+		                            	<span ng-message="spinnerMax"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxValueIs'|translate}}120"></span></span>
+		                            	<span ng-message="spinnerMin"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'minValueIs'|translate}}0"></span></span>
+		                            	<span ng-message="int"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'invalidint'|translate}}"></span></span>
+		                        	</span>
+		                     	   </span>
+					      	</div>
+					    </div>
+					</div>
+		            <!-- 压缩-->
+				    <div class="form-group">
+				        <label for="compress" class="switch-label">
+				            <span translate="publicCloud.compress"></span>
+				        </label>
+				        <div class="control-input">
+				             <div class="input-group">
+				                <div id="compress" toggle-switch  class="switch-success" ng-model="config.compress"></div>
+				            </div>
+				        </div>
+				    </div>
+                 </form>
+            </slide-form>
+            
+            <!-- 第二步 -->
+            <slide-form valid="stepValids.stepTwoOver()"  tab-index="1">
+            	 <div style="height:270px;overflow:auto;">
+					<div ng-repeat="line in poolList" class="inline" style="float:left;width:240px;">
+						<div id="{{line.path}}" cascheckbox input-readonly="{{line.status!=1}}" class="cas-checkbox labeled-btn radio" style="float:left;margin-left:10px;" ng-model="selectModel.model" value={{line}} false-value=null>
+					        <input name="pool" type="radio">
+					        <div class="corner-label">
+					            <i class="glyphicon glyphicon-ok icon"></i>
+					        </div>
+					        <div class="box poolBox" style="text-align: left; height:75px;">
+					        	<span>
+									<!-- 活动 -->
+									<img ng-if="line.status==1" style="margin-top:10px;margin-left:8px;display:inline;" class="pic2img" src="css/img/gray/Icon_storage_green_16x16.svg" custom-title="{{::'common.active'|translate}}">
+									<!-- 不活动 -->
+									<img ng-if="line.status==0" style="margin-top:10px;margin-left:8px;display:inline;" class="pic2img" class="pic2img" src="css/img/gray/Icon_storage_16x16.svg" custom-title="{{::'common.inactive'|translate}}">
+									<!-- 未知 -->
+									<img ng-if="line.status==2" style="margin-top:10px;margin-left:8px;display:inline;" class="pic2img" class="pic2img" src="css/img/gray/Icon_storage_16x16.svg" custom-title="{{::'common.unkown'|translate}}">
+								</span>
+								<div style="width:162px;padding-top:10px;float:right;">
+									<!-- 名称 -->
+									<span style="padding-top:10px;text-align: left;font-weight:bold;" shortcut custom-title cut-str="{{line.name}}" short-width="160"></span><br/>
+									<!-- 类型 -->
+									<div style="height:5px;"></div>
+									<span style="padding-top:10px;text-align: left" shortcut custom-title cut-str="{{line.type | storageType}}" short-width="160"></span><br/>
+									<!--目标路径 -->
+<!-- 									<div style="height:5px;"></div> -->
+<!-- 									<span style="margin-top:10px;text-align: left" shortcut custom-title cut-str="{{line.path}}" short-width="160"></span> -->
+									<!-- 可用存储将 -->
+									<div style="height:5px;"></div>
+									<span translate="cluster.availableStorage" style="margin-top:10px;text-align: left" class="span_padding">></span><span shortcut custom-title cut-str="{{line.freeSize | byteUnitRender}}" short-width="110"></span>
+								</div>
+					        </div>
+					    </div>
+					</div>
+				</div>
+            </slide-form>
+        </carousel-form>
+    </div>
+    <!-- 右侧确认信息 -->
+    <div class="detail-table col-md-4">
+        <table class="table table-striped">
+            <tr class="gray">
+                <td><h4 translate="configDetail"></h4></td><td></td>
+            </tr>
+            <tr class="white">
+                <td><span translate="publicCloud.migrateVm"></span></td>
+                <td custom-title shortcut cut-str="{{config.domainName}}">{{config.domainName}}</td>
+            </tr>
+            <tr class="gray">
+                <td><span translate="publicCloud.sourceHost"></span></td>
+                <td custom-title shortcut cut-str="{{config.sourceHostName}}">{{config.sourceHostName}}</td>
+            </tr>
+            <tr class="white">
+                <td><span translate="publicCloud.destHost"></span></td>
+                <td custom-title shortcut cut-str="{{config.destHostName}}">{{config.destHostName}}</td>
+            </tr>
+            <tr class="gray">
+                <td><span translate="publicCloud.timeout"></span></td>
+                <td>{{config.timeout}}{{'minute' | translate}}</td>
+            </tr>
+            <tr class="white">
+                <td><span translate="publicCloud.compress"></span></td>
+                <td>{{config.compress | yes}}</td>
+            </tr>
+            <tr class="gray">
+                <td><span translate="publicCloud.targetStorage"></span></td>
+                <td custom-title shortcut cut-str="{{selectPool.name}}">{{selectPool.name}}</td>
+            </tr>
+        </table>
+    </div>
+</div>

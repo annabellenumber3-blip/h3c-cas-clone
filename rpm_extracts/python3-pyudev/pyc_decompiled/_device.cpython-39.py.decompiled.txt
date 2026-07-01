@@ -1,0 +1,837 @@
+m	Z	m
+    pyudev.device._device
+    =====================
+    Device class implementation of :mod:`pyudev`.
+    .. moduleauthor::  Sebastian Wiesner  <lunaryorn@gmail.com>
+	timedelta)
+DeviceNotFoundAtPathError
+DeviceNotFoundByFileError
+#DeviceNotFoundByInterfaceIndexError
+!DeviceNotFoundByKernelDeviceError
+DeviceNotFoundByNameError
+DeviceNotFoundByNumberError
+ DeviceNotFoundInEnvironmentError)
+ensure_byte_string
+ensure_unicode_string
+get_device_type
+string_to_bool
+udev_list_iteratec
+DeviceszT
+    Class for constructing :class:`Device` objects from various kinds of data.
+    c
+        Create a device from a device ``path``.  The ``path`` may or may not
+        start with the ``sysfs`` mount point:
+        >>> from pyudev import Context, Device
+        >>> context = Context()
+        >>> Devices.from_path(context, '/devices/platform')
+        Device(u'/sys/devices/platform')
+        >>> Devices.from_path(context, '/sys/devices/platform')
+        Device(u'/sys/devices/platform')
+        ``context`` is the :class:`Context` in which to search the device.
+        ``path`` is a device path as unicode or byte string.
+        Return a :class:`Device` object for the device.  Raise
+        :exc:`DeviceNotFoundAtPathError`, if no device was found for ``path``.
+        .. versionadded:: 0.18
+        )
+startswith
+sys_path
+path
+join
+lstrip
+from_sys_path)
+contextr
+9/usr/lib/python3.9/site-packages/pyudev/device/_device.py
+	from_path;
+Devices.from_pathc
+        Create a new device from a given ``sys_path``:
+        >>> from pyudev import Context, Device
+        >>> context = Context()
+        >>> Devices.from_sys_path(context, '/sys/devices/platform')
+        Device(u'/sys/devices/platform')
+        ``context`` is the :class:`Context` in which to search the device.
+        ``sys_path`` is a unicode or byte string containing the path of the
+        device inside ``sysfs`` with the mount point included.
+        Return a :class:`Device` object for the device.  Raise
+        :exc:`DeviceNotFoundAtPathError`, if no device was found for
+        ``sys_path``.
+        .. versionadded:: 0.18
+        )
+_libudevZ
+udev_device_new_from_syspathr
+Device)
+devicer
+Devices.from_sys_pathc
+        Create a new device from a given ``subsystem`` and a given
+        ``sys_name``:
+        >>> from pyudev import Context, Device
+        >>> context = Context()
+        >>> sda = Devices.from_name(context, 'block', 'sda')
+        >>> sda
+        Device(u'/sys/devices/pci0000:00/0000:00:1f.2/host0/target0:0:0/0:0:0:0/block/sda')
+        >>> sda == Devices.from_path(context, '/block/sda')
+        ``context`` is the :class:`Context` in which to search the device.
+        ``subsystem`` and ``sys_name`` are byte or unicode strings, which
+        denote the subsystem and the name of the device to create.
+        Return a :class:`Device` object for the device.  Raise
+        :exc:`DeviceNotFoundByNameError`, if no device was found with the given
+        name.
+        .. versionadded:: 0.18
+        
+replacer
+Z&udev_device_new_from_subsystem_sysnamer
+	subsystem
+sys_namer
+	from_nameo
+Devices.from_namec
+        Create a new device from a device ``number`` with the given device
+        ``type``:
+        >>> import os
+        >>> from pyudev import Context, Device
+        >>> ctx = Context()
+        >>> major, minor = 8, 0
+        >>> device = Devices.from_device_number(context, 'block',
+        ...     os.makedev(major, minor))
+        >>> device
+        Device(u'/sys/devices/pci0000:00/0000:00:11.0/host0/target0:0:0/0:0:0:0/block/sda')
+        >>> os.major(device.device_number), os.minor(device.device_number)
+        (8, 0)
+        Use :func:`os.makedev` to construct a device number from a major and a
+        minor device number, as shown in the example above.
+        .. warning::
+           Device numbers are not unique across different device types.
+           Passing a correct number with a wrong type may silently yield a
+           wrong device object, so make sure to pass the correct device type.
+        ``context`` is the :class:`Context`, in which to search the device.
+        ``type`` is either ``'char'`` or ``'block'``, according to whether the
+        device is a character or block device.  ``number`` is the device number
+        as integer.
+        Return a :class:`Device` object for the device with the given device
+        ``number``.  Raise :exc:`DeviceNotFoundByNumberError`, if no device was
+        found with the given device type and number.
+        .. versionadded:: 0.18
+        r
+udev_device_new_from_devnumr
+numberr
+from_device_number
+Devices.from_device_numberc
+        Create a new device from the given device file:
+        >>> from pyudev import Context, Device
+        >>> context = Context()
+        >>> device = Devices.from_device_file(context, '/dev/sda')
+        >>> device
+        Device(u'/sys/devices/pci0000:00/0000:00:0d.0/host2/target2:0:0/2:0:0:0/block/sda')
+        >>> device.device_node
+        u'/dev/sda'
+        .. warning::
+           Though the example seems to suggest that ``device.device_node ==
+           filename`` holds with ``device = Devices.from_device_file(context,
+           filename)``, this is only true in a majority of cases.  There *can*
+           be devices, for which this relation is actually false!  Thus, do
+           *not* expect :attr:`~Device.device_node` to be equal to the given
+           ``filename`` for the returned :class:`Device`.  Especially, use
+           :attr:`~Device.device_node` if you need the device file of a
+           :class:`Device` created with this method afterwards.
+        ``context`` is the :class:`Context` in which to search the device.
+        ``filename`` is a string containing the path of a device file.
+        Return a :class:`Device` representing the given device file.  Raise
+        :exc:`DeviceNotFoundByFileError` if ``filename`` is no device file
+        at all or if ``filename`` does not exist or if its metadata was
+        inaccessible.
+        .. versionadded:: 0.18
+        N)
+stat
+st_rdev
+EnvironmentError
+ValueErrorr
+filename
+device_type
+device_number
+errr
+from_device_file
+Devices.from_device_filec
+        Locate a device based on the interface index.
+        :param `Context` context: the libudev context
+        :param int ifindex: the interface index
+        :returns: the device corresponding to the interface index
+        :rtype: `Device`
+        This method is only appropriate for network devices.
+        Z
+net)
+ifindexN)
+attributes
+get)
+	<genexpr>
+z/Devices.from_interface_index.<locals>.<genexpr>N)
+list_devices
+nextr
+network_devices
+devr
+from_interface_index
+Devices.from_interface_indexc
+        Locate a device based on the kernel device.
+        :param `Context` context: the libudev context
+        :param str kernel_device: the kernel device
+        :returns: the device corresponding to ``kernel_device``
+        :rtype: `Device`
+        r
+^(?P<major>\d+):(?P<minor>\d+)$
+major
+minor
+compile
+matchr
+makedev
+groupr(
+	partitionr%
+kernel_deviceZ
+switch_char
+restZ	number_rerH
+kernel_device_namer
+from_kernel_device
+Devices.from_kernel_devicec
+        Create a new device from the process environment (as in
+        :data:`os.environ`).
+        This only works reliable, if the current process is called from an
+        udev rule, and is usually used for tools executed from ``IMPORT=``
+        rules.  Use this method to create device objects in Python scripts
+        called from udev rules.
+        ``context`` is the library :class:`Context`.
+        Return a :class:`Device` object constructed from the environment.
+        Raise :exc:`DeviceNotFoundInEnvironmentError`, if no device could be
+        created from the environment.
+        .. udevversion:: 152
+        .. versionadded:: 0.18
+        )
+Z udev_device_new_from_environmentr	
+from_environment
+Devices.from_environmentc
+        Return methods that obtain a :class:`Device` from a variety of
+        different data.
+        :return: a list of from_* methods.
+        :rtype: list of class methods
+        .. versionadded:: 0.18
+        )
+METHODS4
+Devices.METHODSN)
+__name__
+__module__
+__qualname__
+__doc__
+classmethodr
+d!d"
+d#d$
+d%d&
+d'd(
+d)d*
+d+d,
+d-d.
+d/d0
+d1d2
+d3d4
+d5d6
+d7d8
+d9d:
+d;d<
+d=d>
+d?d@
+Z$dAdB
+Z%dCdD
+Z&dEdF
+Z'dGdH
+Z(dIdJ
+Z)dKdL
+Z*dMdN
+Z+dOdP
+Z,dQdR
+Z-dSdT
+Z.dUdV
+Z/dWdX
+    A single device with attached attributes and properties.
+    A device also has a set of udev-specific attributes like the path
+    inside ``sysfs``.
+    :class:`Device` objects compare equal and unequal to other devices and
+    to strings (based on :attr:`device_path`).  However, there is no
+    ordering on :class:`Device` objects, and the corresponding operators
+    ``>``, ``<``, ``<=`` and ``>=`` raise :exc:`~exceptions.TypeError`.
+    .. warning::
+       Currently, Device extends Mapping. The mapping that it stores is that
+       of udev property names to udev property values. This use is deprecated
+       and Device will no longer extend Mapping in 1.0. To look up udev
+       properties, use the Device.properties property.
+    .. warning::
+       **Never** use object identity (``is`` operator) to compare
+       :class:`Device` objects.  :mod:`pyudev` may create multiple
+       :class:`Device` objects for the same device.  Instead compare
+       devices by value using ``==`` or ``!=``.
+    :class:`Device` objects are hashable and can therefore be used as keys
+    in dictionaries and sets.
+    They can also be given directly as ``udev_device *`` to functions wrapped
+    through :mod:`ctypes`.
+    c
+        .. versionadded:: 0.4
+        .. deprecated:: 0.18
+           Use :class:`Devices.from_path` instead.
+        r
+>Will be removed in 1.0. Use equivalent Devices method instead.
+stacklevel)
+warnings
+warn
+DeprecationWarningr
+Device.from_pathc
+        .. versionchanged:: 0.4
+           Raise :exc:`NoSuchDeviceError` instead of returning ``None``, if
+           no device was found for ``sys_path``.
+        .. versionchanged:: 0.5
+           Raise :exc:`DeviceNotFoundAtPathError` instead of
+           :exc:`NoSuchDeviceError`.
+        .. deprecated:: 0.18
+           Use :class:`Devices.from_sys_path` instead.
+        r
+Device.from_sys_pathc
+        .. versionadded:: 0.5
+        .. deprecated:: 0.18
+           Use :class:`Devices.from_name` instead.
+        r
+Device.from_namec
+        .. versionadded:: 0.11
+        .. deprecated:: 0.18
+           Use :class:`Devices.from_device_number` instead.
+        r
+Device.from_device_numberc
+        .. versionadded:: 0.15
+        .. deprecated:: 0.18
+           Use :class:`Devices.from_device_file` instead.
+        r
+Device.from_device_filec
+        .. versionadded:: 0.6
+        .. deprecated:: 0.18
+           Use :class:`Devices.from_environment` instead.
+        r
+Device.from_environmentc
+collections
+Mapping
+__init__r
+_as_parameter_r
+selfr
+_devicer
+Device.__init__c
+udev_device_unref
+__del__
+Device.__del__c
+Device({0.sys_path!r}))
+formatrd
+__repr__
+Device.__repr__c
+        The parent :class:`Device` or ``None``, if there is no parent
+        device.
+        N)
+udev_device_get_parentr
+udev_device_ref
+parentr
+Device.parentc
+        Yield all direct children of this device.
+        .. note::
+           In udev, parent-child relationships are generally ambiguous, i.e.
+           a parent can have multiple children, *and* a child can have multiple
+           parents. Hence, `child.parent == parent` does generally *not* hold
+           for all `child` objects in `parent.children`. In other words,
+           the :attr:`parent` of a device in this property can be different
+           from this device!
+        .. note::
+           As the underlying library does not provide any means to directly
+           query the children of a device, this property performs a linear
+           search through all devices.
+        Return an iterable yielding a :class:`Device` object for each direct
+        child of this device.
+        .. udevversion:: 172
+        .. versionchanged:: 0.13
+           Requires udev version 172 now.
+        N)
+match_parent
+children
+Device.childrenc
+        Yield all ancestors of this device from bottom to top.
+        Return an iterator yielding a :class:`Device` object for each
+        ancestor of this device from bottom to top.
+        .. versionadded:: 0.16
+        N)
+	ancestors
+Device.ancestorsNc
+        Find the parent device with the given ``subsystem`` and
+        ``device_type``.
+        ``subsystem`` is a byte or unicode string containing the name of the
+        subsystem, in which to search for the parent.  ``device_type`` is a
+        byte or unicode string holding the expected device type of the parent.
+        It can be ``None`` (the default), which means, that no specific device
+        type is expected.
+        Return a parent :class:`Device` within the given ``subsystem`` and, if
+        ``device_type`` is not ``None``, with the given ``device_type``, or
+        ``None``, if this device has no parent device matching these
+        constraints.
+        .. versionadded:: 0.9
+        N)
+Z-udev_device_get_parent_with_subsystem_devtyper
+find_parent
+Device.find_parentc
+        Traverse all parent devices of this device from bottom to top.
+        Return an iterable yielding all parent devices as :class:`Device`
+        objects, *not* including the current device.  The last yielded
+        :class:`Device` is the top of the device hierarchy.
+        .. deprecated:: 0.16
+           Will be removed in 1.0. Use :attr:`ancestors` instead.
+        r
+Nz5Will be removed in 1.0. Use Device.ancestors instead.rX
+traverse:
+Device.traversec
+        Absolute path of this device in ``sysfs`` including the ``sysfs``
+        mount point as unicode string.
+        )
+udev_device_get_syspathrd
+Device.sys_pathc
+        Kernel device path as unicode string.  This path uniquely identifies
+        a single device.
+        Unlike :attr:`sys_path`, this path does not contain the ``sysfs``
+        mount point.  However, the path is absolute and starts with a slash
+        ``'/'``.
+        )
+udev_device_get_devpathrd
+device_pathW
+Device.device_pathc
+        Name of the subsystem this device is part of as unicode string.
+        :returns: name of subsystem if found, else None
+        :rtype: unicode string or NoneType
+        N)
+udev_device_get_subsystemr
+subsysr
+Device.subsystemc
+        Device file name inside ``sysfs`` as unicode string.
+        )
+udev_device_get_sysnamerd
+Device.sys_namec
+        The trailing number of the :attr:`sys_name` as unicode string, or
+        ``None``, if the device has no trailing number in its name.
+        .. note::
+           The number is returned as unicode string to preserve the exact
+           format of the number, especially any leading zeros:
+           >>> from pyudev import Context, Device
+           >>> context = Context()
+           >>> device = Devices.from_path(context, '/sys/devices/LNXSYSTM:00')
+           >>> device.sys_number
+           u'00'
+           To work with numbers, explicitly convert them to ints:
+           >>> int(device.sys_number)
+           0
+        .. versionadded:: 0.11
+        N)
+udev_device_get_sysnumr
+sys_numberu
+Device.sys_numberc
+        Device type as unicode string, or ``None``, if the device type is
+        unknown.
+        >>> from pyudev import Context
+        >>> context = Context()
+        >>> for device in context.list_devices(subsystem='net'):
+        ...     '{0} - {1}'.format(device.sys_name, device.device_type or 'ethernet')
+        ...
+        u'eth0 - ethernet'
+        u'wlan0 - wlan'
+        u'lo - ethernet'
+        u'vboxnet0 - ethernet'
+        .. versionadded:: 0.10
+        N)
+udev_device_get_devtyper
+Device.device_typec
+        The driver name as unicode string, or ``None``, if there is no
+        driver for this device.
+        .. versionadded:: 0.5
+        N)
+udev_device_get_driverr
+driverr
+Device.driverc
+        Absolute path to the device node of this device as unicode string or
+        ``None``, if this device doesn't have a device node.  The path
+        includes the device directory (see :attr:`Context.device_path`).
+        This path always points to the actual device node associated with
+        this device, and never to any symbolic links to this device node.
+        See :attr:`device_links` to get a list of symbolic links to this
+        device node.
+        .. warning::
+           For devices created with :meth:`from_device_file()`, the value of
+           this property is not necessary equal to the ``filename`` given to
+           :meth:`from_device_file()`.
+        N)
+udev_device_get_devnoder
+noder
+device_node
+Device.device_nodec
+        The device number of the associated device as integer, or ``0``, if no
+        device number is associated.
+        Use :func:`os.major` and :func:`os.minor` to decompose the device
+        number into its major and minor number:
+        >>> import os
+        >>> from pyudev import Context, Device
+        >>> context = Context()
+        >>> sda = Devices.from_name(context, 'block', 'sda')
+        >>> sda.device_number
+        2048L
+        >>> (os.major(sda.device_number), os.minor(sda.device_number))
+        (8, 0)
+        For devices with an associated :attr:`device_node`, this is the same as
+        the ``st_rdev`` field of the stat result of the :attr:`device_node`:
+        >>> os.stat(sda.device_node).st_rdev
+        2048
+        .. versionadded:: 0.11
+        )
+udev_device_get_devnumrd
+Device.device_numberc
+        ``True``, if the device is initialized, ``False`` otherwise.
+        A device is initialized, if udev has already handled this device and
+        has set up device node permissions and context, or renamed a network
+        device.
+        Consequently, this property is only implemented for devices with a
+        device node or for network devices.  On all other devices this property
+        is always ``True``.
+        It is *not* recommended, that you use uninitialized devices.
+        .. seealso:: :attr:`time_since_initialized`
+        .. udevversion:: 165
+        .. versionadded:: 0.8
+        )
+boolr
+udev_device_get_is_initializedrd
+is_initialized
+Device.is_initializedc
+        The time elapsed since initialization as :class:`~datetime.timedelta`.
+        This property is only implemented on devices, which need to store
+        properties in the udev database.  On all other devices this property is
+        simply zero :class:`~datetime.timedelta`.
+        .. seealso:: :attr:`is_initialized`
+        .. udevversion:: 165
+        .. versionadded:: 0.8
+        )
+microseconds)
+Z&udev_device_get_usec_since_initializedr
+time_since_initialized
+Device.time_since_initializedc
+        An iterator, which yields the absolute paths (including the device
+        directory, see :attr:`Context.device_path`) of all symbolic links
+        pointing to the :attr:`device_node` of this device.  The paths are
+        unicode strings.
+        UDev can create symlinks to the original device node (see
+        :attr:`device_node`) inside the device directory.  This is often
+        used to assign a constant, fixed device node to devices like
+        removeable media, which technically do not have a constant device
+        node, or to map a single device into multiple device hierarchies.
+        The property provides access to all such symbolic links, which were
+        created by UDev for this device.
+        .. warning::
+           Links are not necessarily resolved by
+           :meth:`Devices.from_device_file()`. Hence do *not* rely on
+           ``Devices.from_device_file(context, link).device_path ==
+           device.device_path`` from any ``link`` in ``device.device_links``.
+        N)
+Z#udev_device_get_devlinks_list_entryr
+devlinks
+namerN
+device_links
+Device.device_linksc
+        The device event action as string, or ``None``, if this device was not
+        received from a :class:`Monitor`.
+        Usual actions are:
+        ``'add'``
+          A device has been added (e.g. a USB device was plugged in)
+        ``'remove'``
+          A device has been removed (e.g. a USB device was unplugged)
+        ``'change'``
+          Something about the device changed (e.g. a device property)
+        ``'online'``
+          The device is online now
+        ``'offline'``
+          The device is offline now
+        .. warning::
+           Though the actions listed above are the most common, this property
+           *may* return other values, too, so be prepared to handle unknown
+           actions!
+        .. versionadded:: 0.16
+        N)
+udev_device_get_actionr
+actionr
+Device.actionc
+        The device event sequence number as integer, or ``0`` if this device
+        has no sequence number, i.e. was not received from a :class:`Monitor`.
+        .. versionadded:: 0.16
+        )
+udev_device_get_seqnumrd
+sequence_numberE
+Device.sequence_numberc
+        The system attributes of this device as read-only
+        :class:`Attributes` mapping.
+        System attributes are basically normal files inside the device
+        directory.  These files contain all sorts of information about the
+        device, which may not be reflected by properties.  These attributes
+        are commonly used for matching in udev rules, and can be printed
+        using ``udevadm info --attribute-walk``.
+        The values of these attributes are not always proper strings, and
+        can contain arbitrary bytes.
+        :returns: an Attributes object, useful for reading attributes
+        :rtype: Attributes
+        .. versionadded:: 0.5
+        )
+Attributesrd
+Device.attributesc
+        The udev properties of this object as read-only Properties mapping.
+        .. versionadded:: 0.21
+        )
+Propertiesrd
+propertiesi
+Device.propertiesc
+        A :class:`Tags` object representing the tags attached to this device.
+        The :class:`Tags` object supports a test for a single tag as well as
+        iteration over all tags:
+        >>> from pyudev import Context
+        >>> context = Context()
+        >>> device = next(iter(context.list_devices(tag='systemd')))
+        >>> 'systemd' in device.tags
+        True
+        >>> list(device.tags)
+        [u'seat', u'systemd', u'uaccess']
+        Tags are arbitrary classifiers that can be attached to devices by udev
+        scripts and daemons.  For instance, systemd_ uses tags for multi-seat_
+        support.
+        .. _systemd: http://freedesktop.org/wiki/Software/systemd
+        .. _multi-seat: http://www.freedesktop.org/wiki/Software/systemd/multiseat
+        .. udevversion:: 154
+        .. versionadded:: 0.6
+        .. versionchanged:: 0.13
+           Return a :class:`Tags` object now.
+        )
+Tagsrd
+tagsr
+Device.tagsc
+        Iterate over the names of all properties defined for this device.
+        Return a generator yielding the names of all properties of this
+        device as unicode strings.
+        .. deprecated:: 0.21
+           Will be removed in 1.0. Access properties with Device.properties.
+        r
+AWill be removed in 1.0. Access properties with Device.properties.rX
+__iter__ro
+Device.__iter__c
+        Return the amount of properties defined for this device as integer.
+        .. deprecated:: 0.21
+           Will be removed in 1.0. Access properties with Device.properties.
+        r
+__len__ro
+Device.__len__c
+        Get the given property from this device.
+        ``prop`` is a unicode or byte string containing the name of the
+        property.
+        Return the property value as unicode string, or raise a
+        :exc:`~exceptions.KeyError`, if the given property is not defined
+        for this device.
+        .. deprecated:: 0.21
+           Will be removed in 1.0. Access properties with Device.properties.
+        r
+__getitem__
+propr[
+Device.__getitem__c
+        Get the given property from this device as integer.
+        ``prop`` is a unicode or byte string containing the name of the
+        property.
+        Return the property value as integer. Raise a
+        :exc:`~exceptions.KeyError`, if the given property is not defined
+        for this device, or a :exc:`~exceptions.ValueError`, if the property
+        value cannot be converted to an integer.
+        .. deprecated:: 0.21
+           Will be removed in 1.0. Use Device.properties.asint() instead.
+        r
+Nz<Will be removed in 1.0. Use Device.properties.asint instead.rX
+asintr
+Device.asintc
+        Get the given property from this device as boolean.
+        A boolean property has either a value of ``'1'`` or of ``'0'``,
+        where ``'1'`` stands for ``True``, and ``'0'`` for ``False``.  Any
+        other value causes a :exc:`~exceptions.ValueError` to be raised.
+        ``prop`` is a unicode or byte string containing the name of the
+        property.
+        Return ``True``, if the property value is ``'1'`` and ``False``, if
+        the property value is ``'0'``.  Any other value raises a
+        :exc:`~exceptions.ValueError`.  Raise a :exc:`~exceptions.KeyError`,
+        if the given property is not defined for this device.
+        .. deprecated:: 0.21
+           Will be removed in 1.0. Use Device.properties.asbool() instead.
+        r
+Nz=Will be removed in 1.0. Use Device.properties.asbool instead.rX
+asboolr
+Device.asboolc
+hashrq
+__hash__
+Device.__hash__c
+isinstancer
+otherr
+__eq__
+Device.__eq__c
+__ne__
+Device.__ne__c
+Device not orderable
+	TypeErrorr
+__gt__
+Device.__gt__c
+__lt__
+Device.__lt__c
+__le__
+Device.__le__c
+__ge__
+Device.__ge__)
+N)1rR
+propertyrj
+    udev properties :class:`Device` objects.
+    .. versionadded:: 0.21
+    c
+Properties.__init__c
+        Iterate over the names of all properties defined for the device.
+        Return a generator yielding the names of all properties of this
+        device as unicode strings.
+        N)
+%udev_device_get_properties_list_entryr
+Properties.__iter__c
+        Return the amount of properties defined for this device as integer.
+        c
+z%Properties.__len__.<locals>.<genexpr>)
+sumr
+Properties.__len__c
+        Get the given property from this device.
+        ``prop`` is a unicode or byte string containing the name of the
+        property.
+        Return the property value as unicode string, or raise a
+        :exc:`~exceptions.KeyError`, if the given property is not defined
+        for this device.
+        N)
+udev_device_get_property_valuer
+KeyErrorr
+valuer
+Properties.__getitem__c
+        Get the given property from this device as integer.
+        ``prop`` is a unicode or byte string containing the name of the
+        property.
+        Return the property value as integer. Raise a
+        :exc:`~exceptions.KeyError`, if the given property is not defined
+        for this device, or a :exc:`~exceptions.ValueError`, if the property
+        value cannot be converted to an integer.
+        )
+Properties.asintc
+        Get the given property from this device as boolean.
+        A boolean property has either a value of ``'1'`` or of ``'0'``,
+        where ``'1'`` stands for ``True``, and ``'0'`` for ``False``.  Any
+        other value causes a :exc:`~exceptions.ValueError` to be raised.
+        ``prop`` is a unicode or byte string containing the name of the
+        property.
+        Return ``True``, if the property value is ``'1'`` and ``False``, if
+        the property value is ``'0'``.  Any other value raises a
+        :exc:`~exceptions.ValueError`.  Raise a :exc:`~exceptions.KeyError`,
+        if the given property is not defined for this device.
+        )
+Properties.asboolN)
+    udev attributes for :class:`Device` objects.
+    .. versionadded:: 0.5
+    c
+Attributes.__init__c
+        Yield the ``available`` attributes for the device.
+        It is not guaranteed that a key in this list will have a value.
+        It is not guaranteed that a key not in this list will not have a value.
+        It is guaranteed that the keys in this list are the keys that libudev
+        considers to be "available" attributes.
+        If libudev version does not define udev_device_get_sysattr_list_entry()
+        yields nothing.
+        See rhbz#1267584.
+        
+"udev_device_get_sysattr_list_entryN)
+hasattrr
+attrs
+	attributerN
+available_attributes{
+Attributes.available_attributesc
+        Get the given system ``attribute`` for the device.
+        :param attribute: the key for an attribute value
+        :type attribute: unicode or byte string
+        :returns: the value corresponding to ``attribute``
+        :rtype: an arbitrary sequence of bytes
+        :raises KeyError: if no value found
+        N)
+udev_device_get_sysattr_valuer
+_get
+Attributes._getNc
+        Get the given system ``attribute`` for the device.
+        :param attribute: the key for an attribute value
+        :type attribute: unicode or byte string
+        :param default: a default if no corresponding value found
+        :type default: a sequence of bytes
+        :returns: the value corresponding to ``attribute`` or ``default``
+        :rtype: object
+        N)
+defaultr
+Attributes.getc
+        Get the given ``attribute`` for the device as unicode string.
+        :param attribute: the key for an attribute value
+        :type attribute: unicode or byte string
+        :returns: the value corresponding to ``attribute``, as unicode
+        :rtype: unicode
+        :raises KeyError: if no value found for ``attribute``
+        :raises UnicodeDecodeError: if value is not convertible
+        )
+asstring
+Attributes.asstringc
+        Get the given ``attribute`` as an int.
+        :param attribute: the key for an attribute value
+        :type attribute: unicode or byte string
+        :returns: the value corresponding to ``attribute``, as an int
+        :rtype: int
+        :raises KeyError: if no value found for ``attribute``
+        :raises UnicodeDecodeError: if value is not convertible to unicode
+        :raises ValueError: if unicode value can not be converted to an int
+        )
+Attributes.asintc
+        Get the given ``attribute`` from this device as a bool.
+        :param attribute: the key for an attribute value
+        :type attribute: unicode or byte string
+        :returns: the value corresponding to ``attribute``, as bool
+        :rtype: bool
+        :raises KeyError: if no value found for ``attribute``
+        :raises UnicodeDecodeError: if value is not convertible to unicode
+        :raises ValueError: if unicode value can not be converted to a bool
+        A boolean attribute has either a value of ``'1'`` or of ``'0'``,
+        where ``'1'`` stands for ``True``, and ``'0'`` for ``False``.  Any
+        other value causes a :exc:`~exceptions.ValueError` to be raised.
+        )
+Attributes.asbool)
+    A iterable over :class:`Device` tags.
+    Subclasses the ``Container`` and the ``Iterable`` ABC.
+    c
+Iterablerb
+Tags.__init__c
+        Whether ``tag`` exists.
+        :param tag: unicode string with name of tag
+        :rtype: bool
+        
+udev_device_has_tagc
+tagr
+z Tags._has_tag.<locals>.<genexpr>)
+_has_tag
+Tags._has_tagc
+        Check for existence of ``tag``.
+        ``tag`` is a tag as unicode string.
+        Return ``True``, if ``tag`` is attached to the device, ``False``
+        otherwise.
+        )
+__contains__
+Tags.__contains__c
+        Iterate over all tags.
+        Yield each tag as unicode string.
+        N)
+udev_device_get_tags_list_entryr
+Tags.__iter__N)
+sysZ
+datetimer
+pyudev._errorsr
+pyudev._utilr
+objectr
+	Containerr
+<module>

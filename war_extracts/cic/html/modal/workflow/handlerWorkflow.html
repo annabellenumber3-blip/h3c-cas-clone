@@ -1,0 +1,339 @@
+<!-- 标题 -->
+<div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" ng-click="cancel()" custom-title="{{'common.close'|translate}}">
+        <span class="icon-closenew"></span>
+    </button>
+    <!-- vm -->
+    <button type="button" class="close cornerhelp" custom-title="{{'help'|translate}}" ng-if="workflowId == 1 && model.opType != 'view'" 
+    	ng-click="openHelp('cloudService/workFlow/dealWorkFlow')">
+		<span class="icon-helpnew"></span>
+	</button>
+	<button type="button" class="close cornerhelp" custom-title="{{'help'|translate}}" ng-if="workflowId == 1 && model.opType == 'view'" 
+    	ng-click="openHelp('cloudService/workFlow/viewWorkflowRecord')">
+		<span class="icon-helpnew"></span>
+	</button>
+    <!-- disk -->
+    <button type="button" class="close cornerhelp" custom-title="{{'help'|translate}}" ng-if="workflowId == 2 && model.opType != 'view'" 
+    	ng-click="openHelp('cloudService/cloudisk/handleWorkflow')">
+		<span class="icon-helpnew"></span>
+	</button>
+	<button type="button" class="close cornerhelp" custom-title="{{'help'|translate}}" ng-if="workflowId == 2 && model.opType == 'view'" 
+    	ng-click="openHelp('cloudService/cloudisk/viewWorkflow')">
+		<span class="icon-helpnew"></span>
+	</button>
+	<!-- register -->
+    <button type="button" class="close cornerhelp" custom-title="{{'help'|translate}}" ng-if="workflowId == 3 && model.opType != 'view'" 
+    	ng-click="openHelp('cloudService/pre-reg/approvalUserPreRegWorkflow')">
+		<span class="icon-helpnew"></span>
+	</button>
+	<button type="button" class="close cornerhelp" custom-title="{{'help'|translate}}" ng-if="workflowId == 3 && model.opType == 'view'" 
+    	ng-click="openHelp('cloudService/pre-reg/viewApprovalRecords')">
+		<span class="icon-helpnew"></span>
+	</button>
+	<!-- backup -->
+    <button type="button" class="close cornerhelp" custom-title="{{'help'|translate}}" ng-if="workflowId == 4 && model.opType != 'view'" 
+    	ng-click="openHelp('cloudService/backStorage/handleBackStorageWorkflow')">
+		<span class="icon-helpnew"></span>
+	</button>
+	<button type="button" class="close cornerhelp" custom-title="{{'help'|translate}}" ng-if="workflowId == 4 && model.opType == 'view'" 
+    	ng-click="openHelp('cloudService/backStorage/viewBackStorageWorkflow')">
+		<span class="icon-helpnew"></span>
+	</button>
+    <h4 class="modal-title" ng-if="model.opType != 'view'"><span translate="workflow.handleWorkflow"></span></h4>
+    <h4 class="modal-title" ng-if="model.opType == 'view'"><span translate="workflow.viewWorkflow"></span></h4>
+</div>
+<!-- 内容 -->
+<div class="modal-body row" id="handleWorkflow">
+	<fieldset id="handleWorkflowInfo">
+		<legend><h5 translate="workflow.info"></h5></legend>
+		<div class="form-horizontal" ng-if="model.workflowType == 'vm'" style="height:145px;overflow-y:auto;">
+			<div class="form-group">
+				<!-- 
+			    <label class="col-sm-1 control-label" ng-if="model.domainName != 'undefine' && model.domainName != ''"><span translate="cloudResource.vmName"></span></label>
+			    <div class="col-sm-3" ng-if="model.domainName != 'undefine' && model.domainName != ''">
+			      <p class="form-control-static" shortcut custom-title cut-str="{{model.domainName}}" >{{model.domainName}}</p>
+			    </div>
+			     -->
+			    <label class="col-sm-1 control-label"><span translate="vm.displayName"></span></label>
+			    <div class="col-sm-3">
+			      <p class="form-control-static" shortcut custom-title cut-str="{{model.title}}">{{model.title}}</p>
+			    </div>
+			    <!--
+				<label class="col-sm-1 control-label"><span translate="cloudSecurity.firewall"></span></label>
+			    <div class="col-sm-3">
+			      <p class="form-control-static" shortcut custom-title cut-str="{{model.firewallName}}">{{model.firewallName}}</p>
+			    </div>
+			     -->
+    			<!-- 修改问题单:201708040440 显示磁盘大小 -->
+			    <label class="col-sm-1 control-label" ng-if = "model.type == 1 && cloudType == 3"><span translate="addDomain.disk"></span></label>
+			    <div class="col-sm-3" ng-if = "model.type == 1 && cloudType == 3">
+			      <p class="form-control-static">{{diskSize | byteUnitRender}}</p>
+				</div>
+				<label class="col-sm-1 control-label" ng-if = "model.type == 3"><span translate="addDomain.disk"></span></label>
+			    <div class="col-sm-3" ng-if = "model.type == 3">
+			      <p class="form-control-static">{{diskSize}}GB</p>
+			</div>
+			</div>
+			<div class="form-group" ng-if ="model.memory != null">
+			    <label class="col-sm-1 control-label"><span translate="addDomain.cpuNum"></span></label>
+			    <div class="col-sm-3">
+			      <p class="form-control-static">{{model.cpuCores}}*{{model.cpuSockets}}</p>
+			    </div>
+			    <label class="col-sm-1 control-label"><span translate="addDomain.memoryInit"></span></label>
+			    <div class="col-sm-3">
+			      <p class="form-control-static">{{model.memory|byteUnitRender}}</p>
+			    </div>
+			</div>
+			<div class="form-group" ng-if = "model.type != 0">
+			    <label class="col-sm-1 control-label"><span translate="common.expireDate"></span></label>
+			    <div class="col-sm-3">
+			      <p class="form-control-static" shortcut custom-title cut-str="{{model.expireDate}}">{{model.expireDate}}</p>
+			    </div>
+			    <label class="col-sm-1 control-label" ng-if="model.assignType != null"><span translate="workflow.delayResion"></span></label>
+			    <div class="col-sm-3">
+			      <p class="form-control-static" shortcut custom-title cut-str="{{model.applyReason}}">{{model.applyReason}}</p>
+			    </div>
+			</div>
+			<div class="form-group" ng-if = "model.type == 1 || model.type == 3">
+                <label class="col-sm-1 control-label"><span translate="common.desc"></span></label>
+                <div class="col-sm-3">
+                  <p class="form-control-static" shortcut custom-title cut-str="{{model.description}}">{{model.description}}</p>
+                </div>
+                <label class="col-sm-1 control-label"><span translate="workflow.assignType"></span></label>
+                <div class="col-sm-3">
+                  <p class="form-control-static">{{model.assignType|assignTypeRender}}</p>
+                </div>
+            </div>
+            <div class="form-group" ng-if = "model.type == 1 && cloudType == 2">
+            	<!-- 修改问题单:201708040440 显示磁盘大小 -->
+            	<label class="col-sm-1 control-label"><span translate="addDomain.disk"></span></label>
+			    <div class="col-sm-3">
+			      <p class="form-control-static">{{diskSize | byteUnitRender}}</p>
+				</div>
+            	<!-- 修改问题单:201703220481 增加云硬盘描述 -->
+           		 <label class="col-sm-1 control-label"><span translate="cloudDisk.cloudDisk"></span></label>
+			     <div class="col-sm-3">
+			     	<p class="form-control-static">{{model.storage}}GB</p>
+				 </div>
+            </div>
+			<div class="form-group" ng-if="model.assignType == 1 && model.type != 0">
+			    <label class="col-sm-1 control-label"><span translate="paramconfig.ipAddr"></span></label>
+			    <div class="col-sm-3">
+			      <p class="form-control-static">{{model.ip}}</p>
+			    </div>
+			    <label class="col-sm-1 control-label"><span translate="template.subnetMask"></span></label>
+			    <div class="col-sm-3">
+			      <p class="form-control-static">{{model.mask}}</p>
+			    </div>
+			</div>
+			<div class="form-group" ng-if="model.assignType == 1 && model.type != 0">
+			    <label class="col-sm-1 control-label"><span translate="template.defaultGateway"></span></label>
+			    <div class="col-sm-3">
+			      <p class="form-control-static">{{model.gateway}}</p>
+			    </div>
+			    <label class="col-sm-1 control-label"><span translate="template.theDnsServer"></span></label>
+			    <div class="col-sm-3">
+			      <p class="form-control-static">{{model.firstDns}}</p>
+			    </div>
+			</div>
+			<div class="form-group" ng-if="model.assignType == 1 && model.type != 0">
+			    <label class="col-sm-1 control-label"><span translate="template.forDnsServer"></span></label>
+			    <div class="col-sm-3">
+			      <p class="form-control-static">{{model.secondDsn}}</p>
+			    </div>
+			</div>
+			<div ng-if="isMoreInfoExistent">
+			     <legend><h5 translate="workflow.moreInfo"></h5></legend>
+			     <div>
+			         <div  class="description" style="width:100%;">
+				        <div class="detail-item">
+				            <dl class="dl-horizontal">
+				                <div ng-repeat = "row in moreInfo">
+				                    <dt style="width:16%;" custom-title="{{row.name}}">{{row.name}}</dt>
+				                    <dd custom-title shortcut short-width='400' cut-str="{{row.value}}">{{row.value}}</dd>
+				                </div>
+				            </dl>
+				        </div>
+				    </div>
+			     </div>
+			</div>
+		</div>
+		<div class="form-horizontal" ng-if="model.workflowType == 'disk'">
+			<div class="form-group">
+			    <label class="col-sm-1 control-label"><span translate="workflow.type"></span></label>
+			    <div class="col-sm-3">
+			      <p class="form-control-static"><span translate="workflow.cloudDiskWorkflow"></span></p>
+			    </div>
+			    
+			    <label class="col-sm-1 control-label"><span translate="licenseMng.userName"></span></label>
+			    <div class="col-sm-3">
+			      <p class="form-control-static" shortcut custom-title cut-str="{{model.userName}}">{{model.userName}}</p>
+			    </div>
+			</div>
+			<div class="form-group">
+			    <label class="col-sm-1 control-label"><span translate="workflow.diskName"></span></label>
+			    <div class="col-sm-3">
+			      <p class="form-control-static" shortcut custom-title cut-str="{{model.name}}">{{model.name}}</p>
+			    </div>
+			    
+			    <label class="col-sm-1 control-label"><span translate="host.capacity"></span></label>
+			    <div class="col-sm-3">
+			      <p class="form-control-static">{{model.capacity}}GB</p>
+			    </div>
+			</div>
+		</div>
+		<div class="form-horizontal" ng-if="model.workflowType == 'register'">
+			<div class="form-group">
+			    <label class="col-sm-1 control-label"><span translate="common.loginName"></span></label>
+			    <div class="col-sm-3">
+			      <p class="form-control-static" shortcut custom-title cut-str="{{model.loginName}}">{{model.loginName}}</p>
+			    </div>
+			    
+			    <label class="col-sm-1 control-label"><span translate="username"></span></label>
+			    <div class="col-sm-3">
+			      <p class="form-control-static" shortcut custom-title cut-str="{{model.userName}}">{{model.userName}}</p>
+			    </div>
+			</div>
+			<div class="form-group">
+			    <label class="col-sm-1 control-label">E-mail</label>
+			    <div class="col-sm-3">
+			      <p class="form-control-static" shortcut custom-title cut-str="{{model.email}}">{{model.email}}</p>
+			    </div>
+			    
+			    <label class="col-sm-1 control-label"><span translate="workflow.phone"></span></label>
+			    <div class="col-sm-3">
+			      <p class="form-control-static" custom-title shortcut cut-str="{{model.phone}}">{{model.phone}}</p>
+			    </div>
+			</div>
+			<div class="form-group">
+			    <label class="col-sm-1 control-label"><span translate="workflow.credentialNumber"></span></label>
+			    <div class="col-sm-3">
+			      <p class="form-control-static" custom-title shortcut cut-str="{{model.credentialNumber}}">{{model.credentialNumber}}</p>
+			    </div>
+			    
+			    <label class="col-sm-1 control-label"><span translate="workflow.address"></span></label>
+			    <div class="col-sm-3">
+			      <p class="form-control-static" custom-title shortcut cut-str="{{model.address}}">{{model.address}}</p>
+			    </div>
+			</div>
+		</div>
+		<div class="form-horizontal" ng-if="model.workflowType == 'backup'">
+			<div class="form-group">
+			    <label class="col-sm-1 control-label"><span translate="workflow.type"></span></label>
+			    <div class="col-sm-3">
+			      <p class="form-control-static"><span translate="workflow.backupSt"></span></p>
+			    </div>
+			    
+			    <label class="col-sm-1 control-label"><span translate="username"></span></label>
+			    <div class="col-sm-3">
+			      <p class="form-control-static" shortcut custom-title cut-str="{{model.userName}}">{{model.userName}}</p>
+			    </div>
+			</div>
+			<div class="form-group">
+			    <label class="col-sm-1 control-label"><span translate="workflow.backupStName"></span></label>
+			    <div class="col-sm-3">
+			      <p class="form-control-static" shortcut custom-title cut-str="{{model.name}}">{{model.name}}</p>
+			    </div>
+			    
+			    <label class="col-sm-1 control-label"><span translate="common.desc"></span></label>
+			    <div class="col-sm-3">
+			      <p class="form-control-static" shortcut custom-title cut-str="{{model.desc}}">{{model.desc}}</p>
+			    </div>
+			</div>
+			<div class="form-group">
+			    <label class="col-sm-1 control-label"><span translate="workflow.timePeriod"></span></label>
+			    <div class="col-sm-6">
+			      <p class="form-control-static" custom-title short-width=300 shortcut cut-str="{{model.timePeriod}}">{{model.timePeriod}}</p>
+			    </div>
+			</div>
+			<div class="form-group">
+			    <label class="col-sm-1 control-label"><span translate="workflow.domain"></span></label>
+			    <div class="col-sm-6">
+			      <p class="form-control-static" custom-title short-width=300 shortcut cut-str="{{model.vmTitleStr}}">{{model.vmTitleStr}}</p>
+		</div>
+			</div>
+		</div>
+	</fieldset>
+	<fieldset>
+		<legend><h5 translate="workflow.handleInfo"></h5></legend>
+		<div style="padding-top:10px;">
+			<div ng-style="listStyle" style="height: 200px;" class="table"  ng-grid="gridOptions"></div>
+		</div>
+	</fieldset>
+		<form name="form" class="form-horizontal" ng-keypress="enter($event)" role="form" novalidate>
+		<fieldset ng-if="model.opType != 'view'">
+			<legend><h5 translate="workflow.handle"></h5></legend>
+			<div class="form-group">
+				<label class="control-label"><span translate="workflow.resulst"></span></label>
+				<div class="control-input">
+				<!-- 低级 -->
+                        <div id="lowLevelDiv" cascheckbox style="margin:0;" class="cas-checkbox labeled-btn radio" ng-model="model.handleResult" value='1'>
+	                        <input id="lowLevel" name="frequency" type="radio" ng-checked = "model.handleResult == 1">
+	                        <div class="corner-label">
+	                            <i class="glyphicon glyphicon-ok icon"></i>
+	                        </div>
+	                        <div class="box">
+	                            <span class="box-name"  style="width:40px;"><span translate="workflow.pass"></span></span>
+	                        </div>
+                        </div>
+                        <!-- 中级 -->
+                        <div id="middleLevelDiv" cascheckbox style="margin: 0 4px 0 4px;" class="cas-checkbox labeled-btn radio" ng-model="model.handleResult" value='2'>
+	                        <input id="middleLevel" name="frequency" type="radio" ng-checked = "model.handleResult == 2">
+	                        <div class="corner-label">
+	                            <i class="glyphicon glyphicon-ok icon"></i>
+	                        </div>
+	                        <div class="box">
+	                            <span class="box-name" style="width:40px;"><span translate="workflow.refluse"></span></span>
+	                        </div>
+                        </div>
+                        <!-- 高级 -->
+                        <div id="highLevelDiv" cascheckbox style="margin:0;" class="cas-checkbox labeled-btn radio" ng-model="model.handleResult" value='3'>
+	                        <input id="highLevel" name="frequency" type="radio" ng-checked = "model.handleResult == 3">
+	                        <div class="corner-label">
+	                            <i class="glyphicon glyphicon-ok icon"></i>
+	                        </div>
+	                        <div class="box">
+	                            <span class="box-name" style="width:40px;"><span translate="workflow.trun"></span></span>
+	                        </div>
+                        </div>
+				</div>
+			</div>
+			<div class="form-group" ng-if="model.handleResult == 3" ng-class="{'has-error': (form.reason.$dirty && form.reason.$invalid)}">
+				<label for="currenthost_name" class="control-label"><span><span translate="template.operator"></span></span><span class="required">*</span></label>
+				<div class="control-input">
+					<div class = "input-group input-xlarge">
+						<div class="input-group width260" ng-click="selectSingleOperator()">
+							<input type="text" class="form-control first-child-angle" ng-model="opName" id="opName" name="opName" required>
+							<span class="input-group-addon inner-addon last-child-angle">
+	                        	<span class="icon-search-gray" type="button"></span>
+	                        </span>
+						</div>
+						<span ng-if="form.opName.$dirty">
+							<span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+						</span>
+					</div>
+				</div>
+			</div>
+			<div class="form-group" ng-class="{'has-error': (form.handleReason.$dirty && form.handleReason.$invalid)}">
+				<label class="control-label"><span translate="workflow.handleReason"></span></label>
+				<div class="control-input">
+					<div class="input-group input-xlarge">
+						<textarea rows="2" name="handleReason" class="form-control width260" ng-model="model.handleReason" ng-maxlength=256 ></textarea>
+						<span class="input-group-addon help-addon" ng-messages="form.handleReason.$error">
+							<span ng-if="form.handleReason.$valid||!form.handleReason.$dirty">
+								<span class="icon-occupying"></span>
+							</span>
+							<span ng-if="form.handleReason.$dirty">
+								<span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxlen'|translate}}256"></span></span>
+							</span>
+						</span>
+					</div>
+				</div>
+			</div>
+		</fieldset>
+		</form>
+</div>
+<div class="modal-footer">
+	<button id="okBtn" class="btn btn-green"  ng-if="model.opType != 'view'"  ng-disabled="form.$invalid" ng-click="ok()" translate="common.confirm"></button>
+	<button class="btn btn-black" ng-click="cancel()" translate="common.cancel"></button>
+</div>

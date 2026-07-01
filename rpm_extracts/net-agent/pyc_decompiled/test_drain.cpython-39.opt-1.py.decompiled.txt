@@ -1,0 +1,375 @@
+Test drain basic behaviour, for more 'details' see the test-case-design doc
+Utility)
+testbasec
+	TestDrainc
+superr
+myinitZ
+_start_ovsZ
+_start_netagent)
+self
+	__class__
+:/usr/lib/python3.9/site-packages/na_tests/ft/test_drain.pyr
+TestDrain.myinitc
+cd {test_dir}
+ovs-vsctl add-br br0 -- set bridge br0 fail-mode=standalone --     add-port br0 p1 -- set interface p1 ofport_request=1 type=dummy --     add-port br0 p2 -- set interface p2 ofport_request=2 type=dummy --     add-port br0 p3 -- set interface p3 ofport_request=3 type=dummy --     add-port br0 p4 -- set interface p4 ofport_request=4 type=dummy --     add-port br0 phy1 -- set interface phy1 ofport_request=5 type=dummy
+ovs-vsctl set interface p1 external_ids:attached-mac=50:54:00:00:00:0a --     set interface p2 external_ids:attached-mac=50:54:00:00:00:0b --     set interface p3 external_ids:attached-mac=50:54:00:00:00:0c --     set interface p4 external_ids:attached-mac=50:54:00:00:00:0d
+ovs-vsctl add-br br1 -- set bridge br1 fail-mode=standalone
+ovs-vsctl add-br brout -- set bridge brout fail-mode=standalone
+# connect br1 with brout
+ovs-vsctl add-port br1 phy2 -- set interface phy2 type=patch options:peer=phy3     -- add-port brout phy3 -- set interface phy3 type=patch options:peer=phy2
+ovs-ofctl mod-port br0 br0 noforward
+vlan1=10
+vlan2=20
+add_out_flow() {{
+    ovs-ofctl -t 5 -O OpenFlow13 --bundle add-flows brout - <<EOF
+cookie=0x70,in_port=phy3,priority=40000,dl_vlan=$2,actions=pop_vlan,push_vlan:0x8100,set_vlan_vid:$1,IN_PORT
+cookie=0x70,in_port=phy3,priority=40000,dl_vlan=$1,actions=pop_vlan,push_vlan:0x8100,set_vlan_vid:$2,IN_PORT
+add_out_flow $vlan1 $vlan2
+get_net_config() {{
+    cat <<EOF
+<netprofile type='drain' name='drain_netprofile' uuid='b71cec3c-2b97-4de8-ac68-ba3f3067b3aa' version='1'>
+  <flow direction='in' priority='0' dl_type='ip'>
+    <action bridge="br1" vlan="$vlan1" />
+  </flow>
+  <flow direction='out' priority='0' dl_type='ip'>
+    <action bridge="br1" vlan="$vlan2" />
+  </flow>
+</netprofile>
+na-ctl --retry=-1 netprofile define --content "$(get_net_config)"
+get_port_config() {{
+    cat <<EOF
+<portprofile name="port_config" type="compose">
+  <netprofile name="drain_netprofile" type="drain" />
+</portprofile>
+# emulate libvirt to deliver according to the domain xml>interface
+ovs-appctl revalidator/purge
+na-ctl --retry=-1 portprofile define --content "$(get_port_config)"
+na-ctl add-listen --id=1 --event="set Interface p1 external_ids:port-profile=port_config"
+ovs-vsctl set Interface p1 external_ids:port-profile=port_config
+na-ctl wait --id=1
+exitret=0
+if ! ovs-appctl show-internal-version | grep -q 'feature-loutput'; then
+    echo "ovs is not built with loutput feature, validation already fails, but continue to test other"
+    exitret=88
+if ! ovs-appctl dpif/show | grep pe_br1_br0; then
+    exit 2 # patch port not exit
+ovs-ofctl -O OpenFlow13 --no-stats dump-flows br0 table=15 > br0_flows.txt
+grep '50:54:00:00:00:0a' br0_flows.txt
+if test $? -ne 0; then
+    exit 3 # not expected flows
+ovs-appctl revalidator/purge
+# mac learning
+ovs-appctl ofproto/trace "in_port(1),eth(src=50:54:00:00:00:0a,dst=ff:ff:ff:ff:ff:ff)" -generate
+ovs-appctl ofproto/trace "in_port(2),eth(src=50:54:00:00:00:0b,dst=ff:ff:ff:ff:ff:ff)" -generate
+ovs-appctl ofproto/trace "in_port(3),eth(src=50:54:00:00:00:0c,dst=ff:ff:ff:ff:ff:ff)" -generate
+ovs-appctl ofproto/trace "in_port(4),eth(src=50:54:00:00:00:0d,dst=ff:ff:ff:ff:ff:ff)" -generate
+ovs-appctl netdev-dummy/receive p1 'in_port(1),eth(src=50:54:00:00:00:05,dst=50:54:00:00:01:00),eth_type(0x0800),ipv4(src=1.2.3.6,dst=1.2.3.5,proto=6,tos=0,ttl=64,frag=no),tcp(src=8,dst=7),tcp_flags(ack)'
+ovs-appctl time/warp 100
+ovs-appctl dpif/dump-flows br0 > br0_flows3.txt
+grep 'actions:2' br0_flows3.txt
+ovs-appctl revalidator/purge
+na-ctl add-listen --id=2 --event="remove Interface p1 external_ids:port-profile"
+ovs-vsctl remove Interface p1 external_ids port-profile
+if test $? -ne 0; then
+    exit 33
+na-ctl wait --id=2  # so net-agentd knows the configuration
+ovs-ofctl dump-flows br0 > br0_flows1.txt
+if grep -q '50:54:00:00:00:0a' br0_flows1.txt; then
+    exit 4 # has extra flows
+# now we still have portprofile, netprofile
+if ! na-ctl portprofile dump | grep 'netprofile name="drain_netprofile"'; then
+    exit 6
+if ! na-ctl netprofile dump | grep 'drain_netprofile'; then
+    exit 5
+na-ctl netprofile undefine drain_netprofile
+if na-ctl netprofile dump | grep 'drain_netprofile'; then
+    exit 16
+na-ctl portprofile undefine port_config
+if na-ctl portprofile dump | grep 'netprofile name="drain_netprofile"'; then
+    exit 15
+# we can't grep na_test.log here as the script we log into this file
+grep -qn '|ERR' cas_net_agentd.log ovsdb-server.log ovs-vswitchd.log && exit 11
+grep -qn 'Traceback' cas_net_agentd.log && exit 10
+exit $exitret  # this needed as some step may erroneously set $?
+test_dirTr
+z2test add basic config failed: shell return code:%d
+cmd_execute
+formatZ	_test_dirZ
+assertEqual
+retr
+test_basic_config
+TestDrain.test_basic_configc
+cd {test_dir}
+ovs-vsctl add-br br0 -- set bridge br0 fail-mode=standalone --     add-port br0 p1 -- set interface p1 ofport_request=1 type=dummy --     add-port br0 p2 -- set interface p2 ofport_request=2 type=dummy --     add-port br0 p3 -- set interface p3 ofport_request=3 type=dummy --     add-port br0 p4 -- set interface p4 ofport_request=4 type=dummy --     add-port br0 phy1 -- set interface phy1 ofport_request=5 type=dummy
+ovs-vsctl add-br br1 -- set bridge br1 fail-mode=standalone
+ovs-vsctl add-br brout -- set bridge brout fail-mode=standalone
+ovs-vsctl set interface p1 external_ids:attached-mac=50:54:00:00:00:0a --     set interface p2 external_ids:attached-mac=50:54:00:00:00:0b --     set interface p3 external_ids:attached-mac=50:54:00:00:00:0c --     set interface p4 external_ids:attached-mac=50:54:00:00:00:0d
+ovs-vsctl set Port p1 tag=5 --     set Port p2 tag=5 --     set Port p3 tag=5 --     set Port p4 tag=10
+# connect br1 with brout
+ovs-vsctl add-port br1 phy2 -- set interface phy2 type=patch options:peer=phy3     -- add-port brout phy3 -- set interface phy3 type=patch options:peer=phy2
+ovs-ofctl mod-port br0 br0 noforward
+add_out_flow() {{
+    ovs-ofctl -t 5 -O OpenFlow13 --bundle add-flows brout - <<EOF
+cookie=0x70,in_port=phy3,priority=40000,dl_vlan=$2,actions=pop_vlan,push_vlan:0x8100,set_vlan_vid:$1,IN_PORT
+cookie=0x70,in_port=phy3,priority=40000,dl_vlan=$1,actions=pop_vlan,push_vlan:0x8100,set_vlan_vid:$2,IN_PORT
+add_out_flow 10 20
+NUMB=4
+get_perm() {{
+python3 - $NUMB <<EOF
+#!/usr/bin/python3
+import sys
+from itertools import permutations
+import random
+b = range(int(sys.argv[1]))
+for i in permutations(b, len(b)):
+    lst = list(i)
+    random.shuffle(lst)
+    for i in lst:
+        print(i)
+    break
+get_net_config() {{
+    cat <<EOF
+<netprofile type='drain' name="net_drain$3" uuid="b71cec3c-2b97-4de8-ac68-ba3f3067b3a$3" version='1'>
+  <flow direction='in' priority='0' dl_type='ip'>
+    <action bridge="br1" vlan="$1" />
+  </flow>
+  <flow direction='out' priority='0' dl_type='ip'>
+    <action bridge="br1" vlan="$2" />
+  </flow>
+</netprofile>
+get_port_config() {{
+    cat <<EOF
+<portprofile name="port_config$1" type="compose">
+  <netprofile name="net_drain$1" type="drain" />
+</portprofile>
+get_vlans() {{
+python3 - $1 <<EOF
+#!/usr/bin/python3
+import sys
+vlan1 = [10, 30, 10, 40]
+vlan2 = [20, 10, 20, 10]
+i = int(sys.argv[1])
+print("%d %d" % (vlan1[i], vlan2[i]))
+py_add() {{
+python3 - $1 $2 <<EOF
+#!/usr/bin/python3
+import sys
+print("%d" % (int(sys.argv[1]) + int(sys.argv[2])))
+#vlan1=(10 30 10 40)
+#vlan2=(20 10 20 10)
+for i in $(get_perm); do
+    # not work on ubuntu (expr also not work, due to bad/old sh): ((I=i+1))
+    I=$(py_add $i 1)
+    # not work on ubuntu: na-ctl --retry=-1 netprofile define --content "$(get_net_config ${{vlan1[$i]}} ${{vlan2[$i]}} $i)"
+    na-ctl --retry=-1 netprofile define --content "$(get_net_config $(get_vlans $i) $i)"
+    # emulate libvirt to deliver according to the domain xml>interface
+    ovs-appctl revalidator/purge
+    na-ctl --retry=-1 portprofile define --content "$(get_port_config $i)"
+    na-ctl add-listen --id=$I --event="set Interface p$I external_ids:port-profile=port_config$i"
+    ovs-vsctl set Interface p$I external_ids:port-profile=port_config$i
+    na-ctl wait --id=$I
+done
+for i in $(get_perm); do
+    # not work on ubuntu: ((I=i+1))
+    # not work on ubuntu: ((j=i+20))
+    I=$(py_add $i 1)
+    J=$(py_add $i 20)
+    na-ctl add-listen --id=$j --event="remove Interface p$I external_ids:port-profile"
+    ovs-vsctl remove Interface p$I external_ids port-profile
+    if test $? -ne 0; then
+        exit 30
+    fi
+    na-ctl wait --id=$j
+done
+exitret=0
+if ! ovs-appctl show-internal-version | grep -q 'feature-loutput'; then
+    echo "ovs is not built with loutput feature, validation already fails, but continue to test other"
+    exitret=88
+ovs-ofctl -O OpenFlow13 --no-stats dump-flows br0 table=15 > br0_flows.txt
+if grep '50:54:00:00:00:0a' br0_flows.txt; then
+    exit 21 # expected no this mac flows
+if grep '50:54:00:00:00:0b' br0_flows.txt; then
+    exit 22 # expected no this mac flows
+if grep '50:54:00:00:00:0c' br0_flows.txt; then
+    exit 23 # expected no this mac flows
+if grep '50:54:00:00:00:0d' br0_flows.txt; then
+    exit 24 # expected no this mac flows
+ovs-ofctl -O OpenFlow13 --no-stats dump-flows br1 table=0 > br1_flows.txt
+if grep '50:54:00:00:00:0a' br1_flows.txt; then
+    exit 31 # expected no this mac flows
+if grep '50:54:00:00:00:0b' br1_flows.txt; then
+    exit 32 # expected no this mac flows
+if grep '50:54:00:00:00:0c' br1_flows.txt; then
+    exit 33 # expected no this mac flows
+if grep '50:54:00:00:00:0d' br1_flows.txt; then
+    exit 34 # expected no this mac flows
+# now we still have portprofile, netprofile
+if ! na-ctl portprofile dump | grep 'netprofile name="net_drain'; then
+    exit 44
+if ! na-ctl netprofile dump | grep 'net_drain'; then
+    exit 45
+for i in $(get_perm); do
+    na-ctl netprofile undefine net_drain$i
+done
+if na-ctl netprofile dump | grep 'net_drain'; then
+    exit 15
+for i in $(get_perm); do
+    na-ctl portprofile undefine port_config$i
+done
+if na-ctl portprofile dump | grep 'netprofile name="net_drain'; then
+    exit 14
+# we can't grep na_test.log here as the script we log into this file
+grep -qn '|ERR' cas_net_agentd.log ovsdb-server.log ovs-vswitchd.log && exit 11
+grep -qn 'Traceback' cas_net_agentd.log && exit 10
+exit $exitret  # this needed as some step may erroneously set $?
+z-test clean setup failed: shell return code:%dr
+test_clean_setup
+TestDrain.test_clean_setupc
+cd {test_dir}
+ovs-vsctl add-br br0 -- set bridge br0 fail-mode=standalone --     add-port br0 p1 -- set interface p1 ofport_request=1 type=dummy --     add-port br0 p2 -- set interface p2 ofport_request=2 type=dummy --     add-port br0 p3 -- set interface p3 ofport_request=3 type=dummy --     add-port br0 p4 -- set interface p4 ofport_request=4 type=dummy --     add-port br0 phy1 -- set interface phy1 ofport_request=5 type=dummy
+ovs-vsctl set interface p1 external_ids:attached-mac=50:54:00:00:00:0a --     set interface p2 external_ids:attached-mac=50:54:00:00:00:0b --     set interface p3 external_ids:attached-mac=50:54:00:00:00:0c --     set interface p4 external_ids:attached-mac=50:54:00:00:00:0d
+ovs-ofctl mod-port br0 br0 noforward
+ovs-vsctl add-br br1 -- set bridge br1 fail-mode=standalone
+ovs-vsctl add-br brout -- set bridge brout fail-mode=standalone
+exitret=0
+if ! ovs-appctl show-internal-version | grep -q 'feature-loutput'; then
+    echo "ovs is not built with loutput feature, validation already fails, but continue to test other"
+    exitret=88
+get_net_config() {{
+    cat <<EOF
+<netprofile type='acl' name='net_config' uuid='809d3091-9724-4ead-acbd-24754aba63f7' version='1'>
+  <flow direction='in' priority='4' stateful='true' dl_type='ip'>
+    <action target='drop'/>
+  </flow>
+  <flow direction='out' priority='4' stateful='true' dl_type='ip'>
+    <action target='drop'/>
+  </flow>
+  <flow direction='in' priority='4' stateful='true' dl_type='ipv6'>
+    <action target='drop'/>
+  </flow>
+  <flow direction='out' priority='4' stateful='true' dl_type='ipv6'>
+    <action target='drop'/>
+  </flow>
+  <flow direction='out' priority='10' stateful='true' dl_type='ip' nw_src='1.2.3.5/32' nw_proto='tcp'>
+    <action target='accept'/>
+  </flow>
+</netprofile>
+get_net_config1() {{
+    cat <<EOF
+<netprofile type='acl' name='net_config1' uuid='809d3091-9724-4ead-acbd-24754aba6321' version='1'>
+  <flow direction='in' priority='4' stateful='true' dl_type='ip'>
+    <action target='drop'/>
+  </flow>
+  <flow direction='out' priority='4' stateful='true' dl_type='ip'>
+    <action target='drop'/>
+  </flow>
+  <flow direction='in' priority='4' stateful='true' dl_type='ipv6'>
+    <action target='drop'/>
+  </flow>
+  <flow direction='out' priority='4' stateful='true' dl_type='ipv6'>
+    <action target='drop'/>
+  </flow>
+  <flow direction='out' priority='10' stateful='true' dl_type='ip' nw_src='1.2.3.6/32' nw_proto='tcp'>
+    <action target='accept'/>
+  </flow>
+</netprofile>
+get_net_config2() {{
+    cat <<EOF
+<netprofile type='acl' name='net_config2' uuid='809d3091-9724-4ead-acbd-24754aba6322' version='1'>
+  <flow direction='in' priority='4' stateful='false' dl_type='ip'>
+    <action target='drop'/>
+  </flow>
+  <flow direction='out' priority='4' stateful='false' dl_type='ip'>
+    <action target='drop'/>
+  </flow>
+  <flow direction='in' priority='4' stateful='false' dl_type='ipv6'>
+    <action target='drop'/>
+  </flow>
+  <flow direction='out' priority='4' stateful='false' dl_type='ipv6'>
+    <action target='drop'/>
+  </flow>
+  <flow direction='out' priority='10' stateful='false' dl_type='ip' nw_src='1.2.3.7/32' nw_proto='tcp'>
+    <action target='accept'/>
+  </flow>
+</netprofile>
+ADDR1=1.2.3.6
+ADDRD=1.2.3.7
+get_qos_config() {{
+    cat <<EOF
+<netprofile name="qos_config" type="qos" uuid="245324" version="1">
+  <flow direction="in" dl_type="ip" nw_dst="$ADDR1/24" nw_proto="icmp" priority="15">
+    <action burst="2" domain="interface" id="5" rate="1" unit="kbps" />
+  </flow>
+</netprofile>
+get_drain_config() {{
+    cat <<EOF
+<netprofile type='drain' name='drain_config' uuid='b71cec3c-2b97-4de8-ac68-ba3f3067b3aa' version='1'>
+  <flow direction='in' priority='0' dl_type='ip'>
+    <action bridge="br1" vlan="10" />
+  </flow>
+  <flow direction='out' priority='0' dl_type='ip'>
+    <action bridge="br1" vlan="20" />
+  </flow>
+</netprofile>
+na-ctl --retry=-1 netprofile define --content "$(get_net_config)" || exit 21
+na-ctl --retry=-1 netprofile define --content "$(get_net_config1)" || exit 22
+na-ctl --retry=-1 netprofile define --content "$(get_net_config2)" || exit 23
+na-ctl --retry=-1 netprofile define --content "$(get_qos_config)" || exit 24
+na-ctl --retry=-1 netprofile define --content "$(get_drain_config)" || exit 25
+get_port_config() {{
+    cat <<EOF
+<portprofile name="port_config" type="compose">
+  <netprofile name="net_config" type="acl" />
+  <netprofile name="net_config1" type="acl" />
+  <netprofile name="net_config2" type="acl" />
+  <netprofile name="qos_config" type="qos" />
+  <netprofile name="drain_config" type="drain" />
+</portprofile>
+# emulate libvirt to deliver according to the domain xml>interface
+ovs-appctl revalidator/purge
+na-ctl --retry=-1 portprofile define --content "$(get_port_config)"
+na-ctl add-listen --id=1 --event="set Interface p2 external_ids:port-profile=port_config"
+ovs-vsctl set Interface p2 external_ids:port-profile=port_config
+na-ctl wait --id=1
+ovs-ofctl dump-flows br0 > br0_flows.txt
+grep "ct_state=+new-est,tcp,reg1=0x.*/0xffff,nw_src=1.2.3.5" br0_flows.txt || exit 2
+grep "ct_state=+new-est,tcp,reg1=0x.*/0xffff,nw_src=1.2.3.6" br0_flows.txt || exit 3
+grep "tcp,reg1=0x.*/0xffff,nw_src=1.2.3.7" br0_flows.txt || exit 4
+grep "ct_state=+new-est,tcp,reg1=0x.*/0xffff,nw_src=1.2.3.7" br0_flows.txt && exit 5  # intended for no ct_state here
+# Strips out uninteresting parts of flow output, as well as parts
+# that vary from one run to another (e.g., timing and bond actions).
+strip_timers() {{
+    sed '
+    s/duration:[0-9]*\.[0-9]*/duration:0.0/
+    s/used:[0-9]*\.[0-9]*/used:0.0/
+ovs-appctl time/warp 5000
+ovs-appctl netdev-dummy/receive p2 "in_port(1),packet_type(ns=0,id=0),eth(src=50:54:00:00:00:0a,dst=50:54:00:00:00:0b),eth_type(0x0800),ipv4(src=$ADDR1,dst=$ADDRD,proto=1,tos=0,ttl=64,frag=no),icmp(type=8,code=0)" --len 60
+ovs-appctl netdev-dummy/receive p2 "in_port(1),packet_type(ns=0,id=0),eth(src=50:54:00:00:00:0a,dst=50:54:00:00:00:0b),eth_type(0x0800),ipv4(src=$ADDR1,dst=$ADDRD,proto=1,tos=0,ttl=64,frag=no),icmp(type=8,code=0)" --len 60
+ovs-appctl netdev-dummy/receive p2 "in_port(1),packet_type(ns=0,id=0),eth(src=50:54:00:00:00:0a,dst=50:54:00:00:00:0b),eth_type(0x0800),ipv4(src=$ADDR1,dst=$ADDRD,proto=1,tos=0,ttl=64,frag=no),icmp(type=8,code=0)" --len 60
+ovs-appctl netdev-dummy/receive p2 "in_port(1),packet_type(ns=0,id=0),eth(src=50:54:00:00:00:0a,dst=50:54:00:00:00:0b),eth_type(0x0800),ipv4(src=$ADDR1,dst=$ADDRD,proto=1,tos=0,ttl=64,frag=no),icmp(type=8,code=0)" --len 60
+ovs-appctl netdev-dummy/receive p2 "in_port(1),packet_type(ns=0,id=0),eth(src=50:54:00:00:00:0a,dst=50:54:00:00:00:0b),eth_type(0x0800),ipv4(src=$ADDR1,dst=$ADDRD,proto=1,tos=0,ttl=64,frag=no),icmp(type=8,code=0)" --len 60
+# with burst size 2 (== 2000 bits). 4 packets, (240 bytes == 1920 bits) pass, but the last packet should hit the drop band.
+(ovs-ofctl -O OpenFlow13 meter-stats br0 | strip_timers) > meterstats.txt
+cat <<EOF > meterstats_expected.txt
+OFPST_METER reply (OF1.3) (xid=0x2):
+meter:2 flow_count:1 packet_in_count:5 byte_in_count:300 duration:0.0s bands:
+0: packet_count:1 byte_count:60
+diff --ignore-all-space meterstats_expected.txt meterstats.txt
+if test $? -ne 0; then
+    exit 14
+exit $exitret
+z3test drain combination failed: shell return code:%dr
+test_drain_combinationO
+1z TestDrain.test_drain_combination)
+__name__
+__module__
+__qualname__r
+__classcell__r
+__main__)
+__doc__Z
+unittestZ
+na_tests.common.utilityr
+na_tests.commonr
+TestCaseBaser
+mainr
+<module>

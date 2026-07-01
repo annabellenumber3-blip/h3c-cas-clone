@@ -1,0 +1,559 @@
+m	Z	m
+Z,d Z-d!Z.d"Z/d#Z0d#Z1d$Z2d
+Z3d%Z4d&Z5d'Z6d
+Z7d(Z8d)Z9d*Z:d
+Z;d+Z<d,Z=d-Z>d.Z?d/Z@d0ZAd1ZBd2ZCd3ZDd4ZEd5ZFd6ZGd7ZHd8ZIe
+Jd9d
+Jd:d;d<
+Jd=d>d?
+Jd@dAdB
+ZOe*dCe,dDe-dEe.dFe3dGe/dHe0dIe1dJi
+ZPe*e,e-e.e3e/e0e1dK
+dLdM
+ZRdNZSdOZTdPZUd
+ZVd!ZWdQZXdRZYdSZZdTZ[dUZ\dVZ]dWZ^d
+Z_dXZ`dYZad
+ZbdZZcd
+Zdd'Zed	Zfd
+Zhd[Zid\Zjd#Zkd
+Zld]Zmd^Znd_Zod`ZpdaZqd,Zrd
+ZudbZvG
+dcdd
+)ez# tpm.py
+Wrapper classes for swtpm
+default_backend)
+hashes
+hmac)
+padding)
+RSAPublicNumbers)
+logit
+logerr
+sha1
+Swtpmz@ Swtpm is the base class for usage of swtpm as TPM 1.2 or TPM 2 Fc
+W Class constructor
+            swtpm_exec_l is a list like ["swtpm", "socket"]
+        N)
+swtpm_exec_l
+state_path
+keyopt
+logfile
+fds_to_pass
+is_tpm2
+pidfile
+swtpm_proc
+data_client_socket
+data_swtpm_socket
+ctrl_client_socket
+ctrl_swtpm_socket)
+selfr
+8/usr/lib/python3.9/site-packages/py_swtpm_setup/swtpm.py
+__init__-
+Swtpm.__init__c
+j	rD|
+z# The start method starts the TPM 2 z
+.swtpm_setup.pidfilez
+--tpm2z
+--keyz
+--flagsz
+not-need-initz
+--tpmstatez
+dir=%sz
+--pidz
+file=%sr
+--serverz
+type=tcp,fd=%dz
+--ctrlz
+type=unixio,clientfd=%d)
+stdout
+stderr
+pass_fdsz
+Failed to start swtpm %s: %s
+TPM died? %s
+z TPM is listening on Unix socket.g
+path
+joinr
+copyr
+extendr
+socketZ
+socketpair
+AF_UNIX
+SOCK_STREAMr
+set_inheritable
+filenor
+remove_pidfiler
+subprocess
+Popen
+PIPEZ
+STDOUTr
+	Exceptionr
+pollZ
+communicate
+print
+stop
+exists
+time
+sleep)
+cmdlineZ
+ctrZ	r_cmdliner$
+errZ
+ctr2r#
+start@
+Swtpm.startc
+z! Remove the pidfile if it exists N)
+remover5
+Swtpm.remove_pidfilec
+z! Stop the running swtpm instance g
+timeoutN)
+ctrl_shutdown
+waitr2
+TimeoutExpired
+killr1
+close)
+sockr
+Swtpm.stopc
+z$ Destroy the running swtpm instance N)
+destroy
+Swtpm.destroyc
+z0 Send a command to swtpm and receive a response r
+transfer error: %s
+z#Response for %s has only %d bytes.
+%s failed: 0x%x
+sendall
+recvr5
+struct
+unpack)	r
+reqZ
+cmdname
+use_ctrlrF
+offset
+rspr=
+returncoder
+transfer
+Swtpm.transferc
+' Send an Init over the control channel z
+>I Ir
+CMD_INITT
+packrX
+retr
+	ctrl_init
+Swtpm.ctrl_initc
+CMD_SHUTDOWNTrY
+Swtpm.ctrl_shutdownc
+d	d	|
+z? Get the TPM specification parameters over the control channel z
+>I QIIr
+CMD_GET_INFOTrY
+%ds)
+TPMLIB_INFO_TPMSPECIFICATION
+TPMLIB_INFO_TPMATTRIBUTESrV
+decode)
+length
+datar
+ctrl_get_tpm_specs_and_attrs
+z"Swtpm.ctrl_get_tpm_specs_and_attrsN)
+__name__
+__module__
+__qualname__
+__doc__r 
+>H256s
+>H384si
+>H48s
+sha256
+sha384
+sha512
+sm3-256
+sha3-256
+sha3-384
+sha3-512)
+d d!
+d"d#
+d$d%
+d&d'
+d(d)
+Swtpm2z' Class for manufacturing a swtpm TPM 2 c
+superr
+	__class__r
+Swtpm2.__init__c
+ Shut down the TPM 2 
+>HII HZ
+TPM2_Shutdown)
+TPM2_ST_NO_SESSIONS
+calcsize
+TPM2_CC_SHUTDOWN
+TPM2_SU_CLEARrV
+fmtrQ
+shutdownS
+Swtpm2.shutdownc
+ Startup the TPM 2 r
+TPM2_Startup)
+TPM2_CC_STARTUPr
+run_swtpm_bios^
+Swtpm2.run_swtpm_biosc
+t	|	
+ Get all available PCR banks z
+>HII IIIr
+TPM2_GetCapabilityr
+>HBr
+%02x)
+TPM2_CC_GETCAPABILITY
+TPM2_CAP_PCRSrV
+range
+PCR_BANKS_TO_NAMES
+append)
+countrS
+resr\
+bankri
+namer
+get_all_pcr_banksh
+Swtpm2.get_all_pcr_banksc
+z< Set the list of active PCR banks to the one the user wants rb
+>H BBBBr
+zPNo PCR banks could be allocated. None of the selected algorithms are supported.
+>I HBHz
+>HII I I%ds I %dsZ
+TPM2_PCR_Allocate)
+encode
+BANK_NAMES_TO_ALGID
+KeyError
+insertrO
+TPM2_RS_PW
+TPM2_ST_SESSIONSr
+TPM2_CC_PCR_ALLOCATE
+TPM2_RH_PLATFORMrV
+Z	pcr_banksZ
+all_pcr_banksZ
+pcrselectsr
+activeZ
+pcr_bank
+hashalg
+	authblockr
+set_active_pcr_banks
+Swtpm2.set_active_pcr_banksc
+z@ Make object at the curr_handler permanent with the perm_handle 
+>IHBHr
+>HII II I%ds IZ
+TPM2_EvictControl)	rO
+TPM2_CC_EVICTCONTROL
+TPM2_RH_OWNERrV
+curr_handleZ
+perm_handler
+evictcontrol
+Swtpm2.evictcontrolc
+ Create an RSA Ek 
+>HHH
+TPM2_ALG_NULL
+TPM2_ALG_AES
+TPM2_ALG_CFB
+_createprimary_rsa
+TPM2_RH_ENDORSEMENT)
+rsa_keysize
+allowsigning
+decryption
+authpolicy
+keyflags
+	symkeylen
+	havenonceZ
+addlen
+symkeydata
+offr
+createprimary_ek_rsa
+Swtpm2.createprimary_ek_rsac
+}	n0|
+z- Create an RSA key with the given parameters r
+Unsupported keysize %d
+>HHI H%ds %ds HH I %ds
+>HII I I%ds HI H%ds IHrK
+TPM2_CreatePrimaryrJ
+z.RSA key: Getting modulus from wrong offset %d
+>%ds)
+NONCE_RSA2048
+TPM2_ALG_SHA256
+NONCE_EMPTY
+NONCE_RSA3072
+TPM2_ALG_SHA384r
+TPM2_ALG_RSAr
+TPM2_CC_CREATEPRIMARYrV
+hex)
+primaryhandler
+noncer
+public
+ek_templaterQ
+handleZ
+modlen
+ekparamr
+Swtpm2._createprimary_rsac	
+z- Create an ECC key with the given parameters r
+>HHI H%ds %ds HH H %ds%dsr
+Z	secp384r1z
+Unknown curveid 0x%x
+z.ECC: Getting key parameters from wrong offset
+x=%s,y=%s,id=%s)
+TPM2_ALG_ECCr
+TPM2_ECC_NIST_P384r
+curveidr
+Z	exp_ksizeZ
+cidZ
+ksize1Z
+off2Z
+ksize2Z
+xparamZ
+yparamr
+_createprimary_ecc-
+Swtpm2._createprimary_eccc
+ Create a NIST p384 ECC SPK 
+)	rO
+NONCE_ECC_384)
+createprimary_spk_ecc_nist_p384d
+z&Swtpm2.createprimary_spk_ecc_nist_p384c
+z1 Create a primary RSA key with the given keysize r
+createprimary_spk_rsao
+Swtpm2.createprimary_spk_rsac
+z1 Create either an ECC or RSA storage primary key r
+z;Successfully created storage primary key with handle 0x%x.
+TPM2_SPK_HANDLEr
+iseccr
+create_spk
+Swtpm2.create_spkc
+zA Create en ECC EK key that may be allowed to sign and/or decrypt i
+create_spk_ecc failed
+createprimary_ek_ecc_nist_p384
+z%Swtpm2.createprimary_ek_ecc_nist_p384c
+ Create an ECC or RSA EK 
+ECCr
+RSA %dr
+create_ek failed
+z-Successfully created %s EK with handle 0x%x.
+EK templatez9Successfully created NVRAM area 0x%x for %s EK template.
+TPM2_EK_ECC_SECP384R1_HANDLE
+)TPM2_NV_INDEX_ECC_SECP384R1_HI_EKTEMPLATE
+TPM2_EK_RSA_HANDLE
+ TPM2_NV_INDEX_RSA2048_EKTEMPLATE
+TPM2_EK_RSA3072_HANDLE
+#TPM2_NV_INDEX_RSA3072_HI_EKTEMPLATEr
+TPMA_NV_PLATFORMCREATE
+TPMA_NV_AUTHREAD
+TPMA_NV_OWNERREAD
+TPMA_NV_PPREAD
+TPMA_NV_PPWRITE
+TPMA_NV_NO_DA
+TPMA_NV_WRITEDEFINE
+write_nvram)
+lock_nvramZ
+tpm2_ek_handle
+keytype
+nvindexr
+nvindexattrsr
+	create_ek
+Swtpm2.create_ekc
+}	|	S
+z2 Define an NVIndex with attributes and given size r
+>IHI H Hz
+>HII I I%ds H H%dsZ
+TPM2_NV_DefineSpace)
+TPM2_CC_NV_DEFINESPACEr
+sizer
+nvpublicr
+nv_definespace
+Swtpm2.nv_definespacec
+z' Write the data into the given NVIndex r
+>HII II I%ds H%dsHZ
+TPM2_NV_Writer
+)	rO
+TPM2_CC_NV_WRITEr
+stepsize
+bufr
+nv_write
+Swtpm2.nv_writec
+ Lock the given index r
+>HII II I%dsZ
+TPM2_NV_WriteLock)	rO
+TPM2_CC_NV_WRITELOCKr
+nv_writelock
+Swtpm2.nv_writelockc
+z< Define NVRAM space, write data to it and lock it if wanted r
+z)Could not create NVRAM area 0x%x for %s.
+z)Could not write %s into NVRAM area 0x%x.
+z,Could not lock EK template NVRAM area 0x%x.
+purposer]
+Swtpm2.write_nvramc
+)	zQ Write the given ekcert into an NVRAM area appropriate for the key type and size r
+EK Certificater
+z<Successfully created NVRAM area 0x%x for %s EK certificate.
+z8Could not create NVRAM area 0x%x for %s EK certificate.
+TPM2_NV_INDEX_RSA2048_EKCERT
+TPM2_NV_INDEX_RSA3072_HI_EKCERT
+%TPM2_NV_INDEX_ECC_SECP384R1_HI_EKCERTr
+ekcertr
+write_ek_cert_nvram>
+Swtpm2.write_ek_cert_nvramc
+rLt	|
+z3 Write the platform certificate into an NVRAM area z
+Platform Certificater
+z?Successfully created NVRAM area 0x%x for platform certificate.
+z;Could not create NVRAM area 0x%x for platform certificate.
+TPM2_NV_INDEX_PLATFORMCERTr
+platformcertr
+write_platform_cert_nvram]
+z Swtpm2.write_platform_cert_nvram)
+__classcell__r
+Swtpm12z) Class for manufacturing a swtpm TPM 1.2 c
+Swtpm12.__init__c
+ Run TPM_Startup() r
+TPM_Startup)
+TPM_TAG_RQU_COMMANDr
+TPM_ORD_STARTUPrV
+startup_typer
+startup
+Swtpm12.startupc
+ Run TSC_PhysicalPresence r
+TSC_PhysicalPresence)
+TSC_ORD_PHYSICAL_PRESENCErV
+physicalpresencer
+tsc_physicalpresence
+Swtpm12.tsc_physicalpresencec
+ Run TPM_PhysicalEnable 
+>HIIZ
+TSC_PhysicalEnable)
+TPM_ORD_PHYSICAL_ENABLErV
+physical_enable
+Swtpm12.physical_enablec
+z  Run TPM_PhysicalSetDeactivated z
+>HI I BZ
+TPM_PhysiclaSetDaectivated)
+ TPM_ORD_PHYSICAL_SET_DEACTIVATEDrV
+stater
+physical_set_deactivated
+z Swtpm12.physical_set_deactivatedc
+ Initialize the swtpm r
+TPM_ST_CLEARr
+ TPM_PHYSICAL_PRESENCE_CMD_ENABLE
+TPM_PHYSICAL_PRESENCE_PRESENTr
+Swtpm12.run_swtpm_biosc
+z+ Create an endorsement key for the TPM 1.2 s6
+TPM_CreateEndorsementKeyPairr
+z"Offset to EK Public key is wrong.
+256si&
+pubekr
+create_endorsement_key_pair
+z#Swtpm12.create_endorsement_key_pairc
+ Create an OIAP session r
+TPM_OIAPr
+20sr$
+TPM_ORD_OIAPrV
+authhandle
+nonce_evenr
+oiap
+Swtpm12.oiapc
+ Run TPM_TakeOwernship Z
+10001rs
+backend)
+	algorithmZ
+TCPA)
+mgfr,
+labelr
+>IIIr
+>I HH I%dsz
+>HH HIB %ds I I I
+	>I20sB20sz
+>HII H I256s I256s %ds
+>20s20sB
+>20s %dsZ
+TPM_TakeOwnership)#
+intr
+public_keyr
+OAEPZ
+MGF1r
+SHA1r
+encryptr*
+TPM_ALG_RSA
+TPM_ES_RSAESOAEP_SHA1_MGF1
+TPM_SS_NONE
+TPM_TAG_KEY12
+TPM_KEY_STORAGE
+TPM_AUTH_ALWAYSr'
+urandom
+TPM_TAG_RQU_AUTH1_COMMANDr
+TPM_ORD_TAKE_OWNERSHIP
+TPM_PID_OWNERrP
+HMAC
+update
+finalizerV
+ownerpass_digestZ
+srkpass_digestr&
+exponent
+modulusZ
+pubekkeyZ
+oaepZ
+enc_owner_authZ
+enc_srk_authr)
+auth_handler]
+tpm_rsa_key_parmsZ
+tpm_key_parmsZ	tpm_key12
+fmt_authr
+	nonce_oddrQ
+shainput
+in_param_digest
+continue_auth_session
+in_auth_setup_params
+macinput
+myhmac
+owner_authr\
+take_ownership
+Swtpm12.take_ownershipc
+d	t	|
+ clear TPM ownership r
+>H IIre
+TPM_ClearOwner)
+TPM_ORD_OWNER_CLEARrP
+ownerclearS
+Swtpm12.ownerclearc
+}	|	S
+z7 Define an nvindex with the given permissions and size z
+>HBBB B 20sr
+>HI %ds%ds HI BBBIz
+>HII %ds 20sZ
+TPM_NV_DefineSpace)
+TPM_LOC_ALLr
+TPM_TAG_NV_DATA_PUBLIC
+TPM_TAG_NV_ATTRIBUTESr
+TPM_ORD_NV_DEFINE_SPACErV
+pcr_info_shortr
+nv_data_publicrQ
+nv_define_spacer
+Swtpm12.nv_define_spacec
+ Write data to an index z
+>HII III%dsr
+TPM_NV_WriteValue)
+TPM_ORD_NV_WRITE_VALUErV
+nv_write_value
+Swtpm12.nv_write_valuec
+z% Write the EK Certificate into NVRAM r
+TPM_NV_INDEX_EKCERT
+TPM_NV_INDEX_D_BITrS
+TPM_NV_PER_OWNERREAD
+TPM_NV_PER_OWNERWRITErN
+Swtpm12.write_ek_cert_nvramc
+z+ Write the Platform Certificate into NVRAM r
+TPM_NV_INDEX_PLATFORMCERTrW
+z!Swtpm12.write_platform_cert_nvramc
+ Lock the NVRAM r
+TPM_NV_INDEX_LOCKr@
+nv_lock
+Swtpm12.nv_lock)
+)xro
+cryptography.hazmat.backendsr
+cryptography.hazmat.primitivesr
+Z)cryptography.hazmat.primitives.asymmetricr
+Z-cryptography.hazmat.primitives.asymmetric.rsar
+py_swtpm_setup.swtpm_utilsr
+TPM2_ALG_SHA1r
+TPM2_ALG_SHA512Z
+TPM2_ALG_SHA3_256Z
+TPM2_ALG_SHA3_384Z
+TPM2_ALG_SHA3_512r
+TPM2_ALG_SM3r
+TPM_ORD_OSAPr;
+TPM_TAG_PCR_INFO_LONGrQ
+TPM_LOC_ZEROrO
+TPM_ET_OWNERZ	TPM_ET_NVZ	TPM_KH_EKr
+<module>

@@ -1,0 +1,208 @@
+sos_get_command_outputc
+d!d"
+d#d$
+d%d&
+SoSObfuscationArchivea
+A representation of an extracted archive or an sos archive build
+    directory which is used by SoSCleaner.
+    Each archive that needs to be obfuscated is loaded into an instance of this
+    class. All report-level operations should be contained within this class.
+    r
+.tarr
+sosZ
+sos_uiz
+Loaded %s as an archive)
+archive_path
+final_archive_path
+tmpdir
+split
+archive_name
+ui_name
+loggingZ	getLogger
+soslog
+ui_log
+_load_skip_list
+	skip_list
+log_info)
+selfr
+C/usr/lib/python3.9/site-packages/sos/cleaner/obfuscation_archive.py
+__init__ 
+SoSObfuscationArchive.__init__c
+z9Helper to easily format ui messages on a per-report basisz	{:<50} {}z
+ :N)
+info
+formatr
+msgr
+report_msg+
+z SoSObfuscationArchive.report_msgc
+[cleaner:%s] %s)
+_fmt_log_msg/
+z"SoSObfuscationArchive._fmt_log_msgc
+debugr
+	log_debug2
+SoSObfuscationArchive.log_debugc
+SoSObfuscationArchive.log_infoc
+zyProvide a list of files and file regexes to skip obfuscation on
+        Returns: list of files and file regexes
+        )
+installed-debsz
+installed-rpmsz
+sos_commands/dpkgz
+sos_commands/python/pip_listz
+sos_commands/rpmz
+sos_commands/yum/.*list.*z#sos_commands/snappy/snap_list_--allz"sos_commands/snappy/snap_--versionz
+sos_commands/vulkan/vulkaninfoz
+sys/firmwarez
+sys/fsz
+sys/kernel/debugz
+sys/modulez
+var/log/.*dnf.*z
+.*.tar.*z
+.*.gzr
+z%SoSObfuscationArchive._load_skip_listc
+tarfile
+is_tarfiler
+	Exceptionr 
+z SoSObfuscationArchive.is_tarfilec
+}	~	qHd
+}	~	0
+Extracting...r
+z)Verifying permissions of archive contentsz!Adding owner rw permissions to %sr
+z#Error while trying to set perms: %sz
+Extracted path is %s)
+extract_self
+extracted_pathr
+getuidr
+walk
+path
+join
+stat
+st_mode
+chmod
+S_IRWXU
+exists
+islink
+access
+R_OK
+W_OKr
+S_IRUSR
+S_IWUSRr#
+dirname
+dirs
+filesZ
+_dirZ
+_dirnameZ
+_dir_perms
+filename
+fname
+errr
+extractW
+SoSObfuscationArchive.extractc
+Rename the top-level directory to new_name, which should be an
+        obfuscated string that scrubs the hostname from the top-level dir
+        which would be named after the unobfuscated sos report
+        N)
+replacer
+rename)
+new_name
+_pathr
+rename_top_dirz
+z$SoSObfuscationArchive.rename_top_dirc
+Return the compression type used by the archive, if any. This is
+        then used by SoSCleaner to generate a policy-derived compression
+        command to repack the archive
+        Z
+gzipN)
+endswithr 
+get_compression
+z%SoSObfuscationArchive.get_compressionc
+zIPack the extracted archive as a tarfile to then be re-compressed
+        z
+-obfuscated.tarz
+Building tar file %s
+mode
+arcnameN)
+tarpathr
+open
+addr&
+close)
+tarr
+build_tar_file
+z$SoSObfuscationArchive.build_tar_filec
+Execute the compression command, and set the appropriate final
+        archive path for later reference by SoSCleaner on a per-archive basis
+        z
+%s %sr
+timeout
+stderrZ
+status
+Compressed to %sz)Failed to remove extraction directory: %sz/Failed to remove temporary extraction directoryN
+output
+z'Exception while compressing archive: %s)	rK
+remove_extracted_pathr#
+cmdZ
+exec_cmd
+resr;
+compress
+SoSObfuscationArchive.compressc
+After the tarball has been re-compressed, remove the extracted path
+        so that we don't take up that duplicate space any longer during
+        execution
+        c
+)	r&
+isfile
+remove
+shutil
+rmtree)
+action
+name
+excr
+force_delete_file
+zFSoSObfuscationArchive.remove_extracted_path.<locals>.force_delete_filez
+Removing %s)
+onerrorN)
+z+SoSObfuscationArchive.remove_extracted_pathc
+z}Extract an archive into our tmpdir so that we may inspect it or
+        iterate through its contents for obfuscation
+        Z
+cleanerr
+extractallrJ
+archiver)
+z"SoSObfuscationArchive.extract_selfc
+z-Return a list of all files within the archive)
+Z	file_listr&
+appendr)
+get_file_list
+z#SoSObfuscationArchive.get_file_listc
+Called when a file has finished being parsed and used to track
+        total substitutions made and number of files that had changes made
+        N)
+file_sub_listr_
+total_sub_count)
+countr
+update_sub_count
+z&SoSObfuscationArchive.update_sub_countc
+Return the filepath of a specific file within the archive so that
+        it may be selectively inspected if it exists
+        r
+lstripr/
+get_file_path
+z#SoSObfuscationArchive.get_file_pathc
+Checks the provided filename against a list of filepaths to not
+        perform obfuscation on, as defined in self.skip_list
+        Positional arguments:
+            :param filename str:        Filename relative to the extracted
+                                        archive root
+        TF)	ra
+startswith
+match)
+_skipr
+should_skip_file
+z&SoSObfuscationArchive.should_skip_fileN)
+__name__
+__module__
+__qualname__
+__doc__ra
+propertyr"
+sos.utilitiesr
+<module>

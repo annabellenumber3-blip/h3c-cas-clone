@@ -1,0 +1,118 @@
+<!-- vmware主机概要 -->
+<div class='row overview-content-row' ng-controller="vmwareHostSummaryController">
+	<div class="description-new desc-height-host overview-host-desc col-xs-12 col-sm-6 col-md-6 col-lg-4" style="min-height:584px">
+		<div class="detail-item" style="min-height:574px">
+			<div class="title">
+				<h5 translate="common.basicAttribute"></h5>
+			</div>
+			<dl class="dl-horizontal dl-wide">
+				<!-- 主机型号 -->
+				<dt translate="host.hostType"></dt>
+				<dd ng-bind="summary.model"></dd>
+				<!-- 状态 -->
+				<dt translate="common.state"></dt>
+				<dd>
+					<span class="span_padding" ng-if="summary.status == 1">
+						<img class="pic1img" src="css/img/gray/Icon_host_normal_16x16.svg"></img>
+					</span>
+					<span class="span_padding" ng-if="summary.status == 2">
+						<img class="pic1img" src="css/img/gray/Icon_host_warning_16x16.svg"></img>
+					</span>
+					<span class="span_padding" ng-if="summary.status == 3">
+						<img class="pic1img" src="css/img/gray/Icon_host_maint_16x16.svg"></img>
+					</span>
+					<span class="span_padding" ng-if="summary.status == 0">
+						<img class="pic1img" src="css/img/gray/Icon_host_error.svg"></img>
+					</span>
+				</dd>
+				<!-- CPU -->
+				<dt translate="host.cpuAmount"></dt>
+				<dd ng-bind="summary.cpuCore | vmwareCpu:summary.cpuSocket:summary.cpuTreads"></dd>
+				<!-- CPU型号 -->
+				<dt translate="host.cpuType"></dt>
+				<dd ng-bind="summary.cpuModel"></dd>
+				<!-- CPU主频 -->
+				<dt translate="host.cpuBasicFrequency"></dt>
+				<dd ng-bind="summary.cpuMhz | cpuFrequency"></dd>
+				<!-- 内存-->
+				<dt translate="host.memory"></dt>
+				<dd ng-bind="summary.memory | byteUnitRender2"></dd>
+				<!-- 空闲内存 -->
+				<dt translate="vmware.freeMemory"></dt>
+				<dd ng-bind="summary.freeMemory | byteUnitRender2"></dd>
+				<!-- 版本 -->
+				<dt translate="host.version"></dt>
+				<dd ng-bind="summary.version"></dd>
+				<!-- 虚拟机 -->
+				<dt translate="board.vm"></dt>
+				<dd>
+					<span class="span_padding" ng-bind="summary.vmTotal"></span>
+					<span class="span_padding">[</span>
+					<span class="span_padding"><img class="pic1img" src="css/img/gray/Icon_vm_running.svg"></img></span>
+					<span class="span_padding span_color_green" ng-bind="summary.runningVmTotal"></span>
+					<span class="span_padding"><img class="pic1img" src="css/img/gray/Icon_vm_close.svg"></img></span>
+					<span class="span_padding span_color_red" ng-bind="summary.offVmTotal"></span>
+					<span class="span_padding">]</span>
+				</dd>					
+				<!-- 存储 -->
+				<dt translate="vmware.storageCapacity"></dt>
+				<dd ng-bind="summary.capacity | byteUnitRender2"></dd>
+				<!-- 空闲存储 -->
+				<dt translate="vmware.freeStorageCapacity"></dt>
+				<dd ng-bind="summary.freeSpace | byteUnitRender2"></dd>
+				<!-- 主机时间 -->
+				<dt translate="vmware.hostTime"></dt>
+				<dd ng-bind="summary.currentTime | date:'yyyy-MM-dd HH:mm:ss'"></dd>
+				<!-- 运行时间 -->
+				<dt translate="vmware.upTime"></dt>
+				<dd ng-bind="summary.runningTime | uptime"></dd>
+				<!-- 存储利用率 -->
+				<dt translate="cluster.storageUse"></dt>
+				<dd id="cluster-storageRate" style="padding-top:2px;">
+			    	<summary-progress-bar rate="summary.storageRate"></summary-progress-bar>
+				</dd>
+			</dl>
+		</div>
+	</div>
+	
+	<div class="overviewheight  vmcpu-top5 col-xs-12 col-sm-6 col-md-6 col-lg-4">
+		<!-- top5虚拟机CPU-->
+		<div class="detail-item" id="vmCpuTop5" >
+			<div class="title">
+				<h5 translate="board.virtualHostCpuRateInfoTitle"></h5>
+			</div>
+			<div id="vcenterVmCpuTop5Chart" class="trendChart" style="height:89%;min-height:249px"></div>
+		</div>
+	</div>
+	<div class="overviewheight vmmem-top5 col-xs-12 col-sm-6 col-md-6 col-lg-4">
+		 <!-- top5虚拟机内存-->
+		<div class="detail-item" id="vmMemoryTop5">
+			<div class="title">
+				<h5 translate="board.virtualHostMemoryInfoTitle"></h5>
+			</div>
+			<div id="vcenterVmMemoryTop5Chart" class="trendChart" style="height:89%;min-height:249px"></div>
+		</div>
+	</div>
+	<!-- 主机性能仪表盘 -->
+	<div class="overviewheight-host compute-res-host col-xs-12 col-sm-6 col-md-6 col-lg-4">
+		<div class="detail-item" id="monitor">
+			<div class="title">
+				<h5 translate="vmware.capabilityMonitorInfo"></h5>
+			</div>
+			<div id="monitorChart" class="trendChart" style="height:89%;min-height:249px"></div>
+		</div>
+	</div>
+	<!-- 主机网络流量监控 -->
+    <div class="overviewheight-host  net-throughput col-xs-12 col-sm-6 col-md-6 col-lg-4">
+		<div class="detail-item" id="hostMonitorNet" >
+			<div class="title" style="padding-left:15px;">
+				<h5 translate="vmware.netPerformance"></h5>
+			</div>
+			<div line-chart chart-name="Network" url="{{netUrl}}" y-axis="value" hide-legend=true color-index=4
+				 style='width: 100%; height: 240px;' id="net">
+				<div class="altStyle" style="padding-left:180px;padding-top:110px;" translate="common.noData"></div>
+			</div>
+			<!-- <div id="hostMonitorNetChart" class="trendChart" style="height:89%;min-height:249px"></div> -->
+		</div>
+	 </div>
+</div>

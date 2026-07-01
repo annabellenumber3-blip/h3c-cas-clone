@@ -1,0 +1,252 @@
+<!-- add组织 -->
+<div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" ng-click="cancel()">
+        <span class="icon-closenew"></span>
+    </button>
+	<button type="button" class="close cornerhelp" custom-title="{{'help'|translate}}" ng-click="openHelp('org/addOrg')">
+		<span class="icon-helpnew"></span>
+	</button>
+    <h4 class="modal-title"><span translate="org.add"></span></h4>
+</div>
+<!-- 步骤向导 -->
+<div class="modal-body row">
+    <div class="form-horizontal col-md-8">
+	    <carousel-form titles="stepTitles" cancel="ok()"> 
+	    <!-- 第一步基本设置 -->
+            <slide-form valid="valids.stepOneOver()" active="slide.active">
+                <form name="form1_org" class="form-horizontal" role="form" novalidate>
+                	<input type="hidden" id="form1_org" value="{{form1_org.$valid}}">
+                	<!-- orgName -->
+                    <div class="form-group" ng-class="{'has-error': (form1_org.name.$dirty && form1_org.name.$invalid)}">
+                       	<label for="name" class="control-label"><span translate="org.name"></span><span style="color: red">*</span></label> 
+                       	<div class="control-input input-group input-xlarge">
+                        	<input type="text" check-special-char rpccheck="org/orgNameExist"  ng-maxlength=32 class="form-input form-control" ng-model="model.name"  ng-trim="false" id="name" name="name" required>
+                      		<span class="input-group-addon help-addon" ng-messages="form1_org.name.$error">
+	                       		<span ng-if="form1_org.name.$valid||!form1_org.name.$dirty">
+	                            	<span class="icon-occupying"></span>
+	                        	</span>
+	                     		<span ng-if="form1_org.name.$dirty">
+	                    			<span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+	                            	<span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxlen'|translate}}32"></span></span>
+	                            	<span ng-message="specialChar"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{::'checkname2'|translate}}"></span></span>
+	                            	<span ng-message="rpccheck"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'org.sameNameExist'|translate}}"></span></span>
+	                           	</span>
+                            </span>
+                            </div>
+                    </div>
+                    <div class="form-group" ng-class="{'has-error': (form1_org.description.$dirty && form1_org.description.$invalid)}">
+					   	<label class="col-sm-1 control-label"><span translate="org.desc"></span></label>
+						<div class="control-input input-group col-sm-3">
+						 	<input type="text" ng-maxlength=120 class="form-input form-control" ng-model="model.description"  ng-trim="false" id="description" name="description">
+							<span class="input-group-addon help-addon" ng-messages="form1_org.description.$error">
+								<span ng-if="form1_org.description.$valid||!form1_org.description.$dirty">
+									<span class="icon-occupying"></span>
+								</span>
+								<span ng-if="form1_org.description.$dirty">
+									<span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxlen'|translate}}120"></span></span>
+								</span>
+							</span>
+						</div>
+					</div>
+					<div class="form-group" ng-class="{'has-error': (form1_org.domainPreName.$dirty && form1_org.domainPreName.$invalid)}">
+					   	<label class="col-sm-1 control-label"><span translate="org.namePre"></span></label>
+						<div class="control-input input-group col-sm-3">
+							<input check-special-char type="text" ng-maxlength=20 class="form-input form-control" ng-model="model.domainPreName"  ng-trim="false" id="domainPreName" name="domainPreName">
+							<span class="input-group-addon help-addon" ng-messages="form1_org.domainPreName.$error">
+								<span ng-if="form1_org.domainPreName.$valid||!form1_org.domainPreName.$dirty">
+									<span class="icon-occupying"></span>
+								</span>
+								<span ng-if="form1_org.domainPreName.$dirty">
+									<span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxlen'|translate}}20"></span></span>
+									<span ng-message="specialChar"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{::'checkname2'|translate}}"></span></span>
+								</span>
+							</span>
+						</div>
+					</div>
+					<div class="form-group">
+						<label class="col-sm-1 control-label" translate="org.enableModifyConfig"></label>
+						<div class="control-input">
+							<div class="input-group">
+								<div toggle-switch class="switch-success" ng-model="model.enableAdjustSetting"></div>
+								<span class="input-group-addon help-addon">
+									<span class="icon-help-gray" custom-title="{{'org.enableAdjustSetting' | translate}}"></span>
+								</span>
+							</div>
+						</div>
+					</div>
+					<!-- <div class="form-group">
+					   	<label class="col-sm-1 control-label"><span translate=""></span></label>
+						<div class="control-input checkbox col-sm-8">
+							<label>
+								<input type="checkbox" name="awesome" ng-model="model.enableAdjustSetting" ng-true-value="1" ng-false-value="0">
+								<span translate="org.enableAdjustSetting"></span>
+							</label>
+						</div>
+					</div> -->
+					
+					<div class="form-group" >
+					    <label class="col-sm-1 control-label "><span translate="report.respool"></span><span class="required">*</span></label>
+						<div class = "form-input control-input input-group col-sm-3" ng-click="selectResourcePool()">
+							<input type="text" class="form-control selectInput" ng-readonly="true" ng-model="rpNames" id="rpNames" name="rpNames" required>
+							<span class="input-group-addon inner-addon last-child-angle">
+                                 <span class="icon-search-gray" type="button"></span>
+                            </span>
+							<span ng-if="form.cloudName.$dirty">
+								<span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+							</span>
+						</div>
+					</div>
+                </form>
+            </slide-form>
+            <!-- 第五步 配置组织管理员 -->
+            <slide-form valid="valids.stepFiveOver()">
+                <form name="form5_org" class="form-horizontal" role="form" style="padding: 0 !important;" novalidate>
+                	<input type="hidden" id="form5_org" value="{{form5_org.$valid}}">
+                	<div class="btn-group">
+						<label ng-click="selectOperator()" class="btn btn-default btn-menu hidden-xs">
+							<span class="sm-icon icon-add"></span>
+							<span translate="org.selManger"></span>
+						</label>
+						<label ng-click="selectGroups()" class="btn btn-default btn-menu hidden-xs">
+							<span class="sm-icon icon-add"></span>
+							<span translate="org.selMangerGp"></span>
+						</label>
+					</div>
+					<div style="margin-top: 10px;">
+	                	<div ng-style="listStyle" style="height: 200px;" class="table"  ng-grid="managerGridOptions"></div>
+					</div>
+                </form>
+            </slide-form>
+            <!-- 第六步 组织配额 -->
+            <slide-form valid="valids.stepSixOver()">
+                <form name="form6_org" class="form-horizontal" role="form" novalidate>
+                	<input type="hidden" id="form6_org" value="{{form6_org.$valid}}">
+                	<div class="form-group" ng-class="{'has-error':form6_org.modelMaxVmNum.$invalid && form6_org.modelMaxVmNum.$dirty}">
+					   	<label class="control-label large"><span translate="org.vmNum"></span><span style="color:red;">*</span></label>
+					   	<div class="control-input">
+				            <div class="input-group input-xlarge">
+								<input id= "modelMaxVmNum" name="modelMaxVmNum" type="text" checkint required class="spinner-only" spinner spinner-min=1 spinner-max=2048 ng-model="model.maxVmNum" ng-init="model.maxVmNum=200">
+								<span class="input-group-addon help-addon" ng-messages="form6_org.modelMaxVmNum.$error">
+								 	<span ng-if="form6_org.modelMaxVmNum.$valid||!form6_org.modelMaxVmNum.$dirty">
+									  	<span class="icon-occupying"></span>
+								 	</span>
+								 	<span ng-if="form6_org.modelMaxVmNum.$dirty">
+										<span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{::'require'|translate}}"></span></span>
+									 	<span ng-message="int"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{::'invalidint'|translate}}"></span></span>
+									 	<span ng-message="spinnerMax"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{::'maxValueIs'|translate}}2048"></span></span>
+									 	<span ng-message="spinnerMin"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{::'minValueIs'|translate}}1"></span></span>
+								 	</span>
+								</span>
+							</div>
+					   	</div>
+					</div>
+					<div class="form-group" ng-class="{'has-error':form6_org.modelMaxCpuNum.$invalid && form6_org.modelMaxCpuNum.$dirty}">
+					   	<label class="control-label large"><span translate="org.cpuNum"></span><span style="color:red;">*</span></label>
+						<div class="control-input input-group width260">
+							<input id= "modelMaxCpuNum" name="modelMaxCpuNum"　type="text" checkint required class="spinner-only" spinner spinner-min=1 spinner-max=4096 ng-model="model.maxCpuNum" ng-init="model.maxCpuNum=400">
+						    <span class="input-group-addon help-addon" ng-messages="form6_org.modelMaxCpuNum.$error">
+								 	<span ng-if="form6_org.modelMaxCpuNum.$valid||!form6_org.modelMaxCpuNum.$dirty">
+									  	<span class="icon-occupying"></span>
+								 	</span>
+								 	<span ng-if="form6_org.modelMaxCpuNum.$dirty">
+										<span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{::'require'|translate}}"></span></span>
+									 	<span ng-message="int"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{::'invalidint'|translate}}"></span></span>
+									 	<span ng-message="spinnerMax"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{::'maxValueIs'|translate}}4096"></span></span>
+									 	<span ng-message="spinnerMin"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{::'minValueIs'|translate}}1"></span></span>
+								 	</span>
+							</span>
+						</div>
+					</div>
+					<div class="form-group" ng-class="{'has-error':form6_org.modelmaxMemNum.$invalid && form6_org.modelmaxMemNum.$dirty}">
+					   	<label class="control-label large"><span translate="org.memNum"></span><span style="color:red;">*</span></label>
+						<div class="control-input">
+			                <div class="input-group width260" >
+								<input id= "modelmaxMemNum" name="modelmaxMemNum" type="text" style="width: 181px !important;" class="spinner-input" checkint required spinner spinner-min=1 spinner-max=4096 ng-model="model.maxMemNum" ng-init="model.maxMemNum=400">
+								<div class="input-group-addon unit-addon last-child-angle">GB</div>
+								<span class="input-group-addon help-addon" ng-messages="form6_org.modelmaxMemNum.$error">
+								 	<span ng-if="form6_org.modelmaxMemNum.$valid||!form6_org.modelmaxMemNum.$dirty">
+									  	<span class="icon-occupying"></span>
+								 	</span>
+								 	<span ng-if="form6_org.modelmaxMemNum.$dirty">
+										<span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{::'require'|translate}}"></span></span>
+									 	<span ng-message="int"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{::'invalidint'|translate}}"></span></span>
+									 	<span ng-message="spinnerMax"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{::'maxValueIs'|translate}}4096"></span></span>
+									 	<span ng-message="spinnerMin"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{::'minValueIs'|translate}}1"></span></span>
+								 	</span>
+								</span>
+							</div>
+						</div>
+					</div>
+					<div class="form-group" ng-class="{'has-error':form6_org.modelmaxStorageNum.$invalid && form6_org.modelmaxStorageNum.$dirty}">
+					   	<label class="control-label large"><span translate="org.storgaeNum"></span><span style="color:red;">*</span></label>
+					   	<div class="control-input">
+			                <div class="input-group width260" >
+								<input id= "modelmaxStorageNum" name="modelmaxStorageNum" type="text" style="width: 181px !important;" class="spinner-input" checkint required spinner spinner-min=1 spinner-max=2097152 ng-model="model.maxStorageNum" ng-init="model.maxStorageNum=2000">
+								<div class="input-group-addon unit-addon last-child-angle">GB</div>
+								<span class="input-group-addon help-addon" ng-messages="form6_org.modelmaxStorageNum.$error">
+								 	<span ng-if="form6_org.modelmaxStorageNum.$valid||!form6_org.modelmaxStorageNum.$dirty">
+									  	<span class="icon-occupying"></span>
+								 	</span>
+								 	<span ng-if="form6_org.modelmaxStorageNum.$dirty">
+										<span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{::'require'|translate}}"></span></span>
+									 	<span ng-message="int"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{::'invalidint'|translate}}"></span></span>
+									 	<span ng-message="spinnerMax"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{::'maxValueIs'|translate}}2097152"></span></span>
+									 	<span ng-message="spinnerMin"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{::'minValueIs'|translate}}1"></span></span>
+								 	</span>
+								</span>
+							</div> 
+					   	</div>
+					</div>
+                </form>
+            </slide-form>
+	    </carousel-form>
+	 </div>
+	    <!-- 右侧确认信息 -->
+    <div class="detail-table col-md-4">
+        <table class="table table-striped">
+            <tr>
+                <td class="gray"><h4 translate="configDetail"></h4></td>
+            </tr>
+            <tr>
+                <td class="white"><span translate="org.name"></span></td>
+                <td class="white" shortcut cut-str="{{model.name}}" custom-title>{{model.name}}</td>
+            </tr>
+            <tr>
+                <td class="gray"><span translate="org.desc"></span></td>
+                <td class="gray" shortcut cut-str="{{model.description}}" custom-title>{{model.description}}</td>
+            </tr>
+            <tr>
+                <td class="white"><span translate="org.namePre"></span></td>
+                <td class="white" shortcut cut-str="{{model.domainPreName}}" custom-title>{{model.domainPreName}}</td>
+            </tr>
+            <tr>
+                <td class="gray"><span translate="org.enableModifySet"></span></td>
+                <td class="gray" shortcut cut-str="{{enableAdjustSetting}}" custom-title>{{enableAdjustSetting}}</td>
+            </tr>
+            <tr>
+                <td class="white"><span translate="resourcePool.resourcePool"></span></td><!-- 资源池 -->
+                <td class="white" shortcut cut-str="{{rpNames}}" custom-title>{{rpName}}</td>
+            </tr>
+            <tr>
+                <td class="white"><span translate="org.mangerGroup"></span></td> <!-- 管理员及分组 -->
+                <td class="white" shortcut cut-str="{{managerNames}}" custom-title>{{managerNames}}</td>
+            </tr>
+            <tr>
+                <td class="gray"><span translate="org.vmNum"></span></td>
+                <td class="gray" shortcut cut-str="{{model.maxVmNum}}" custom-title>{{model.maxVmNum}}</td>
+            </tr>
+            <tr>
+                <td class="white"><span translate="org.cpuNum"></span></td> 
+                <td class="white" shortcut cut-str="{{model.maxCpuNum}}" custom-title>{{model.maxCpuNum}}</td>
+            </tr>
+            <tr>
+                <td class="gray"><span translate="org.memNum"></span></td>
+                <td class="gray" shortcut cut-str="{{model.maxMemNum}}GB" custom-title>{{model.maxMemNum}}</td>
+            </tr>
+            <tr>
+                <td class="white"><span translate="org.storgaeNum"></span></td> 
+                <td class="white" shortcut cut-str="{{model.maxStorageNum}}GB" custom-title>{{model.maxStorageNum}}</td>
+            </tr>
+        </table>
+    </div>
+</div>

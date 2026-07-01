@@ -1,0 +1,568 @@
+<!-- 	系统管理/系统参数 -->
+	<div class="contentBelowTab">
+	  <form name="form" class="form-horizontal"  style='height:100%;overflow-y:auto;margin:0px;padding-left:28px;' role="form" novalidate ng-controller="SystemParamCtrl">
+				 <fieldset>
+				 	<legend>
+		          		<h5 style="padding-top:10px;"><span translate="paramconfig.basicParam"></span></h5>
+				 	</legend>
+		          	<div style="margin-top:8px;">
+		          		<div class="col-lg-6">
+	<!-- 		          		缺省闲置超时时长 -->
+				             <div class="form-group" ng-class="{'has-error' : form.sessionTime.$invalid && form.sessionTime.$dirty}">
+					              <label for="sessionTime" class="control-label " style="width:135px;"><span translate="paramconfig.sessionTime"></span><span style="color: red">*</span></label>
+					              <div class="control-input">
+					              	<div class="input-group">
+					                  <input spinner spinner-min="0" spinner-max="9999" name="sessionTime" id="sessionTime" style="float:left;width:186px !important;" ng-model="model.idle_timeout" type="text" checkint required/>
+					              	  <span translate="cluster.minute" class="input-group-addon last-child-angle unit-addon" style="padding:6px;border-left:0;"></span>
+					              	  <span class="input-group-addon help-addon" ng-messages="form.sessionTime.$error">
+		                        		  <span ng-if="form.sessionTime.$valid||!form.sessionTime.$dirty">
+                                              <span class="icon-help-gray" tooltip-placement="right" tooltip="{{'paramconfig.sessionTimeDesc' | translate}}"></span>
+		                        		  </span>
+		                        		  <span ng-if="form.sessionTime.$dirty">
+		                        			  <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+					                          <span ng-message="spinnerMax"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxValueIs'|translate}}9999"></span></span>
+				                        	  <span ng-message="spinnerMin"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'minValueIs'|translate}}1"></span></span>
+		                        		  	  <span ng-message="int"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'invalidint'|translate}}"></span></span>
+		                        		  </span>	
+				                    </span>
+					              </div>
+				             </div>
+				            </div>
+    <!--                        禁止若干分钟内不允许登录的连续登录失败次数。 -->
+                            <!-- 修改问题单201609230059 保密模式下登录认证失败尝试最大次数只能为5次 add by w13241 2016.9.27 -->
+                            <div class="form-group " ng-class="{'has-error' : form.maxFailCount.$invalid}">
+                                  <label for="maxFailCount" style="width:135px;" class="control-label "><span translate="paramconfig.maxFailCount"></span><span style="color: red">*</span></label>
+                                  <div class="control-input">
+                                      <div class="input-group input-xlarge">
+                                            <input spinner checkint spinner-min="1" spinner-max="9999" name="maxFailCount" id="maxFailCount" class="spinner-only" ng-model="model.login_max_fail_counts" security-mode="{{model.security_mode_enable}}" type="text" required/>
+                                              <span class="input-group-addon help-addon"  ng-messages="form.maxFailCount.$error">
+                                                        <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+                                                        <span ng-message="int"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'invalidint'|translate}}"></span></span>
+                                                        <span ng-message="spinnerMax">
+                                                            <span ng-if="model.security_mode_enable == 0" class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxValueIs'|translate}}9999"></span>
+                                                            <span ng-if="model.security_mode_enable == 1" class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxValueIs'|translate}}5"></span>
+                                                        </span>
+                                                        <span ng-message="spinnerMin"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'minValueIs'|translate}}1"></span></span>
+                                                    
+                                            </span>
+                                      </div>
+                                  </div>
+                             </div>
+
+	<!-- 			             管理台日志级别 -->
+				             <div class="form-group ">
+					              <label for="logLevel" class="control-label " style="width:135px;"><span translate="paramconfig.logLevel"></span></label>
+					              <div class="input-group">
+					                 <select-input class="" options="levels.options" bind-model="model.log_level"
+								    input-id="logLevel" input-name="logLevel"> </select-input>
+					              </div>
+				             </div>
+	<!-- 			             实时监控刷新间隔 -->
+				             <div class="form-group ">
+					              <label for="refreshCycle" class="control-label " style="width:135px;"><span translate="paramconfig.refreshCycle"></span></label>
+					              <div class="input-group">
+					                 <select-input class="" options="levels.refreshCycleOptions" bind-model="model.monitor_refresh_cycle" input-id="refreshCycle"
+								    input-name="refreshCycle"> </select-input>
+					              </div>
+				             </div>
+    						<!--  趋势分析天数。
+                             <div class="form-group" ng-class="{'has-error' : (form.trendAnalysisDays.$dirty && form.trendAnalysisDays.$invalid)}">
+                                <label for="trendAnalysisDays" class="control-label" style="width:135px;">
+                                    <span translate="paramconfig.trendAnalysisDays"></span><span style="color: red">*</span>
+                                </label>
+                                <div class="control-input">
+                                    <div class="input-group">
+                                        <input id="trendAnalysisDays" name="trendAnalysisDays" type="text" class="spinner-only" style="width:186px !important;" spinner ng-model="model.trend_analysis_days" spinner-min="1" spinner-max="365" checkint required/> 
+                                        <span class="input-group-addon unit-addon last-child-angle" translate="paramconfig.day"></span>
+	                                    <span class="input-group-addon help-addon" ng-messages="form.trendAnalysisDays.$error">
+	                                          <span ng-if="form.trendAnalysisDays.$dirty">
+	                                              <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" custom-title="{{'require'|translate}}"></span></span>
+	                                              <span ng-message="int"><span class="fa fa-exclamation-triangle" tooltip-placement="right" custom-title="{{'invalidint'|translate}}"></span></span>
+	                                              <span ng-message="spinnerMax"><span class="fa fa-exclamation-triangle" custom-title="{{'maxValueIs'|translate}}365"></span></span>
+	                                              <span ng-message="spinnerMin"><span class="fa fa-exclamation-triangle" custom-title="{{'minValueIs'|translate}}1"></span></span>
+	                                         </span>
+	                                     </span>
+                                     </div>
+                               </div> 
+                            </div>-->
+				       		<!--  操作日志保留天数 -->
+				       		<div class="form-group" ng-class="{'has-error' : form.keepOperlogMonth.$invalid && form.keepOperlogMonth.$dirty}">
+								<label for="keepOperlogMonth" style="width:135px;" class="control-label">
+									<span translate="paramconfig.keepOperlogMonth"></span><span style="color: red">*</span></label>
+								</label>
+								<div class="control-input">
+									<div class="input-group input-xlarge">
+										<div class="input-group width260">
+											<input id="keepOperlogMonth" name="keepOperlogMonth" type="text" style="width:184px;" ng-model="model.keep_operlog_month" spinner checkint
+											spinner-min="3" spinner-max="1000" required> 
+											<span class="input-group-addon unit-addon last-child-angle">{{'cloudResource.month' | translate}}</span>
+				        </div>
+										<span class="input-group-addon help-addon" ng-messages="form.keepOperlogMonth.$error">
+		                       				  <span ng-if="form.keepOperlogMonth.$valid||!form.keepOperlogMonth.$dirty">
+		                           				  <span class="icon-occupy"></span>
+		                       				  </span>
+		                       			  	  <span ng-if="form.keepOperlogMonth.$dirty">
+		                       			  	   	  <span ng-message="required"><span class="fa fa-exclamation-triangle" custom-title="{{'require'|translate}}"></span></span>
+				                        		  <span ng-message="spinnerMin"><span class="fa fa-exclamation-triangle"  custom-title="{{'minValueIs'|translate}}3"></span></span>
+				                        		  <span ng-message="spinnerMax"><span class="fa fa-exclamation-triangle" custom-title="{{'maxValueIs'|translate}}1000"></span></span>
+		                       				 	  <span ng-message="int"><span class="fa fa-exclamation-triangle" custom-title="{{'invalidint'|translate}}"></span></span>
+		                       				 </span>
+		                   				 </span>
+									</div>
+								</div>
+							</div>
+				        </div>
+		          		<div class="col-lg-6">
+		          		      <!--                        登录失败锁定时长。 -->
+		          		     <!-- 修改问题单201609230059 保密模式下登录认证失败尝试最大次数只能为5次 add by w13241 2016.9.27 -->
+                            <div class="form-group "  ng-class="{'has-error' : form.lockTime.$invalid && form.lockTime.$dirty}">
+                                  <label for="lockTime" style="width:135px;" class="control-label "><span translate="paramconfig.lockTime"></span><span style="color: red">*</span></label>
+                                  <div class="control-input">
+                                      <div class="input-group">
+                                          <div class="input-group width260">
+                                                <input spinner spinner-min="1" spinner-max="9999" name="lockTime" id="lockTime"  class="spinner-input" ng-model="model.login_fail_lock_time" style="width:160px !important;" type="text" required checkint/>
+                                                <span class="input-group-addon unit-addon last-child-angle" style="width:70px">分钟</span>
+                                          </div>
+                                            <span class="input-group-addon help-addon"  ng-messages="form.lockTime.$error">
+                                                <span ng-if="form.lockTime.$dirty">
+                                                    <span ng-message="required"><span class="fa fa-exclamation-triangle" custom-title="{{'require'|translate}}"></span></span>
+                                                    <span ng-message="spinnerMax"><span class="fa fa-exclamation-triangle" custom-title="{{'maxValueIs'|translate}}9999"></span></span>
+                                                        <span ng-message="spinnerMin"><span class="fa fa-exclamation-triangle" custom-title="{{'minValueIs'|translate}}1"></span></span>
+                                                    <span ng-message="int"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'invalidint'|translate}}"></span></span>
+                                                </span>                                         
+                                            </span>
+                                      </div>
+                                  </div>
+                             </div>
+
+<!-- 		          		最大在线操作员数 -->
+			            	<div class="form-group" ng-class="{'has-error' : (form.onlineOperatorNum.$dirty && form.onlineOperatorNum.$invalid)}">
+								<label for="onlineOperatorNum" class="control-label" style="width:135px;">
+									<span translate="paramconfig.onlineOperatorNum"></span><span style="color: red">*</span>
+								</label>
+								<div class="control-input">
+					                <div class="input-group">
+										<input id="onlineOperatorNum" name="onlineOperatorNum" type="text" class="spinner-only" value="1" spinner ng-model="model.max_online_num" spinner-min="0" spinner-max="9999" checkint required/> 
+										<span class="input-group-addon help-addon" ng-messages="form.onlineOperatorNum.$error">
+		                       				  <span ng-if="form.onlineOperatorNum.$valid||!form.onlineOperatorNum.$dirty">
+		                           				  <span class="icon-help-gray" custom-title="{{'template.maxOperatorTip' | translate}}"></span>
+		                       				  </span>
+		                       			  	  <span ng-if="form.onlineOperatorNum.$dirty">
+		                           			  	  <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" custom-title="{{'require'|translate}}"></span></span>
+		                       				 	  <span ng-message="int"><span class="fa fa-exclamation-triangle" tooltip-placement="right" custom-title="{{'invalidint'|translate}}"></span></span>
+		                       					  <span ng-message="spinnerMax"><span class="fa fa-exclamation-triangle" custom-title="{{'maxValueIs'|translate}}9999"></span></span>
+				                        		  <span ng-message="spinnerMin"><span class="fa fa-exclamation-triangle" custom-title="{{'minValueIs'|translate}}0"></span></span>
+		                       				 </span>
+		                   				 </span>
+									</div>
+							   </div>
+							</div>
+							<!-- 							启用虚拟共享存储
+							<div class="form-group ">
+					              <label for="enableShareSystem" class="control-label " style="width:135px;"><span translate="paramconfig.enableShareSystem"></span></label>
+					              <div class="input-group">
+					                 <select-input class="" options="levels.enableShareSystemOptions" bind-model="model.share_system_enable"
+								     input-id="enableShareSystem" input-name="enableShareSystem"> </select-input>
+					              </div>
+				             </div>
+				              -->
+						<!-- 				             切换动画效果  -->
+							<div class="form-group ">
+					              <label for="enableTransition" class="control-label " style="width:135px;"><span translate="paramconfig.enableTransition"></span></label>
+					              <div class="input-group">
+					                 <select-input class="" options="levels.enableTransitionOptions" bind-model="model.transition_enable"
+								    ng-init="model.transition_enable = '0'" input-id="enableTransition"
+								    input-name="logLevel"> </select-input>
+					              </div>
+				             </div>
+				             <!-- 启用保密模式 -->
+							<div class="form-group ">
+					              <label for="enableSecurity" style="width:135px;" class="control-label "><span translate="paramconfig.enableSecurity"></span></label>
+					              <div class="input-group">
+						              <div class="input-group" ng-class="{disable: (safeArea == true)}">
+						                 <select-input class="" options="levels.enableTransitionOptions" input-readonly="{{safeArea == true}}" bind-model="model.security_mode_enable"
+								     input-id="enableSecurity" input-name="enableSecurity"> </select-input>
+					              </div>
+						               <span class="input-group-addon help-addon">
+				                           	 <span class="icon-help-gray" tooltip-placement="right" tooltip="{{'paramconfig.enableSecurityDesc' | translate}}"></span>
+				                       </span>
+				             	</div>
+							</div>
+			            	<!-- <div class="form-group" ng-class="{'has-error' : (form.port.$dirty && form.port.$invalid)}">
+								<label for="port" class="control-label" style="width:135px;">
+									<span translate="securityMng.serverPort"></span><span style="color: red">*</span>
+								</label>
+								<div class="control-input">
+					                <div class="input-group">
+										<input id="port" name="port" type="text"  class="spinner-only" spinner ng-model="model.port" spinner-min="1" spinner-max="65535" checkint required/> 
+										<span class="input-group-addon help-addon" ng-messages="form.port.$error">
+		                       				  <span ng-if="form.onlineOperatorNum.$valid||!form.onlineOperatorNum.$dirty">
+		                           				  <span class="icon-help-gray" custom-title="{{'template.maxOperatorTip' | translate}}"></span>
+		                       				  </span>
+		                       			  	  <span ng-if="form.port.$dirty">
+		                       			  	  	<span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" custom-title="{{'require'|translate}}"></span></span>
+												<span ng-message="int"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'invalidint'|translate}}"></span></span>
+					                            <span ng-message="spinnerMax"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxValueIs'|translate}}65535"></span></span>
+					                            <span ng-message="spinnerMin"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'minValueIs'|translate}}1"></span></span>
+		                       				 </span>
+		                   				 </span>
+									</div>
+							   </div>
+							</div> -->
+						　　<!-- <div class="form-group" ng-class="{'has-error': (form.port.$dirty && form.port.$invalid)}">
+	           					<label for="port" style="width:135px;" class="control-label "><span translate="securityMng.serverPort"></span><span class="required">*</span></label>
+	           					<div class="control-input">
+	               					<div class="input-group input-xlarge">
+	                 					<div class="input-group width260">
+	                  					 <input type="text" checkint ng-model="model.port" class="spinner-only" spinner spinner-min=1 spinner-max=65535 ng-trim="false" id="port" name="port" required>
+	                 				    </div>
+	                   					<span class="input-group-addon help-addon" ng-messages="form.port.$error">
+		                    			    <span ng-if="form.port.$dirty" style="color:#A94442;">
+					                     		<span ng-if="isZeroPort"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'securityMng.checkMinus'|translate}}"></span></span>
+					                      		<span ng-message="int"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'invalidint'|translate}}"></span></span>
+					                            <span ng-message="spinnerMax"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxValueIs'|translate}}65535"></span></span>
+					                            <span ng-message="spinnerMin"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'minValueIs'|translate}}1"></span></span>
+					                     	</span>
+	                   					</span>
+	               					 </div>
+	           					</div>
+	      				    </div> -->
+							
+		            </div>
+		            </div>
+		  		</fieldset>
+		  		<!-- 产品信息个性化定制 -->
+				<fieldset>
+					<legend>
+						<h5><span translate="paramconfig.personalization" /></h5>
+					</legend>
+					<div class="col-lg-6" style="margin-top:8px;">
+						<!-- 		          		系统名称 -->
+						<div class="form-group "
+							ng-class="{'has-error' : form.name.$invalid && form.name.$dirty}">
+							<label for="sysname" style="width:135px;" class="control-label "><span
+								translate="paramconfig.sysname"></span></label>
+							<div class="control-input">
+								<div class="input-group input-xlarge">
+									<input id="sysname" class="form-input form-control" ng-trim="false"
+									style="float: left;" ng-model="model.cas_sys_name" type="text"
+									ng-maxlength=120 name="name" /> 
+									<span class="input-group-addon help-addon" ng-messages="form.name.$error"> 
+										<span ng-if="form.name.$valid||!form.name.$dirty">
+											<span class="icon-help-gray" custom-title="{{'paramconfig.sysnameDescTip' | translate}}"></span>
+								</span>
+									<span ng-if="form.name.$dirty"> 
+									<span ng-message="maxlength">
+									<span class="fa fa-exclamation-triangle" custom-title="{{'maxlen'|translate}}120">
+									</span></span></span></span>
+									
+								</div>
+								
+							</div>
+						</div>
+						<!-- 		          		登录页背景 -->
+						<div class="form-group "
+							ng-class="{'has-error' : (form.loginBackground.$dirty && form.loginBackground.$invalid)}">
+							<label  style="width:135px;" class="control-label "><span
+								translate="paramconfig.loginBackground"></span></label>
+							<div class="control-input" id="login_background_btn" style="display:inline;float:left;">
+								<div class="input-group input-xlarge" style="width:235px!important;" >
+									<input id="loginBackground" name="loginBackground" 
+									style="float: left;width: 195px !important;" class="form-control first-child-angle selectInput" 
+									ng-trim="false" ng-model="model.login_background" type="text" readonly /> 
+									<span class="input-group-addon icon-search-gray last-child-angle"
+										style="background: white; border-left: 0;cursor: pointer !important;">
+								</span>
+								</div>
+							</div>
+							<span type="button" class="btn btn-sm-icon icon-delete-gray" style="display:inline;float:left;
+								padding: 8px 4px 8px 4px;width:24px;height:34px;margin-right: 0px;"								
+								ng-click="clearImg('login_background')">
+								</span>
+							<span class="input-group-addon help-addon" style="height:34px;">								
+			                 	<span class="icon-help-gray" custom-title="{{'paramconfig.loginBackgroundDescTip' | translate}}">
+								</span>
+								</span>
+								
+								</div>
+						<div id="login_background_select_files_btn_alert"></div>
+						<div id="login_background_select_files"style="display:none; ;"></div>
+						<div id="login_background_stream_files_queue" style="display:none;"></div>
+						<div id="login_background_stream_message_container" style="display:none;"></div>
+						<!-- 		          		首页头背景 -->
+						<div class="form-group "
+							ng-class="{'has-error' : (form.homeTitleBackground.$invalid && form.homeTitleBackground.$dirty)}">
+							<label style="width:135px;" class="control-label "><span
+								translate="paramconfig.loginPageLogo"></span></label>
+							<div class="control-input" id="hometitle_background_btn" style="display:inline;float:left;">
+								<div class="input-group input-xlarge" style="width:235px!important;">
+									<input id="homeTitleBackground" name="homeTitleBackground" 
+									style="float: left;width: 195px !important;" class="form-input form-control first-child-angle selectInput" 
+									 ng-trim="false" ng-model="model.app_top_title" type="text" readonly /> 
+									 <span class="input-group-addon icon-search-gray last-child-angle"
+									style="background: white; border-left: 0;cursor: pointer !important;">
+									</span>									
+							</div>
+						</div>
+							<span type="button" class="btn btn-sm-icon icon-delete-gray" style="display:inline;float:left;
+								padding: 8px 4px 8px 4px;width:24px;height:34px;margin-right: 0px;"								
+								ng-click="clearImg('app_top_title')">
+								</span>
+							<span class="input-group-addon help-addon" style="height:34px;">								
+			                 	<span class="icon-help-gray" custom-title="{{'paramconfig.homeTitleBackgroundDescTip' | translate}}">
+								</span>
+								</span>
+								</div>
+						<div id="hometitle_background_select_files_btn_alert"></div>
+						<div id="hometitle_background_select_files"style="display:none; ;"></div>
+						<div id="hometitle_background_stream_files_queue" style="display:none;"></div>
+						<div id="hometitle_background_stream_message_container"style="display:none;"></div>
+						<!-- 		          		网站头像 Favicon -->
+						<div class="form-group "
+							ng-class="{'has-error' : (form.sysFavicon.$invalid && form.sysFavicon.$dirty)}">
+							<label style="width:135px;" class="control-label "><span
+								translate="paramconfig.favicon"></span></label>
+							<div class="control-input" id="sys_favicon_btn" style="display:inline;float:left;">
+								<div class="input-group input-xlarge" style="width:235px!important;">
+									<input id="sysFavicon" name="sysFavicon" ng-model="model.sys_favicon" 
+									style="float: left;width: 195px !important;"
+									class="form-input form-control first-child-angle selectInput" 
+									ng-trim="false" type="text" readonly /> 
+									<span class="input-group-addon icon-search-gray last-child-angle"
+									style="background: white; border-left: 0;cursor: pointer !important;">
+									</span>								
+							</div>
+						</div>
+							<span type="button" class="btn btn-sm-icon icon-delete-gray" style="display:inline;float:left;
+								padding: 8px 4px 8px 4px;width:24px;height:34px;margin-right: 0px;"								
+								ng-click="clearImg('sys_favicon')">
+							</span>					
+							<span class="input-group-addon help-addon" style="height:34px;">								
+			                 	<span class="icon-help-gray" custom-title="{{'paramconfig.sysfaviconDescTip' | translate}}">
+								</span>
+			                 </span>							
+								</div>
+						<div id="sys_favicon_select_files_btn_alert"></div>
+						<div id="sys_favicon_select_files"style="display:none; ;"></div>
+						<div id="sys_favicon_stream_files_queue" style="display:none;"></div>
+						<div id="sys_favicon_stream_message_container"style="display:none;"></div>									
+							<!-- 		          		列表纵向分割线显示 -->
+						<div class="form-group">
+							 <label for="allowMem" class="control-label " style="width:135px;">
+					              	<span translate="paramconfig.listVerticalLine"></span>
+					              </label>
+					              <div class="control-input">
+								  <div class="input-group width260">
+									 <div toggle-switch class="switch-success" ng-model="model.list_vertical_line"></div>
+							      </div>
+							</div>
+						</div>
+					</div>
+					<div class="col-lg-6" style="margin-top:8px;">
+						<!-- 版权信息 -->
+						<div class="form-group "
+							ng-class="{'has-error' : form.copyright.$invalid && form.copyright.$dirty}">
+							<label for="copyright" style="width:135px;" class="control-label "><span
+								translate="paramconfig.copyright"></span></label>
+							<div class="control-input">
+								<div class="input-group input-xlarge">
+									<input id="copyright_id" name="copyright" ng-trim="false"
+									class="form-input form-control" style="float: left"
+									ng-model="model.cas_copyright_info" ng-maxlength=128 type="text" />
+									<span class="input-group-addon help-addon" ng-messages="form.copyright.$error"> 
+										<span ng-if="form.copyright.$valid||!form.copyright.$dirty">
+											<span class="icon-help-gray" custom-title="{{'paramconfig.copyrightDescTip' | translate}}"></span>
+								</span>
+									<span ng-if="form.copyright.$dirty"> 
+									<span ng-message="maxlength">
+									<span class="fa fa-exclamation-triangle" custom-title="{{'maxlen'|translate}}128">
+									</span></span></span></span>								
+								</div>
+			
+						</div>
+						</div>
+						<!-- 		          		产品Logo-->
+						<div class="form-group "
+							ng-class="{'has-error' : (form.logo.$invalid && form.logo.$dirty)}">
+							<label style="width:135px;" class="control-label "><span
+								translate="paramconfig.homeTitleLogo"></span></label>
+							<div class="control-input" id="app_top_logo_btn" style="display:inline;float:left;">
+								<div class="input-group input-xlarge" style="width:235px!important;">
+									<input id="logo" name="logo"  ng-model="model.app_top_logo"
+									style="float: left;width: 195px !important;"
+									class="form-input form-control first-child-angle selectInput" 
+									ng-trim="false" type="text" readonly /> 
+									<span class="input-group-addon icon-search-gray last-child-angle"
+									style="background: white; border-left: 0;cursor: pointer !important;">
+								</span>
+								</div>
+							</div>
+							<span type="button" class="btn btn-sm-icon icon-delete-gray" style="display:inline;float:left;
+								padding: 8px 4px 8px 4px;width:24px;height:34px;margin-right: 0px;"								
+								ng-click="clearImg('app_top_logo')">
+								</span>
+							<span class="input-group-addon help-addon" style="height:34px;">								
+			                 	<span class="icon-help-gray" custom-title="{{'paramconfig.apptoplogoDescTip' | translate}}">
+								</span>
+								</span>
+								</div>
+						<div id="app_top_logo_select_files_btn_alert"></div>
+						<div id="app_top_logo_select_files"style="display:none; ;"></div>
+						<div id="app_top_logo_stream_files_queue" style="display:none;"></div>
+						<div id="app_top_logo_stream_message_container"style="display:none;"></div>
+						
+						<!-- 		          		首页小图标Logo -->
+						<div class="form-group "
+							ng-class="{'has-error' : (form.appTopMiniLogo.$invalid && form.appTopMiniLogo.$dirty)}">
+							<label style="width:135px;" class="control-label "><span
+								translate="paramconfig.homeTitleTinyLogo"></span></label>
+							<div class="control-input" id="app_top_logo_mini_btn" style="display:inline;float:left;">
+								<div class="input-group input-xlarge" style="width:235px!important;"> 
+									<input id="appTopMiniLogo" name="appTopMiniLogo" ng-model="model.app_top_logo_mini"
+									style="float: left;width: 195px !important;" class="form-input form-control first-child-angle selectInput" 
+									ng-trim="false" type="text" readonly /> 
+									<span class="input-group-addon icon-search-gray last-child-angle"
+									style="background: white; border-left: 0;cursor: pointer !important;">
+								</span>
+								</div>
+							</div>
+							<span type="button" class="btn btn-sm-icon icon-delete-gray" style="display:inline;float:left;
+								padding: 8px 4px 8px 4px;width:24px;height:34px;margin-right: 0px;"								
+								ng-click="clearImg('app_top_logo_mini')">
+								</span>
+							<span class="input-group-addon help-addon" style="height:34px;">								
+			                 	<span class="icon-help-gray" custom-title="{{'paramconfig.apptoplogminiDescTip' | translate}}">
+								</span>
+			                </span>
+								</div>
+						<div id="app_top_logo_mini_select_files_btn_alert"></div>
+						<div id="app_top_logo_mini_select_files"style="display:none; ;"></div>
+						<div id="app_top_logo_mini_stream_files_queue" style="display:none;"></div>
+						<div id="app_top_logo_mini_stream_message_container"style="display:none;"></div>
+						<!-- 版权Logo显示 -->
+						<div class="form-group "
+							ng-class="{'has-error' : (form.copyrightLogo.$invalid && form.copyrightLogo.$dirty)}">
+							<label style="width:135px;" class="control-label "><span
+								translate="paramconfig.copyrightLogo"></span></label>
+							<div class="control-input" id="cas_copyright_logo_btn" style="display:inline;float:left;">
+								<div class="input-group input-xlarge" style="width:235px!important;">
+									<input id="copyrightLogo" name="copyrightLogo" ng-model="model.cas_copyright_logo"
+									style="float: left;width: 195px !important;"
+									class="form-input form-control first-child-angle selectInput" 
+									ng-trim="false" type="text" readonly /> 
+									<span class="input-group-addon icon-search-gray last-child-angle"
+									style="background: white; border-left: 0;cursor: pointer !important;">
+									</span>						
+							</div>
+						</div>
+							<span type="button" class="btn btn-sm-icon icon-delete-gray" style="display:inline;float:left;
+								padding: 8px 4px 8px 4px;width:24px;height:34px;margin-right: 0px;"								
+								ng-click="clearImg('cas_copyright_logo')">
+							</span>					
+							<span class="input-group-addon help-addon" style="height:34px;">								
+			                 	<span class="icon-help-gray" custom-title="{{'paramconfig.copyrightLogoDescTip' | translate}}">
+			                 	</span>
+			                </span>
+					</div>
+						<div id="cas_copyright_logo_select_files_btn_alert"></div>
+						<div id="cas_copyright_logo_select_files"style="display:none; ;"></div>
+						<div id="cas_copyright_logo_stream_files_queue" style="display:none;"></div>
+						<div id="cas_copyright_logo_stream_message_container"style="display:none;"></div>
+					</div>
+					
+					
+				</fieldset>
+				 <fieldset>
+				 	<legend>
+		          		<h5><span translate="paramconfig.logoutActionParam"></span></h5>
+				 	</legend>
+		          		<div style="margin-top:8px;" class="col-lg-6">
+<!-- 		          		注销虚拟机延迟天数 -->
+				             <div class="form-group" ng-class="{'has-error' : (form.logoutVmDelayDay.$dirty && form.logoutVmDelayDay.$invalid)}">
+								<label for="logoutVmDelayDay" class="control-label" style="width:135px;">
+									<span translate="paramconfig.logoutVmDelayDay"></span><span style="color: red">*</span>
+								</label>
+								<div class="control-input">
+					                <div class="input-group">
+										<input id="logoutVmDelayDay" name="logoutVmDelayDay" type="text" value="30" class="spinner-only" spinner ng-model="model.logoutVmDelayDay" spinner-min="0" spinner-max="1000"  checkint required/> 
+										<span class="input-group-addon help-addon" ng-messages="form.logoutVmDelayDay.$error">
+		                       				  <span ng-if="form.logoutVmDelayDay.$valid||!form.logoutVmDelayDay.$dirty">
+		                           				  <span class="icon-help-gray" custom-title="{{'paramconfig.logoutVmDelayDayTip' | translate}}"></span>
+		                       				  </span>
+		                       			  	  <span ng-if="form.logoutVmDelayDay.$dirty">
+		                           			  	  <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+		                       				 	  <span ng-message="int"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'invalidint'|translate}}"></span></span>
+		                       				 	  <span ng-message="spinnerMax"><span class="fa fa-exclamation-triangle" custom-title="{{'maxValueIs'|translate}}1000"></span></span>
+				                        		  <span ng-message="spinnerMin"><span class="fa fa-exclamation-triangle" custom-title="{{'minValueIs'|translate}}0"></span></span>
+		                       				 </span>
+		                   				 </span>
+									</div>
+							   </div>
+							</div>
+	<!-- 			             注销动作-->
+				             <div class="form-group">
+					              <label for="logoutAction" class="control-label " style="width:135px;"><span translate="paramconfig.logoutAction"></span></label>
+					               <div class="control-input">
+					                  <div class="input-group width300">
+					                  	  <select-input class="" options="logoutAction.options" bind-model="model.logoutAction" input-id="logoutAction" input-name="logoutAction"> </select-input>
+					                  	  <span class="input-group-addon help-addon">
+		                       				  <span>
+		                           				  <span class="icon-help-gray" tooltip-placement="right" tooltip="{{'paramconfig.logoutActionTip' | translate}}"></span>
+		                       				  </span>
+		                   				 </span>
+					                  </div>
+					               </div>
+				             </div>
+			            </div>
+		          		<div style="margin-top:8px;" class="col-lg-6">
+<!-- 		          		发送邮件提前天数 -->
+			               <div class="form-group" ng-class="{'has-error' : (form.sendEmailAheadDay.$dirty && form.sendEmailAheadDay.$invalid)}">
+								<label for="sendEmailAheadDay" class="control-label" style="width:135px;">
+									<span translate="paramconfig.sendEmailAheadDay"></span><span style="color: red">*</span>
+								</label>
+								<div class="control-input">
+					                <div class="input-group">
+										<input id="sendEmailAheadDay" name="sendEmailAheadDay" type="text" class="spinner-only" spinner ng-model="model.sendEmailAheadDay" spinner-min="0" spinner-max="1000"  checkint required/> 
+										<span class="input-group-addon help-addon" ng-messages="form.sendEmailAheadDay.$error">
+		                       				  <span ng-if="form.sendEmailAheadDay.$valid||!form.sendEmailAheadDay.$dirty">
+		                           				  <span class="icon-help-gray" custom-title="{{'paramconfig.sendEmailAheadDayTip' | translate}}"></span>
+		                       				  </span>
+		                       			  	  <span ng-if="form.sendEmailAheadDay.$dirty">
+		                           			  	  <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" custom-title="{{'require'|translate}}"></span></span>
+		                       				 	  <span ng-message="int"><span class="fa fa-exclamation-triangle" tooltip-placement="right" custom-title="{{'invalidint'|translate}}"></span></span>
+		                       				 		<span ng-message="spinnerMax"><span class="fa fa-exclamation-triangle" custom-title="{{'maxValueIs'|translate}}1000"></span></span>
+				                        		  <span ng-message="spinnerMin"><span class="fa fa-exclamation-triangle" custom-title="{{'minValueIs'|translate}}0"></span></span>
+		                       				 </span>
+		                   				 </span>
+									</div>
+							   </div>
+							</div>
+								<!-- 			             删除类型-->
+				             <div class="form-group" ng-if="model.logoutAction=='0'">
+					              <label for="logoutAction" class="control-label " style="width:135px;"><span translate="paramconfig.deleteType"></span></label>
+					               <div class="control-input">
+					                  <div class="input-group width300">
+					                  	  <select-input class="" options="deleteType.options" bind-model="model.deleteType" input-id="deleteType" input-name="deleteType"> </select-input>
+					                  	  <span class="input-group-addon help-addon">
+		                       				  <span>
+		                           				  <span class="icon-help-gray" tooltip-placement="right" custom-title="{{'paramconfig.deleteTypeTip' | translate}}"></span>
+		                       				  </span>
+		                   				 </span>
+					                  </div>
+					               </div>
+				             </div>
+			            </div>
+		  		</fieldset>
+				<div class="text-center">
+				    <label class="btn btn-default btn-menu" ng-click="resetParamConfig()">
+                        <span class="sm-icon icon-reset"></span><span translate="common.reset"></span>
+                    </label>
+					<label class="btn btn-default btn-menu" ng-click="saveParamConfig()" ng-if="!form.$invalid">
+						<span class="sm-icon icon-save"></span><span translate="common.save"></span>
+					</label>
+					<label class="btn btn-default btn-menu btn-forbidden"  ng-if="form.$invalid">
+						<span class="sm-icon icon-save"></span><span translate="common.save"></span>
+					</label>
+                 </div>
+		 </form>
+	</div>

@@ -1,0 +1,224 @@
+<!-- 迁移虚拟机弹出窗口 -->
+
+<!-- 标题 -->
+<div class="modal-header">
+     <button type="button" class="close" custom-title="{{::'common.close'|translate}}"  ng-click="cancel()">
+		<span class="icon-closenew"></span>
+	</button>
+    <button type="button" class="close cornerhelp" custom-title="{{::'help'|translate}}" ng-click="openHelp('cloudResource/vm/moveVM')">
+		<span class="icon-helpnew"></span>
+	</button>
+    <h4 class="modal-title" ng-bind="dlgTitle"></h4>
+</div>
+<!-- 步骤向导 -->
+<div class="modal-body row">
+    <div class="form-horizontal col-md-8">
+        <carousel-form titles="step" cancel="ok()" > 
+            <!-- 第一步:选择迁移类型 -->
+            <slide-form valid="valids.stepOneOver()" active="slide.active" is-add="true" tab-index=0>
+                <form name="form1" class="form-horizontal" role="form" style="margin-bottom:0px;height:310px;" novalidate>
+                    <!-- 隐藏属性，用于js方法操作form是否显示 -->
+                    <input type="hidden" id="form1" value="{{form1.$valid}}">
+                    <!-- 选择迁移类型：0-主机，1-存储，2-主机和存储 -->
+                    <div class="form-group" style="margin-bottom:0px;">
+                    	<label class="control-label"><span translate="migrateVm.migrateType"></span></label>
+                        <div class="control-input">
+                        	<div class="input-group">
+		                        <div id="hostDiv" cascheckbox class="cas-checkbox labeled-btn radio" ng-model="model.migrateType" value='0'>
+		                            <input id="host" name="migrateType" type="radio" ng-checked="model.migrateType==0">
+		                            <div class="corner-label">
+		                                <i class="glyphicon glyphicon-ok icon"></i>
+		                            </div>
+		                            <div class="box">
+		                                <span class="box-name" style="width:150px;" translate="migrateVm.changeHost"></span>
+		                            </div>
+		                        </div>
+		                        <span class="input-group-btn help-addon" style="height:30px;" tooltip-placement="right" tooltip="{{::'migrateVm.migrateTip'|translate}}">
+							   		<img class="icon-prompt" src="css/img/gray/Icon_help_16x16.svg"/>
+						    	</span>
+					    	</div>
+	                   </div> 
+                       <div style="margin-top:0px;margin-bottom:5px;">
+                       	   <label class="control-label"></label>
+                           <span style="font-size:12px;" translate="migrateVm.changeHostDesc"></span>
+                       </div>  
+                     </div>
+                     <div class="form-group" style="margin-bottom:0px;">   
+                        <label class="control-label"></label>    
+                        <div class="control-input">
+                        	<div class="input-group">              
+		                        <div id="storageDiv" cascheckbox class="cas-checkbox labeled-btn radio" ng-model="model.migrateType" value='1' input-readonly="{{isStorageFailure || enableMigrateStorage || existBlock}}">
+		                            <input id="storage" name="migrateType" type="radio" ng-checked="model.migrateType==1">
+		                            <div class="corner-label">
+		                                <i class="glyphicon glyphicon-ok icon"></i>
+		                            </div>
+		                            <div class="box">
+		                                <span class="box-name" style="width:150px;" translate="migrateVm.changeStorage"></span>
+		                            </div>
+		                        </div>
+                        	</div>
+                        </div>
+                    </div>
+                    <div style="margin-top:0px;margin-bottom:5px;">
+                    	<label class="control-label"></label>
+                        <span style="font-size:12px;" translate="migrateVm.changeStorageDesc"></span>
+                    </div> 
+                    <div class="form-group" style="margin-bottom:0px;">
+                    	<label class="control-label"></label>
+                        <div class="control-input">
+                        	<div class="input-group">     
+		                        <div id="hostAndStorageDiv" cascheckbox class="cas-checkbox labeled-btn radio" ng-model="model.migrateType" value='2' input-readonly="{{isStorageFailure || existBlock}}">
+		                            <input id="hostAndStorage" name="migrateType" type="radio" ng-checked="model.migrateType==2">
+		                            <div class="corner-label">
+		                                <i class="glyphicon glyphicon-ok icon"></i>
+		                            </div>
+		                            <div class="box">
+		                                <span class="box-name" style="width:150px;" translate="migrateVm.changeHostAndStorage"></span>
+		                            </div>
+		                        </div>
+				    		</div>
+				    	</div>
+                    </div>
+                    <div style="margin-top:0px;margin-bottom:5px;">
+                    	<label class="control-label"></label>
+                        <span style="font-size:12px;" translate="migrateVm.changeHostAndStorageDesc"></span>
+                    </div> 
+                    <!-- 批量迁移或者在线迁移时显示 -->
+                    <!-- 迁移超时时长 -->
+                    <div class="form-group" ng-if="isOnline || isBatch" ng-class="{'has-error' : (form1.timeout.$invalid && form1.timeout.$dirty)}">
+                       <label class="control-label"><span translate="migrateVm.timeout"></span><span style="color:red">*</span></label>
+                       <div class="control-input">
+                          <div  class="input-group">
+                            <input id="timeoutId" type="text" name="timeout" style="width:98px" required spinner spinner-max=120 spinner-min=0 ng-model="model.timeout" checkint>
+                            <span class="input-group-addon last-child-angle unit-addon">{{::'cloudResource.minute'|translate}}</span>
+                            <span class="input-group-addon help-addon" ng-messages="form1.timeout.$error">
+		                        <span ng-if="form1.timeout.$valid||!form1.timeout.$dirty">
+		                            <span class="icon-occupying"></span>
+		                        </span>
+		                        <span ng-if="form1.timeout.$dirty">
+		                            <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{::'require'|translate}}"></span></span>
+		                        	<span ng-message="spinnerMax"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxValueIs'|translate}}120"></span></span>
+		                            <span ng-message="spinnerMin"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'minValueIs'|translate}}0"></span></span>
+		                            <span ng-message="int"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{::'invalidint'|translate}}"></span></span>
+		                        </span>
+                            </span>
+                          </div>
+                       </div>
+                    </div>
+                    <!-- 压缩 -->
+                    <div class="form-group" ng-if="isOnline || isBatch" >
+			        	<label for="backupNowId" class="switch-label"><span translate="migrateVm.compress"></span></label>
+		                <div class="control-input">
+		                    <div class="input-group">
+				                 <div toggle-switch  class="switch-success" ng-model="model.compress"></div>
+		               		</div>
+		              	</div>
+		            </div>
+                </form>
+            </slide-form>
+            <!-- 第二步:选择目的主机 -->
+            <slide-form valid="valids.stepTwoOver()" is-add="model.migrateType==0 || model.migrateType==2" tab-index=1>
+                <form name="form2" class="form-horizontal" role="form" style="margin-top:-20px;overflow:auto;height:310px;" novalidate>
+                    <!-- 隐藏属性，用于js方法操作form是否显示 -->
+                    <input type="hidden" id="form2" value="{{form2.$valid}}">
+                    <div id="hostTree" cas-host-tree bind-data="targetHost">
+                        <ul host-tree-accordion style="padding:0px;">
+                            <li host-tree-link icon="icon-cloudresource" href="cloudResource.dashboard"
+                                listhref="tree/cloudHostList" text="" cloud-id="model.cloudId"></li>
+                        </ul>
+                    </div>
+                </form>
+            </slide-form>
+            <!-- 第三步:选择目标存储 -->
+            <slide-form valid="valids.stepThreeOver()" is-add="model.migrateType==1 || model.migrateType==2" tab-index=2>
+                 <form name="form3" class="form-horizontal" role="form" style="height:267px;overflow:auto;padding-left:10px;" novalidate>
+	                 <!-- 表格形式 -->
+	                  <!-- <div class="panel-body" ng-if="hostId" ng-controller="StorageListInHostCtrl" style="padding:0px;">
+	                     <div style="width: 100%; height: 260px;" class="table"  ng-grid="gridOptions"></div>
+	                 </div>  -->
+	                 <!-- 元素快形式 -->
+	                 <div cas-storage-pool-intersection style="height:100%" ng-if="model.targetHostId" id="storagePoolDivInMigratVm" cloud-id="model.cloudId" object-id="model.targetHostId" object-type="model.targetType" select-pool="selectPool.pool"></div>
+                </form>
+                <!-- 选择磁盘格式 -->
+                <div class="form-group" style="margin-top:10px;padding-left:30px;" ng-if="showFormat">
+                    <label class="control-label short"><span translate="vm.cloneVmDlg.setFormat"></span><span style="color: red"></span></label>
+                    <div id="sameFormatDiv" cascheckbox class="cas-checkbox labeled-btn radio labelMarginleft" ng-model="model.diskFormat" value='keep' input-readonly="{{enableFormat}}">
+                        <input id="sameFormat" name="diskFormat" type="radio" checked>
+                        <div class="corner-label">
+                            <i class="glyphicon glyphicon-ok icon"></i>
+                        </div>
+                        <div class="box">
+                            <span class="box-name" style="width:60px;" translate="migrateVm.sameFormat"></span>
+                        </div>
+                     </div>
+                     <div id="qcow2Div" cascheckbox class="cas-checkbox labeled-btn radio " ng-model="model.diskFormat" value='qcow2' input-readonly="{{enableFormat}}">
+                         <input id="qcow2" name="diskFormat" type="radio">
+                         <div class="corner-label">
+                             <i class="glyphicon glyphicon-ok icon"></i>
+                         </div>
+                         <div class="box">
+                             <span class="box-name" style="width:60px;" translate="migrateVm.qcow2"></span>
+                         </div>
+                     </div>
+                     <div id="rawDiv" cascheckbox class="cas-checkbox labeled-btn radio" ng-model="model.diskFormat" value='raw' input-readonly="{{enableFormat}}">
+                         <input id="raw" name="diskFormat" type="radio" >
+                         <div class="corner-label">
+                             <i class="glyphicon glyphicon-ok icon"></i>
+                         </div>
+                         <div class="box">
+                             <span class="box-name" style="width:60px;" translate="migrateVm.raw"></span>
+                         </div>
+                     </div>
+                </div>
+               <div style="padding-left:30px;">
+               		<a href="#" style="color: #1f90c8;text-decoration:none;" ng-click="designatedFormat()"><sapn ng-bind="advance"></sapn></a>	
+               </div>
+            </slide-form>
+        </carousel-form>
+    </div>
+    <!-- 右侧确认信息 -->
+    <div class="detail-table col-md-4">
+        <table class="table table-striped">
+            <tr>
+                <td><h4 translate="configDetail"></h4></td><td></td>
+            </tr>
+            <tr>
+                <td><span translate="migrateVm.migrateType"></span></td>
+                <td><span custom-title shortcut cut-str="{{model.migrateType|migrateType}}">
+                {{model.migrateType|migrateType}}</span></td>
+            </tr>
+            <tr>
+                <td><span translate="migrateVm.vmTitle"></span></td>
+                <td><span custom-title shortcut cut-str="{{vmTitle}}">{{vmTitle}}</span></td>
+            </tr>
+            <tr ng-if="model.migrateType!=1">
+                <td><span translate="migrateVm.sourceHost"></span></td>
+                <td><span custom-title shortcut cut-str="{{sourceHost}}">{{sourceHost}}</span></td>
+            </tr>
+            <tr ng-if="model.migrateType!=0">
+                <td><span translate="migrateVm.sourcePool"></span></td>
+                <td><span custom-title shortcut cut-str="{{sourcePool}}">{{sourcePool}}</span></td>
+            </tr>
+            <tr ng-if="isOnline || isBatch">
+            	<td><span translate="migrateVm.timeout"></span></td>
+                <td><span>{{model.timeout}}{{::'cloudResource.minute'|translate}}</span></td>
+            </tr>
+            <tr ng-if="isOnline || isBatch">
+            	<td><span translate="migrateVm.compress"></span></td>
+                <td><span>{{model.compress|yes}}</span></td>
+            </tr>
+            <tr ng-if="showTargetHost">
+                <td><span translate="migrateVm.targetHost"></span></td>
+                <td><span custom-title shortcut cut-str="{{targetHost.name}}">{{targetHost.name}}</span></td>
+            </tr>
+            <tr ng-if="showTargetStorage">
+                <td><span translate="migrateVm.targetStorage"></span></td>
+                <td><span custom-title shortcut cut-str="{{selectPool.pool.title}}">{{selectPool.pool.title}}</span></td>
+            </tr>
+            <tr ng-if="showDiskFormat">
+                <td><span translate="migrateVm.diskFormat"></span></td>
+                <td><span custom-title shortcut cut-str="{{model.diskFormat | diskFormat}}">{{model.diskFormat | diskFormat}}</span></td>
+            </tr>
+        </table>
+    </div>
+</div>

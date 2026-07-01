@@ -1,0 +1,162 @@
+Test qos strategy -- test netprofile basic behaviour
+Utility)
+testbasec
+TestNetProfileDatac
+superr
+myinitZ
+_start_ovsZ
+_start_netagent)
+self
+	__class__
+D/usr/lib/python3.9/site-packages/na_tests/ft/test_netprofile_data.pyr
+TestNetProfileData.myinitc
+cd {test_dir}
+NETFILENAME="qos_test"
+ADDR1=1.0.0.1
+get_netfileudp() {{
+    cat <<EOF
+<netprofile name="$NETFILENAME" type="qos" uuid="245324" version="1">
+<flow direction="out" dl_type="ip" nw_dst="$ADDR1/24" nw_proto="udp" priority="15">
+<action burst="80000" domain="interface" id="4" rate="30000" unit="kbps" />
+</flow>
+<flow direction="in" dl_type="ip" nw_dst="$ADDR1/24" nw_proto="udp" priority="15">
+<action burst="80000" domain="interface" id="5" rate="20000" unit="kbps" />
+</flow>
+</netprofile>
+na-ctl --retry=-1 netprofile define --content "$(get_netfileudp)"
+if test $? -ne 0; then
+    exit 1
+ls netprofile/qos > tmp.txt  # TODO: bad
+grep $NETFILENAME.xml tmp.txt
+if test $? -ne 0; then
+    exit 2
+NETFILENAME="errored_qos_test"
+get_errored_netfile() {{  # intentionally to construct is an error netprofile
+    cat <<EOF
+<netprofile name="$NETFILENAME" type="qos" uuid="245324" version="1">
+<flow direction="outerror" dl_type="ip" nw_dst="$ADDR1/24" nw_proto="udp" priority="15">
+<action burst="80000" domain="interface" id="4" rate="30000" unit="kbps" />
+</flow>
+<flow direction="inerror" dl_type="ip" nw_dst="$ADDR1/24" nw_proto="udp" priority="15">
+<action burst="80000" domain="interface" id="5" rate="20000" unit="kbps" />
+</flow>
+</netprofile>
+na-ctl netprofile define --content "$(get_errored_netfile)"
+if test $? -eq 0; then  # expected failed, but if return status code is OK, then exit 
+    exit 2
+test_dirTr
+z2test add qos strategy failed: shell return code:%d
+cmd_execute
+format
+	_test_dir
+assertEqual
+retr
+test_add_netprofile
+-z&TestNetProfileData.test_add_netprofilec
+cd {test_dir}
+NETFILENAME="qos_test"
+na-ctl netprofile undefine "$NETFILENAME"
+ls netprofile/qos > tmp.txt  # TODO: bad
+grep $NETFILENAME.xml tmp.txt
+if test $? -eq 0; then
+    exit 1
+NETFILENAME="qos_test_fake"
+if na-ctl netprofile undefine "$NETFILENAME"; then  # this is a faked netprofile, undefine should failed
+    exit 2  
+z,test del bridge failed: shell return code:%d)
+test_del_netprofileA
+z&TestNetProfileData.test_del_netprofilec
+cd {test_dir}
+NETFILENAME="qos_test"
+ADDR1=1.0.0.1
+get_netfileudp() {{
+    cat <<EOF
+<netprofile name="$NETFILENAME" type="qos" uuid="245324" version="1">
+<flow direction="out" dl_type="ip" nw_dst="$ADDR1/24" nw_proto="udp" priority="15">
+<action burst="80000" domain="interface" id="4" rate="30000" unit="kbps" />
+</flow>
+<flow direction="in" dl_type="ip" nw_dst="$ADDR1/24" nw_proto="udp" priority="15">
+<action burst="80000" domain="interface" id="5" rate="20000" unit="kbps" />
+</flow>
+</netprofile>
+na-ctl --retry=-1 netprofile define --content "$(get_netfileudp)"
+if $? neq 0; then
+    exit 1
+# modified address
+ADDR1=1.0.0.4
+get_netfileudp_mod() {{
+    cat <<EOF
+<netprofile name="$NETFILENAME" type="qos" uuid="245324" version="1">
+<flow direction="out" dl_type="ip" nw_dst="$ADDR1/24" nw_proto="udp" priority="15">
+<action burst="70000" domain="interface" id="4" rate="50000" unit="kbps" />
+</flow>
+<flow direction="in" dl_type="ip" nw_dst="$ADDR1/24" nw_proto="udp" priority="15">
+<action burst="60000" domain="interface" id="5" rate="40000" unit="kbps" />
+</flow>
+</netprofile>
+na-ctl netprofile define --content "$(get_netfileudp_mod)"
+if test $? -ne 0; then
+    exit 1
+get_netfileudp_mod > netfileudp_mod.xml
+if test diff --ignore-all-space netfileudp_mod.xml $NETFILENAME.xml; then
+    exit 2
+NETFILENAME="errored_qos_test"
+get_errored_netfile() {{  # intentionally to construct is an error netprofile
+    cat <<EOF
+<netprofile name="$NETFILENAME" type="qos" uuid="245324" version="1">
+<flow direction="outerror" dl_type="ip" nw_dst="$ADDR1/24" nw_proto="udp" priority="15">
+<action burst="80000" domain="interface" id="4" rate="30000" unit="kbps" />
+</flow>
+<flow direction="inerror" dl_type="ip" nw_dst="$ADDR1/24" nw_proto="udp" priority="15">
+<action burst="80000" domain="interface" id="5" rate="20000" unit="kbps" />
+</flow>
+</netprofile>
+na-ctl netprofile define --content "$(get_errored_netfile)"
+if test $? -eq 0; then  # expected failed, but if return status code is OK, then exit 
+    exit 3
+z0test mod netprofile failed: shell return code:%dr
+test_mod_netprofileS
+@z&TestNetProfileData.test_mod_netprofilec
+cd {test_dir}
+NETFILENAME="qos_test"
+ADDR1=1.0.0.1
+get_netfileudp() {{
+    cat <<EOF
+<netprofile name="$NETFILENAME" type="qos" uuid="245324" version="1">
+<flow direction="out" dl_type="ip" nw_dst="$ADDR1/24" nw_proto="udp" priority="15">
+<action burst="80000" domain="interface" id="4" rate="30000" unit="kbps" />
+</flow>
+<flow direction="in" dl_type="ip" nw_dst="$ADDR1/24" nw_proto="udp" priority="15">
+<action burst="80000" domain="interface" id="5" rate="20000" unit="kbps" />
+</flow>
+</netprofile>
+na-ctl --retry=-1 netprofile define --content "$(get_netfileudp)"
+if test $? -ne 0; then
+    exit 1
+na-ctl netprofile dump $NETFILENAME >netprofile_dumped.xml
+if test $? -ne 0; then
+    exit 11
+diff --ignore-all-space --ignore-blank-lines netprofile_dumped.xml {test_dir}/netprofile/qos/$NETFILENAME.xml
+if test $? -ne 0; then
+    exit 22
+# check the dump content
+listrt=$(na-ctl netprofile list)
+if test $? -ne 0; then
+    exit 2
+if X"$listrt" != X$NETFILENAME; then
+    exit 3
+z*test view netprofile: shell return code:%dr
+test_view_netprofile
+'z'TestNetProfileData.test_view_netprofile)	
+__name__
+__module__
+__qualname__r
+__classcell__r
+__main__)
+__doc__Z
+unittestZ
+na_tests.common.utilityr
+na_tests.commonr
+TestCaseBaser
+mainr
+<module>

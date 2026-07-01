@@ -1,0 +1,366 @@
+<!-- CIC备份策略标签页：CIC备份配置 -->
+<div ng-controller="cicBackupStrategyCtrl" id="cicBackupCfg" class="flexbox-container" style="height:100%;overflow-y:auto;overflow-x:hidden;">
+	<!--    <div  style="width:50%;height:620px;margin-left:10px;margin-top:10px;padding-top:10px;padding-left:35px;max-height:none;float:left;border:1px solid #DEDEDE;min-height:200px"> -->
+	<div class="flexbox-items" style="width:50%;height:620px;min-width:465px;margin-left:10px;margin-top:10px;padding-top:10px;padding-left:35px;border:1px solid #DEDEDE;">
+		<form name="form" style='margin:0' class="form-horizontal" role="form" novalidate >
+			<!-- 备份目的地 -->
+		    <div class="form-group">
+	            <label class="control-label"><span translate="cloudResource.backupTarget"></span></label>
+	            <!-- 下拉框实现 -->
+               <!--  <div class="input-group">
+                        <select-input options="backupTarget.options" ng-init="model.storeMode=0" bind-model="model.storeMode" input-id="storeMode_id" input-name="storeMode"></select-input>
+                </div> -->
+	               <!--  cascheckbox插件实现 -->
+	                <div class="control-input">
+	                      <!--   主机本地目录 -->
+	                        <div id="backupLocalDiv" cascheckbox class="cas-checkbox labeled-btn radio" ng-model="model.storeMode" value='0'>
+		                        <input id="backupLocal" name="storeMode" type="radio" ng-checked="model.storeMode == 0" >
+		                        <div class="corner-label">
+		                            <i class="glyphicon glyphicon-ok icon"></i>
+		                        </div>
+		                        <div class="box">
+		                            <span class="box-name" style="width:103px;" translate="cloudResource.backupLocal"></span>
+		                        </div>
+	                        </div>
+	                        
+	                      <!--   远端服务器 -->
+	                        <div id="backupRemoteDiv" cascheckbox  class="cas-checkbox labeled-btn radio" ng-model="model.storeMode" value='1'>
+		                        <input id="backupRemote" name="storeMode" type="radio" ng-checked="model.storeMode == 1">
+		                        <div class="corner-label">
+		                            <i class="glyphicon glyphicon-ok icon"></i>
+		                        </div>
+		                        <div class="box">
+		                            <span class="box-name" style="width:102px;" translate="cloudResource.backupRemote"></span>
+		                        </div>
+	                        </div>
+	                    </div>
+	            </div>
+		        <!-- 远程配置 -->
+		        <div ng-if="model.storeMode == '1'">
+			        <!-- IP地址 -->
+			        <div class="form-group" ng-class="{'has-error': (form.backupIp.$dirty && form.backupIp.$invalid)}">
+	                    <label for="backupIp" class="control-label"><span translate="ip"></span><span style="color:red">*</span></label>
+	                    <div class="control-input">
+	                        <div class="input-group width260">
+	                            <input type="text" ip ng-maxlength=130 class="form-input form-control" ng-model="model.targetAddr"  ng-trim="false" id="backupIp" name="backupIp" required>
+	                            <span class="input-group-addon help-addon" ng-messages="form.backupIp.$error">
+	                                <span ng-if="form.backupIp.$valid||!form.backupIp.$dirty">
+	                                     <span class="icon-occupying"></span>
+	                                </span>
+	                                <span ng-if="form.backupIp.$dirty">
+	                                     <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+	                                     <span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxlen'|translate}}130"></span></span>
+	                                     <span ng-message="ip"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'invalidip'|translate}}"></span></span>
+	                                </span>
+	                            </span>
+	                        </div>
+	                    </div>
+	                </div>
+			        <!-- 用户名 -->
+			        <div class="form-group" ng-class="{'has-error': (form.username.$dirty && form.username.$invalid)}">
+	                    <label for="cvmBackupInputId" class="control-label"><span translate="username"></span><span style="color: red">*</span></label>
+	                    <div class="control-input">
+	                        <div class="input-group input-xlarge">
+	                            <input type="text" ng-maxlength=32 class="form-input form-control" ng-model="model.loginName"  ng-trim="false" id="cvmBackupInputId" name="username" required >
+	                            <span class="input-group-addon help-addon" ng-messages="form.username.$error">
+	                                <span ng-if="form.username.$valid||!form.username.$dirty">
+	                                    <span class="icon-occupying"></span>
+	                                </span>
+	                                <span ng-if="form.username.$dirty">
+	                                    <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+	                                    <span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxlen'|translate}}32"></span></span>
+	                                </span>
+	                            </span>
+	                        </div>
+	                    </div>   
+	                </div>
+			        <!-- 密码 -->
+			        <div class="form-group" ng-class="{'has-error': (form.cvmBackupPwd.$dirty && form.cvmBackupPwd.$invalid)}">
+	                    <label for="cvmBackupInputpwd" class="control-label"><span translate="password"></span><span style="color: red">*</span></label>
+	                    <div class="control-input">
+		                    <div class="input-group input-xlarge">
+		                        <input type="password"  ng-maxlength=32  class="form-input form-control" ng-model="model.password" ng-trim="false" id="cvmBackupInputpwd" name="cvmBackupPwd" required>
+		                        <span class="input-group-addon help-addon" ng-messages="form.cvmBackupPwd.$error">
+		                            <span ng-if="form.cvmBackupPwd.$valid||!form.cvmBackupPwd.$dirty">
+		                                <span class="icon-occupying"></span>
+		                            </span>
+		                            <span ng-if="form.cvmBackupPwd.$dirty">
+		                                <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+		                                <span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxlen'|translate}}32"></span></span>
+		                            </span>
+		                         </span>
+		                     </div>
+	                    </div>
+	                </div>
+			        <!-- 远程方式FTP，SCP -->
+			        <div class="form-group">
+			        	<label class="control-label"><span translate="cloudResource.connectType"></span></label>
+	                    <div class="control-input" >
+	                        <!-- FTP -->
+	                        <div id="FTPDiv" cascheckbox  class="cas-checkbox labeled-btn radio" ng-model="model.serverType" value='0'>
+		                        <input id="FTP" name="remotetype" type="radio" ng-checked="model.serverType == 0" >
+		                        <div class="corner-label">
+		                            <i class="glyphicon glyphicon-ok icon"></i>
+		                        </div>
+		                        <div class="box">
+		                            <span class="box-name" style="width:103px;" translate="FTP"></span>
+		                        </div>
+	                        </div>
+	                        <!-- SCP -->
+	                        <div id="SCPDiv" cascheckbox  class="cas-checkbox labeled-btn radio" ng-model="model.serverType" value='1'>
+		                        <input id="SCP" name="remotetype" type="radio" ng-checked="model.serverType == 1" >
+		                        <div class="corner-label">
+		                            <i class="glyphicon glyphicon-ok icon"></i>
+		                        </div>
+		                        <div class="box">
+		                            <span class="box-name" style="width:102px;" translate="SCP"></span>
+		                        </div>
+	                        </div>
+	                        
+	                    </div>
+	                </div>
+		        </div>
+		        <!-- 备份位置 -->
+		        <div class="form-group" ng-class="{'has-error': (form.backupDir.$dirty && form.backupDir.$invalid)}">
+	                <label for="backupDir_id" class="control-label"><span translate="cloudResource.backupDir"></span><span style="color: red">*</span></label>
+	                <div class="control-input" ng-if="model.storeMode=='1'">
+	                    <div class="input-group input-xlarge">
+	                        <input checkpath type="text" ng-maxlength=120 class="form-input form-control" ng-model="model.storeLocation" ng-trim="false" id="backupDir_id" name="backupDir" required>
+	                        <span class="input-group-addon help-addon" ng-messages="form.backupDir.$error">
+	                            <span ng-if="form.backupDir.$valid||!form.backupDir.$dirty">
+	                                <span class="icon-help-gray helpTip" tooltip-placement="right" tooltip="{{'securityMng.backupPathTip2'|translate}}"></span>
+	                            </span>
+	                            <span ng-if="form.backupDir.$dirty">
+	                                <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+	                                <span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxlen'|translate}}120"></span></span>
+	                                <span ng-message="checkpath"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'invalidpath'|translate}}"></span></span>
+	                            </span>
+	                        </span>
+	                    </div>
+	                </div>
+	                <div class="control-input" ng-if="model.storeMode=='0'">
+                           <div class="input-group">
+                               <input type="text" checkpath ng-maxlength=120 style="width:218px !important;"  id="backupDir_id" name="backupDir" class="form-input form-control first-child-angle selectInput" ng-model="model.storeLocation" required >
+                               <span class="input-group-addon inner-addon last-child-angle" style="cursor:pointer;">
+                                   <span class="icon-search-gray" type="button" ng-click="cicFolderSelector('cvm')"></span>
+                               </span>
+                               <span class="input-group-addon help-addon" ng-messages="form.backupDir.$error">
+	                            <span ng-if="form.backupDir.$valid||!form.backupDir.$dirty">
+	                                <span class="icon-help-gray helpTip" tooltip-placement="right" tooltip="{{'securityMng.backupPathTip1'|translate}}"></span>
+	                            </span>
+	                            <span ng-if="form.backupDir.$dirty">
+	                                <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+	                                <span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxlen'|translate}}120"></span></span>
+	                                <span ng-message="checkpath"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'invalidpath'|translate}}"></span></span>
+	                            </span>
+	                        </span>
+                           </div>
+                       </div>
+	            </div>
+	            <!-- 服务器端口 -->
+				<div class="form-group" ng-if="model.storeMode=='1'">
+					<label for="serverPort" class="control-label">
+					  <span translate="securityMng.serverPort"></span><span style="color: red">*</span>
+					</label>
+					<div class="control-input">
+						<div class="input-group input-xlarge">
+								<div class="input-group width260">
+							<input type="text" ng-style='{width: isEn ? "80px" : "133px"}' id="serverPort" name="serverPort" checkint spinner spinner-max=65535 spinner-min=1 ng-model="model.port" required>
+					    	<!-- 连接测试 -->
+					    	<div style="margin-left:10px;display:inline-block;">
+		                        <div id="connectTestBtn" class="btn btn-green" ng-if="!form.$invalid" ng-click="connectTest()" translate="connectTest"></div>
+		                        <div id="connectTestBtn" class="btn btn-green" ng-disabled="form.$invalid" ng-if="form.$invalid" translate="connectTest"></div>
+							</div>
+						</div>
+						<span class="input-group-addon help-addon" ng-messages="form.serverPort.$error">
+                 				  	<span ng-if="form.serverPort.$valid||!form.serverPort.$dirty">
+                     				  	<span class="icon-occupying" ></span>
+                 				  	</span>
+                 				  	<span ng-if="form.serverPort.$dirty" style="color:#A94442;">
+	                                <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+			                            <span ng-message="int"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'invalidint'|translate}}"></span></span>
+			                            <span ng-message="spinnerMax"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxValueIs'|translate}}65535"></span></span>
+				                        <span ng-message="spinnerMin"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'minValueIs'|translate}}1"></span></span>
+                                	</span>
+             				 	</span>
+						</div>
+					</div>
+				</div>
+				<!-- 启用定时备份 -->
+                   <div class="form-group">
+                       <label for="enableBackupTime" class="switch-label"><span translate="securityMng.enableBackupTime"></span></label>
+                       <div class="control-input">
+                            <div class="input-group">
+		                   <div toggle-switch  class="switch-success" ng-model="model.state"></div>
+		               </div>
+	               </div>
+                  </div>
+				<!-- 
+				<div class="form-group">
+				    <div id="enableBackupTimeDiv" cascheckbox class="cas-checkbox labeled-btn checkbox labelMarginleft" ng-model="model.state" value="1" false-value="0">
+				      <input id="enableBackupTime" name="enableBackupTime" type="checkbox" ng-checked="model.state == 1">
+				      <div class="corner-label">
+				        <i class="glyphicon glyphicon-ok icon"></i>
+				      </div>
+				      <div class="box">
+				        <span class="box-name" style="width:100px;" translate="securityMng.enableBackupTime"></span>
+				      </div>
+				    </div>
+				</div>
+				 -->
+				<div ng-if="model.state==true">
+					<!-- 频率 -->
+	                <div class="form-group" style="margin-top:15px;">
+	                    <label for="frequency_id" class="control-label"><span translate="cloudResource.frequency"></span></label>
+                    	<!-- 下拉框实现 -->
+	                    <!-- <div class="control-input">
+	                        <div class="input-group">
+	                           	<select-input class="" options="frequency.options" ng-init="model.frequency=2" bind-model="model.frequency" input-id="storeMode_id" input-name="storeMode"></select-input>
+	                        </div>
+	                    </div>    -->
+	                    <!--  cascheckbox插件实现 -->
+	                    <div class="control-input">
+                            <div class="input-group">
+                                <select-input options="frequency.options" bind-model="model.frequency" input-id="frequency_id" input-name="frequency"></select-input>
+                            </div>
+	                    </div>
+                    </div>
+                   <!-- 日期 -->
+                   <div class="form-group" ng-if="model.frequency=='0'" ng-class="{'has-error': (form.dayName.$dirty && form.dayName.$invalid)}">
+                      <label class="control-label"><span translate="cloudResource.date"></span></label>
+                      <div class="control-input">
+                              <div  class="input-group" >
+                                <input id="day" name="dayName" type="text" style='width:224px' checkint spinner spinner-max=31 spinner-min=1  ng-model="model.day" required>
+                                <span class="input-group-addon help-addon" ng-messages="form.dayName.$error">
+	                            <span ng-if="form.dayName.$valid||!form.dayName.$dirty">
+	                                <span class="icon-occupying"></span>
+	                            </span>
+	                            <span ng-if="form.dayName.$dirty">
+	                                <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+	                                <span ng-message="spinnerMax"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxValueIs'|translate}}31"></span></span>
+	                                <span ng-message="spinnerMin"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'minValueIs'|translate}}1"></span></span>
+	                            </span>
+	                        </span>
+                              </div>
+                       </div>
+                   </div>
+                   <!-- 星期 -->
+                   <div class="form-group" ng-if="model.frequency=='1'">
+                             <label for="week_id" class="control-label"><span translate="cloudResource.week"></span></label>
+                             <div class="control-input">
+                                 <div class="input-group">
+                                     <select-input options="week.options" bind-model="model.week" input-id="week_id" input-name="week"></select-input>
+                                 </div>
+                             </div>   
+                    </div>
+	                <!-- 时间 -->
+        			<div class="form-group" >
+            			<label class="control-label"><span translate="cloudResource.time"></span><span style="color:red">*</span></label>
+            			<div class="control-input">
+                   			<div class="input-group" style="float:left;width:108px;padding:0;" ng-class="{'has-error': (form.hourName.$dirty && form.hourName.$invalid)}">
+                       			<input type="text" style='width:35px' id="hourId" name="hourName" checkint spinner spinner-min=0 spinner-max=23  ng-model="model.hour" required>
+                       			<span class="input-group-addon inner-addon last-child-angle" style="background-color:#EEEEEE;">{{'cloudResource.hour'|translate}}</span>
+                       		<span class="input-group-addon help-addon" ng-messages="form.hourName.$error" style="display:inline-block;width:40px !important;">
+	                            <span ng-if="form.hourName.$valid||!form.hourName.$dirty">
+	                                <span class="icon-occupying"></span>
+	                            </span>
+	                            <span ng-if="form.hourName.$dirty">
+	                                <span ng-message="int"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'invalidint'|translate}}"></span></span>
+	                                <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+	                                <span ng-message="spinnerMax"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxValueIs'|translate}}23"></span></span>
+	                                <span ng-message="spinnerMin"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'minValueIs'|translate}}0"></span></span>
+	                            </span>
+	                        </span>
+                   			</div>
+               			</div>
+               			<div class="control-input" style='float:left'>
+                   			<div class="input-group" style="width:108px;padding:0;float:left;margin-left:4px" ng-class="{'has-error': (form.minuteName.$dirty && form.minuteName.$invalid)}">
+                       			<input type="text" style="width:35px;" id="minuteId" name="minuteName" checkint minutecheck="20" spinner spinner-min=0 step=20  spinner-max=40  ng-model="model.minutes" required>
+                      		    <span class="input-group-addon inner-addon last-child-angle" style="background-color:#EEEEEE;">{{'cloudResource.minute'|translate}}</span>
+                      		    <span class="input-group-addon help-addon" ng-messages="form.minuteName.$error" style="display:inline-block;width:40px !important;">
+	                            <span ng-if="form.minuteName.$valid||!form.minuteName.$dirty">
+	                                <span class="icon-occupying"></span>
+	                            </span>
+	                            <span ng-if="form.minuteName.$dirty">
+	                                <span ng-message="int"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'invalidint'|translate}}"></span></span>
+	                                <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+	                               <span ng-message="spinnerMax"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxValueIs'|translate}}40"></span></span>
+	                               <span ng-message="spinnerMin"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'minValueIs'|translate}}0"></span></span>
+	                               <span ng-message="minutecheck"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'minuteCheckTip'|translate:{minute:20} }}"></span></span>
+	                            </span>
+	                            </span>
+                   			</div>
+               			</div>
+	    			</div>
+	                    <!-- 保留份数 -->
+	                    <div class="form-group" ng-class="{'has-error': (form.keepAmountName.$dirty && form.keepAmountName.$invalid)}">
+                              <label class="control-label"><span translate="cloudResource.keepTimes"></span></label>
+                              <div class="control-input">
+                               <div  class="input-group" >
+                                    <input type="text" checkint style='width:226px' id="keepAmountId" name="keepAmountName" spinner spinner-max=30 spinner-min=1  ng-model="model.keepTimes">
+                              		 <span class="input-group-addon help-addon" ng-messages="form.keepAmountName.$error">
+                              		 <span ng-if="form.keepAmountName.$valid||!form.keepAmountName.$dirty">
+	                                 	<span class="icon-help-gray helpTip" tooltip-placement="right" tooltip="{{'systemMng.backupReserverNumberTip'|translate}}"></span>
+	                            	 </span>
+	                            		<span ng-if="form.keepAmountName.$dirty">
+	                                		<span ng-message="spinnerMax"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxValueIs'|translate}}30"></span></span>
+	                                		<span ng-message="spinnerMin"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'minValueIs'|translate}}1"></span></span>
+	                            		</span>
+	                        	  </span>
+                               </div>
+                               </div>
+                           </div>
+                       </div>
+                       
+                     	<div class="btn-group" style="margin-left:150px;margin-bottom:10px;">
+                     		<label ng-if ="form.$invalid" id="saveLabel" class="btn btn-default btn-menu btn-forbidden">
+								<span class="sm-icon icon-save"></span><span class="ng-scope" translate="common.save"></span>
+						  	</label>
+					 	  	<label ng-if ="form.$valid" id="saveLabel" class="btn btn-menu btn-default" ng-click="save()">
+								<span class="sm-icon icon-save"></span><span class="ng-scope" translate="common.save"></span>
+						  	</label>
+						  	<label ng-if ="form.$invalid" id="backupNowLabel" class="btn btn-default btn-menu btn-forbidden" >
+								<span class="sm-icon icon-cvm-backup"></span><span class="ng-scope" translate="backupVm.immediateBackup"></span>
+						  	</label>
+					 	  	<label ng-if ="form.$valid" id="backupNowLabel" class="btn btn-default btn-menu" ng-click="backupNow()">
+								<span class="sm-icon icon-cvm-backup"></span><span class="ng-scope" translate="backupVm.immediateBackup"></span>
+						  	</label>
+                		</div>
+		   </form>
+		</div>
+		<!-- 		<div class="square-48 alert-info"  style="margin-left: 10px;margin-top: 10px;padding:10px;max-height:none;height:620px;"> -->
+		<div class="flexbox-items alert-info"  style="margin-left: 10px;margin-top: 10px;padding:10px;max-height:none;height:620px;margin-right:10px;">
+			<!-- 主要功能 -->
+			<div class="title">
+				<h5 translate="securityMng.mainFunction"></h5>
+			</div>
+			<div style="padding-left:10px;"><span style="color:#999999" translate="securityMng.cvmAnnoucements1"></span></div>
+			
+			<!-- 备份内容 -->
+			<div class="title">
+				<h5 translate="securityMng.backupContent"></h5>
+			</div>
+			<div style="padding-left:10px;"><span style="color:#999999" translate="securityMng.cvmAnnoucements2"></span></div>
+			
+			<!-- 备份位置 -->
+			<div class="title">
+				<h5 translate="cloudResource.backupDir"></h5>
+			</div>
+			<div style="padding-left:10px;"><span style="color:#999999" translate="securityMng.cvmAnnoucements21"></span></div>
+			
+			<!-- 故障恢复条件 -->
+			<div class="title">
+				<h5 translate="securityMng.faultRecoveryCond"></h5>
+			</div>
+			<div style="padding-left:10px;"><span style="color:#999999" translate="securityMng.cvmAnnoucements3"></span></div>
+			
+			<!-- 故障恢复说明 -->
+			<div class="title">
+				<h5 translate="securityMng.faultRecoveryDesc"></h5>
+			</div>
+			<div style="padding-left:10px;">
+				<p style="color:red;margin:0px">{{'securityMng.cvmAnnoucements41' | translate}}</p>
+			</div>
+			
+		</div>
+</div>

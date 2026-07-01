@@ -1,0 +1,315 @@
+<!-- 标题 -->
+<div class="modal-header">
+   <button type="button" class="close" custom-title="{{::'common.close'|translate}}"  ng-click="cancel()">
+		   <span class="icon-closenew"></span>
+	</button>
+    <h4 class="modal-title" translate="vmware.configClusterHA"></h4>
+</div>
+<!-- 步骤向导 -->
+<div class="modal-body row">
+    <div class="form-horizontal col-md-8">
+        <carousel-form titles="guidStep" cancel="ok()" extra-confirm-btn="{{btntext}}"> 
+            <!-- 第一步 -->
+            <slide-form valid="valids.stepOneOver()" active="slide.active" is-add="true" tab-index=0>
+                <form name="form1" class="form-horizontal" style="height:330px;" role="form" novalidate>
+                    <!-- 隐藏属性，用于js方法操作form是否显示 -->
+                    <input type="hidden" id="form1" value="{{form1.$valid}}">
+                    <!-- 开启关闭集群 -->
+                    <div class="form-group">
+						<label for="startHA" class="switch-label"><span translate="vmware.enableHA"></span></label>
+						<div class="control-input">
+							 <div class="input-group">
+						    	<div id="startHA" toggle-switch  class="switch-success" ng-model="pageData.enable"></div>
+						    	<span class="input-group-btn help-addon" tooltip-placement="right" tooltip="{{::'vmware.enableHATip'|translate}}">
+						    		<img class="icon-prompt" src="css/img/gray/Icon_help_16x16.svg"/>
+						    	</span>
+					  	  	</div>
+				  	  	</div>
+					</div>
+                    <!-- 主机监控状态 -->
+                    <div class="form-group">
+						<label for="hostMonitoring" class="switch-label"><span translate="vmware.hostMonitoring"></span></label>
+						<div class="control-input">
+							 <div class="input-group">
+						    	<div id="hostMonitoring" toggle-switch is-disabled="!pageData.enable" class="switch-success" ng-model="pageData.hostMonitoring"></div>
+						    	<span class="input-group-btn help-addon" tooltip-placement="right" tooltip="{{::'vmware.hostMonitoringTip'|translate}}">
+						    		<img class="icon-prompt" src="css/img/gray/Icon_help_16x16.svg"/>
+						    	</span>
+					  	  	</div>
+				  	  	</div>
+					</div>
+                    <!-- 接入控制 -->
+                    <div class="form-group">
+						<label for="admissionControlEnabled" class="switch-label"><span translate="vmware.admissionControlEnabled"></span></label>
+						<div class="control-input">
+							 <div class="input-group">
+						    	<div id="admissionControlEnabled" toggle-switch is-disabled="!pageData.enable" class="switch-success" ng-model="pageData.admissionControlEnabled"></div>
+						    	<span class="input-group-btn help-addon" tooltip-placement="right" tooltip="{{::'vmware.admissionControlEnabledTip'|translate}}">
+						    		<img class="icon-prompt" src="css/img/gray/Icon_help_16x16.svg"/>
+						    	</span>
+					  	  	</div>
+				  	  	</div>
+					</div>
+                    <!-- 接入控制策略:集群允许的主机故障数目(F) -->
+					<div class="form-group" ng-show="pageData.enable && pageData.admissionControlEnabled">
+						<label for="inputHAminCount" class="switch-label">
+							<div id="startHADiv" ng-disabled='pageData.enable == false || pageData.admissionControlEnabled == false' cascheckbox class="cas-checkbox labeled-btn radio" ng-model="pageData.admissionControlPolicyType"  value=1>
+						      <input id="haminradio" name="hacontrol" type="radio" ng-checked="pageData.admissionControlPolicyType == 1">
+						      <div class="corner-label">
+						        <i class="glyphicon glyphicon-ok icon"></i>
+						      </div>
+						      <div class="box">
+						        <span class="box-name"  style="width:90px;" translate="vmware.failoverLevel"></span></div>
+						     </div>
+						</label>
+						<div class="control-input" >
+							<div class="input-group input-xlarge"  >
+								<div class="input-group width210" ng-disabled='pageData.enable == false || pageData.admissionControlEnabled == false'>
+									<input id="haMinHost" name="haMinHost" checkint ng-disabled="pageData.enable == false || pageData.admissionControlPolicyType != 1" 
+										   ng-class="{'forbidden-state':pageData.admissionControlPolicyType != 1}" class="spinner-input" type="text" spinner spinner-max=31 spinner-min=1 ng-model="pageData.admissionControlPolicy.failoverLevel" allow-blank="false" required>
+								    <span class="input-group-btn help-addon" tooltip-placement="right" tooltip="{{::'vmware.failoverLevelTip'|translate}}">
+							    		<img class="icon-prompt" src="css/img/gray/Icon_help_16x16.svg"/>
+							    	</span>
+								</div>
+								<span class="input-group-addon help-addon" ng-messages="form1.haMinHost.$error">
+				                	<span style="color:#A94442;">
+				                		<span ng-message="int"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'invalidint'|translate}}"></span></span>
+                                        <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+				              		    <span ng-message="spinnerMax"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxValueIs'|translate}}31"></span></span>
+				                    	<span ng-message="spinnerMin"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'minValueIs'|translate}}1"></span></span>
+				                	</span>
+			               		</span>
+							</div>
+						</div>
+					</div>
+                    <!-- 指定故障切换主机 -->
+                    <div class="form-group" ng-show="pageData.enable && pageData.admissionControlEnabled">
+						<label for="inputHAminCount" class="switch-label" >
+							<div id="startHADiv" cascheckbox class="cas-checkbox labeled-btn radio" ng-model="pageData.admissionControlPolicyType" value=3>
+						      <input id="haminradio" name="hacontrol" type="radio" ng-checked="pageData.admissionControlPolicyType == 3">
+						      <div class="corner-label">
+						        <i class="glyphicon glyphicon-ok icon"></i>
+						      </div>
+						      <div class="box">
+						        <span class="box-name"  style="width:90px;" translate="vmware.failoverHost"></span></div>
+						    </div>
+						</label>
+						<div class="control-input" >
+						    <div class="input-group width260" ng-click="selectSwitchhost()"  ng-disabled='pageData.admissionControlPolicyType != 3'>
+						      <input id="appendedaddbutton-0" name="appendedaddbutton-0" ng-class="{'forbidden-state':pageData.admissionControlPolicyType != 3}" class="form-control selectInput first-child-angle" ng-disabled="pageData.admissionControlPolicyType != 3" 
+						      ng-required="pageData.enable==true&&pageData.admissionControlEnabled==true&&pageData.admissionControlPolicyType==3" type="text" ng-model="pageData.failoverHostNum" readonly style="width:204px;">
+						      <span id="selectSLB" class="input-group-addon inner-addon last-child-angle" ng-class="{'forbidden-state':pageData.admissionControlPolicyType != 3}" ng-style="{'cursor':pageData.admissionControlPolicyType == 3?'pointer':'default'}">
+								  <span class="icon-search-gray" type="button"></span>
+							  </span>
+							  <span class="input-group-btn help-addon" tooltip-placement="right" tooltip="{{::'vmware.failoverHostTip'|translate}}">
+					    		<img class="icon-prompt" src="css/img/gray/Icon_help_16x16.svg"/>
+					    	  </span>
+						    </div>
+					    </div>
+				   </div>
+                   <!-- 接入控制策略:作为故障切换控件容量保留的集群资源百分比 -->
+                   <div class="form-group" ng-show="pageData.enable && pageData.admissionControlEnabled">
+						<label for="hacontrol" class="switch-label" style="heigth:91px;">
+							<div id="hareslabel" cascheckbox class="cas-checkbox labeled-btn radio" ng-model="pageData.admissionControlPolicyType" value=2 >
+						      <input id="hacontrol" name="hacontrol" type="radio" ng-checked="pageData.admissionControlPolicyType == 2">
+						      <div class="corner-label">
+						        <i class="glyphicon glyphicon-ok icon"></i>
+						      </div>
+						      <div class="box">
+						        <span class="box-name"  style="width:90px;" translate="vmware.failoverResources"></span></div>
+						    </div>
+						</label>
+						<div class="control-input" ng-class="{'forbidden-state':pageData.admissionControlPolicyType != 2}" ng-disabled='pageData.admissionControlPolicyType != 2' ng-style="{'pointer-events':pageData.admissionControlPolicyType != 2?'none':''}">
+				             <div slider bind-data="pageData.admissionControlPolicy.cpuFailoverResourcesPercent" slider-id="hamin" ng-disabled="pageData.admissionControlPolicyType != 2" min=0 sliderstyle="margin-left:8px;width:143px" text="%{{::'vmware.cpu'|translate}}" max=100 pips-rest="label" pips-step="20">  </div>
+				             <div slider bind-data="pageData.admissionControlPolicy.memoryFailoverResourcesPercent" slider-id="hares" ng-disabled="pageData.admissionControlPolicyType != 2" min=0 sliderstyle="margin-left:128px;margin-top:7px;width:143px" inputstyle="margin-top:15px" text="%{{::'vmware.memory'|translate}}"  max=100 pips-rest="label" pips-step="20">  </div>
+				        </div>
+				        <span style="float:left;margin-top:-30px;margin-left:105px;" tooltip-placement="right" tooltip="{{::'vmware.failoverResourcesTip'|translate}}">
+				    		 <img class="icon-prompt" src="css/img/gray/Icon_help_16x16.svg"/>
+				    	</span>
+					</div>
+                </form>
+            </slide-form>
+            <!-- 第二步 -->
+            <slide-form valid="valids.stepTwoOver()" is-add="pageData.enable" tab-index=1>
+                <form name="form2" class="form-horizontal" style="height:330px;" role="form" novalidate>
+                    <!-- 隐藏属性，用于js方法操作form是否显示 -->
+                    <input type="hidden" id="form2" value="{{form2.$valid}}">
+                    <!-- 虚拟机重新启动优先级 -->
+                    <div class="form-group">
+		                <label for="vmRestartPriority" class="control-label"><span translate="vmware.vmRestartPriority"></span><span style="color:red">&nbsp;</span></label>
+		                <div class="control-input">
+		                    <div class="input-group width260">
+		                        <select-input class="" options="vmRestartPriorityArr" input-id="vmRestartPriority" input-name="vmRestartPriority"  
+		                        bind-model="pageData.vmRestartPriority"></select-input>
+		                    </div>
+		                </div>
+		            </div>
+                    <!-- 主机隔离响应 -->
+                    <div class="form-group">
+		                <label for="isolationResponse" class="control-label"><span translate="vmware.hostIsolatin"></span><span style="color:red">&nbsp;</span></label>
+		                <div class="control-input">
+		                    <div class="input-group width260">
+		                        <select-input class="" options="isolationResponseArr" input-id="isolationResponse" input-name="isolationResponse"  
+		                        bind-model="pageData.isolationResponse"></select-input>
+		                    </div>
+		                </div>
+		            </div>
+                    <!-- 虚拟机监控 -->
+                    <div class="form-group">
+		                <label for="vmMonitoring" class="control-label"><span translate="vmware.monitorVm"></span><span style="color:red">&nbsp;</span></label>
+		                <div class="control-input">
+		                    <div class="input-group width260">
+		                        <select-input class="" options="vmMonitoringArr" input-id="vmMonitoring" input-name="vmMonitoring"  
+		                        bind-model="pageData.vmMonitoring"></select-input>
+		                    </div>
+		                </div>
+		            </div>
+                    <!-- 故障时间间隔 -->
+                    <div class="form-group">
+			            <label class="control-label"><span translate="vmware.failureTimeInterval"></span><span style="color:red">*</span></label>
+			            <div class="control-input" ng-class="{'has-error' : (form2.failureInterval.$invalid)}">
+			                <div class="input-group width300">
+			                    <input id= "failureInterval" name="failureInterval" required checkint type="text" ng-model="pageData.failureInterval" class="spinner-input" spinner step=1 spinner-max="100000" spinner-min=1>
+			                    <span class="input-group-addon last-child-angle unit-addon">{{::'vmware.second'|translate}}</span>                                               
+			                    <span class="input-group-addon help-addon" ng-messages="form2.failureInterval.$error" >
+			                        <span ng-if="form2.failureInterval.$valid||!form2.failureInterval.$dirty">
+	                       				<span class="icon-occupying"></span>
+	                  				</span>	
+			                        <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{::'require'|translate}}"></span></span>
+			                        <span ng-message="spinnerMax"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxValueIs'|translate}}100000"></span></span>
+						        	<span ng-message="spinnerMin"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'minValueIs'|translate}}1"></span></span>
+						        	<span ng-message="int"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{::'invalidint'|translate}}"></span></span>
+				                </span>
+			                </div>
+			            </div>
+		            </div>
+                    <!-- 最短正常运行时间 -->
+                    <div class="form-group">
+			            <label class="control-label"><span translate="vmware.minUpTime"></span><span style="color:red">*</span></label>
+			            <div class="control-input" ng-class="{'has-error' : (form2.minUpTime.$invalid)}">
+			                <div class="input-group width300">
+			                    <input id= "minUpTime" name="minUpTime" required checkint type="text" ng-model="pageData.minUpTime" class="spinner-input" spinner step=1 spinner-max="100000" spinner-min=1>
+			                    <span class="input-group-addon last-child-angle unit-addon">{{::'vmware.second'|translate}}</span>                                               
+			                    <span class="input-group-addon help-addon" ng-messages="form2.minUpTime.$error" >
+			                    	<span ng-if="form2.minUpTime.$valid||!form2.minUpTime.$dirty">
+	                       				<span class="icon-occupying"></span>
+	                  				</span>	
+			                        <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{::'require'|translate}}"></span></span>
+			                        <span ng-message="spinnerMax"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxValueIs'|translate}}100000"></span></span>
+						        	<span ng-message="spinnerMin"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'minValueIs'|translate}}1"></span></span>
+						        	<span ng-message="int"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{::'invalidint'|translate}}"></span></span>
+				                </span>
+				                
+			                </div>
+			            </div>
+		            </div>
+                    <!-- 每个虚拟机的最大重置次数 -->
+                    <div class="form-group">
+			            <label class="control-label"><span translate="vmware.maxReset"></span><span style="color:red">*</span></label>
+			            <div class="control-input" ng-class="{'has-error' : (form2.maxFailures.$invalid)}">
+			                <div class="input-group width300">
+			                    <input id= "maxFailures" name="maxFailures" required checkint type="text" ng-model="pageData.maxFailures" class="spinner-input" spinner step=1 spinner-max="1000" spinner-min=1>
+			                    <span class="input-group-addon last-child-angle unit-addon">{{::'vmware.ci'|translate}}</span>                                               
+			                    <span class="input-group-addon help-addon" ng-messages="form2.maxFailures.$error" >
+			                    	<span ng-if="form2.maxFailures.$valid||!form2.maxFailures.$dirty">
+	                       				<span class="icon-occupying"></span>
+	                  				</span>	
+			                        <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{::'require'|translate}}"></span></span>
+			                        <span ng-message="spinnerMax"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxValueIs'|translate}}1000"></span></span>
+						        	<span ng-message="spinnerMin"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'minValueIs'|translate}}1"></span></span>
+						        	<span ng-message="int"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{::'invalidint'|translate}}"></span></span>
+				                </span>
+				                
+			                </div>
+			            </div>
+		            </div>
+                    <!-- 最大重置时间段 -->
+                    <div class="form-group">
+			            <label class="control-label"><span translate="vmware.maxResetInterval"></span><span style="color:red"></span></label>
+			            <div class="control-input" ng-class="{'has-error' : (form2.maxFailureWindow.$invalid)}">
+			                <div class="input-group width300">
+			                    <input id= "maxFailureWindow" name="maxFailureWindow" checkint type="text" ng-model="pageData.maxFailureWindow" class="spinner-input" spinner step=1 spinner-max="1000" spinner-min=1>
+			                    <span class="input-group-addon last-child-angle unit-addon">{{::'vmware.hour'|translate}}</span>                                               
+			                    <span class="input-group-addon help-addon" ng-messages="form2.maxFailureWindow.$error" >
+			                    	<span ng-if="form2.maxFailureWindow.$valid||!form2.maxFailureWindow.$dirty">
+	                       				<span class="icon-occupying"></span>
+	                  				</span>	
+			                        <span ng-message="spinnerMax"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxValueIs'|translate}}1000"></span></span>
+						        	<span ng-message="spinnerMin"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'minValueIs'|translate}}1"></span></span>
+						        	<span ng-message="int"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{::'invalidint'|translate}}"></span></span>
+				                </span>
+			                </div>
+			                <span style="float:left;margin-top:-30px;margin-left:400px;" tooltip-placement="right" tooltip="{{::'vmware.maxResetIntervalTip'|translate}}">
+					    		 <img class="icon-prompt" src="css/img/gray/Icon_help_16x16.svg"/>
+					        </span>
+			            </div>
+		            </div>
+                </form>
+            </slide-form>
+        </carousel-form>
+    </div>
+    <!-- 右侧确认信息 -->
+    <div class="detail-table col-md-4">
+        <table class="table table-striped">
+            <tr class="gray">
+                <td><h4 translate="configDetail"></h4></td><td></td>
+            </tr>
+            <tr>
+                <td><span translate="vmware.enableHA"></span></td>
+                <td><span ng-bind="pageData.enable | yes"></span></td>
+            </tr>
+            <tr ng-if="pageData.enable">
+                <td><span translate="vmware.hostMonitoring"></span></td>
+                <td><span ng-bind="pageData.hostMonitoring | yes"></span></td>
+            </tr>
+            <tr ng-if="pageData.enable">
+                <td><span translate="vmware.admissionControlEnabled"></span></td>
+                <td><span ng-bind="pageData.admissionControlEnabled | yes"></span></td>
+            </tr>
+            <tr ng-if="pageData.enable && pageData.admissionControlEnabled && pageData.admissionControlPolicyType == 1">
+                <td><span translate="vmware.failoverLevel"></span></td>
+                <td><span ng-bind="pageData.admissionControlPolicy.failoverLevel"></span></td>
+            </tr>
+            <tr ng-if="pageData.enable && pageData.admissionControlEnabled && pageData.admissionControlPolicyType == 2">
+                <td><span translate="vmware.cpu"></span><span translate="vmware.failoverResources"></span></td>
+                <td><span ng-bind="pageData.admissionControlPolicy.cpuFailoverResourcesPercent + '%'"></span></td>
+            </tr>
+            <tr ng-if="pageData.enable && pageData.admissionControlEnabled && pageData.admissionControlPolicyType == 2">
+                <td><span translate="vmware.memory"></span><span translate="vmware.failoverResources"></span></td>
+                <td><span ng-bind="pageData.admissionControlPolicy.memoryFailoverResourcesPercent + '%'"></span></td>
+            </tr>
+            <tr ng-if="pageData.enable && pageData.admissionControlEnabled && pageData.admissionControlPolicyType == 3">
+                <td><span translate="vmware.failoverHost"></span></td>
+                <td><span ng-bind="pageData.failoverHostNum"></span></td>
+            </tr>
+            <tr ng-if="pageData.enable && pageIndex == 2">
+                <td><span translate="vmware.vmRestartPriority"></span></td>
+                <td><span ng-bind="pageData.vmRestartPriority | selectLabel:'':vmRestartPriorityArr"></span></td>
+            </tr>
+            <tr ng-if="pageData.enable && pageIndex == 2">
+                <td><span translate="vmware.hostIsolatin"></span></td>
+                <td><span ng-bind="pageData.isolationResponse | selectLabel:'':isolationResponseArr"></span></td>
+            </tr>
+            <tr ng-if="pageData.enable && pageIndex == 2">
+                <td><span translate="vmware.monitorVm"></span></td>
+                <td><span ng-bind="pageData.vmMonitoring | selectLabel:'':vmMonitoringArr"></span></td>
+            </tr>
+            <tr ng-if="pageData.enable && pageIndex == 2">
+                <td><span translate="vmware.failureTimeInterval"></span></td>
+                <td><span ng-bind="pageData.failureInterval"></span><span translate="vmware.second"></span></td>
+            </tr>
+            <tr ng-if="pageData.enable && pageIndex == 2">
+                <td><span translate="vmware.minUpTime"></span></td>
+                <td><span ng-bind="pageData.minUpTime"></span><span translate="vmware.second"></td>
+            </tr>
+            <tr ng-if="pageData.enable && pageIndex == 2">
+                <td><span translate="vmware.maxReset"></span></td>
+                <td><span ng-bind="pageData.maxFailures"></span><span translate="vmware.ci"></td>
+            </tr>
+            <tr ng-if="pageData.enable && pageIndex == 2">
+                <td><span translate="vmware.maxResetInterval"></span></td>
+                <td><span ng-bind="pageData.maxFailureWindow"></span><span ng-if="pageData.maxFailureWindow" translate="vmware.hour"></span></td>
+            </tr>
+        </table>
+    </div>
+</div>

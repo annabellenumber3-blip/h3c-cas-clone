@@ -1,0 +1,418 @@
+<!--  从文件导入 -->
+<div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" ng-click="cancel()" custom-title="{{'common.close'|translate}}">
+        <span class="icon-closenew"></span>
+    </button>
+	<button type="button" ng-if="deployType==0" class="close cornerhelp" custom-title="{{'help'|translate}}" ng-click="openHelp('org/VMTemplate/importVirtualHost')">
+		<span class="icon-helpnew"></span>
+	</button>
+	<button type="button" ng-if="deployType!=0" class="close cornerhelp" custom-title="{{'help'|translate}}" ng-click="openHelp('cloudService/virtualDesktopPool/vmTemp/importVirtualDesktop')">
+		<span class="icon-helpnew"></span>
+	</button>
+    <h4 class="modal-title"><span translate="org.inportFromFile"></span></h4>
+</div>
+<!-- 步骤向导 -->
+<div class="modal-body row">
+    <div class="form-horizontal col-md-9">
+	    <carousel-form titles="stepTitles" cancel="ok()"> 
+	    <!-- 第一步 文件导入 -->
+            <slide-form valid="valids.stepOneOver()" active="slide.active">
+                <form name="form1" class="form-horizontal" role="form" novalidate>
+                	<input type="hidden" id="form1" value="{{form1.$valid}}">
+	                    <!-- 请选择file文件 -->
+						<div class="form-group">
+				        	<label class="control-label"><span translate="uploadfile.uploadSelectFile"></span><span style="color: red">*</span></label>
+				        	<div class="control-input" style="display:inline-block;">
+				            	<div class="input-group width260" style="display:inline-block;" id ="file_select_files_btn" >
+				                	<input type="text" class="form-control first-child-angle selectInput" style="width:180px !important;" ng-model="fileFilePath"  ng-trim="false" id="fileFilePath_id" name="fileFilePath" required readonly>
+				                	<span class="input-group-addon unit-addon last-child-angle browse-btn"  translate="addDomain.viewImage"></span>
+				            	</div>
+				            	<span  class="previewBtn" ng-click="preview()" ng-class="{'forbidden-state':!enablePreview}" ng-style="{'cursor':enablePreview?'pointer':'default'}" style="width:80px;text-align:center">
+		                         	<span translate="user.preview"></span>
+	                    		</span>
+				        	</div>   
+				    	</div>
+				    	<div id = "file_select_files_btn_alert"></div>
+	                    <!-- 请选择file文件 -->
+	                    <div class="tipMargin"><span translate="user.importTip"></span><a href="domainTemplate.rar" target="_blank"><span  translate="user.moduleFile"></span></a></div>
+					   	<div id="file_stream_files_area" style="display:none;"></div>
+					   	<div id="file_stream_files_queue" style="display:none;"></div>
+					   	<div id="file_stream_message_container" style="display:none;"></div>
+				    	<!-- 进度条 -->
+					   <!--  <div class="ngCellText" style="width:400px;">
+					    	<div class="progress progressgray" style="margin-top:0;height:20px;"> 
+			                   	<div class="progress-bar progress-bar-success progress-bar-striped"  role="progressbar" aria-valuenow="{{progress | number:2}}" aria-valuemin="0" aria-valuemax="100" style="width: {{progress | number:2}}%;position:relative;">
+			                   		<span style="margin-left:10px;">{{progress | number:2}}%</span> 
+			                   	</div> 
+			                </div>
+			            </div> -->
+			            <!-- 分隔符 -->
+						<div class="form-group">
+							<label for="separator" class="control-label"><span translate="org.separator"></span></label>
+							<div class="control-input input-group width260" >
+								<select-input class="" options="separatorOptions" bind-model="model.separatorNum" input-id="separator" input-name="separator"></select-input>
+							</div>
+						</div>
+						<!-- 导入起始行 -->
+						<div class="form-group" ng-class="{'has-error' : (form1.startLine.$invalid && form1.startLine.$dirty)}">
+							<label for="startLine" class="control-label"><span translate="org.startLine"></span><span style="color:red">*</span></label>
+							<div class="control-input input-group input-xlarge">
+                            <div class="input-group width260">
+	                                <input id= "startLine" name="startLine" type="text" class="spinner-only" spinner spinner-min=1 spinner-max=1000 ng-model="model.startLine" required checkint ng-trim="false">                                               
+                            </div>
+	                            <span class="input-group-addon help-addon" ng-messages="form1.startLine.$error">
+									<span ng-if="form1.startLine.$valid||!form1.startLine.$dirty">
+			                        	<span class="icon-occupying"></span>
+			                        </span>
+							 		<span ng-if="form1.startLine.$dirty">
+							 			<span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{::'require'|translate}}"></span></span>
+					            		<span ng-message="spinnerMax"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxValueIs'|translate}}1000"></span></span>
+					            		<span ng-message="spinnerMin"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'minValueIs'|translate}}1"></span></span>
+					           		    <span ng-message="int"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'invalidint'|translate}}"></span></span>
+				          		    </span>
+					            </span>
+                        </div>
+						</div>
+						<!-- 配置操作系统信息 -->
+						<div class="form-group" ng-if="deployType==0">
+							<label for="setsystem" class="control-label"><span translate="org.sysConfig"></span></label>
+							<div class="control-input">
+								 <div class="input-group">
+							    	<div id="setsystem" toggle-switch  class="switch-success" ng-model="deployInfo.sysConfig"></div>
+						  	  	</div>
+					  	  	</div>
+						</div>
+						<div class="form-group" ng-if = "deployInfo.sysConfig == true && flag != 3">
+							<label for="inputhalevel" class="control-label"><span translate="virdesk.initWay"></span></label>
+							<div class="control-input">
+								<div class="input-group width260">
+									<div style="padding:0px;" class="col-xs-6">
+				               			<cas-ace-check id="initType" name="initType" type="radio" text="{{::'org.quckInit' | translate}}" checked-value="0" checked="{{model.initType == '0'}}" ng-model="model.initType" value='0'></cas-ace-check>
+				                    </div>
+									<div ng-if = "system == 0" style="padding:0px;" class="col-xs-6">
+				               			<cas-ace-check id="initType" name="initType" type="radio" text="{{::'org.allInit' | translate}}" checked-value="1" checked="{{model.initType == '1'}}" ng-model="model.initType" value='1'></cas-ace-check>
+				                    </div>
+								</div>
+							</div>
+						</div>
+						<div class="form-group"  ng-if = "deployInfo.sysConfig == true">
+							<label class="control-label" style="width: 500px !important;">
+								<span style="color:red">{{initTip}}</span>
+							</label>
+						</div>
+               			
+                </form>
+            </slide-form>
+            <!-- 第二步 基本信息 -->
+            <slide-form valid="valids.stepTwoOver()">
+                <form name="form2" class="form-horizontal" role="form" novalidate>
+                	<input type="hidden" id="form2" value="{{form2.$valid}}">
+                	<!-- 虚拟机名称
+						<div class="form-group">
+							<label for="domainName" class="control-label"><span translate="addDomain.domainName"></span><span style="color: red">*</span></label>
+							<div class="control-input input-group width260" >
+								<select-input class="" options="cloumnOptions" bind-model="model.domainNameNum" input-id="domainName" input-name="domainName"></select-input>
+							</div>
+						</div>
+					 -->
+					<!-- 显示名称 -->
+					<div class="form-group">
+						<label for="title" class="control-label"><span translate="addDomain.title"></span><span style="color: red">*</span></label>
+						<div class="control-input input-group width260" >
+							<select-input class="" options="cloumnOptions" bind-model="model.titleNum" input-id="title" input-name="title"></select-input>
+						</div>
+					</div>
+					<!-- 描述 -->
+					<div class="form-group">
+						<label for="desc" class="control-label"><span translate="common.desc"></span></label>
+						<div class="control-input input-group width260" >
+							<select-input class="" options="cloumnOptions2" bind-model="model.descNum" input-id="desc" input-name="desc"></select-input>
+						</div>
+					</div>
+					<div ng-if = "deployInfo.enableAdjustSetting == 1">
+					<!-- CPU个数 -->
+					<div class="form-group">
+						<label for="cpuSocket" class="control-label"><span translate="addDomain.cpuNum"></span><span style="color: red">*</span></label>
+						<div class="control-input input-group width260" >
+							<select-input class="" options="cloumnOptions" bind-model="model.cpuSocketNum" input-id="cpuSocket" input-name="cpuSocket"></select-input>
+						</div>
+					</div>
+					<!-- CPU核数 -->
+					<div class="form-group">
+						<label for="cpuCore" class="control-label"><span translate="addDomain.cpuCoreNum"></span><span style="color: red">*</span></label>
+						<div class="control-input input-group width260" >
+							<select-input class="" options="cloumnOptions" bind-model="model.cpuCoreNum" input-id="cpuCore" input-name="cpuCore"></select-input>
+						</div>
+					</div>
+					<!-- 内存大小 -->
+					<div class="form-group">
+						<label for="memoryInit" class="control-label"><span translate="addDomain.memoryInit"></span><span style="color: red">*</span></label>
+						<div class="control-input input-group width260" >
+							<select-input class="" options="cloumnOptions" bind-model="model.memoryInitNum" input-id="memoryInit" input-name="memoryInit"></select-input>
+						</div>
+					</div>
+					<!-- 内存单位 -->
+					<div class="form-group">
+						<label for="memoryUnit" class="control-label"><span translate="addDomain.memoryUnit"></span><span style="color: red">*</span></label>
+						<div class="control-input input-group width260" >
+							<select-input class="" options="cloumnOptions" bind-model="model.memoryUnitNum" input-id="memoryUnit" input-name="memoryUnit"></select-input>
+						</div>
+					</div>
+					</div>
+					<!-- 分配方式 -->
+					<div class="form-group">
+						<label for="inputhalevel" class="control-label">
+						<span translate="virdesk.assignMode"></span></label>
+						<div class="control-input">
+						  	<div class="input-group width260">
+						  		<select-input class="" options="destributeWay" bind-model="model.assignMode" input-id="assignMode"	input-name="assignMode">
+							  	</select-input>
+						  	</div>
+						 </div>
+					</div>
+					<!-- 用户/用户分组 -->
+					<div class="form-group" ng-if ="model.assignMode == 1 || model.assignMode ==2">
+						<label for="userGroup" class="control-label"><span translate="org.userGroup"></span><span style="color: red">*</span></label>
+						<div class="control-input input-group width260" >
+							<select-input class="" options="cloumnOptions" bind-model="model.userGroupNum" input-id="userGroup" input-name="userGroup"></select-input>
+						</div>
+					</div>
+                </form>
+            </slide-form>
+            <!-- 第三步 网络信息 -->
+            <slide-form valid="valids.stepThreeOver()"  is-add="deployInfo.sysConfig == true" tab-index="3">
+                <form name="form3" class="form-horizontal" role="form" novalidate>
+                	<input type="hidden" id="form3" value="{{form3.$valid}}">
+                	<!-- 计算机名 -->
+                	<div class="form-group">
+						<label for="sysName" class="control-label"><span translate="org.sysName"></span><span style="color: red">*</span></label>
+						<div class="control-input input-group width260" >
+							<select-input class="" options="cloumnOptions" bind-model="model.sysNameNum" input-id="sysName" input-name="sysName"></select-input>
+						</div>
+					</div>
+					<!-- IP地址分配方式-->
+				 	<div class="form-group">
+		           		 <label for="unique-id0" class="control-label"><span translate="template.ipDistributeWay"></span></label>
+		           		 <div class="control-input">
+		           		 	<div class="input-group width260">
+		           		 		<div style="padding:0px;" class="col-xs-6">
+			               			<cas-ace-check id="ipDistributeWay" name="ipDistributeWay" type="radio" text="{{::'template.dhcp' | translate}}" checked-value="0" ng-checked="true" ng-model="model.sysIpType" value='0'></cas-ace-check>
+			                    </div>
+								<div style="padding:0px;" class="col-xs-6">
+			               			<cas-ace-check id="ipDistributeWay" name="ipDistributeWay" type="radio" text="{{::'template.byhandDistribute' | translate}}" checked-value="1" ng-checked="false" ng-model="model.sysIpType" value='1'></cas-ace-check>
+			                    </div>
+		           		 	</div>
+						</div>
+					</div>
+					<!-- IP地址 -->
+					<div class="form-group" ng-if="model.sysIpType == 1">
+						<label for="ipAddress" class="control-label"><span translate="template.ipAddress"></span><span style="color: red">*</span></label>
+						<div class="control-input input-group width260" >
+							<select-input class="" options="cloumnOptions" bind-model="model.ipAddressNum" input-id="ipAddress" input-name="ipAddress"></select-input>
+						</div>
+					</div>
+					<!-- IP地址掩码 -->
+					<div class="form-group" ng-if="model.sysIpType == 1">
+						<label for="submask" class="control-label"><span translate="template.subnetMask"></span><span style="color: red">*</span></label>
+						<div class="control-input input-group width260" >
+							<select-input class="" options="cloumnOptions" bind-model="model.submaskNum" input-id="submask" input-name="submask"></select-input>
+						</div>
+					</div>
+					<!-- 默认网关 -->
+					<div class="form-group" ng-if="model.sysIpType == 1">
+						<label for="gateway" class="control-label"><span translate="template.defaultGateway"></span></label>
+						<div class="control-input input-group width260" >
+							<select-input class="" options="cloumnOptions2" bind-model="model.gatewayNum" input-id="gateway" input-name="gateway"></select-input>
+						</div>
+					</div>
+					<!-- 主DNS服务器 -->
+					<div class="form-group" ng-if="model.sysIpType == 1">
+						<label for="sysDns" class="control-label"><span translate="template.theDnsServer"></span></label>
+						<div class="control-input input-group width260" >
+							<select-input class="" options="cloumnOptions2" bind-model="model.sysDnsNum" input-id="sysDns" input-name="sysDns"></select-input>
+						</div>
+					</div>
+					<!-- 备DNS服务器 -->
+					<div class="form-group" ng-if="model.sysIpType == 1">
+						<label for="secondaryDns" class="control-label"><span translate="template.forDnsServer"></span></label>
+						<div class="control-input input-group width260" >
+							<select-input class="" options="cloumnOptions2" bind-model="model.secondaryDnsNum" input-id="secondaryDns" input-name="secondaryDns"></select-input>
+						</div>
+					</div>
+					<!-- 设置IP绑定 -->
+					<div class="form-group" ng-if="model.sysIpType == 1 && flag != 3">
+						<label for="setsystem" class="control-label"><span translate="template.setBindIp"></span></label>
+						<div class="control-input">
+							 <div class="input-group">
+								 <div id="bindIp" toggle-switch  class="switch-success" ng-model="model.setBindIp"></div>
+							 </div>
+						 </div>
+					</div>
+                </form>
+            </slide-form>
+            <!-- 第四步 系统信息 -->
+            <slide-form valid="valids.stepFourOver()"  is-add="deployInfo.sysConfig == true" tab-index="4">
+                <form name="form4" class="form-horizontal" role="form" novalidate>
+               		<input type="hidden" id="form4" value="{{form4.$valid}}">
+               		<!-- 隶属于 -->
+               		<div class="form-group" ng-if = "system==0">
+		           		 <label for="unique-id0" class="control-label"><span translate="org.belongTo"></span></label>
+		           		 <div class="input-group width260">
+				  			<div style="padding:0px;" class="col-xs-6">
+			               			<cas-ace-check id="regOrGroupType" name="regOrGroupType" type="radio" text="{{::'org.domain' | translate}}" checked-value="0" ng-checked="true" ng-model="model.regOrGroupType" value='0'></cas-ace-check>
+			                    </div>
+								<div style="padding:0px;" class="col-xs-6">
+			               			<cas-ace-check id="regOrGroupType" name="regOrGroupType" type="radio" text="{{::'org.workgroup' | translate}}" checked-value="1" ng-checked="false" ng-model="model.regOrGroupType" value='1'></cas-ace-check>
+			                    </div>
+			 			</div>
+					</div>
+					<!-- 域/工作组 -->
+					<div class="form-group" ng-if = "system==0" >
+						<label for="regGroup" class="control-label"><span translate="org.domainWorkgroup"></span><span style="color: red">*</span></label>
+						<div class="control-input input-group width260" >
+							<select-input class="" options="cloumnOptions" bind-model="model.regGroupNum" input-id="regGroup" input-name="regGroup"></select-input>
+						</div>
+					</div>
+					<!-- 登录帐号 -->
+					<div class="form-group">
+						<label for="loginAccount" class="control-label"><span translate="org.loginAccount"></span><span style="color: red">*</span></label>
+						<div class="control-input input-group width260" >
+							<select-input class="" options="cloumnOptions" bind-model="model.loginAccountNum" input-id="loginAccount" input-name="loginAccount"></select-input>
+						</div>
+					</div>
+					<!-- 登录密码 -->
+					<div class="form-group">
+						<label for="loginPassword" class="control-label"><span translate="password"></span><span style="color: red">*</span></label>
+						<div class="control-input input-group width260" >
+							<select-input class="" options="cloumnOptions" bind-model="model.loginPasswordNum" input-id="loginPassword" input-name="loginPassword"></select-input>
+						</div>
+					</div>
+					<!-- 本地组 -->
+					<div class="form-group" ng-if = "system==0" >
+						<label for="localgroup" class="control-label"><span translate="org.localgroup"></span><span style="color: red">*</span></label>
+						<div class="control-input input-group width260" >
+							<select-input class="" options="localgroupOptions" bind-model="model.localgroup" input-id="localgroup" input-name="localgroup"></select-input>
+						</div>
+					</div>
+					<!-- 激活序列号 -->
+					<div class="form-group" ng-if="model.initType == 1 && system==0">
+						<label for="productKey" class="control-label"><span translate="org.productKey"></span></label>
+						<div class="control-input input-group width260" >
+							<select-input class="" options="cloumnOptions2" bind-model="model.productKeyNum" input-id="productKey" input-name="productKey"></select-input>
+						</div>
+					</div>
+                </form>
+            </slide-form>
+	    </carousel-form>
+	 </div>
+	    <!-- 右侧确认信息 -->
+     <div class="detail-table col-md-3">
+        <table class="table table-striped">
+            <tr>
+                <td><h4 translate="configDetail"></h4></td>
+            </tr>
+            <tr>
+                <td ><span translate="addDomain.file"></span></td>
+                <td shortcut cut-str="{{fileFilePath}}" custom-title>{{fileFilePath}}</td>
+            </tr>
+            <tr>
+                <td><span translate="org.separator"></span></td>
+                <td>{{separatorStr}}</td>
+            </tr>
+            <tr>
+                <td><span translate="org.startLine"></span></td>
+                <td>{{model.startLine}}</td>
+            </tr>
+            <tr ng-if = "deployInfo.sysConfig == true">
+                <td><span translate="org.initType"></span></td>
+                <td><span ng-if="model.initType == 0">{{'org.quckInit'|translate}}</span><span ng-if="model.initType == 1">{{'org.allInit'|translate}}</span></td>
+            </tr>
+            <!-- 
+            <tr ng-if = "goTwo">
+                <td><span translate="addDomain.domainName"></span></td>
+                <td >{{domainNameStr}}</td>
+            </tr>
+             -->
+            <tr ng-if = "goTwo">
+                <td><span translate="addDomain.title"></span></td>
+                <td >{{titleStr}}</td>
+            </tr>
+            <tr ng-if = "goTwo">
+                <td><span translate="common.desc"></span></td>
+                <td >{{descStr}}</td>
+            </tr>
+            <tr ng-if = "deployInfo.enableAdjustSetting == 1 && goTwo">
+                <td><span translate="addDomain.cpuNum"></span></td>
+                <td >{{cpuSocketStr}}</td>
+            </tr>
+            <tr ng-if = "deployInfo.enableAdjustSetting == 1 && goTwo">
+                <td><span translate="addDomain.cpuCoreNum"></span></td>
+                <td >{{cpuCoreStr}}</td>
+            </tr>
+            <tr ng-if = "deployInfo.enableAdjustSetting == 1 && goTwo">
+                <td><span translate="addDomain.memoryInit"></span></td>
+                <td >{{memoryInitStr}}</td>
+            </tr>
+            <tr ng-if = "deployInfo.enableAdjustSetting == 1 && goTwo">
+                <td><span translate="addDomain.memoryUnit"></span></td>
+                <td >{{memoryUnitStr}}</td>
+            </tr>
+            <tr ng-if = "goTwo">
+                <td ><span translate="virdesk.assignMode"></span></td>
+                <td>
+	                <span  ng-if="model.assignMode == 0">{{'org.assignNo'|translate}}</span>
+	                <span  ng-if="model.assignMode == 1">{{'org.assignUser'|translate}}</span>
+	                <span  ng-if="model.assignMode == 2">{{'org.assignUserGroup'|translate}}</span>
+                </td>
+            </tr>
+            <tr ng-if="model.assignMode == 1 || model.assignMode == 2 && goTwo">
+            	<td><span translate="org.userGroup"></span></td>
+            	<td>{{userGroupStr}}</td>
+            </tr>
+            <tr ng-if="deployInfo.sysConfig==true && goThree">
+                <td><span translate="org.sysName"></span></td>
+                <td >{{sysNameStr}}</td>
+            </tr>
+            <tr ng-if="(deployType==1||(deployType==0&&deployInfo.sysConfig==true))&&model.sysIpType == 1 && goThree">
+                <td><span translate="template.ipAddress"></span></td>
+                <td >{{ipAddressStr}}</td>
+            </tr>
+            <tr ng-if="(deployType==1||(deployType==0&&deployInfo.sysConfig==true))&&model.sysIpType == 1 && goThree">
+                <td><span translate="template.subnetMask"></span></td>
+                <td >{{submaskStr}}</td>
+            </tr>
+            <tr ng-if="(deployType==1||(deployType==0&&deployInfo.sysConfig==true))&&model.sysIpType == 1 && goThree">
+                <td><span translate="template.defaultGateway"></span></td>
+                <td >{{gatewayStr}}</td>
+            </tr>
+            <tr ng-if="(deployType==1||(deployType==0&&deployInfo.sysConfig==true))&&model.sysIpType == 1 && goThree">
+                <td><span translate="template.theDnsServer"></span></td>
+                <td >{{sysDnsStr}}</td>
+            </tr>
+            <tr ng-if="(deployType==1||(deployType==0&&deployInfo.sysConfig==true))&&model.sysIpType == 1 && goThree">
+                <td><span translate="template.forDnsServer"></span></td>
+                <td >{{secondaryDnsStr}}</td>
+            </tr>
+            <tr ng-if="deployInfo.sysConfig==true&&system==0 && goFour">
+                <td><span translate="org.domainWorkgroup"></span></td>
+                <td >{{regGroupStr}}</td>
+            </tr>
+            <tr ng-if="deployInfo.sysConfig==true && goFour">
+                <td><span translate="org.loginAccount"></span></td>
+                <td >{{loginAccountStr}}</td>
+            </tr>
+            <tr ng-if="deployInfo.sysConfig==true && goFour">
+                <td><span translate="password"></span></td>
+                <td >{{loginPasswordStr}}</td>
+            </tr>
+            <tr ng-if="deployInfo.sysConfig==true&&system==0 && goFour">
+                <td><span translate="org.localgroup"></span></td>
+                <td >{{localgroupStr}}</td>
+            </tr>
+            <tr ng-if="model.initType==true && system==0 && goFour">
+                <td><span translate="org.productKey"></span></td>
+                <td >{{productKeyStr}}</td>
+            </tr>
+        </table>
+    </div>
+</div>

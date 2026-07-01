@@ -1,0 +1,22 @@
+[Unit]
+Description=cvk_ha
+Wants=network.service
+Wants=libvirtd.service
+Wants=host_shutdown_hook.service
+After=network.service
+After=libvirtd.service
+
+[Service]
+Type=forking
+ExecStartPre=/usr/sbin/modprobe chbk
+ExecStart=/usr/sbin/cvk_ha
+PIDFile=/var/run/ha_cvkd.pid
+# Always restart if the service is not running
+Restart=always
+# Restart after 60 seconds
+RestartSec=60
+TimeoutStopSec=30
+
+[Install]
+WantedBy=multi-user.target
+

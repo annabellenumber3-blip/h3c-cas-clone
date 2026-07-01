@@ -1,0 +1,59 @@
+#
+# WARNING WARNING WARNING WARNING
+#
+# This file is automatically written by generator.py. Any changes
+# made here will be lost.
+#
+# To change the manually written methods edit libvirt-lxc-override.py
+# To change the automatically written methods edit generator.py
+#
+# WARNING WARNING WARNING WARNING
+#
+#
+# WARNING WARNING WARNING WARNING
+#
+# Automatically written part of python bindings for libvirt
+#
+# WARNING WARNING WARNING WARNING
+import sys
+try:
+    import libvirtmod_lxc
+except ImportError:
+    lib_e = sys.exc_info()[1]
+    try:
+        import cygvirtmod_lxc as libvirtmod_lxc
+    except ImportError:
+        cyg_e = sys.exc_info()[1]
+        if str(cyg_e).count("No module named"):
+            raise lib_e
+
+import libvirt
+
+#
+# Functions from module libvirt-lxc
+#
+
+def lxcEnterCGroup(domain, flags):
+    """This API is LXC specific, so it will only work with hypervisor
+    connections to the LXC driver.
+    
+    Attaches the process to the control cgroups associated
+    with the container @domain. """
+    ret = libvirtmod_lxc.virDomainLxcEnterCGroup(domain._o, flags)
+    if ret is None: raise libvirt.libvirtError('virDomainLxcEnterCGroup() failed')
+    return ret
+
+def lxcOpenNamespace(domain, flags):
+    """This API is LXC specific, so it will only work with hypervisor
+    connections to the LXC driver.
+    
+    Open the namespaces associated with the container @domain
+    and return a list of file descriptors associated with the
+    container.
+    
+    The returned file descriptors are intended to be used with
+    the setns() system call. """
+    ret = libvirtmod_lxc.virDomainLxcOpenNamespace(domain._o, flags)
+    if ret is None: raise libvirt.libvirtError('virDomainLxcOpenNamespace() failed')
+    return ret
+

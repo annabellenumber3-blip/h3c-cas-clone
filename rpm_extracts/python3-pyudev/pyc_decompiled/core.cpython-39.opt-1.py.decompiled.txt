@@ -1,0 +1,264 @@
+m	Z	m
+    pyudev.core
+    ===========
+    Core types and functions of :mod:`pyudev`.
+    .. moduleauthor::  Sebastian Wiesner  <lunaryorn@gmail.com>
+ERROR_CHECKERS
+SIGNATURES)
+load_ctypes_library)
+DeviceNotFoundAtPathError)
+ensure_byte_string
+ensure_unicode_string
+property_value_to_bytes
+udev_list_iterate)
+Devicesc
+Contexta
+    A device database connection.
+    This class represents a connection to the udev device database, and is
+    really *the* central object to access udev.  You need an instance of this
+    class for almost anything else in pyudev.
+    This class itself gives access to various udev configuration data (e.g.
+    :attr:`sys_path`, :attr:`device_path`), and provides device enumeration
+    (:meth:`list_devices()`).
+    Instances of this class can directly be given as ``udev *`` to functions
+    wrapped through :mod:`ctypes`.
+    c
+        Create a new context.
+        Z
+udevN)
+_libudevZ
+udev_new
+_as_parameter_
+self
+//usr/lib/python3.9/site-packages/pyudev/core.py
+__init__7
+Context.__init__c
+hasattrr
+udev_unrefr
+__del__>
+Context.__del__c
+        The ``sysfs`` mount point defaulting to ``/sys'`` as unicode string.
+        
+udev_get_sys_pathz
+/sys)
+sys_pathB
+Context.sys_pathc
+        The device directory path defaulting to ``/dev`` as unicode string.
+        
+udev_get_dev_pathz
+/dev)
+device_pathK
+Context.device_pathc
+        The run runtime directory path defaulting to ``/run`` as unicode
+        string.
+        .. udevversion:: 167
+        .. versionadded:: 0.10
+        
+udev_get_run_pathz	/run/udev)
+run_pathT
+Context.run_pathc
+        The logging priority of the interal logging facitility of udev as
+        integer with a standard :mod:`syslog` priority.  Assign to this
+        property to change the logging priority.
+        UDev uses the standard :mod:`syslog` priorities.  Constants for these
+        priorities are defined in the :mod:`syslog` module in the standard
+        library:
+        >>> import syslog
+        >>> context = pyudev.Context()
+        >>> context.log_priority = syslog.LOG_DEBUG
+        .. versionadded:: 0.9
+        )
+udev_get_log_priorityr
+log_priorityb
+Context.log_priorityc
+        Set the log priority.
+        :param int value: the log priority.
+        N)
+udev_set_log_priority)
+valuer
+        List all available devices.
+        The arguments of this method are the same as for
+        :meth:`Enumerator.match()`.  In fact, the arguments are simply passed
+        straight to method :meth:`~Enumerator.match()`.
+        This function creates and returns an :class:`Enumerator` object,
+        that can be used to filter the list of devices, and eventually
+        retrieve :class:`Device` objects representing matching devices.
+        .. versionchanged:: 0.8
+           Accept keyword arguments now for easy matching.
+        )
+Enumerator
+match)
+kwargsr
+list_devices~
+Context.list_devicesN)
+__name__
+__module__
+__qualname__
+__doc__r
+propertyr
+setterr 
+    A filtered iterable of devices.
+    To retrieve devices, simply iterate over an instance of this class.
+    This operation yields :class:`Device` objects representing the available
+    devices.
+    Before iteration the device list can be filtered by subsystem or by
+    property values using :meth:`match_subsystem` and
+    :meth:`match_property`.  Multiple subsystem (property) filters are
+    combined using a logical OR, filters of different types are combined
+    using a logical AND.  The following filter for instance::
+        devices.match_subsystem('block').match_property(
+            'ID_TYPE', 'disk').match_property('DEVTYPE', 'disk')
+    means the following::
+        subsystem == 'block' and (ID_TYPE == 'disk' or DEVTYPE == 'disk')
+    Once added, a filter cannot be removed anymore.  Create a new object
+    instead.
+    Instances of this class can directly be given as given ``udev_enumerate *``
+    to functions wrapped through :mod:`ctypes`.
+    c
+        Create a new enumerator with the given ``context`` (a
+        :class:`Context` instance).
+        While you can create objects of this class directly, this is not
+        recommended.  Call :method:`Context.list_devices()` instead.
+        z
+Invalid context objectN)
+isinstancer
+	TypeError
+contextr
+udev_enumerate_newr
+Enumerator.__init__c
+udev_enumerate_unrefr
+Enumerator.__del__c
+        Include devices according to the rules defined by the keyword
+        arguments.  These keyword arguments are interpreted as follows:
+        - The value for the keyword argument ``subsystem`` is forwarded to
+          :meth:`match_subsystem()`.
+        - The value for the keyword argument ``sys_name`` is forwared to
+          :meth:`match_sys_name()`.
+        - The value for the keyword argument ``tag`` is forwared to
+          :meth:`match_tag()`.
+        - The value for the keyword argument ``parent`` is forwared to
+          :meth:`match_parent()`.
+        - All other keyword arguments are forwareded one by one to
+          :meth:`match_property()`.  The keyword argument itself is interpreted
+          as property name, the value of the keyword argument as the property
+          value.
+        All keyword arguments are optional, calling this method without no
+        arguments at all is simply a noop.
+        Return the instance again.
+        .. versionadded:: 0.8
+        .. versionchanged:: 0.13
+           Add ``parent`` keyword.
+        
+	subsystemN
+sys_name
+parent)
+match_subsystem
+match_sys_name
+	match_tag
+match_parent
+items
+match_property)
+propr
+Enumerator.matchFc
+        Include all devices, which are part of the given ``subsystem``.
+        ``subsystem`` is either a unicode string or a byte string, containing
+        the name of the subsystem.  If ``nomatch`` is ``True`` (default is
+        ``False``), the match is inverted:  A device is only included if it is
+        *not* part of the given ``subsystem``.
+        Note that, if a device has no subsystem, it is not included either
+        with value of ``nomatch`` True or with value of ``nomatch`` False.
+        Return the instance again.
+        )
+Z$udev_enumerate_add_nomatch_subsystemZ"udev_enumerate_add_match_subsystemr
+nomatchr
+Enumerator.match_subsystemc
+        Include all devices with the given name.
+        ``sys_name`` is a byte or unicode string containing the device name.
+        Return the instance again.
+        .. versionadded:: 0.8
+        )
+Z udev_enumerate_add_match_sysnamer
+Enumerator.match_sys_namec
+        Include all devices, whose ``prop`` has the given ``value``.
+        ``prop`` is either a unicode string or a byte string, containing
+        the name of the property to match.  ``value`` is a property value,
+        being one of the following types:
+        - :func:`int`
+        - :func:`bool`
+        - A byte string
+        - Anything convertable to a unicode string (including a unicode string
+          itself)
+        Return the instance again.
+        )
+Z!udev_enumerate_add_match_propertyr
+Enumerator.match_propertyc
+        Include all devices, whose ``attribute`` has the given ``value``.
+        ``attribute`` is either a unicode string or a byte string, containing
+        the name of a sys attribute to match.  ``value`` is an attribute value,
+        being one of the following types:
+        - :func:`int`,
+        - :func:`bool`
+        - A byte string
+        - Anything convertable to a unicode string (including a unicode string
+          itself)
+        If ``nomatch`` is ``True`` (default is ``False``), the match is
+        inverted:  A device is include if the ``attribute`` does *not* match
+        the given ``value``.
+        .. note::
+           If ``nomatch`` is ``True``, devices which do not have the given
+           ``attribute`` at all are also included.  In other words, with
+           ``nomatch=True`` the given ``attribute`` is *not* guaranteed to
+           exist on all returned devices.
+        Return the instance again.
+        )
+Z udev_enumerate_add_match_sysattrZ"udev_enumerate_add_nomatch_sysattrr
+Z	attributer
+match_attribute#
+Enumerator.match_attributec
+        Include all devices, which have the given ``tag`` attached.
+        ``tag`` is a byte or unicode string containing the tag name.
+        Return the instance again.
+        .. udevversion:: 154
+        .. versionadded:: 0.6
+        )
+udev_enumerate_add_match_tagr
+Enumerator.match_tagc
+        Include only devices, which are initialized.
+        Initialized devices have properly set device node permissions and
+        context, and are (in case of network devices) fully renamed.
+        Currently this will not affect devices which do not have device nodes
+        and are not network interfaces.
+        Return the instance again.
+        .. seealso:: :attr:`Device.is_initialized`
+        .. udevversion:: 165
+        .. versionadded:: 0.8
+        )
+Z'udev_enumerate_add_match_is_initializedr
+match_is_initializedU
+Enumerator.match_is_initializedc
+        Include all devices on the subtree of the given ``parent`` device.
+        The ``parent`` device itself is also included.
+        ``parent`` is a :class:`~pyudev.Device`.
+        Return the instance again.
+        .. udevversion:: 172
+        .. versionadded:: 0.13
+        )
+udev_enumerate_add_match_parent)
+Enumerator.match_parentc
+        Iterate over all matching devices.
+        Yield :class:`Device` objects.
+        N)
+udev_enumerate_scan_devicesZ
+udev_enumerate_get_list_entryr	
+from_sys_pathr)
+entry
+name
+__iter__{
+Enumerator.__iter__N)
+pyudev._ctypeslib.libudevr
+pyudev._ctypeslib.utilsr
+pyudev._errorsr
+pyudev._utilr
+pyudev.devicer
+objectr
+<module>

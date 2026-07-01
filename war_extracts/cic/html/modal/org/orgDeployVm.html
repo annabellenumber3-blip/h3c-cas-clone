@@ -1,0 +1,672 @@
+
+<!-- 组织部署虚拟机 -->
+<div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" ng-click="cancel()" custom-title="{{'common.close'|translate}}">
+        <span class="icon-closenew"></span>
+    </button>
+	<button ng-if="flag == 2" type="button" class="close cornerhelp" custom-title="{{'help'|translate}}" ng-click="openHelp('org/VMTemplate/ddeployCasVm')">
+		<span class="icon-helpnew"></span>
+	</button>
+	<button ng-if="flag == 3" type="button" class="close cornerhelp" custom-title="{{'help'|translate}}" ng-click="openHelp('org/VMTemplate/ddeployVcenterVm')">
+		<span class="icon-helpnew"></span>
+	</button>
+    <h4 class="modal-title"><span translate="template.deploy"></span></h4>
+</div>
+<div class="modal-body row">
+    <div class="form-horizontal col-md-8">
+	    <carousel-form titles="stepTitles" cancel="ok()"> 
+    	<!-- 虚拟机基本信息 -->
+	    	<slide-form valid="valids.stepOneOver()" active="slide.active" is-add="true" tab-index="0">
+            	<form name="form1" class="form-horizontal" role="form" novalidate>
+            	<input type="hidden" id="form1" value="{{form1.$valid}}">
+            	<!-- 虚拟机名称
+		         	<div class="form-group" ng-class="{'has-error' : (form1.domainName.$invalid && form1.domainName.$dirty)}" ng-if="flag==3">
+						<label for="domainName" class="control-label" > <span translate="addDomain.domainName"></span><span style="color:red">*</span></label>
+						<div class="control-input input-group input-xlarge">
+							<input type="text" class="form-input form-control" ng-model="model.domainName" ng-trim="false" checkname rpccheck="domain/nameExist" ng-maxlength=64 id="domainName" name="domainName" required>
+		                    <span class="input-group-addon help-addon" ng-messages="form1.domainName.$error">
+	                            <span ng-if="form1.domainName.$valid||!form1.domainName.$dirty">
+	                                <span class="icon-occupying"></span>
+	                            </span>
+	                            <span ng-if="form1.domainName.$dirty">
+	                               <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+								   <span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxlen'|translate}}64"></span></span>
+								   <span ng-message="checkname"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'checkname'|translate}}"></span></span>
+								   <span ng-message="rpccheck"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'template.templateExist'|translate}}"></span></span>
+	                            </span>
+                            </span>
+						</div>
+					</div>
+				 -->
+					<!-- 显示名称 -->
+		         	<div class="form-group" ng-class="{'has-error' : (form1.displayName.$invalid && form1.displayName.$dirty)}">
+						<label for="displayName" class="control-label" > <span translate="addDomain.title"></span><span style="color:red">*</span></label>
+						<div class="control-input input-group input-xlarge">
+								<input type="text" check-special-char class="form-input form-control" ng-model="model.title" ng-trim="false" ng-maxlength=64 id="displayName" name="displayName" required>
+			                    <span class="input-group-addon help-addon" ng-messages="form1.displayName.$error">
+		                            <span ng-if="form1.displayName.$valid||!form1.displayName.$dirty">
+		                                <span class="icon-occupying"></span>
+		                            </span>
+		                            <span ng-if="form1.displayName.$dirty">
+		                               <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+									   <span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxlen'|translate}}64"></span></span>
+									   <span ng-message="specialChar"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{::'checkname2'|translate}}"></span></span>
+		                            </span>
+	                            </span>
+						</div>
+					</div>
+					<!-- 描述 -->
+					<div class="form-group" ng-class="{'has-error' : (form1.description.$invalid && form1.description.$dirty)}">
+						<label for="inputdescription" class="control-label" ><span translate="netstrategy.description"></span><span style="color:red">&nbsp;</span></label>
+						<div class="control-input input-group input-xlarge">
+							<input type="text" ng-maxlength=120 class="form-input form-control" ng-trim="false" ng-model="model.desc" id="inputdescription" name="description" >
+							<span class="input-group-addon help-addon" ng-messages="form1.description.$error">
+		                           <span ng-if="form1.description.$valid||!form1.description.$dirty">
+		                               <span class="icon-occupying"></span>
+		                           </span>
+		                           <span ng-if="form1.description.$dirty">
+		                               <span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxlen'|translate}}120"></span></span>
+		                           </span>
+		                     </span>
+						</div>
+					</div>
+					<!-- 集群 -->
+<!-- 					<div class="form-group" ng-if="!isManualDefinition">
+						<label for="cluster" class="control-label"><span translate="cluster.cluster"></span></label>
+						<div class="control-input input-group width260" >
+							<select-input class="" options="deployInfo.clusterOptions" bind-model="model.clusterNum" input-id="cluster" input-name="cluster"></select-input>
+						</div>
+					</div> -->
+					<!-- 资源池 -->
+					<div class="form-group" ng-if="!isManualDefinition">
+						<label for="resourcePool" class="control-label"><span translate="resourcePool.name"></span><span style="color:red">*</span></label>
+						<div class="control-input input-group width260" >
+							<select-input class="" options="deployInfo.resourcePoolOptions" bind-model="model.resourcePoolNum" input-id="resourcePool" input-name="resourcePool" required></select-input>
+						</div>
+					</div>					
+					<!-- 配置操作系统信息 -->
+					<div class="form-group">
+						<label for="setsystem" class="control-label"><span translate="org.sysConfig"></span></label>
+						<div class="control-input">
+							 <div class="input-group">
+						    	<div id="setsystem" toggle-switch  class="switch-success" ng-model="deployInfo.sysConfig"></div>
+					  	  	</div>
+					  	  	<label ng-if = "deployInfo.sysConfig && flag==3" class="control-label" style="width: 500px !important;">
+								<span style="color:red">{{initTip}}</span>
+							</label>
+				  	  	</div>
+					</div>
+					<div class="form-group" ng-if = "deployInfo.sysConfig && flag!=3">
+						<label for="inputhalevel" class="control-label"><span translate="org.initType"></span></label>
+						<div class="control-input">
+							<div class="input-group width260">
+								<div style="padding:0px;" class="col-xs-6">
+			               			<cas-ace-check id="initType" name="initType" type="radio" text="{{::'org.quckInit' | translate}}" checked-value="0" checked="{{osInfo.initType == '0'}}" ng-model="osInfo.initType" value='0'></cas-ace-check>
+			                    </div>
+								<div ng-if = "system == 0" style="padding:0px;" class="col-xs-6">
+			               			<cas-ace-check id="initType" name="initType" type="radio" text="{{::'org.allInit' | translate}}" checked-value="1" checked="{{osInfo.initType == '1'}}" ng-model="osInfo.initType" value='1'></cas-ace-check>
+			                    </div>
+							</div>
+						</div>
+						<!-- Tools提示信息 -->
+					    <label class="control-label" style="width: 500px !important;">
+							<span style="color:red">{{initTip}}</span>
+						</label>	
+					</div>
+					<!-- 快速部署 -->
+					<div class="form-group" ng-if="!isManualDefinition && flag!=3">
+						<label for="deployModel" class="control-label">
+						<span translate="cloudBusiness.fastDeploy"></span>
+						</label>
+						<div class="control-input">
+							 <div class="input-group">
+						    	<div id="deployModel" toggle-switch class="switch-success" ng-model="model.deployMode" value="false"></div>
+					  	  	</div>
+				  	  	</div>
+					</div>
+            	</form>
+        	</slide-form>
+	    <!-- 虚拟机分配信息 -->
+	    	<slide-form valid="valids.stepTwoOver()" is-add="true" tab-index="1">
+	    		<form name="form2" class="form-horizontal" role="form" novalidate style="min-height:237px;">
+	    		<input type="hidden" id="form2" value="{{form2.$valid}}">
+	    		<div ng-if = "deployInfo.enableAdjustSetting == 1">
+	    			<div class="form-group" ng-class="{'has-error' : (form2.cpuSocket.$invalid && form2.cpuSocket.$dirty)}">
+		    			<label for="cpu_socket" class="control-label short large">
+				            <span translate="addDomain.cpu"></span><span style="color: red">*</span>
+				        </label>
+				        <div class="control-input">
+				            <div class="input-group input-xlarge">
+				            	<div class="input-group width260">
+					                <input id= "cpuSocket" name="cpuSocket" type="text" class="spinner-input" spinner spinner-max="{{clusterMaxCpu}}" spinner-min=1  ng-model="model.cpuSocket" checkint required>
+					                <span class="input-group-addon unit-addon last-child-angle">{{'addDomain.ge'|translate}}</span>
+					            </div>
+					            <span class="input-group-addon help-addon" ng-messages="form2.cpuSocket.$error">
+				                    <span ng-if="form2.cpuSocket.$valid||!form2.cpuSocket.$dirty">
+				                        <span class="icon-occupying"></span>
+				                    </span>
+				                    <span ng-if="form2.cpuSocket.$dirty">
+				                        <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{::'require'|translate}}"></span></span>
+				                        <span ng-message="spinnerMax"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxValueIs'|translate}}{{clusterMaxCpu}}"></span></span>
+								        <span ng-message="spinnerMin"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'minValueIs'|translate}}1"></span></span>
+								        <span ng-message="int"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'invalidint'|translate}}"></span></span>
+				                    </span>
+	            				</span>
+				            </div>
+				        </div> 
+	    			</div>
+	    			<div class="form-group" ng-class="{'has-error' : (form2.cpuCore.$invalid && form2.cpuCore.$dirty)}">
+		    			<label for="cpu_socket" class="control-label short large">
+				            <span translate="addDomain.cpuCoreNum"></span><span style="color: red">*</span>
+				        </label>
+				        <div class="control-input">
+				            <div class="input-group input-xlarge">
+				            	<div class="input-group width260">
+					                <input id= "cpuCore" name="cpuCore" type="text" class="spinner-input" spinner spinner-max="{{clusterMaxCpu}}" spinner-min=1  ng-model="model.cpuCore" checkint required>
+					                <span class="input-group-addon unit-addon last-child-angle">{{'addDomain.core'|translate}}</span>
+					            </div>
+					            <span class="input-group-addon help-addon" ng-messages="form2.cpuCore.$error">
+					                    <span ng-if="form2.cpuCore.$valid||!form2.cpuCore.$dirty">
+					                        <span class="icon-occupying"></span>
+					                    </span>
+					                    <span ng-if="form2.cpuCore.$dirty">
+					                        <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{::'require'|translate}}"></span></span>
+					                    	<span ng-message="spinnerMax"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxValueIs'|translate}}{{clusterMaxCpu}}"></span></span>
+								        	<span ng-message="spinnerMin"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'minValueIs'|translate}}1"></span></span>
+								        	<span ng-message="int"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'invalidint'|translate}}"></span></span>
+					                    </span>
+					              </span>
+				            </div>
+				        </div>    
+				    </div>
+				    <div class="form-group" ng-class="{'has-error':form2.maxCapacity.$invalid}">
+				   		<label for="cpu_socket" class="control-label short large">
+				            <span translate="addDomain.domainMemory"></span><span style="color: red">*</span>
+				        </label>
+					    <div class="control-input">
+			                <div class="input-group input-xlarge">
+			                	<div class="input-group width260" >
+				                    <span ng-if="model.memoryUnit=='MB'">
+	                   			    	<input id= "maxCapacity" name="maxCapacity" type="text"  ng-model="model.memoryInit" checkint spinner spinner-min="{{minMem}}" spinner-max="{{maxMem}}" class="spinner-input" memcheck required>
+	                   			    </span>
+		                     		<span ng-if="model.memoryUnit=='GB'">
+		                     			<input  id= "maxCapacity" name="maxCapacity" type="text"  ng-model="model.memoryInit" checkintfloat decimal="2" spinner spinner-min="{{minMem}}" spinner-max="{{maxMem}}" class="spinner-input" memcheck required>  
+		                     		</span>                                              
+				                    <span class="input-group-btn" style="width:60px;">
+				                    <select-input class="" options="memoryUnit" bind-model="model.memoryUnit" input-id="memoryUnit" input-name="memoryUnit" right-angle="true">
+				                    </select-input>
+				                    </span>
+				                </div>
+				                <span class="input-group-addon help-addon"  ng-messages="form2.maxCapacity.$error">
+					 				<span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+				 					<span ng-message="spinnerMax"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxValueIs'|translate}}{{maxMem}}"></span></span>
+			                    	<span ng-message="spinnerMin"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'minValueIs'|translate}}{{minMem}}"></span></span>
+				 					<span ng-message="intfloat"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'invalidintfloat'|translate}}"></span></span>
+					 				<span ng-message="int"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'invalidint'|translate}}"></span></span>
+			        				<span ng-message="memcheck"><span class="fa fa-exclamation-triangle" tooltip-placement="down" tooltip="{{'vm.memMultipleError'|translate}}"></span></span>
+			 					</span>
+			                </div>
+			            </div>
+				    </div>
+				    
+	    		</div>
+	    		<div>
+			<!-- 分配方式 -->
+				<div class="form-group ">
+					  <label for="assignMode" class="control-label short large">
+						  <span translate="virdesk.assignMode"></span>
+					  </label>
+					  <div class="control-input">
+					  	<div class="input-group width260">
+					  		<select-input class="" options="destributeWay" bind-model="deployInfo.assignMode" input-id="assignMode"	input-name="assignMode">
+						  	</select-input>
+					  	</div>
+					 </div>
+				</div>
+					<!-- 分配给用户 -->
+				<div class="form-group" ng-if="deployInfo.assignMode == 1">
+					<label for="inputuser_name" class="control-label  short large"><span translate="org.user"></span><span class="required">*</span></label>
+					<div class="input-group width260 " ng-click="selectUser()">
+					<input type="text" class="form-control first-child-angle" ng-model="deployInfo.userNames" id="inputuser_name" input-id="inputuser_name" input-name="inputuser_name" required> 
+						<span class="input-group-addon inner-addon last-child-angle" id="chooseUser">
+                            <span class="icon-search-gray" type="button"></span>
+                        </span>
+					</div>
+				</div>
+				    <!-- 分配给用户分组 -->
+				<div class="form-group" ng-if="deployInfo.assignMode == 2">
+					<label for="inputusergroup_name" class="control-label  short large"><span translate="common.userGroup"></span><span class="required">*</span></label>
+					<div class="input-group width260" ng-click="selectUserGroup()">
+						<input type="text" class="form-control first-child-angle" ng-model="deployInfo.groupNames" id="inputusergroup_name" input-id="inputusergroup_name" input-name="inputusergroup_name" required> 
+						<span class="input-group-addon inner-addon last-child-angle" id="chooseHostpool">
+                            <span class="icon-search-gray" type="button"></span>
+                        </span>
+					</div>
+				</div>				
+				<!-- 设置存储池 -->
+				<div class="form-group" ng-if="flag!=3">
+					<label for="profile" class="control-label  short large"><span
+						translate="common.storagePool"></span></label>
+					<div class="input-group width260 ">
+						<input type="text" class="form-control first-child-angle"
+							ng-model="deployInfo.poolName" id="profile"
+							input-id="profile" input-name="profile" ng-click="selectStorePool()">
+						<span class="input-group-addon inner-addon last-child-angle" ng-click="selectStorePool()"
+							id="chooseUser"> <span class="icon-search-gray"
+							type="button"></span>
+						</span> 
+						<span class="input-group-addon inner-addon last-child-angle"
+							style="cursor: pointer;" ng-click="clearStorePool()"> 
+							<span class="icon-delete-gray" type="button"></span>
+					    </span>
+					</div>
+				</div>
+				<!-- 网络配置 -->
+				<div class="form-group" ng-if="showFormat">
+					<label for="profile" class="control-label  short large"><span
+						translate="vm.netWorkConfig"></span></label>
+				</div>
+				<div class="form-group" ng-if="showFormat" style="margin-top:-5px;">
+					<!----------- 高级配置    网络信息  ------------>
+					<form name="form10" class="form-horizontal" role="form10" style="padding:0" novalidate>
+		          	    <input type="hidden" id ="form10" value="{{form10.$valid}}">
+						<div class="panel-body"  id="divNetinfo" style="padding:0px;">
+						    <div style="width: 90%; height: 200px;" class="table"  ng-grid="gridOptions1"></div>
+						</div>
+					</form>
+	            </div>
+				</div>
+	    	</form>
+                <div>
+               		<a href="#" style="color: #1f90c8; margin-left:25px; text-decoration:none;" ng-if="flag!=3" ng-click="designatedFormat()"><sapn ng-bind="advance"></sapn></a>	
+                </div>
+        	</slide-form>
+        <!-- 虚拟机系统信息 -->
+        	<slide-form valid="valids.stepThreeOver()" is-add="deployInfo.sysConfig == true" tab-index="2">
+	    		<form name="form3" class="form-horizontal" role="form3" novalidate>
+	    			<input type="hidden" id="form3" value="{{form3.$valid}}">
+	    			<div class="form-group" ng-class="{'has-error' : (form3.sysName.$invalid && form3.sysName.$dirty)}">
+						<label for="sysName" class="control-label" > <span translate="org.sysName"></span><span style="color:red">*</span></label>
+						<div class="control-input input-group">
+							<input type="text" class="form-input form-control" ng-model="osInfo.sysName" ng-trim="false" checkhostname ng-maxlength=15 id="sysName" name="sysName" required>
+		                    <span class="input-group-addon help-addon" ng-messages="form3.sysName.$error">
+	                            <span ng-if="form3.sysName.$valid||!form3.sysName.$dirty">
+	                                <span class="icon-occupying"></span>
+	                            </span>
+	                            <span ng-if="form3.sysName.$dirty">
+	                               <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+								   <span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxlen'|translate}}15"></span></span>
+								   <span ng-message="checkhostname"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'checkhostname'|translate}}"></span></span>
+	                            </span>
+                            </span>
+						</div>
+					</div>
+					<!-- IP地址分配方式-->
+				 	<div class="form-group">
+		           		 <label for="unique-id0" class="control-label"><span translate="template.ipDistributeWay"></span></label>
+		           		 <div class="control-input">
+		           		 	<div class="input-group width260">
+		           		 		<div style="padding:0px;" class="col-xs-6">
+			               			<cas-ace-check id="ipDistributeWay" name="ipDistributeWay" type="radio" text="{{::'template.dhcp' | translate}}" checked-value="1" checked="true" ng-model="deployInfo.sysIpType" value='1'></cas-ace-check>
+			                    </div>
+								<div style="padding:0px;" class="col-xs-6">
+			               			<cas-ace-check id="ipDistributeWay" name="ipDistributeWay" type="radio" text="{{::'template.byhandDistribute' | translate}}" checked-value="2" checked="false" ng-model="deployInfo.sysIpType" value='2'></cas-ace-check>
+			                    </div>
+		           		 	</div>
+						</div>
+					</div>
+					<!-- IP地址 -->
+					<div class="form-group" ng-if="deployInfo.sysIpType==2" ng-class="{'has-error': (form3.ipAddress.$dirty && form3.ipAddress.$invalid)}">
+						<label for="ipAddress" class="control-label"><span translate="template.ipAddress"></span><span class="required">*</span></label>
+						<div class="control-input input-group">
+						     <div class="input-group input-xlarge">
+							   <input type="text" ip  class="form-input form-control" ng-model="osInfo.sysIp"  ng-trim="false" id="ipAddress" name="ipAddress" required>
+								<span class="input-group-addon help-addon" ng-messages="form3.ipAddress.$error">
+								 <span ng-if="form3.ipAddress.$valid||!form3.ipAddress.$dirty">
+								       <span class="icon-occupying"></span>
+								 </span>
+								 <span ng-if="form3.ipAddress.$dirty">
+									 <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+									 <span ng-message="ip"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'invalidip'|translate}}"></span></span>
+								 </span>
+							 	</span>
+		                     </div>
+						</div>
+				  </div>
+				  <!-- 子网掩码 -->
+				  <div class="form-group" ng-if="deployInfo.sysIpType==2" ng-class="{'has-error': (form3.subnetMask.$dirty && form3.subnetMask.$invalid)}">
+						<label for="subnetMask" class="control-label"><span translate="template.subnetMask"></span><span class="required">*</span></label>
+						<div class="control-input input-group">
+						     <div class="input-group input-xlarge">
+							   <input type="text" mask  class="form-input form-control" ng-model="osInfo.sysMask"  ng-trim="false" id="subnetMask" name="subnetMask" required>
+								<span class="input-group-addon help-addon" ng-messages="form3.subnetMask.$error">
+								 <span ng-if="form3.subnetMask.$valid||!form3.subnetMask.$dirty">
+								       <span class="icon-occupying"></span>
+								 </span>
+								 <span ng-if="form3.subnetMask.$dirty">
+									 <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+									 <span ng-message="mask"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'invalidmask'|translate}}"></span></span>
+								 </span>
+							 	</span>
+		                     </div>
+						</div>
+				  </div>
+				  <!-- 默认网关 -->
+				  <div class="form-group" ng-if="deployInfo.sysIpType==2" ng-class="{'has-error': (form3.defaultGateway.$dirty && form3.defaultGateway.$invalid)}">
+						<label for="defaultGateway" class="control-label"><span translate="template.defaultGateway"></span></label>
+						<div class="control-input input-group">
+						     <div class="input-group input-xlarge">
+							   <input type="text" ip  class="form-input form-control" ng-model="osInfo.sysGateway"  ng-trim="false" id="defaultGateway" name="defaultGateway">
+								<span class="input-group-addon help-addon" ng-messages="form3.defaultGateway.$error">
+								 <span ng-if="form3.defaultGateway.$valid||!form3.defaultGateway.$dirty">
+								       <span class="icon-occupying"></span>
+								 </span>
+								 <span ng-if="form3.defaultGateway.$dirty">
+									 <span ng-message="ip"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'invalidip'|translate}}"></span></span>
+								 </span>
+							 	</span>
+		                     </div>
+						</div>
+				  </div>
+				  <!-- 主DNS服务器 -->
+				  <div class="form-group" ng-if="deployInfo.sysIpType==2" ng-class="{'has-error': (form3.theDnsServer.$dirty && form3.theDnsServer.$invalid)}">
+						<label for="theDnsServer" class="control-label"><span translate="template.theDnsServer"></span></label>
+						<div class="control-input input-group">
+						     <div class="input-group input-xlarge">
+							   <input type="text" ip  class="form-input form-control" ng-model="osInfo.sysdns"  ng-trim="false" id="theDnsServer" name="theDnsServer">
+								<span class="input-group-addon help-addon" ng-messages="form3.theDnsServer.$error">
+								 <span ng-if="form3.theDnsServer.$valid||!form3.theDnsServer.$dirty">
+								       <span class="icon-occupying"></span>
+								 </span>
+								 <span ng-if="form3.theDnsServer.$dirty">
+									 <span ng-message="ip"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'invalidip'|translate}}"></span></span>
+								 </span>
+							 	</span>
+		                     </div>
+						</div>
+				  </div>
+				<!-- 备DNS服务器 -->
+				  <div class="form-group" ng-if="deployInfo.sysIpType==2" ng-class="{'has-error': (form3.forDnsServer.$dirty && form3.forDnsServer.$invalid)}">
+						<label for="forDnsServer" class="control-label"><span translate="template.forDnsServer"></span></label>
+						<div class="control-input input-group">
+						     <div class="input-group input-xlarge">
+							   <input type="text" ip  class="form-input form-control" ng-model="osInfo.secondaryDns"  ng-trim="false" id="forDnsServer" name="forDnsServer">
+								<span class="input-group-addon help-addon" ng-messages="form3.forDnsServer.$error">
+								 <span ng-if="form3.forDnsServer.$valid||!form3.forDnsServer.$dirty">
+								       <span class="icon-occupying"></span>
+								 </span>
+								 <span ng-if="form3.forDnsServer.$dirty">
+									 <span ng-message="ip"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'invalidip'|translate}}"></span></span>
+								 </span>
+							 	</span>
+		                     </div>
+						</div>
+				  </div>
+				  <!--  设置IP绑定 -->
+				 <div ng-if="deployInfo.sysIpType==2&&flag!=3"  class="form-group">
+					 <label for="autoDeployVm" class="control-label">
+						 <span translate="template.setBindIp"></span>
+					 </label>
+					 <div class="control-input">
+						 <div class="input-group">
+							 <div id="fastDeploy" toggle-switch  class="switch-success" ng-model="osInfo.isBindIp"></div>
+						 </div>
+					 </div>
+				 </div>	
+	    		</form>
+        	</slide-form>
+        	<slide-form valid="valids.stepFourOver()" is-add="deployInfo.sysConfig == true" tab-index="3">
+	    		<form name="form4" class="form-horizontal" role="form4" novalidate>
+	    			<input type="hidden" id="form4" value="{{form4.$valid}}">
+	    			<div class="form-group" ng-if = "system==0">
+		           		 <label for="unique-id0" class="control-label"><span translate="org.belongTo"></span></label>
+		           		 <div class="control-input input-group">
+		           		 	<div class="input-group width260">
+								<div style="padding:0px;" class="col-xs-6">
+			               			<cas-ace-check id="regOrGroupType" name="regOrGroupType" type="radio" text="{{::'org.domain' | translate}}" checked-value="1" checked="true" ng-model="osInfo.regOrGroupType" value='1'></cas-ace-check>
+			                    </div>
+								<div style="padding:0px;" class="col-xs-6">
+			               			<cas-ace-check id="regOrGroupType" name="regOrGroupType" type="radio" text="{{::'org.workgroup' | translate}}" checked-value="2" checked="false" ng-model="osInfo.regOrGroupType" value='2'></cas-ace-check>
+			                    </div>
+							</div>
+						</div>
+					</div>
+					<div class="form-group" ng-if="osInfo.regOrGroupType==1 && system==0" ng-class="{'has-error': (form4.regOrGroup.$dirty && form4.regOrGroup.$invalid)}">
+						<label for="domain" class="control-label"><span translate="org.domain"></span><span style="color:red">*</span></label>
+						<div class="control-input input-group">
+						     <div class="input-group input-xlarge">
+							   <input type="text" class="form-input form-control" ng-if="osInfo.regOrGroupType==1" checkname ng-maxlength=63 ng-model="osInfo.regOrGroup"  ng-trim="false" id="regOrGroup" name="regOrGroup" required>
+								<span class="input-group-addon help-addon" ng-messages="form4.regOrGroup.$error">
+								 <span ng-if="form4.regOrGroup.$valid||!form4.regOrGroup.$dirty">
+								       <span class="icon-occupying"></span>
+								 </span>
+								 <span ng-if="form4.regOrGroup.$dirty">
+									 <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+									 <span ng-message="maxlength" ng-if="osInfo.regOrGroupType==1"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxlen'|translate}}63"></span></span>
+									 <span ng-message="checkname"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'checkname'|translate}}"></span></span>
+								 </span>
+							 	</span>
+		                     </div>
+						</div>
+				  </div>
+				  <div class="form-group" ng-if="osInfo.regOrGroupType==2 && system==0" ng-class="{'has-error': (form4.regOrGroup.$dirty && form4.regOrGroup.$invalid)}">
+						<label for="domain" class="control-label"><span translate="org.workgroup"></span><span style="color:red">*</span></label>
+						<div class="control-input input-group">
+						     <div class="input-group input-xlarge">
+							   <input type="text"  class="form-input form-control" ng-model="osInfo.regOrGroup" checkname ng-maxlength=15 ng-trim="false" id="regOrGroup" name="regOrGroup" required>
+								<span class="input-group-addon help-addon" ng-messages="form4.regOrGroup.$error">
+								 <span ng-if="form4.regOrGroup.$valid||!form4.regOrGroup.$dirty">
+								       <span class="icon-occupying"></span>
+								 </span>
+								 <span ng-if="form4.regOrGroup.$dirty">
+									 <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+									 <span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxlen'|translate}}15"></span></span>
+									 <span ng-message="checkname"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'checkname'|translate}}"></span></span>
+								 </span>
+							 	</span>
+		                     </div>
+						</div>
+				  </div>
+				  <div class="form-group" ng-class="{'has-error': (form4.loginAccount.$dirty && form4.loginAccount.$invalid)}">
+				  		<label for="domain" class="control-label"><span translate="org.loginAccount"></span><span style="color:red">*</span></label>
+				  		<div class="control-input input-group input-xlarge">
+				  			<input type="text"  class="form-input form-control" ng-model="osInfo.loginAccount" checkname ng-maxlength=64 ng-trim="false" id="loginAccount" name="loginAccount" required ng-readonly="osInfo.regOrGroupType==2&&flag==3">
+				  			<span class="input-group-addon help-addon" ng-messages="form4.loginAccount.$error">
+								<span ng-if="form4.loginAccount.$valid||!form4.loginAccount.$dirty">
+									<span class="icon-occupying"></span>
+								</span>
+								<span ng-if="form4.loginAccount.$dirty">
+									<span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+									<span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxlen'|translate}}64"></span></span>
+									<span ng-message="checkname"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'checkname'|translate}}"></span></span>
+								</span>
+							</span>
+				  		</div>
+				  </div>
+				  <!-- 登录密码 -->
+			        <div class="form-group" ng-class="{'has-error': (form4.loginPassword.$dirty && form4.loginPassword.$invalid)}">
+			            <label for="inputpwd" class="control-label"><span translate="password"></span><span style="color: red">*</span></label>
+		                <div class="control-input input-group input-xlarge">
+		                    <input id="loginPassword" type="password" placeholder="{{'pwdInput'|translate}}" ng-maxlength=32 class="form-input form-control" ng-model="osInfo.loginPassword" ng-trim="false" name="loginPassword" required>
+		                    <span class="input-group-addon help-addon"  ng-messages="form4.loginPassword.$error">
+		                        <span ng-if="form4.loginPassword.$valid||!form4.loginPassword.$dirty">
+		                             <span class="icon-occupying"></span>
+		                        </span>
+		                        <span ng-if="form4.loginPassword.$dirty">
+		                             <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+		                             <span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxlen'|translate}}32"></span></span>
+		                        </span>
+		                    </span>
+		                </div>
+			        </div>
+			        <!-- 确认密码 -->
+			        <div class="form-group" ng-class="{'has-error': (form4.pwdConfirm.$dirty && form4.pwdConfirm.$invalid)}">
+			            <label for="pwdConfirm" class="control-label"><span translate="confirmPassword"></span><span style="color:red">*</span></label>
+		                <div class="control-input input-group input-xlarge">
+		                   <input id="addOperator_4" type="password" placeholder="{{'pwdAgain'|translate}}" ng-maxlength=32 equalcheck obj1="pwdConfirm" obj2="osInfo.loginPassword" considerspace=true class="form-input form-control" ng-model="pwdConfirm" ng-trim="false" name="pwdConfirm" required>
+		                   <span class="input-group-addon help-addon" ng-messages="form4.pwdConfirm.$error">
+		                        <span ng-if="form4.pwdConfirm.$valid||!form4.loginPassword.$dirty">
+		                             <span class="icon-occupying"></span>
+		                        </span>
+		                        <span ng-if="form4.pwdConfirm.$dirty">
+		                             <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+		                             <span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxlen'|translate}}32"></span></span>
+		                             <span ng-message="equalcheck"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{::'pwdMatch'|translate}}"></span></span>
+<!-- 		                             <span ng-message="pwdCheck"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'pwdMatch'|translate}}"></span></span> -->
+		                        </span>
+		                   </span>
+		                </div>
+			        </div>
+			        <!-- 本地组 -->
+					<div class="form-group" ng-if = "system==0">
+						<label for="cluster" class="control-label">
+							<span translate="org.localgroup"></span>
+						</label>
+						<div class="control-input input-group width260" >
+							<select-input class="" options="localgroupOptions" bind-model="osInfo.localgroup"  ng-init="osInfo.localgroup='Administrators'"  input-id="localgroup" input-name="localgroup"></select-input>
+						</div>
+					</div>
+					<!-- 激活序列号 -->
+					<div class="form-group" ng-if="(flag!=3 && osInfo.initType == 1 && system==0)||(system==0 && flag==3)" ng-class="{'has-error': (form4.productKey.$dirty && form4.productKey.$invalid)}">
+				  		<label for="domain" class="control-label"><span translate="org.productKey"></span></label>
+				  		<div class="control-input input-group input-xlarge">
+				  			<input type="text"  class="form-input form-control" ng-model="osInfo.productKey" ng-maxlength=64 ng-trim="false" productkey id="productKey" name="productKey">
+				  			<span class="input-group-addon help-addon" ng-messages="form4.productKey.$error">
+								<span ng-if="form4.productKey.$valid||!form4.productKey.$dirty">
+									<span class="icon-help-gray" tooltip-placement="right" tooltip="{{'virdesk.productkeytip'|translate}}"></span>
+								</span>
+								<span ng-if="form4.productKey.$dirty">
+									<span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxlen'|translate}}64"></span></span>
+									<span ng-message="productkey"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'productkey'|translate}}"></span></span>
+								</span>
+							</span>
+				  		</div>
+				     </div>
+				     <!-- 时区 -->
+					 <div class="form-group " ng-if="system==0 && flag==3">
+			  			<label for="timezone" class="control-label ">
+				  			<span translate="virdesk.timezone"></span>
+			 	 		</label>
+			  			<div class="input-group width260">
+				  			<select-input class="" options="timezones" bind-model="model.timezone" input-id="timezone"	input-name="timezone">
+				  			</select-input>
+			 			</div>
+			 		 </div>
+	    		</form>
+	    	</slide-form>
+	    </carousel-form>
+	</div>
+	    <!-- 右侧确认信息 -->
+    <div class="detail-table col-md-4">
+        <table class="table table-striped">
+            <tr>
+                <td ><h4 translate="configDetail"></h4></td>
+            </tr>
+            <!-- 
+            <tr ng-if="flag==3">
+                <td ><span translate="addDomain.domainName"></span></span></td>
+                <td ><span shortcut cut-str="{{model.domainName}}" custom-title>{{model.domainName}}</span></td>
+            </tr>
+             -->
+            <tr>
+                <td ><span translate="addDomain.title"></span></td>
+                <td><span shortcut cut-str="{{model.title}}" custom-title>{{model.title}}</span></td>
+            </tr>
+            <tr>
+                <td ><span translate="common.desc"></span></td>
+                <td><span shortcut cut-str="{{model.desc}}" custom-title>{{model.desc}}</span></td>
+            </tr>
+            
+<!--             <tr>
+                <td ><span translate="resourcePool.name"></span></td>
+                <td><span shortcut cut-str="{{model.resourcePoolName}}" custom-title>{{model.resourcePoolName}}</span></td>
+            </tr> -->
+            
+            <tr ng-if="model.deployMode && flag!=3">
+                <td ><span translate="template.deployWay"></span></td>
+                <td >{{'cloudBusiness.fastDeploy'|translate}}</td>
+            </tr>
+            <tr ng-if = "deployInfo.enableAdjustSetting == 1">
+                <td ><span translate="addDomain.cpu"></span></td>
+                <td >{{model.cpuSocket}} * {{model.cpuCore}}</td>
+            </tr>
+            <tr ng-if = "deployInfo.enableAdjustSetting == 1">
+                <td ><span translate="addDomain.domainMemory"></span></td>
+                <td >{{model.memoryInit}} {{model.memoryUnit}}</td>
+            </tr>
+            <tr>
+                <td ><span translate="virdesk.assignMode"></span></td>
+                <td  ng-if="deployInfo.assignMode == 0">{{'org.assignNo'|translate}}</td>
+                <td  ng-if="deployInfo.assignMode == 1">{{'org.assignUser'|translate}}</td>
+                <td  ng-if="deployInfo.assignMode == 2">{{'org.assignUserGroup'|translate}}</td>
+            </tr>
+            <tr ng-if="deployInfo.assignMode == 1">
+                <td ><span translate="org.user"></span></td>
+                <td><span shortcut cut-str="{{deployInfo.userNames}}" custom-title>{{deployInfo.userNames}}</span></td>
+            </tr>
+            <tr ng-if="deployInfo.assignMode == 2">
+                <td ><span translate="common.userGroup"></span></td>
+                <td><span shortcut cut-str="{{deployInfo.groupNames}}" custom-title>{{deployInfo.groupNames}}</span></td>
+            </tr>
+            <tr ng-if = "deployInfo.sysConfig && flag!=3">
+                <td ><span translate="org.initType"></span></td>
+                <td ng-if ="osInfo.initType==0"><span translate="org.quckInit"></span></td>
+                <td ng-if ="osInfo.initType!=0"><span translate="org.allInit"></span></td>
+            </tr>
+            <tr ng-if = "deployInfo.sysConfig">
+                <td ><span translate="org.sysName"></span></td>
+                <td><span shortcut cut-str="{{osInfo.sysName}}" custom-title>{{osInfo.sysName}}</span></td>
+            </tr>
+            <!-- 
+            <tr ng-if = "deployInfo.sysConfig">
+                <td ><span translate="template.ipDistributeWay"></span></td>
+                <td ><span ng-if='sysIpType==1' translate="template.dhcp"></span><span ng-if='sysIpType==2' translate="template.byhandDistribute"></span></td>
+            </tr>
+             -->
+            <tr ng-if = "deployInfo.sysConfig && deployInfo.sysIpType==2">
+                <td ><span translate="ip"></span></td>
+                <td><span shortcut cut-str="{{osInfo.sysIp}}" custom-title>{{osInfo.sysIp}}</span></td>
+            </tr>
+            <tr ng-if = "deployInfo.sysConfig  && deployInfo.sysIpType==2">
+                <td ><span translate="host.mask"></span></td>
+                <td><span shortcut cut-str="{{osInfo.sysMask}}" custom-title>{{osInfo.sysMask}}</span></td>
+            </tr>
+            <tr ng-if = "deployInfo.sysConfig && deployInfo.sysIpType==2">
+                <td ><span translate="template.defaultGateway"></span></td>
+                <td><span shortcut cut-str="{{osInfo.sysGateway}}" custom-title>{{osInfo.sysGateway}}</span></td>
+            </tr>
+            <tr ng-if = "deployInfo.sysConfig  && deployInfo.sysIpType==2">
+                <td ><span translate="template.theDnsServer"></span></td>
+                <td><span shortcut cut-str="{{osInfo.sysdns}}" custom-title>{{osInfo.sysdns}}</span></td>
+            </tr>
+            <tr ng-if = "deployInfo.sysConfig && deployInfo.sysIpType==2">
+                <td ><span translate="template.forDnsServer"></span></td>
+                <td><span shortcut cut-str="{{osInfo.secondaryDns}}" custom-title>{{osInfo.secondaryDns}}</span></td>
+            </tr>
+            <tr  ng-if="deployInfo.sysConfig && deployInfo.sysIpType==2">
+				<td><span translate="template.setBindIp"></span></td>
+				<td>{{osInfo.isBindIp|yes}}</td>
+			</tr>
+            <tr ng-if = "deployInfo.sysConfig && system==0">
+                <td ><span translate="org.belongTo"></span></td>
+                <td ><span ng-if="osInfo.regOrGroupType == 1" translate="org.domain"></span><span ng-if="osInfo.regOrGroupType != 1"translate="org.workgroup"></span></td>
+            </tr>
+            <tr ng-if = "deployInfo.sysConfig && system==0">
+                <td ><span ng-if="osInfo.regOrGroupType == 1" translate="org.domain"></span><span ng-if="osInfo.regOrGroupType != 1"translate="org.workgroup"></span></td>
+                <td><span shortcut cut-str="{{osInfo.regOrGroup}}" custom-title>{{osInfo.regOrGroup}}</span></td>
+            </tr>
+            <tr ng-if = "deployInfo.sysConfig">
+                <td ><span translate="org.loginAccount"></span></td>
+                <td><span shortcut cut-str="{{osInfo.loginAccount}}" custom-title>{{osInfo.loginAccount}}</span></td>
+            </tr>
+            <tr ng-if = "deployInfo.sysConfig && system==0">
+                <td ><span translate="org.localgroup"></span></td>
+                <td><span shortcut cut-str="{{osInfo.localgroup}}" custom-title>{{osInfo.localgroup}}</span></td>
+            </tr>
+            <tr ng-if = "deployInfo.sysConfig && osInfo.initType == 1 && system==0">
+                <td ><span translate="org.productKey"></span></td>
+                <td><span shortcut cut-str="{{osInfo.productKey}}" custom-title>{{osInfo.productKey}}</span></td>
+            </tr>
+        </table>
+    </div>
+</div>

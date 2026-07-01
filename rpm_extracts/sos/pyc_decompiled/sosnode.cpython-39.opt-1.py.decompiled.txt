@@ -1,0 +1,567 @@
+LooseVersion)
+quote)
+load
+InitSystem)	
+InvalidPasswordException
+TimeoutPasswordAuthException
+PasswordRequestException
+AuthPermissionDeniedException
+ConnectionException
+CommandTimeoutException
+ConnectionTimeoutException
+ControlSocketMissingException
+UnsupportedHostExceptionc
+d!d"
+did$d%
+d&d'
+d(d)
+d*d+
+djd-d.
+d/d0
+d1d2
+d3d4
+d5d6
+dkd8d9
+d:d;
+d<d=
+d>d?
+Z d@dA
+Z!dBdC
+Z"dDdE
+Z#dFdG
+Z$dHdI
+Z%dJdK
+Z&dLdM
+Z'dNdO
+Z(dPdQ
+Z)dRdS
+Z*dTdU
+Z+dVdW
+Z,dXdY
+Z-dZd[
+Z.d\d]
+Z/d^d_
+Z0d`da
+Z1dbdc
+Z2ddde
+Z3dfdg
+SosNodeNTc
+opts
+tmpdir
+hostlen
+	need_sudoF
+sos_cmd)
+version
+enabled
+disabled
+options
+presetsr
+	localhostz	127.0.0.1Z
+sosZ
+sos_uiz
+%s/.sos-collector-%sz
+Unable to open SSH session: %sTr
+strip
+address
+commonsr
+local
+host
+cluster
+hostname
+password
+	_passwordZ
+nopasswd_sudo
+sudo_pw
+sos_path
+	retrieved
+hash_retrieved
+	file_list
+sos_info
+loggingZ	getLogger
+soslog
+ui_log
+control_path
+_create_ssh_command
+ssh_cmd
+_create_ssh_session
+	connected
+	Exception
+	log_error
+getuid
+determine_host_policy
+get_hostnameZ
+no_local
+close_ssh_session
+check_in_container
+containerized
+create_sos_container
+_load_sos_info)
+selfr
+local_sudoZ
+load_factsZ
+filt
+9/usr/lib/python3.9/site-packages/sos/collector/sosnode.py
+__init__#
+SosNode.__init__c
+z,Build the complete ssh command for this nodez
+ssh -oControlPath=%s z
+%s@%s )
+ssh_userr
+cmdr?
+SosNode._create_ssh_commandc
+{:<{}} : {}
+format
+	_hostnamer
+msgr?
+_fmt_msgk
+SosNode._fmt_msgc
+z>Set the manifest section that this node will write to
+        r!
+policyZ
+sos_versionr
+manifest
+	add_fieldrG
+distror)
+set_node_manifestn
+SosNode.set_node_manifestc
+        Tries to identify if we are currently running in a container or not.
+        z
+/run/.containerenvz/Found /run/.containerenv. Running in container.TZ	containerNz/Found env var 'container'. Running in containerF)
+path
+exists
+	log_debug
+environ
+SosNode.check_in_containerc
+zJIf the host is containerized, create the container we'll be using
+        T
+	need_root
+status)
+Temporary container %s createdz*Could not start container after create: %s
+stdoutz&Could not create container on host: %sN)	r
+run_commandr;
+restart_sos_container
+log_infoZ
+sos_container_namer3
+retr?
+SosNode.create_sos_containerc
+z3Checks for the presence of fname on the remote nodez
+stat %srX
+FTN)
+stat)
+fnamer]
+file_exists
+SosNode.file_existsc
+SosNode._hostnamec
+Check if the SSH control socket exists
+        The control socket is automatically removed by the SSH daemon in the
+        event that the last connection to the node was greater than the timeout
+        set by the ControlPersist option. This can happen for us if we are
+        collecting from a large number of nodes, and the timeout expires before
+        we start collection.
+        )
+control_socket_exists
+SosNode.control_socket_existsc
+zUAttempts to obfuscate sensitive information in log messages such as
+        passwordsz>(?P<var>(pass|key|secret|PASS|KEY|SECRET).*?=)(?P<value>.*?\s)z
+\g<var>****** )
+sub)
+regr?
+_sanitize_log_msg
+SosNode._sanitize_log_msgc
+z:Format a ui message that includes host name and formattingN)
+inforJ
+ui_msg
+SosNode.ui_msgc
+z#Used to print and log info messagesrE
+[%s:%s] %sN)
+inspect
+stackrG
+callerZ
+lmsgr?
+SosNode.log_infoc
+z$Used to print and log error messagesrE
+errorrk
+SosNode.log_errorc
+z$Used to print and log debug messagesrE
+debug)
+SosNode.log_debugc
+Get the node's hostnamer!
+Hostname set to %sN)
+soutr?
+SosNode.get_hostnamec
+If we need to provide a sudo or root password to a command, then
+        here we prefix the command with the correct bits
+        z
+su -c %sz
+sudo -S %s)
+become_rootr
+_format_cmd
+SosNode._format_cmdr
+z6Formats the returned output from a command into a dictr
+stderrr?
+output
+rcrZ
+_fmt_output
+SosNode._fmt_outputc
+zLQueries the node for information about the installed version of sos
+        N
+use_containerrW
+sos version is %sz!sos is not installed on this nodeFz
+sosreport -l
+3.6)
+container_version_command
+package_managerZ
+pkg_versionZ
+sos_pkg_name
+joinr)
+splitr\
+_load_sos_plugins
+check_sos_version
+_load_sos_presets)
+verZ
+pkgsrD
+sosinfor?
+SosNode._load_sos_infoc
+sosreport --list-presetsTry
+name:rE
+splitlinesr
+startswithr}
+append)
+lineZ
+pnamer?
+SosNode._load_sos_presetsc
+Nz,The following plugins are currently enabled:z-The following plugins are currently disabled:z+The following plugin options are available:z	Profiles:z
+(.*?)z
+profiles)
+_regex_sos_helpr)
+ENABLEDZ
+DISABLEDZ
+OPTIONSZ
+PROFILESZ	enableregZ
+disregZ
+optregZ
+proregr?
+SosNode._load_sos_pluginsFc
+	<genexpr>3
+z*SosNode._regex_sos_help.<locals>.<genexpr>)
+findall
+extend)
+regexr
+is_listr]
+resultr
+SosNode._regex_sos_helpc
+z1Reads the specified file and returns the contentsz
+Reading file %sz
+cat %s
+timeoutrX
+No such filez
+File %s does not exist on nodez
+Error reading %s: %s
+Exception while reading %s: %s)	r\
+open
+readr2
+to_readr]
+rfiler>
+	read_file6
+SosNode.read_filec
+)	z[Attempts to identify the host installation against supported
+        distributions
+        z
+using local policy %srK
+/etc/os-release)
+cache
+sysroot
+initZ
+probe_runtimeZ
+remote_execZ
+remote_checkz
+loaded policy %s for hostz4Unable to determine host installation. Ignoring nodeN)
+SosNode.determine_host_policyc
+Checks to see if the sos installation on the node is AT LEAST the
+        given ver. This means that if the installed version is greater than
+        ver, this will still return True
+        r
+SosNode.check_sos_versionc
+z2Checks if a given package is installed on the nodeFN)
+pkg_by_name)
+is_installede
+SosNode.is_installed
+r0|	
+rH|	
+Runs a given cmd, either via the SSH session or locally
+        Arguments:
+            cmd - the full command to be run
+            timeout - time in seconds to wait for the command to complete
+            get_pty - If a shell is absolutely needed to run a command, set
+                      this to True
+            need_root - if a command requires root privileges, setting this to
+                        True tells sos-collector to format the command with
+                        sudo or su - as appropriate and to input the password
+            force_local - force a command to run locally. Mainly used for scp.
+            use_container - Run this command in a container *IF* the host is
+                            containerized
+        z6Control socket does not exist, attempting to re-createz"Failed to re-create control socketz1Cannot run command: control socket does not existz7Error while trying to create new SSH control socket: %sN
+	sosreportTz
+Running command %sZ
+atomic
+%s %sz
+/bin/bash -c %s
+utf-8
+encodingr
+replacer
+sos_bin_pathr:
+format_container_commandrp
+pexpect
+spawnr
+sendliner
+root_password
+expectZ
+TIMEOUT
+before
+closeZ
+exitstatusr
+get_ptyrW
+force_localrw
+_sockr>
+outrt
+SosNode.run_commandc
+t	yb
+z,Run a sosreport on the node, then collect itz
+Final sos command set to %sz'Unable to determine path of sos archiveN)
+finalize_sos_cmdr
+execute_sos_command
+finalize_sos_pathr3
+retrieve_sosreportr&
+cleanup)
+SosNode.sosreportc
+}	|	d
+        Using ControlPersist, create the initial connection to the node.
+        This will generate an OpenSSH ControlPersist socket within the tmp
+        directory created or specified for sos-collector to use.
+        At most, we will wait 30 seconds for a connection. This involves a 15
+        second wait for the initial connection attempt, and a subsequent 15
+        second wait for a response when we supply a password.
+        Since we connect to nodes in parallel (using the --threads value), this
+        means that the time between 'Connecting to nodes...' and 'Beginning
+        collection of sosreports' that users see can be up to an amount of time
+        equal to 30*(num_nodes/threads) seconds.
+        Returns
+            True if session is successfully opened, else raise Exception
+        z,Opening SSH session to create control socketFrq
+-p%s z
+-i%szvssh %s %s -oControlPersist=600 -oControlMaster=auto -oStrictHostKeyChecking=no -oControlPath=%s %s@%s "echo Connected"r
+Z	Connectedz	password:z
+.*Permission denied.*z
+.* port .*: No route to hostz
+.*Could not resolve hostname.*
+z$Permission denied, please try again.
+z!Unknown error, client returned %sz)Successfully created control socket at %s)
+ssh_port
+ssh_keyr-
+connect_expects
+indexZ
+pass_expectsZ
+pass_indexr?
+SosNode._create_ssh_sessionc
+z>Remove the control socket to effectively terminate the sessionT
+rm -f %s
+z#Could not remove ControlPath %s: %srZ
+Error closing SSH session: %sN)
+SosNode.close_ssh_sessionc
+z/Verifies if the given preset exists on the noder
+presetr?
+_preset_exists 
+SosNode._preset_existsc
+z/Verifies if the given plugin exists on the nodec
+pluginr?
+z)SosNode._plugin_exists.<locals>.<genexpr>r
+anyr)
+_plugin_exists$
+SosNode._plugin_existsc
+z6Checks to see if the plugin is default enabled on noder
+_check_enabled)
+SosNode._check_enabledc
+z7Checks to see if the plugin is default disabled on noder
+_check_disabled-
+SosNode._check_disabledc
+Attempts to verify that the given option is available on the node.
+        Note that we only get available options for enabled plugins, so if a
+        plugin has been force-enabled we cannot validate if the plugin option
+        is correct or notrv
+enable_pluginsr
+plugr?
+_plugin_option_exists1
+SosNode._plugin_option_existsc
+z^Returns a comma delimited list for sos plugins that are confirmed
+        to exist on the noder
+z,SosNode._fmt_sos_opt_list.<locals>.<genexpr>)
+_fmt_sos_opt_listB
+SosNode._fmt_sos_opt_listc
+zVExpose the node to the cluster profile determined for the
+        environment
+        N)
+set_clusterG
+SosNode.set_clusterc
+This is used to modify the sosreport command run on the nodes.
+        By default, sosreport is run without any options, using this will
+        allow the profile to specify what plugins to run or not and what
+        options to use.
+        This will NOT override user supplied options.
+        zYCluster specified preset %s but user has also defined a preset. Using user specification.c
+z2SosNode.update_cmd_from_cluster.<locals>.<genexpr>
+%s=%sN)
+sos_presetr
+sos_pluginsr
+sos_plugin_optionsr
+plugin_options)
+optionr?
+update_cmd_from_clusterM
+SosNode.update_cmd_from_clusterc
+}	|	
+) zZUse host facts and compare to the cluster type to modify the sos
+        command if neededr
+%s %s r
+--threads=%sz
+3.7z
+--plugin-timeout=%sz
+3.8z
+--allow-system-changesz
+--no-env-varsz
+--since=%sc
+<listcomp>
+z,SosNode.finalize_sos_cmd.<locals>.<listcomp>zBRequested plugins %s were requested to be enabled but do not existz
+--only-plugins=%s
+zARequested to skip plugins %s, but plugins are already not enabledz
+--skip-plugins=%sc
+skip_pluginsr
+zORequested to enable plugins %s, but plugins are already enabled or do not existz
+--enable-plugins=%sc
+-k %sr
+z+SosNode.finalize_sos_cmd.<locals>.<genexpr>z
+--preset=%sz?Requested to enable preset %s but preset does not exist on nodeZ
+final_sos_command)
+determine_sos_labelr
+sos_opt_liner
+threadsr
+strZ
+plugin_timeoutZ
+allow_system_changesZ
+no_env_varsZ
+sinceZ
+only_plugins
+list
+setrR
+labelZ
+sos_optsZ
+plugsZ
+not_onlyZ
+only
+skipZ
+not_skipZ
+skiplnr
+not_onZ
+enableZ
+_sos_cmdr?
+SosNode.finalize_sos_cmdc
+z>Determine what, if any, label should be added to the sosreportrq
+-%sNz
+Label for sosreport set to %srz
+--labelz
+--namez
+%s-%srv
+get_node_labelr
+lcmdr?
+SosNode.determine_sos_labelc
+z\Use host facts to determine if we need to change the sos path
+        we are retrieving fromrq
+Final sos path: %s
+collected_archiveN)	r
+sos_path_stripr
+archiverL
+pstripr?
+SosNode.finalize_sos_pathc
+z*sosreport process received SIGKILL on noderE
+sudoz
+sudo attempt failed
+z3sosreport terminated unexpectedly. Check disk spacer
+sos exited with code %s)
+determine_sos_error
+SosNode.determine_sos_errorc
+qBn>|
+	d	|
+z1Run sosreport and capture the resulting file pathz
+Generating sosreport...FT)
+*sosreport-*tar*z)Error running sosreport. rc = %s msg = %srr
+Timeout exceededz
+Error running sosreport: %sN)
+fnmatchr
+SosNode.execute_sos_commandc
+z7Copies the specified file from the host to our temp dirr
+Copying remote %s to local %sz)/usr/bin/scp -oControlPath=%s %s@%s:%s %sTr
+zFAttempting to copy remote file %s, but it does not exist on filesystemFz
+Moving %s to %sz
+Failed to retrieve %s: %sN)
+shutil
+copyr2
+destdir
+destrD
+retrieve_file
+SosNode.retrieve_filec
+z|Removes the spciefied file from the host. This should only be used
+        after we have retrieved the file already
+        rq
+zJRefusing to remove path %s: appears to be incorrect and possibly dangerousFz
+Removing file %sr
+zHAttempting to remove remote file %s, but it does not exist on filesystemz
+Failed to remove %s: %sN)
+remove_file)
+SosNode.remove_filec
+z+Collect the sosreport archive from the nodez
+Failed to make archive readableF
+.md5z
+Failed to make md5 readablez
+Retrieving sosreport from %sz
+Retrieving sosreport...z Successfully collected sosreportr
+Failed to retrieve sosreportTc
+z.SosNode.retrieve_sosreport.<locals>.<listcomp>z!Failed to run sosreport on %s: %sz
+Failed to run sosreport. %sN)
+make_archive_readabler2
+SystemExitr'
+	readlinesrm
+SosNode.retrieve_sosreportc
+zuRemove the sosreport archive from the node, since we have
+        collected it and it would be wasted space otherwiseNr
+zENode sosreport path %s looks incorrect. Not attempting to remove pathz
+Failed to remove sosreport)
+removedr?
+remove_sos_archivee
+SosNode.remove_sos_archivec
+z<Remove the sos archive from the node once we have it locallyr
+set_cleanup_cmdr[
+SosNode.cleanupc
+z4Collect the file created by a cluster outside of sosz
+Unable to retrieve file %sz#Failed to make file %s readable: %sNr
+z0Error collecting additional data from master: %s)
+	filenames
+filenamer>
+collect_extra_cmd{
+SosNode.collect_extra_cmdc
+Used to make the given archive world-readable, which is slightly
+        better than changing the ownership outright.
+        This is only used when we're not connecting as root.
+        z
+chmod o+r %s
+z6Exception while making %s readable. Return code was %sN)
+filepathrD
+SosNode.make_archive_readable)
+NNT)
+FFFF)5
+__name__
+__module__
+__qualname__rA
+propertyrG
+distutils.versionr
+pipesr
+sos.policiesr
+sos.collector.exceptionsr
+<module>

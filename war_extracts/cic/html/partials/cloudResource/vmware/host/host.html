@@ -1,0 +1,39 @@
+<!-- vmware 主机页面 -->
+<div class="cas-panel" style="min-width:924px" ng-controller="vmwareHostController">
+	<!-- 导航 -->
+	<div class="panel-heading cas-panel-heading">
+		<ol class="breadcrumb" style="display:inline;">
+			<li><a ui-sref='main.cloudResource' ><span translate="cloudResource.cloudResource"></span></a></li>
+			<li><a ui-sref="main.vmware.dashboard({id:'{{cloudId}}', name:'{{cloudName}}', apiVersion:'{{apiVersion}}' })"><span translate="cloudResource.cloudResource"></span>：{{cloudName}}</a></li>
+            <li><a ui-sref="main.vmwareHostpool.dashboard({id:'{{cloudId}}', name:'{{cloudName}}', hpKey:'{{hpKey}}', hpName:'{{hpName}}', apiVersion:'{{apiVersion}}'  })"><span translate="hostpool.hostpool"></span>：{{hpName}}</a></li>
+            <li ng-if="clusterKey != ''"><a ui-sref="main.vmwareCluster.dashboard({id:'{{cloudId}}', name:'{{cloudName}}', hpKey:'{{hpKey}}', hpName:'{{hpName}}', clusterKey:'{{clusterKey}}', clusterName:'{{clusterName}}', apiVersion:'{{apiVersion}}'  })"><span translate="cluster.cluster"></span>：{{clusterName}}</a></li>
+            <li class="active"><span translate="host.host"></span>：{{hostName}}</li>
+        </ol>
+		<!-- <span class="glyphicon glyphicon-question-sign link-help" custom-title="{{'help'|translate}}"
+			aria-hidden="true" ng-click="openHelp('cloudResource/vCenter/vCenterResMgmt')"></span> -->
+	</div>
+	<!-- 主体内容 -->
+	<div class="panel-body" content-style>
+		<!-- 操作按钮 -->
+		<div ng-if="apiVersionFloat>=5 && !hideButtons" class="section">
+			<div class="btn-group" role="group" aria-label="...">
+				<!-- 增加虚拟机 -->
+				<label ng-if="hostState==1 || hostState==2" class="btn btn-default btn-menu" ng-click="createDomain()">
+				 	<span class="sm-icon icon-add"></span><span translate="vmware.createVm"></span>
+				</label>
+				<label ng-if="hostState==3 || hostState==0" class="btn btn-default btn-menu btn-forbidden">
+				 	<span class="sm-icon icon-add"></span><span translate="vmware.createVm"></span>
+				</label>
+			</div>
+		</div>
+		<!-- tab面板 -->
+		<div class="section">
+			<castabset>
+		      <castab active="{{currentTab=='dashboard'}}" href=".dashboard" icon="icon-summary-gray" heading="{{'vmware.summary'|translate}}"></castab>
+		      <castab active="{{currentTab=='performance'}}" href=".performance" icon="icon-performance-monitor-gray" heading="{{::'cluster.performanceMonitor'|translate}}"></castab>
+		      <castab has-permission="VIRT_MNG" active="{{currentTab=='vm'}}" href=".vm" icon="icon-virtual-host-gray" heading="{{'vmware.vm'|translate}}"></castab>
+		    </castabset>
+		</div>
+	    <div id="vmwareContent" content-style ng-class="{'tabContent':apiVersionFloat<5, 'content':apiVersionFloat>=5}" ui-view></div>	
+	</div>
+</div>

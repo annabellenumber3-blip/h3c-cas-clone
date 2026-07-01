@@ -1,0 +1,445 @@
+m	Z	
+datetime)
+Lock)
+sos_get_command_output
+is_executable
+file
+linkZ
+node
+dirc
+d!d"
+d#d$
+d%d&
+d'd(
+d)d*
+Archivez!Abstract base class for archives.c
+z6Returns the archive class's name as a string.
+        )
+__name__)
+//usr/lib/python3.9/site-packages/sos/archive.py
+archive_type&
+Archive.archive_typeZ
+sosZ
+unsetFc
+[archive:%s] %s)
+self
+msgr
+_format_msg3
+Archive._format_msgc
+_debug)
+debugr
+	set_debug6
+Archive.set_debugc
+errorr
+	log_error9
+Archive.log_errorc
+warningr
+log_warn<
+Archive.log_warnc
+infor
+log_info?
+Archive.log_infoc
+	log_debugB
+Archive.log_debugNc
+NotImplementedError)
+destr
+add_fileJ
+Archive.add_file
+contentr!
+moder
+add_stringM
+Archive.add_stringc
+add_binaryP
+Archive.add_binaryc
+source
+	link_namer
+add_linkS
+Archive.add_linkc
+pathr
+add_dirV
+Archive.add_dirc
+devicer
+add_nodeY
+Archive.add_nodec
+Return a temporary directory that clients of the archive may
+        use to write content to. The content of the path is guaranteed
+        to be included in the generated archive.Nr
+get_tmp_dir\
+Archive.get_tmp_dirc
+Return the maximum file name length this archive can support.
+        This is the lesser of the name length limit of the archive
+        format and any temporary file system based cache.Nr
+name_maxb
+Archive.name_maxc
+Return a string representing the path to the temporary
+        archive. For archive classes that implement in-line handling
+        this will be the archive file itself. Archives that use a
+        directory based cache prior to packaging should return the
+        path to the temporary directory where the report content is
+        locatedNr
+get_archive_pathh
+Archive.get_archive_pathc
+z:Clean up any temporary resources used by an Archive class.Nr
+cleanupq
+Archive.cleanupc
+Finalize an archive object via method. This may involve creating
+        An archive that is subsequently compressed or simply closing an
+        archive that supports in-line handling. If method is automatic then
+        the following methods are tried in order: xz, gzipN)
+close)
+methodr
+finalizeu
+Archive.finalize)
+__module__
+__qualname__
+__doc__
+classmethodr
+loggingZ	getLoggerr
+_namer
+_path_lockr
+Z	d2d
+d!d"
+d6d#d$
+d%d&
+d'd(
+d)d*
+d+d,
+d-d.
+d/d0
+FileCacheArchivezd Abstract superclass for archive types that use a temporary cache
+    directory in the file system. 
+z*initialised empty FileCacheArchive at '%s')
+_tmp_dir
+_policy
+_threads
+enc_opts
+sysroot
+manifest
+osr,
+join
+_archive_rootr>
+makedirsr
+nameZ
+tmpdirZ
+policyZ
+threadsrF
+__init__
+FileCacheArchive.__init__c
+isabs
+lstrip
+seprJ
+	dest_path
+FileCacheArchive.dest_pathc
+startswithrG
+join_sysroot
+FileCacheArchive.join_sysrootrB
+Create leading path components
+            The standard python `os.makedirs` is insufficient for our
+            needs: it will only create directories, and ignores the fact
+            that some path components may be symbolic links.
+            :param src: The source path in the host file system for which
+                        leading components should be created, or the path
+                        to an sos_* virtual directory inside the archive.
+                        Host paths must be absolute (initial '/'), and
+                        sos_* directory paths must be a path relative to
+                        the root of the archive.
+            :param mode: An optional mode to be used when creating path
+                         components.
+            :returns: A rewritten destination path in the case that one
+                      or more symbolic links in intermediate components
+                      of the path have altered the path destination.
+        z
+Making leading paths for %sc
+z>Test whether path ``path`` is inside the archive.
+            r@
+rootr
+in_archive
+z8FileCacheArchive._make_leading_paths.<locals>.in_archiverA
+Making path %s
+Making symlink '%s' -> '%s'z
+Making directory %s)
+isdirrV
+split
+append
+reverserJ
+exists
+islink
+readlink
+_make_leading_paths
+normpathrP
+relpath
+symlink
+mkdir)
+src_dirr,
+path_comps
+head
+tailZ
+abs_pathZ
+src_path
+comp
+targetZ
+target_dirZ
+target_srcr
+z$FileCacheArchive._make_leading_pathsFc
+Check a new destination path in the archive.
+            Since it is possible for multiple plugins to collect the same
+            paths, and since plugins can now run concurrently, it is possible
+            for two threads to race in archive methods: historically the
+            archive class only needed to test for the actual presence of a
+            path, since it was impossible for another `Archive` client to
+            enter the class while another method invocation was being
+            dispatched.
+            Deal with this by implementing a locking scheme for operations
+            that modify the path structure of the archive, and by testing
+            explicitly for conflicts with any existing content at the
+            specified destination path.
+            It is not an error to attempt to create a path that already
+            exists in the archive so long as the type of the object to be
+            added matches the type of object already found at the path.
+            It is an error to attempt to re-create an existing path with
+            a different path type (for example, creating a symbolic link
+            at a path already occupied by a regular file).
+            :param src: the source path to be copied to the archive
+            :param path_type: the type of object to be copied
+            :param dest: an optional destination path
+            :param force: force file creation even if the path exists
+            :returns: An absolute destination path if the path should be
+                      copied now or `None` otherwise
+        r
+z'path '%s' exists and is not a directoryc
+stat
+S_ISBLK
+S_ISCHR
+S_ISFIFO
+S_ISSOCKrZ
+is_special,
+z0FileCacheArchive._check_path.<locals>.is_specialz path '%s' exists and is not a %sz
+regular filez
+symbolic linkz
+special fileZ	directoryN)
+P_DIRrI
+ValueErrorrb
+lstat
+P_FILErm
+S_ISREG
+st_mode
+P_LINK
+S_ISLNK
+P_NODE
+S_ISDIR)
+	path_typer!
+force
+dest_dirrg
+ve_msgr
+_check_path
+FileCacheArchive._check_pathc
+readz
+File not collected: '%s'z
+/sys/z
+/proc/z
+caught '%s' copying '%s')
+nsz&caught '%s' setting attributes of '%s'z
+'%s'r
+z	open filez!added %s to FileCacheArchive '%s')
+getattr
+shutil
+copy
+OSErrorr
+IOErrorrU
+copymode
+utime
+st_atime_ns
+st_mtime_ns
+copystat
+chown
+st_uid
+st_gid
+	Exceptionr
+seek
+open
+writerK
+	file_name
+liner
+FileCacheArchive.add_filer#
+)	NT)
+utf-8
+encoding
+utf8
+ignorez!Unable to add '%s' to archive: %sz-added string at '%s' to FileCacheArchive '%s')
+codecsr
+isinstance
+bytes
+decoder
+FileCacheArchive.add_stringc
+z,added binary content at '%s' to archive '%s')
+FileCacheArchive.add_binaryc
+adding symlink at '%s' -> '%s'z-added symlink at '%s' to '%s' in archive '%s'z.Link follow up: source=%s link_name=%s dest=%sc
+Return ``True`` if the symbolic link ``link_name`` is part
+                of a file system loop, or ``False`` otherwise.
+            T
+NF)	rI
+dirnamerP
+realpathrJ
+errno)
+link_dirr
+is_loop
+z*FileCacheArchive.add_link.<locals>.is_loopz#Link '%s' - '%s' loops: skipping...z'Adding link %s -> %s for link follow upz Adding dir %s for link follow upz!Adding file %s for link follow upz)No link follow up: source=%s link_name=%sz
+leaving add_link())
+lexistsre
+isfiler"
+source_dirZ
+host_path_nameZ
+dest_path_namer
+FileCacheArchive.add_linkc
+zmCreate a directory in the archive.
+            :param path: the path in the host file system to add
+        N)
+FileCacheArchive.add_dirc
+Operation not permittedz
+add_node: %s - mknod '%s')
+mknodr
+EPERMr
+FileCacheArchive.add_nodec
+PC_NAME_MAX
+pathconf_names
+pathconfrK
+pc_name_maxr
+FileCacheArchive.name_maxc
+FileCacheArchive.get_tmp_dirc
+z!FileCacheArchive.get_archive_pathc
+zsCreate path, including leading components.
+            Used by sos.sosreport to set up sos_* directories.
+        rZ
+z2created directory at '%s' in FileCacheArchive '%s'N)
+FileCacheArchive.makedirsc
+errors)
+	open_file
+FileCacheArchive.open_filec
+rmtreer0
+FileCacheArchive.cleanupc
+Adds component-agnostic data to the manifest so that individual
+        SoSComponents do not need to redundantly add these manually
+        Z
+end_time
+run_timeZ
+compression
+indentZ
+sos_reportsz
+manifest.jsonN)
+nowrH
+start_timeZ	add_fieldr&
+get_jsonrI
+startr
+add_final_manifest_data
+z(FileCacheArchive.add_final_manifest_datac
+zeRename the archive to an obfuscated version using an initialized
+        SoSCleaner instance
+        N)
+obfuscate_stringr=
+renamerK
+_archive_name)
+cleanerZ	_new_rootr
+rename_archive_root'
+z$FileCacheArchive.rename_archive_rootc
+Nz)finalizing archive '%s' using method '%s'z
+built archive at '%s' (size=%d)z+An error occurred compressing the archive: 
+%s %sZ
+encryptz)An error occurred encrypting the archive:)
+_build_archiver4
+st_sizer6
+	_compressr
+_encrypt)
+resr
+exp_msgr
+FileCacheArchive.finalizec
+Encrypts the compressed archive using GPG.
+        If encryption fails for any reason, it should be logged by sos but not
+        cause execution to stop. The assumption is that the unencrypted archive
+        would still be of use to the user, and/or that the end user has another
+        means of securing the archive.
+        Returns the name of the encrypted archive, or raises an exception to
+        signal that encryption failed and the unencrypted archive name should
+        be used.
+        z
+sosreport-z
+secured-sosreport-z
+.gpgz
+gpg --batch -o %s N
+keyz
+--trust-model always -e -r %s 
+passwordz
+'"r@
+sos_gpgz
+-c --passphrase-fd 0 z!/bin/bash -c "echo $sos_gpg | %s"r
+timeout
+status
+Specified key not in keyringz
+Could not read passphrasez
+gpg exited with code %s)
+replacerF
+archiveZ
+arc_nameZ
+enc_cmdr
+passwdr
+FileCacheArchive._encrypt)
+TarFileArchivez: archive class using python TarFile to create tar archivesNFc
+tar)	
+superr
+_suffixrI
+	__class__r
+TarFileArchive.__init__c
+%.9fZ
+atime
+ctime)
+st_mtime
+mtime
+st_atime
+pax_headers
+st_ctimer%
+uidr
+gid)
+tar_info
+fstatr%
+set_tarinfo_from_stat
+z$TarFileArchive.set_tarinfo_from_statc
+j	rn|
+RHT.security.selinux)
+lenrI
+_with_selinux_context
+get_selinux_contextr
+tarinfo
+	orig_pathr
+contextr
+copy_permissions_filter
+z&TarFileArchive.copy_permissions_filterc
+selinuxZ
+getfileconr
+z"TarFileArchive.get_selinux_contextc
+%s.%s)
+TarFileArchive.namec
+TarFileArchive.name_maxc
+arcname
+filter)
+tarfiler
+addrK
+TarFileArchive._build_archivec
+}	~	qRd
+}	~	0
+gzipz#"%s" compression method unavailablez
+No compression utilities found.
+ipr@
+stderrr
+outputz
+%s exited with %s)
+get_cmd_for_compress_methodrE
+methodsr6
+last_error
+suffixZ
+exec_cmdr
+TarFileArchive._compress)
+__classcell__r
+Z	threadingr
+sos.utilitiesr
+ImportErrorrv
+objectr	
+<module>

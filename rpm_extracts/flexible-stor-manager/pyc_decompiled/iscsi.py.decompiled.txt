@@ -1,0 +1,596 @@
+l	Z	d
+exceptions)
+connectors)
+base)
+synchronized)
+execute_cmd)
+ProcessExecutionError)
+retryc
+d d!
+d#d$
+d%d&
+dSd'd(
+d)d*
+d+d,
+d-d.
+d/d0
+d1d2
+dTd3d4
+Z!d5d6
+Z"dUd8d9
+Z#d:d;
+Z$d<d=
+Z%d>d?
+Z&d@dA
+Z'dBdC
+Z(dDdE
+Z)dFdG
+Z*dHdI
+Z+dJdK
+Z,dLdM
+Z-dNdO
+ISCSIConnectorz2Connector class to attach/detach iSCSI target LUN.)
+tcp:z
+iser:
+defaultc
+protocolZ
+ISCSI
+use_multipathT
+ISER
+iser)
+superr	
+__init__
+getr
+device_scan_attempts
+	transport)
+selfr
+kwargs
+	__class__
+*./fsm/device/initiator/connectors/iscsi.pyr
+ISCSIConnector.__init__
+connect_storage_backendc
+Attach the lun to a host.
+        :param connection_properties: The valid dictionary that describes all
+                                      of the target lun attributes.
+        :type connection_properties: dict
+        :returns: dict
+        connection_properties for iSCSI must include:
+        target_portal(s) - ip and optional port
+        target_iqn(s) - iSCSI Qualified Name
+        target_lun(s) - LUN id of the lun
+        Note that plural keys may be used when use_multipath=True
+        r
+Running Exception: %sz
+Exception %s in %s:%s
+forceN)
+_connect_multipath_lun
+_connect_single_lun
+BaseException
+info
+type
+exc_info
+	traceback
+extract_tb
+debug
+strip
+path
+basename
+_cleanup_connection)
+connection_properties
+exc_tb
+z&ISCSIConnector.connect_storage_backendFc
+Detach the lun from a host.
+        :param connection_properties: The dictionary that describes all
+                                      of the target lun attributes.
+        :type connection_properties: dict that must include:
+                                     target_portal(s) - IP and optional port
+                                     target_iqn(s) - iSCSI Qualified Name
+                                     target_lun(s) - LUN id of the lun
+        :param device_info: historical difference, but same as connection_props
+        :type device_info: dict
+        :param force: Whether to forcefully disconnect even if flush fails.
+        :type force: bool
+        :param ignore_errors: When force is True, this will decide whether to
+                              ignore errors or raise an exception once finished
+                              the operation.  Default is False.
+        :type ignore_errors: bool
+        )
+ignore_errors
+device_info)
+disconnect_storage_backendJ
+z)ISCSIConnector.disconnect_storage_backend)
+	exceptionc
+Connect to a multipathed lun launching parallel login requests.
+        We will be doing parallel login requests, which will considerably speed
+        up the process when we have flaky connections.
+        We'll always try to return a multipath device even if there's only one
+        path discovered, that way we can return once we have logged in in all
+        the portals, because the paths will come up later.
+        To make this possible we tell multipathd that the wwid is a multipath
+        as soon as we have one device, and then hint multipathd to reconsider
+        that lun for a multipath asking to add the path, because even if
+        it's already known by multipathd it would have been discarded if it
+        was the first time this lun was seen here.
+        NFr
+stop_connecting
+num_logins
+failed_logins
+stopped_threads
+found_devices
+just_added_devices)
+target_portal
+target_iqn
+target_lun
+target_portals
+target_iqns
+target_luns)
+target
+argsr;
+/dev/zCAll connection threads finished, giving 0 seconds for dm to appear.r
+devicezMNo dm was created, connection to lun is probably bad and will perform poorly.)
+_get_ips_iqns_lunsr
+copy
+update
+append
+	threading
+Thread
+_connect_lun
+start
+	linuxscsi
+get_sysfs_wwnZ
+find_sysfs_multipath_dmZ
+multipath_add_wwidZ
+multipath_add_pathZ
+multipath_del_pathr!
+time
+sleep
+joinr
+DeviceNotFound
+_get_connect_result)
+mpathZ	wwn_addedZ
+last_try_on
+foundr=
+data
+ips_iqns_lunsZ
+retries
+threads
+props
+thread
+device_pathr
+z%ISCSIConnector._connect_multipath_lunc
+qDt	
+z%Connect to a lun using a single path.Fr
+Could not find the WWN for %s.r>
+Lun device not found!N)
+_iterate_all_targetsrR
+rangerU
+found_devsr1
+z"ISCSIConnector._connect_single_lunc
+_get_all_targetsrL
+deepcopyrN
+portalrc
+z#ISCSIConnector._iterate_all_targetsc
+.0rf
+	con_propsr
+<listcomp>
+z3ISCSIConnector._get_all_targets.<locals>.<listcomp>rA
+zipr
+ISCSIConnector._get_all_targetsNc
+Cleans up connection flushing and removing devices and multipath.
+        :param connection_properties: The dictionary that describes all
+                                      of the target lun attributes.
+        :type connection_properties: dict that must include:
+                                     target_portal(s) - IP and optional port
+                                     target_iqn(s) - iSCSI Qualified Name
+                                     target_lun(s) - LUN id of the lun
+        :param ips_iqns_luns: Use this list of tuples instead of information
+                              from the connection_properties.
+        :param force: Whether to forcefully disconnect even if flush fails.
+        :type force: bool
+        :param ignore_errors: When force is True, this will decide whether to
+                              ignore errors or raise an exception once finished
+                              the operation.  Default is False.
+        :type ignore_errors: bool
+        :param device_info: Attached device information.
+        z
+Skipping cleanup %sNz
+/dev/dm-r]
+connr1
+keepr
+z6ISCSIConnector._cleanup_connection.<locals>.<listcomp>z<Flushing again multipath %s now that we removed the devices.zAThere were errors removing %s, leftovers may remain in the system)
+ExceptionChainer
+_get_connection_devices
+TargetPortalsNotFoundr!
+valuesrM
+get_dev_path
+startswithr
+remove_connection
+items
+_disconnect_connectionZ
+flush_multipath_device
+warning)
+devices_mapZ
+remove_devices
+remover1
+Z	path_usedZ
+was_multipathr
+multipath_name
+disconnectr
+z"ISCSIConnector._cleanup_connectionc
+Disconnecting from: %sr>
+Disconnect from %s %s failed)
+context
+_disconnect_from_iscsi_portal)
+connectionsr
+z%ISCSIConnector._disconnect_connectionc
+iscsiadm
+node
+-Tr?
+-pr>
+--op
+show
+check_exit_codeZ
+CHAPz;target %s for ip %s is using CHAP, don't delete config filerM
+node.startup
+manualz
+--logout
+delete
+attemptsZ
+delay_on_retry)
+resultr1
+z,ISCSIConnector._disconnect_from_iscsi_portalc
+Get map of devices by sessions from our connection.
+        For each of the TCP sessions that correspond to our connection
+        properties we generate a map of (ip, iqn) to (belong, other) where
+        belong is a set of devices in that session that populated our system
+        when we did a connection using connection properties, and other are
+        any other devices that share that same session but are the result of
+        connecting with different connection properties.
+        We also include all nodes from our connection that don't have a
+        session.
+        If ips_iqns_luns parameter is provided connection_properties won't be
+        used to get them.
+        When doing multipath we may not have all the information on the
+        connection properties (sendtargets was used on connect) so we may have
+        to retrieve the info from the discoverydb.  Call _get_ips_iqns_luns to
+        do the right things.
+        F)
+discoverz0Getting connected devices for (ips,iqns,luns)=%sc
+VALID_SESSIONS_PREFIX)
+<dictcomp>
+z:ISCSIConnector._get_connection_devices.<locals>.<dictcomp>c
+<lambda>
+z8ISCSIConnector._get_connection_devices.<locals>.<lambda>z)/sys/class/scsi_host/host*/device/sessionz
+/target*/*:*:*:*/block/*
+0123456789z
+Resulting device map %s)
+_get_iscsi_nodes
+_get_iscsi_sessions_full
+collections
+defaultdictr
+glob
+rsplit
+intr*
+add)
+nodes
+sessionsZ
+sessions_mapZ
+device_maprb
+session
+pathsZ
+belongZ
+othersr,
+hctlrJ
+lun_pathr
+z&ISCSIConnector._get_connection_devicesc
+Get iSCSI node information (portal, iqn) as a list of tuples.
+        Uses iscsi_adm -m node and from a command output like
+            180.20.8.12:3260,121 iqn.2000-05.com.3pardata:21210002ac01e2d7
+        This method will drop the tpgt and return a list like this:
+            [('180.20.8.12:3260', 'iqn.2000-05.com.3pardata:21210002ac01e2d7')]
+        r
+z2Couldn't find iSCSI nodes because iscsiadm err: %sr
+splitlines
+splitrO
+lines
+liner"
+ISCSIConnector._get_iscsi_nodesc
+devicesrJ
+/dev/disk/by-path/*ip-*c
+realpath)
+devsr
+z>ISCSIConnector._find_lun_path_by_multipath.<locals>.<listcomp>)
+find_multipath_devicerO
+device_wwn
+	lun_paths
+devr
+_find_lun_path_by_multipath
+z*ISCSIConnector._find_lun_path_by_multipath
+extend_lunc
+Update the local kernel's size information.
+        Try and update the local kernel's size information
+        for an iSCSI lun.
+        z
+Extend lun for %sr
+dev_wwnz
+Found paths for lun %s)
+zDCould not find any lun paths on the host to extend lun for %(props)sre
+get_lun_pathsr
+extend
+listrx
+LunPathsNotFound)
+multi_pathsr
+ISCSIConnector.extend_lunc
+}	~	n
+}	~	0
+rjzr|
+Make a connection to a lun, send scans and wait for the device.
+        This method is specifically designed to support multithreading and
+        share the results via a shared dictionary with fixed keys, which is
+        thread safe.
+        The method will only try to log in once, since iscsid's initiator
+        already tries 8 times by default to do the login, or whatever value we
+        have as node.session.initial_login_retry_max in our system.
+        Shared dictionary has the following keys:
+        - stop_connecting: When the caller wants us to stop the rescans
+        - num_logins: Count of how many threads have successfully logged in
+        - failed_logins: Count of how many threads have failed to log in
+        - stopped_threads: How many threads have finished.  This may be
+                           different than num_logins + failed_logins, since
+                           some threads may still be waiting for a device.
+        - found_devices: List of devices the connections have found
+        - just_added_devices: Devices that have been found and still have not
+                              been processed by the main thread that manages
+                              all the connecting threads.
+        :param rescans: Number of rescans to perform before giving up.
+        :param props: Properties of the connection.
+        :param data: Shared data.
+        r>
+props=%sz,Unexpected failure when connecting portal,%sr
+Connected to %sr@
+Cannot find target on %sz
+Exception scanning %sr8
+Connected to %s using %szKLUN %(lun)s on iSCSI portal %(portal)s not found on sysfs after logging in.)
+z%Failed to connect to iSCSI portal %s.r:
+_connect_to_iscsi_portalr 
+errorr(
+get_hctlZ
+scan_iscsiZ
+device_name_by_hctl
+	Exceptionr6
+rescansre
+do_scansZ
+num_rescansZ
+seconds_next_scanr
+ISCSIConnector._connect_lunc
+qRq.|
+blockrH
+scsi_wwnr,
+multipath_idrJ
+check_valid_device)	r
+unused_con_propsr\
+devices_namesr]
+device_namerh
+z"ISCSIConnector._get_connect_resultc
+qbq4t
+/dev/disk/by-id/dm-uuid-mpath-z
+/dev/disk/by-id/scsi-z
+/dev/disk/by-id/z
+/dev/disk/by-idrI
+listdirr
+symlinkZ
+links_pathr
+_get_device_linkJ
+ISCSIConnector._get_device_linkc
+d d!d"d#d$
+)%z;Connect to an iSCSI portal-target an return the session id.r>
+z$Trying to connect to iSCSI portal %sr
+--interfacer
+newz&Failed to get iscsi sessions, Error:%sNr
+z"Login iSCSI target %s on portal %s
+--login)
+zNFailed to login iSCSI target %(iqn)s on portal %(portal)s (exit code %(err)s).)
+z-Login iSCSI target %s on portal %s successfulrM
+Z	automatic)
+lowerr"
+Z	exit_code)	r
+z'ISCSIConnector._connect_to_iscsi_portalc
+Get the list of existing paths for a lun.
+        This method's job is to simply report what might/should
+        already exist for a lun.  We aren't trying to attach/discover
+        a new lun, but find any existing paths for a lun we
+        think is already attached.
+        :param connection_properties: The dictionary that describes all
+                                      of the target lun attributes.
+        :type connection_properties: dict
+        r>
+z3There is no target portal in connection properties.)
+_get_potential_lun_pathsr+
+existsrO
+host_devicesr,
+ISCSIConnector.get_lun_pathsc
+Get iSCSI session information as a list of tuples.
+        Uses iscsiadm -m session and from a command output like
+            tcp: [1] 180.20.8.12:3260,121             iqn.2000-05.com.3pardata:21210002ac01e2d7
+        This method will drop the node type and return a list like this:
+            [('tcp:', '1', '180.20.8.12:3260', '121',
+              'iqn.2000-05.com.3pardata:21210002ac01e2d7')]
+        r
+z/iscsiadm stderr output when getting sessions:%sr
+Sessions: %s)
+convert_ip_to_portalrO
+sidrn
+tpgtr
+z'ISCSIConnector._get_iscsi_sessions_fullc
+z-Convert IPv6 address to longest represention.z
+^\[(.*)\]:(.*)$r
+dialectz
+[%s]:%sr
+findall
+netaddrZ	IPAddress
+formatZ
+ipv6_verbose)
+Z	ipv6_addrrb
+Z	portal_ipr
+z#ISCSIConnector.convert_ip_to_portalc
+Get luns accroding argsrD
+iqns
+lunsZ
+num_lunsr
+	_get_luns
+ISCSIConnector._get_lunsc
+z)Return portals for all existing sessions.c
+entryr
+z6ISCSIConnector._get_iscsi_sessions.<locals>.<listcomp>
+_get_iscsi_sessions
+z"ISCSIConnector._get_iscsi_sessionsTc
+Build a list (ips, iqns, luns)
+        Used only when doing multipath, we have 3 cases:
+        - All information is in the connection properties
+        - We have to do an iSCSI discovery to get the information
+        - We don't want to do another discovery and we query the discoverydb
+        :param connection_properties: The dictionary that describes all
+                                      of the target lun attributes.
+        :type connection_properties: dict
+        :param discover: Wheter doing an iSCSI discovery is acceptable.
+        :type discover: bool
+        :returns: list of tuples of (ip, iqn, lun)
+        rB
+z-Exception encountered during portal discovery)
+	<setcomp>(
+z4ISCSIConnector._get_ips_iqns_luns.<locals>.<setcomp>c
+main_iqnr
+z5ISCSIConnector._get_ips_iqns_luns.<locals>.<listcomp>)
+_discover_iscsi_portals
+_get_discoverydb_portalsr
+TargetPortalNotFoundr
+methodZ
+all_portalsZ
+match_portalsr
+z!ISCSIConnector._get_ips_iqns_lunsc
+Build a list of potential lun paths that exist.
+        Given a list of target_portals in the connection_properties,
+        a list of paths might exist on the system during discovery.
+        This method's job is to build that list of potential paths
+        for a lun that might show up.
+        This is only used during get_lun_paths time, we are looking to
+        find a list of existing lun paths for the connection_properties.
+        In this case, we don't want to connect to the portal.  If we
+        blindly try and connect to a portal, it could create a new iSCSI
+        session that didn't exist previously, and then leave it stale.
+        :param connection_properties: The dictionary that describes all
+                                      of the target lun attributes.
+        :type connection_properties: dict
+        :returns: list
+        z%Multipath discovery for iSCSI enabledz*Multipath discovery for iSCSI not enabled.r>
+_get_device_pathr
+iscsi_sessionsre
+z'ISCSIConnector._get_potential_lun_pathsc
+Retrieve iscsi portals information from the discoverydb.
+        Example of discoverydb command output:
+        SENDTARGETS:
+        DiscoveryAddress: 180.20.8.12,3260
+        Target: iqn.2000-05.com.3pardata:21210002ac01e2d7
+            Portal: 180.20.8.12:3260,121
+                Iface Name: default
+            Portal: 180.20.8.12:3260,121
+                Iface Name: default
+        DiscoveryAddress: 180.20.8.12:3260
+        iSNS:
+        No targets found.
+        STATIC:
+        No targets found.
+        FIRMWARE:
+        No targets found.
+        :param connection_properties: The dictionary that describes all
+                                      of the target lun attributes.
+        :type connection_properties: dict
+        :returns: list of tuples of (ip, iqn, lun)
+        r>
+\]?r
+discoverydbz
+z$^SENDTARGETS:
+.*?^DiscoveryAddress: r
+z&.*?
+(.*?)^(?:DiscoveryAddress|iSNS):.*z)Regex to get portals from discoverydb: %sr
+Iface Name: z
+Target:
+Portal:z9Unable to find target portals information on discoverydb.)
+replacer
+search
+DOTALL
+	MULTILINE
+_get_transport
+groupr
+portr
+regexr"
+ipsr
+iscsi_transportZ
+ifaceZ
+current_iqnZ
+current_ipr
+z'ISCSIConnector._get_discoverydb_portalsc
+Z	discoveryz
+sendtargetsr
+_get_node_startup_valuesr
+_recover_node_startup_values
+(_get_target_portals_from_iscsiadm_outputr
+old_node_startupsr1
+z&ISCSIConnector._discover_iscsi_portalsc
+}	zF|	d
+rj|	d
+r~|	d
+z	node.namer
+IndexError)
+node_valuesrc
+startupZ
+startup_valuesZ
+node_valueZ	node_keysr
+z'ISCSIConnector._get_node_startup_valuesc
+node_startupsrc
+node_startupZ
+old_node_startupZ
+recover_connectionr
+z+ISCSIConnector._recover_node_startup_valuesc
+zKISCSIConnector._get_target_portals_from_iscsiadm_output.<locals>.<listcomp>r
+iqn.r
+outputr
+z7ISCSIConnector._get_target_portals_from_iscsiadm_outputc
+ISCSIConnector._get_transportc
+connect)
+status_list
+statusZ
+portalsr
+get_connection_status
+z$ISCSIConnector.get_connection_statusc
+Remove brackets from portal.
+        In case IPv6 address was used the udev path should not contain any
+        brackets. Udev code specifically forbids that.
+        r
+process_lun_id)
+_munge_portal
+ISCSIConnector._munge_portalc
+z'/dev/disk/by-path/ip-%s-iscsi-%s-lun-%s)
+z3ISCSIConnector._get_device_path.<locals>.<listcomp>z(/dev/disk/by-path/*ip-%s-iscsi-%s-lun-%s)
+device_listr
+look_for_devicer
+ISCSIConnector._get_device_pathc
+get_iscsi_sessions_full
+z&ISCSIConnector.get_iscsi_sessions_full)
+NFFN)
+__name__
+__module__
+__qualname__
+__doc__r
+DEVICE_SCAN_ATTEMPTS_DEFAULTr
+staticmethodr
+__classcell__r
+loggingr+
+fsmr
+fsm.device.initiatorr
+fsm.device.initiator.connectorsr
+fsm.utils.lock_utilsr
+fsm.utils.os_utilsr
+Z	getLoggerr
+BaseConnectorr	
+<module>

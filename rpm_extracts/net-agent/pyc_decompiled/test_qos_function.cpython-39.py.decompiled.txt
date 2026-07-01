@@ -1,0 +1,238 @@
+Test qos strategy -- test netprofile basic behaviour
+Utility)
+testbasec
+TestQosFunctionc
+superr
+myinitZ
+_start_ovsZ
+_start_netagent)
+self
+	__class__
+A/usr/lib/python3.9/site-packages/na_tests/ft/test_qos_function.pyr
+TestQosFunction.myinitc
+cd {test_dir}
+ovs-vsctl add-br br0 -- set bridge br0 fail-mode=secure --     add-port br0 p1 -- set interface p1 ofport_request=1 type=dummy --     add-port br0 p2 -- set interface p2 ofport_request=2 type=dummy
+ovs-ofctl mod-port br0 br0 noforward
+NETFILENAME="qos_test"
+ADDR1=1.1.0.1
+ADDRD=1.1.0.2
+get_netfile() {{
+    cat <<EOF
+<netprofile name="$NETFILENAME" type="qos" uuid="245324" version="1">
+<flow direction="in" dl_type="ip" nw_dst="$ADDR1/24" nw_proto="icmp" priority="15">
+<action burst="2" domain="interface" id="5" rate="1" unit="kbps" />
+</flow>
+</netprofile>
+na-ctl --retry=-1 netprofile define --content "$(get_netfile)"
+if test $? -ne 0; then
+    exit 1
+PRTNAME="6cecd756-a718-4ed6-9679-a19c38461d42_1"
+get_portprofile() {{
+    cat <<EOF
+<portprofile name="$PRTNAME" type="compose">
+  <netprofile name="$NETFILENAME" type="qos" />
+</portprofile>
+na-ctl portprofile define --content "$(get_portprofile)"
+if test $? -ne 0; then
+    exit 2
+na-ctl add-listen --id=1 --event="set Interface p1 external_ids:port-profile=$PRTNAME"
+ovs-vsctl set Interface p1 external_ids:port-profile=$PRTNAME
+if test $? -ne 0; then
+    exit 3
+na-ctl wait --id=1  # so net-agentd knows the configuration
+# Strips out uninteresting parts of flow output, as well as parts
+# that vary from one run to another (e.g., timing and bond actions).
+strip_timers () {{
+    sed '
+    s/duration:[0-9]*\.[0-9]*/duration:0.0/
+    s/used:[0-9]*\.[0-9]*/used:0.0/
+ovs-appctl time/warp 5000
+ovs-appctl netdev-dummy/receive p1 "in_port(1),packet_type(ns=0,id=0),eth(src=50:54:00:00:00:0a,dst=50:54:00:00:00:0b),eth_type(0x0800),ipv4(src=$ADDR1,dst=$ADDRD,proto=1,tos=0,ttl=64,frag=no),icmp(type=8,code=0)" --len 60
+ovs-appctl netdev-dummy/receive p1 "in_port(1),packet_type(ns=0,id=0),eth(src=50:54:00:00:00:0a,dst=50:54:00:00:00:0b),eth_type(0x0800),ipv4(src=$ADDR1,dst=$ADDRD,proto=1,tos=0,ttl=64,frag=no),icmp(type=8,code=0)" --len 60
+ovs-appctl netdev-dummy/receive p1 "in_port(1),packet_type(ns=0,id=0),eth(src=50:54:00:00:00:0a,dst=50:54:00:00:00:0b),eth_type(0x0800),ipv4(src=$ADDR1,dst=$ADDRD,proto=1,tos=0,ttl=64,frag=no),icmp(type=8,code=0)" --len 60
+ovs-appctl netdev-dummy/receive p1 "in_port(1),packet_type(ns=0,id=0),eth(src=50:54:00:00:00:0a,dst=50:54:00:00:00:0b),eth_type(0x0800),ipv4(src=$ADDR1,dst=$ADDRD,proto=1,tos=0,ttl=64,frag=no),icmp(type=8,code=0)" --len 60
+ovs-appctl netdev-dummy/receive p1 "in_port(1),packet_type(ns=0,id=0),eth(src=50:54:00:00:00:0a,dst=50:54:00:00:00:0b),eth_type(0x0800),ipv4(src=$ADDR1,dst=$ADDRD,proto=1,tos=0,ttl=64,frag=no),icmp(type=8,code=0)" --len 60
+# with burst size 2 (== 2000 bits). 4 packets, (240 bytes == 1920 bits) pass, but the last packet should hit the drop band.
+(ovs-ofctl -O OpenFlow13 meter-stats br0 | strip_timers) > meterstats.txt
+cat <<EOF > meterstats_expected.txt
+OFPST_METER reply (OF1.3) (xid=0x2):
+meter:2 flow_count:1 packet_in_count:5 byte_in_count:300 duration:0.0s bands:
+0: packet_count:1 byte_count:60
+diff --ignore-all-space meterstats_expected.txt meterstats.txt
+if test $? -ne 0; then
+    exit 4
+test_dirTr
+z0test icmp in direction qos: shell return code:%d
+check_meter_testr
+cmd_execute
+format
+	_test_dir
+assertEqual
+retr
+test_icmp_in_direction_qos
+Iz*TestQosFunction.test_icmp_in_direction_qosc
+cd {test_dir}
+ovs-vsctl add-br br0 -- set bridge br0 fail-mode=secure --     add-port br0 p1 -- set interface p1 ofport_request=1 type=dummy --     add-port br0 p2 -- set interface p2 ofport_request=2 type=dummy
+ovs-ofctl mod-port br0 br0 noforward
+NETFILENAME="qos_test"
+ADDR1=1.1.0.1
+ADDRD=1.1.0.2
+# main difference with test_icmp_in_direction_qos is: direction => out 
+get_netfile() {{
+    cat <<EOF
+<netprofile name="$NETFILENAME" type="qos" uuid="245324" version="1">
+<flow direction="out" dl_type="ip" nw_dst="$ADDRD/24" nw_proto="icmp" priority="15">
+<action burst="2" domain="interface" id="5" rate="1" unit="kbps" />
+</flow>
+</netprofile>
+na-ctl --retry=-1 netprofile define --content "$(get_netfile)"
+if test $? -ne 0; then
+    exit 1
+PRTNAME="6cecd756-a718-4ed6-9679-a19c38461d42_1"
+get_portprofile() {{
+    cat <<EOF
+<portprofile name="$PRTNAME" type="compose">
+  <netprofile name="$NETFILENAME" type="qos" />
+</portprofile>
+na-ctl portprofile define --content "$(get_portprofile)"
+if test $? -ne 0; then
+    exit 2
+na-ctl add-listen --id=1 --event="set Interface p2 external_ids:port-profile=$PRTNAME"
+ovs-vsctl set Interface p2 external_ids:port-profile=$PRTNAME
+if test $? -ne 0; then
+    exit 3
+na-ctl wait --id=1  # so net-agentd knows the configuration
+# Strips out uninteresting parts of flow output, as well as parts
+# that vary from one run to another (e.g., timing and bond actions).
+strip_timers() {{
+    sed '
+    s/duration:[0-9]*\.[0-9]*/duration:0.0/
+    s/used:[0-9]*\.[0-9]*/used:0.0/
+ovs-appctl time/warp 5000
+ovs-appctl netdev-dummy/receive p1 "in_port(1),packet_type(ns=0,id=0),eth(src=50:54:00:00:00:0a,dst=50:54:00:00:00:0b),eth_type(0x0800),ipv4(src=$ADDR1,dst=$ADDRD,proto=1,tos=0,ttl=64,frag=no),icmp(type=8,code=0)" --len 60
+ovs-appctl netdev-dummy/receive p1 "in_port(1),packet_type(ns=0,id=0),eth(src=50:54:00:00:00:0a,dst=50:54:00:00:00:0b),eth_type(0x0800),ipv4(src=$ADDR1,dst=$ADDRD,proto=1,tos=0,ttl=64,frag=no),icmp(type=8,code=0)" --len 60
+ovs-appctl netdev-dummy/receive p1 "in_port(1),packet_type(ns=0,id=0),eth(src=50:54:00:00:00:0a,dst=50:54:00:00:00:0b),eth_type(0x0800),ipv4(src=$ADDR1,dst=$ADDRD,proto=1,tos=0,ttl=64,frag=no),icmp(type=8,code=0)" --len 60
+ovs-appctl netdev-dummy/receive p1 "in_port(1),packet_type(ns=0,id=0),eth(src=50:54:00:00:00:0a,dst=50:54:00:00:00:0b),eth_type(0x0800),ipv4(src=$ADDR1,dst=$ADDRD,proto=1,tos=0,ttl=64,frag=no),icmp(type=8,code=0)" --len 60
+ovs-appctl netdev-dummy/receive p1 "in_port(1),packet_type(ns=0,id=0),eth(src=50:54:00:00:00:0a,dst=50:54:00:00:00:0b),eth_type(0x0800),ipv4(src=$ADDR1,dst=$ADDRD,proto=1,tos=0,ttl=64,frag=no),icmp(type=8,code=0)" --len 60
+# with burst size 2 (== 2000 bits). 4 packets, (240 bytes == 1920 bits) pass, but the last packet should hit the drop band.
+(ovs-ofctl -O OpenFlow13 meter-stats br0 | strip_timers) > meterstats.txt
+cat <<EOF > meterstats_expected.txt
+OFPST_METER reply (OF1.3) (xid=0x2):
+meter:2 flow_count:1 packet_in_count:5 byte_in_count:300 duration:0.0s bands:
+0: packet_count:1 byte_count:60
+diff --ignore-all-space meterstats_expected.txt meterstats.txt
+if test $? -ne 0; then
+    exit 4
+1test icmp out direction qos: shell return code:%dr
+test_icmp_out_direction_qos_
+Kz+TestQosFunction.test_icmp_out_direction_qosc
+cd {test_dir}
+ADDR1=1.1.0.1
+ADDRD=1.1.0.2
+na-ctl add-listen --id=8 --event="remove Interface p2 external_ids:port-profile"
+ovs-vsctl remove Interface p2 external_ids port-profile
+if test $? -ne 0; then
+    exit 33
+na-ctl wait --id=8  # so net-agentd knows the configuration
+ovs-appctl time/warp 5000
+ovs-appctl netdev-dummy/receive p1 "in_port(1),packet_type(ns=0,id=0),eth(src=50:54:00:00:00:0a,dst=50:54:00:00:00:0b),eth_type(0x0800),ipv4(src=$ADDR1,dst=$ADDRD,proto=1,tos=0,ttl=64,frag=no),icmp(type=8,code=0)" --len 60
+ovs-appctl netdev-dummy/receive p1 "in_port(1),packet_type(ns=0,id=0),eth(src=50:54:00:00:00:0a,dst=50:54:00:00:00:0b),eth_type(0x0800),ipv4(src=$ADDR1,dst=$ADDRD,proto=1,tos=0,ttl=64,frag=no),icmp(type=8,code=0)" --len 60
+ovs-appctl netdev-dummy/receive p1 "in_port(1),packet_type(ns=0,id=0),eth(src=50:54:00:00:00:0a,dst=50:54:00:00:00:0b),eth_type(0x0800),ipv4(src=$ADDR1,dst=$ADDRD,proto=1,tos=0,ttl=64,frag=no),icmp(type=8,code=0)" --len 60
+ovs-appctl netdev-dummy/receive p1 "in_port(1),packet_type(ns=0,id=0),eth(src=50:54:00:00:00:0a,dst=50:54:00:00:00:0b),eth_type(0x0800),ipv4(src=$ADDR1,dst=$ADDRD,proto=1,tos=0,ttl=64,frag=no),icmp(type=8,code=0)" --len 60
+ovs-appctl netdev-dummy/receive p1 "in_port(1),packet_type(ns=0,id=0),eth(src=50:54:00:00:00:0a,dst=50:54:00:00:00:0b),eth_type(0x0800),ipv4(src=$ADDR1,dst=$ADDRD,proto=1,tos=0,ttl=64,frag=no),icmp(type=8,code=0)" --len 60
+# sleep 0.5
+recvin=$(ovs-vsctl get Interface p1 statistics:rx_packets)
+sendout=$(ovs-vsctl get Interface p2 statistics:tx_packets)
+if test $recvin -ne 5 || test $recvin -ne $recvout; then  # we expected there's no loss of packets during OVS translation
+    exit 4
+z4test icmp cancel direction qos: shell return code:%d)
+test_icmp_cancel_qos
+z$TestQosFunction.test_icmp_cancel_qosc
+cd {test_dir}
+ovs-vsctl add-br br0 -- set bridge br0 fail-mode=standalone --     add-port br0 p1 -- set interface p1 ofport_request=1 type=dummy --     add-port br0 p2 -- set interface p2 ofport_request=2 type=dummy --     add-port br0 p3 -- set interface p3 ofport_request=3 type=dummy
+NETFILENAME="qos_test"
+ADDR1=1.1.0.1
+ADDR2=2.2.0.2
+ADDR3=2.2.0.3
+# mac learning
+ovs-appctl ofproto/trace "in_port(1),eth(src=50:54:00:00:00:0a,dst=ff:ff:ff:ff:ff:ff)" -generate
+ovs-appctl ofproto/trace "in_port(2),eth(src=50:54:00:00:00:0b,dst=ff:ff:ff:ff:ff:ff)" -generate
+ovs-appctl ofproto/trace "in_port(3),eth(src=50:54:00:00:00:0c,dst=ff:ff:ff:ff:ff:ff)" -generate
+if test $? -ne 0; then
+    exit 1
+ovs-appctl time/warp 1000
+get_netfile() {{
+    cat <<EOF
+<netprofile name="$NETFILENAME" type="qos" uuid="245324" version="1">
+<flow direction="out" dl_type="ip" nw_dst="$ADDR1/24" nw_proto="icmp" priority="15">
+<action burst="2" domain="interface" id="5" rate="1" unit="kbps" />
+</flow>
+<flow direction="out" dl_type="ip" nw_dst="$ADDR2/24" nw_proto="icmp" priority="15">
+<action burst="2" domain="interface" id="6" rate="1" unit="kbps" />
+</flow>
+</netprofile>
+na-ctl --retry=-1 netprofile define --content "$(get_netfile)"
+if test $? -ne 0; then
+    exit 2
+PRTNAME="6cecd756-a718-4ed6-9679-a19c38461d42_1"
+get_portprofile() {{
+    cat <<EOF
+<portprofile name="$PRTNAME" type="compose">
+  <netprofile name="$NETFILENAME" type="qos" />
+</portprofile>
+na-ctl portprofile define --content "$(get_portprofile)"
+if test $? -ne 0; then
+    exit 3
+na-ctl add-listen --id=2 --event="set Interface p2 external_ids:port-profile=$PRTNAME"
+ovs-vsctl set Interface p1 external_ids:port-profile=$PRTNAME
+ovs-vsctl set Interface p2 external_ids:port-profile=$PRTNAME
+if test $? -ne 0; then
+    exit 4
+na-ctl wait --id=2  # so net-agentd knows the configuration
+ovs-appctl time/warp 1000
+ovs-appctl netdev-dummy/receive p3 "in_port(3),packet_type(ns=0,id=0),eth(src=50:54:00:00:00:0c,dst=50:54:00:00:00:0a),eth_type(0x0800),ipv4(src=$ADDR3,dst=$ADDR1,proto=1,tos=0,ttl=64,frag=no),icmp(type=8,code=0)" --len 60
+ovs-appctl netdev-dummy/receive p3 "in_port(3),packet_type(ns=0,id=0),eth(src=50:54:00:00:00:0c,dst=50:54:00:00:00:0a),eth_type(0x0800),ipv4(src=$ADDR3,dst=$ADDR1,proto=1,tos=0,ttl=64,frag=no),icmp(type=8,code=0)" --len 60
+ovs-appctl netdev-dummy/receive p3 "in_port(3),packet_type(ns=0,id=0),eth(src=50:54:00:00:00:0c,dst=50:54:00:00:00:0a),eth_type(0x0800),ipv4(src=$ADDR3,dst=$ADDR1,proto=1,tos=0,ttl=64,frag=no),icmp(type=8,code=0)" --len 60
+ovs-appctl netdev-dummy/receive p3 "in_port(3),packet_type(ns=0,id=0),eth(src=50:54:00:00:00:0c,dst=50:54:00:00:00:0a),eth_type(0x0800),ipv4(src=$ADDR3,dst=$ADDR1,proto=1,tos=0,ttl=64,frag=no),icmp(type=8,code=0)" --len 60
+ovs-appctl netdev-dummy/receive p3 "in_port(3),packet_type(ns=0,id=0),eth(src=50:54:00:00:00:0c,dst=50:54:00:00:00:0a),eth_type(0x0800),ipv4(src=$ADDR3,dst=$ADDR1,proto=1,tos=0,ttl=64,frag=no),icmp(type=8,code=0)" --len 60
+# sleep 1  # need larger value
+# with burst size 2 (== 2000 bits). 4 packets, (240 bytes == 1920 bits) pass, but the last packet should hit the drop band.
+strip_timers() {{
+    sed '
+    s/duration:[0-9]*\.[0-9]*/duration:0.0/
+    s/used:[0-9]*\.[0-9]*/used:0.0/
+(ovs-ofctl -O OpenFlow13 meter-stats br0 | strip_timers) > meterstats.txt
+pattern="flow_count:1 packet_in_count:5 byte_in_count:300 duration:0.0s bands:
+0: packet_count:1 byte_count:60"
+grep -Pazoq $pattern meterstats.txt
+if test $? -ne 0; then
+    exit 8
+# sleep 2
+ovs-appctl time/warp 1000
+ovs-appctl netdev-dummy/receive p3 "in_port(3),packet_type(ns=0,id=0),eth(src=50:54:00:00:00:0c,dst=50:54:00:00:00:0b),eth_type(0x0800),ipv4(src=$ADDR3,dst=$ADDR2,proto=1,tos=0,ttl=64,frag=no),icmp(type=8,code=0)" --len 60
+ovs-appctl netdev-dummy/receive p3 "in_port(3),packet_type(ns=0,id=0),eth(src=50:54:00:00:00:0c,dst=50:54:00:00:00:0b),eth_type(0x0800),ipv4(src=$ADDR3,dst=$ADDR2,proto=1,tos=0,ttl=64,frag=no),icmp(type=8,code=0)" --len 60
+ovs-appctl netdev-dummy/receive p3 "in_port(3),packet_type(ns=0,id=0),eth(src=50:54:00:00:00:0c,dst=50:54:00:00:00:0b),eth_type(0x0800),ipv4(src=$ADDR3,dst=$ADDR2,proto=1,tos=0,ttl=64,frag=no),icmp(type=8,code=0)" --len 60
+ovs-appctl netdev-dummy/receive p3 "in_port(3),packet_type(ns=0,id=0),eth(src=50:54:00:00:00:0c,dst=50:54:00:00:00:0b),eth_type(0x0800),ipv4(src=$ADDR3,dst=$ADDR2,proto=1,tos=0,ttl=64,frag=no),icmp(type=8,code=0)" --len 60
+ovs-appctl netdev-dummy/receive p3 "in_port(3),packet_type(ns=0,id=0),eth(src=50:54:00:00:00:0c,dst=50:54:00:00:00:0b),eth_type(0x0800),ipv4(src=$ADDR3,dst=$ADDR2,proto=1,tos=0,ttl=64,frag=no),icmp(type=8,code=0)" --len 60
+# sleep 1
+# with burst size 2 (== 2000 bits). 4 packets, (240 bytes == 1920 bits) pass, but the last packet should hit the drop band.
+(ovs-ofctl -O OpenFlow13 meter-stats br0 | strip_timers) > meterstats2.txt
+pattern="flow_count:1 packet_in_count:5 byte_in_count:300 duration:0.0s bands:
+0: packet_count:1 byte_count:60"
+grep -Pazoq $pattern meterstats2.txt
+if test $? -ne 0; then
+    exit 9
+test_share_band_qos
+hz#TestQosFunction.test_share_band_qos)	
+__name__
+__module__
+__qualname__r
+__classcell__r
+__main__)
+__doc__Z
+unittestZ
+na_tests.common.utilityr
+na_tests.commonr
+TestCaseBaser
+mainr
+<module>

@@ -1,0 +1,256 @@
+<!-- 增加告警通知模板弹出窗口 -->
+<div class="modal-header">
+    <button type="button" class="close" custom-title="{{::'common.close'|translate}}"  ng-click="cancel()">
+		<span class="icon-closenew"></span>
+	</button>
+    <button ng-if="type=='add'" type="button" class="close cornerhelp" custom-title="{{'help'|translate}}" ng-click="openHelp('alarm/addNoticeTemplate')">
+		<span class="icon-helpnew"></span>
+	</button>
+    <button ng-if="type=='edit'" type="button" class="close cornerhelp" custom-title="{{'help'|translate}}" ng-click="openHelp('alarm/editNoticeTemplate')">
+		<span class="icon-helpnew"></span>
+	</button>
+    <h4 class="modal-title" ng-bind="title"></h4>
+</div>
+<!-- 内容1:单form -->
+<div class="modal-body row">
+    <div class="form-horizontal col-md-8">
+	    <carousel-form titles="stepTitles" cancel="ok()">
+	        <!-- 第一步 -->
+	        <slide-form valid="valids.stepOneOver()" active="slide.active">
+		        <form name="form" class="form-horizontal" ng-keypress="enter($event)" role="form" novalidate>
+			        <!-- 隐藏属性，用于js方法操作form是否显示 -->
+                    <input type="hidden" id="addAlarmNoticeForm" value="{{form.$valid}}">
+			        <!-- 显示名称 -->
+                    <div class="form-group" ng-class="{'has-error': (form.name.$dirty && form.name.$invalid)}">
+                       <label for="name" class="control-label"><span translate="alarm.templateName"></span><span style="color: red">*</span></label>
+                       <div class="control-input">
+                            <div class="input-group input-xlarge">
+                                <input type="text" check-special-char ng-maxlength=64 class="form-input form-control" ng-disabled="type=='edit'" ng-model="model.name" rpccheck='alarm/noticeTemplate/isNameExists' ng-trim="false" id="name" name="name" required>
+                                <span class="input-group-addon help-addon" ng-messages="form.name.$error">
+                                    <span ng-if="form.name.$valid||!form.name.$dirty">
+                                        <span class="icon-occupying"></span>
+                                    </span>
+                                    <span ng-if="form.name.$dirty">
+                                        <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+                                        <span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxlen'|translate}}64"></span></span>
+                                        <span ng-message="specialChar"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{::'checkname2'|translate}}"></span></span>
+                                        <span ng-message="rpccheck"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'alarm.noticeNameExist'|translate}}"></span></span>
+                                    </span>
+                                </span>
+                            </div>
+                        </div>   
+                    </div>
+                    <!-- 描述 -->
+                    <div class="form-group" ng-class="{'has-error': (form.desc.$dirty && form.desc.$invalid)}">
+                       <label for="desc" class="control-label"><span translate="alarm.desc"></span><span style="color: red">&nbsp;</span></label>
+                       <div class="control-input">
+                            <div class="input-group input-xlarge">
+                                <input type="text" ng-maxlength=120 class="form-input form-control" ng-model="model.desc"  ng-trim="false" id="desc" name="desc">
+                                <span class="input-group-addon help-addon" ng-messages="form.desc.$error">
+                                    <span ng-if="form.desc.$valid||!form.desc.$dirty">
+                                        <span class="icon-occupying"></span>
+                                    </span>
+                                    <span ng-if="form.desc.$dirty">
+                                        <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+                                        <span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxlen'|translate}}120"></span></span>
+                                    </span>
+                                </span>
+                            </div>
+                        </div>   
+                    </div>
+                    <!-- 类型 -->
+                    <div class="form-group">
+                        <label for="sendType" class="control-label"><span translate="common.type"></span><span style="color:red">&nbsp;</span></label>
+                        <div class="control-input">
+                            <div class="input-group width260">
+                                <select-input class="" input-readonly="{{type == 'edit'}}" options="sendType.options" input-id="sendType" input-name="sendType"  bind-model="model.sendType">
+                                </select-input>
+                            </div>
+                        </div>
+                    </div>
+		        </form>
+	        </slide-form>
+	        <!-- 第二步 -->
+	        <slide-form valid="valids.stepTwoOver()">
+		        <form name="form2" class="form-horizontal" role="form" novalidate>
+		            <!-- 隐藏属性，用于js方法操作form是否显示 -->
+                    <input type="hidden" id="addAlarmNoticeForm2" value="{{form2.$valid}}">
+			        <!-- 目的邮件地址 -->
+                    <div ng-if="model.sendType == 0" class="form-group" ng-class="{'has-error': (form2.emailAddr.$invalid && form2.emailAddr.$dirty)}">  
+                       <label for="emailAddr" class="control-label"><span translate="alarm.destEmailAddr"></span><span style="color: red">*</span></label> 
+                       <div class="control-input">
+                           <div class="input-group" style="width:300px">
+                               <input checkemail ng-maxlength=64 id="emailAddr" name="emailAddr" class="form-control first-child-angle" type="text" ng-model="model.emailAddr">
+                               <span class="input-group-addon inner-addon last-child-angle" style="cursor:pointer;" custom-title="{{'common.add'|translate}}" ng-click="addAddress()">
+                                   <span class="icon-add-gray" type="button"></span>
+                               </span>
+                               <span class="input-group-addon help-addon" ng-messages="form2.emailAddr.$error">
+                                   <span ng-if="form2.emailAddr.$valid||!form2.emailAddr.$dirty">
+                                       <span class="icon-occupying"></span>
+                                   </span>
+                                   <span ng-if="form2.emailAddr.$dirty">
+                                       <span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxlen'|translate}}64"></span></span>
+                                       <span ng-message="checkemail"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'invalidemail'|translate}}"></span></span>
+                                   </span>
+                               </span>
+                           </div>
+                       </div>
+                   </div>
+	               <!-- 接收短信电话 -->
+	               <div ng-if="model.sendType == 1" class="form-group" ng-class="{'has-error': (form2.messageAddr.$invalid && form2.messageAddr.$dirty)}">  
+                       <label for="messageAddr" class="control-label"><span translate="alarm.receiveMessagePhone"></span><span style="color: red">*</span></label> 
+                       <div class="control-input">
+                           <div class="input-group" style="width:300px">
+                               <input check-phone ng-maxlength=32 id="messageAddr" name="messageAddr" class="form-control first-child-angle" type="text" ng-model="model.messageAddr">
+                               <span class="input-group-addon inner-addon last-child-angle" style="cursor:pointer;" custom-title="{{'common.add'|translate}}" ng-click="addAddress()">
+                                   <span class="icon-add-gray" type="button"></span>
+                               </span>
+                               <span class="input-group-addon help-addon" ng-messages="form2.messageAddr.$error">
+                                   <span ng-if="form2.messageAddr.$valid||!form2.messageAddr.$dirty">
+                                       <span class="icon-occupying"></span>
+                                   </span>
+                                   <span ng-if="form2.messageAddr.$dirty">
+                                       <span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxlen'|translate}}64"></span></span>
+                                       <span ng-message="checkPhone"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'invalidphone'|translate}}"></span></span>
+                                   </span>
+                               </span>
+                           </div>
+                       </div>
+                   </div>
+	               <!-- 邮件列表/电话列表 -->
+	               <div class="form-group">
+		                <label for="destEmailAddr" class="control-label"></label>
+		                <div class="control-input">
+		                    <div class="input-group" style="width:302px;">
+		                        <select multiple class="form-control" style="width:260px;height:200px" ng-model="model.selectedAddress">
+		                            <option value="{{address.value}}" ng-repeat="address in model.addresses" custom-title="{{address.value}}" >{{address.label}}</option>
+		                        </select>                       
+		                        <button id="delAddressBtn" class="btn btn-sm-icon icon-delete-gray"  style="margin:0 0 5px 3px;" ng-click="deleteAddress()" custom-title="{{'common.delete'|translate}}"></button>
+		                    </div>
+		                </div>
+	               </div>
+		        </form>
+	        </slide-form>
+	        <!-- 第三步 -->
+            <slide-form valid="valids.stepThreeOver()">
+                <form name="form3" class="form-horizontal" role="form" novalidate>
+                    <!-- 隐藏属性，用于js方法操作form是否显示 -->
+                    <input type="hidden" id="addAlarmNoticeForm3" value="{{form3.$valid}}">
+                    <div class="form-group">
+                        <label class="control-label"><span translate="alarm.noticeAlarmLevel"></span></label>
+                        <div class="control-input">
+                            <!--   紧急 -->
+                            <div id="emergencyDiv" cascheckbox style="margin-left:0;margin-right:5px;" class="cas-checkbox labeled-btn checkbox" ng-model="model.alarmLevel0" value='1' false-value="0">
+                                <input id="emergency" name="alarmLevel0" type="checkbox" ng-checked="model.alarmLevel0=='1'" >
+                                <div class="corner-label">
+                                    <i class="glyphicon glyphicon-ok icon"></i>
+                                </div>
+                                <div class="box">
+                                    <span class="box-name" style="width:35px;" translate="alarm.emergency"></span>
+                                </div>
+                            </div>
+                            <!--   重要 -->
+                            <div id="importantDiv" cascheckbox  style="margin-left:0;margin-right:5px;" class="cas-checkbox labeled-btn checkbox" ng-model="model.alarmLevel1" value='1' false-value="0">
+                                <input id="important" name="alarmLevel1" type="checkbox" ng-checked="model.alarmLevel1=='1'">
+                                <div class="corner-label">
+                                    <i class="glyphicon glyphicon-ok icon"></i>
+                                </div>
+                                <div class="box">
+                                    <span class="box-name" style="width:35px;" translate="alarm.important"></span>
+                                </div>
+                            </div>
+                            <!--   次要 -->
+                            <div id="secondaryDiv" cascheckbox style="margin-left:0;margin-right:5px;" class="cas-checkbox labeled-btn checkbox" ng-model="model.alarmLevel2" value='1' false-value="0">
+                                <input id="secondary" name="alarmLevel2" type="checkbox" ng-checked="model.alarmLevel2=='1'">
+                                <div class="corner-label">
+                                    <i class="glyphicon glyphicon-ok icon"></i>
+                                </div>
+                                <div class="box">
+                                    <span class="box-name" style="width:35px;" translate="alarm.secondary"></span>
+                                </div>
+                            </div>
+                            <!--   提示 -->
+                            <div id="tipDiv" cascheckbox  style="margin-left:0;margin-right:5px;" class="cas-checkbox labeled-btn checkbox" ng-model="model.alarmLevel3" value='1' false-value="0">
+                                <input id="tip" name="alarmLevel3" type="checkbox" ng-checked="model.alarmLevel3=='1'">
+                                <div class="corner-label">
+                                    <i class="glyphicon glyphicon-ok icon"></i>
+                                </div>
+                                <div class="box">
+                                    <span class="box-name" style="width:35px;" translate="alarm.tip"></span>
+                                </div>
+                            </div>
+                        </div>
+                     </div>
+                     <!-- 需关注的告警 -->
+	                 <div class="form-group">
+	                    <label class="control-label"><span translate="alarm.noticeAlarmRule"></span></label>
+                        <div class="control-input">
+                            <!--   所有告警 -->
+                            <div class="col-xs-4" style="padding-left:0px;padding-right:0px">
+                                <cas-ace-check id="allAlarmDiv" name="noticeAlarm" type="radio" text="{{::'alarm.allAlarm' | translate}}" checked-value="0" checked="{{model.selectedRuleType == '0'}}" ng-model="model.selectedRuleType"></cas-ace-check>
+                            </div>
+                            <!--   选定告警 -->
+                            <div class="col-xs-4" style="padding-left:0px;padding-right:0px">
+                                <cas-ace-check id="selectAlarmDiv" name="noticeAlarm" type="radio" text="{{::'alarm.selectAlarm' | translate}}" checked-value="1" checked="{{model.selectedRuleType == '1'}}" ng-model="model.selectedRuleType"></cas-ace-check>
+                            </div>
+                       </div>
+	                 </div>
+	                 <div class="cas-list-body" style="height:200px;margin:0px 0px 0px 0px;">
+			               <tree-grid tree-data="tree.data"
+	                           col-defs="column"
+	                           expand-on="expandColum"
+	                           icon-leaf=""
+	                           icon-expand=""
+	                           icon-collapse=""
+	                           on-select=""
+	                           on-click=""
+	                           template-url=""
+	                           expand-level="9"
+	                           tree-grid-heigth=100%
+	                           row-height="32"
+	                           show-selection-checkbox="false"
+	                           tree-control="tree.controller"
+	                           click-linkage = "true">
+                           </tree-grid>
+			         </div>
+                </form>
+            </slide-form>
+        </carousel-form>
+    </div>
+    <!-- 右侧确认信息 -->
+    <div class="detail-table col-md-4">
+        <table class="table table-striped">
+            <tr class="gray">
+                <td><h4 translate="configDetail"></h4></td><td></td>
+            </tr>
+            <tr class="white">
+                <td><span translate="alarm.templateName"></span></td>
+                <td><span custom-title shortcut cut-str="{{model.name}}">{{model.name}}</span></td>
+            </tr>
+            <tr class="gray">
+                <td><span translate="alarm.desc"></span></td>
+                <td><span custom-title shortcut cut-str="{{model.desc}}">{{model.desc}}</span></td>
+            </tr>
+            <tr class="white">
+                <td><span translate="common.type"></span></td>
+                <td><span ng-bind="model.sendType | selectLabel:'0':sendType.options"></span></td>
+            </tr>
+            <tr class="gray" ng-if="model.sendType == 0">
+                <td><span translate="alarm.destEmailAddr"></span></td>
+                <td><span custom-title shortcut cut-str="{{model.addressStr}}">{{model.addressStr}}</span></td>
+            </tr>
+            <tr class="gray" ng-if="model.sendType == 1">
+                <td><span translate="alarm.receiveMessagePhone"></span></td>
+                <td><span custom-title shortcut cut-str="{{model.addressStr}}">{{model.addressStr}}</span></td>
+            </tr>
+            <tr class="white">
+                <td><span translate="alarm.noticeAlarmLevel"></span></td>
+                <td>{{model.alarmLevel | alarmNoticeLevel}}</td>
+            </tr>
+            <tr class="gray">
+                <td><span translate="alarm.noticeAlarmRule"></span></td>
+                <td><span ng-bind="model.selectedRuleType | selectLabel:'0':allAlarm.options"></span></td>
+            </tr>
+        </table>
+    </div>
+</div>

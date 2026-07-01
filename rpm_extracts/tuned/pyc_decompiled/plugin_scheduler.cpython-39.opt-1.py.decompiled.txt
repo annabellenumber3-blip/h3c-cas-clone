@@ -1,0 +1,973 @@
+l	Z	d
+base)
+commandsc
+SchedulerParamsNc
+_cmd
+cmdline
+	scheduler
+priority
+affinity
+cgroup)
+self
+cmdr	
+B/usr/lib/python3.9/site-packages/tuned/plugins/plugin_scheduler.py
+__init__
+SchedulerParams.__init__c
+	_affinityr
+bitmask2cpulist
+SchedulerParams.affinityc
+cpulist2bitmask
+valuer
+NNNNN)
+__name__
+__module__
+__qualname__r
+propertyr
+setterr
+IRQAffinitiesc
+irqs
+default
+unchangeabler
+IRQAffinities.__init__N)
+SchedulerUtilsz=
+	Class encapsulating scheduler implementation in os module
+SCHED_FIFO
+SCHED_BATCH
+SCHED_RR
+SCHED_OTHER
+SCHED_IDLE)
+getattr
+namer
+	<genexpr>J
+z*SchedulerUtils.__init__.<locals>.<genexpr>c
+dict
+_dict_schedcfg2schedconst
+items
+_dict_schedcfg2num
+values
+_dict_num2schedconstr
+SchedulerUtils.__init__c
+get)
+str_schedulerr
+sched_cfg_to_numN
+SchedulerUtils.sched_cfg_to_numc
+sched_num_to_constR
+z!SchedulerUtils.sched_num_to_constc
+sched_getscheduler
+pidr
+get_schedulerU
+SchedulerUtils.get_schedulerc
+sched_setscheduler
+sched_param
+sched
+prior
+set_schedulerX
+SchedulerUtils.set_schedulerc
+sched_getaffinityrA
+get_affinity[
+SchedulerUtils.get_affinityc
+sched_setaffinity
+set_affinity^
+SchedulerUtils.set_affinityc
+sched_getparam
+sched_priorityrA
+get_prioritya
+SchedulerUtils.get_priorityc
+sched_get_priority_min
+get_priority_mind
+SchedulerUtils.get_priority_minc
+sched_get_priority_maxrS
+get_priority_maxg
+SchedulerUtils.get_priority_maxN)
+__doc__r7
+SchedulerUtilsSchedutilszE
+	Class encapsulating scheduler implementation in schedutils module
+schedutilsr.
+z4SchedulerUtilsSchedutils.__init__.<locals>.<genexpr>c
+z!SchedulerUtilsSchedutils.__init__c
+z&SchedulerUtilsSchedutils.get_schedulerc
+z&SchedulerUtilsSchedutils.set_schedulerc
+z%SchedulerUtilsSchedutils.get_affinityc
+z%SchedulerUtilsSchedutils.set_affinityc
+z%SchedulerUtilsSchedutils.get_priorityc
+z)SchedulerUtilsSchedutils.get_priority_minc
+z)SchedulerUtilsSchedutils.get_priority_maxN)
+d!d"
+d#d$
+d%d&
+d'd(
+d)d*
+d+d,
+d-d.
+d/d0
+d1d2
+d3d4
+d5d6
+d7d8
+d9d:
+Z d;d<
+Z!d=d>
+d?d@
+Z#dAdB
+Z$dCdD
+dEdF
+Z&dGdH
+Z'dIdJ
+Z(dKdL
+dMdN
+	Z*dOdP
+Z+dQdR
+dSdT
+Z-dUdV
+Z.dWdX
+Z/dYdZ
+Z0e1d[d d\
+d]d^
+Z2e1d_d d\
+d`da
+Z3e1dbd d\
+dcdd
+Z4e1ded d\
+dfdg
+Z5e1dhd d\
+didj
+Z6dkdl
+Z7dmdn
+Z8dodp
+dqdr
+Z:dsdt
+Z;dudv
+Z<dwdx
+Z=dydz
+Z>d{d|
+Z?d}d~
+ZCe1d
+ZGeHd
+ZIeJd
+ZKeHd
+ZLeJd
+ZMeHd
+ZNeJd
+ZOeHd
+ZPeJd
+ZQeHd
+ZReJd
+ZSeHd
+ZTeJd
+ZUeHd
+ZVeJd
+ZWeHd
+ZXeJd
+ZYeHd
+ZZeJd
+Z[eHd
+Z\eJd
+SchedulerPlugina
+	`scheduler`::
+	Allows tuning of scheduling priorities, process/thread/IRQ
+	affinities, and CPU isolation.
+	To prevent processes/threads/IRQs from using certain CPUs, use
+	the [option]`isolated_cores` option. It changes process/thread
+	affinities, IRQs affinities and it sets `default_smp_affinity`
+	for IRQs. The CPU affinity mask is adjusted for all processes and
+	threads matching [option]`ps_whitelist` option subject to success
+	of the `sched_setaffinity()` system call. The default setting of
+	the [option]`ps_whitelist` regular expression is `.*` to match all
+	processes and thread names. To exclude certain processes and threads
+	use [option]`ps_blacklist` option. The value of this option is also
+	interpreted as a regular expression and process/thread names (`ps -eo
+	cmd`) are matched against that expression. Profile rollback allows
+	all matching processes and threads to run on all CPUs and restores
+	the IRQ settings prior to the profile application.
+	Multiple regular expressions for [option]`ps_whitelist`
+	and [option]`ps_blacklist` options are allowed and separated by
+	`;`. Quoted semicolon `\;` is taken literally.
+	.Isolate CPUs 2-4
+	====
+	----
+	[scheduler]
+	isolated_cores=2-4
+	ps_blacklist=.*pmd.*;.*PMD.*;^DPDK;.*qemu-kvm.*
+	----
+	Isolate CPUs 2-4 while ignoring processes and threads matching
+	`ps_blacklist` regular expressions.
+	====
+	The [option]`default_irq_smp_affinity` option controls the values
+	*TuneD* writes to `/proc/irq/default_smp_affinity`. The file specifies
+	default affinity mask that applies to all non-active IRQs. Once an
+	IRQ is allocated/activated its affinity bitmask will be set to the
+	default mask.
+	The following values are supported:
+	`calc`::
+	Content of `/proc/irq/default_smp_affinity` will be calculated
+	from the `isolated_cores` parameter. Non-isolated cores
+	are calculated as an inversion of the `isolated_cores`. Then
+	the intersection of the non-isolated cores and the previous
+	content of `/proc/irq/default_smp_affinity` is written to
+	`/proc/irq/default_smp_affinity`. If the intersection is
+	an empty set, then just the non-isolated cores are written to
+	`/proc/irq/default_smp_affinity`. This behavior is the default if
+	the parameter `default_irq_smp_affinity` is omitted.
+	`ignore`::
+	*TuneD* will not touch `/proc/irq/default_smp_affinity`.
+	explicit cpulist::
+	The cpulist (such as 1,3-4) is unpacked and written directly to
+	`/proc/irq/default_smp_affinity`.
+	.An explicit CPU list to set the default IRQ smp affinity to CPUs 0 and 2
+	====
+	----
+	[scheduler]
+	isolated_cores=1,3
+	default_irq_smp_affinity=0,2
+	----
+	====
+	To adjust scheduling policy, priority and affinity for a group of
+	processes/threads, use the following syntax.
+	[subs="+quotes,+macros"]
+	----
+	group.__groupname__=__rule_prio__:__sched__:__prio__:__affinity__:__regex__
+	----
+	where `__rule_prio__` defines internal *TuneD* priority of the
+	rule. Rules are sorted based on priority. This is needed for
+	inheritence to be able to reorder previously defined rules. Equal
+	`__rule_prio__` rules should be processed in the order they were
+	defined. However, this is Python interpreter dependant. To disable
+	an inherited rule for `__groupname__` use:
+	[subs="+quotes,+macros"]
+	----
+	group.__groupname__=
+	----
+	`__sched__` must be one of:
+	*`f`* for FIFO,
+	*`b`* for batch,
+	*`r`* for round robin,
+	*`o`* for other,
+	*`*`* do not change.
+	`__affinity__` is CPU affinity in hexadecimal. Use `*` for no change.
+	`__prio__` scheduling priority (see `chrt -m`).
+	`__regex__` is Python regular expression. It is matched against the output of
+	[subs="+quotes,+macros"]
+	----
+	ps -eo cmd
+	----
+	Any given process name may match more than one group. In such a case,
+	the priority and scheduling policy are taken from the last matching
+	`__regex__`.
+	.Setting scheduling policy and priorities to kernel threads and watchdog
+	====
+	----
+	[scheduler]
+	group.kthreads=0:*:1:*:\[.*\]$
+	group.watchdog=0:f:99:*:\[watchdog.*\]
+	----
+	====
+	The scheduler plug-in uses perf event loop to catch newly created
+	processes. By default it listens to `perf.RECORD_COMM` and
+	`perf.RECORD_EXIT` events. By setting [option]`perf_process_fork`
+	option to `true`, `perf.RECORD_FORK` events will be also listened
+	to. In other words, child processes created by the `fork()` system
+	call will be processed. Since child processes inherit CPU affinity
+	from their parents, the scheduler plug-in usually does not need to
+	explicitly process these events. As processing perf events can
+	pose a significant CPU overhead, the [option]`perf_process_fork`
+	option parameter is set to `false` by default. Due to this, child
+	processes are not processed by the scheduler plug-in.
+	The CPU overhead of the scheduler plugin can be mitigated by using
+	the scheduler [option]`runtime` option and setting it to `0`. This
+	will completely disable the dynamic scheduler functionality and the
+	perf events will not be monitored and acted upon. The disadvantage
+	ot this approach is the procees/thread tuning will be done only at
+	profile application.
+	.Disabling the scheduler dynamic functionality
+	====
+	----
+	[scheduler]
+	runtime=0
+	isolated_cores=1,3
+	----
+	====
+	NOTE: For perf events, memory mapped buffer is used. Under heavy load
+	the buffer may overflow. In such cases the `scheduler` plug-in
+	may start missing events and failing to process some newly created
+	processes. Increasing the buffer size may help. The buffer size can
+	be set with the [option]`perf_mmap_pages` option. The value of this
+	parameter has to expressed in powers of 2. If it is not the power
+	of 2, the nearest higher power of 2 value is calculated from it
+	and this calculated value used. If the [option]`perf_mmap_pages`
+	option is omitted, the default kernel value is used.
+	The scheduler plug-in supports process/thread confinement using
+	cgroups v1.
+	[option]`cgroup_mount_point` option specifies the path to mount the
+	cgroup filesystem or where *TuneD* expects it to be mounted. If unset,
+	`/sys/fs/cgroup/cpuset` is expected.
+	If [option]`cgroup_groups_init` option is set to `1` *TuneD*
+	will create (and remove) all cgroups defined with the `cgroup*`
+	options. This is the default behavior. If it is set to `0` the
+	cgroups need to be preset by other means.
+	If [option]`cgroup_mount_point_init` option is set to `1`,
+	*TuneD* will create (and remove) the cgroup mountpoint. It implies
+	`cgroup_groups_init = 1`. If set to `0` the cgroups mount point
+	needs to be preset by other means. This is the default behavior.
+	The [option]`cgroup_for_isolated_cores` option is the cgroup
+	name used for the [option]`isolated_cores` option functionality. For
+	example, if a system has 4 CPUs, `isolated_cores=1` means that all
+	processes/threads will be moved to CPUs 0,2-3.
+	The scheduler plug-in will isolate the specified core by writing
+	the calculated CPU affinity to the `cpuset.cpus` control file of
+	the specified cgroup and move all the matching processes/threads to
+	this group. If this option is unset, classic cpuset affinity using
+	`sched_setaffinity()` will be used.
+	[option]`cgroup.__cgroup_name__` option defines affinities for
+	arbitrary cgroups. Even hierarchic cgroups can be used, but the
+	hieararchy needs to be specified in the correct order. Also *TuneD*
+	does not do any sanity checks here, with the exception that it forces
+	the cgroup to be under [option]`cgroup_mount_point`.
+	The syntax of the scheduler option starting with `group.` has been
+	augmented to use `cgroup.__cgroup_name__` instead of the hexadecimal
+	`__affinity__`. The matching processes will be moved to the cgroup
+	`__cgroup_name__`. It is also possible to use cgroups which have
+	not been defined by the [option]`cgroup.` option as described above,
+	i.e. cgroups not managed by *TuneD*.
+	All cgroup names are sanitized by replacing all all dots (`.`) with
+	slashes (`/`). This is to prevent the plug-in from writing outside
+	[option]`cgroup_mount_point`.
+	.Using cgroups v1 with the scheduler plug-in
+	====
+	----
+	[scheduler]
+	cgroup_mount_point=/sys/fs/cgroup/cpuset
+	cgroup_mount_point_init=1
+	cgroup_groups_init=1
+	cgroup_for_isolated_cores=group
+	cgroup.group1=2
+	cgroup.group2=0,2
+	group.ksoftirqd=0:f:2:cgroup.group1:ksoftirqd.*
+	ps_blacklist=ksoftirqd.*;rcuc.*;rcub.*;ktimersoftd.*
+	isolated_cores=1
+	----
+	Cgroup `group1` has the affinity set to CPU 2 and the cgroup `group2`
+	to CPUs 0,2. Given a 4 CPU setup, the [option]`isolated_cores=1`
+	option causes all processes/threads to be moved to CPU
+	cores 0,2-3. Processes/threads that are blacklisted by the
+	[option]`ps_blacklist` regular expression will not be moved.
+	The scheduler plug-in will isolate the specified core by writing the
+	CPU affinity 0,2-3 to the `cpuset.cpus` control file of the `group`
+	and move all the matching processes/threads to this cgroup.
+	====
+	Option [option]`cgroup_ps_blacklist` allows excluding processes
+	which belong to the blacklisted cgroups. The regular expression specified
+	by this option is matched against cgroup hierarchies from
+	`/proc/PID/cgroups`. Cgroups v1 hierarchies from `/proc/PID/cgroups`
+	are separated by commas ',' prior to regular expression matching. The
+	following is an example of content against which the regular expression
+	is matched against: `10:hugetlb:/,9:perf_event:/,8:blkio:/`
+	Multiple regular expressions can be separated by semicolon ';'. The
+	semicolon represents a logical 'or' operator.
+	.Cgroup-based exclusion of processes from the scheduler
+	====
+	----
+	[scheduler]
+	isolated_cores=1
+	cgroup_ps_blacklist=:/daemons
+	----
+	The scheduler plug-in will move all processes away from core 1 except processes which
+	belong to cgroup '/daemons'. The '
+' is a regular expression
+	metacharacter that matches a word boundary.
+	----
+	[scheduler]
+	isolated_cores=1
+	cgroup_ps_blacklist=
+8:blkio:
+	----
+	The scheduler plug-in will exclude all processes which belong to a cgroup
+	with hierarchy-ID 8 and controller-list blkio.
+	====
+	Recent kernels moved some `sched_` and `numa_balancing_` kernel run-time
+	parameters from `/proc/sys/kernel`, managed by the `sysctl` utility, to
+	`debugfs`, typically mounted under `/sys/kernel/debug`.  TuneD provides an
+	abstraction mechanism for the following parameters via the scheduler plug-in:
+	[option]`sched_min_granularity_ns`, [option]`sched_latency_ns`,
+	[option]`sched_wakeup_granularity_ns`, [option]`sched_tunable_scaling`,
+	[option]`sched_migration_cost_ns`, [option]`sched_nr_migrate`,
+	[option]`numa_balancing_scan_delay_ms`,
+	[option]`numa_balancing_scan_period_min_ms`,
+	[option]`numa_balancing_scan_period_max_ms` and
+	[option]`numa_balancing_scan_size_mb`.
+	Based on the kernel used, TuneD will write the specified value to the correct
+	location.
+	.Set tasks' "cache hot" value for migration decisions.
+	====
+	----
+	[scheduler]
+	sched_migration_cost_ns=500000
+	----
+	On the old kernels, this is equivalent to:
+	----
+	[sysctl]
+	kernel.sched_migration_cost_ns=500000
+	----
+	that is, value `500000` will be written to `/proc/sys/kernel/sched_migration_cost_ns`.
+	However, on more recent kernels, the value `500000` will be written to
+	`/sys/kernel/debug/sched/migration_cost_ns`.
+	====
+command_name
+irq)
+superr[
+_has_dynamic_options
+constsZ
+CFG_DEF_DAEMON
+_daemon
+intZ
+CFG_DEF_SLEEP_INTERVAL
+_sleep_interval
+get_boolZ
+CFG_DAEMONr<
+CFG_SLEEP_INTERVALr
+_secure_boot_hint
+_sched_knob_paths_cache
+_ps_whitelist
+_ps_blacklist
+_cgroup_ps_blacklist_re
+perfZ
+cpu_map
+_cpusZ
+_storage_key
+_scheduler_storage_key
+_irq_storage_keyr 
+_scheduler_utils
+AttributeErrorrX
+monitor_repositoryZ
+storage_factoryZ
+hardware_inventoryZ
+device_matcherZ
+device_matcher_udevZ
+plugin_instance_factoryZ
+global_cfgZ	variables
+	__class__r
+SchedulerPlugin.__init__c
+ValueError
+mathZ
+ceil
+log)
+mmap_pagesZ
+_calc_mmap_pages
+z SchedulerPlugin._calc_mmap_pagesc
+	d	|
+_$t"j%t"j&t"j'd
+t"j(t"j)B
+j-j/|
+NFTr
+z0recovering scheduling settings from previous runc
+cgroup.)
+_sanitize_cgroup_path
+_variables
+expand)
+optionr
+<listcomp>
+z2SchedulerPlugin._instance_init.<locals>.<listcomp>
+perf_mmap_pageszKInvalid 'perf_mmap_pages' value specified: '%s', using default kernel valuezL'perf_mmap_pages' value has to be power of two, specified: '%s', using: '%d'Z
+runtimer
+typeZ
+configZ
+task
+comm
+mmapZ
+freqZ
+wakeup_eventsZ	watermarkZ
+sample_type)
+cpus
+threads)
+pages)0Z
+_has_dynamic_tuningZ
+_has_static_tuning
+_runtime_tuning
+_storager<
+_scheduler_originalrx
+info
+_restore_ps_affinity
+unsetr6
+_cgroups_original_affinityr
+_cgroup_affinity_initialized
+_cgroup
+collections
+OrderedDict
+optionsr8
+_cgroups
+_schedulerrz
+error
+strr
+	threadingZ
+Event
+_terminater`
+thread_mapZ
+_threads
+evselZ
+TYPE_SOFTWAREZ
+COUNT_SW_DUMMYZ
+SAMPLE_TIDZ
+SAMPLE_CPU
+openrj
+evlist
+_evlist
+addr
+instanceZ
+perf_mmap_pages_rawr~
+_instance_init
+SchedulerPlugin._instance_initc
+_instance_cleanup
+z!SchedulerPlugin._instance_cleanupc
+calcZ
+false)
+isolated_cores
+cgroup_mount_point
+cgroup_mount_point_init
+cgroup_groups_init
+cgroup_for_isolated_cores
+cgroup_ps_blacklist
+ps_whitelist
+ps_blacklist
+default_irq_smp_affinityr~
+perf_process_fork
+sched_min_granularity_ns
+sched_latency_ns
+sched_wakeup_granularity_ns
+sched_tunable_scaling
+sched_migration_cost_ns
+sched_nr_migrate
+numa_balancing_scan_delay_ms
+!numa_balancing_scan_period_min_ms
+!numa_balancing_scan_period_max_ms
+numa_balancing_scan_size_mb)
+DEF_CGROUP_MOUNT_POINT)
+clsr
+_get_config_options
+z#SchedulerPlugin._get_config_optionsc
+replacer
+z%SchedulerPlugin._sanitize_cgroup_pathc
+isinstance
+procfs
+processZ
+process_cmdline
+_is_kthread)
+_get_cmdline1
+SchedulerPlugin._get_cmdlinec
+pidstats
+reload_threadsr:
+keys
+OSError
+IOError
+errno
+ENOENT
+ESRCH)
+	processes
+procr
+get_processes;
+SchedulerPlugin.get_processesc
+Nz8Read scheduler policy '%s' and priority '%d' of PID '%d')
+debug)
+	sched_strr
+_get_rtT
+SchedulerPlugin._get_rtc
+NzBSetting scheduler policy to '%s' and priority to '%d' of PID '%d'.z9Priority for %s must be in range %d - %d. '%d' was given.z(Failed to get allowed priority range: %sr
+zAFailed to set scheduling parameters of PID %d, the task vanished.z1Failed to set scheduling parameters of PID %d: %s)
+SystemErrorr
+hasattrr
+prio_minZ
+prio_maxr
+_set_rt\
+SchedulerPlugin._set_rtc
+stat
+flagsr
+pidstatZ
+PF_KTHREAD)
+SchedulerPlugin._is_kthreadc
+j	t	j
+j	t	j
+state
+ZzYAffinity of zombie task with PID %d cannot be changed, the task's affinity mask is fixed.z[Affinity of kernel thread with PID %d cannot be changed, the task's affinity mask is fixed.zRAffinity of task with PID %d cannot be changed, the task's affinity mask is fixed.r
+z6Failed to get task info for PID %d, the task vanished.
+z&Failed to get task info for PID %d: %s
+is_bound_to_cpurt
+warnr
+KeyError)
+_affinity_changeable
+z$SchedulerPlugin._affinity_changeablec
+paramsr
+_store_orig_process_rt
+z&SchedulerPlugin._store_orig_process_rtc
+z=Failed to read scheduler policy of PID %d, the task vanished.FzcRefusing to set scheduler and priority of PID %d, reading original scheduling parameters failed: %s)
+contZ
+prev_schedZ	prev_prior
+_tune_process_rt
+z SchedulerPlugin._tune_process_rtc
+_is_cgroup_affinity
+z#SchedulerPlugin._is_cgroup_affinityFc
+	is_cgroupr
+_store_orig_process_affinity
+z,SchedulerPlugin._store_orig_process_affinityc
+q&d	S
+%s/%s/%sr
+no_error
+:cpuset:r
+	read_filer_
+PROCFS_MOUNT_POINTr
+split
+IndexError)
+_get_cgroup_affinity
+z$SchedulerPlugin._get_cgroup_affinityc
+%s/%sz
+%s/tasksTr
+_cgroup_mount_pointr
+write_to_filer
+pathr
+_set_cgroup
+SchedulerPlugin._set_cgroupc
+listrx
+_parse_cgroup_affinity
+z&SchedulerPlugin._parse_cgroup_affinityc
+zZt	|
+z5Failed to read affinity of PID %d, the task vanished.FzLRefusing to set CPU affinity of PID %d, reading original affinity failed: %s)
+_get_affinity
+_get_intersect_affinity
+_set_affinityr
+	intersectr
+prev_affinityr
+_tune_process_affinity
+z&SchedulerPlugin._tune_process_affinityc
+_tune_process
+SchedulerPlugin._tune_processc
+z>Invalid scheduler: %s. Scheduler and priority will be ignored.)
+NNz=Invalid priority: %s. Scheduler and priority will be ignored.)
+str_priorityr
+_convert_sched_params
+z%SchedulerPlugin._convert_sched_paramsc
+z)Invalid affinity: %s. It will be ignored.)
+hex2cpulistrt
+str_affinityr
+_convert_affinity
+z!SchedulerPlugin._convert_affinityc
+vals
+	rule_prior
+regexr
+_convert_sched_cfg,
+z"SchedulerPlugin._convert_sched_cfgc
+z Unable to create cgroup '%s': %sz
+cpuset.memsTr
+z3Unable to initialize 'cpuset.mems ' for cgroup '%s')
+mkdirr_
+DEF_CGROUP_MODEr
+_cgroup_create_group3
+z$SchedulerPlugin._cgroup_create_groupc
+_cgroup_initialize_groups>
+z)SchedulerPlugin._cgroup_initialize_groupsc
+Initializing cgroups settingsz'Unable to create cgroup mount point: %sZ
+mountz
+cpusetr
+Unable to mount '%s')
+makedirsr
+execute)
+outr
+_cgroup_initializeD
+z"SchedulerPlugin._cgroup_initializec
+Nz#Unable to remove directory '%s': %s)
+rmdirr
+_remove_dirN
+SchedulerPlugin._remove_dirc
+reversedr
+_cgroup_finalize_groupsT
+z'SchedulerPlugin._cgroup_finalize_groupsc
+Removing cgroups settingsZ
+umountr
+Unable to umount '%s'Fr
+dirname)
+_cgroup_finalizeZ
+z SchedulerPlugin._cgroup_finalizec
+z$Setting cgroup '%s' affinity to '%s'z.Skipping cgroup '%s', empty affinity requestedr
+cpuset.cpus
+ERRT
+err_retr
+zIRefusing to set affinity of cgroup '%s', reading original affinity failedr
+z+Unable to set affinity '%s' for cgroup '%s')
+stripr
+errr
+backupr
+orig_affinityr
+_cgroup_set_affinity_onee
+z(SchedulerPlugin._cgroup_set_affinity_onec
+Setting cgroups affinitiesT)
+_cgroup_set_affinityv
+z$SchedulerPlugin._cgroup_set_affinityc
+Restoring cgroups affinitiesr
+_cgroup_restore_affinity
+z(SchedulerPlugin._cgroup_restore_affinityc
+rtt&j'
+Ierror applying tuning, cannot get information about running processes: %sc
+z:SchedulerPlugin._instance_apply_static.<locals>.<listcomp>c
+group\.
+matchrx
+option_valsr
+<lambda>
+z8SchedulerPlugin._instance_apply_static.<locals>.<lambda>)
+keyz(error compiling regular expression: '%s'c
+search
+(?<!\\)\((?!\?)z
+(?:)
+target
+args)+rz
+_cgroup_mount_point_init
+_cgroup_groups_initry
+_instance_apply_staticr
+sortedr6
+_sched_lookupr 
+compiler
+update
+subr
+setrk
+Thread
+_thread_code
+_thread
+start)
+Z	sched_cfgZ
+bufZ	sched_allr
+z&SchedulerPlugin._instance_apply_staticc
+rpqP|
+NzKerror unapplying tuning, cannot get information about running processes: %s)
+orig_paramsr
+z$SchedulerPlugin._restore_ps_affinityc
+tasksTr
+z(Unable to cleanup tasks from cgroup '%s')
+CGROUP_CLEANUP_TASKS_RETRYr
+datar
+_cgroup_cleanup_tasks_one
+z)SchedulerPlugin._cgroup_cleanup_tasks_onec
+_cgroup_cleanup_tasks
+z%SchedulerPlugin._cgroup_cleanup_tasksc
+_instance_unapply_staticr`
+joinr
+full_rollbackro
+z(SchedulerPlugin._instance_unapply_staticc
+)	Nz
+Verifying cgroup '%s' affinityr
+cgroup '%s' affinityF)
+cpulist2stringZ
+cpulist_packr
+STR_VERIFY_PROFILE_VALUE_OKr
+STR_VERIFY_PROFILE_VALUE_FAIL)
+current_affinityZ
+affinity_descriptionr
+_cgroup_verify_affinity_one
+z+SchedulerPlugin._cgroup_verify_affinity_onec
+Veryfying cgroups affinitiesTr
+_cgroup_verify_affinity
+z'SchedulerPlugin._cgroup_verify_affinityc
+_instance_verify_staticr?
+ignore_missingZ
+devicesZ
+ret1Z
+ret2ro
+z'SchedulerPlugin._instance_verify_staticc
+3Failed to get cmdline of PID %d, the task vanished.z#Failed to get cmdline of PID %d: %sz-tuning new process '%s' with PID '%d' by '%s')
+Z	re_lookupr,
+_add_pid
+SchedulerPlugin._add_pidc
+Nz)removed PID %d from the rollback database)
+_remove_pid-
+SchedulerPlugin._remove_pidc
+qrqdq4d
+re_lookup_compiler,
+select
+pollr
+get_pollfd
+registerr
+is_setrx
+read_on_cpur
+RECORD_COMM
+_perf_process_fork_valueZ
+RECORD_FORKrD
+tidZ
+RECORD_EXITrE
+read_eventsZ
+cpuZ
+eventr
+SchedulerPlugin._thread_coder
+per_devicec
+(%s)r
+z8SchedulerPlugin._cgroup_ps_blacklist.<locals>.<listcomp>
+(?<!\\);)
+enablingr
+verifyrA
+_cgroup_ps_blacklistM
+z$SchedulerPlugin._cgroup_ps_blacklistr
+z1SchedulerPlugin._ps_whitelist.<locals>.<listcomp>rP
+SchedulerPlugin._ps_whitelistr
+z1SchedulerPlugin._ps_blacklist.<locals>.<listcomp>rP
+SchedulerPlugin._ps_blacklistr
+ignore)
+_default_irq_smp_affinity_valuer
+cpulist_unpackrQ
+_default_irq_smp_affinitye
+z)SchedulerPlugin._default_irq_smp_affinityr
+_perf_process_forkp
+z"SchedulerPlugin._perf_process_forkc
+Read affinity '%s' of PID %d)
+resr
+SchedulerPlugin._get_affinityc
+)	Nz'Setting CPU affinity of PID %d to '%s'.Tr
+z4Failed to set affinity of PID %d, the task vanished.r
+z,Failed to set affinity of PID %d to '%s': %sF)
+SchedulerPlugin._set_affinityc
+intersectionr
+Z	affinity1Z	affinity2Z	affinity3Z
+affr
+z'SchedulerPlugin._get_intersect_affinityc
+}	|	s
+_get_stat_commrO
+z9SchedulerPlugin._set_all_obj_affinity.<locals>.<listcomp>r\
+_get_stat_cgrouprO
+zARefusing to set affinity of PID %d, failed to get its cmdline: %sT)
+_set_all_obj_affinityr:
+objsr
+pslZ
+psdrB
+z%SchedulerPlugin._set_all_obj_affinityc
+cgroupsr\
+z SchedulerPlugin._get_stat_cgroupc
+SchedulerPlugin._get_stat_commc
+_set_ps_affinity
+z SchedulerPlugin._set_ps_affinityc
+j	t	j
+Nz&Setting SMP affinity of IRQ %s to '%s'z
+/proc/irq/%s/smp_affinity
+z/Setting SMP affinity of IRQ %s is not supportedr
+z0Failed to set SMP affinity of IRQ %s to '%s': %sr
+cpulist2hexrt
+writer
+EIOr
+Z	restoring
+affinity_hex
+filenamer&
+_set_irq_affinity
+z!SchedulerPlugin._set_irq_affinityc
+Nz(Setting default SMP IRQ affinity to '%s'
+/proc/irq/default_smp_affinityrb
+z2Failed to set default SMP IRQ affinity to '%s': %s)	r
+_set_default_irq_affinity
+z)SchedulerPlugin._set_default_irq_affinityc
+)	Nr
+Read affinity of IRQ '%s': '%s'Fr
+interruptsr
+appendr
+irq_originalr
+prev_affinity_hexr
+_set_all_irq_affinity
+z%SchedulerPlugin._set_all_irq_affinityc
+NTrU
+_restore_all_irq_affinity
+z)SchedulerPlugin._restore_all_irq_affinityc
+issubsetrt
+irq_description
+correct_affinityr=
+_verify_irq_affinity 
+z$SchedulerPlugin._verify_irq_affinityc
+q$z<|
+NTz-IRQ %s does not support changing SMP affinityr
+z#Read SMP affinity of IRQ '%s': '%s'z
+SMP affinity of IRQ %sFrh
+default IRQ SMP affinityr
+Z STR_VERIFY_PROFILE_VALUE_MISSINGr
+descriptionr=
+current_affinity_hexr
+_verify_all_irq_affinity,
+z(SchedulerPlugin._verify_all_irq_affinityr
+NzJInvalid isolated_cores specified, '%s' does not match available cores '%s'z	cgroup.%s)
+isolatedZ
+presentZ
+str_cpusZ
+ps_affinityr
+_isolated_coresK
+SchedulerPlugin._isolated_coresc
+%s_%s_%sz
+/proc/sys/kernel/%s_%sr\
+/sys/kernel/debug/%sT)
+existsrd
+prefix
+	namespace
+knobr#
+_get_sched_knob_pathk
+z$SchedulerPlugin._get_sched_knob_pathc
+Error reading '%s'zUThis may not work with Secure Boot or kernel_lockdown (this hint is logged only once)F)
+_get_sched_knob|
+SchedulerPlugin._get_sched_knobc
+Nz Error writing value '%s' to '%s')
+simr
+_set_sched_knob
+SchedulerPlugin._set_sched_knobr
+min_granularity_ns
+_get_sched_min_granularity_ns
+z-SchedulerPlugin._get_sched_min_granularity_nsc
+_set_sched_min_granularity_ns
+z-SchedulerPlugin._set_sched_min_granularity_nsr
+latency_nsr
+_get_sched_latency_ns
+z%SchedulerPlugin._get_sched_latency_nsc
+_set_sched_latency_ns
+z%SchedulerPlugin._set_sched_latency_nsr
+wakeup_granularity_nsr
+ _get_sched_wakeup_granularity_ns
+z0SchedulerPlugin._get_sched_wakeup_granularity_nsc
+ _set_sched_wakeup_granularity_ns
+z0SchedulerPlugin._set_sched_wakeup_granularity_nsr
+tunable_scalingr
+_get_sched_tunable_scaling
+z*SchedulerPlugin._get_sched_tunable_scalingc
+_set_sched_tunable_scaling
+z*SchedulerPlugin._set_sched_tunable_scalingr
+migration_cost_nsr
+_get_sched_migration_cost_ns
+z,SchedulerPlugin._get_sched_migration_cost_nsc
+_set_sched_migration_cost_ns
+z,SchedulerPlugin._set_sched_migration_cost_nsr
+nr_migrater
+_get_sched_nr_migrate
+z%SchedulerPlugin._get_sched_nr_migratec
+_set_sched_nr_migrate
+z%SchedulerPlugin._set_sched_nr_migrater
+numa_balancingZ
+scan_delay_msr
+!_get_numa_balancing_scan_delay_ms
+z1SchedulerPlugin._get_numa_balancing_scan_delay_msc
+!_set_numa_balancing_scan_delay_ms
+z1SchedulerPlugin._set_numa_balancing_scan_delay_msr
+scan_period_min_msr
+&_get_numa_balancing_scan_period_min_ms
+z6SchedulerPlugin._get_numa_balancing_scan_period_min_msc
+&_set_numa_balancing_scan_period_min_ms
+z6SchedulerPlugin._set_numa_balancing_scan_period_min_msr
+scan_period_max_msr
+&_get_numa_balancing_scan_period_max_ms
+z6SchedulerPlugin._get_numa_balancing_scan_period_max_msc
+&_set_numa_balancing_scan_period_max_ms
+z6SchedulerPlugin._set_numa_balancing_scan_period_max_msr
+scan_size_mbr
+ _get_numa_balancing_scan_size_mb
+z0SchedulerPlugin._get_numa_balancing_scan_size_mbc
+ _set_numa_balancing_scan_size_mb
+z0SchedulerPlugin._set_numa_balancing_scan_size_mb)
+F)_r
+classmethodr
+command_customrT
+command_getr
+command_setr
+__classcell__r
+) r\
+decoratorsZ
+tuned.logsZ
+tunedr 
+subprocessr
+tuned.constsr_
+tuned.utils.commandsr
+logsr<
+objectr
+Pluginr[
+<module>

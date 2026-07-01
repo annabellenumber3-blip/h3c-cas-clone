@@ -1,0 +1,127 @@
+SoSMapc
+Z	d	d
+SoSIPMapa
+A mapping store for IP addresses
+    Each IP address added to this map is chcked for subnet membership. If that
+    subnet already exists in the map, then IP addresses are deterministically
+    generated sequentially within that subnet. For example, if a given IP is
+    matched to subnet 192.168.1.0/24 then 192.168.1 may be obfuscated to
+    100.11.12.0/24. Each IP address in the original 192.168.1.0/24 subnet
+    will then be assigned an address in 100.11.12.0/24 sequentially, such as
+    100.11.12.1, 100.11.12.2, etc...
+    Internally, the ipaddress library is used to manipulate the address objects
+    however, when retrieved by SoSCleaner any values will be strings.
+    )
+127.*z
+::1z
+0\.(.*)?z
+1\.(.*)?z
+8.8.8.8z
+8.8.4.4z	169.254.*z
+255.*
+127Z
+169Z
+172Z
+192c
+There are multiple ways in which an ip address could be handed to us
+        in a way where we're matching against a previously obfuscated address.
+        Here, match the ip address to any of the obfuscated addresses we've
+        already created
+        
+dataset
+values
+split)
+self
+ipaddr
+?/usr/lib/python3.9/site-packages/sos/cleaner/mappings/ip_map.py
+ip_in_dataset0
+SoSIPMap.ip_in_datasetc
+Ensure that when requesting an obfuscated address, we return a str
+        object instead of an IPv(4|6)Address object
+        )
+startswith
+lstrip
+joinr
+keysZ
+ignore_itemr
+add)
+filt_start
+keyr
+get<
+SoSIPMap.getc
+Determine if a given address is in a subnet of an already obfuscated
+        network and if it is, then set the address' network to the network
+        object we're tracking. This allows us to match ip addresses with or
+        without a CIDR notation and maintain proper network relationships.
+        Nc
+	prefixlen)
+<lambda>g
+z;SoSIPMap.set_ip_cidr_from_existing_subnet.<locals>.<lambda>T)
+reverser
+	_networks
+broadcast_address
+network
+append
+sort)
+addrZ
+netsZ
+netr
+ set_ip_cidr_from_existing_subnetU
+z)SoSIPMap.set_ip_cidr_from_existing_subnetc
+ziGiven an IP address, sanitize it to an obfuscated network or host
+        address as appropriate
+        z
+255.255.255.255N)
+	ipaddressZ
+ip_interface
+ValueError
+ignore_matchesr$
+netmaskr'
+sanitize_ipaddr
+sanitize_network)
+itemr&
+sanitize_itemj
+SoSIPMap.sanitize_itemc
+Obfuscate the network address provided, and if there are host bits
+        in the address then obfuscate those as well
+        N)
+_new_obfuscated_network)
+SoSIPMap.sanitize_networkc
+zEObfuscate the IP address within the known obfuscated network
+        
+%s/%s)	r#
+hostsr
+_new_obfuscated_single_address)
+_obf_networkr
+SoSIPMap.sanitize_ipaddrc
+%s.%s.%s.%s)
+ranger$
+randomZ
+randint
+tuple)
+_octets
+_gen_address
+z=SoSIPMap._new_obfuscated_single_address.<locals>._gen_address)
+_addrr
+z'SoSIPMap._new_obfuscated_single_addressc
+Generate an obfuscated network address for the network address given
+        which will allow us to maintain network relationships without divulging
+        actual network details
+        Positional arguments:
+            :param network:     An ipaddress.IPv{4|6)Network object
+        N
+%s.0.0.0r
+isinstancer(
+IPv4Network
+network_first_octet
+skip_network_octetsZ
+with_netmaskr	
+IPv6Networkr 
+_obf_addressZ	_obf_maskr
+z SoSIPMap._new_obfuscated_networkN)
+__name__
+__module__
+__qualname__
+__doc__r*
+sos.cleaner.mappingsr
+<module>

@@ -1,0 +1,136 @@
+#!/bin/bash
+# init fragment for fsm_core.
+#
+# description: Load storage manager service at system boot.
+#
+### BEGIN INIT INFO
+# Provides: fsm_core
+# Required-Start: o2cb
+# Should-Start:
+# Required-Stop:
+# Default-Start: 2
+# Default-Stop: 0 6
+# Short-Description: Load storage manager service at system boot.
+# Description: Load storage manager service at system boot.
+### END INIT INFO
+
+# Force LC_ALL=C
+export LC_ALL=C
+
+release_inf=`/opt/bin/os_lsb_release -is`
+
+
+if [ "$release_inf" = "H3Linux" ];then
+    . /etc/init.d/functions
+else
+    echo "Unable to load LSB init functions" >&2
+    exit 1
+fi
+
+DAEMON="/usr/lib/python3.9/site-packages/fsm/core/fsm_core.pyc"
+NAME=fsm_core
+DESC="fsm daemon"
+PID_FILE="/var/run/fsm_core.pid"
+
+success_status()
+{
+    success
+    echo
+}
+
+failure_status()
+{
+    failure $1
+    echo
+}
+
+#
+# check_daemon()
+# Check to see if the daemon process is running.
+#
+# 0 is running, 1 is not.
+#
+check_daemon()
+{
+    remain_pids=`ps -ef | grep $DAEMON | grep -v grep | awk '{print $2}'`
+    if [ "X$remain_pids" != "X" ]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+case "$1" in
+    start)
+        check_daemon
+        rc=$?
+        if [ "$rc" = "0" ]; then
+            echo "$NAME is running."
+            exit 0
+        fi
+
+        echo -n "Starting $DESC" "$NAME"
+        python3 $DAEMON start
+        # fsm core start success but load python module error make process exit
+        sleep 1
+        check_daemon
+        if [ $? -eq 0 ];then
+            success_status
+        else
+            failure_status "Start fsm_core service failed"
+        fi
+        ;;
+
+    status)
+        check_daemon
+        rc=$?
+        if [ "$rc" = "0" ]; then
+            echo "$NAME is running."
+        else
+            echo "$NAME is not running."
+        fi
+        ;;
+
+    stop)
+        check_daemon
+        rc=$?
+        if [ "$rc" = "1" ]; then
+            echo "$NAME is not running."
+            exit 0
+        fi
+
+        pid=`cat $PID_FILE`
+
+        echo -n "Stopping $DESC" "$NAME"
+        python3 $DAEMON stop
+        if [ $? -eq 0 ];then
+            success_status
+        else
+            failure_status "Stop fsm_core service failed"
+        fi
+
+        # Wait process to die
+        timeout 2 tail --pid="$pid" -f /dev/null
+        if [ $? -ne 0 ]; then
+            echo -n "Kill remianing fsm_core: $pid"
+            kill -9 $pid
+            if [ $? -eq 0 ];then
+                success_status
+            else
+                failure_status "Kill fsm_core process failed"
+            fi
+        fi
+        ;;
+
+    restart)
+        $0 stop
+        $0 start
+        ;;
+
+    *)
+        echo "Usage: $0 {start|stop|restart|status}" >&2
+        exit 1
+        ;;
+esac
+
+exit 0

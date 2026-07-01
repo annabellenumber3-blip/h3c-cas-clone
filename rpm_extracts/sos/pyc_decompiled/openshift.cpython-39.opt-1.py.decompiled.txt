@@ -1,0 +1,268 @@
+"tcJ
+Plugin
+RedHatPlugin)
+	translateNc
+	Openshifta
+This is the plugin for OCP 4.x collections. While this product is still
+    built ontop of kubernetes, there is enough difference in the collection
+    requirements and approach to warrant a separate plugin as opposed to
+    further extending the kubernetes plugin (or the OCP 3.x extensions included
+    in the Red Hat version of the kube plugin).
+    By default, this plugin will collect cluster information and inspect the
+    default namespaces/projects that are created during deployment - i.e. the
+    namespaces of the cluster projects matching openshift.* and kube.*. At the
+    time of this plugin's creation that number of default projects is already
+    north of 50; hence this plugin is expected to take a long time in both the
+    setup() and collect() phases. End-user projects may also be collected from
+    when those projects are included in the `add-namespaces` or
+    `only-namespaces` options.
+    It is expected to need to perform an `oc login` command in order for this
+    plugin to be able to correctly capture information, as system root is not
+    considered cluster root on the cluster nodes in order to access the API.
+    Users will need to either:
+        1) Provide the bearer token via the `-k openshift.token` option
+        2) Provide the bearer token via the `SOSOCPTOKEN` environment variable
+        3) Otherwise ensure that the root user can successfully run `oc` and
+           get proper output prior to running this plugin
+    It is highly suggested that option #2 be used first, as this will prevent
+    the token from being recorded in output saved to the archive. Option #1 may
+    be used if this is considered an acceptable risk. It is not recommended to
+    rely on option #3, though it will provide the functionality needed.
+    z Openshift Container Platform 4.x
+	openshifti
+openshift-hyperkube)
+tokenz admin token to allow API queries
+fastN)
+hostz0host address to use for oc login, including portr
+https://localhost:6443)
+no-ocz"do not collect `oc` command outputr
+podlogsz
+collect logs from each podr
+podlogs-filterz4limit podlogs collection to pods matching this regexr
+only-namespacesz-colon-delimited list of namespaces to collectr
+add-namespaceszDcolon-delimited list of namespaces to add to the default collectionsr
+z(Check to see if we can run `oc` commandsz	oc whoami
+statusr
+exec_cmd
+self
+@/usr/lib/python3.9/site-packages/sos/report/plugins/openshift.py
+_check_oc_functionF
+Openshift._check_oc_functionc
+zuSee if we're logged in to the API service, and if not attempt to do
+        so using provided plugin options
+        Tr
+SOSOCPTOKENNz6oc login %s --token=%s --insecure-skip-tls-verify=Truer	
+zIAttempt to login to OCP API failed, will not run or collect `oc` commandsFzUNot logged in to OCP API, and no login token provided. Will not collect `oc` commands)
+get_option
+getenvr
+	_log_warn)
+oc_resr
+_check_oc_logged_inJ
+Openshift._check_oc_logged_inc
+Combine a set of regexes for collection with any namespaces passed
+        to sos via the -k openshift.add-namespaces option. Note that this does
+        allow for end users to specify namespace regexes of their own.
+        r
+<listcomp>j
+z6Openshift._setup_namespace_regexes.<locals>.<listcomp>
+openshift.*z
+kube.*r
+split
+append)
+collect_regexesZ
+nspr
+_setup_namespace_regexesc
+z"Openshift._setup_namespace_regexesc
+Reduce the namespace listing returned to just the ones we want to
+        collect from. By default, as requested by OCP support personnel, this
+        must include all 'openshift' prefixed namespaces
+            :param nsps list:            Namespace names from oc output
+        c
+Match a particular namespace for inclusion (or not) in the
+            collection phases
+                :param namespace str:   The name of a namespace
+            TF)
+match)
+	namespace
+regexr
+_match_namespace
+z:Openshift._reduce_namespace_list.<locals>._match_namespacec
+z4Openshift._reduce_namespace_list.<locals>.<listcomp>)
+list
+set)
+nspsr
+_reduce_namespace_listw
+z Openshift._reduce_namespace_listc
+The setup() phase of this plugin will iterate through all default
+        projects (namespaces), and/or those specified via the `add-namespaces`
+        and `only-namespaces` plugin options. Both of these options accept
+        shell-style regexes.
+        Cluster-wide information, that is information that is not tied to a
+        specific namespace, will be saved in the top-level plugin directory.
+        Each namespace will have it's own subdir within the `namespaces` subdir
+        to aide in organization. From there, each namespace subdir will have a
+        subsequent subdir for each type of API resource the plugin collects.
+        In contrast with the `kubernetes` plugin, this plugin will collect
+        logs from all pods within each namespace, as well as the previous pod's
+        logs, by default. The `-k openshift.podlogs-filter` option can be used
+        to greatly reduce the amount of collected information.
+        Z
+kubeletz
+/etc/kubernetes/*.crtz
+/etc/kubernetes/*.key
+/etc/kubernetes/*r
+Note that the Openshift Container Platform plugin can be expected in most configurations to take 5+ minutes in both the setup and collection phasesz
+oc get )
+oc cluster-infoz
+oc get -A pvz
+oc get -A csrz	oc statusz
+oc versionz
+%s namespacesr
+z#Openshift.setup.<locals>.<listcomp>
+output
+add_journalZ
+add_service_statusZ
+add_forbidden_pathZ
+add_copy_specr
+oc_cmd
+add_cmd_output
+collect_cluster_resources
+collect_cmd_output
+splitlinesr.
+collect_from_namespace)
+can_run_ocZ
+oc_nspsZ
+_nm_resr-
+setup
+Openshift.setupc
+zFCollect cluster-level (non-namespaced) resources from the API
+        )
+clusternetworksZ
+clusteroperatorsZ
+clusterversionsZ
+componentstatusesZ
+configsZ
+containerruntimeconfigsZ
+controllerconfigsZ
+dnsesZ
+hostsubnetsZ
+infrastructuresZ
+machineconfigpoolsZ
+machineconfigsZ
+netnamespacesZ
+networksZ
+nodesZ
+proxiesZ
+storageclassesz
+cluster_resources/%s
+ocp_%sz
+%s %s
+subdir
+tagsr
+oc describe %s %s
+global_resources
+resource
+_subdirZ
+_tagZ
+_resZ	_res_namer
+z#Openshift.collect_cluster_resourcesc
+}	|	D
+r&|	r&|
+Run through the collection routines for an individual namespace.
+        This collection should include all requested resources that exist
+        within that namesapce
+            :param namespace str:           The name of the namespace
+        )
+buildconfigsZ
+buildsZ
+catalogsourceconfigsZ
+catalogsourcesZ
+clusterserviceversionsZ
+configmapsZ
+daemonsetsZ
+deploymentconfigsZ
+deploymentsZ
+eventsZ
+horizontalpodautoscalersZ
+imagestreamsZ
+ingresscontrollersZ	ingressesZ
+installplansZ
+limitrangesZ
+machinesZ
+machinesetsZ
+mcoconfigsz
+net-attach-defZ
+operatorgroupsZ
+operatorsources
+podsZ
+pvcZ
+resourcequotasZ
+routes
+secretsZ
+servicesZ
+statefulsetsZ
+subscriptionsz
+namespaces/%sz
+oc describe namespace %sr?
+%s/%sr;
+z	ocp_%s_%sz
+%s --namespace=%s %sr<
+%s %s -o yamlz
+%s.yaml)
+suggest_filenamerB
+z4Openshift.collect_from_namespace.<locals>.<listcomp>)
+collect_podlogs)
+Z	resourcesr=
+resrA
+_tagsZ
+_get_cmdZ
+_res_outZ
+_instancesZ	_instanceZ
+_instance_name
+pod_listr
+z Openshift.collect_from_namespacec
+s@q*d
+For any namespace that has active pods in it, collect the current
+        and previous pod's logs
+            :param pod_list list:       A list of pod names
+        z
+namespaces/%s/pods/podlogsr
+oc logs --namespace=%s %sz
+ -pr?
+_log_dirr)
+podZ
+_log_cmdr
+Openshift.collect_podlogsc
+oc r/
+.*.crtz
+client-certificate-dataz
+client-key-dataz
+certificate-authority-dataz
+.*.keyr
+.*token.*.valuez
+(\s*(%s):)(.*)
+\1 *******rC
+z((?P<var>(.*\\n)?Source:\s(.*),)((.*?))\nz
+oc describez
+\g<var> *******\n)
+do_cmd_private_subZ
+do_file_private_sub
+joinZ
+do_path_regex_subZ
+do_cmd_output_sub)
+_fieldsr)
+postprocb
+Openshift.postprocN)
+__name__
+__module__
+__qualname__
+__doc__Z
+short_descZ
+plugin_nameZ
+plugin_timeoutZ
+profilesZ
+packagesZ
+option_listr
+sos.report.pluginsr
+fnmatchr
+<module>	

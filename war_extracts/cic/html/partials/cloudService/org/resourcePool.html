@@ -1,0 +1,162 @@
+<div class="overview-col-full" style="height:100%; min-height:100px; min-width:250;" ng-controller="OrgResourcePoolCtrl">
+     <carousel class="hide-indicators original-carousel" interval="myInterval" style="margin-right:15px; height:140px; min-height:140px">
+       <slide ng-repeat="i in slideArray">
+           <div ng-repeat="line in i.value" class="inline" style="float:left;width:13.5%;height:140px" ng-dblclick="jumpToResourcePool(line)">
+		        <div ng-if="line.type == null" id="{{line.id}}" cascheckbox class="cas-checkbox labeled-btn radio" style="width:calc(100% - 10px); margin-left:10px; float:left;" ng-model="selectModel.model" value={{line}} false-value=null ng-style="{'margin-left': slideArray.length == 1 ? '-10px' : '30px'}">
+		            <input name="selectedVm" type="radio"  ng-checked="isSelected(line.id)">
+		            <div class="box poolBox" style="display:block; text-align: center;width:calc(100%);height:105px;" ng-style="{'margin-top': '0px'}">
+		              <div style="width:100%;height:70%;">
+			                <span style="margin:10px" >
+	                            <img  style="margin-left:calc((100% - 60px)/2); width:60px;height:60px;" id="img{{line.id}}" class="pic2" src="css/img/green/resourcePool_green.svg">
+			                </span>
+			              <div style="margin-left:60px;"  ng-if="hasModifyPermission"  ng-click="delRp(line)" >
+	                            <span  style="text-align: left" class="drxvm_recyble" custom-title="{{::'common.delete'|translate}}">
+	                               <img src="css/img/Icon_auto_recycle_16x16.svg">
+	                            </span>
+	                        </div>
+                       </div>
+                       <div style="background-color:#EBEBEB;height:30%;">
+	                       <!-- 名称 -->
+	                       <div style="position:relative; top:7px;">
+	                       <span style="text-align: center;font-weight:bold;" shortcut custom-title cut-str="{{line.name}}" short-width="100"></span><br/>
+                            </div>
+                        </div>                     
+                        <span ng-if="isSelected(line.id)" style="position:absolute; top:100%; left:calc(50% - 10px); width: 0px; height: 0px; border-left:10px solid rgba(0,0,0,0); border-top: 10px dashed #436bb3; border-right: 10px solid rgba(0,0,0,0)"></span>
+                    </div>
+		        </div>
+		        
+		        <div  ng-if="hasModifyPermission && line.type != null" cascheckbox class="cas-checkbox labeled-btn radio" style="width:calc(100% - 10px); margin-left:10px; float:left;" ng-model="selectModel.model" value={{line}} false-value=null ng-style="{'margin-left': slideArray.length == 1 ? '-10px' : '30px'}" >
+		            <div ng-click="releaseResourcePool()" class="box poolBox" style="display:block; text-align: center;width:calc(100%);height:105px;" ng-style="{'margin-top': '0px'}">
+		              <div style="width:100%;height:70%;">
+			                <span style="margin:10px">
+			                    <img style="margin-left:calc((100% - 80px)/2); width:80px;height:80px;" class="pic2" src="css/img/green/Icon_add.svg">
+			                </span>
+                       </div>
+                    </div>
+		        </div>
+		    </div>       
+       </slide>
+     </carousel>
+	<div style="height:calc(100% - 139px); overflow-y: auto; ">
+		<!-- top5虚拟机cpu-->
+		<div class="description-new desc-height-host col-xs-12 col-sm-6 col-md-6 col-lg-4" style="min-height:446px;padding:0 10px 10px 0">
+			<div class="detail-item" style="min-height:436px">
+				<div class="title" style="height:29px"><!--height:29px 解决ie ff浏览器展现问题  -->
+					<h5 translate="common.basicAttribute"></h5>
+				</div>
+					<!-- CVM概要显示 -->
+					<dl ng-if="cloudType==2" class="dl-horizontal dl-wide" style="margin-bottom:0">
+						<dt translate="resourcePool.cloudName"></dt>
+						<dd ng-bind="summary.cloudName" shortcut cut-str="{{summary.cloudName}}" short-width=300 custom-title></dd>
+						
+						<dt translate="common.desc"></dt>
+						<dd ng-bind="summary.description" shortcut cut-str="{{summary.description}}" short-width=300 custom-title></dd>
+					
+						<dt translate="resourcePool.cpu"></dt>
+						<dd ng-bind="summary.cpu"></dd>
+						
+						<dt translate="resourcePool.memory"></dt>
+						<dd ng-bind="summary.memory | byteUnitRender"></dd>
+						
+						<dt translate="resourcePool.storage"></dt>
+						<dd ng-bind="summary.totalStorageCapacity | byteUnitRender"></dd>
+						
+						<dt translate="resourcePool.availStorage"></dt>
+						<dd ng-bind="summary.avalibaleStorageCapacity | byteUnitRender"></dd>
+						
+						<dt translate="resourcePool.backupDest"></dt>
+						<dd ng-bind="summary.backupTarget" shortcut cut-str="{{summary.backupTarget}}" short-width=300 custom-title>{{summary.backupTarget}}</dd>
+					</dl>
+					<!-- VMware概要显示 -->
+					<dl ng-if="cloudType==3" class="dl-horizontal dl-wide" style="margin-bottom:0">
+						<dt translate="resourcePool.cloudName"></dt>
+						<dd ng-bind="summary.cloudName" shortcut cut-str="{{summary.cloudName}}" short-width=300 custom-title></dd>
+						
+						<dt translate="common.desc"></dt>
+						<dd ng-bind="summary.description" shortcut cut-str="{{summary.description}}" short-width=300 custom-title></dd>
+					
+						<dt translate="resourcePool.cpu"></dt>
+						<dd ng-bind="summary.cpu"></dd>
+						
+						<dt translate="resourcePool.memory"></dt>
+						<dd ng-bind="summary.memory | byteUnitRender"></dd>
+						
+						<dt translate="resourcePool.storage"></dt>
+						<dd ng-bind="summary.totalStorageCapacity | byteUnitRender2"></dd>
+						
+						<dt translate="resourcePool.availStorage"></dt>
+						<dd ng-bind="summary.avalibaleStorageCapacity | byteUnitRender2"></dd>
+					</dl>
+					<!-- CloudOS概要显示 -->
+					<dl ng-if="cloudType==5" class="dl-horizontal dl-wide" style="margin-bottom:0">
+						<dt translate="resourcePool.cloudName"></dt>
+						<dd ng-bind="summary.cloudName"></dd>
+					
+						<dt translate="resourcePool.cpuQuota"></dt>
+						<dd ng-bind="summary.cpuTotal"></dd>
+						
+						<dt translate="resourcePool.memoryQuota"></dt>
+						<dd ng-bind="summary.memoryTotal | byteUnitRender2"></dd>
+						
+						<dt translate="resourcePool.storageQuota"></dt>
+						<dd ng-bind="summary.capacityTotal | byteUnitRender2"></dd>
+						
+						<dt translate="board.vm"></dt>
+						<dd>
+							<span class="span_padding" ng-bind="summary.vmTotal"></span>
+							<span class="span_padding">[</span>
+							<span class="span_padding"><img class="pic1img" src="css/img/gray/Icon_vm_running.svg"></img></span>
+							<span class="span_padding span_color_green" ng-bind="summary.runningVmTotal"></span>
+							<span class="span_padding"><img class="pic1img" src="css/img/gray/Icon_vm_close.svg"></img></span>
+							<span class="span_padding span_color_red" ng-bind="summary.offVmTotal"></span>
+							<span class="span_padding">]</span>
+						</dd>
+					</dl>
+	  	     </div>
+	    </div> 
+		<!-- 计算资源监控信息 -->
+		<div class="overviewheight-host resource-pool-up-line-left col-xs-12 col-sm-6 col-md-6 col-lg-4" style="min-height:223px;padding:0 10px 10px 0;height:50%">
+			<div class="detail-item" id="computeMonitor" >
+				<div class="title">
+					<h5 translate="resourcePool.computeMonitorInfo"></h5>
+				</div>
+				<div id="orgResourcePoolMonitorInfo" class="trendChart"></div>
+			</div>
+		</div> 
+		<!-- 存储资源监控信息 -->
+		<div class="overviewheight-host resource-pool-up-line-right col-xs-12 col-sm-6 col-md-6 col-lg-4" style="min-height:223px;padding:0 10px 10px 0;height:50%">
+			<div class="detail-item" id="storageMonitor" >
+				<div class="title">
+					<h5 translate="resourcePool.storageMonitorInfo"></h5>
+				</div>
+				<div id="storageMonitorInfo" class="trendChart" ></div>
+			</div>
+		</div> 
+
+				<!-- top5内存 -->
+		<div class="overviewheight-host resource-pool-down-line-left col-xs-12 col-sm-6 col-md-6 col-lg-4" style="min-height:223px;padding:0 10px 10px 0;height:50%">
+			<div class="myselect" style="float:right;width:75px;margin-top:5px;margin-right:5px;height:24px;">
+				<select-input class="" options="computes.options" bind-model="model.compute" input-id="compute" input-name="compute" cut-width=120> </select-input>
+			</div>
+			<div class="detail-item" id="computeMonitor" style="padding-bottom:5px">
+				<div class="title" >
+					<h5>{{selectName}}</h5>
+				</div>
+				<div id="orgTopVmMem" class="trendChart" >
+					
+				</div>
+			</div>
+		</div> 
+		<!-- top5 存储-->
+		<div class="overviewheight-host resource-pool-down-line-right  col-xs-12 col-sm-6 col-md-6 col-lg-4" style="min-height:223px;padding:0 10px 10px 0;height:50%">
+			<div class="detail-item" id="storageMonitor" style="padding-bottom:5px">
+				<div class="title">
+					<h5 translate="org.Top5OrgStorageUseVm"></h5>
+				</div>
+			<div id="orgTopVmStorage" class="trendChart" ></div>
+			</div>
+		</div> 
+	</div>
+</div>
+
+

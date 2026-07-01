@@ -1,0 +1,272 @@
+l Z!e
+Pool manager manage all aspects of a pool's lifecycle. Using
+Python libvirt to perform all the required task for configuring
+the pool.
+In general other component should be using the manager to make
+changes to the pool.
+deque)
+TargetConnector)
+	LinuxSCSI)
+Ocfs2Client)
+LibvirtDriver)
+	PoolEvent
+POOL_STOP_REFRESH)
+runloop)
+settings)
+SingletonMetaClass
+import_object)
+xml_get_attr
+xml_is_element_exist)
+FenceSCSIAgentc
+d d!
+d"d#
+d$d%
+d&d'
+PoolManagerz
+Manages the pool's lifecycle.z
+fsm.pool.fspool.FSPoolz
+fsm.pool.fspool.MergedLunFsPoolz
+fsm.pool.dirpool.DirPoolz
+fsm.pool.netfspool.NetFSPoolz fsm.pool.logicalpool.LogicalPoolz
+fsm.pool.iscsipool.ISCSIPoolz
+fsm.pool.rbdpool.RBDPoolz
+fsm.pool.fcpool.FCPool)
+merged_lun_fs
+dirZ
+netfsZ
+logical
+iscsi
+rbdZ
+fcNc
+fence_umount
+fence_reset
+recycle_release
+recycle_check)
+events)
+fence_scsi_agentr
+pool_collectionr	
+LoopingRunnerr
+worker_num
+Queue
+event_queuer
+driverZ
+register_event_callback
+listen_libvirt_eventZ
+init_event_notifier
+_load_pools
+_handle_event_startr
+	_scsi_ops
+_nl_srvZ
+subscribe_event
+listen_ocfs2_event
+_poll_pool_health)
+selfZ
+nl_srv
+./fsm/pool/manager.py
+__init__1
+PoolManager.__init__c
+r^d	n
+z+Load a libvirt pool object to pool manager.r
+type
+.//source/device
+pathz
+/dev/CVKr
+iSCSIz!Not supported pool type %s for %sz
+^\.(.*)\.rbd$r
+z7Compatiable with RBD metadata pool %s in onestorproduct)
+XMLDesc
+name
+startswithr
+factory
+pool_type_mapping
+warning
+findallr
+set_fence_scsi_agentr
+pool
+	pool_type
+	pool_name
+attrsZ
+dev_pathZ
+is_lvZ	connectorZ
+rbd_metadata_pool
+argsr'
+_load_poolG
+PoolManager._load_poolc
+cifs
+	glusterfsr
+max_retry_count)
+delay)
+appendr8
+LoopingCall
+_autostart
+start)
+	virt_poolr7
+autostart_pool_typesZ
+run_oncer'
+do_load_poolk
+PoolManager.do_load_poolc
+z7Load all pools in libvirt and activate pool on startup.z
+Auto starting pools
+max_workersc
+submitrD
+.0rC
+executorr&
+<listcomp>
+z+PoolManager._load_pools.<locals>.<listcomp>N)	r3
+infor
+clear_residual_lock
+lenZ
+list_pools
+concurrent
+futuresZ
+ThreadPoolExecutor)
+thread_numrO
+PoolManager._load_poolsc
+Manager received an event: %sr
+bootstrap_failr
+index
+seqr
+definedz'Not found pool %s, but exist in libvirtz
+Pool %s was redefinedZ	redefinedZ	undefined
+started
+stopped)
+z,Refresh pool %s failed that lead to stop it.
+fault
+event_name
+reloadz
+Ignore event %s)
+debugZ
+get_namer7
+on_eventZ
+get_detailr#
+send_event_ackr/
+lookup_pool_by_name
+errorr<
+update_detail
+remover
+)	r&
+eventrW
+event_indexZ	event_seqr9
+new_poolZ
+check_pool_typer'
+lifecycle_event_handle
+z"PoolManager.lifecycle_event_handlec
+Handles events coming in from libvirtd and source device.
+        This thread which waits for events to arrive from the
+        libvirt event loop thread or netlink, then dispatches the
+        events to a pool.
+        T)
+blockrE
+Remain %d events to be handlingN)	r
+qsizer3
+Z	task_done
+BaseException
+	exception)
+count
+excr'
+_event_handle_thread
+z PoolManager._event_handle_threadc
+pool_event)
+targetr/
+Tz&Thread identifier %s for event handler)	
+	threading
+Threadre
+	setDaemonrB
+ident)
+event_threadr'
+PoolManager._handle_event_startc
+Puts an libvirt event on the queue for handling.
+        This method is called by the event loop thread
+        to put events on the queue for later handling
+        by the handle thread.
+        )
+detailZ
+event_idN)
+put)
+z PoolManager.listen_libvirt_eventc
+qjqF|
+z+Puts ocfs2 event on the queue for handling.r+
+Received an event: %sNr,
+/dev/Z
+dev_name
+z'mount information of %s not found in %s
+uuidz
+{0}-{1}-{2}-{3}-{4}r
+found device path %s by uuid %sz
+/dev/mapper/z#event %s mapping to pools %s failed)
+read_mounts
+items
+split
+listr
+lowerr4
+formatr"
+get_name_from_uuidZ
+src_dev_pathZ
+dev_wwn
+device_namer
+nl_eventr^
+device_pathr{
+Z	fs_clientZ	mount_tabZ
+mount_pointZ
+devicer7
+PoolManager.listen_ocfs2_eventc
+z3Start an inactive pool when FSM service restarting.r
+Tz-Pool %s auto started completely, now it is %sZ
+activeZ
+inactiveNr
+z.start a recycle handle thread: %s for pool: %sz@start a fence check handle thread in _autostart: %s for pool: %sz&Pool %s is %s and give up autostartingz
+Autostart pool %s fail, %srP
+is_autostartZ
+start_wrapperr3
+	is_activeZ
+recycle
+threadrg
+do_recycle_releaseri
+fencestateZ
+start_fence_check_handle_threadrj
+	Exceptionr\
+strr
+unused_kwargsrd
+PoolManager._autostartc
+PoolManager.lookup_pool_by_namec
+lookup_vol_by_path)
+virt_volr'
+lookup_volume_by_pathJ
+z!PoolManager.lookup_volume_by_pathc
+z!Use poll mode for checking pools.)
+Skip pool %s because fault.r
+Skip pool %s to check health.Fz
+Check %s pool %sz
+Pool %s check failedrU
+time
+sleeprx
+is_pool_already_faultr3
+checkerZ
+is_pool_faultr
+check_pool_typesr7
+is_faultr^
+_make_pool_health_checkN
+z#PoolManager._make_pool_health_checkc
+poll_threadr'
+PoolManager._poll_pool_health)
+__name__
+__module__
+__qualname__
+__doc__r2
+	metaclass)&r
+loggingr5
+queuer
+collectionsr
+fsm.device.initiator.connectorr
+fsm.device.initiator.linuxscsir
+fsm.fs_client.ocfs2r
+fsm.pool.virt.libvirtdriverr
+fsm.pool.eventr
+fsm.pool.runnerr	
+fsm.settingsr
+fsm.utils.import_utilsr
+fsm.utils.xml_utilsr
+Z!fsm.device.agent.fence_scsi_agentr
+concurrent.futuresrN
+Z	getLoggerr
+<module>

@@ -1,0 +1,207 @@
+<!-- 标题 -->
+<div class="modal-header">
+   <button type="button" class="close" custom-title="{{::'common.close'|translate}}"  ng-click="cancel()">
+		   <span class="icon-closenew"></span>
+	</button>
+    <h4 class="modal-title" translate="vmware.createVm"></h4>
+</div>
+<!-- 创建虚拟机步骤向导 -->
+<div class="modal-body row">
+    <div class="form-horizontal col-md-8">
+        <carousel-form titles="guidStep" cancel="ok()"> 
+            <!-- 第一步:基本信息 -->
+            <slide-form valid="valids.stepOneOver()" active="slide.active">
+                <form name="form1" class="form-horizontal" role="form" novalidate>
+                    <!-- 隐藏属性，用于js方法操作form是否显示 -->
+                    <input type="hidden" id="form1" value="{{form1.$valid}}">
+                    <!-- 名称 -->
+                    <div class="form-group" ng-class="{'has-error': (form1.vmName.$dirty && form1.vmName.$invalid)}">
+                       <label for="vmName" class="control-label"><span translate="common.name"></span><span style="color: red">*</span></label>
+                       <div class="control-input">
+                            <div class="input-group input-xlarge">
+                                <input type="text" rpccheck="vmware/vcenter/vm/checkname" namekey="domainName" check-special-char ng-maxlength=26 class="form-input form-control" ng-model="domain.name"  ng-trim="false" id="vmName" name="vmName" required>
+                                <span class="input-group-addon help-addon" ng-messages="form1.vmName.$error">
+                                    <span ng-if="form1.vmName.$valid||!form1.vmName.$dirty">
+                                        <span class="icon-occupying"></span>
+                                    </span>
+                                    <span ng-if="form1.vmName.$dirty">
+                                        <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+                                        <span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxlen'|translate}}26"></span></span>
+                                        <span ng-message="specialChar"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{::'checkname2'|translate}}"></span></span>
+                                        <span ng-message="rpccheck"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'vmware.nameExist2'|translate}}"></span></span>
+                                    </span>
+                                </span>
+                            </div>
+                        </div>   
+                    </div>
+                    <!-- 描述 -->
+                    <div class="form-group" ng-class="{'has-error': (form1.vmDesc.$dirty && form1.vmDesc.$invalid)}">
+                       <label for="domainDesc" class="control-label"><span translate="vmware.annotation"></span><span style="color: red">&nbsp;</span></label>
+                       <div class="control-input">
+                            <div class="input-group input-xlarge">
+                                <input type="text"  ng-maxlength=120 class="form-input form-control" ng-model="domain.annotation"  ng-trim="false" id="vmDesc" name="vmDesc">
+                                <span class="input-group-addon help-addon" ng-messages="form1.vmDesc.$error">
+                                    <span ng-if="form1.vmDesc.$valid||!form1.vmDesc.$dirty">
+                                        <span class="icon-occupying"></span>
+                                    </span>
+                                    <span ng-if="form1.vmDesc.$dirty">
+                                        <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+                                        <span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxlen'|translate}}120"></span></span>
+                                    </span>
+                                </span>
+                            </div>
+                        </div>   
+                    </div>
+                    <!-- 操作系统选择 -->
+                    <div class="form-group">
+                        <label for="osList" class="control-label"><span translate="common.os"></span><span style="color:red">&nbsp;</span></label>
+                        <div class="control-input">
+		                    <div id="windowsOSDiv" cascheckbox class="cas-checkbox labeled-btn radio" ng-model="pageData.system" value='0'>
+			                    <input id="windowsOS" name="os" type="radio" checked>
+			                    <div class="corner-label">
+			                        <i class="glyphicon glyphicon-ok icon"></i>
+			                    </div>
+			                    <div class="box">
+		                        	<img src="css/img/gray/Icon_os_windows.svg" class="osimg"/>
+			                    </div>
+		                    </div>
+		                    
+		                    <div id="linuxOSDiv" cascheckbox class="cas-checkbox labeled-btn radio" ng-model="pageData.system" value='1'>
+		                        <input id="linuxOS" name="os" type="radio" >
+		                        <div class="corner-label">
+		                            <i class="glyphicon glyphicon-ok icon"></i>
+		                        </div>
+		                        <div class="box">
+		                        	<img src="css/img/gray/Icon_os_linux.svg" class="osimg"/>
+		                        </div>
+	                        </div>
+	                    </div>
+	                </div>
+	                <!-- 操作系统列表 -->
+		            <div class="form-group">
+		                <label for="osList" class="control-label"><span translate="vmware.version"></span><span style="color:red">&nbsp;</span></label>
+		                <div class="control-input">
+		                    <div class="input-group width260">
+		                        <select-input class="" options="osList" input-id="osSelect" input-name="osSelect"  bind-model="domain.guestId" 
+		                        ng-init="domain.guestId='windows7Server64Guest'">
+		                        </select-input>
+		                    </div>
+		                </div>
+		            </div>
+	            </form>
+            </slide-form>
+            <!-- 第二步:硬件信息 -->
+            <slide-form valid="valids.stepTwoOver()">
+                <form id="addVmConfigForm" name="form2" class="form-horizontal" role="form" style="margin-top:-20px;overflow:auto;height:280px;" novalidate>
+                    <!-- 隐藏属性，用于js方法操作form是否显示 -->
+                    <input type="hidden" id="form2" value="{{form2.$valid}}">
+                    <!-- cpu -->
+                    <div vmware-cpu bind-model="pageData" form="form2" host-key="{{domain.hostKey}}" cluster-key="{{domain.clusterKey}}" cloud-id="{{domain.cloudId}}" guest-id="domain.guestId"></div>
+                    <!-- memory -->
+                    <div vmware-memory bind-model="pageData" form="form2"></div>
+                    <!-- disk -->
+                    <div vmware-disk bind-model="pageData" form="form2" index="0" host-key="{{domain.hostKey}}" cluster-key="{{domain.clusterKey}}" cloud-id="{{domain.cloudId}}"></div>
+                    <!-- network -->
+                    <div vmware-network bind-model="pageData.netcards[0]" form="form2" index="0" host-key="{{domain.hostKey}}" cluster-key="{{domain.clusterKey}}" cloud-id="{{domain.cloudId}}" guest-id="domain.guestId" delete-icon="false"></div>
+                    <div id="vmwareNetwork_add_1"></div>
+                    <div id="vmwareNetwork_add_2"></div>
+                    <div id="vmwareNetwork_add_3"></div>
+                </form>
+            </slide-form>
+        </carousel-form>
+    </div>
+    <!-- 右侧确认信息 -->
+    <div class="detail-table col-md-4">
+        <table class="table table-striped">
+            <tr class="gray">
+                <td><h4 translate="configDetail"></h4></td><td></td>
+            </tr>
+            <tr>
+                <td><span translate="common.os"></span></td>
+                <td shortcut cut-str="{{domain.guestId | selectLabel:'':osList}}" custom-title>{{domain.guestId | selectLabel:'':osList}}</td>
+            </tr>
+            <tr>
+                <td><span translate="common.name"></span></td>
+                <td shortcut cut-str="{{domain.name}}" custom-title>{{domain.name}}</td>
+            </tr>
+            <tr>
+                <td><span translate="vmware.annotation"></span></td>
+                <td shortcut cut-str="{{domain.annotation}}" custom-title>{{domain.annotation}}</td>
+            </tr>
+            <tr ng-if="stepIndex>1">
+                <td><span translate="vmware.cpu"></span></td>
+                <td>{{pageData.cpuSocket + ' * ' + pageData.coresPerSocket}}<span translate="vmware.cpuUnit"></span></td>
+            </tr>
+            <tr ng-if="stepIndex>1">
+                <td><span translate="vmware.memory"></span></td>
+                <td>{{pageData.memory + ' ' + pageData.memoryUnit}}</td>
+            </tr>
+            
+            <!-- 磁盘 -->
+            <tr ng-if="stepIndex>1">
+                <td><span translate="vmware.disk"></span></td>
+                <td>{{pageData.diskSize + ' ' + pageData.diskUnit}}</td>
+            </tr>
+            <tr ng-if="stepIndex>1">
+                <td><span translate="vmware.datastore"></span></td>
+                <td shortcut cut-str="{{pageData.selectPool.name}}" custom-title>{{pageData.selectPool.name}}</td>
+            </tr>
+            <tr ng-if="stepIndex>1">
+                <td><span translate="vmware.diskModel"></span></td>
+                <td>{{pageData.diskModel | vmwareDiskModel}}</td>
+            </tr>
+            <!-- 网卡 -->
+            <tr ng-if="stepIndex>1">
+                <td><span translate="vmware.network"></span></td>
+                <td></td>
+            </tr>
+            <tr ng-if="stepIndex>1">
+                <td><span translate="vmware.network"></span></td>
+                <td>{{pageData.netcards[0].deviceName}}</td>
+            </tr>
+             <tr ng-if="stepIndex>1">
+                <td><span translate="vmware.adapter"></span></td>
+                <td>{{pageData.netcards[0].deviceType | selectLabel:'':pageData.adapters}}</td>
+            </tr>
+            <!-- 网卡1 -->
+            <tr ng-if="stepIndex>1 && pageData.netcards[1].deviceName"">
+                <td><span translate="vmware.networkNum" translate-values="{num:1}"></span></td>
+                <td></td>
+            </tr>
+            <tr ng-if="stepIndex>1 && pageData.netcards[1].deviceName">
+                <td><span translate="vmware.network"></span></td>
+                <td>{{pageData.netcards[1].deviceName}}</td>
+            </tr>
+             <tr ng-if="stepIndex>1 && pageData.netcards[1].deviceName">
+                <td><span translate="vmware.adapter"></span></td>
+                <td>{{pageData.netcards[1].deviceType | selectLabel:'':pageData.adapters}}</td>
+            </tr>
+            <!-- 网卡2 -->
+            <tr ng-if="stepIndex>1 && pageData.netcards[2].deviceName">
+                <td><span translate="vmware.networkNum" translate-values="{num:2}"></span></td>
+                <td></td>
+            </tr>
+            <tr ng-if="stepIndex>1 && pageData.netcards[2].deviceName">
+                <td><span translate="vmware.network"></span></td>
+                <td>{{pageData.netcards[2].deviceName}}</td>
+            </tr>
+             <tr ng-if="stepIndex>1 && pageData.netcards[2].deviceName">
+                <td><span translate="vmware.adapter"></span></td>
+                <td>{{pageData.netcards[2].deviceType | selectLabel:'':pageData.adapters}}</td>
+            </tr>
+            <!-- 网卡3 -->
+            <tr ng-if="stepIndex>1 && pageData.netcards[3].deviceName"" translate-values="{num:3}">
+                <td><span translate="vmware.networkNum" translate-values="{num:3}"></span></td>
+                <td></td>
+            </tr>
+            <tr ng-if="stepIndex>1 && pageData.netcards[3].deviceName">
+                <td><span translate="vmware.network"></span></td>
+                <td>{{pageData.netcards[3].deviceName}}</td>
+            </tr>
+             <tr ng-if="stepIndex>1 && pageData.netcards[3].deviceName">
+                <td><span translate="vmware.adapter"></span></td>
+                <td>{{pageData.netcards[3].deviceType | selectLabel:'':pageData.adapters}}</td>
+            </tr>
+        </table>
+    </div>
+</div>

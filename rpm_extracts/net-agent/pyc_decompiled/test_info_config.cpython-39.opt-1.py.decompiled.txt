@@ -1,0 +1,79 @@
+Test info config synchronization
+Utility)
+testbasec
+TestInfoConfigSyncc
+superr
+myinitZ
+_start_ovsZ
+_start_netagent)
+self
+	__class__
+@/usr/lib/python3.9/site-packages/na_tests/ft/test_info_config.pyr
+TestInfoConfigSync.myinitc
+cd {test_dir}
+ovs-vsctl add-br br0 -- set bridge br0 fail-mode=standalone
+ovs-ofctl mod-port br0 br0 noforward
+na-ctl add-listen --id=1 --event="set Interface br0 other_config:fake=fake"
+ovs-vsctl set Interface br0 other_config:fake=fake
+na-ctl wait --id=1
+na-ctl dump > add_br_dump.txt
+grep 'interface: br0: br=br0,ofport=65534,tag=0,other_cfg' add_br_dump.txt
+if test $? -ne 0; then
+    exit 2
+test_dirTr
+z,test add bridge failed: shell return code:%d
+cmd_execute
+formatZ	_test_dirZ
+assertEqual
+retr
+test_add_bridge
+z"TestInfoConfigSync.test_add_bridgec
+cd {test_dir}
+ovs-vsctl add-br br0 -- set bridge br0 fail-mode=standalone --     add-port br0 p1 -- set interface p1 ofport_request=1 type=dummy 
+ovs-ofctl mod-port br0 br0 noforward
+ovs-vsctl del-br br0
+na-ctl dump > del_port_dump.txt  # TODO: bad
+grep 'interface: p1: br=br0,ofport=1,tag=0,other_cfg=' del_port_dump.txt
+ret=$?
+# can't grepped wanted text here
+if test $ret -eq 0; then 
+    exit 2
+z,test del bridge failed: shell return code:%dr
+test_del_bridge!
+z"TestInfoConfigSync.test_del_bridgec
+cd {test_dir}
+ovs-vsctl add-br br0 -- set bridge br0 fail-mode=standalone --     add-port br0 p1 -- set interface p1 ofport_request=1 type=dummy 
+ovs-ofctl mod-port br0 br0 noforward
+na-ctl --retry=-1 add-listen --id=1 --event="set Interface p1 other_config:fake=fake"
+ovs-vsctl set Interface p1 other_config:fake=fake
+na-ctl wait --id=1
+na-ctl dump > add_port_dump.txt
+grep 'interface: p1: br=br0,ofport=1,tag=0,other_cfg=' add_port_dump.txt
+if test $? -ne 0; then
+    exit 2
+z*test add port failed: shell return code:%dr
+test_add_port3
+z TestInfoConfigSync.test_add_portc
+cd {test_dir}
+ovs-vsctl add-br br0 -- set bridge br0 fail-mode=standalone --     add-port br0 p1 -- set interface p1 ofport_request=1 type=dummy 
+ovs-ofctl mod-port br0 br0 noforward
+ovs-vsctl del-port br0 p1
+na-ctl dump > del_port_dump.txt
+grep 'interface: p1: br=br0,ofport=1,tag=0,other_cfg=' del_port_dump.txt
+if test $? -eq 0; then  # can't grepped wanted text here
+    exit 2
+z*test del port failed: shell return code:%dr
+test_del_portE
+z TestInfoConfigSync.test_del_port)	
+__name__
+__module__
+__qualname__r
+__classcell__r
+__main__)
+__doc__Z
+unittestZ
+na_tests.common.utilityr
+na_tests.commonr
+TestCaseBaser
+mainr
+<module>

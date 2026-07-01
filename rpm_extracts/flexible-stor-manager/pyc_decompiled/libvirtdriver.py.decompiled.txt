@@ -1,0 +1,195 @@
+m	Z	
+This class encapsulates a connection to the libvirt daemon and
+provides certain higher level APIs around the raw libvirt API.
+These APIs are then used by all the other libvirt related classes
+exceptions)
+EVENT_LIBVIRTD_RESTART)
+retryc
+d!d"
+d#d$
+d/d%d&
+d'd(
+d)d*
+d+d,
+LibvirtDriverz
+/var/run/libvirtd.pidc
+qemu:///system)
+common
+	exclusiveF)
+_conn
+pool_event_callback
+_event_loop
+_initialized
+_get_libvirtd_pid
+_libvirtd_pid
+self
+ ./fsm/pool/virt/libvirtdriver.py
+__init__
+LibvirtDriver.__init__
+intervalZ
+catch_exceptionc
+rz!Open libvirtd pid file failed, %s)
+open
+libvirtd_pid_file
+read
+	Exception
+error)
+excr
+LibvirtDriver._get_libvirtd_pidc
+r`t	
+Connection to libvirt brokenF)
+getLibVersion
+libvirt
+libvirtError
+get_error_codeZ
+VIR_ERR_SYSTEM_ERRORZ
+VIR_ERR_INTERNAL_ERRORZ
+get_error_domainZ
+VIR_FROM_REMOTEZ
+VIR_FROM_RPCr
+debug)
+connr
+_test_connection.
+LibvirtDriver._test_connectionc
+Errorz
+End-of-fileZ	KeepaliveZ
+Clientz
+%s %s connection close: %s
+warningr
+	threading
+Timer
+	reconnect
+start)
+unused_conn
+reason
+opaqueZ
+reason_strings
+paramsZ
+timerr
+_conn_close_callback<
+z"LibvirtDriver._conn_close_callbackr
+Returns current connection to libvirt or open a new one.
+        :param chennel: there are two channels, one is used by any caller,
+                        another is only used by pool refreshing caller.
+        :returns: a libvirt.virConnect object
+        Nz Connection to libvirt failed: %sr
+z(Register pool lifecycel event failed: %sz-Register conneciton close callback failed: %s
+Call rpc from libvirtd)
+_connectionLockr	
+strZ
+storagePoolEventRegisterAnyZ#VIR_STORAGE_POOL_EVENT_ID_LIFECYCLE
+_event_lifecycle_callbackZ
+registerCloseCallbackr1
+setKeepAliver#
+channelr$
+get_connectionG
+LibvirtDriver.get_connectionr'
+max_intervalc
+Nz,%s channel reconnected libvirt successfully.r
+z+Libvirtd is restarted, pid %s changed to %s)
+info
+clear_residual_lockr
+list_poolsr
+new_pidZ
+pools
+poolr
+LibvirtDriver.reconnectc
+Receives async events coming in from libvirtd.
+        This is a native thread which runs the default
+        libvirt event loop implementation. This processes
+        any incoming async events from libvirtd and queues
+        them for later dispatch.
+        N)
+virEventRunDefaultImpl
+BaseExceptionr
+	exception
+_event_loop_thread
+z LibvirtDriver._event_loop_threadc
+pool_event_loop)
+target
+nameTz0Thread identifier %s for receiving libvirt event)
+Threadr@
+	setDaemonr,
+identr
+_event_loop_start
+LibvirtDriver._event_loop_startc
+Get libvirt error: %s)
+unused_context
+errr
+_libvirt_error_handler
+z$LibvirtDriver._libvirt_error_handlerc
+z,Receives pool lifecycle events from libvirt.z"Received an event %d from libvirt.z
+Emit the event to manager.N)
+eventZ
+detailr/
+z'LibvirtDriver._event_lifecycle_callbackc
+z?Running a thread to provide the libvirt event loop integration.N)
+registerErrorHandlerrI
+virEventRegisterDefaultImplrG
+_init_event_loop
+LibvirtDriver._init_event_loopc
+init_event_notifier
+z!LibvirtDriver.init_event_notifierc
+z&Register a callback to receive events.N)
+callbackr
+register_event_callback
+z%LibvirtDriver.register_event_callbackc
+zcGet a list of libvirt storage pool objects
+        :returns: list of libvirt pool objects
+        r
+listAllStoragePools)
+Z	pool_listr
+LibvirtDriver.list_poolsc
+Lookup pool in libvirt.
+        :param name:            pool name.
+        :type name:             string
+        :returns: a libvirt pool object
+        )
+Look up pool failed, %s
+N)	r7
+storagePoolLookupByNamer 
+PoolNotFound)
+err_coder
+lookup_pool_by_name
+z!LibvirtDriver.lookup_pool_by_namec
+zoDefine an inactive storage pool or modify an existing
+        persistent one from the XML description.
+        N)
+storagePoolDefineXML)
+xmlr
+define_xml
+LibvirtDriver.define_xmlc
+Lookup a volume in libvirt.
+        :param path:    volume path
+        :type path:     string
+        :returns: a libvirt volume object
+        z
+Look up volume failed, %s
+storageVolLookupByPathr 
+NotSupportedOperationZ
+VolumeNotFound)
+pathZ
+volumer
+lookup_vol_by_path
+z LibvirtDriver.lookup_vol_by_pathc
+zaClear residual lock.
+        Libvirt locks may not be released when an corrupt happened.
+        z
+Clear residual locks failed, %sNz
+Try to clear residual locks)
+lockFreeAllStoragePoolsr
+z!LibvirtDriver.clear_residual_lockN)
+__name__
+__module__
+__qualname__r)
+Lockr3
+IOErrorr
+staticmethodr%
+__doc__Z
+loggingr)
+fsmr
+fsm.pool.eventr
+fsm.utils.os_utilsr
+Z	getLoggerrV
+objectr
+<module>

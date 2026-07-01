@@ -1,0 +1,273 @@
+m	Z	
+SUPPRESS)
+datetime)
+rmtree)
+Path)
+__version__)
+TarFileArchive)
+SoSOptions)
+TempFileUtilc
+d d!
+d"d#
+SoSComponenta
+Any sub-command that sos supports needs to subclass SoSComponent in
+    order to be properly supported by the sos binary.
+    This class contains the standardized entrypoint for subcommands, as well as
+    building out supported options from both globally shared option lists, and
+    options supported by that specific subcommand.
+    When sos initializes, it will load an unintialized instance of each class
+    found within one recursion of the module root directory that subclasses
+    SoSComponent.
+    If sos is able to match the user-specified subcommand to one that exists
+    locally, then that SoSComponent is initialized, logging is setup, and a
+    policy is loaded. From there, the component's execute() method takes over.
+    Added in 4.0
+    Z
+unsetTF
+autoz
+/etc/sos/sos.confN
+batch
+compression_type
+config_file
+debug
+encrypt_key
+encrypt_pass
+quiet
+threads
+tmp_dir
+sysroot
+	verbosityc
+rPz d
+j$j%|
++d	t,
+j'j0
+temporary directory %s z"does not exist or is not writable
+sos.)
+prefix
+dir)
+version
+cmdline
+start_timeZ
+end_timer
+run_timeZ
+compression
+policy
+components)2
+parser
+argsr
+exit_process
+archive
+tmpdir
+tempfile_util
+manifest
+signal
+SIGTERM
+get_exit_handler
+	Exception
+_arg_defaults
+update
+arg_defaults
+load_options
+opts
+configure_logging
+get_tmpdir_default
+SoSMetadata
+path
+isdir
+access
+W_OK
+stderr
+write
+_exitZ
+sys_tmp
+tempfileZ
+mkdtempr	
+_setup_logging
+load_policyZ
+sos.policiesZ
+policies
+loadr
+KeyboardInterruptZ
+is_rootZ
+_is_root
+	add_fieldr
+joinr
+nowZ
+distro
+add_section)
+selfr 
+parsed_argsZ
+cmdline_argsr'
+1/usr/lib/python3.9/site-packages/sos/component.py
+__init__D
+SoSComponent.__init__c
+signum
+frame
+exit_handler
+z3SoSComponent.get_exit_handler.<locals>.exit_handlerrG
+SoSComponent.get_exit_handlerc
+SystemExit)
+errorrG
+SoSComponent._exitc
+If --tmp-dir is not specified, provide a default location.
+        Normally this is /var/tmp, but if we detect we are in a container, then
+        use a standardized env var to redirect to the host's filesystem instead
+        z
+/var/tmpZ
+HOSTNZ	container
+getenvr4
+lstrip)
+SoSComponent.get_tmpdir_defaultc
+list)
+startswith)
+<listcomp>
+z6SoSComponent.check_listing_options.<locals>.<listcomp>c
+getattrr/
+optrK
+dict
+keys
+any)
+check_listing_options
+z"SoSComponent.check_listing_optionsc
+ziThis should be overridden by each subcommand to add its own unique
+        options to the parser
+        NrG
+clsr 
+add_parser_options
+SoSComponent.add_parser_optionsc
+rNq6|
+r6t	|
+(Re-)apply options specified via the cmdline to an options instance
+        There are several cases where we may need to re-apply the options from
+        the cmdline over previously loaded options - for instance when an
+        option is specified in both a config file and cmdline, or a preset and
+        the cmdline, or all three.
+        Use this to re-apply cmdline option overrides to anything that may
+        change the default values of options
+        Positional arguments:
+            :param opts:        SoSOptions object to update
+        F)
+preset_filter
+Z	from_argsr 
+parse_argsr
+itemsr-
+setattr)
+cmdoptsZ
+codictrZ
+valrG
+apply_options_from_cmdline
+z'SoSComponent.apply_options_from_cmdlinec
+zxCompile arguments loaded from defaults, config files, and the
+        command line into a usable set of options
+        ra
+.config/sos/sos.conf)
+_actions
+defaultr
+update_from_confr!
+Z	componentr3
+getuidr4
+home
+existsrf
+optionZ
+userconfrG
+SoSComponent.load_optionsc
+Nz6Failed to finish cleanup: %s
+Contents may remain in %s)
+cleanupr%
+cleanr$
+print)
+errrG
+SoSComponent.cleanupc
+NTF)
+encrypt
+passwordr
+get_archive_namer3
+get_preferred_archiver
+Z	set_debugr
+nameZ
+enc_optsZ
+archive_nameZ
+auto_archiverG
+setup_archive
+SoSComponent.setup_archivec
+Creates the log handler that shall be used by all components and any
+        and all related bits to those components that need to log either to the
+        console or to the log file for that run of sos.
+        rF
+Nz&%(asctime)s %(levelname)s: %(message)sz
+%(message)sr
+sos_ui)
+loggingZ	getLoggerZ
+soslogZ
+setLevel
+DEBUGr^
+get_temp_fileZ
+sos_log_fileZ
+StreamHandlerZ
+setFormatterZ	Formatter
+INFOZ
+addHandlerr/
+stdoutr
+WARNINGr9
+ERRORZ
+ui_logZ
+sos_ui_log_file)
+flogZ
+consoleZ
+console_errZ
+ui_fhandlerZ
+ui_consolerG
+SoSComponent._setup_loggingc
+newrK
+SoSComponent.get_temp_file)
+__name__
+__module__
+__qualname__
+__doc__Z
+descr-
+root_requiredr+
+classmethodr`
+This class is used to record metadata from a sos execution that will
+    then be stored as a JSON-formatted manifest within the final tarball.
+    It can be extended by adding further instances of SoSMetadata to represent
+    dict-like structures throughout the various sos bits that record to
+    metadata
+    c
+z@Add a key, value entry to the current metadata instance
+        N)
+field_name
+contentrG
+SoSMetadata.add_fieldc
+zCAdds a new instance of SoSMetadata to the current instance
+        )
+section_namerG
+SoSMetadata.add_sectionc
+Add a named list element to the current instance. If content is not
+        supplied, then add an empty list that can alter be appended to
+        z
+content added must be listN)
+isinstancerS
+	TypeErrorrd
+Z	list_namer~
+add_listQ
+SoSMetadata.add_listNc
+Convert contents of this SoSMetdata instance, and all other nested
+        instances (sections), into a json-formatted output.
+        Used to write manifest.json to the final archives.
+        c
+__dict__)
+str)
+<lambda>`
+z&SoSMetadata.get_json.<locals>.<lambda>)
+indent)
+json
+dumps)
+get_jsonY
+SoSMetadata.get_json)
+argparser
+shutilr
+pathlibr
+sos.archiver
+sos.optionsr
+sos.utilitiesr	
+<module>

@@ -1,0 +1,144 @@
+<!-- vmware云主机概要 -->
+<div class='flex-box vmSummaryOverflow calc100' ng-style="contentstyle" ng-controller="vmwareVmOverviewController">
+	<!-- 左侧概要 -->
+	<div class="description" id="summary">
+		<div class="overview-col-full">
+			<div class="detail-item">
+				<div class="title">
+					<h5 class="title-margin" translate="common.basicAttribute"></h5>
+				</div>
+				<dl class="dl-horizontal margin-bottom-zero" style="word-wrap:break-word;word-break:break-all;">
+					<dt translate="common.name"></dt>
+					<dd><span shortcut cut-str="{{summary.title}}" short-width=170 custom-title>{{summary.title}}</span></dd>
+					
+					<dt  translate="vmware.vmVersion" ></dt>
+					<dd >{{summary.version}}</dd>
+					
+					<dt translate="vmware.annotation" ></dt>
+					<dd shortcut cut-str="{{summary.desc}}" short-width=170 custom-title>{{summary.desc}}</dd>
+				
+					<dt  translate="vm.host" ></dt>
+					<dd >{{summary.hostName}}</dd>
+					<dt  translate="vm.status"></dt>
+					<dd >
+					  <span ng-if= "summary.status == 'running' "><img class="pic1img" src="css/img/gray/Icon_vm_running.svg"><span class="text-pic-distance" translate="vm.execute"></span></span> 
+					  <span ng-if= "summary.status == 'paused' "><img class="pic1img" src="css/img/gray/Icon_vm_pause.svg"><span class="text-pic-distance" translate="vm.pause"></span></span> 
+					  <span ng-if= "summary.status == 'notdeploy' "><img class="pic1img" src="css/img/gray/Icon_vm_pause.svg"><span class="text-pic-distance" translate="vm.noDeploy"></span></span> 
+					  <span ng-if= "summary.status == 'shutOff' "><img class="pic1img" src="css/img/gray/Icon_vm_close.svg"><span class="text-pic-distance" translate="vm.close"></span></span> 
+					  <span ng-if= "summary.status == 'ha_exception' "><img class="pic1img" src="css/img/white/Icon_vm_haexception.svg"><span class="text-pic-distance" translate="vm.haException"></span></span> 
+					  <span ng-if= "summary.status == 'unmanage'"><img class="pic1img" src="css/img/gray/Icon_unkown.svg"><span class="text-pic-distance" translate="vm.noManage"></span></span>
+					  <span ng-if= "summary.status == 'unknown'"><img class="pic1img" src="css/img/gray/Icon_unkown.svg"><span class="text-pic-distance" translate="vm.unkown"></span></span>
+					  <span ng-if= "summary.status == 'ha_exception'" class="modify-vm-title" ng-click="handleHa()" custom-title="{{::'handle'|translate}}"><span class="glyphicon glyphicon-cog" style="top:1px;"></span></span>
+					</dd>
+					<dt  translate="vm.os" style="padding-top:10px;"></dt>
+					<dd style="padding-top:4px;padding-bottom:4px;"><span ng-if="summary.system=='0'"><img style="height:25px;" src="css/img/gray/Icon_os_windows.svg" /></span>
+					<span ng-if="summary.system=='1'"><img style="height:25px;" src="css/img/gray/Icon_os_linux.svg" /></span></dd>
+					<dt translate="vmware.osVersion"></dt>
+					<dd>{{summary.osVersion}}</dd>
+					<dt  translate="vm.storage"></dt>
+					<dd >{{summary.totalCapacity|byteUnitRender3}}</dd>
+					<dt  translate="vmware.vmwareTools"></dt>
+					<dd >
+						<span ng-if="summary.vmwaretoolRunning==true"><img  src="css/img/gray/Icon_start_green.svg"></span>
+						<span ng-if="summary.vmwaretoolRunning==true" translate="vmware.toolsRunning"></span>
+						<span ng-if="summary.vmwaretoolRunning==false"><img src="css/img/gray/Icon_pause_red.svg"></span>
+						<span ng-if="summary.vmwaretoolRunning==false" translate="vmware.toolsOff"></span>
+						<span>({{summary.vmwaretools|vmwaretoolsVersion}})</span>
+					</dd>
+					<dt translate="vm.uptime"></dt>
+					<dd>{{summary.uptime|uptime}}</dd>
+					<dt translate="vm.uuid"></dt>
+					<dd>{{summary.uuid}}</dd>
+				</dl>
+			</div>
+		</div>
+	</div>
+	<!-- 右侧列表 -->
+	<div class="overview-charts chart-port-padding" >
+		<!-- 硬件块列表 -->
+		<div id="hardwarePort">
+			<div class="title"><h5 class="title-margin" translate="vm.hardwareInfo"></h5></div>
+			<div ng-repeat="line in lines" class="row hardwareRow">
+				<div ng-repeat="$colIndex in cols track by $colIndex" class="hardwareBox" ng-if="dataList[line*col+$colIndex].deviceType" repaint-done="repaintDone()">
+					<span class="pic2">
+						<span class="pic2img Icon_cpu Icon_common_display" ng-if="dataList[line*col+$colIndex]&&dataList[line*col+$colIndex].deviceType=='cpu'"></span>
+						<span class="pic2img Icon_memory Icon_common_display" ng-if="dataList[line*col+$colIndex]&&dataList[line*col+$colIndex].deviceType=='memory'"></span>
+						<span class="pic2img Icon_disk Icon_common_display" ng-if="dataList[line*col+$colIndex]&&dataList[line*col+$colIndex].deviceType=='disk'"></span>
+						<span class="pic2img Icon_cdrom Icon_common_display" ng-if="dataList[line*col+$colIndex]&&dataList[line*col+$colIndex].deviceType=='cdrom'&&dataList[line*col+$colIndex].path!=''"></span>
+						<span class="pic2img Icon_floppy Icon_common_display" ng-if="dataList[line*col+$colIndex]&&dataList[line*col+$colIndex].deviceType=='floppy'&&dataList[line*col+$colIndex].path!=''" ></span>
+						<span class="pic2img Icon_cdrom_gray Icon_common_display" ng-if="dataList[line*col+$colIndex]&&dataList[line*col+$colIndex].deviceType=='cdrom'&&dataList[line*col+$colIndex].path==''"></span>
+						<span class="pic2img Icon_floppy_gray Icon_common_display" ng-if="dataList[line*col+$colIndex]&&dataList[line*col+$colIndex].deviceType=='floppy'&&dataList[line*col+$colIndex].path==''"></span>
+						<span class="pic2img Icon_net Icon_common_display" ng-if="dataList[line*col+$colIndex]&&dataList[line*col+$colIndex].deviceType=='net'"></span>
+					</span>
+					<span class="hardwareAttributes">
+						<div ng-if="dataList[line*col+$colIndex].deviceType=='cpu'">
+							<span>{{'vm.cpuConfig'|translate}}{{'interval'|translate}}{{dataList[line*col+$colIndex].cpucore}}vCPU</span><br/>
+							<span>{{'vm.cpuUsage'|translate}}{{'interval'|translate}}</span><br/>
+							<div class="progress progressgray more-options progress-width">
+								<div class="progress-bar progressgreen"  ng-if="dataList[line*col+$colIndex].cpuRate < 50" role="progressbar" aria-valuenow="{{dataList[line*col+$colIndex].cpuRate | number:2}}" aria-valuemin="0" aria-valuemax="100" style="text-align:left;width: {{dataList[line*col+$colIndex].cpuRate | number:2}}%;">
+	                               <span progress-style>{{dataList[line*col+$colIndex].cpuRate | number:2}}%</span>
+	                            </div> 
+	                            <div class="progress-bar progressyellow"  ng-if="dataList[line*col+$colIndex].cpuRate >= 50 && dataList[line*col+$colIndex].cpuRate <= 80" role="progressbar" aria-valuenow="{{dataList[line*col+$colIndex].cpuRate | number:2}}" aria-valuemin="0" aria-valuemax="100" style="text-align:left;width: {{dataList[line*col+$colIndex].cpuRate | number:2}}%;">
+	                               <span progress-style>{{dataList[line*col+$colIndex].cpuRate | number:2}}%</span> 
+	                            </div> 
+	                            <div class="progress-bar progressred"  ng-if="dataList[line*col+$colIndex].cpuRate > 80" role="progressbar" aria-valuenow="{{dataList[line*col+$colIndex].cpuRate | number:2}}" aria-valuemin="0" aria-valuemax="100" style="text-align:left;width: {{dataList[line*col+$colIndex].cpuRate | number:2}}%;">
+	                               <span progress-style>{{dataList[line*col+$colIndex].cpuRate | number:2}}%</span> 
+	                            </div>
+							</div>
+						</div>
+						<div ng-if="dataList[line*col+$colIndex].deviceType=='memory'">
+							<span>{{'vm.memory'|translate}}{{'interval'|translate}}{{dataList[line*col+$colIndex].memory|byteUnitRender}}</span><br/>
+							<span>{{'vm.memoryUsage'|translate}}{{'interval'|translate}}</span><br/>
+							<div class="progress progressgray more-options progress-width">
+								<div class="progress-bar progressgreen"  ng-if="dataList[line*col+$colIndex].memRate < 50" role="progressbar" aria-valuenow="{{dataList[line*col+$colIndex].memRate | number:2}}" aria-valuemin="0" aria-valuemax="100" style="text-align:left;width: {{dataList[line*col+$colIndex].memRate | number:2}}%;">
+	                               <span progress-style>{{dataList[line*col+$colIndex].memRate | number:2}}%</span>
+	                            </div> 
+	                            <div class="progress-bar progressyellow"  ng-if="dataList[line*col+$colIndex].memRate >= 50 && dataList[line*col+$colIndex].memRate <= 80" role="progressbar" aria-valuenow="{{dataList[line*col+$colIndex].memRate | number:2}}" aria-valuemin="0" aria-valuemax="100" style="text-align:left;width: {{dataList[line*col+$colIndex].memRate | number:2}}%;">
+	                               <span progress-style>{{dataList[line*col+$colIndex].memRate | number:2}}%</span> 
+	                            </div> 
+	                            <div class="progress-bar progressred"  ng-if="dataList[line*col+$colIndex].memRate > 80" role="progressbar" aria-valuenow="{{dataList[line*col+$colIndex].memRate | number:2}}" aria-valuemin="0" aria-valuemax="100" style="text-align:left;width: {{dataList[line*col+$colIndex].memRate | number:2}}%;">
+	                               <span progress-style>{{dataList[line*col+$colIndex].memRate | number:2}}%</span> 
+	                            </div>
+							</div>
+						</div>
+						<span ng-if="dataList[line*col+$colIndex].deviceType=='disk'">
+							<span>{{'common.name'|translate}}{{'interval'|translate}}{{dataList[line*col+$colIndex].label}}</span><br/>
+							<span>{{'vm.capacity'|translate}}{{'interval'|translate}}{{dataList[line*col+$colIndex].capacityInKB|byteUnitRender3}}</span><br/>
+							<span style="white-space:nowrap;">{{'vm.storagePath'|translate}}{{'interval'|translate}}<span  shortcut custom-title cut-str="{{dataList[line*col+$colIndex].path}}" short-width="{{hardwareBoxWidth-165}}" str-fontsize="12" change-length="true">{{dataList[line*col+$colIndex].path}}</span></span><br/>
+						</span>
+						<span ng-if="dataList[line*col+$colIndex].deviceType=='net'">
+							<span>{{'host.mac'|translate}}{{'interval'|translate}}<span shortcut custom-title cut-str="{{dataList[line*col+$colIndex].mac}}" short-width="{{hardwareBoxWidth-165}}" str-fontsize="12" change-length="true">{{dataList[line*col+$colIndex].mac}}</span></span><br/>
+							<span>{{'common.name'|translate}}{{'interval'|translate}}{{dataList[line*col+$colIndex].label}}</span><br/>
+							<span>{{'vmware.abstract'|translate}}{{'interval'|translate}}{{dataList[line*col+$colIndex].summary}}</span><br/>
+						</span>
+						<span ng-if="dataList[line*col+$colIndex].deviceType=='floppy'||dataList[line*col+$colIndex].deviceType=='cdrom'">
+							<span>{{'common.name'|translate}}{{'interval'|translate}}{{dataList[line*col+$colIndex].label}}</span><br/>
+							<span style="white-space:nowrap;">{{'vm.storagePath'|translate}}{{'interval'|translate}}<span  shortcut custom-title cut-str="{{dataList[line*col+$colIndex].path}}" short-width="{{hardwareBoxWidth-165}}" str-fontsize="12" change-length="true">{{dataList[line*col+$colIndex].path}}</span></span><br/>
+						</span>
+					</span>
+				</div>
+			</div>
+		</div>
+		<!-- CPU内存利用率 -->
+		<div id="usagePort" class="overview-row">
+			<div class="overview-col">
+				<div class="detail-item chart-class">
+					<div class="title" ><h5 translate="vm.cpuUsage"></h5></div>
+					<div line-chart chart-name="CPU" url="{{cpuRateUrl}}" hide-legend=true color-index=4
+						 style='width: 100%; height: 273px;' id="vmCpuRateChart">
+						<div class="altStyle" style="padding-left:294px;padding-top:91.5px;" translate="common.noData"></div>
+					</div>
+				</div>
+			</div>
+			<div class="overview-col">
+				<div class="detail-item">
+					<div class="title" ><h5 translate="vm.memoryUsage"></h5></div>
+					<div line-chart chart-name="Memory" url="{{memRateUrl}}" hide-legend=true
+						 style='width: 100%; height: 273px;' id="vmMemoryRateChart">
+						<div class="altStyle" style="padding-left:294px;padding-top:91.5px;" translate="common.noData"></div>
+					</div>
+				</div>
+			</div>	
+		</div>
+	</div>	
+</div>

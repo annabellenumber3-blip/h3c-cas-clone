@@ -1,0 +1,197 @@
+<div class="modal-header">
+	<button type="button" class="close"
+		custom-title="{{::'common.close'|translate}}" ng-click="cancel()">
+		<span class="icon-closenew"></span>
+	</button>
+	<button type="button" class="close cornerhelp"
+		custom-title="{{::'help'|translate}}" ng-click="openHelp()">
+		<span class="icon-helpnew"></span>
+	</button>
+	<h4 class="modal-title" translate="pluginMgr.addPlugin"></h4>
+</div>
+<div class="modal-body row">
+	<div class="form-horizontal col-md-8">
+		<carousel-form titles="addPluginStep" cancel="ok()"> 
+		
+		<!-- 第一页	基本信息 -->
+		<slide-form valid="stepValids.stepOneOver()" >
+			<form name="form1" class="form-horizontal" role="form" novalidate>
+				<input type="hidden" id="form1" value="{{form1.$valid}}">
+				<!-- 插件名称 -->
+				<div class="form-group"
+					ng-class="{'has-error' : (form1.name.$invalid && form1.name.$dirty)}">
+					<label for="nameid" class="control-label"> 
+						<span translate="pluginMgr.name"></span>
+						<span style="color: red">*</span>
+					</label>
+					<div class="control-input">
+						<div class="input-group input-xlarge">
+							<input type="text" checkpluginname 
+								class="form-input form-control" ng-model="plugin.name"
+								ng-trim="false" ng-maxlength=10 id="nameid" name="name" 
+								rpccheck ='pluginMgr/nameExist'
+								required>
+							<span class="input-group-addon help-addon" ng-messages="form1.name.$error"> 
+								<span ng-if="form1.name.$dirty">
+									<span ng-message="required">
+										<span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span>
+									</span>
+									<span ng-message="maxlength">
+										<span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxlen'|translate}}10"></span>
+									</span>
+									<span ng-message="checkpluginname">
+										<span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'pluginMgr.checkPluginName'|translate}}"></span>
+									</span>
+									<span ng-message="rpccheck">
+										<span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'pluginMgr.nameAlreadyExist'|translate}}"></span>
+									</span>
+								</span>
+							</span>
+						</div>
+					</div>
+				</div>
+				<!-- 显示名称 -->
+				<div class="form-group"
+					ng-class="{'has-error' : (form1.title.$invalid && form1.title.$dirty)}">
+					<label for="titleid" class="control-label"> 
+						<span translate="pluginMgr.title"></span>
+						<span style="color: red">*</span>
+					</label>
+					<div class="control-input">
+						<div class="input-group input-xlarge">
+							<input type="text" checkplugintitle
+								class="form-input form-control" ng-model="plugin.title"
+								ng-trim="false" ng-maxlength=45 id="titleid" name="title"
+								rpccheck ='pluginMgr/titleExist?title={{plugin.title}}&id=0'
+								required>
+	
+							<span class="input-group-addon help-addon" ng-messages="form1.title.$error"> 
+								 <span ng-if="form1.title.$dirty"> 
+								 	<span ng-message="required">
+								 		<span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span>
+									</span>
+									<span ng-message="maxlength">
+										<span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxlen'|translate}}45"></span>
+									</span> 
+									<span ng-message="checkplugintitle">
+										<span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'pluginMgr.checkPluginTitle'|translate}}"></span>
+									</span>
+									<span ng-message="rpccheck">
+										<span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'pluginMgr.titleAlreadyExist'|translate}}"></span>
+									</span>
+							</span>
+							</span>
+						</div>
+					</div>
+				</div>
+				<!-- 插件描述 -->
+				<div class="form-group"
+					ng-class="{'has-error' : (form1.desc.$invalid && form1.desc.$dirty)}">
+					<label for="inputdescription" class="control-label"><span
+						translate="pluginMgr.desc"></span><span style="color: red">&nbsp;</span></label>
+					<div class="control-input">
+						<div class="input-group input-xlarge">
+							<input type="text" ng-maxlength=256
+								class="form-input form-control" ng-trim="false"
+								ng-model="plugin.desc" id="inputdescription"
+								name="desc"> <span
+								class="input-group-addon help-addon"
+								ng-messages="form1.desc.$error"> <span
+								ng-if="form1.desc.$valid||!form1.desc.$dirty">
+									<span class="icon-occupying"></span>
+							</span> <span ng-if="form1.desc.$dirty"> <span
+									ng-message="maxlength"><span
+										class="fa fa-exclamation-triangle" tooltip-placement="right"
+										tooltip="{{'maxlen'|translate}}256"></span></span>
+							</span>
+							</span>
+						</div>
+					</div>
+				</div>
+				<!-- 版本 -->
+				<div class="form-group"
+					ng-class="{'has-error' : (form1.version.$invalid && form1.version.$dirty)}" ng-if="showVersion">
+					<label for="inputversion" class="control-label"><span
+						translate="pluginMgr.version"></span><span style="color: red">&nbsp;</span></label>
+					<div class="control-input">
+						<div class="input-group input-xlarge">
+							<input type="text" ng-maxlength=120
+								class="form-input form-control" ng-trim="false"
+								ng-model="plugin.version" id="inputversion"
+								name="description" ng-init="plugin.version='1.0'"> <span
+								class="input-group-addon help-addon"
+								ng-messages="form1.version.$error"> <span
+								ng-if="form1.version.$valid||!form1.version.$dirty">
+									<span class="icon-occupying"></span>
+							</span> <span ng-if="form1.version.$dirty"> <span
+									ng-message="maxlength"><span
+										class="fa fa-exclamation-triangle" tooltip-placement="right"
+										tooltip="{{'maxlen'|translate}}120"></span></span>
+							</span>
+							</span>
+						</div>
+					</div>
+				</div>
+				<!-- 立即启用-->
+				<div class="form-group">
+					<label for="autostart" class="switch-label"><span
+						translate="pluginMgr.autostart"></span></label>
+					<div class="control-input">
+						<div class="input-group">
+							<div toggle-switch class="switch-success"
+								ng-model="plugin.autostart"></div>
+						</div>
+					</div>
+				</div>
+				
+			</form>
+		</slide-form> 
+		<!-- 第二页  上传文件--> 
+		<slide-form valid="stepValids.stepTwoOver()"> 
+			<form name="form2" class="form-horizontal list-body" role="form" novalidate>
+                    <!-- 隐藏属性，用于js方法操作form是否显示 -->
+                    <input type="hidden" id="form2" value="{{form2.$valid}}">
+                    <div translate="pluginMgr.uploadPlugin" style="padding: 10px;background-color: #D9EDF7;border-radius: 5px;"></div>
+	        		<div id="i_select_files" style="height:200px;"></div>
+					<div id="i_stream_files_queue" style="height:200px;"></div>
+					<br>
+					<div id="streambtn" style='margin-top: -14px;margin-left:170px;'>
+						<button class=" btn btn-green" ng-click="upload()" translate="uploadfile.uploadisoUploadBtnTips"></button>
+						<button class=" btn btn-black" ng-click="stream.stop();" translate="uploadfile.uploadisoStopBtnTips"></button>
+						<button class=" btn btn-black" ng-click="stream.cancel();" translate="uploadfile.uploadisoCancelBtnTips"></button>
+					</div>
+                </form>
+		</slide-form> 
+
+		
+	</carousel-form>
+	</div>
+	<div ng-if="isFirstPage" class="detail-table col-md-4">
+		<table class="table table-striped">
+			<tr>
+				<td><h4 translate="configDetail"></h4></td>
+			</tr>
+			<tr>
+				<td><span translate="pluginMgr.name"></span></td>
+				<td custom-title shortcut cut-str="{{plugin.name}}">{{plugin.name}}</td>
+			</tr>
+			<tr>
+				<td><span translate="pluginMgr.title"></span></td>
+				<td custom-title shortcut cut-str="{{plugin.title}}">{{plugin.pluginTitle}}</td>
+			</tr>
+			<tr>
+				<td><span translate="pluginMgr.desc"></span></td>
+				<td custom-title shortcut cut-str="{{plugin.desc}}">{{plugin.desc}}</td>
+			</tr>
+			<tr>
+				<td><span translate="pluginMgr.autostart"></span></td>
+				<td>{{plugin.autostart |
+					radioLabel:'false':'pluginMgr.autostart.' }}</td>
+			</tr>
+		</table>
+	</div>
+	<div ng-if="!isFirstPage" class="detail-table col-md-4">
+        <h5 translate="uploadfile.uploadisoStatusTips" style="padding-left:10px;"></h5>
+        <div id="i_stream_message_container" class="stream-main-message-box" style="overflow: auto; height: calc(100% - 35px);"></div>
+    </div>
+</div>

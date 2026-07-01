@@ -1,0 +1,111 @@
+<div class="modal-header">
+<!-- 增加/修改告警阈值配置 -->
+    <button type="button" class="close" custom-title="{{::'common.close'|translate}}"  ng-click="cancel()">
+		<span class="icon-closenew"></span>
+	</button>
+    <button ng-if="type=='add'" type="button" class="close cornerhelp" custom-title="{{'help'|translate}}" ng-click="openHelp('alarm/addAlarmConfig')">
+        <span class="icon-helpnew"></span>
+    </button>
+    <button ng-if="type=='edit'" type="button" class="close cornerhelp" custom-title="{{'help'|translate}}" ng-click="openHelp('alarm/editAlarmConfig')">
+        <span class="icon-helpnew"></span>
+    </button>
+    <h4 class="modal-title" ng-bind="title"></h4>
+</div>
+<!-- 内容1:单form -->
+<div class="modal-body row">
+    <div class="form-horizontal col-md-8">
+        <carousel-form titles="stepTitles" cancel="ok()"> 
+            <!-- 第一步 -->
+            <slide-form valid="valids.stepOneOver()" active="slide.active" is-add="true"  tab-index="0">
+                <form name="form" class="form-horizontal" ng-keypress="enter($event)" role="form" novalidate>
+                    <!-- 隐藏属性，用于js方法操作form是否显示 -->
+                    <input type="hidden" id="addAlarmConfigForm" value="{{form.$valid}}">
+                    <!-- 云资源 -->
+		            <div class="form-group" ng-class="{'has-error': (form.cloudName.$invalid && form.cloudName.$dirty)}" >
+		                <label for="cloudName" class="control-label"><span translate="cloudResource.cloudResource"></span><span class="required">*</span></label>
+		                <div class="control-input">
+		                    <div class="input-group width260" ng-disable="type=='edit'" ng-click="selectPublicCloud()">
+		                        <input type="text" class="form-control selectInput" ng-readonly="true" ng-model="config.cloudName" id="cloudName" name="cloudName" required>
+	                            <span class="input-group-addon inner-addon middle-child-angle" style="cursor:pointer;"><span class="fa fa-search"></span></span>
+		                    </div>
+		                </div>
+		            </div>
+		            <!-- 邮件通知模板 -->
+                    <div class="form-group" ng-class="{'has-error': (form.emailTemplate.$dirty && form.emailTemplate.$invalid)}">
+                        <input type="hidden" id="emailTemplateId" value="">
+                        <label for="emailTemplate" class="control-label"><span translate="alarm.emailNoticeTemplate"></span></label>
+                            <div class="control-input">
+                                <div class="input-group width260">
+                                    <input type="text" class="form-control selectInput first-child-angle" ng-model="config.emailTemplateName" id="emailTemplate" name="emailTemplate" ng-click="selectEmailTemplate()" readonly>
+                                    <span class="input-group-addon inner-addon middle-child-angle" style="cursor:pointer;" ng-click="selectEmailTemplate()"><span class="fa fa-search" custom-title="{{'alarm.selectEmailTemplate'|translate}}"></span></span>
+                                    <span class="input-group-addon inner-addon last-child-angle" style="cursor:pointer;" ng-click="removeEmailTemplate()"><span class="icon-delete-gray" custom-title="{{'alarm.removeEmailTemplate'|translate}}"></span></span>
+                                    <span class="input-group-addon inner-addon last-child-angle" ng-if="(config.cloudId != null || config.cloudId != undefined) && (config.emailTemplateId != null || config.emailTemplateId != undefined)" 
+                                     style="cursor:pointer;" ng-click="testEmail()"><span class="icon-srm-faliover-gray" custom-title="{{'alarm.testEmail'|translate}}"></span></span>
+                                </div>
+                            </div>
+                    </div>
+		            <!-- 短信通知模板 -->
+                    <div class="form-group" ng-class="{'has-error': (form.messageTemplate.$dirty && form.messageTemplate.$invalid)}">
+                        <input type="hidden" id="messageTemplateId" value="">
+                        <label for="messageTemplate" class="control-label"><span translate="alarm.messageNoticeTemplate"></span></label>
+                            <div class="control-input">
+                                <div class="input-group width260">
+                                    <input type="text" class="form-control selectInput first-child-angle" ng-model="config.messageTemplateName" id="messageTemplate" name="messageTemplate" ng-click="selectMessageTemplate()" readonly>
+                                    <span class="input-group-addon inner-addon middle-child-angle" style="cursor:pointer;" ng-click="selectMessageTemplate()"><span class="fa fa-search" custom-title="{{'alarm.selectMessageTemplate'|translate}}"></span></span>
+                                    <span class="input-group-addon inner-addon last-child-angle" style="cursor:pointer;" ng-click="removeMessageTemplate()"><span class="icon-delete-gray" custom-title="{{'alarm.removeMessageTemplate'|translate}}"></span></span>
+                                    <span class="input-group-addon inner-addon last-child-angle" ng-if="(config.cloudId != null || config.cloudId != undefined) && (config.messageTemplateId != null || config.messageTemplateId != undefined)" 
+                                    style="cursor:pointer;" ng-click="testMessage()"><span class="icon-srm-faliover-gray" custom-title="{{'alarm.testMessage'|translate}}"></span></span>
+                                </div>
+                            </div>
+                    </div>
+                    <div class="form-group" ng-if="showEmailItem && showMessageItem">
+                        <label for="bindSameRes" class="switch-label">
+                            <span translate="alarm.bindSameRes"></span>
+                        </label>
+                        <div class="control-input">
+                             <div class="input-group">
+                                <div id="bindSameRes" toggle-switch  class="switch-success" ng-model="config.bindSameRes"></div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </slide-form>
+            <!-- 相同指标项 -->
+            <slide-form valid="valids.stepTwoOver()" is-add="config.bindSameRes" tab-index="1">
+                <div ng-controller="selectAlarmItemCtrl" ng-include="'html/modal/alarm/selectAlarmItem.html'"></div>
+            </slide-form>
+            <!-- 邮件指标项 -->
+            <slide-form valid="valids.stepThreeOver()" is-add="(showEmailItem && !config.bindSameRes) || (!showEmailItem && !showMessageItem)" tab-index="2">
+                <div ng-controller="selectAlarmItemCtrl" ng-include="'html/modal/alarm/selectAlarmItem.html'"></div>
+            </slide-form>
+            <!-- 短信指标项 -->
+            <slide-form valid="valids.stepFourOver()" is-add="showMessageItem && !config.bindSameRes" tab-index="3">
+                <div ng-controller="selectAlarmItemCtrl" ng-include="'html/modal/alarm/selectAlarmItem.html'"></div>
+            </slide-form>
+        </carousel-form>
+    </div>
+    <!-- 右侧确认信息 -->
+    <div class="detail-table col-md-4">
+        <table class="table table-striped">
+            <tr class="gray">
+                <td><h4 translate="configDetail"></h4></td><td></td>
+            </tr>
+            <tr class="white">
+                <td><span translate="cloudResource.cloudResource"></span></td>
+                <td><span custom-title shortcut cut-str="{{config.cloudName}}">{{model.cloudName}}</span></td>
+            </tr>
+            <tr class="gray">
+                <td><span translate="alarm.emailNoticeTemplate"></span></td>
+                <td><span custom-title shortcut cut-str="{{config.emailTemplateName}}">{{model.emailTemplateName}}</span></td>
+            </tr>
+            <tr class="white">
+                <td><span translate="alarm.messageNoticeTemplate"></span></td>
+                <td><span custom-title shortcut cut-str="{{config.messageTemplateName}}">{{model.messageTemplateName}}</span></td>
+            </tr>
+            <tr class="gray" ng-if="showEmailItem && showMessageItem">
+                <td><span translate="alarm.bindSameRes"></span></td>
+                <td><span ng-bind="config.bindSameRes?1:0 | yes"></span></td>
+            </tr>  
+        </table>
+    </div>
+</div>

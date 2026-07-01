@@ -1,0 +1,272 @@
+sVe	e
+Libvirt event loop implementation using asyncio
+Register the implementation of default loop:
+    >>> import libvirtaio
+    >>> libvirtaio.virEventRegisterAsyncIOImpl()
+.. seealso::
+    https://libvirt.org/html/libvirt-libvirt-event.html
+z,Wojtek Porczyk <woju@invisiblethingslab.com>z	LGPL-2.1+)
+getCurrentImpl
+virEventAsyncIOImpl
+virEventRegisterAsyncIOImpl
+ensure_future
+asyncc
+Callbackz
+Base class for holding callback
+    :param virEventAsyncIOImpl impl: the implementation in which we run
+    :param cb: the callback itself
+    :param opaque: the opaque tuple passed by libvirt
+    c
+super
+__init__
+next
+_iden_counter
+iden
+impl
+opaque)
+selfr
+args
+kwargs
+	__class__
+0/usr/lib64/python3.9/site-packages/libvirtaio.pyr
+Callback.__init__c
+<{} iden={}>)
+formatr
+__name__r
+__repr__I
+Callback.__repr__c
+Schedule *ff* callbackz"callback %d close(), scheduling ffN)
+debugr
+schedule_ff_callbackr
+closeL
+Callback.close)
+__module__
+__qualname__
+__doc__
+	itertools
+countr
+__classcell__r
+Descriptorz
+Manager of one file descriptor
+    :param virEventAsyncIOImpl impl: the implementation in which we run
+    :param int fd: the file descriptor
+    c
+	callbacks)
+Descriptor.__init__c
+Dispatch the event to the descriptors
+        :param int event: The event (from libvirt's constants) being dispatched
+        N)
+listr(
+values
+eventr
+callbackr
+_handle`
+Descriptor._handlec
+Register or unregister callbacks at event loop
+        This should be called after change of any ``.event`` in callbacks.
+        c
+libvirt
+VIR_EVENT_HANDLE_READABLE
+VIR_EVENT_HANDLE_WRITABLE
+.0r,
+	<genexpr>t
+z$Descriptor.update.<locals>.<genexpr>zTThe only event supported are VIR_EVENT_HANDLE_READABLE and VIR_EVENT_HANDLE_WRITABLEc
+anyr(
+warnings
+warn
+UserWarningr
+loopZ
+add_readerr'
+remove_readerZ
+add_writerr0
+remove_writerr
+updatei
+Descriptor.updatec
+Add a callback to the descriptor
+        :param FDCallback callback: the callback to add
+        :rtype: None
+        After adding the callback, it is immediately watched.
+        N)
+add_handle
+Descriptor.add_handlec
+Remove a callback from the descriptor
+        :param int iden: the identifier of the callback
+        :returns: the callback
+        :rtype: FDCallback
+        After removing the callback, the descriptor may be unwatched, if there
+        are no more handles for it.
+        )
+popr9
+remove_handle
+Descriptor.remove_handleN)	r
+DescriptorDictzdDescriptors collection
+    This is used internally by virEventAsyncIOImpl to hold descriptors.
+    c
+DescriptorDict.__init__c
+descriptorr
+__missing__
+DescriptorDict.__missing__)
+FDCallbackz
+Callback for file descriptor (watcher)
+    :param Descriptor descriptor: the descriptor manager
+    :param int event: bitset of events on which to fire the callback
+    c
+FDCallback.__init__c
+<{} iden={} fd={} event={}>)
+FDCallback.__repr__c
+z1Update the callback and fix descriptor's watchersN)
+FDCallback.update)
+TimeoutCallbackz
+Callback for timerc
+timeout
+_task)
+TimeoutCallback.__init__c
+<{} iden={} timeout={}>)
+TimeoutCallback.__repr__c
+zQAn actual timer running on the event loop.
+        This is a coroutine.
+        r
+MbP?z
+sleeping %rNz
+timer %d cancelledz
+timer %r callback ended)
+asyncio
+sleepZ
+CancelledErrorr
+_timer
+TimeoutCallback._timerc
+z-Start or the timer, possibly updating timeoutr
+timer %r start
+timer %r stop)
+cancelrG
+TimeoutCallback.updatec
+z#Stop the timer and call ff callbackrB
+TimeoutCallback.close)
+	coroutinerH
+Libvirt event adapter to asyncio.
+    :param loop: asyncio's event loop
+    If *loop* is not specified, the current (or default) event loop is used.
+    Nc
+get_event_loopr8
+descriptors
+loggingZ	getLoggerr
+_pending
+Event
+	_finished
+set)
+virEventAsyncIOImpl.__init__c
+Nz <{} callbacks={} descriptors={}>)
+typer
+virEventAsyncIOImpl.__repr__c
+z;Increase the count of pending affairs. Do not use directly.
+clearr
+_pending_inc
+z virEventAsyncIOImpl._pending_incc
+z;Decrease the count of pending affairs. Do not use directly.r
+_pending_dec!
+z virEventAsyncIOImpl._pending_decc
+z3Register this instance as event loop implementationz
+register())
+virEventRegisterImpl
+_add_handle
+_update_handle
+_remove_handle
+_add_timeout
+_update_timeout
+_remove_timeoutr
+register(
+virEventAsyncIOImpl.registerc
+z8Schedule a ff callback from one of the handles or timersrI
+_ff_callbackr8
+z(virEventAsyncIOImpl.schedule_ff_callbackc
+zFDirectly free the opaque object
+        This is a coroutine.
+        z ff_callback(iden=%d, opaque=...))
+virEventInvokeFreeCallbackrW
+retr
+z virEventAsyncIOImpl._ff_callbackc
+zRWait for the implementation to become idle.
+        This is a coroutine.
+        z
+drain()Nz
+drain ended)
+waitr
+drain@
+virEventAsyncIOImpl.drainc
+Returns False if there are leftovers from a connection
+        Those may happen if there are sematical problems while closing
+        a connection. For example, not deregistered events before .close().
+        )
+is_idleK
+virEventAsyncIOImpl.is_idlec
+Register a callback for monitoring file handle events
+        :param int fd: file descriptor to listen on
+        :param int event: bitset of events on which to fire the callback
+        :param cb: the callback to be called when an event occurrs
+        :param opaque: user data to pass to the callback
+        :rtype: int
+        :returns: handle watch number to be used for updating and unregistering for events
+        .. seealso::
+            https://libvirt.org/html/libvirt-libvirt-event.html#virEventAddHandleFuncFunc
+        )
+z4add_handle(fd=%d, event=%d, cb=..., opaque=...) = %d)
+virEventAsyncIOImpl._add_handlec
+Change event set for a monitored file handle
+        :param int watch: file descriptor watch to modify
+        :param int event: new events to listen on
+        .. seealso::
+            https://libvirt.org/html/libvirt-libvirt-event.html#virEventUpdateHandleFunc
+        z!update_handle(watch=%d, event=%d))
+watchr+
+z"virEventAsyncIOImpl._update_handlec
+Unregister a callback from a file handle.
+        :param int watch: file descriptor watch to stop listening on
+        :returns: None (see source for explanation)
+        .. seealso::
+            https://libvirt.org/html/libvirt-libvirt-event.html#virEventRemoveHandleFunc
+        z
+remove_handle(watch=%d)z#remove_handle(): no such handle: %rr
+KeyErrorZ
+warningr
+lenr
+errr'
+z"virEventAsyncIOImpl._remove_handlec
+Register a callback for a timer event
+        :param int timeout: the timeout to monitor
+        :param cb: the callback to call when timeout has expired
+        :param opaque: user data to pass to the callback
+        :rtype: int
+        :returns: a timer value
+        .. seealso::
+            https://libvirt.org/html/libvirt-libvirt-event.html#virEventAddTimeoutFunc
+        z0add_timeout(timeout=%d, cb=..., opaque=...) = %drK
+z virEventAsyncIOImpl._add_timeoutc
+Change frequency for a timer
+        :param int timer: the timer to modify
+        :param int timeout: the new timeout value in ms
+        .. seealso::
+            https://libvirt.org/html/libvirt-libvirt-event.html#virEventUpdateTimeoutFunc
+        z$update_timeout(timer=%d, timeout=%d)rK
+timerrC
+z#virEventAsyncIOImpl._update_timeoutc
+Unregister a callback for a timer
+        :param int timer: the timer to remove
+        :returns: None (see source for explanation)
+        .. seealso::
+            https://libvirt.org/html/libvirt-libvirt-event.html#virEventRemoveTimeoutFunc
+        z
+remove_timeout(timer=%d)N)
+z#virEventAsyncIOImpl._remove_timeout)
+z@Return the current implementation, or None if not yet registered)
+_current_implr
+Arrange for libvirt's callbacks to be dispatched via asyncio event loop
+    The implementation object is returned, but in normal usage it can safely be
+    discarded.
+    rI
+__author__Z
+__license__
+__all__rE
+getattrr
+objectr
+dictr=
+<module>

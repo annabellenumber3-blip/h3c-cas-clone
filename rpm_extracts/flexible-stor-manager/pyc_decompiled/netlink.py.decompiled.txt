@@ -1,0 +1,401 @@
+l	Z	d
+Z$e%
+Z(d d!
+Z)d"d#
+Z*d$d%
+Z+e"d&d'e
+d(e!f
+d,e f
+d-e f
+Z,e#d.d
+d/e,f
+d1e,f
+Z-e'G
+d2d3
+Z.e'G
+d4d5
+d6d7
+)8a1
+In general the format for requests is a netlink message header followed
+by a specific header(corresponding to type) followed by an attribute list.
+Here is a typical netlink message
+   0              1              2              3
+  +--------------+--------------+--------------+--------------+
+  |                    Total Message Length                   |
+  +--------------+--------------+--------------+--------------+
+  |             Type            |            Flags            |
+  +--------------+--------------+--------------+--------------+
+  |                      Sequence Number                      |
+  +--------------+--------------+--------------+--------------+
+  |                            PID                            |
+  +--------------+--------------+--------------+--------------+
+  |  Command ID  |    Version   |          RESERVED           |
+  +--------------+--------------+--------------+--------------+
+  |     Attribute Length        |        Attribute Type       |
+  +--------------+--------------+--------------+--------------+
+  |          ...  Attribute ... (Padded to 4 bytes)           |
+  +--------------+--------------+--------------+--------------+
+  |     Attribute Length        |        Attribute Type       |
+  +--------------+--------------+--------------+--------------+
+  |          ...  Attribute ... (Padded to 4 bytes)           |
+  +--------------+--------------+--------------+--------------+
+The thing that makes implementing this interesting is that the attribute
+types are very application specific and context sensitive.
+So, for this all to work, we must create attribute lists that know how to
+pack and unpack their values, and messages that know what type of attribute
+lists they have. This is accomplished with create_attr_list_type and
+create_genl_message_type.
+In some cases, some messages may not be supported when called from userland. In
+such case, provide a attribute list of None.
+Usage:
+    ListA = netlink.create_attr_list_type(
+        'ListA',
+        ('SOME_SHORT', netlink.U16Type),
+        ('SOME_STRING', netlink.NulStringType),
+    )
+    ListB = netlink.create_attr_list_type(
+        'ListB',
+        ('ANOTHER_STRING', netlink.NulStringType),
+        ('ANOTHER_SHORT', netlink.U16Type),
+        ('LIST_A', ListA),
+    )
+    Msg = netlink.create_genl_message_type(
+        'Msg', 'SPECIFIED_KERNEL_NAME',
+        ('COMMAND_1', ListA),
+        ('COMMAND_2', None),  # COMMAND_2 is not available via userland.
+        ('COMMAND_3', ListB),
+    )
+And at this point, you can begin sending and receiving `Msg`es to a netlink
+socket.
+    # assume that we send command_1 and get back a command_2
+    sock.send(Msg('command_1', attr_list=ListA(
+            another_string='foo', another_short=10)))
+    reply = sock.recv()[0]
+    reply.get_attr_list().get('some_short')  # is a short!
+execute_cmd
+Dummy function used in the code to find out if a default was set.
+    Using this function as a default allows to differenciate between a default
+    value of None and a default that was not set.
+    N
+ ./fsm/message/netlink/netlink.py
+_unseta
+MessageFlagsr
+selfr
+dummy_methodr
+MessageFlags.dummy_methodN)	
+__name__
+__module__
+__qualname__
+REQUEST
+MULTIZ
+ACKZ
+ECHO
+ACK_REQUESTr
+z-create_struct_fmt_type.<locals>.StructFmtTypec
+array
+struct
+pack
+fmtr
+z2create_struct_fmt_type.<locals>.StructFmtType.packc
+unpackr
+datar
+z4create_struct_fmt_type.<locals>.StructFmtType.unpackN)
+staticmethodr
+StructFmtTypev
+object)
+create_struct_fmt_typeu
+IgnoreTypec
+unused_valr
+IgnoreType.unpackN)
+NulStringTypezdEnsure the string is null terminated when packing and remove the trailing
+    
+ when unpacking.
+    c
+NulStringType.packc
+indexbytes
+decoder
+NulStringType.unpackN)
+__doc__r$
+Create a new attr_list_type which is a class offering get and set
+    methods which is capable of serializing and deserializing itself from
+    netlink message.
+    The fields are a bunch of tuples of name and a class which should provide
+    pack and unpack (except for in the case where we know it will be used
+    exclusively for serialization or deserialization).
+    The names and packers of the field should be taken from the appropriate
+    linux kernel header and source files.
+    attr_list_types can be used as packers in other attr_list_types.
+    r
+z+create_attr_list_type.<locals>.AttrListTypec
+attrs
+items
+set)
+kwargs
+valuer
+__init__
+z4create_attr_list_type.<locals>.AttrListType.__init__c
+isinstance
+upperr1
+indexr6
+name_to_indexr
+z/create_attr_list_type.<locals>.AttrListType.setc
+KeyErrorr
+defaultr<
+z/create_attr_list_type.<locals>.AttrListType.getc
+lower)
+Z	attr_dictr;
+index_to_namer
+get_attr_dict
+z9create_attr_list_type.<locals>.AttrListType.get_attr_dictc
+%s=%s)
+repr)
+.0r;
+<listcomp>
+zHcreate_attr_list_type.<locals>.AttrListType.__repr__.<locals>.<listcomp>z
+%s(%s)z
+join)
+class_namerC
+__repr__
+z4create_attr_list_type.<locals>.AttrListType.__repr__c
+lenZ	frombytesr
+encode)
+	attr_listZ
+packedr;
+attr_value
+attr_len)
+index_to_packerr
+z0create_attr_list_type.<locals>.AttrListType.packc
+AttrListTyperR
+z2create_attr_list_type.<locals>.AttrListType.unpackN)
+	enumerater:
+fields
+nameZ
+packerr;
+create_attr_list_type
+Create a new genl_message_type which is a class offering the appropriate
+    members and is capable of serializing and deserializing itself from
+    netlink protocol.
+    The fields are a bunch of tuples of command name and a packer class which
+    should provide pack and unpack (except for in the case where we know it
+    will be used exclusively for serialization or deserialization).
+    The packer class should always be an attr_list_type. The names and
+    attr_list packers of the field should be taken from the appropriate linux
+    kernel header and source files.
+    This method further registers the new message type using the
+    @message_class decorator, which allows us to serialize and deserialize
+    it from any appropriate netlink socket instance.
+    c
+z-create_genl_message_type.<locals>.MessageType
+required_modules
+	violationFr
+)	r8
+version
+flags
+seqr
+kls)
+cmd_to_index
+index_to_attr_list_typer
+z6create_genl_message_type.<locals>.MessageType.__init__c
+get_attr_list"
+z;create_genl_message_type.<locals>.MessageType.get_attr_listc
+typer;
+update)
+msg_dict
+attr)
+index_to_cmdr
+dump_msg%
+z6create_genl_message_type.<locals>.MessageType.dump_msgc
+Nz2%s(cmd=%s, attr_list=%s, version=0x%x, flags=0x%x))
+z6create_genl_message_type.<locals>.MessageType.__repr__c
+=BBxxr
+Unpack message %s)
+debug)
+MessageTyperb
+z4create_genl_message_type.<locals>.MessageType.unpackc
+extendrO
+stream)
+z2create_genl_message_type.<locals>.MessageType.packN)
+familyr@
+family_namer
+family_id_or_namerb
+message_classr&
+attr_list_typer
+create_genl_message_type
+":rw
+Nz#Message class %d is already definedc
+z!message_class.<locals>.<listcomp>z#Message class %s is already defined)
+__CMD_UNPACK_MAP
+__TO_LOOKUP_ON_INITr8
+add)
+	msg_classr
+Load dependent module %sZ
+modprobez#Load dependent module %s failed, %s
+/Message class %s and family id %d in unpack map)
+getattrrk
+	Exception
+warningr8
+resolve_familyrz
+infor
+clear)
+nlsockr}
+excr5
+setup_message_classesZ
+poprk
+	family_idr}
+rebuild_message_classk
+=IHHIIr
+unknown nl type %d in %sz
+unknown nl type)	r
+error
+RuntimeErrorr_
+length
+typr_
+deserialize_messagey
+	__class__rr
+port_idr`
+payload
+header
+outputr
+serialize_message
+CtrlAttrListZ	FAMILY_IDZ
+FAMILY_NAMEZ
+VERSIONZ
+HDRSIZEZ
+MAXATTRZ
+OPSZ
+MCAST_GROUPS
+CtrlMessageZ	NEWFAMILY)
+Z	DELFAMILYNZ	GETFAMILYc
+ErrorMessagezDOne of the standard message type: NLMSG_ERROR that define in RFC3549Fc
+ErrorMessage.__init__c
+ErrorMessage(error=%s, msg=%s))
+ErrorMessage.__repr__c
+%s: %sz
+%s. Extra info: %s)
+errno
+	errorcoder
+strerrorr>
+Z	error_strr
+__str__
+ErrorMessage.__str__c
+ErrorMessage.unpackc
+NotImplementedErrorr
+ErrorMessage.packc
+Error_messagerd
+ErrorMessage.dump_msgN)
+NLMSG_ERRORrr
+DoneMessagezCOne of the standard message type: NLMSG_DONE that define in RFC3549Fc
+DoneMessage.__init__c
+DoneMessage.unpackc
+DoneMessage.packc
+Done_messagerd
+DoneMessage.dump_msgN)
+NLMSG_DONErr
+NetlinkSocketz
+Generic netlink socketr
+        :param setup_msg_cls:  setup message class to deserialize
+        :async_recv:           use async I/O
+        r
+recv)
+async_recvi
+socketZ
+AF_NETLINKZ
+SOCK_DGRAM
+NETLINK_GENERIC
+sockr`
+	threading
+Lock
+lock
+verbose
+Queue
+buffer_queue
+pthreadr
+_recv
+_bindr
+setsockoptZ
+SOL_SOCKETZ	SO_RCVBUF)
+setup_msg_clsr
+NetlinkSocket.__init__c
+sendr
+_send
+NetlinkSocket._sendc
+z:Bind the socket and performs generic netlink proto lookup.c
+BaseException)
+argv
+kwargZ
+data_inr
+recv_plugin
+z(NetlinkSocket._bind.<locals>.recv_pluginz
+Netlink async cache)
+targetTz*Thread identifier %s for receiving netlinkN)
+getpidr
+groupsr
+bindr
+Thread
+_async_recvr
+	setDaemon
+startrk
+ident)
+NetlinkSocket._bindc
+closer
+NetlinkSocket.closec
+NZ	getfamily)
+queryr@
+replyr
+NetlinkSocket.resolve_familyc
+z]Recieve kernel event as various kinds of message objects
+        rather than string.
+        F
+Deserialize message fail, %sTN)
+appendr
+messagesZ
+updated_mappingr#
+recv_msg-
+NetlinkSocket.recv_msgc
+Query kernel config infoNz
+Netlink query failed: %s
+Sent Request: %s
+Recv Messages: %s)
+requestr
+messager
+NetlinkSocket.queryc
+z!Execute command and return resultNr
+Send nl message failed, %sz
+Netlink execute failed: %sr
+OSErrorr
+enor
+execute[
+NetlinkSocket.executec
+z"Received unexpected netlink event.z
+IO error when receving netlinkT)
+exc_infoz
+Receive netlink event failed)
+fileno
+select
+epoll
+registerZ
+EPOLLINZ
+EPOLLPRIZ
+pollr
+putrk
+IOErrorr
+unregisterr
+sockfdr
+events
+dummy_eventr#
+NetlinkSocket._async_recvN)
+FFT)
+)1r0
+loggingr
+queuer
+fsm.utils.os_utilsr
+Z	getLoggerr
+NLMSG_NOOPr
+NLMSG_OVERRUNZ
+NLMSG_MIN_TYPEr
+uint8_tZ
+uint16_tZ
+uint32_tZ
+int32_tZ
+uint64_tr)
+<module>

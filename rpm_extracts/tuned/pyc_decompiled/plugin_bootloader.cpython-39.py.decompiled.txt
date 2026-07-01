@@ -1,0 +1,527 @@
+m	Z	
+base)
+exceptions)
+commands)
+sleepc
+e	d[d
+d!d"
+d\d$d%
+d&d'
+d(d)
+d*d+
+d,d-
+d.d/
+d0d1
+d2d3
+d4d5
+d6d7
+d8d9
+Z d:d;
+Z!d<d=
+Z"d>d?
+Z#d@dA
+Z$e%dB
+dCdD
+Z&e%dE
+dFdG
+Z'e%dH
+dIdJ
+Z(e%dKd#dLdM
+dNdO
+Z)e%dPd#dLdM
+dQdR
+Z*e%dSd#dLdM
+dTdU
+Z+e%dVd#dLdM
+dWdX
+Z,dYdZ
+BootloaderPlugina
+	`bootloader`::
+	Adds options to the kernel command line. This plug-in supports the
+	GRUB 2 boot loader and the Boot Loader Specification (BLS).
+	NOTE: *TuneD* will not remove or replace kernel command line
+	parameters added via other methods like *grubby*. *TuneD* will manage
+	the kernel command line parameters added via *TuneD*. Please refer
+	to your platform bootloader documentation about how to identify and
+	manage kernel command line parameters set outside of *TuneD*.
+	Customized non-standard location of the GRUB 2 configuration file
+	can be specified by the [option]`grub2_cfg_file` option.
+	The kernel options are added to the current GRUB configuration and
+	its templates. Reboot the system for the kernel option to take effect.
+	Switching to another profile or manually stopping the `tuned`
+	service removes the additional options. If you shut down or reboot
+	the system, the kernel options persist in the [filename]`grub.cfg`
+	file and grub environment files.
+	The kernel options can be specified by the following syntax:
+	[subs="+quotes,+macros"]
+	----
+	cmdline__suffix__=__arg1__ __arg2__ ... __argN__
+	----
+	Or with an alternative, but equivalent syntax:
+	[subs="+quotes,+macros"]
+	----
+	cmdline__suffix__=+__arg1__ __arg2__ ... __argN__
+	----
+	Where __suffix__ can be arbitrary (even empty) alphanumeric
+	string which should be unique across all loaded profiles. It is
+	recommended to use the profile name as the __suffix__
+	(for example, [option]`cmdline_my_profile`). If there are multiple
+	[option]`cmdline` options with the same suffix, during the profile
+	load/merge the value which was assigned previously will be used. This
+	is the same behavior as any other plug-in options. The final kernel
+	command line is constructed by concatenating all the resulting
+	[option]`cmdline` options.
+	It is also possible to remove kernel options by the following syntax:
+	[subs="+quotes,+macros"]
+	----
+	cmdline__suffix__=-__arg1__ __arg2__ ... __argN__
+	----
+	Such kernel options will not be concatenated and thus removed during
+	the final kernel command line construction.
+	.Modifying the kernel command line
+	====
+	For example, to add the [option]`quiet` kernel option to a *TuneD*
+	profile, include the following lines in the [filename]`tuned.conf`
+	file:
+	----
+	[bootloader]
+	cmdline_my_profile=+quiet
+	----
+	An example of a custom profile `my_profile` that adds the
+	[option]`isolcpus=2` option to the kernel command line:
+	----
+	[bootloader]
+	cmdline_my_profile=isolcpus=2
+	----
+	An example of a custom profile `my_profile` that removes the
+	[option]`rhgb quiet` options from the kernel command line (if
+	previously added by *TuneD*):
+	----
+	[bootloader]
+	cmdline_my_profile=-rhgb quiet
+	----
+	====
+	.Modifying the kernel command line, example with inheritance
+	====
+	For example, to add the [option]`rhgb quiet` kernel options to a
+	*TuneD* profile `profile_1`:
+	----
+	[bootloader]
+	cmdline_profile_1=+rhgb quiet
+	----
+	In the child profile `profile_2` drop the [option]`quiet` option
+	from the kernel command line:
+	----
+	[main]
+	include=profile_1
+	[bootloader]
+	cmdline_profile_2=-quiet
+	----
+	The final kernel command line will be [option]`rhgb`. In case the same
+	[option]`cmdline` suffix as in the `profile_1` is used:
+	----
+	[main]
+	include=profile_1
+	[bootloader]
+	cmdline_profile_1=-quiet
+	----
+	It will result in the empty kernel command line because the merge
+	executes and the [option]`cmdline_profile_1` gets redefined to just
+	[option]`-quiet`. Thus there is nothing to remove in the final kernel
+	command line processing.
+	====
+	The [option]`initrd_add_img=IMAGE` adds an initrd overlay file
+	`IMAGE`. If the `IMAGE` file name begins with '/', the absolute path is
+	used. Otherwise, the current profile directory is used as the base
+	directory for the `IMAGE`.
+	The [option]`initrd_add_dir=DIR` creates an initrd image from the
+	directory `DIR` and adds the resulting image as an overlay.
+	If the `DIR` directory name begins with '/', the absolute path
+	is used. Otherwise, the current profile directory is used as the
+	base directory for the `DIR`.
+	The [option]`initrd_dst_img=PATHNAME` sets the name and location of
+	the resulting initrd image. Typically, it is not necessary to use this
+	option. By default, the location of initrd images is `/boot` and the
+	name of the image is taken as the basename of `IMAGE` or `DIR`. This can
+	be overridden by setting [option]`initrd_dst_img`.
+	The [option]`initrd_remove_dir=VALUE` removes the source directory
+	from which the initrd image was built if `VALUE` is true. Only 'y',
+	'yes', 't', 'true' and '1' (case insensitive) are accepted as true
+	values for this option. Other values are interpreted as false.
+	.Adding an overlay initrd image
+	====
+	----
+	[bootloader]
+	initrd_remove_dir=True
+	initrd_add_dir=/tmp/tuned-initrd.img
+	----
+	This creates an initrd image from the `/tmp/tuned-initrd.img` directory
+	and and then removes the `tuned-initrd.img` directory from `/tmp`.
+	====
+	The [option]`skip_grub_config=VALUE` does not change grub
+	configuration if `VALUE` is true. However, [option]`cmdline`
+	options are still processed, and the result is used to verify the current
+	cmdline. Only 'y', 'yes', 't', 'true' and '1' (case insensitive) are accepted
+	as true values for this option. Other values are interpreted as false.
+	.Do not change grub configuration
+	====
+	----
+	[bootloader]
+	skip_grub_config=True
+	cmdline=+systemd.cpu_affinity=1
+	----
+	====
+Nz4Required GRUB2 template not found, disabling plugin.)
+path
+isfile
+constsZ
+GRUB2_TUNED_TEMPLATE_PATHr
+NotSupportedPluginException
+superr
+__init__r
+_cmd)
+self
+args
+kwargs
+	__class__
+C/usr/lib/python3.9/site-packages/tuned/plugins/plugin_bootloader.pyr
+BootloaderPlugin.__init__c
+_has_dynamic_tuningZ
+_has_static_tuning
+update_grub2_cfg
+_skip_grub_config_val
+_initrd_remove_dir
+_initrd_dst_img_val
+_cmdline_val
+_initrd_val
+_get_grub2_cfg_files
+_grub2_cfg_file_names
+_bls_enabled
+_bls
+_rpm_ostree_status
+_rpm_ostree
+instancer
+_instance_init
+BootloaderPlugin._instance_initc
+_instance_cleanup
+z"BootloaderPlugin._instance_cleanupc
+grub2_cfg_file
+initrd_dst_img
+initrd_add_img
+initrd_add_dir
+initrd_remove_dir
+cmdline
+skip_grub_configr
+clsr
+_get_config_options
+z$BootloaderPlugin._get_config_optionsr
+		Returns dict created from options
+		e.g.: _options_to_dict("A=A A=B A B=A C=A", "A=B B=A B=B") returns {'A': ['A', None], 'C': ['A']}
+split
+setdefault
+append
+len)
+optionsZ
+omit
+arrr
+_options_to_dict
+z!BootloaderPlugin._options_to_dictc
+<listcomp>
+z5BootloaderPlugin._dict_to_options.<locals>.<listcomp>)
+join
+items)
+_dict_to_options
+z!BootloaderPlugin._dict_to_optionsc
+		Returns status of rpm-ostree transactions or None if not run on rpm-ostree system
+rpm-ostreeZ
+statusT
+return_errz.rpm-ostree status output stdout:
+stderr:
+State:z2Exceptional format of rpm-ostree status result:
+execute
+debugr3
+warn)
+errZ
+splitedr
+z#BootloaderPlugin._rpm_ostree_statusc
+idleTF)
+ranger"
+sleep_cyclesZ
+sleep_secs
+_wait_till_idle
+z BootloaderPlugin._wait_till_idlec
+}	|	D
+q~|	|
+		Method for appending or deleting rpm-ostree karg
+		returns None if rpm-ostree not present or is run on not ostree system
+		or tuple with new kargs, appended kargs and deleted kargs
+		rE
+kargsTrF
+z'rpm-ostree output stdout:
+stderr:
+NNNz
+Cannot wait for transaction endz)adding rpm-ostree kargs %s: %s for deletec
+z6BootloaderPlugin._rpm_ostree_kargs.<locals>.<listcomp>z2rpm-ostree kargs - appending: '%s'; deleting: '%s'c
+--append=%sr
+--delete=%sr
+z-Something went wrong with rpm-ostree kargs
+%sN)
+errorrD
+remove
+getr4
+extend
+info)
+deleterL
+deletedZ
+delete_params
+valr?
+appendedZ
+append_params
+_rpm_ostree_kargs
+z"BootloaderPlugin._rpm_ostree_kargsc
+r(|	
+zSMerge provided options with plugin default options and merge all cmdline.* options.r.
+z$Unknown option '%s' for plugin '%s'.r
+(\A|\s)z	(?=\Z|\s))
+copy
+startswithr5
+__name__
+stripr3
+escape
+sub)
+Z	effectiveZ
+cmdline_keys
+keyr.
+op1Z
+vals
+regexr
+_get_effective_options=
+z'BootloaderPlugin._get_effective_optionsc
+GRUB2_CFG_FILESr	
+existsr5
+Z	cfg_files
+z%BootloaderPlugin._get_grub2_cfg_filesc
+no_errorr
+cannot read '%s'Fz=^\s*GRUB_ENABLE_BLSCFG\s*=\s*\"?\s*[tT][rR][uU][eE]\s*\"?\s*$
+flags)
+	read_filer
+GRUB2_DEFAULT_ENV_FILEr6
+search
+	MULTILINE)
+grub2_default_envr
+BootloaderPlugin._bls_enabledc
+add_modify_option_in_filer
+BOOT_CMDLINE_FILE)
+_patch_bootcmdlineo
+z#BootloaderPlugin._patch_bootcmdlinec
+cannot find grub.cfg to patchz
+set\s+F)
+addz
+removing initrd image '%s')
+BOOT_CMDLINE_TUNED_VAR
+BOOT_CMDLINE_INITRD_ADD_VARr
+GRUB2_TUNED_VAR
+GRUB2_TUNED_INITRD_VARr
+unlink)
+_remove_grub2_tuningr
+z%BootloaderPlugin._remove_grub2_tuningc
+Nz	=\"(.*)\"rt
+BOOT_CMDLINE_KARGS_DELETED_VAR)
+_get_rpm_ostree_changes}
+z(BootloaderPlugin._get_rpm_ostree_changesc
+_remove_rpm_ostree_tuning
+z*BootloaderPlugin._remove_rpm_ostree_tuningFc
+Nz4removing rpm-ostree tuning previously added by Tunedz/removing grub2 tuning previously added by Tunedr
+tuned_paramsZ
+tuned_initrd)
+_update_grubenv)
+full_rollbackr
+_instance_unapply_static
+z)BootloaderPlugin._instance_unapply_staticc
+)	Nz
+unpatching grub.cfgz
+^\s*set\s+z
+\s*=.*
+ *\$
+\n+)
+GRUB2_TEMPLATE_HEADER_BEGIN
+GRUB2_TEMPLATE_HEADER_END)
+	grub2_cfg
+cfgr
+_grub2_cfg_unpatch
+z#BootloaderPlugin._grub2_cfg_unpatchc
+j	d	
+j	d	
+j	d	
+j	d	
+initial patching of grub.cfgz
+\1\n\n
+set z
+z+^(\s*###\s+END\s+[^#]+/00_header\s+### *)\nrt
+linuxZ
+initrdz
+^(\s*z
+(16|efi)?\s+.*)$z
+\1 $z
+(?:16|efi)?\s+\S+rescue.*)\$z
+ *(.*)$z
+\1\2z
+(?:16|efi)?\s+\S+rescue.*) +$
+optZ
+d2rQ
+_grub2_cfg_patch_initial
+z)BootloaderPlugin._grub2_cfg_patch_initialc
+rDd	}
+GRUB_CMDLINE_LINUX_DEFAULTZ
+GRUB_INITRD_OVERLAYz
+^[^#]*\bz
+\s*=.*\\\$z
+\b.*$rt
+="${z
+:+$z
+ }\$r
+patching '%s')
+write_to_file)
+writerQ
+_grub2_default_env_patch
+z)BootloaderPlugin._grub2_default_env_patchc
+Fzb^GRUB_CMDLINE_LINUX_DEFAULT=\"\$\{GRUB_CMDLINE_LINUX_DEFAULT:\+\$GRUB_CMDLINE_LINUX_DEFAULT \}\\\$z
+"$rt
+unpatching '%s')
+_grub2_default_env_unpatch
+z+BootloaderPlugin._grub2_default_env_unpatchc
+patching grub.cfgr~
+cannot patch %sz+adding boot command line parameters to '%s'z	\b(set\s+z
+\s*=).*$z
+\$T)
+subnrj
+findallr
+grub2_cfg_newZ
+patch_initialr
+nsubsr
+_grub2_cfg_patch
+z!BootloaderPlugin._grub2_cfg_patchc
+_cmdline_dictr8
+_rpm_ostree_update
+z#BootloaderPlugin._rpm_ostree_updatec
+_grub2_update
+BootloaderPlugin._grub2_updatec
+BLS_ENTRIES_PATHr
+_has_bls
+BootloaderPlugin._has_blsc
+)	Nz
+updating grubenv, setting %sc
+%s=%s)
+option
+valuer
+z4BootloaderPlugin._update_grubenv.<locals>.<listcomp>)
+grub2-editenvrc
+setr
+cannot update grubenv: '%s'FT)
+z BootloaderPlugin._update_grubenvc
+Fz4running kernel update hook '%s' to patch BLS entriesr
+KERNEL_INSTALL_MACHINE_ID)
+envr
+cannot patch BLS entries: '%s'T)
+get_machine_idrI
+KERNEL_UPDATE_HOOK_FILErH
+machine_idrL
+_bls_entries_patch_initial
+z+BootloaderPlugin._bls_entries_patch_initialc
+updating BLSr
+_bls_update
+BootloaderPlugin._bls_updatec
+BOOT_DIR
+basename)
+namer
+_init_initrd_dst_img"
+z%BootloaderPlugin._init_initrd_dst_imgc
+isdirr
+PETITBOOT_DETECT_DIRr
+_check_petitboot&
+z!BootloaderPlugin._check_petitbootc
+Nz:Detected rpm-ostree which doesn't support initrd overlays.FzkDetected Petitboot which doesn't support initrd overlays. The initrd overlay will be ignored by bootloader.z
+installing initrd image as '%s'T
+/proc/cmdline
+/z)^\s*BOOT_IMAGE=\s*(?:\([^)]*\))?(\S*/).*$r
+rstripr6
+imgZ
+img_nameZ
+curr_cmdlineZ
+initrd_grubpathZ
+_install_initrd)
+z BootloaderPlugin._install_initrdr)
+enablingr
+verify
+ignore_missingr
+_grub2_cfg_file>
+z BootloaderPlugin._grub2_cfg_filer*
+_initrd_dst_imgF
+z BootloaderPlugin._initrd_dst_imgr-
+get_boolr
+z#BootloaderPlugin._initrd_remove_dirr+
+per_deviceZ
+priorityc
+src_imgr
+_initrd_add_imgZ
+z BootloaderPlugin._initrd_add_imgr,
+FzFerror: cannot create initrd image, source directory '%s' doesn't existz+generating initrd image from directory '%s'z
+tuned-bootloader-z
+.tmp)
+prefix
+suffixz+writing initrd image to temporary file '%s'z
+find . | cpio -co > %sT)
+shellz
+cpio log: %sr
+error generating initrd imagerr
+removing directory '%s')
+tempfileZ
+mkstemprJ
+closer
+rmtree)
+src_dir
+tmpfilerL
+_initrd_add_dirg
+z BootloaderPlugin._initrd_add_dirr.
+}	|	|
+<dictcomp>
+z-BootloaderPlugin._cmdline.<locals>.<dictcomp>r2
+z2expected arguments that are present in cmdline: %sr;
+Fz;installing additional boot command line parameters to grub2)
+_variables
+expandr
+unquoter#
+STR_VERIFY_PROFILE_VALUE_OKre
+Z'STR_VERIFY_PROFILE_CMDLINE_FAIL_MISSINGZ
+STR_VERIFY_PROFILE_CMDLINE_FAILrB
+rpm_ostree_kargsr.
+cmdline_setZ	value_setZ
+missing_setZ
+cmdline_dict
+argZ
+present_setr
+_cmdline
+BootloaderPlugin._cmdliner/
+z(skipping any modification of grub configT)
+_skip_grub_config
+z"BootloaderPlugin._skip_grub_configc
+z0requested changes to initrd will not be applied!z1requested changes to cmdline will not be applied!F)
+_instance_post_static
+z&BootloaderPlugin._instance_post_static)
+F)/rg
+__module__
+__qualname__
+__doc__r
+classmethodr1
+staticmethodr:
+command_customr
+__classcell__r
+decoratorsZ
+tuned.logsZ
+tunedr
+tuned.utils.commandsr
+tuned.constsr
+timer
+logsrX
+Pluginr
+<module>

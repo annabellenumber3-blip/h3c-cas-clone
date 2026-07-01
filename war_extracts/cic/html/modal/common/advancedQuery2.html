@@ -1,0 +1,135 @@
+<!-- 虚拟机使用量报表明细高级查询弹出窗口 -->
+
+<!-- 标题 -->
+<div class="modal-header">
+    <button type="button" class="close" custom-title="{{::'common.close'|translate}}"  ng-click="cancel()">
+		<span class="icon-closenew"></span>
+	</button>
+    <h4 class="modal-title" translate="common.advancedQuery"></h4>
+</div>
+<!-- 内容 -->
+<div class="modal-body">
+    <div class="form-horizontal">
+        <form name="form" class="form-horizontal" ng-keypress="enter($event)" role="form" novalidate>
+            <!-- 组织 -->
+            <div class="form-group" ng-class="{'has-error': (form.organization.$invalid)}" ng-if="type != 'summary'">
+            	<label for="organization" class="control-label"><span translate="common.organization"></span><span style="color: red">&nbsp;</span></label>
+                <div class="input-group" style="width:299px">
+                    <div class="input-group width260" >
+                        <input id="organization" ng-readonly="true" name="organization"  class="form-control first-child-angle selectInput" type="text" ng-model="entry.orgName" ng-click="selectOrg()">
+                        <span class="input-group-addon inner-addon" ng-click="selectOrg()">
+                            <span class="icon-search-gray" type="button"></span>
+                        </span> 
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 虚拟机名称或显示名称 -->
+            <div class="form-group" ng-class="{'has-error': (form.title.$dirty && form.title.$invalid)}">
+               <label for="title" class="control-label"><span translate="common.displayName"></span><span style="color: red">&nbsp;</span></label>
+               <div class="control-input" >
+                    <div class="input-group input-xlarge">
+                        <input type="text"  ng-maxlength=64 class="form-input form-control" ng-model="entry.nameOrTitle"  ng-trim="false" id="title" name="title">
+                        <span class="input-group-addon help-addon" ng-messages="form.title.$error">
+                            <span ng-if="form.title.$valid||!form.title.$dirty">
+                                <span class="icon-occupying"></span>
+                            </span>
+                            <span ng-if="form.title.$dirty">
+                                <span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxlen'|translate}}64"></span></span>
+                            </span>
+                        </span>
+                    </div>
+                </div>   
+            </div>
+            
+            <!-- 分配方式：用户/用户分组 -->
+            <div class="form-group" style="margin-bottom:2px;" ng-if="type != 'summary'">
+             	<label class="control-label"><span translate="common.type"></span></label>
+                <div class="control-input">
+                    <!-- 用户 -->
+                    <div id="userId" cascheckbox class="cas-checkbox labeled-btn" ng-model="entry.type" value='user'>
+                        <input id="distr_type_user" name="distrTypeUser" type="radio" ng-checked="entry.type == 'user'">
+                        <div class="corner-label">
+                            <i class="glyphicon glyphicon-ok icon"></i>
+                        </div>
+                        <div class="box">
+                            <span class="box-name" translate="org.user"></span>
+                        </div>
+                    </div>
+                    <!-- 用户分组 -->
+                    <div id="userGrpId" cascheckbox class="cas-checkbox labeled-btn" ng-model="entry.type" value='userGrp'>
+                        <input id="distr_type_userGrp" name="distrTypeUserGrp" type="radio" ng-checked="entry.type == 'userGrp'">
+                        <div class="corner-label">
+                            <i class="glyphicon glyphicon-ok icon"></i>
+                        </div>
+                        <div class="box">
+                            <span class="box-name" translate="user.userGroup"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 选择用户(用户时显示) -->
+            <div class="form-group" ng-if="type != 'summary' && entry.type=='user'">
+	            <label for="user" class="control-label"><span translate="org.user"></span><span style="color:red">&nbsp;</span></label>
+	            <div class="control-input">
+	                <div class="input-group input-xlarge">
+	                	<div class="input-group width260" ng-click="selectUser()">
+	                    <input id="user" ng-readonly="true" name="user" class="form-control first-child-angle selectInput" type="text" ng-model="entry.userName" 
+	                    custom-title="{{entry.userName}}">
+	                    <span class="input-group-addon inner-addon">
+	                    	<span class="icon-search-gray" type="button" style="cursor:pointer;"></span>
+	                    </span>
+	                </div>
+	                <!-- <span class="input-group-addon inner-addon last-child-angle" style="cursor:pointer;" ng-click="deleteUser()"><span class="icon-delete-gray" custom-title="{{'user.deleteUser'|translate}}"></span></span> -->
+	                </div>
+	            </div>
+	        </div>
+            <!-- 选择用户分组(用户分组时显示) -->
+            <div class="form-group" ng-if="type != 'summary' && entry.type=='userGrp'">
+	            <label for="opertorGrp" class="control-label"><span translate="user.userGroup"></span><span style="color:red">&nbsp;</span></label>
+	            <div class="control-input">
+	                <div class="input-group input-xlarge">
+	                	<div class="input-group width260" ng-click="selectUserGrp()">
+	                    <input id="userGrp" ng-readonly="true" name="userGrp" class="form-control first-child-angle selectInput" type="text" ng-model="entry.userGrpName" custom-title="{{entry.userGrpName}}">
+	                    <span class="input-group-addon inner-addon">
+	                    	<span class="icon-search-gray" type="button" style="cursor:pointer;"></span>
+	                    </span>
+	                </div>
+	                <!-- <span class="input-group-addon inner-addon last-child-angle" style="cursor:pointer;" ng-click="deleteUserGrp()"><span class="icon-delete-gray" custom-title="{{'operator.deleteGrp'|translate}}"></span></span> -->
+	                </div>
+	            </div>
+	        </div>
+	                    
+            <!-- 开始时间（从） -->
+            <div class="form-group">
+                <label for="clearLog" class="control-label">
+                    <span translate="report.satrtTime"></span><span style="color: red">&nbsp;</span>
+                </label>
+                <div class="control-input">
+                    <div class="input-group date input-large"  date-cell="#satrtTimeInput" jes-date format="YYYY-MM-DD hh:mm:ss" picker-position="right" max-date="startMaxDate" ng-model="org.startTime" is-time="true">
+                        <input id="satrtTimeInput" class="form-input form-control selectInput first-child-angle calendar-input-img" type="text" readonly>
+                    </div>
+                </div>
+            </div>
+            <!-- 结束时间（至） -->
+            <div class="form-group">
+                <label for="clearLog" class="control-label">
+                    <span translate="report.endTime"></span><span style="color: red">&nbsp;</span>
+                </label>
+                <div class="control-input">
+                    <div class="input-group date input-large"  date-cell="#endTimeInput" jes-date format="YYYY-MM-DD hh:mm:ss" picker-position="right" min-date="endMinDate" max-date="endMaxDate" ng-model="org.endTime" is-time="true">
+                        <input id="endTimeInput" class="form-input form-control selectInput first-child-angle calendar-input-img" type="text" readonly>
+                    </div>
+                </div>
+            </div>
+            
+        </form>
+    </div>
+</div>
+<!-- 按钮栏 -->
+<div class="modal-footer">
+	<button id="resetId" class="btn btn-green" ng-click="reset()" translate="common.reset"></button>
+    <button id="okId" class="btn btn-green" ng-disabled="form.$invalid" ng-click="ok()" translate="common.confirm"></button>
+    <button class="btn btn-black" ng-click="cancel()" translate="common.cancel"></button>
+</div>

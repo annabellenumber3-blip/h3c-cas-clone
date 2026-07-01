@@ -1,0 +1,42 @@
+[Unit]
+Description= (Re)configure DRBD resource %I
+
+PartOf=drbd@%i.target
+
+# We really want the network to be online.
+# You may need to do one of
+# systemctl enable NetworkManager-wait-online.service
+# systemctl enable systemd-networkd-wait-online.service
+Wants=network-online.target sshd.service
+After=network-online.target nss-lookup.target sshd.service
+# If drbd-proxy is used, we want it to be running already.
+After=drbdproxy.service
+
+# This is not intended to be combined with pacemaker,
+# but if combined, it should be ordered before pacemaker.
+Before=pacemaker.service
+
+#
+# in an instantiation of this service,
+# you may want to add "BindsTo=/dev/vg/lv" and "After=" for all backing devices
+#
+# if this is on top of LVM,
+# you may want to: systemctl enable drbd-lvchange@%i.service
+#
+# if you mean to immediately use this device (auto-promote, or
+# mount via fstab x-systemd.requires=drbd@$resname.target),
+# you may want to: systemctl enable drbd-wait-promotable@%i.service
+# 
+
+[Service]
+SyslogIdentifier=drbd-%I
+Type=oneshot
+RemainAfterExit=yes
+
+# depends... do we want this as ExecCondition or as ExecStart
+# failed start is "failed", failed condition is just "not startable yet"
+ExecStart=/lib/drbd/scripts/drbd-service-shim.sh adjust %I
+ExecReload=/lib/drbd/scripts/drbd-service-shim.sh adjust %I
+
+# can only succeed, if you first stop all depending services
+ExecStopPost=/lib/drbd/scripts/drbd-service-shim.sh down %I

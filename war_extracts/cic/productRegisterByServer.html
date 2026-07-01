@@ -1,0 +1,242 @@
+<!-- 产品注册弹出窗口 -->
+<!-- 标题 -->
+<div class="modal-header">
+	<button type="button" class="close" data-dismiss="modal" ng-click="cancel()">
+		<span class="icon-closenew" custom-title="{{::'common.close'|translate}}"></span>
+	</button>
+	<h4 class="modal-title" translate="productRegisterByLicenseServer"></h4>
+</div>
+<!-- 步骤向导 -->
+<div class="modal-body row">
+	<div class="form-horizontal col-md-9">
+		<carousel-form titles="stepTitles" confirmclose="confirmClose" cancel="ok()">
+			<!-- 第一步	选择基本操作-->
+			<slide-form valid="valids.stepOneOver()" active="slide.active">
+				<div ng-if="editDisabled" translate="licenseServer.hasCvmTips" style="padding-left: 30px;color: red;">
+				</div>
+				<form name="form1" class="form-horizontal" role="form" novalidate>
+					<!-- 隐藏属性，用于js方法操作form是否显示 -->
+					<input type="hidden" id="form1" value="{{form1.$valid}}">
+					<!-- 请输入超级管理员（admin）的登录密码 -->
+					<div class="form-group" ng-class=" {'has-error': (form1.loginPwd.$dirty &&
+						form1.loginPwd.$invalid)}" ng-if="needCheckAdmin">
+						<label for="loginPwd" class="control-label xlarge en_xxlarge">
+							<span translate="inputAdminPwd"></span><span style="color: red">*</span>
+						</label>
+						<div class="control-input">
+							<div class="input-group input-xlarge">
+								<input type="password" ng-maxlength=32 class="form-input form-control"
+									ng-model="loginModel.loginPwd" ng-trim="false" id="loginPwd" name="loginPwd"
+									required>
+								<span class="input-group-addon help-addon" ng-messages="form1.loginPwd.$error"
+									ng-if="form1.loginPwd.$dirty">
+									<span ng-message="required"><span class="fa fa-exclamation-triangle"
+											tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+									<span ng-message="maxlength"><span class="fa fa-exclamation-triangle"
+											tooltip-placement="right" tooltip="{{'maxlen'|translate}}32"></span></span>
+								</span>
+							</div>
+						</div>
+					</div>
+					<!-- 授权服务IP地址  -->
+					<div class="form-group" ng-class=" {'has-error': (form1.ip.$dirty && form1.ip.$invalid)}">
+						<label for="licenseServerIP" class="control-label xlarge en_xxlarge">
+							<span translate="licenseServer.licenseServerIP"></span><span style="color: red">*</span>
+						</label>
+						<div class="control-input">
+							<div class="input-group input-xlarge">
+								<input type="text" ipv4-or-ipv6 ng-maxlength=130 class="form-input form-control" required
+									ng-disabled="editDisabled" ng-model="model.ip" ng-trim="false" id="licenseServerIP"
+									name="ip">
+								<span class="input-group-addon help-addon" ng-messages="form1.ip.$error"
+									ng-if="form1.ip.$dirty">
+									<span ng-message="required"><span class="fa fa-exclamation-triangle"
+											tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+									<span ng-message="maxlength"><span class="fa fa-exclamation-triangle"
+											tooltip-placement="right" tooltip="{{'maxlen'|translate}}130"></span></span>
+									<span ng-message="ip"><span class="fa fa-exclamation-triangle"
+											tooltip-placement="right" tooltip="{{'invalidip'|translate}}"></span></span>
+								</span>
+							</div>
+						</div>
+					</div>
+					<!-- 授权服务端口  -->
+					<div class="form-group" ng-class=" {'has-error': (form1.port.$dirty && form1.port.$invalid)}">
+						<label for="licenseServerPort" class="control-label xlarge en_xxlarge">
+							<span translate="licenseServer.licenseServerPort"></span><span style="color: red">*</span>
+						</label>
+						<div class="control-input">
+							<div class="input-group input-xlarge">
+								<input spinner spinner-min=1024 spinner-max=65535 class="spinner-only" required
+									ng-disabled="editDisabled" id="licenseServerPort" name="port" ng-model="model.port"
+									type="text" />
+								<span class="input-group-addon help-addon" ng-messages="form1.port.$error">
+									<span ng-if="form1.port.$dirty">
+										<span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right"
+												tooltip="{{'require'|translate}}"></span></span>
+										<span ng-message="int"><span class="fa fa-exclamation-triangle" tooltip-placement="right"
+												tooltip="{{'invalidint'|translate}}"></span></span>
+										<span ng-message="spinnerMax"><span class="fa fa-exclamation-triangle" tooltip-placement="right"
+												tooltip="{{'maxValueIs'|translate}}65535"></span></span>
+										<span ng-message="spinnerMin"><span class="fa fa-exclamation-triangle"
+												tooltip-placement="right"
+												tooltip="{{'minValueIs'|translate}}1024"></span></span>
+									</span>
+								</span>
+							</div>
+						</div>
+					</div>
+					<!-- 客户端名称  -->
+					<div class="form-group "
+						ng-class="{'has-error' : form1.username.$invalid && form1.username.$dirty}">
+						<label for="clientName" class="control-label xlarge en_xxlarge">
+							<span translate="licenseServer.clientName"></span><span style="color: red">*</span>
+						</label>
+						<div class="control-input">
+							<div class="input-group input-xlarge">
+								<input ng-trim="false" id="clientName" check-client-name ng-maxlength="32" name="username" required
+									ng-disabled="editDisabled" style="float:left" class="form-input form-control"
+									ng-model="model.username" type="text" />
+								<span class="input-group-addon help-addon" ng-messages="form1.username.$error">
+									<span ng-if="form1.username.$dirty">
+										<span ng-message="maxlength"><span class="fa fa-exclamation-triangle"
+												tooltip-placement="right"
+												tooltip="{{'maxlen'|translate}}32"></span></span>
+										<span ng-message="required"><span class="fa fa-exclamation-triangle"
+												tooltip-placement="right"
+												tooltip="{{'require'|translate}}"></span></span>
+										<span ng-message="clientName">
+											<span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'checkname6'|translate}}">
+											</span>
+										</span>
+									</span>
+								</span>
+							</div>
+						</div>
+					</div>
+					<!-- 客户端密码 -->
+					<div class="form-group" ng-class=" {'has-error': (form1.newPassword.$dirty &&
+						form1.newPassword.$invalid)}" ng-if="showClientPasswordInput||connectFormChanged||connectStatus === false">
+						<label for="clientPassword" class="control-label xlarge en_xxlarge">
+							<span translate="licenseServer.clientPassword"></span><span style="color: red">*</span>
+						</label>
+						<div class="control-input">
+							<div class="input-group input-xlarge">
+								<input type="password" ng-maxlength=32 class="form-input form-control"
+									ng-disabled="editDisabled" ng-model="model.newPassword" ng-trim="false"
+									id="clientPassword" name="newPassword" required>
+								<span class="input-group-addon help-addon" ng-messages="form1.newPassword.$error"
+									ng-if="form1.newPassword.$dirty">
+									<span ng-message="required"><span class="fa fa-exclamation-triangle"
+											tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+									<span ng-message="maxlength"><span class="fa fa-exclamation-triangle"
+											tooltip-placement="right" tooltip="{{'maxlen'|translate}}32"></span></span>
+								</span>
+							</div>
+						</div>
+					</div>
+				</form>
+				<div class="modal-page-action-box" style="margin-left: 178px; padding-bottom: 10px;">
+					<span ng-if="connectStatus === false" style="color: red;" translate="licenseServer.disconnectted">
+					</span>
+					<span ng-if="connectStatus === true" style="color: green;"
+						translate="licenseServer.connectted"></span>
+					<br />
+					<!-- <label ng-class="{'btn-forbidden' : noselected}" class="btn btn-green" ng-disabled="!form1.$valid"
+						ng-if="connectStatus === false" ng-click="connectLicenseServer()" style="line-height: 25px;">
+						<span translate="licenseServer.connect"></span>
+					</label>
+					<label ng-class="{'btn-forbidden' : noselected}" class="btn btn-green" ng-disabled="!form1.$valid"
+						ng-if="connectStatus === true" ng-click="stopConnectLicenseServer()" style="line-height: 25px;">
+						<span translate="licenseServer.stopConnect"></span>
+					</label> -->
+				</div>
+			</slide-form>
+			<!-- 第三步 授权虚拟机配置 -->
+			<slide-form valid="valids.stepTwoOver()" tab-index="1" is-add="true">
+				<nav class="navbar-default" role="navigation" ng-if="showSrmTable">
+					<div class="container-fluid">
+						<div class="btn-group navbar-left">
+							<span translate="licenseServer.srmProtectedVmLicense"></span>
+						</div>
+						<div class="btn-group navbar-right">
+							<span translate="licenseServer.vmNumberCanProtect"></span>：{{license.protectVmSum}}
+						</div>
+					</div>
+				</nav>
+				<div class="cas-list-body twoListWithLeadTwoNav-calc" ng-controller="chooseSrmVmLicenseCtrl"
+					ng-if="showSrmTable" style="min-height:150px">
+					<div id="chooseSrmVmLicenseDivId" ui-grid="gridOptions" ui-grid-save-state ui-grid-resize-columns
+						ui-grid-move-columns ui-grid-pagination ui-grid-selection ui-grid-auto-resize class="grid">
+					</div>
+				</div>
+				<nav class="navbar-default" role="navigation" ng-if="showCicTable">
+					<div class="container-fluid">
+						<div class="btn-group navbar-left">
+							<span translate="licenseServer.cicManageVmLicense"></span>
+						</div>
+						<!-- <div class="btn-group navbar-right">
+							<span translate="licenseServer.vmNumberCanManage"></span>：0
+						</div> -->
+					</div>
+				</nav>
+				<form name="form2" class="form-horizontal" role="form" novalidate>
+					<input type="hidden" id="form2" value="{{form2.$valid}}">
+					<div class="cas-list-body twoListWithLeadTwoNav-calc" ng-controller="chooseCicVmLicenseCtrl"
+						style="min-height:150px">
+						<div style="min-height:250px;height:100%" ng-grid="gridOptions"></div>
+					</div>
+				</form>
+			</slide-form>
+		</carousel-form>
+		<!-- import licesne file -->
+	</div>
+	<!-- 右侧确认信息 -->
+	<div class="detail-table col-md-3">
+		<table class="table table-striped">
+			<tbody>
+				<tr>
+					<td>
+						<h4 translate="configDetail"></h4>
+					</td>
+				</tr>
+				<tr>
+					<td><span translate="licenseServer.licenseServerIP"></span></td>
+					<td custom-title shortcut cut-str="{{model.ip}}">{{model.ip}}</td>
+				</tr>
+				<tr>
+					<td><span translate="licenseServer.licenseServerPort"></span></td>
+					<td custom-title shortcut cut-str="{{model.port}}">{{model.port}}</td>
+				</tr>
+				<!-- <tr ng-if="finalApplyLicense">
+					<td><span translate="licenseServer.version"></span></td>
+					<td custom-title shortcut cut-str="{{finalApplyLicense}}">
+						{{finalApplyLicense}}</td>
+				</tr>
+				<tr ng-if="finalApplyLicense">
+					<td><span translate="licenseServer.totalRequestCpuNumber"></span></td>
+					<td custom-title shortcut cut-str="{{finalApplyLicenseNumber}}">
+						{{finalApplyLicenseNumber}}</td>
+				</tr> -->
+				<!-- <tr ng-if="(srmLicenseArray.length>0)&&showSrmTable">
+					<td><span translate="licenseServer.totalRequestVmNumber"></span></td>
+					<td custom-title shortcut cut-str="{{srmLicenseArray[0].dbAmount}}">
+						{{srmLicenseArray[0].dbAmount}}</td>
+				</tr> -->
+				<tr ng-if="(cicLicenseArray.length>0)">
+					<td><span translate="licenseServer.totalRequestManageVmNumber"></span></td>
+					<td custom-title shortcut cut-str="{{cicLicenseArray[0].dbAmount}}">
+						{{cicLicenseArray[0].dbAmount}}</td>
+				</tr>
+				<!-- <tr>
+					<td><span translate="licenseServer.systemUsedCpuNumber"></span></td>
+					<td custom-title shortcut cut-str="0">0</td>
+				</tr>
+				<tr>
+					<td><span translate="licenseServer.systemUsedSRMNumber"></span></td>
+					<td custom-title shortcut cut-str="0">0</td>
+				</tr> -->
+			</tbody>
+		</table>
+	</div>
+</div>

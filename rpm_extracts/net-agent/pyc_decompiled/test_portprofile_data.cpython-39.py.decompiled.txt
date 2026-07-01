@@ -1,0 +1,135 @@
+Test port profile basic behaviour
+Utility)
+testbasec
+TestPortProfileDatac
+superr
+myinitZ
+_start_ovsZ
+_start_netagent)
+self
+	__class__
+E/usr/lib/python3.9/site-packages/na_tests/ft/test_portprofile_data.pyr
+TestPortProfileData.myinitc
+cd {test_dir}
+PRTNAME="6cecd756-a718-4ed6-9679-a19c38461d42_1"
+NETNAME="qos_test"
+get_portprofile() {{
+    cat <<EOF
+<portprofile name="$PRTNAME" type="compose">
+  <netprofile name="$NETNAME" type="qos" />
+</portprofile>
+na-ctl --retry=-1 portprofile define --content "$(get_portprofile)"
+if test $? -ne 0; then
+    exit 1
+ls portprofile > tmp.txt  # TODO: bad
+grep $PRTNAME.xml tmp.txt
+ret=$?
+if test $ret -ne 0; then
+    exit 2
+PRTNAME="errored_portprofile_test"
+get_errored_portprofile() {{  # intentionally to construct is an error netprofile
+    cat <<EOF
+<portprofile name="$PRTNAME" type="errorcompose">
+  <netprofile name="$NETNAME" type="errortype" />
+</portprofile>
+na-ctl portprofile define --content "$(get_errored_portprofile)"
+if test $? -eq 0; then  # expected failed, but if return status code is OK, then exit 
+    exit 2
+test_dirTr
+z1test add portprofile failed: shell return code:%d
+cmd_execute
+format
+	_test_dir
+assertEqual
+retr
+test_add_portprofile
+%z(TestPortProfileData.test_add_portprofilec
+cd {test_dir}
+PRTNAME="qos_test"
+na-ctl portprofile undefine "$PRTNAME"
+ls portprofile > tmp.txt  # TODO: bad
+grep $PRTNAME.xml tmp.txt
+ret=$?
+if test $ret -eq 0; then
+    exit 1
+NETFILENAME="qos_test_fake"
+if na-ctl portprofile undefine "$NETFILENAME"; then  # this is a faked netprofile, undefine should failed
+    exit 2  
+z1test del portprofile failed: shell return code:%d)
+test_del_portprofile:
+z(TestPortProfileData.test_del_portprofilec
+cd {test_dir}
+PRTNAME="6cecd756-a718-4ed6-9679-a19c38461d42_1"
+NETNAME="qos_test"
+get_portprofile() {{
+    cat <<EOF
+<portprofile name="$PRTNAME" type="compose">
+  <netprofile name="$NETNAME" type="qos" />
+</portprofile>
+na-ctl --retry=-1 portprofile define --content "$(get_portprofile)"
+if test $? -ne 0; then
+    exit 1
+# modified netprofile name in portprofile
+NETNAME="qos_test_mod"
+get_portfile_mod() {{
+    cat <<EOF
+<portprofile name="$PRTNAME" type="compose">
+  <netprofile name="$NETNAME" type="qos" />
+</portprofile>
+na-ctl portprofile define --content "$(get_portfile_mod)"
+if test $? -ne 0; then
+    exit 1
+get_portfile_mod > portfile_mod.xml
+if test diff --ignore-all-space portfile_mod.xml $PRTNAME.xml; then  # expected these two files are different
+    exit 2
+PRTNAME="errored_portfile"
+get_errored_portfile() {{  # intentionally to construct is an error netprofile
+    cat <<EOF
+<portprofile name="$PRTNAME" type="compose">
+  <netprofile name="$NETNAME" type="errorqos" />
+</portprofile>
+na-ctl portprofile define --content "$(get_errored_portfile)"
+if test $? -ne 0; then  # expected failed, but if return status code is OK, then exit 
+    exit 3
+z1test mod portprofile failed: shell return code:%dr
+test_mod_portprofileM
+1z(TestPortProfileData.test_mod_portprofilec
+cd {test_dir}
+PRTNAME="6cecd756-a718-4ed6-9679-a19c38461d42_1"
+NETNAME="qos_test"
+ADDR1=1.0.0.1
+get_portfile() {{
+    cat <<EOF
+<portprofile name="$PRTNAME" type="compose">
+  <netprofile name="$NETNAME" type="errorqos" />
+</portprofile>
+na-ctl --retry=-1 portprofile define --content "$(get_portfile)"
+if test $? -ne 0; then
+    exit 1
+na-ctl portprofile dump $NETFILENAME >portprofile_dumped.xml
+if test $? -ne 0; then
+    exit 7
+diff --ignore-all-space --ignore-blank-lines portprofile_dumped.xml "{test_dir}/portprofile/$PRTNAME.xml"
+if test $? -ne 0; then
+    exit 8
+# check the dump content
+listrt=$(na-ctl portprofile list)
+if test $? -ne 0; then
+    exit 2
+if X"$listrt" != X$PRTNAME; then
+    exit 3
+z+test view portprofile: shell return code:%dr
+test_view_portprofile
+"z)TestPortProfileData.test_view_portprofile)	
+__name__
+__module__
+__qualname__r
+__classcell__r
+__main__)
+__doc__Z
+unittestZ
+na_tests.common.utilityr
+na_tests.commonr
+TestCaseBaser
+mainr
+<module>

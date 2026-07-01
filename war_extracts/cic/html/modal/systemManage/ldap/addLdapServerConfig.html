@@ -1,0 +1,304 @@
+<!-- 增加ldap服务器配置弹出窗口 -->
+<div class="modal-header">
+    <button type="button" class="close" custom-title="{{::'common.close'|translate}}"  ng-click="cancel()">
+		<span class="icon-closenew"></span>
+	</button>
+	<button ng-if="mode=='add'" type="button" class="close cornerhelp"  custom-title="{{::'help'|translate}}" ng-click="openHelp('sysMgmt/ldap/ldapServer/addLdapServer')">
+		<span class="icon-helpnew"></span>
+	</button>
+	<button ng-if="mode!='add'" type="button" class="close cornerhelp"  custom-title="{{::'help'|translate}}" ng-click="openHelp('sysMgmt/ldap/ldapServer/modifyLdapServer')">
+		<span class="icon-helpnew"></span>
+	</button>
+	<h4 ng-if="mode=='add'" class="modal-title" translate="ldap.addLdapServerConfig"></h4>
+	<h4 ng-if="mode!='add'" class="modal-title" translate="ldap.editLdapServerConfig"></h4>
+</div>
+
+<div class="modal-body row">
+	<!-- 左侧输入框 -->
+	<div class="form-horizontal col-md-8" >
+		<carousel-form titles="stepTitles" cancel="ok()" >
+			<!-- 第一页 -->
+			<slide-form valid="valids.stepOneOver()" active="slide.active">
+				<form name="form1" class="form-horizontal" role="form" style="height:310px;" novalidate>
+				  <!-- 隐藏属性，用于js方法操作form是否显示 -->
+                   <input type="hidden" id="ldapServerConfigForm1" value="{{form1.$valid}}">
+				  <!-- 名称 -->
+				  <div class="form-group" ng-class="{'has-error': (form1.serverName.$dirty && form1.serverName.$invalid)}">
+                       <label for="serverName" class="control-label"><span translate="ldap.ldapServerName"></span><span style="color: red">*</span></label>
+                       <div class="control-input" >
+                            <div class="input-group input-xlarge">
+                                <input type="text" ng-readonly="mode!='add'" check-special-char rpccheck="ldap/isLdapServerNameExist"  ng-maxlength=32 class="form-input form-control" ng-model="server.serverName"  ng-trim="false" id="serverName" name="serverName" namekey="serverName" required>
+                                <span class="input-group-addon help-addon" ng-messages="form1.serverName.$error">
+                                    <span ng-if="form1.serverName.$valid||!form1.serverName.$dirty">
+                                        <span class="icon-occupying"></span>
+                                    </span>
+                                    <span ng-if="form1.serverName.$dirty">
+                                        <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+                                        <span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxlen'|translate}}32"></span></span>
+                                        <span ng-message="specialChar"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'checkname2'|translate}}"></span></span>
+                                        <span ng-message="rpccheck"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'ldap.serverNameExists'|translate}}"></span></span>
+                                    </span>
+                                </span>
+                            </div>
+                        </div>   
+                    </div>
+					  <!-- 服务器IP地址 -->
+                    <div class="form-group" ng-class="{'has-error': (form1.serverIp.$dirty && form1.serverIp.$invalid)}">
+                       <label for="serverIp" class="control-label"><span translate="ldap.serverIp"></span><span style="color: red">*</span></label>
+                       <div class="control-input">
+                            <div class="input-group input-xlarge">
+                                <input type="text" ng-readonly="mode=='view'" ip ng-maxlength=32 ng-disabled="getType()" class="form-input form-control" ng-model="server.serverIp"  ng-trim="false" id="serverIp" name="serverIp" required>
+                                <span class="input-group-addon help-addon" ng-messages="form1.serverIp.$error">
+                                    <span ng-if="form1.serverIp.$valid||!form1.serverIp.$dirty">
+                                        <span class="icon-occupying"></span>
+                                    </span>
+                                    <span ng-if="form1.serverIp.$dirty">
+                                        <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+                                        <span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxlen'|translate}}32"></span></span>
+                                        <span ng-message="ip"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'invalidip'|translate}}"></span></span>
+                                    </span>
+                                </span>
+                            </div>
+                        </div>   
+                    </div>
+					 <!-- 端口号 --> 
+                    <div class="form-group" ng-class="{'has-error' : (form1.serverPort.$dirty && form1.serverPort.$invalid)}">  
+                        <label for="serverPort" class="control-label">
+                            <span translate="ldap.serverPort"></span><span style="color:red">*</span>
+                        </label> 
+                        <div class="control-input">
+                            <div class="input-group width260">
+                                <input id="serverPort" name="serverPort" ng-disabled="mode=='view'" spinner spinner-max=65535 spinner-min=1  class="spinner-only" type="text" ng-model="server.serverPort" checkint required>
+                            	<span class="input-group-addon help-addon" ng-messages="form1.serverPort.$error">
+		                       		<span ng-if="form1.serverPort.$valid||!form1.serverPort.$dirty">
+		                           		<span class="icon-occupying"></span>
+		                       		</span>
+		                       		<span ng-if="form1.serverPort.$dirty">
+		                           		<span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+		                       			<span ng-message="int"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'invalidint'|translate}}"></span></span>
+		                       			<span ng-message="spinnerMax"><span class="fa fa-exclamation-triangle" tooltip="{{'maxValueIs'|translate}}65535"></span></span>
+				                        <span ng-message="spinnerMin"><span class="fa fa-exclamation-triangle" tooltip="{{'minValueIs'|translate}}1"></span></span>
+		                       		</span>
+		                   		</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                   <!-- 服务器类型 -->
+                    <div class="form-group">  
+                        <label for="serverType" class="control-label">
+                             <span translate="ldap.serverType"></span><span style="color:red">*</span>
+                        </label> 
+                        <div class="control-input">
+                           	<div class="input-group width260">
+		                        <select-input input-readonly="{{mode=='view'}}" options="serverTypeList.options" input-id="serverTypeSelect" input-name="serverTypeSelect" bind-model="server.serverType" required>
+		                        </select-input>
+		                    </div>
+                        </div>
+                    </div>
+                    
+                     <!-- 服务器版本-->
+                    <div class="form-group">  
+                        <label for="serverVersion" class="control-label">
+                             <span translate="ldap.authLdapVersion"></span><span style="color:red">*</span>
+                        </label> 
+                        <div class="control-input">
+                           	<div class="input-group width260">
+		                        <select-input input-readonly="{{mode=='view'}}" options="serverVersionList.options" input-id="serverVersionSelect" input-name="serverVersionSelect" bind-model="server.serverVersion" required>
+		                        </select-input>
+		                    </div>
+                        </div>
+                    </div>
+                    
+                     <!-- 连接超时时间 --> 
+                    <div class="form-group" ng-class="{'has-error' : (form1.connectionTimeout.$dirty && form1.connectionTimeout.$invalid)}">  
+                        <label for="connectionTimeout" class="control-label">
+                            <span translate="ldap.connectionTimeout"></span><span style="color:red">*</span>
+                        </label> 
+                        <div class="control-input">
+                            <div class="input-group input-xlarge">
+                                <input id="connectionTimeout" name="connectionTimeout" ng-disabled="mode=='view'" spinner spinner-max=86400 spinner-min=0 style="width:189px !important;" type="text" ng-model="server.connectionTimeout" checkint required>
+                            	<span translate="second" class="input-group-addon last-child-angle unit-addon" style="padding:6px 11px;border-left:0;"></span>
+                            	<span class="input-group-addon help-addon" ng-messages="form1.connectionTimeout.$error">
+		                       		<span ng-if="form1.connectionTimeout.$valid||!form1.connectionTimeout.$dirty">
+		                           		<span class="icon-occupying"></span>
+		                       		</span>
+		                       		<span ng-if="form1.connectionTimeout.$dirty">
+		                           		<span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+		                       			<span ng-message="int"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'invalidint'|translate}}"></span></span>
+		                       			<span ng-message="spinnerMax"><span class="fa fa-exclamation-triangle" tooltip="{{'maxValueIs'|translate}}86400"></span></span>
+				                        <span ng-message="spinnerMin"><span class="fa fa-exclamation-triangle" tooltip="{{'minValueIs'|translate}}0"></span></span>
+		                       		</span>
+		                   		</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                     <!-- 同步超时时间 --> 
+                    <div class="form-group" ng-class="{'has-error' : (form1.syncTimeout.$dirty && form1.syncTimeout.$invalid)}">  
+                        <label for="syncTimeout" class="control-label">
+                            <span translate="ldap.syncTimeout"></span><span style="color:red">*</span>
+                        </label> 
+                        <div class="control-input">
+                            <div class="input-group input-xlarge">
+                                <input id="syncTimeout" name="syncTimeout" ng-disabled="mode=='view'" spinner spinner-max=86400 spinner-min=0 style="width:189px !important;" type="text" ng-model="server.syncTimeout" checkint required>
+                            	<span translate="second" class="input-group-addon last-child-angle unit-addon" style="padding:6px 11px;border-left:0;"></span>
+                            	<span class="input-group-addon help-addon" ng-messages="form1.syncTimeout.$error">
+		                       		<span ng-if="form1.syncTimeout.$valid||!form1.syncTimeout.$dirty">
+		                           		<span class="icon-occupying"></span>
+		                       		</span>
+		                       		<span ng-if="form1.syncTimeout.$dirty">
+		                           		<span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+		                       			<span ng-message="int"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'invalidint'|translate}}"></span></span>
+		                       			<span ng-message="spinnerMax"><span class="fa fa-exclamation-triangle" tooltip="{{'maxValueIs'|translate}}86400"></span></span>
+				                        <span ng-message="spinnerMin"><span class="fa fa-exclamation-triangle" tooltip="{{'minValueIs'|translate}}0"></span></span>
+		                       		</span>
+		                   		</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+				</form>
+		</slide-form>
+			
+			<!-- 第二页 -->
+			<slide-form valid="valids.stepTwoOver()">
+				<form name="form2" style="padding-left:0px;height:310px;" class="form-horizontal" role="form"  novalidate>
+				<input type="hidden" id ="ldapServerConfigForm2" value="{{form2.$valid}}">
+				<!-- Base DN -->
+				  <div class="form-group" ng-class="{'has-error': (form2.baseDn.$dirty && form2.baseDn.$invalid)}">
+                       <label for="baseDn" class="control-label"><span translate="ldap.authLdapBaseDn"></span><span style="color: red">*</span></label>
+                       <div class="control-input" >
+                            <div class="input-group input-xlarge">
+                                <input type="text" ng-readonly="mode=='view'" rpccheck="ldap/isLdapServerAddressExist" ng-maxlength=128 class="form-input form-control" ng-model="server.baseDn"  ng-trim="false" id="baseDn" name="baseDn" required>
+                                <span class="input-group-addon help-addon" ng-messages="form2.baseDn.$error">
+                                    <span ng-if="form2.baseDn.$valid||!form2.baseDn.$dirty">
+                                        <span class="icon-occupying"></span>
+                                    </span>
+                                    <span ng-if="form2.baseDn.$dirty">
+                                        <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+                                        <span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxlen'|translate}}128"></span></span>
+                                        <span ng-message="rpccheck"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'ldap.ldapServerAddressExist'|translate}}"></span></span>
+                                    </span>
+                                </span>
+                            </div>
+                        </div>   
+                    </div>
+                 <!-- 管理员 DN -->
+				  <div class="form-group" ng-class="{'has-error': (form2.adminDn.$dirty && form2.adminDn.$invalid)}">
+                       <label for="adminDn" class="control-label"><span translate="ldap.authLdapAdminDn"></span><span style="color: red">*</span></label>
+                       <div class="control-input" >
+                            <div class="input-group input-xlarge">
+                                <input type="text" ng-readonly="mode=='view'"  ng-maxlength=128 class="form-input form-control" ng-model="server.adminDn"  ng-trim="false" id="adminDn" name="adminDn" required>
+                                <span class="input-group-addon help-addon" ng-messages="form2.adminDn.$error">
+                                    <span ng-if="form2.adminDn.$valid||!form2.adminDn.$dirty">
+                                        <span class="icon-occupying"></span>
+                                    </span>
+                                    <span ng-if="form2.adminDn.$dirty">
+                                        <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+                                        <span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxlen'|translate}}128"></span></span>
+                                    </span>
+                                </span>
+                            </div>
+                        </div>   
+                    </div>
+                  <!-- 管理员密码 -->
+				  <div class="form-group" ng-class="{'has-error': (form2.adminPwd.$dirty && form2.adminPwd.$invalid)}">
+                       <label for="ldapAdminPwd" class="control-label"><span translate="ldap.authLdapAdminPwd"></span><span style="color: red">*</span></label>
+                       <div class="control-input" >
+                            <div class="input-group input-xlarge">
+                            	<input type="text" style="display: none;"> 
+                                <input type="password" ng-readonly="mode=='view'" ng-maxlength=128 class="form-input form-control" ng-model="server.adminPwd"  ng-trim="false" id="ldapAdminPwd" name="adminPwd" required>
+                                <span class="input-group-addon help-addon" ng-messages="form2.adminPwd.$error">
+                                    <span ng-if="form2.adminPwd.$valid||!form2.adminPwd.$dirty">
+                                        <span class="icon-occupying"></span>
+                                    </span>
+                                    <span ng-if="form2.adminPwd.$dirty">
+                                        <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+                                        <span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxlen'|translate}}128"></span></span>
+                                    </span>
+                                </span>
+                            </div>
+                        </div>   
+                    </div>
+                    <!-- 用户名属性名称 -->
+				  <div class="form-group" ng-class="{'has-error': (form2.userNameAttrName.$dirty && form2.userNameAttrName.$invalid)}">
+                       <label for="userNameAttrName" class="control-label"><span translate="ldap.authLdapUserNameAttrName"></span><span style="color: red">*</span></label>
+                       <div class="control-input" >
+                            <div class="input-group input-xlarge">
+                                <input type="type" ng-readonly="mode=='view'" ng-maxlength=32 class="form-input form-control" ng-model="server.userNameAttrName"  ng-trim="false" id="userNameAttrName" name="userNameAttrName" required>
+                                <span class="input-group-addon help-addon" ng-messages="form2.userNameAttrName.$error">
+                                    <span ng-if="form2.userNameAttrName.$valid||!form2.userNameAttrName.$dirty">
+                                        <span class="icon-occupying"></span>
+                                    </span>
+                                    <span ng-if="form2.userNameAttrName.$dirty">
+                                        <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+                                        <span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxlen'|translate}}32"></span></span>
+                                    </span>
+                                </span>
+                            </div>
+                        </div>   
+                    </div>
+                    <div class="form-group" ng-if='mode!="view"'>
+						 <button class="btn btn-green" ng-click="connectTest()" ng-disabled="form2.$invalid" translate="ldap.connectTest"></button>                         
+                    </div>
+				</form>
+			</slide-form>
+		</carousel-form>
+	</div>
+	
+	<div class="detail-table col-md-4">
+		<table class="table table-striped">
+			<tr>
+                <td><h4 translate="configDetail"></h4></td>
+            </tr>
+			<tr>
+				<td ><span translate="ldap.ldapServerName"></span></td>
+				<td  custom-title shortcut cut-str="{{server.serverName}}">{{server.serverName}}</td>
+			</tr>
+			<tr>
+				<td ><span translate="ldap.serverIp"></span></td>
+				<td  custom-title shortcut cut-str="{{server.serverIp}}">{{server.serverIp}}</td>
+			</tr>
+			<tr>
+				<td ><span translate="ldap.serverPort"></span></td>
+				<td >{{server.serverPort}}</td>
+			</tr>
+			<tr>
+				<td ><span translate="ldap.serverType"></span></td>
+				<td >{{server.serverType | selectLabel:'1':serverTypeList.options}}</td>
+			</tr>
+			<tr>
+				<td ><span translate="ldap.authLdapVersion"></span></td>
+				<td >{{server.serverVersion | selectLabel:'2':serverVersionList.options}}</td>
+			</tr>
+			<tr>
+				<td ><span translate="ldap.connectionTimeout"></span></td>
+				<td >{{server.connectionTimeout}}</td>
+			</tr>
+			
+			<tr>
+				<td ><span translate="ldap.syncTimeout"></span></td>
+				<td  custom-title shortcut cut-str="{{server.syncTimeout}}">{{server.syncTimeout}}</td>
+			</tr>
+			<tr>
+				<td ><span translate="ldap.authLdapBaseDn"></span></td>
+				<td  custom-title shortcut cut-str="{{server.baseDn}}">{{server.baseDn}}</td>
+			</tr>
+			<tr>
+				<td ><span translate="ldap.authLdapAdminDn"></span></td>
+				<td  custom-title shortcut cut-str="{{server.adminDn}}">{{server.adminDn}}</td>
+			</tr>
+			<tr>
+				<td ><span translate="ldap.authLdapUserNameAttrName"></span></td>
+				<td  custom-title shortcut cut-str="{{server.userNameAttrName}}">{{server.userNameAttrName}}</td>
+			</tr>
+			
+		</table>
+	</div>
+	
+	
+	
+	
+	
+</div>

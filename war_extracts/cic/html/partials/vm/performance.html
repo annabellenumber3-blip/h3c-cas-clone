@@ -1,0 +1,125 @@
+<div id="vmPerformance" style="width:100%;height:100%;overflow-y:auto;overflow-x:hidden;padding:10px;" ng-controller="VmPerformanceCtrl">
+	<div class="row performanceRow">
+		<!-- CPU利用率-->
+		<div class="square-47" style="width:50%;margin-left:0px;">
+			<div class="title" style="padding-left:15px;">
+				<h5 translate="board.cpuInfo"></h5>
+				<div class="edit_more_perf_data more-options Icon_more_actions Icon_common_display" ng-click="openMore('cpu')" custom-title="{{'more'|translate}}">
+                </div>
+			</div>
+			<div line-chart chart-name={{vmName}} url="{{cpuRateUrl}}" hide-legend=true color-index=4
+				 style='width: 100%; height: 240px;' id="vmCpuRateChart">
+				<div class="altStyle" style="padding-left:294px;padding-top:91.5px;" translate="common.noData"></div>
+			</div>
+		</div>
+		<!-- 内存利用率-->
+		<div class="square-48"  style="margin-left:10px;">
+			<div class="title" style="padding-left:15px;">
+				<h5 translate="board.memInfo"></h5>
+				<div class="edit_more_perf_data more-options Icon_more_actions Icon_common_display" ng-click="openMore('mem')" custom-title="{{'more'|translate}}">
+                </div>
+			</div>
+			<div line-chart chart-name={{vmName}} url="{{memRateUrl}}" hide-legend=true
+			     style='width: 100%; height: 240px;' id="vmMemoryChart">
+				<div class="altStyle" style="padding-left:294px;padding-top:91.5px;" translate="common.noData"></div>
+			</div>
+		</div>
+	</div>
+	<!-- 第二行 -->
+	<div class="row performanceRow">
+		<!-- IO吞吐量统计-->
+		<div class="square-47" style="width:50%;margin-left:0px;">
+			<div class="title" style="padding-left:15px;">
+				<h5 translate="board.ioInfoTitle"></h5>
+				<div class="edit_more_perf_data more-options Icon_more_actions Icon_common_display" ng-click="openMore('io')" custom-title="{{'more'|translate}}">
+                </div>
+			</div>
+			<div line-chart url="{{ioUrl}}" y-axis="value" 
+				 style='width: 100%; height: 240px;' id="io">
+				<div class="altStyle" style="padding-left:294px;padding-top:91.5px;" translate="common.noData"></div>
+			</div>
+		</div>
+		<!-- 网络吞吐量-->
+		<div class="square-48" style="margin-left:10px;">
+			<div class="title" style="padding-left:15px;">
+				<h5 translate="board.netInfoTitle"></h5>
+				<div class="edit_more_perf_data more-options Icon_more_actions Icon_common_display" ng-click="openMore('net')" custom-title="{{'more'|translate}}">
+                </div>
+			</div>
+			<div line-chart url="{{netUrl}}" y-axis="value" max-legend=8
+				 style='width: 100%; height: 240px;' id="net">
+				<div class="altStyle" style="padding-left:294px;padding-top:91.5px;" translate="common.noData"></div>
+			</div>
+		</div>
+	</div>
+	<div class="row performanceRow">
+		<!-- 磁盘IO延迟-->
+		<div class="square-47" style="width:50%;margin-left:0px;height:280px;">
+			<div style="float:right;width:120px;margin-right:28px;margin-top:10px;" ng-if="iopsDisks.length != 0">
+				<select-input options="ioDelayDisks" input-id="devSelectIOPS" input-name="devSelectForIOPS"  bind-model="ioDelay.currentDisk"></select-input>
+			</div>
+			<div class="title" style="padding-left:15px;">
+				<h5 translate="board.diskIODelay"></h5>
+				<div class="edit_more_perf_data more-options Icon_more_actions Icon_common_display" ng-click="openMore('diskLatency')" custom-title="{{'more'|translate}}">
+                </div>
+			</div>
+			<div line-rw-chart url="{{ioDelayUrl}}" current-view="ioDelay.currentDisk" views="ioDelayDisks"
+				 style='width: 100%; height: 240px;float:left;' id="vmIoDelay">
+				<div class="altStyle" style="padding-left:294px;padding-top:91.5px;" translate="common.noData"></div>
+			</div>
+		</div>
+		<!-- 磁盘请求-->
+		<div class="square-48" style="margin-left:10px;height:280px;">
+			<div style="float:right;width:120px;margin-right:28px;margin-top:10px;" ng-if="iopsDisks.length != 0">
+				<select-input options="iopsDisks" input-id="devSelectIOPS" input-name="devSelectForIOPS"  bind-model="iops.currentDisk"></select-input>
+			</div>
+			<div class="title" style="padding-left:15px;">
+				<h5 translate="board.diskIOPSTitle"></h5>
+				<div class="edit_more_perf_data more-options Icon_more_actions Icon_common_display" ng-click="openMore('iops')" custom-title="{{'more'|translate}}">
+                </div>
+			</div>
+			<div line-rw-chart url="{{diskIOPSUrl}}" current-view="iops.currentDisk" views="iopsDisks"
+				 style='width: 100%; height: 240px;float:left' id="vmDiskRequestChart">
+				<div class="altStyle" style="padding-left:294px;padding-top:91.5px;" translate="common.noData"></div>
+			</div>
+		</div>
+	</div>
+	<!-- 第四行 -->
+	<div class="row performanceRow">
+		<!-- CPU使用情况-->
+		<div class="square-47" style="width:50%;margin-left:0px;height:280px;">
+			<div class="title" style="padding-left:15px;">
+				<h5 translate="board.cpuUsedInfo"></h5>
+				<div class="edit_more_perf_data more-options Icon_more_actions Icon_common_display" ng-click="openMore('cpu_usage')" custom-title="{{'more'|translate}}">
+                </div>
+			</div>
+			<div line-chart chart-name={{vmName}} url="{{cpuUsedUrl}}" y-axis="value" hide-legend=true color-index=4 grid-y2=67
+			 	 style='width: 100%; height: 240px;' id="vmCpuUseChart">
+				<div class="altStyle" style="padding-left:294px;padding-top:91.5px;" translate="common.noData"></div>
+			</div>
+		</div>
+		<!-- 磁盘利用率-->
+		<div class="square-48" style='margin-left: 10px;height:280px;'>
+			<div class="title" style="padding-left:15px;">
+				<h5 translate="board.diskUseRate"></h5>
+				<div class="edit_more_perf_data more-options Icon_more_actions Icon_common_display" ng-click="openMore('disk')" custom-title="{{'more'|translate}}">
+                </div>
+			</div>
+			<div line-chart url="{{diskUseRateUrl}}" 
+				 style='width: 100%; height: 240px;float:left;' id="vmDiskUse">
+				<div class="altStyle" style="padding-left:294px;padding-top:91.5px;" translate="common.noData"></div>	 
+			</div>
+		</div>
+	</div>
+	<!-- 分区占用率 -->
+	<div class="row performanceRow" style='margin-bottom:5px'>
+		<div class="square-47" style="width:50%;margin-left:0px;height:280px;">
+			<div class="title" style="padding-left:15px;">
+				<h5 translate="board.partitionUseage"></h5>
+			</div>
+			<div style='height:240px;float:left;padding:10px;width:100%;' id="vmDiskPartitionList" ng-controller="vmDiskPartitionListCtrl">
+				<div class="table performanceTable"   ng-grid="gridOptions"></div>
+			</div>
+		</div>
+	</div>
+</div>

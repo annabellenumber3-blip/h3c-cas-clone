@@ -1,0 +1,390 @@
+<!-- 增加操作员弹出窗口 -->
+
+<!-- 标题 -->
+<div class="modal-header">
+    <button type="button" class="close" custom-title="{{::'common.close'|translate}}"  ng-click="cancel()">
+		<span class="icon-closenew"></span>
+	</button>
+    <button ng-if="type=='add'" type="button" class="close cornerhelp" custom-title="{{'help'|translate}}" ng-click="openHelp('sysMgmt/operator/addOperator')">
+		<span class="icon-helpnew"></span>
+	</button>
+    <button ng-if="type=='modify'" type="button" class="close cornerhelp" custom-title="{{'help'|translate}}" ng-click="openHelp('sysMgmt/operator/modifyOperator')">
+		<span class="icon-helpnew"></span>
+	</button>
+    <button ng-if="type=='view'" type="button" class="close cornerhelp" custom-title="{{'help'|translate}}" ng-click="openHelp('sysMgmt/operator/viewOperatorDetail')">
+		<span class="icon-helpnew"></span>
+	</button>
+    <h4 class="modal-title" ng-bind="title"></h4>
+</div>
+<!-- 内容1:单form -->
+<div class="modal-body row" id="addOperatorForm">
+    <div class="form-horizontal col-md-8">
+	    <carousel-form titles="guidStep" cancel="ok()"> 
+	        <!-- 第一步 -->
+	        <slide-form valid="valids.stepOneOver()" active="slide.active">
+		        <form name="form1" class="form-horizontal" ng-keypress="enter($event)" role="form" novalidate style="overflow-y:auto; overflow-x:hidden;"ng-style="{'height':(type=='modify'||type=='view'||isUsbKeyAuth)?(type=='view'||isUsbKeyAuth?'400px':(entry.authType==1?'445px':(isNeedOldPwd?'445px':'490px'))):(entry.authType==1?'445px':'490px')}" >
+			        <!-- 隐藏属性，用于js方法操作form是否显示 -->
+                    <input type="hidden" id="form1" value="{{form1.$valid}}">
+			        <!-- 登录名 -->
+			        <div class="form-group" ng-class="{'has-error': (form1.loginName.$dirty && form1.loginName.$invalid)}">
+			            <label for="loginName" class="control-label"><span translate="common.loginName"></span><span style="color: red">*</span></label>
+			            <div class="control-input" >
+			                 <div class="input-group input-xlarge" style="position:static">
+			                     <input id="addOperator_1" type="text" rpccheck="operator/existLoginName" ng-disabled="securityMode == 1 && type=='modify'" ng-readonly="isShowOnly() || modefyAdmin" checkname ng-maxlength=128 class="form-input form-control" ng-model="entry.loginName"  ng-trim="false" id="loginName" name="loginName" required>
+			                     <span class="input-group-addon help-addon" ng-messages="form1.loginName.$error">
+			                         <span ng-if="form1.loginName.$valid||!form1.loginName.$dirty">
+			                             <span class="icon-help-gray" tooltip-placement="right" tooltip="{{'operator.operatorLoginTip' | translate}}"></span>
+			                         </span>
+			                         <span ng-if="form1.loginName.$dirty">
+			                             <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+			                             <span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxlen'|translate}}128"></span></span>
+			                             <span ng-message="checkname"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'checkname'|translate}}"></span></span>
+			                             <span ng-message="rpccheck"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'operator.existLoginName'|translate}}"></span></span>
+			                         </span>
+			                     </span>
+			                 </div>
+			             </div>   
+			        </div>
+			        <!-- 认证方式 -->
+			        <div class="form-group">
+			            <label for="authMode" class="control-label"><span translate="operator.authMode"></span><span style="color:red">&nbsp;</span></label>
+			            <div class="control-input">
+			                <div class="input-group width300">
+			                    <select-input class="" ng-if="!isUsbKeyAuth" options="authMode.options" input-readonly="{{isShowOnly()}}" bind-model="entry.authType" input-id="addOperator_2" input-name="authMode">
+			                    </select-input>
+			                    <select-input ng-if="isUsbKeyAuth" class="" options="authModeUsbkey.options" input-readonly="true" bind-model="entry.authType" input-id="addOperator_2" input-name="authMode">
+			                    </select-input>
+			                    <span class="input-group-addon help-addon">
+			                        <span class="icon-occupying"></span>
+			                    </span>
+			                </div>
+			            </div>
+			        </div>
+			        
+			        
+			         <!-- ldap服务器 -->
+			        <div ng-if="entry.authType==1" class="form-group">
+			            <label for="ldapServerId" class="control-label"><span translate="ldap.serverName"></span><span style="color:red">*</span></label>
+			            <div class="control-input">
+			                <div class="input-group width300" style="position:static">
+			                    <select-input input-id="ldapServerId" input-readonly="{{isShowOnly()}}" options="ldapServer.options" bind-model="entry.ldapServerId" input-name="ldapServer" required>
+			                    </select-input>
+			                    <span class="input-group-addon help-addon"  ng-messages="form1.ldapServer.$error">
+			                        <span ng-if="form1.ldapServer.$valid||!form1.ldapServer.$dirty">
+			                             <span class="icon-occupying"></span>
+			                        </span>
+			                        <span ng-if="form1.ldapServer.$dirty">
+			                             <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+			                        </span>
+			                    </span>
+			                </div>
+			            </div>
+			        </div>
+			        
+			        
+			        <!-- 登录密码 -->
+			        <div ng-if="!isShowOnly() && entry.authType==0 && (type=='add' || (type=='modify' && !isNeedOldPwd))" class="form-group" ng-class="{'has-error': (type=='modify' ? form1.pwd.$invalid : form1.pwd.$dirty && form1.pwd.$invalid)}">
+			            <label for="inputpwd" class="control-label"><span translate="password"></span><span style="color: red">*</span></label>
+			            <div class="control-input">
+			                <div class="input-group input-xlarge" style="position:static">
+			                    <input id="addOperator_3" pwd-complexity-check complex-type='pwdConf.complex' ng-minlength={{pwdConf.pwdMinlen}} type="password" ng-readonly="isShowOnly()" placeholder="{{'pwdInput'|translate}}" ng-maxlength=32 class="form-input form-control" ng-model="entry.password" ng-trim="false" name="pwd" required>
+			                    <span class="input-group-addon help-addon"  ng-messages="form1.pwd.$error">
+			                        <span  ng-if="type=='modify' ? form1.pwd.$error : form1.pwd.$dirty">
+			                             <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+			                             <span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxlen'|translate}}32"></span></span>
+			                        	 <span ng-message="minlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'minlen'|translate}}{{pwdConf.pwdMinlen}}"></span></span>
+                                         <span ng-message="pwdComplexityCheck"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{getPwdCheckMsg(pwdConf.complex)}}"></span></span>
+			                        </span>
+			                    </span>
+			                </div>
+			            </div>
+			        </div>
+			        <!-- 确认密码 -->
+			        <div ng-if="!isShowOnly() && entry.authType==0 && (type=='add' || (type=='modify' && !isNeedOldPwd))" class="form-group" ng-class="{'has-error': (form1.pwdConfirm.$dirty && form1.pwdConfirm.$invalid)}">
+			            <label for="confirmPassword" class="control-label"><span translate="confirmPassword"></span><span style="color:red">*</span></label>
+			            <div class="control-input">
+			                <div class="input-group input-xlarge" style="position:static">
+			                   <input id="addOperator_4" type="password" placeholder="{{'pwdAgain'|translate}}" ng-maxlength=32 equalcheck ng-minlength={{pwdConf.pwdMinlen}} obj1="pwd.confirm" obj2="entry.password" considerspace=true class="form-input form-control" ng-model="pwd.confirm" ng-trim="false" name="pwdConfirm" required>
+			                   <span class="input-group-addon help-addon" ng-messages="form1.pwdConfirm.$error">
+			                       
+			                        <span ng-if="form1.pwdConfirm.$dirty">
+			                             <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+			                             <span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxlen'|translate}}32"></span></span>
+			                             <!-- 确认密码输入错误提示 -->
+			                             <span ng-message="minlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'minlen'|translate}}{{pwdConf.pwdMinlen}}"></span></span>
+<!-- 			                             <span ng-message="pwdCheck"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'pwdMatch'|translate}}"></span></span> -->
+										 <span ng-message="equalcheck"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{::'pwdMatch'|translate}}"></span></span>
+			                        </span>
+			                   </span>
+			                </div>
+			            </div>
+			        </div>
+			        <!-- 操作员姓名 -->
+			        <div class="form-group" ng-class="{'has-error': (form1.operatorName.$dirty && form1.operatorName.$invalid)}">
+			            <label for="operatorName" class="control-label"><span translate="common.operatorName"></span><span style="color: red">*</span></label>
+			            <div class="control-input">
+			                <div class="input-group input-xlarge" style="position:static">
+			                    <input id="addOperator_5" type="text" ng-readonly="isShowOnly()" ng-maxlength=128 required class="form-input form-control" ng-model="entry.userName"  ng-trim="false" name="operatorName">
+			                    <span class="input-group-addon help-addon"  ng-messages="form1.operatorName.$error">
+			                        <span ng-if="form1.operatorName.$valid||!form1.operatorName.$dirty">
+			                             <span class="icon-occupying"></span>
+			                        </span>
+			                        <span ng-if="form1.operatorName.$dirty">
+			                             <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+			                             <span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxlen'|translate}}128"></span></span>
+			                        </span>
+			                    </span>
+			                </div>
+			            </div>
+			        </div>
+			        <!-- 操作员分组 -->
+			        <div class="form-group" ng-if="!isShowOnly()">
+			            <label for="opertorGrp" class="control-label"><span translate="operator.opertorGrp"></span><span style="color:red">*</span></label>
+			            <div class="control-input">
+			                <div class="input-group width300" ng-click="selectGroups()" style="position:static">
+			                    <input id="addOperator_6" ng-readonly="true" required name="operatorGroup" class="form-control first-child-angle selectInput" type="text" ng-model="group.name">
+			                    <input id="addOperator_6_1" name="operatorGroupId" type="hidden" ng-model="group.id">
+			                    <span class="input-group-addon inner-addon last-child-angle" style="cursor:pointer;">
+			                        <span class="icon-search-gray" type="button" ng-hide="isShowOnly()"></span>
+			                    </span>
+			                    <span class="input-group-addon help-addon" ng-messages="form1.operatorGroup.$error">
+			                        <span ng-if="form1.operatorGroup.$valid||!form1.operatorGroup.$dirty">
+			                             <span class="icon-occupying"></span>
+			                        </span>
+			                        <span ng-if="form1.operatorGroup.$dirty">
+			                             <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+			                        </span>
+			                    </span>
+			                </div>
+			            </div>
+			        </div>
+			        <div class="form-group" ng-if="isShowOnly()">
+                        <label for="opertorGrp" class="control-label"><span translate="operator.opertorGrp"></span><span style="color:red">*</span></label>
+                        <div class="control-input">
+                            <div class="input-group">
+                                <input id="addOperator_6" ng-readonly="true" required name="operatorGroup" class="form-input form-control first-child-angle" type="text" ng-model="group.name">
+                                <input id="addOperator_6_1" name="operatorGroupId" type="hidden" ng-model="group.id">
+                            </div>
+                        </div>
+                    </div>
+			        <!-- eMail -->
+			        <div class="form-group" ng-class="{'has-error': (form1.email.$dirty && form1.email.$invalid)}">
+			            <label for="email" class="control-label"><span>E-mail</span><span style="color: red">*</span></label>
+			            <div class="control-input">
+			                <div class="input-group input-xlarge" style="position:static">
+			                    <input id="addOperator_7" checkemail rpccheck="operator/existEmail" type="text" ng-readonly="isShowOnly()" ng-required="!isShowOnly()" ng-maxlength=128 class="form-input form-control" ng-model="entry.email"  ng-trim="false" name="email">
+			                    <span class="input-group-addon help-addon"  ng-messages="form1.email.$error">
+			                        <span ng-if="form1.email.$valid||!form1.email.$dirty">
+			                             <span class="icon-help-gray" tooltip-placement="right" tooltip="{{'operator.emailTip' | translate}}"></span>
+			                         </span>
+			                        <span ng-if="form1.email.$dirty">
+			                             <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+			                             <span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxlen'|translate}}128"></span></span>
+			                             <span ng-message="checkemail"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'invalidemail'|translate}}"></span></span>
+			                             <span ng-message="rpccheck"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'operator.existEmail'|translate}}"></span></span>
+			                        </span>
+			                    </span>
+			                </div>
+			            </div>
+			        </div>
+			        <div class="form-group" ng-class="{'has-error': (form1.phone.$dirty && form1.phone.$invalid)}">
+			           <label for="phone_id" class="control-label"><span translate="operator.phone"></span></label>
+			           <div class="control-input">
+			               <div class="input-group input-xlarge" style="position:static">
+			                   <input type="text" ng-maxlength=32 class="form-input form-control" ng-model="entry.phone" ng-readonly="isShowOnly()" ng-trim="false" id="phone_id" name="phone" checkphone>
+			                   <span class="input-group-addon help-addon" ng-messages="form1.phone.$error">
+			                       <span ng-if="form1.phone.$valid||!form1.phone.$dirty">
+			                           <span class="icon-occupying"></span>
+			                       </span>
+			                       <span ng-if="form1.phone.$dirty">
+			                           <span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxlen'|translate}}32"></span></span>
+			                           <span ng-message="checkphone"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'invalidphone'|translate}}"></span></span>
+			                       </span>
+			                    </span>
+			               </div>
+			          </div>   
+		      	    </div>
+			        <!-- 访问策略 -->
+			        <div class="form-group" ng-if="!isShowOnly()">
+			            <label for="opertorGrp" class="control-label"><span translate="operator.accessStrategy"></span><span style="color:red"></span></label>
+			            <div class="control-input">
+			                <div class="input-group width260">
+			                    <input id="addOperator_8" ng-readonly="true" ng-click="selectAccess()" name="accessStrategyName" class="form-control first-child-angle selectInput" type="text" ng-model="accessStrategyName">
+			                    <input id="addOperator_9" name="accessStrategyId"  type="hidden" ng-model="entry.accessStrategyId">
+			                    <span  class="input-group-addon inner-addon" style="cursor:pointer;" ng-click="selectAccess()"><span class="icon-search-gray" type="button"></span></span>
+			                    <span class="input-group-addon inner-addon last-child-angle" style="cursor:pointer;" ng-click="clearAccess()"> 
+		                        	<span class="icon-delete-gray" type="button" ></span>     
+		                    	</span>	
+			                </div>
+			            </div>
+			        </div>
+			        <div class="form-group" ng-if="isShowOnly()">
+                        <label for="opertorGrp" class="control-label"><span translate="operator.accessStrategy"></span><span style="color:red"></span></label>
+                        <div class="control-input">
+                            <div class="input-group">
+                                <input id="addOperator_8" ng-readonly="true" name="accessStrategyName" class="form-input form-control first-child-angle" type="text" ng-model="accessStrategyName">
+                                <input id="addOperator_9" name="accessStrategyId"  type="hidden" ng-model="entry.accessStrategyId">
+                            </div>
+                        </div>
+                    </div>
+			        <!-- 在线数量 -->
+			        <div class="form-group" ng-if="!isShowOnly() && securityMode != 1" ng-class="{'has-error':(form1.onlineNum.$invalid && form1.onlineNum.$dirty)}">
+			            <label for="onlineNum" class="control-label">
+			                <span translate="operator.onlineNum"></span><span style="color: red">*</span>
+			            </label>
+			            <div class="control-input">
+			                <div class="input-group" style="position:static">
+			                    <input id=addOperator_10 name="onlineNum" type="text" class="spinnerWidth227" ng-model="entry.onlineNum" spinner spinner-max=100 spinner-min=0 checkint required>
+			                    <span class="input-group-addon help-addon" ng-messages="form1.onlineNum.$error">
+		                    	<span ng-if="form1.onlineNum.$valid||!form1.onlineNum.$dirty">
+                                    <!-- 修改问题单201605250276 添加提示 0表示并发会话数量无限制。 -->
+                                    <span class="icon-help-gray" tooltip-placement="right" tooltip="{{'operator.onlineNumTip' | translate}}"></span>
+                                    </span>
+                                    <span ng-if="form1.onlineNum.$dirty" style="color:#A94442;">
+                                        <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+                                        <span ng-message="spinnerMax"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxValueIs'|translate}}100"></span></span>
+                                        <span ng-message="spinnerMin"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'minValueIs'|translate}}0"></span></span>
+                                        <span ng-message="int"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'invalidint'|translate}}"></span></span>
+                                    </span>
+                                </span>
+		               		</div>
+			            </div>                                      
+			        </div>
+			        <div class="form-group" ng-if="isShowOnly() || securityMode == 1">
+                        <label for="onlineNum" class="control-label">
+                            <span translate="operator.onlineNum"></span><span style="color: red">&nbsp;</span>
+                        </label>
+                        <div class="control-input">
+                            <div class="input-group">
+                                <input id=addOperator_10 type="text" ng-readonly="true" class="form-input form-control" ng-model="entry.onlineNum" >
+                            		<!-- 修改问题单201605250276 添加提示 0表示并发会话数量无限制。 -->
+		                        <span class="input-group-addon help-addon">
+		                        	<span class="icon-help-gray" tooltip-placement="right" tooltip="{{'operator.onlineNumTip' | translate}}"></span>
+                           		</span>
+                            </div>
+                        </div>                                      
+                    </div>
+                    <!-- 重置密码 -->
+                    <div ng-if="type=='modify'&&entry.authType==0&&isNeedOldPwd" class="form-group">
+		                 <label for="resetPassword" class="switch-label"><span translate="operator.resetPassword"></span></label>
+		                 <div class="control-input" ng-click = "setPwd()">
+		                    <div class="input-group">
+				                 <div toggle-switch  class="switch-success" ng-model="operator.resetPassword"></div>
+		               		</div>
+		              	 </div>
+		            </div>
+                    <div ng-if="entry.authType==0&&operator.resetPassword==true" class="form-group" ng-class="{'has-error': (form1.oldPwd.$dirty && form1.oldPwd.$invalid)}">
+			            <label for="oldPwd" class="control-label"><span translate=operator.oldPassword></span><span style="color: red">*</span></label>
+			            <div class="control-input">
+			                <div class="input-group input-xlarge" style="position:static">
+			                    <input ng-model="pwd.oldPwd" checkpasswordillegal  id="addOperator_1" type="password" ng-readonly="isShowOnly()" placeholder="{{'operator.inputOldPwd'|translate}}" ng-maxlength=32 class="form-input form-control" ng-trim="false" name="oldPwd" required>
+			                    <span class="input-group-addon help-addon"  ng-messages="form1.oldPwd.$error">
+			                        <span  ng-if="form1.oldPwd.$dirty">
+			                             <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+			                             <span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxlen'|translate}}32"></span></span>
+                                         <span ng-message="pwdComplexityCheck"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{getPwdCheckMsg(pwdConf.complex)}}"></span></span>
+                                         <span ng-message="checkpasswordillegal"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'passwordIllegal'|translate}}"></span></span>
+			                        </span>
+			                    </span>
+			                </div>
+			            </div>
+			        </div>
+			        <div ng-if="entry.authType==0&&operator.resetPassword==true" class="form-group" ng-class="{'has-error': (form1.newPwd.$dirty && form1.newPwd.$invalid)}">
+			            <label for="newPwd" class="control-label"><span translate="operator.newPassword"></span><span style="color: red">*</span></label>
+			            <div class="control-input">
+			                <div class="input-group input-xlarge" style="position:static">
+			                    <input ng-model="pwd.newPwd" pwd-complexity-check complex-type='pwdConf.complex' checkpasswordillegal ng-minlength={{pwdConf.pwdMinlen}} id="addOperator_2" type="password" ng-readonly="isShowOnly()" placeholder="{{'operator.inputNewPwd'|translate}}" ng-maxlength=32 class="form-input form-control" ng-trim="false" name="newPwd" required>
+			                    <span class="input-group-addon help-addon"  ng-messages="form1.newPwd.$error">
+			                        <span  ng-if="form1.newPwd.$dirty">
+			                             <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+			                             <span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxlen'|translate}}32"></span></span>
+			                        	 <span ng-message="minlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'minlen'|translate}}{{pwdConf.pwdMinlen}}"></span></span>
+                                         <span ng-message="pwdComplexityCheck"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{getPwdCheckMsg(pwdConf.complex)}}"></span></span>
+                                         <span ng-message="checkpasswordillegal"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'passwordIllegal'|translate}}"></span></span>
+			                        </span>
+			                    </span>
+			                </div>
+			            </div>
+			        </div>
+			        <div ng-if="entry.authType==0&&operator.resetPassword==true" class="form-group" ng-hide="isShowOnly()" ng-class="{'has-error': (form1.pwdConfirm.$dirty && form1.pwdConfirm.$invalid)}">
+			            <label for="pwdConfirm" class="control-label"><span translate="operator.confirmPassword"></span><span style="color:red">*</span></label>
+			            <div class="control-input">
+			                <div class="input-group input-xlarge" style="position:static">
+			                   <input id="addOperator_4" type="password" ng-model="pwd.pwdConfirm" placeholder="{{'operator.confirmPwd'|translate}}" ng-maxlength=32 equalcheck obj1="pwd.pwdConfirm" obj2="pwd.newPwd" considerspace=true class="form-input form-control"  ng-trim="false" name="pwdConfirm" required>
+			                   <span class="input-group-addon help-addon" ng-messages="form1.pwdConfirm.$error">
+			                        <span ng-if="form1.pwdConfirm.$dirty">
+			                             <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+			                             <span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxlen'|translate}}32"></span></span>
+			                             <!-- È·ÈÏÃÜÂëÊäÈëŽíÎóÌáÊŸ -->
+			                             <span ng-message="equalcheck"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{::'pwdMatch'|translate}}"></span></span>
+			                        </span>
+			                   </span>
+			                </div>
+			            </div>
+			        </div>
+                    <div class="form-group" style="margin-bottom:0px;">
+		                 <label for="autoMigrate" class="switch-label"><span translate="operator.forbidOperator"></span></label>
+		                 <div class="control-input">
+		                    <div class="input-group">
+				                 <div toggle-switch  class="switch-success" ng-model="operator.disable" is-disabled="type=='view'"></div>
+		               		</div>
+		              	 </div>
+		            </div>
+		        </form>
+	        </slide-form>
+	        <!-- 第二步 -->
+	        <slide-form valid="valids.stepTwoOver()">
+		        <form name="form2" class="form-horizontal" role="form" novalidate>
+		            <!-- 隐藏属性，用于js方法操作form是否显示 -->
+                    <input type="hidden" id="form2" value="{{form2.$valid}}">
+			        <!-- 操作员权限 -->
+			        <div cas-permission-tree id="permissionTree" style="height:402px;overflow-y:auto;" type="{{type}}" disabled-model="groupPermissions" bind-model="selectNodes" disable-all="{{isShowOnly() == true || modefyAdmin == true || modifyPermission == true}}" class="treeview"></div>
+		        </form>
+	        </slide-form>
+        </carousel-form>
+    </div>
+    <!-- 右侧确认信息 -->
+    <div class="detail-table col-md-4">
+        <table class="table table-striped">
+            <tr class="gray">
+                <td><h4 translate="configDetail"></h4></td><td></td>
+            </tr>
+            <tr class="white">
+                <td><span translate="common.loginName"></span></td>
+                <td><span custom-title shortcut cut-str="{{entry.loginName}}">{{entry.loginName}}</span></td>
+            </tr>
+            <tr class="gray">
+                <td><span translate="operator.authMode"></span></td>
+                <td><span ng-bind="entry.authType | selectLabel:'0':authMode.options"></span></td>
+            </tr>
+            <tr class="gray">
+                <td><span translate="common.operatorName"></span></td>
+                <td><span custom-title shortcut cut-str="{{entry.userName}}">{{entry.userName}}</span></td>
+            </tr>
+            <tr class="white">
+                <td><span translate="operator.opertorGrp"></span></td>
+                <td  custom-title shortcut cut-str="{{group.name}}">{{group.name}}</td>
+            </tr>
+            <tr class="gray">
+                <td><span>E-mail</span></td>
+                <td><span custom-title shortcut cut-str="{{entry.email}}">{{entry.email}}</span></td>
+            </tr>
+            <tr>
+                <td><span translate="operator.phone"></span></td>
+                <td  custom-title shortcut cut-str="{{entry.phone}}">{{entry.phone}}</td>
+            </tr>
+            <tr class="white">
+                <td><span translate="operator.accessStrategy"></span></td>
+                <td  custom-title shortcut cut-str="{{accessStrategyName}}">{{accessStrategyName}}</td>
+            </tr>
+            <tr class="gray">
+                <td><span translate="operator.onlineNum"></span></td>
+                <td  custom-title shortcut cut-str="{{entry.onlineNum}}">{{entry.onlineNum}}</td>
+            </tr>
+            <tr class="white">
+                <td><span translate="operator.forbidOperator"></span></td>
+                <td><span ng-bind="operator.disable?1:0 | yes"></span></td>
+            </tr>  
+        </table>
+    </div>
+</div>

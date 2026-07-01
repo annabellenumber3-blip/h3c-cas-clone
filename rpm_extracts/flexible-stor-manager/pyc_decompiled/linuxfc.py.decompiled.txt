@@ -1,0 +1,123 @@
+execute_cmd)
+	linuxscsic
+LinuxFibreChannelc
+/sys/class/fc_hostTF)
+path
+isdir)
+selfZ
+fc_host_sysfs_path
+!./fsm/device/initiator/linuxfc.py
+has_fc_support
+z LinuxFibreChannel.has_fc_supportc
+Try to get the HBA channel and SCSI target for an HBA.
+        This method only works for Fibre Channel targets that implement a
+        single WWNN for all ports, so caller should expect us to return either
+        explicit channel and targets or wild cards if we cannot determine them.
+        The connection properties will need to have "target" values defined in
+        it which are expected to be tuples of (wwpn, lun).
+        :returns: List of lists with [c, t, l] entries, the channel and target
+        may be '-' wildcards if unable to determine them.
+        
+targetsZ
+initiator_target_mapN
+initiator_target_lun_map
+	port_name
+host_device
+z!/sys/class/fc_transport/target%s:z)grep -Gil "%(wwpns)s" %(path)s*/port_name)
+wwpnsr
+shellc
+startswith
+split)
+line
+lunr
+<listcomp>7
+zBLinuxFibreChannel._get_hba_channel_scsi_target.<locals>.<listcomp>
+zQCould not get HBA channel and SCSI target ID, path: %(path)s*, reason: %(reason)s)
+reason
+lenr
+	Exception
+debug
+append)
+conn_propsr
+ctls
+wwpn
+excr	
+_get_hba_channel_scsi_target
+z.LinuxFibreChannel._get_hba_channel_scsi_targetc
+rdd	}
+NzARescaning HBAs %(hbas)s with connection properties %(conn_props)s)
+hbasr'
+portsr	
+z2LinuxFibreChannel.rescan_hosts.<locals>.<listcomp>z*Using initiator target map to exclude HBAsTr
+implementsz
+doesn't implementz'FC target %s single WWNN for all ports.zRScanning host %(host)s (wwnn: %(wwnn)s, c: %(channel)s, t: %(target)s, l: %(lun)s)r
+	node_name)
+host
+wwnnZ
+channel
+targetr
+/sys/class/scsi_host/%s/scanz
+%(c)s %(t)s %(l)s)
+echo_scsi_command)
+connection_propertiesZ
+get_ctslZ	with_infoZ
+no_infor&
+found_infoZ
+hba_channelZ	target_idZ
+target_lunZ
+target_listZ
+process
+msgr	
+rescan_hostsB
+LinuxFibreChannel.rescan_hostsc
+hba info:%s
+device_path
+fc_hostr
+%sscsi_host/host*/scanz
+- - -z
+Scan fc host failed, %s)
+get_fc_hbas_infor#
+infor
+warning)
+host_dirr-
+rescan_all_hostsr
+z"LinuxFibreChannel.rescan_all_hostsc
+z&Get the Fibre Channel HBA information.z,No Fibre Channel support detected on system.NZ
+systoolz
+-cr=
+systool is not installedr
+OSError
+errno
+ENOENTr
+stripr%
+replace)
+linesr/
+lastliner
+valuer	
+get_fc_hbas}
+LinuxFibreChannel.get_fc_hbasc
+z@Get Fibre Channel WWNs and device paths from the system, if any.r
+0xrC
+ClassDevicepathZ
+ClassDevice)
+Z	hbas_infor&
+devicer	
+z"LinuxFibreChannel.get_fc_hbas_infoc
+z0Get Fibre Channel WWPNs from the system, if any.
+port_state
+Onliner
+get_fc_wwpns
+LinuxFibreChannel.get_fc_wwpnsc
+z0Get Fibre Channel WWNNs from the system, if any.rS
+wwnnsr&
+get_fc_wwnns
+LinuxFibreChannel.get_fc_wwnnsN)
+__name__
+__module__
+__qualname__r
+loggingr
+fsm.utils.os_utilsr
+fsm.device.initiatorr
+Z	getLoggerrW
+Z	LinuxSCSIr
+<module>

@@ -1,0 +1,258 @@
+<!-- 克隆虚拟机 -->
+<div class="modal-header">
+	 <button type="button" class="close" custom-title="{{::'common.close'|translate}}"  ng-click="cancel()">
+		<span class="icon-closenew"></span>
+	</button>
+	<button type="button" class="close cornerhelp" custom-title="{{'help'|translate}}" ng-click="openHelp('cloudResource/vm/cloneVM')">
+		<span class="icon-helpnew"></span>
+	</button>
+	<h4 class="modal-title" translate="vm.cloneVm"></h4>
+</div>
+<div class="modal-body row">
+	<div class="form-horizontal col-md-8" id="divgrid">
+	
+		
+	   <carousel-form titles="stepTitles" cancel="ok()"> 
+			<!-------------- 第一步	基本信息---------------->
+			<slide-form valid="valids.stepOneOver()" active="slide.active" is-add="true" tab-index ='0'>
+				<form name="form1" class="form-horizontal" role="form" novalidate>
+					<input type="hidden" id="form1" value="{{form1.$valid}}">
+		<!-- 			源虚拟机名称 -->
+					<div class="form-group">
+						<label for="srcname" class="control-label">
+						  <span translate="vm.srcVmName"></span>
+						</label>
+						<div class="control-input">
+						  <div class="input-group width260">
+							<input type="text" class="form-control form-input" ng-model="oldDomainName" id="srcname" name="srcname" readonly>
+								<span class="input-group-addon help-addon" ng-messages="form1.srcname.$error">
+								 <span ng-if="form1.srcname.$valid||!form1.srcname.$dirty">
+									 <span class="icon-occupying" ></span>
+								 </span>
+							</span>
+						  </div>
+						</div>
+					</div>
+		<!-- 			目的虚拟机名称
+					<div class="form-group" ng-class="{'has-error':form1.destVmName.$invalid}">
+						<label for="destVmName" class="control-label">
+						  <span translate="vm.destVmName"></span><span class='required'>*</span>
+						</label>
+						<div class="control-input">
+						  <div class="input-group width260">
+							<input type="text" checkname force="true" rpccheck="{{domainNameUrl}}" class="form-control form-input" ng-init="model.domainName=oldDomainName+'-clone'" ng-model="model.domainName" ng-trim="false" ng-maxlength=64  id="destVmName" name="destVmName" required>
+							<span class="input-group-addon help-addon" ng-messages="form1.destVmName.$error">
+								 <span ng-if="form1.destVmName.$valid">
+									 <span class="icon-occupying"></span>
+								 </span>
+								 <span ng-if="form1.destVmName.$error">
+									 <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+									 <span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxlen'|translate}}64"></span></span>
+									 <span ng-message="checkname"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'checkname'|translate}}"></span></span>
+									 <span ng-message="rpccheck"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'addDomain.nameExist'|translate}}"></span></span>
+								 </span>
+							</span>
+						  </div>
+						</div>
+					</div>
+					 -->
+		<!-- 			虚拟机显示名称 -->
+					<div class="form-group" ng-class="{'has-error':form1.title.$invalid}">
+						<label for="title" class="control-label">
+						  <span translate="common.displayName"></span><span class='required'>*</span>
+						</label>
+						<div class="control-input">
+						  <div class="input-group width260">
+							<input type="text" check-special-char class="form-control form-input" ng-init="model.title=model.oldTitle+'_clone'" ng-model="model.title" ng-trim="false" ng-maxlength=64 id="title" name="title" required>
+							<span class="input-group-addon help-addon" ng-messages="form1.title.$error">
+							     <span ng-if="form1.title.$valid">
+									 <span class="icon-occupying"></span>
+								 </span>
+								 <span>
+									 <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+									 <span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxlen'|translate}}64"></span></span>
+									 <span ng-message="specialChar"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{::'checkname2'|translate}}"></span></span>
+								 </span>
+							</span>
+						  </div>
+						</div>
+					</div>
+					<!-- 					克隆方式-->
+				  <div class="form-group">
+		               <label for="unique-id0" class="control-label"><span translate="vm.cloneVmDlg.cloneType"></span></label>
+		               <div class="control-input">
+							<div id="normalCloneDiv" cascheckbox style='margin-left:0px;margin-right:6px' class="cas-checkbox labeled-btn radio" ng-init="model.cloneMode='0'" ng-model="model.cloneMode" value='0'>
+						      <input id="normalClone" name="backuptype" type="radio" ng-checked = "model.cloneMode == 0" >
+						      <div class="corner-label">
+						        <i class="glyphicon glyphicon-ok icon"></i>
+						      </div>
+						      <div class="box"> <span class="box-name checkbox70" translate="vm.normalClone"></span></div>
+						    </div>
+						    <div id="fastCloneDiv" cascheckbox style='margin-left:0px;margin-right:6px'  class="cas-checkbox labeled-btn radio" ng-model="model.cloneMode" value="1">
+						      <input id="fastClone" name="backuptype" type="radio" ng-checked = "model.cloneMode == 1">
+						      <div class="corner-label">
+						        <i class="glyphicon glyphicon-ok icon"></i>
+						      </div>
+						      <div class="box"> <span class="box-name checkbox70" translate="vm.fastClone"></span></div>
+						    </div>
+						     <div id="allCloneDiv" cascheckbox style='margin-left:0px'  class="cas-checkbox labeled-btn radio" ng-model="model.cloneMode" value="2">
+						      <input id="allClone" name="backuptype" type="radio" ng-checked = "model.cloneMode == 2">
+						      <div class="corner-label">
+						        <i class="glyphicon glyphicon-ok icon"></i>
+						      </div>
+						      <div class="box"><span class="box-name checkbox70" translate="vm.allClone"></span></div>
+						     </div>
+						</div>
+					</div>
+					
+					<!-- 					克隆目的地 -->
+				  <div class="form-group">
+		               <label for="unique-id0" class="control-label"><span translate="vm.cloneVmDlg.cloneDest"></span></label>
+		               <div class="control-input">
+		                      <!--  本地克隆-->
+							  <div id="cloneInHostDiv" cascheckbox style='margin-left:0px;margin-right:6px' class="cas-checkbox labeled-btn radio" ng-model="model.cloneType" value='0'>
+						      <input id="cloneInHost" name="dest" type="radio" ng-checked='model.cloneType == 0'>
+						      <div class="corner-label">
+						        <i class="glyphicon glyphicon-ok icon"></i>
+						      </div>
+						      <div class="box">
+						        <span class="box-name checkbox70" translate="vm.cloneInHost"></span>
+						      </div>
+						    </div>
+						     <!--  异地克隆-->
+						     <div id="cloneOutHostDiv" cascheckbox style='margin-left:0px' class="cas-checkbox labeled-btn radio" ng-model="model.cloneType" value="1">
+						      <input id="cloneOutHost" name="dest" type="radio" ng-checked='model.cloneType == 1'>
+						      <div class="corner-label">
+						        <i class="glyphicon glyphicon-ok icon"></i>
+						      </div>
+						      <div class="box">
+						        <span class="box-name checkbox70" translate="vm.cloneOutHost"></span></div>
+						    </div>
+						</div>
+					</div>
+					<!--  自动开机 -->
+		           	<div class="form-group">
+		           		<div class="autoStartVmDiv">
+							<label for="autoStartVmLabel" class="control-label">
+								<span translate="vm.autoStartVm"></span>
+							</label>
+							<div class="control-input">
+								 <div class="input-group">
+							    	<div id="autoStartVm" toggle-switch class="switch-success"  ng-init="model.autoStartVm= false" ng-model="model.autoStartVm"></div>
+						  	  	</div>
+					  	  	</div>
+						</div>
+					</div>  
+				</form>
+	
+			</slide-form>
+				<!--------------  主机间克隆 第二步	选择目标主机---------------->
+			<slide-form valid="valids.stepTwoOver()" is-add="model.cloneType == 1" tab-index ='1'>
+		        <form name="form2" class="form-horizontal" role="form" novalidate>
+					<input type="hidden" id="form2" value="{{form2.$valid}}">
+		            <div id="hostTree" cas-host-tree bind-data="treemodel.targetHost">
+						<ul host-tree-accordion style="padding:0;">
+							<li host-tree-link icon="icon-cloudresource" href="cloudResource.dashboard"	listhref="tree/cloudHostList" text="" cloud-id="model.cloudId"></li>
+						</ul>
+					</div>
+		        </form>
+			</slide-form> 
+			
+		    <!-------------第三步   存储信息--------------> 
+	        <slide-form valid="valids.stepThreeOver()" is-add="true">
+		        <form name="form3" class="form-horizontal" role="form" style="padding:0 !important;" novalidate>
+                    <!-- 隐藏属性，用于js方法操作form是否显示 -->
+                    <input type="hidden" id="form3" value="{{form3.$valid&&myData.length>0}}" tab-index ='2' >
+					<div style="width: 100%; height: 260px;" class="table" ng-grid="gridOptions"></div>
+					<!-- 选择磁盘格式 -->
+					<div class="form-group" ng-if="model.cloneMode!='1'&&showFormat">
+                        <label class="control-label short"><span translate="vm.cloneVmDlg.setFormat"></span><span style="color: red"></span></label>
+                        <div id="sameFormatDiv" cascheckbox class="cas-checkbox labeled-btn radio" ng-model="model.diskFormat" value=''>
+                            <input id="sameFormat" name="diskFormat" type="radio" checked>
+                            <div class="corner-label">
+                                <i class="glyphicon glyphicon-ok icon"></i>
+                            </div>
+                            <div class="box">
+                                <span class="box-name" style="width:60px;" translate="vm.cloneVmDlg.sameFormat"></span>
+                            </div>
+                         </div>
+	                     <div id="qcow2Div" cascheckbox class="cas-checkbox labeled-btn radio" ng-model="model.diskFormat" value='qcow2'>
+	                         <input id="qcow2" name="diskFormat" type="radio">
+	                         <div class="corner-label">
+	                             <i class="glyphicon glyphicon-ok icon"></i>
+	                         </div>
+	                         <div class="box">
+	                             <span class="box-name" style="width:60px;" translate="storagePool.qcow2"></span>
+	                         </div>
+	                     </div>
+	                     <div id="rawDiv" cascheckbox class="cas-checkbox labeled-btn radio" ng-model="model.diskFormat" value='raw'>
+	                         <input id="raw" name="diskFormat" type="radio" >
+	                         <div class="corner-label">
+	                             <i class="glyphicon glyphicon-ok icon"></i>
+	                         </div>
+	                         <div class="box">
+	                             <span class="box-name" style="width:60px;" translate="storagePool.raw"></span>
+	                         </div>
+	                     </div>
+                     </div>
+                     <div ng-if="model.cloneMode!='1'">
+                     	<a href="#" style="color: #1f90c8;text-decoration:none;" ng-click="designatedFormat()"><span ng-bind="advance"></span></a>	
+                     </div>
+                     </form>
+	        </slide-form>
+			<!----------- 第四步	网络信息---------->
+			<slide-form valid="valids.stepFourOver()" is-add="true" tab-index ='3'>
+		        <form name="form4" class="form-horizontal" role="form" style="padding:0 !important;" novalidate>
+					<input type="hidden" id="form4" value="{{form4.$valid}}">
+					<div style="width: 100%; height: 260px;" class="table"  ng-grid="gridOptions2"></div>
+				</form>
+			</slide-form> 
+	   </carousel-form>
+
+	</div>
+	<div class="detail-table col-md-4">
+		<table class="table table-striped">
+			<tr class="gray">
+				<td><h4 translate="configDetail"></h4></td>
+			</tr>
+			<tr class="white">
+				<td><span translate="vm.srcVmName"></span></td>
+				<td custom-title shortcut cut-str="{{oldDomainName}}">{{oldDomainName}}</td>
+			</tr>
+			<!-- 
+			<tr class="gray">
+				<td><span translate="vm.destVmName"></span></td>
+				<td custom-title shortcut cut-str="{{model.domainName}}">{{model.domainName}}</td>
+			</tr>
+			 -->
+			<tr class="gray">
+				<td><span translate="common.displayName"></span></td>
+				<td  custom-title shortcut cut-str="{{model.title}}">{{model.title}}</td>
+			</tr>
+			<tr class="white">
+				<td><span translate="vm.cloneVmDlg.cloneType"></span></td>
+				<td>{{getCloneType()}}</td>
+			</tr>
+			<tr class="gray">
+				<td><span translate="vm.cloneVmDlg.cloneDest"></span></td>
+				<td custom-title shortcut cut-str="{{getCloneDest()}}">{{getCloneDest()}}</td>
+			</tr>
+			<tr ng-if="model.autoStartVm">
+				<td class="white"><span translate="vm.startMode"></span></td>
+				<td class="white"><span translate="vm.autoStartVm"></span></td>
+			</tr>
+			<tr ng-if="model.cloneMode!='1'" class="white">
+				<td><span translate="vm.cloneVmDlg.storageFormat"></span></td>
+				<td>{{getStorageFormat()}}</td>
+			</tr>
+			<tr class="gray" ng-class="{gray:model.cloneMode=='1'}">
+				<td><span translate='host.targetFile'></span></td>
+				<td custom-title shortcut cut-str="{{getTargetStorageFile()}}">{{getTargetStorageFile()}}</td>
+			</tr>
+			<tr ng-if="model.cloneType=='1'" ng-class="{gray:model.cloneMode!='1',white:model.cloneMode=='1'}">
+				<td><span translate="vm.cloneVmDlg.targetHost"></span></td>
+				<td custom-title shortcut cut-str="{{getTargetHost()}}">{{getTargetHost()}}</td>
+			</tr>
+		</table>
+	</div>
+</div>

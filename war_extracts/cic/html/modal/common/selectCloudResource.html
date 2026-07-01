@@ -1,0 +1,135 @@
+<!-- 选择存储文件弹出窗口 -->
+
+<!-- 标题 -->
+<div class="modal-header">
+     <button type="button" class="close" custom-title="{{::'common.close'|translate}}"  ng-click="cancel()">
+		<span class="icon-closenew"></span>
+	</button>
+    <h4 class="modal-title" translate="resourcePool.selectCloudResource"></h4>
+</div>
+
+
+<div class="modal-body row" style="height: 580px; padding-bottom: 0px;">
+	<div style="width: 100%; height: 100%;">
+		<div class="panel-body col-md-5 col-sm-5 storagePoolPanel" style="padding: 0px; height: 100%; margin-top: -20px;"></div>
+		<div  ng-show = "storagePools.length !=0" class="panel-body col-md-7 col-sm-7" style="padding: 0px 15px 0px 0px;">
+			<div class="overviewheight overview-desc col-xs-12 col-sm-6 col-md-6 col-lg-6">
+				<!--主机状态 -->
+				<div class="detail-item">
+					<div class="title">
+						<h5 translate="dashboard.hostStatus"></h5>
+					</div>
+					<div id="hostCircle" class="circle"></div>
+					<div id="hostInfo" class="numBar">
+						<div class="numItem" id="numItem-normal">
+							<label></label><br> <span translate="dashboard.opened"></span>
+						</div>
+						<div class="numItem" id="numItem-close">
+							<label></label><br> <span translate="dashboard.unKnown"></span>
+						</div>
+						<div class="numItem" id="numItem-maintain">
+							<label></label><br> <span translate="dashboard.maintain"></span>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- 虚拟机统计-->
+			<div class="overviewheight overview-desc col-xs-12 col-sm-6 col-md-6 col-lg-6">
+				<div  class="detail-item">
+					<div class="title">
+						<h5 translate="dashboard.vmStatusInfo"></h5>
+					</div>
+					<div id="vmCircle" class="circle"></div>
+					<div id="vmnumBar" class="numBar">
+						<div class="numItem" id="numItem-normal-vm">
+							<label></label><br> <span translate="dashboard.vmOpened"></span>
+						</div>
+						<div class="numItem" id="numItem-close-vm">
+							<label></label><br> <span translate="dashboard.vmClosed"></span>
+						</div>
+						<div class="numItem" id="numItem-error-vm">
+							<label></label><br> <span translate="dashboard.vmUnKnown"></span>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="description-new overviewheight overview-desc col-xs-12 col-sm-12 col-md-12 col-lg-12">
+				<div ng-if="selectedPool.flag==2" class="detail-item" style="height: 313px">
+					<div class="title">
+						<h5 translate="common.basicAttribute"></h5>
+					</div>
+					<dl class="dl-horizontal dl-wide" style="margin-bottom: 0">
+						<dt translate="resourcePool.clusterNums"></dt>
+						<dd id="dc-clusterNums"></dd>
+						<dt translate="cloudResource.cpuTotalCore"></dt>
+						<dd id="dc-cpuCount"></dd>
+						<dt translate="cloudResource.totalMemory"></dt>
+						<dd id="dc-totalMemory"></dd>
+						<dt translate="cloudResource.localTotalStorage"></dt>
+						<dd id="dc-totalStorage"></dd>
+						<dt title="{{'cloudResource.localTotalAvailStorage'|translate}}" data-replacement="right" data-target="tooltip"
+							translate="cloudResource.localTotalAvailStorage"></dt>
+						<dd id="dc-usableStorage"></dd>
+						<dt translate="board.vm"></dt>
+						<dd id="dc-vm"></dd>
+						<dt translate="cloudResource.vmDensity"></dt>
+						<dd id="dc-density"></dd>
+						<dt translate="resourcePool.shareStorageCapacity"></dt>
+						<dd id="dc-shareStorageCapacity"></dd>
+						<dt translate="resourcePool.shareStorageRate"></dt>
+						<dd id="dc-shareStorageRate"></dd>
+					</dl>
+				</div>
+
+				<div ng-if="selectedPool.flag==3" class="detail-item" style="height: 313px">
+					<div class="title">
+						<h5 translate="common.basicAttribute"></h5>
+					</div>
+					<dl class="dl-horizontal dl-wide" style="margin-bottom: 0">
+						<dt translate="resourcePool.clusterNums"></dt>
+						<dd ng-bind="summary.clusterNums"></dd>
+						<dt translate="cloudResource.cpuTotalCore"></dt>
+						<dd ng-bind="summary.cpuTotal"></dd>
+
+						<dt translate="cloudResource.totalMemory"></dt>
+						<dd ng-bind="summary.memoryTotal | byteUnitRender2"></dd>
+
+						<dt translate="vmware.totalStorage"></dt>
+						<dd ng-bind="summary.capacityTotal | byteUnitRender2"></dd>
+
+						<dt translate="vmware.totalAvailStorage"></dt>
+						<dd ng-bind="summary.freeSpaceTotal | byteUnitRender2"></dd>
+
+						<dt translate="board.vm"></dt>
+						<dd>
+							<span class="span_padding" ng-bind="summary.vmTotal"></span> <span class="span_padding">[</span> <span
+								class="span_padding"><img class="pic1img" src="css/img/gray/Icon_vm_running.svg"></img></span> <span
+								class="span_padding span_color_green" ng-bind="summary.runningVmTotal"></span> <span class="span_padding"><img
+								class="pic1img" src="css/img/gray/Icon_vm_close.svg"></img></span> <span class="span_padding span_color_red"
+								ng-bind="summary.offVmTotal"></span> <span class="span_padding">]</span>
+						</dd>
+						<dt translate="cloudResource.vmDensity"></dt>
+						<dd ng-bind="summary.vmPerHost | number:2"></dd>
+						<dt translate="report.storageRate"></dt>
+						<dd ng-bind="summary.dcStorageRate"></dd>
+					</dl>
+				</div>
+			</div>
+		</div>
+
+	</div>
+
+</div>
+<!-- 内容1:按钮栏 -->
+<div class="modal-footer">
+    <button id="addCloudResourceBtn" has-permission="CVM_MNG_ADD" class="btn btn-green" ng-click="addCloudResource()" translate="cloudResource.addCloundResource"></button>
+    <!-- 增加存储卷 
+    <button id="addFCStorageBtn" ng-if="selectedPool.type=='fc'" class="btn btn-green" has-permission="HOST_STORAGE_MGR"
+    ng-disabled="selectedPool.name == null || selectedPool.status != 1"
+    ng-click="addStorage()" translate="storagePool.addLun"></button>
+    -->
+    <button id="okBtn" class="btn btn-green"  ng-click="ok()" translate="common.confirm"></button>
+    <button class="btn btn-black" ng-click="cancel()" translate="common.cancel"></button>
+</div>

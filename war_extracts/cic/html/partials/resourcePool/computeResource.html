@@ -1,0 +1,168 @@
+<div class='row overview-content-row' ng-controller="computeResourceCtrl">
+	<!-- 基本属性 -->
+	<div class="description-new overviewheight overview-desc col-xs-12 col-sm-6 col-md-6 col-lg-4">
+		<div class="detail-item">
+			<div class="title">
+				<h5 translate="resourcePool.resourceInfo"></h5>
+			</div>
+			<!-- CVM和VMware概要显示 -->
+			<dl ng-if="cloudType==2||cloudType==3" class="dl-horizontal dl-wide" style="margin-bottom:0">
+				<dt translate="resourcePool.computeResource"></dt>
+				<dd ng-bind="summary.name"></dd>
+			
+				<dt translate="resourcePool.cpu"></dt>
+				<dd ng-if="summary.cpuNum"><span ng-bind="summary.cpuNum"></span></dd>
+				<dd ng-if="!summary.cpuNum"><span>0</span></dd>
+				
+				<dt translate="resourcePool.cpuPercent"></dt>
+				<dd ng-if="summary.cpuNum"><span ng-bind="summary.vmCpuNum / summary.cpuNum *100 | number:2"></span><span>%</span></dd>
+				<dd ng-if="!summary.cpuNum"><span>0.00</span><span>%</span></dd>
+				
+				<dt translate="resourcePool.memory"></dt>
+				<dd ng-bind="summary.memory | byteUnitRender"></dd>
+				
+				<dt translate="resourcePool.memoryPercent"></dt>
+				<dd ng-if="summary.memory"><span ng-bind="summary.vmMemory / summary.memory *100 | number:2"></span><span>%</span></dd>
+				<dd ng-if="!summary.memory"><span>0.00</span><span>%</span></dd>
+				
+				<dt translate="board.vm"></dt>
+				<dd>
+					<span class="span_padding" ng-bind="summary.vmNum"></span>
+				</dd>
+				<dt translate="cloudResource.vmDensity"></dt>
+				<dd ng-if="summary.hostNum != 0" ng-bind="summary.vmNum / summary.hostNum | number:2"></dd>
+				<dd ng-if="summary.hostNum == 0" ng-bind="summary.hostNum"></dd>
+			</dl>
+			<!-- CloudOS概要显示 -->
+			<dl ng-if="cloudType==5" class="dl-horizontal dl-wide" style="margin-bottom:0">
+				<dt translate="resourcePool.cloudName"></dt>
+				<dd ng-bind="summary.cloudName"></dd>
+			
+				<dt translate="resourcePool.cpuQuota"></dt>
+				<dd ng-bind="summary.cpuTotal"></dd>
+				
+				<dt translate="resourcePool.memoryQuota"></dt>
+				<dd ng-bind="summary.memoryTotal | byteUnitRender2"></dd>
+				
+				<dt translate="resourcePool.storageQuota"></dt>
+				<dd ng-bind="summary.capacityTotal | byteUnitRender2"></dd>
+				
+				<dt translate="board.vm"></dt>
+				<dd>
+					<span class="span_padding" ng-bind="summary.vmTotal"></span>
+					<span class="span_padding">[</span>
+					<span class="span_padding"><img class="pic1img" src="css/img/gray/Icon_vm_running.svg"></img></span>
+					<span class="span_padding span_color_green" ng-bind="summary.runningVmTotal"></span>
+					<span class="span_padding"><img class="pic1img" src="css/img/gray/Icon_vm_close.svg"></img></span>
+					<span class="span_padding span_color_red" ng-bind="summary.offVmTotal"></span>
+					<span class="span_padding">]</span>
+				</dd>
+			</dl>
+  	     </div>
+	</div> 
+	<!-- 计算资源监控信息 -->
+	<div class="overviewheight hostcpuTop5 col-xs-12 col-sm-6 col-md-6 col-lg-4">
+		<!-- CPU利用率 -->
+		<div class="detail-item" id="computeMonitor" ng-if="cloudType==3">
+			<div class="title">
+				<h5 translate="board.cpuInfo"></h5>
+			</div>
+			<div line-chart chart-name="CPU USED" url="{{cpuUrl}}" hide-legend=true color-index=4 grid-y2="20"
+				 style='width: 100%; height: 80%;min-height:251px;' id="cpu">
+				<div class="altStyle" style="padding-left:180px;padding-top:110px;" translate="common.noData"></div>
+			</div>
+		</div>
+		<div class="detail-item" id="computeMonitor" ng-if="cloudType==2">
+			<div class="title">
+				<h5 translate="board.cpuInfo"></h5>
+			</div>
+			<div line-chart chart-name="CPU" url="{{cpuUrl}}" hide-legend=true color-index=4 grid-y2="20"
+				 style='width: 100%; height: 80%;min-height:251px;' id="cpu">
+				<div class="altStyle" style="padding-left:180px;padding-top:110px;" translate="common.noData"></div>
+			</div>
+		</div>
+	</div> 
+	<!-- 存储资源监控信息 -->
+	<div class="overviewheight hostmenTop5 col-xs-12 col-sm-6 col-md-6 col-lg-4">
+		<!-- 内存 -->
+		<div class="detail-item" ng-if="cloudType==3">
+			<div class="title">
+				<h5 translate="board.memInfo"></h5>
+			</div>
+			<div line-chart chart-name="Memory USED" url="{{memUrl}}" hide-legend=true grid-y2="20"
+				 style='width: 100%; height: 80%;min-height:251px;' id="mem">
+				<div class="altStyle" style="padding-left:180px;padding-top:110px;" translate="common.noData"></div>
+			</div>
+		</div>
+		<div class="detail-item" ng-if="cloudType==2">
+			<div class="title">
+				<h5 translate="board.memInfo"></h5>
+			</div>
+			<div line-chart chart-name="Memory" url="{{memUrl}}" hide-legend=true grid-y2="20"
+				 style='width: 100%; height: 80%;min-height:251px;' id="mem">
+				<div class="altStyle" style="padding-left:180px;padding-top:110px;" translate="common.noData"></div>
+			</div>
+		</div>
+	</div> 
+	<!-- 虚拟状态统计 -->
+	<div class="overviewheight-host compute-res-host col-xs-12 col-sm-6 col-md-6 col-lg-4">
+		<div class="detail-item">
+			<div class="title">
+				<h5 translate="dashboard.vmStatusInfo"></h5>
+			</div>
+			<div id="resourcePoolVmCircle" class="circle"></div>
+			<div id="vmInfo" class="numBar">
+				<div class="numItem" id="numItem-normal">
+					<label></label><br>
+					<span translate="dashboard.opened"></span>
+				</div>
+				<div class="numItem" id="numItem-close">
+					<label></label><br>
+					<span translate="dashboard.closed"></span>
+				</div>
+				<div class="numItem" id="numItem-error">
+					<label></label><br>
+					<span translate="dashboard.unKnown"></span>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!-- top5虚拟机CPU-->
+	<div class="overviewheight  vmcpu-top5 col-xs-12 col-sm-6 col-md-6 col-lg-4">
+		<div class="detail-item" id="vmCpuTop5" ng-show="cloudType==2">
+			<div class="title">
+				<h5 translate="board.virtualHostCpuRateInfoTitle"></h5>
+			</div>
+			<div id="resourcePoolVmCpuTop5Chart" class="trendChart" style="height:89%;min-height:249px"></div>
+		</div>
+		<!-- 已经消耗的CPU -->
+		<div class="detail-item" id="computeMonitor" ng-if="cloudType==3">
+			<div class="title">
+				<h5 translate="vmware.efcpu"></h5>
+			</div>
+			<div line-chart chart-name="CPU USED" url="{{efcpuUrl}}" y-axis="value" hide-legend=true color-index=4
+				 grid-y2="20" style='width: 100%; height: 80%;min-height:251px;' id="ef_cpu" >
+				<div class="altStyle" style="padding-left:180px;padding-top:110px;" translate="common.noData"></div>
+			</div>
+		</div>
+	</div>
+	<!-- top5虚拟机内存-->
+	<div class="overviewheight vmmem-top5 col-xs-12 col-sm-6 col-md-6 col-lg-4">
+		<div class="detail-item" id="vmMemoryTop5" ng-show="cloudType==2">
+			<div class="title">
+				<h5 translate="board.virtualHostMemoryInfoTitle"></h5>
+			</div>
+			<div id="resourcePoolVmMemoryTop5Chart" class="trendChart" style="height:89%;min-height:249px"></div>
+		</div>
+		<!-- 已经消耗的内存 -->
+		<div class="detail-item" ng-if="cloudType==3">
+			<div class="title">
+				<h5 translate="vmware.efmemory"></h5>
+			</div>
+			<div line-chart chart-name="Memory USED" url="{{efmemUrl}}" y-axis="value" hide-legend=true 
+				 grid-y2="20" style='width: 100%; height: 80%;min-height:251px;' id="ef_mem" >
+				<div class="altStyle" style="padding-left:180px;padding-top:110px;" translate="common.noData"></div>
+			</div>
+		</div>
+	</div>
+</div>

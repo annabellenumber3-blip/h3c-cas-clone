@@ -1,0 +1,103 @@
+<!-- 业务监控弹出窗口 -->
+<div class="modal-header">
+    <button type="button" class="close" custom-title="{{::'common.close'|translate}}"  ng-click="cancel()">
+        <span class="icon-closenew"></span>
+    </button>
+    <h4 class="modal-title">{{mainTitle}}</h4>
+</div>
+<div class="modal-body">
+     <!-- 查询条件 -->
+     <div class="form-horizontal">
+	     <form name="form"　ng-keypress="enter($event)" role="form" novalidate>
+	         <div class="form-group" style="width:900px;">
+	             <!-- 时间段-->
+	             <label class="col-sm-1 control-label short" style="width:73px;"><span translate="common.timeSlot"></span></label>
+	             <!-- 从-->
+	             <label for="timeFrom" class="col-sm-1 control-label short" style="width:10px;">
+	               <span translate="common.timeFrom"></span>
+	             </label>
+	             <div class="control-input col-sm-3">
+                     <div style="width: 200px;" class="input-group date input-large" form-datetime min-view='0' format='yyyy-mm-dd hh:ii:ss' ng-model="formatStartTime" initial-date="initDate" picker-position="bottom-right">
+                         <input id="startTimeId" class="form-control" type="text" value="" ng-model="formatStartTime" readonly ng-required=true>
+                         <span class="input-group-addon"><span class="fa fa-calendar"></span></span>
+                     </div>
+                 </div>
+	             <!-- 到-->
+	             <label for="timeTo" class="col-sm-1 control-label short" style="width:10px;"><span translate="common.timeTo"></span></label>
+	             <div class="control-input col-sm-3">
+	                  <input style="width: 200px;" class="input-group input-large" ng-model="formatEndTime" disabled>
+                      <!-- <div style="width: 200px;" class="input-group date input-large" form-datetime min-view='0' format='yyyy-mm-dd hh:ii:ss' ng-model="formatEndTime" picker-position="top-right">
+                          <input id="endTimeId" class="form-control" type="text" value="" ng-model="formatEndTime" readonly ng-required=true>
+                          <span class="input-group-addon"><span class="fa fa-calendar"></span></span>
+                      </div> -->
+                  </div>
+	         </div>
+	         <div class="btn-group" >
+	             <!-- <label class="btn btn-default btn-menu hidden-xs" ng-click="query()">
+	                 <span class='sm-icon icon-search'></span>
+	                 <span translate="common.query"></span>
+	             </label> -->
+	             <label class="btn btn-default btn-menu hidden-xs" ng-click="preHour()">
+	                 <!-- <span class='sm-icon icon-reset'></span> -->
+	                 <span translate="common.preHour"></span>
+	             </label>
+	             <label class="btn btn-default btn-menu hidden-xs" ng-click="nextHour()">
+	                 <!-- <span class='sm-icon icon-reset'></span> -->
+	                 <span translate="common.nextHour"></span>
+	             </label>
+	         </div>
+	         <!-- cpu、内存利用率 -->
+	         <div class="form-group" style="padding:10px;" ng-if="perfData.queryFld=='cpu' || perfData.queryFld=='mem' || perfData.queryFld=='cpu_usage'">
+	             <div class="square-47" style="width:100%;margin-left:0px;">
+		            <div class="title" style="padding-left:15px;">
+		                <h5>{{title}}</h5>
+		            </div>
+		            <div line-chart chart-name={{hostName}} url="{{moreUrl}}" url-param="perfData" hide-legend=true color-index=4
+		                 style='width: 100%; height: 240px;' id="morePerfDataChart" no-data-text="noDataDesc">
+		                <div class="altStyle" style="padding-left:294px;padding-top:91.5px;" translate="common.noData"></div>
+		            </div>
+		        </div>
+	         </div>
+             <!-- 磁盘IO、磁盘利用率 -->
+	         <div class="form-group" style="padding:10px;" ng-if="perfData.queryFld=='io' || perfData.queryFld=='disk'">
+                 <div class="square-47" style="width:100%;margin-left:0px;">
+                    <div class="title" style="padding-left:15px;">
+                        <h5>{{title}}</h5>
+                    </div>
+                    <div ng-if= "perfData.queryFld=='disk'" line-chart url="{{moreUrl}}"  url-param="perfData"
+                         style='width: 100%; height: 240px;' id="moreIoChart" no-data-text="noDataDesc">
+                        <div class="altStyle" style="padding-left:294px;padding-top:91.5px;" translate="common.noData"></div>
+                    </div>
+		             <div ng-if= "perfData.queryFld=='io'" line-chart url="{{moreUrl}}"  url-param="perfData" y-axis="value"
+		                 style='width: 100%; height: 240px;' id="moreIoChart" no-data-text="noDataDesc">
+		                <div class="altStyle" style="padding-left:294px;padding-top:91.5px;" translate="common.noData"></div>
+		            </div>
+                </div>
+             </div>
+             <!-- 网络吞吐量 -->
+             <div class="form-group" style="padding:10px;" ng-if="perfData.queryFld=='net'">
+                 <div class="square-47" style="width:100%;margin-left:0px;">
+                    <div class="title" style="padding-left:15px;">
+                        <h5>{{title}}</h5>
+                    </div>
+                     <div line-chart url="{{moreUrl}}"  url-param="perfData" y-axis="value" max-legend=8
+                        style='width: 100%; height: 240px;' id="moreNetChart" no-data-text="noDataDesc">
+                        <div class="altStyle" style="padding-left:294px;padding-top:91.5px;" translate="common.noData"></div>
+                    </div>
+                </div>
+             </div>
+             <!-- 磁盘读写延迟、磁盘IOPS -->
+             <div class="form-group" style="padding:10px;" ng-if="perfData.queryFld=='diskLatency' || perfData.queryFld=='iops'">
+                 <div class="square-47" style="width:100%;margin-left:0px;">
+                    <div class="title" style="padding-left:15px;">
+                        <h5>{{title}}</h5>
+                    </div>
+                    <div line-rw-chart url="{{moreUrl}}" url-param="perfData" current-view="perfData.currentDisk"
+                        style='width: 100%; height: 240px;float:left' id="moreIoChart2" no-data-text="noDataDesc">
+                        <div class="altStyle" style="padding-left:294px;padding-top:91.5px;" translate="common.noData"></div>
+                    </div>
+                </div>
+             </div>
+	     </form>
+     </div>
+</div>

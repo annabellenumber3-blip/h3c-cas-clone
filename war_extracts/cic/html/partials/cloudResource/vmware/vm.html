@@ -1,0 +1,51 @@
+<!-- VCenter 虚拟机列表 -->
+<div id="vmwareVmListDiv" class='calc100' ng-controller="vmwareVmListController">
+	<nav class="navbar-default" role="navigation">
+		<div class="container-fluid">
+			<div class="btn-group navbar-right" >
+				<!-- 刷新 -->
+				<label class="btn btn-default btn-menu hidden-xs"  ng-click="refreshVmList()">
+				    <span class='sm-icon icon-refresh'></span>
+				    <span translate="common.refresh"></span>
+		        </label>
+		        <!-- 手工同步 -->
+		        <label ng-if="!queryType" class="btn btn-default btn-menu hidden-xs"  ng-click="syncResource()">
+				    <span class='sm-icon icon-synchronize'></span>
+				    <span translate="cloudResource.syncResource"></span>
+		        </label>
+		        <!-- 导出 -->
+		        <label has-permission="VIRT_HOST_EXPORT" ng-if="!queryType" class="btn btn-default btn-menu hidden-xs"  ng-click="exportVms()">
+				    <span class='sm-icon icon-export'></span>
+				    <span translate="common.export"></span>
+		        </label>
+		        <!-- 批量操作 -->
+				<div has-permission="VIRT_HOST_START | VIRT_HOST_SLEEP | VIRT_HOST_RESTART | VIRT_HOST_SHUTDOWN | VIRT_HOST_CLOSE | VIRT_HOST_DEL" class="btn btn-default btn-menu" dropdown dropdown-toggle>
+                    <span class="sm-icon icon-more-actions"></span> <span translate="common.batchOper"></span> 
+                    <span class="dropdown-toggle icon-xialahao" type="button"></span>
+                    <ul class="dropdown-menu" role="menu">
+                    	<!-- 批量启动 -->
+                    	<li has-permission="VIRT_HOST_START"><a href="#" ng-click="batchOperateVm('start')"><span class="sm-icon icon-start"></span><span translate="menu.start"></span></a></li>
+                    	<!-- 休眠 -->
+                    	<li has-permission="VIRT_HOST_SLEEP"><a href="#" ng-click="batchOperateVm('sleep')"><span class="sm-icon icon-vm-sleep"></span><span translate="menu.sleep"></span></a></li>
+                    	<!-- 批量重启 -->
+                    	<li has-permission="VIRT_HOST_RESTART"><a href="#" ng-click="batchOperateVm('restart')"><span class="sm-icon icon-vm-reboot"></span><span translate="menu.restart"></span></a></li>
+                    	<!-- 批量关闭 -->
+                    	<li has-permission="VIRT_HOST_SHUTDOWN"><a href="#" ng-click="batchOperateVm('shutdown')"><span class="sm-icon icon-vm-shutdown"></span><span translate="menu.shutdown"></span></a></li>
+                    	<!-- 批量关闭电源 -->
+                    	<li has-permission="VIRT_HOST_CLOSE"><a href="#" ng-click="batchOperateVm('close')"><span class="sm-icon icon-vm-power-off"></span><span translate="menu.close"></span></a></li>
+                    	<!-- 批量删除 -->
+                    	<li has-permission="VIRT_HOST_DEL"><a href="#" ng-click="batchOperateVm('delete')"><span class="sm-icon icon-delete"></span><span translate="menu.delete"></span></a></li>
+                    </ul>
+                </div>
+		        <!-- 搜索框 -->
+				<label>
+			      <input class="form-control" id="navbarInput-01" type="search" placeholder="{{'vmware.filterNameHolder'|translate}}" ng-model="filterName" ng-readonly="filterLock" maxlength="64">
+				</label>
+			</div>
+		</div>
+	</nav>
+	<div class="cas-list-body rightClick oneList-calc" data-toggle="context">
+	    <div id='vcenterHostListDivId' list-style  class="table" ng-grid="gridOptions"></div>
+	    <div cas-context-menu-id="vmware-context-menu" cas-context-menu="gridOptions.selectedItems" cas-context-menu-type="vmwareVmlist" cas-enter-node-type="cloudResource"> </div>
+	</div>
+</div>

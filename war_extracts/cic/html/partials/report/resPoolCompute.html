@@ -1,0 +1,279 @@
+<div class="cas-panel" ng-controller="resPoolComputeCtrl" id="resPoolComputeReport">
+<!-- 主机报表 -->
+	<div class="panel-heading cas-panel-heading">
+		<ol class="breadcrumb" style="display:inline;">
+			<li><a ui-sref='main.monitorMng' ><span translate="monitorMng.monitorMng"></span></a></li>
+			<li><a ui-sref='main.reportMng' ><span translate="report.reportMng"></span></a></li>
+			<li class="active"><span translate="report.respoolCompute"></li>
+		</ol>
+		<span class="glyphicon glyphicon-question-sign link-help" custom-title="{{::'help'|translate}}"
+			aria-hidden="true" ng-click="openHelp('moniterMgmt/resPoolCompute')"></span>
+	</div>
+	<div class="panel-body">		
+		<!-- 查询条件 -->
+			<div class="calc100">
+			<div class="row overview-content-row">
+			<form name="form"  style="padding:10px 0px 0px 30px;" class="form-horizontal" ng-keypress="enter($event)" role="form" novalidate>
+					<div class="form-group" style="width:1100px;">
+						
+						<!-- 主机-->
+						<label for="currenthost_name" class="control-label  short"><span translate="host.host"></span><span class="required">*</span></label>
+						<div class="col-sm-4" ng-click="selectHost()">
+							<div class = "input-group " style="width: 255px;">
+								<input type="text" class="form-control first-child-angle" ng-model="currenthost.name" id="currenthost_name" name="currenthost_name" required>
+								<span class="input-group-addon inner-addon"><span class="icon-search-gray"></span> </span>
+							</div>
+						</div>
+						<!-- 统计周期-->
+						<label for="cycle" class="col-sm-1 control-label  short"><span translate="report.statisticalPeriod"></span> </label>
+						<div class="col-sm-4" >
+							<div style="width: 255px;">
+								<select-input class="" options="levels.cycleOptions" bind-model="model.cycle" id = "cycle" input-id="cycle" input-name="cycle"></select-input>
+							</div>
+						</div>
+					</div>
+					
+					<div class="form-group" style="width:1100px;">
+						<!-- 开始时间-->
+						<label for="hostReportStartTime" class="col-sm-1 control-label short"><span translate="cloudResource.startTime"></span></label>
+						<div class="col-sm-4">
+							<div class="input-group date input-large" style="width: 255px;" date-cell="#hostReportStartTime" jes-date is-time="{{isShowTime}}" format="{{dateFmt}}" is-clear="false" is-today="false" max-date="model.endTime" ng-model="model.startTime">
+                                <input id="hostReportStartTime" class="form-control selectInput first-child-angle calendar-input-img" type="text" readonly ng-model="model.startTime">
+                             </div>
+						</div>
+						<!-- 结束时间-->
+						<label for="hostReportEndTime" class="col-sm-1 control-label short"><span translate="cloudResource.endTime"></span></label>
+						<div class="col-sm-4">
+							<div class="input-group date input-large" style="width: 255px;" date-cell="#hostReportEndTime" jes-date is-time="{{isShowTime}}" format="{{dateFmt}}" is-today="false" is-clear="false" min-date="model.startTime" max-date="tomTime" ng-model="model.endTime">
+                                <input id="hostReportEndTime" class="form-control selectInput first-child-angle calendar-input-img" type="text" readonly ng-model="model.endTime">
+                             </div>
+						</div>
+					</div>
+					
+					<div class="form-group">
+						<label for="dtp_input2" class="col-sm-1 control-label short"><span translate="report.statisticalType"></span></label>
+						<div cascheckbox style="margin-left: 15px;" class="cas-checkbox labeled-btn checkbox " ng-model="type.cpu"  value=1 false-value=0>
+				            <input id="cpu" name="cpu" type="checkbox" ng-checked = "type.cpu == 1">
+				            <div class="corner-label">
+				            	<i class="glyphicon glyphicon-ok icon"></i>
+				            </div>
+				            <div class="box">
+				            	<span class="box-name"  style="width:90px;" translate="report.cpuRate"></span>
+				            </div>
+			            </div>
+	                    <div cascheckbox class="cas-checkbox labeled-btn checkbox" ng-model="type.mem" value=1 false-value=0>
+							<input id="mem" name="mem" type="checkbox" ng-checked = "type.mem == 1">
+							<div class="corner-label">
+				            	<i class="glyphicon glyphicon-ok icon"></i>
+				         	</div>
+					        <div class="box">
+					        	<span class="box-name"  style="width:90px;" translate="report.memRate"></span>
+					    	</div>
+				      	</div>
+				      	<div cascheckbox class="cas-checkbox labeled-btn checkbox" ng-model="type.diskUtil" value=1 false-value=0 ng-if="currenthost.cloudType==2">
+							<input id="diskUtil" name="diskUtil" type="checkbox" ng-checked = "type.diskUtil == 1">
+							<div class="corner-label">
+					        	<i class="glyphicon glyphicon-ok icon"></i>
+					    	</div>
+					 		<div class="box">
+					     		<span class="box-name"  style="width:90px;" translate="report.diskUtil"></span>
+					    	</div>
+				 		</div>
+			       		<div cascheckbox class="cas-checkbox labeled-btn checkbox" ng-model="type.diskr" value=1 false-value=0 ng-if="currenthost.cloudType==2">
+							<input id="diskr" name="diskr" type="checkbox" ng-checked = "type.diskr == 1">
+							<div class="corner-label">
+					        	<i class="glyphicon glyphicon-ok icon"></i>
+					    	</div>
+					 		<div class="box">
+					     		<span class="box-name"  style="width:90px;" translate="report.diskReadRate"></span>
+					    	</div>
+				 		</div>
+				    	<div cascheckbox class="cas-checkbox labeled-btn checkbox" ng-model="type.diskw" value=1 false-value=0 ng-if="currenthost.cloudType==2">
+					    	<input id="diskw" name="diskw" type="checkbox" ng-checked = "type.diskw == 1">
+					    	<div class="corner-label">
+					    		<i class="glyphicon glyphicon-ok icon"></i>
+					     	</div>
+					  		<div class="box">
+					        	<span class="box-name"  style="width:90px;" translate="report.diskWriteRate"></span>
+					    	</div>
+				        </div>                        
+				   		<div cascheckbox class="cas-checkbox labeled-btn checkbox" ng-model="type.io" value=1 false-value=0 ng-if="currenthost.cloudType==2">
+					    	<input id="io" name="io" type="checkbox" ng-checked = "type.io == 1">
+					     	<div class="corner-label">
+					        	<i class="glyphicon glyphicon-ok icon"></i>
+					    	</div>
+					    	<div class="box">
+					        	<span class="box-name"  style="width:90px;" translate="report.diakIoRate"></span>
+					    	</div>
+				     	 </div>
+				     	 <div cascheckbox class="cas-checkbox labeled-btn checkbox" ng-model="type.vcio" value=1 false-value=0 ng-if="currenthost.cloudType==3">
+					    	<input id="io" name="io" type="checkbox" ng-checked = "type.vcio == 1">
+					     	<div class="corner-label">
+					        	<i class="glyphicon glyphicon-ok icon"></i>
+					    	</div>
+					    	<div class="box">
+					        	<span class="box-name"  style="width:90px;" translate="report.diakIo"></span>
+					    	</div>
+				     	 </div>
+				     	 <div cascheckbox class="cas-checkbox labeled-btn checkbox" ng-model="type.vcnet" value=1 false-value=0 ng-if="currenthost.cloudType==3" style="margin-right:30px;">
+				        	<input id="net" name="net" type="checkbox" ng-checked = "type.vcnet == 1">
+				        	<div class="corner-label">
+				            	<i class="glyphicon glyphicon-ok icon"></i>
+				         	</div>
+				        	<div class="box">
+				            	<span class="box-name"  style="width:90px;" translate="report.netRate"></span>
+				        	</div>
+			             </div>
+			             <div class="btn-group" ng-if="currenthost.cloudType==3">
+							<label class="btn btn-default btn-menu hidden-xs"  ng-click="queryHostReport()">
+								<span class='sm-icon icon-search'></span>
+								<span translate="common.query"></span>
+							</label>
+							<label class="btn btn-default btn-menu hidden-xs" ng-click="searchReset()">
+								<span class='sm-icon icon-reset'></span>
+								<span translate="common.reset"></span>
+							</label>
+							<label class="btn btn-default btn-menu hidden-xs" ng-click="exportReportPdf()">
+								<span class='sm-icon icon-exportfile'></span>
+								<span translate="common.export"></span>
+							</label>
+						</div>
+					</div>
+					<div class="form-group" style = "width:1200px;">
+						<label class="col-sm-1 control-label short"></label>
+						<div cascheckbox style="margin-left:15px;" class="cas-checkbox labeled-btn checkbox" ng-model="type.net" value=1 false-value=0 ng-if="currenthost.cloudType==2">
+				        	<input id="net" name="net" type="checkbox" ng-checked = "type.net == 1">
+				        	<div class="corner-label">
+				            	<i class="glyphicon glyphicon-ok icon"></i>
+				         	</div>
+				        	<div class="box">
+				            	<span class="box-name"  style="width:90px;" translate="report.netAllFlow"></span>
+				        	</div>
+			             </div>
+			             <div cascheckbox class="cas-checkbox labeled-btn checkbox" ng-model="type.netr" value=1 false-value=0 ng-if="currenthost.cloudType==2">
+				          	<input id="netr" name="netr" type="checkbox" ng-checked = "type.netr == 1">
+				          	<div class="corner-label">
+				            	<i class="glyphicon glyphicon-ok icon"></i>
+				         	</div>
+				      	<div class="box">
+				        	<span class="box-name"  style="width:90px;" translate="report.netReadFlow"></span>
+				        </div>
+			    	</div>
+			   		<div cascheckbox class="cas-checkbox labeled-btn checkbox" ng-model="type.netw" value=1 false-value=0 ng-if="currenthost.cloudType==2">
+				    	<input id="netw" name="netw" type="checkbox" ng-checked = "type.netw == 1">
+				     	<div class="corner-label">
+				        	<i class="glyphicon glyphicon-ok icon"></i>
+				       	</div>
+				    	<div class="box">
+				        	<span class="box-name"  style="width:90px;" translate="report.netWriteFlow"></span>
+				     	</div>
+			   		</div>
+				    <div cascheckbox class="cas-checkbox labeled-btn checkbox" ng-model="type.netSpr" value=1 false-value=0 ng-if="currenthost.cloudType==2">
+				   		<input id="netr" name="netSpr" type="checkbox" ng-checked = "type.netSpr == 1">
+				    	<div class="corner-label">
+				        	<i class="glyphicon glyphicon-ok icon"></i>
+				    	</div>
+				   		<div class="box">
+				        	<span class="box-name"  style="width:90px;" translate="report.netReadRate"></span>
+				    	</div>
+			        </div>
+			        <div cascheckbox style="margin-right:30px;" class="cas-checkbox labeled-btn checkbox" ng-model="type.netSpw" value=1 false-value=0 ng-if="currenthost.cloudType==2">
+				       	<input id="netw" name="netSpw" type="checkbox" ng-checked = "type.netSpw == 1">
+				      	<div class="corner-label">
+				           	<i class="glyphicon glyphicon-ok icon"></i>
+				       	</div>
+				       	<div class="box">
+				           	<span class="box-name"  style="width:90px;" translate="report.netWriteRate"></span>
+				       	</div>
+			        </div>
+			        <div class="btn-group" ng-if="currenthost.cloudType==2" style="margin-left:102px;">
+						<label class="btn btn-default btn-menu hidden-xs"  ng-click="queryHostReport()">
+							<span class='sm-icon icon-search'></span>
+							<span translate="common.query"></span>
+						</label>
+						<label class="btn btn-default btn-menu hidden-xs" ng-click="searchReset()">
+							<span class='sm-icon icon-reset'></span>
+							<span translate="common.reset"></span>
+						</label>
+						<label class="btn btn-default btn-menu hidden-xs" ng-click="exportReportPdf()">
+							<span class='sm-icon icon-exportfile'></span>
+							<span translate="common.export"></span>
+						</label>
+					</div>
+					</div>
+			</form>
+			<div class="container-fluid">
+				<div class="demo-container"  ng-show='type.cpu == 1' >
+					<div id="hostReportCpu" class="demo-placeholder"></div>
+				</div>
+				<div class="demo-container" ng-show='type.mem == 1'>
+					<div id="hostReportMem" class="demo-placeholder"></div>
+				</div>
+				<div class="demo-container"  ng-show='type.vcio == 1 && currenthost.cloudType==3' >
+					<div id="vcenterReportIo" class="demo-placeholder"></div>
+				</div>
+				<div class="demo-container" ng-show='type.vcnet == 1 && currenthost.cloudType==3'>
+					<div id="vcenterReportNet" class="demo-placeholder"></div>
+				</div>
+				<div class="demo-container" ng-show='type.diskUtil == 1 && currenthost.cloudType==2'>
+					<div class="form-group" style="float:right">
+						<div class="input-group">
+							<span class="input-group-addon" for="DiskUtil" translate="report.disk"></span>
+							<select-input class="" options="chartName.hostDiskUtil" bind-model="chartName.hostDiskUtilSel" input-id="DiskUtil" input-name="DiskUtil"></select-input>
+						</div>
+					</div>
+					<div id="hostReportDiskUtil" class="demo-placeholder" style="clear:both;height: 280px;"></div>
+				</div>
+				<div class="demo-container" ng-show='type.diskr == 1 && currenthost.cloudType==2'>
+					<div class="form-group" style="float:right">
+						<div class="input-group">
+							<span class="input-group-addon" for="Diskr" translate="report.disk"></span>
+							<select-input class="" options="chartName.hostDiskr" bind-model="chartName.hostDiskrSel" input-id="Diskr" input-name="Diskr"></select-input>
+						</div>
+					</div>
+					<div id="hostReportDiskr" class="demo-placeholder" style="clear:both;height: 280px;"></div>
+				</div>
+				<div class="demo-container" ng-show='type.diskw == 1 && currenthost.cloudType==2'>
+					<div class="form-group" style="float:right">
+						<div class="input-group">
+							<span class="input-group-addon" for="Diskw" translate="report.disk"></span>
+							<select-input class="" options="chartName.hostDiskw" bind-model="chartName.hostDiskwSel" input-id="Diskw" input-name="Diskw"></select-input>
+						</div>
+					</div>
+					<div id="hostReportDiskw" class="demo-placeholder" style="clear:both;height: 280px;"></div>
+				</div>
+				<div class="demo-container" ng-show='type.io == 1 && currenthost.cloudType==2'>
+					<div id="hostReportIo" class="demo-placeholder"></div>
+				</div>
+				<div class="demo-container"  ng-show='type.net == 1 && currenthost.cloudType==2'>
+					<div id="hostReportNet" class="demo-placeholder"></div>
+				</div>
+				<div class="demo-container"  ng-show='type.netr == 1 && currenthost.cloudType==2'>
+					<div id="hostReportNetr" class="demo-placeholder"></div>
+				</div>
+				<div class="demo-container" ng-show='type.netw == 1 && currenthost.cloudType==2'>
+					<div id="hostReportNetw" class="demo-placeholder"></div>
+				</div>
+				<div class="demo-container" ng-show='type.netSpr == 1 && currenthost.cloudType==2'>
+					<div class="form-group" style="float:right">
+						<div class="input-group">
+						 	<span class="input-group-addon" for="netSpr" translate="report.netCard"></span>
+							<select-input class="=form-control"id="netSpr" options="chartName.hostNetSpr" bind-model="chartName.hostNetSprSel" input-id="netSpr" input-name="netSpr"></select-input>
+						</div>
+					</div>
+					<div id="hostReportNetSpr" class="demo-placeholder" style="clear:both;height: 280px;"></div>
+				</div>
+				<div class="demo-container" ng-show='type.netSpw == 1 && currenthost.cloudType==2'>
+					<div class="form-group"  style="float:right">
+						<div class="input-group">
+							<span class="input-group-addon" for="netSpw" translate="report.netCard"></span>
+							<select-input class="" options="chartName.hostNetSpw" bind-model="chartName.hostNetSpwSel" input-id="netSpw" input-name="netSpw"></select-input>
+						</div>
+					</div>
+					<div id="hostReportNetSpw" class="demo-placeholder" style="clear:both;height: 280px;"></div>
+				</div>
+			</div>
+			</div>
+		</div>
+	</div>
+</div>

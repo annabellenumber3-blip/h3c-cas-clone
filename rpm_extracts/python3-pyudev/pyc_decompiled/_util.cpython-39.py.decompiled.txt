@@ -1,0 +1,122 @@
+    pyudev._util
+    ============
+    Internal utilities
+    .. moduleauthor::  Sebastian Wiesner  <lunaryorn@gmail.com>
+check_outputc
+    Return the given ``value`` as bytestring.
+    If the given ``value`` is not a byte string, but a real unicode string, it
+    is encoded with the filesystem encoding (as in
+    :func:`sys.getfilesystemencoding()`).
+    )
+isinstance
+bytes
+encode
+getfilesystemencoding
+value
+0/usr/lib/python3.9/site-packages/pyudev/_util.py
+ensure_byte_string"
+    Return the given ``value`` as unicode string.
+    If the given ``value`` is not a unicode string, but a byte string, it is
+    decoded with the filesystem encoding (as in
+    :func:`sys.getfilesystemencoding()`).
+    )
+decoder
+ensure_unicode_string/
+    Return a byte string, which represents the given ``value`` in a way
+    suitable as raw value of an udev property.
+    If ``value`` is a boolean object, it is converted to ``'1'`` or ``'0'``,
+    depending on whether ``value`` is ``True`` or ``False``.  If ``value`` is a
+    byte string already, it is returned unchanged.  Anything else is simply
+    converted to a unicode string, and then passed to
+    :func:`ensure_byte_string`.
+    )
+bool
+intr
+property_value_to_bytes<
+    Convert the given unicode string ``value`` to a boolean object.
+    If ``value`` is ``'1'``, ``True`` is returned.  If ``value`` is ``'0'``,
+    ``False`` is returned.  Any other value raises a
+    :exc:`~exceptions.ValueError`.
+    )
+Not a boolean value: {0!r}r
+ValueError
+formatr
+string_to_boolP
+    Iteration helper for udev list entry objects.
+    Yield a tuple ``(name, value)``.  ``name`` and ``value`` are bytestrings
+    containing the name and the value of the list entry.  The exact contents
+    depend on the list iterated over.
+    N)
+udev_list_entry_get_nameZ
+udev_list_entry_get_valueZ
+udev_list_entry_get_next)
+libudev
+entry
+namer	
+udev_list_iterate]
+    Get the device type of a device file.
+    ``filename`` is a string containing the path of a device file.
+    Return ``'char'`` if ``filename`` is a character device, or ``'block'`` if
+    ``filename`` is a block device.  Raise :exc:`~exceptions.ValueError` if
+    ``filename`` is no device file at all.  Raise
+    :exc:`~exceptions.EnvironmentError` if ``filename`` does not exist or if
+    its metadata was inaccessible.
+    .. versionadded:: 0.15
+    
+char
+blockz
+not a device file: {0!r}N)
+stat
+st_mode
+S_ISCHR
+S_ISBLKr
+filename
+moder
+get_device_typel
+    Handle interruptions to an interruptible system call.
+    Run an interruptible system call in a loop and retry if it raises EINTR.
+    The signal calls that may raise EINTR prior to Python 3.5 are listed in
+    PEP 0475.  Any calls to these functions must be wrapped in eintr_retry_call
+    in order to handle EINTR returns in older versions of Python.
+    This function is safe to use under Python 3.5 and newer since the wrapped
+    function will simply return without raising EINTR.
+    This function is based on _eintr_retry_call in python's subprocess.py.
+    r
+select
+OSError
+IOError
+errorr
+errno
+argsZ
+EINTR)
+funcr*
+kwargsr%
+errZ
+error_coder
+eintr_retry_call
+    Get the version of the underlying udev library.
+    udev doesn't use a standard major-minor versioning scheme, but instead
+    labels releases with a single consecutive number.  Consequently, the
+    version number returned by this function is a single integer, and not a
+    tuple (like for instance the interpreter version in
+    :data:`sys.version_info`).
+    As libudev itself does not provide a function to query the version number,
+    this function calls the ``udevadm`` utility, so be prepared to catch
+    :exc:`~exceptions.EnvironmentError` and
+    :exc:`~subprocess.CalledProcessError` if you call this function.
+    Return the version number as single integer.  Raise
+    :exc:`~exceptions.ValueError`, if the version number retrieved from udev
+    could not be converted to an integer.  Raise
+    :exc:`~exceptions.EnvironmentError`, if ``udevadm`` was not found, or could
+    not be executed.  Raise :exc:`subprocess.CalledProcessError`, if
+    ``udevadm`` returned a non-zero exit code.  On Python 2.7 or newer, the
+    ``output`` attribute of this exception is correctly set.
+    .. versionadded:: 0.8
+    Z
+udevadmz	--version)
+strip)
+outputr
+udev_version
+__doc__r)
+subprocessr
+<module>

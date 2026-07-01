@@ -1,0 +1,266 @@
+<!-- 增加ACL策略弹出窗口 -->
+
+<!-- 标题 -->
+<div class="modal-header">
+     <button type="button" class="close" custom-title="{{::'common.close'|translate}}"  ng-click="cancel()">
+		<span class="icon-closenew"></span>
+	</button>
+    <h4 ng-if="isAdd == true" class="modal-title" translate="securityMng.addRule"></h4>
+    <h4 ng-if="isAdd == false" class="modal-title" translate="securityMng.modifyRule"></h4>
+</div>
+<!-- 内容2：向导  内容1和内容2选择一种使用-->
+<!-- 步骤向导 -->
+<div class="modal-body row">
+    <div class="form-horizontal col-md-12">
+        <form name="form" class="form-horizontal" role="form" novalidate>
+            <!-- 方向 -->
+            <div class="form-group">
+                <label for="aspect" class="control-label"><span translate="securityMng.aspect"></span><span style="color:red">&nbsp;</span></label>
+                <div class="control-input">
+                    <div class="input-group select-input-group" >
+                        <select-input class="" options="aspect.options" bind-model="rule.direction" input-id="aspect" input-name="aspect">
+                        </select-input>
+                        <span class="input-group-addon help-addon">
+                            <span class="icon-occupying"></span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div ng-if="aclType==LAYER_3">
+             <!-- 协议 -->
+             <div class="form-group">
+                 <label for="protocol_id" class="control-label"><span translate="securityMng.protocol"></span><span style="color:red">&nbsp;</span></label>
+                 <div class="control-input">
+                     <div class="input-group select-input-group" >
+                         <select-input class="" options="protocolV4.options"  bind-model="rule.protocol" input-id="protocol_id" input-name="protocol">
+                         </select-input>
+                         <span class="input-group-addon help-addon">
+                             <span class="icon-occupying"></span>
+                         </span>
+                     </div>
+                 </div>
+             </div>
+             <!-- 源IP地址 -->
+             <div class="form-group" ng-class="{'has-error': (form.sourceIp.$dirty && form.sourceIp.$invalid)}">
+                 <label for="sourceIp" class="control-label"><span translate="securityMng.sourceIp"></span><span style="color:red">&nbsp;</span></label>
+                 <div class="control-input">
+                     <div class="input-group input-xlarge">
+                         <input type="text" ip ng-maxlength=130 class="form-control form-input"  ng-model="rule.srcIp"  ng-trim="false" id="sourceIp" name="sourceIp" >
+                         <span class="input-group-addon help-addon" ng-messages="form.sourceIp.$error">
+                             <span ng-if="form.sourceIp.$valid ||!form.sourceIp.$dirty">
+                                  <span class="icon-occupying"></span>
+                             </span>
+                             <span ng-if="form.sourceIp.$dirty">
+                                  <span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxlen'|translate}}130"></span></span>
+                                  <span ng-message="ip"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'invalidip'|translate}}"></span></span>
+                             </span>
+                         </span>
+                     </div>
+                 </div>
+            </div>
+            <!-- 源子网掩码 -->
+            <div class="form-group" ng-class="{'has-error': (form.sourceMask.$dirty && form.sourceMask.$invalid)}">
+              <label for="sourceMask" class="control-label"><span translate="securityMng.sourceMask"></span><span style="color:red">&nbsp;</span></label>
+              <div class="control-input">
+                  <div class="input-group input-xlarge">
+                      <input type="text" mask allow-local="true" ng-maxlength=130 class="form-control form-input" ng-model="rule.srcMask"  ng-trim="false" id="sourceMask" name="sourceMask">
+                      <span class="input-group-addon help-addon" ng-messages="form.sourceMask.$error">
+                          <span ng-if="form.sourceMask.$valid ||!form.sourceMask.$dirty">
+                               <span class="icon-occupying"></span>
+                          </span>
+                          <span ng-if="form.sourceMask.$dirty">
+                               <span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxlen'|translate}}130"></span></span>
+                               <span ng-message="mask"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'invalidMask'|translate}}"></span></span>
+                          </span>
+                      </span>
+                  </div>
+              </div>
+            </div>
+            <!-- 源端口 -->
+             <div class="form-group" ng-class="{'has-error': (form.sourcePort.$dirty && form.sourcePort.$invalid)}">
+	           <label for="sourcePort" class="control-label"><span translate="securityMng.sourcePort"></span><span class="required">&nbsp;</span></label>
+	           <div class="control-input">
+	                <div class="input-group input-xlarge">
+	                 	<div ng-class="{disable: (isPortDisable)}">
+	                   <input type="text" checkint ng-model="rule.srcPort" class="spinner-only" spinner spinner-min=1 spinner-max=65535 ng-trim="false" id="sourcePort" name="sourcePort" ng-disabled="isPortDisable">
+	                    </div>
+	                   <span class="input-group-addon help-addon" ng-messages="form.sourcePort.$error">
+	                       <span ng-if="form.sourcePort.$valid||!form.sourcePort.$dirty">
+	                          <span class="icon-occupying"></span>
+	                      </span>
+	                      <span ng-if="form.sourcePort.$dirty" style="color:#A94442;">
+	                      		<span ng-message="int"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'invalidint'|translate}}"></span></span>
+	                            <span ng-message="spinnerMax"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxValueIs'|translate}}65535"></span></span>
+	                            <span ng-message="spinnerMin"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'minValueIs'|translate}}1"></span></span>
+	                      </span>
+	                   </span>
+	                  
+	                </div>
+	           </div>
+	        </div>                   
+            <!-- 目的IP地址 -->
+            <div class="form-group" ng-class="{'has-error': (form.targetIp.$dirty && form.targetIp.$invalid)}">
+                 <label for="targetIp" class="control-label"><span translate="securityMng.targetIp"></span><span style="color:red">&nbsp;</span></label>
+                 <div class="control-input">
+                     <div class="input-group input-xlarge">
+                         <input type="text" ip ng-maxlength=130 class="form-control form-input" ng-model="rule.destIp"  ng-trim="false" id="targetIp" name="targetIp" >
+                         <span class="input-group-addon help-addon" ng-messages="form.targetIp.$error">
+                             <span ng-if="form.targetIp.$valid||!form.targetIp.$dirty">
+                                  <span class="icon-occupying"></span>
+                             </span>
+                             <span ng-if="form.targetIp.$dirty">
+                                  <span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxlen'|translate}}130"></span></span>
+                                  <span ng-message="ip"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'invalidip'|translate}}"></span></span>
+                             </span>
+                         </span>
+                     </div>
+                 </div>
+             </div>
+             <!-- 目的子网掩码 -->
+             <div class="form-group" ng-class="{'has-error': (form.targetMask.$dirty && form.targetMask.$invalid)}">
+                 <label for="targetMask" class="control-label"><span translate="securityMng.targetMask"></span><span style="color:red">&nbsp;</span></label>
+                 <div class="control-input">
+                     <div class="input-group input-xlarge">
+                         <input type="text" mask allow-local="true" ng-maxlength=130 class="form-control form-input"  ng-model="rule.destMask"  ng-trim="false" id="targetMask" name="targetMask">
+                         <span class="input-group-addon help-addon" ng-messages="form.targetMask.$error">
+                             <span ng-if="form.targetMask.$valid||!form.targetMask.$dirty">
+                                  <span class="icon-occupying"></span>
+                             </span>
+                             <span ng-if="form.targetMask.$dirty">
+                                  <span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxlen'|translate}}130"></span></span>
+                                  <span ng-message="mask"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'invalidMask'|translate}}"></span></span>
+                             </span>
+                         </span>
+                     </div>
+                 </div>
+             </div>
+             <!-- 目的端口 -->
+             <div class="form-group" ng-class="{'has-error': (form.targetPort.$dirty && form.targetPort.$invalid)}">
+                 <label for="targetPort" class="control-label "><span translate="securityMng.targetPort"></span><span class="required">&nbsp;</span></label>
+                 <div class="control-input">
+                      <div class="input-group input-xlarge" >
+                      	 <div ng-class="{disable: (isPortDisable)}">	
+                         <input  type="text" checkint ng-model="rule.destPort" class="spinner-only" spinner spinner-min=1 spinner-max=65535 id="targetPort" name="targetPort" ng-disabled="isPortDisable">
+                         </div>
+                         <span class="input-group-addon help-addon" ng-messages="form.targetPort.$error">
+                             <span ng-if="form.targetPort.$valid||!form.targetPort.$dirty">
+                                <span class="icon-occupying"></span>
+                            </span>
+                             <span ng-if="form.targetPort.$dirty" style="color:#A94442;">
+                             	<span ng-message="int"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'invalidint'|translate}}"></span></span>
+	                            <span ng-message="spinnerMax"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxValueIs'|translate}}65535"></span></span>
+	                            <span ng-message="spinnerMin"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'minValueIs'|translate}}1"></span></span>
+	                      </span>
+                         </span>
+                      </div>
+                 </div>
+             </div>   
+            </div>
+            <!-- 二层参数 -->
+            <div ng-if="aclType==LAYER_2">
+             <!-- 二层协议 -->
+             <div class="form-group">
+                 <label for="protocol" class="control-label"><span translate="securityMng.protocol"></span><span style="color:red">&nbsp;</span></label>
+                 <div class="control-input">
+                     <div class="input-group select-input-group" >
+                         <select-input class="" options="protocolL2.options"  bind-model="rule.protocol" input-id="protocol" input-name="protocol">
+                         </select-input>
+                         <span class="input-group-addon help-addon">
+                             <span class="icon-occupying"></span>
+                         </span>
+                     </div>
+                 </div>
+             </div>
+             <!-- 源MAC地址 -->
+             <div class="form-group" ng-class="{'has-error': (form.sourceMac.$dirty && form.sourceMac.$invalid)}">
+                 <label for="sourceMac" class="control-label"><span translate="securityMng.sourceMac"></span><span style="color:red">&nbsp;</span></label>
+                 <div class="control-input">
+                     <div class="input-group input-xlarge">
+                         <input type="text" mac allow-multicast="true" ng-maxlength=130 placeholder="{{'securityMng.macTip'|translate}}" class="form-control form-input" ng-model="rule.srcMac" ng-trim="false" id="sourceMac" name="sourceMac" >
+                         <span class="input-group-addon help-addon" ng-messages="form.sourceMac.$error">
+                             <span ng-if="form.sourceMac.$valid||!form.sourceMac.$dirty">
+                                  <span class="icon-occupying"></span>
+                             </span>
+                             <span ng-if="form.sourceMac.$dirty">
+                                  <span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxlen'|translate}}130"></span></span>
+                                  <span ng-message="mac"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'macError'|translate}}"></span></span>
+                             </span>
+                         </span>
+                     </div>
+                 </div>
+             </div>
+             <!-- 源MAC掩码 : macMask指令待完成-->
+             <div class="form-group" ng-class="{'has-error': (form.sourceMacMask.$dirty && form.sourceMacMask.$invalid)}">
+                 <label for="sourceMacMask" class="control-label"><span translate="securityMng.sourceMacMask"></span><span style="color:red">&nbsp;</span></label>
+                 <div class="control-input">
+                     <div class="input-group input-xlarge">
+                         <input type="text" mac-mask ng-maxlength=130 placeholder="{{'securityMng.macMaskTip'|translate}}" class="form-control form-input"  ng-model="rule.srcMask" ng-trim="false" id="sourceMacMask" name="sourceMacMask" >
+                         <span class="input-group-addon help-addon" ng-messages="form.sourceMacMask.$error">
+                             <span ng-if="form.sourceMacMask.$valid||!form.sourceMacMask.$dirty">
+                                  <span class="icon-occupying"></span>
+                             </span>
+                             <span ng-if="form.sourceMacMask.$dirty">
+                                  <span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxlen'|translate}}130"></span></span>
+                                  <span ng-message="macMask"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'macMaskError'|translate}}"></span></span>
+                             </span>
+                         </span>
+                     </div>
+                 </div>
+             </div>
+             <!-- 目的MAC地址 -->
+             <div class="form-group" ng-class="{'has-error': (form.targetMac.$dirty && form.targetMac.$invalid)}">
+                 <label for="targetMac" class="control-label"><span translate="securityMng.targetMac"></span><span style="color:red">&nbsp;</span></label>
+                 <div class="control-input">
+                     <div class="input-group input-xlarge">
+                         <input type="text" mac allow-multicast="true" ng-maxlength=130 placeholder="{{'securityMng.macTip'|translate}}" class="form-control form-input"  ng-model="rule.destMac"  ng-trim="false" id="targetMac" name="targetMac" >
+                         <span class="input-group-addon help-addon" ng-messages="form.targetMac.$error">
+                             <span ng-if="form.targetMac.$valid||!form.targetMac.$dirty">
+                                  <span class="icon-occupying"></span>
+                             </span>
+                             <span ng-if="form.targetMac.$dirty">
+                                  <span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxlen'|translate}}130"></span></span>
+                                  <span ng-message="mac"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'macError'|translate}}"></span></span>
+                             </span>
+                         </span>
+                     </div>
+                 </div>
+             </div>
+             <!-- 目的MAC掩码 -->
+             <div class="form-group" ng-class="{'has-error': (form.targetMacMask.$dirty && form.targetMacMask.$invalid)}">
+                 <label for="targetMacMask" class="control-label"><span translate="securityMng.targetMacMask"></span><span style="color:red">&nbsp;</span></label>
+                 <div class="control-input">
+                     <div class="input-group input-xlarge">
+                         <input type="text" mac-mask ng-maxlength=130 class="form-control form-input" placeholder="{{'securityMng.macMaskTip'|translate}}"  ng-model="rule.destMask"  ng-trim="false" id="targetMacMask" name="targetMacMask" >
+                         <span class="input-group-addon help-addon" ng-messages="form.targetMacMask.$error">
+                             <span ng-if="form.targetMacMask.$valid||!form.targetMacMask.$dirty">
+                                  <span class="icon-occupying"></span>
+                             </span>
+                             <span ng-if="form.targetMacMask.$dirty">
+                                  <span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxlen'|translate}}130"></span></span>
+                                  <span ng-message="macMask"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'macMaskError'|translate}}"></span></span>
+                             </span>
+                         </span>
+                     </div>
+                 </div>
+             </div>
+            </div>
+            <!-- 动作 -->
+            <div class="form-group">
+                <label for="action" class="control-label"><span translate="securityMng.action"></span><span style="color:red">&nbsp;</span></label>
+                <div class="control-input">
+                    <div class="input-group select-input-group">
+                        <select-input class="" options="accessType.options" bind-model="rule.action" input-id="action" input-name="action">
+                        </select-input>
+                        <span class="input-group-addon help-addon">
+                             <span class="icon-occupying"></span>
+                         </span>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>    
+</div>
+<div class="modal-footer">
+    <button id="addAclRuleBtn" class="btn btn-green" ng-disabled="form.$invalid" ng-click="ok()" translate="common.confirm"></button>
+    <button class="btn btn-black" ng-click="cancel()" translate="common.cancel"></button>
+</div>

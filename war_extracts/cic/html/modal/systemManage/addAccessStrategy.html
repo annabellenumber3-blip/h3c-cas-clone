@@ -1,0 +1,136 @@
+<!-- 增加访问控制策略弹出窗口 -->
+
+<!-- 标题 -->
+<div class="modal-header">
+     <button type="button" class="close" custom-title="{{::'common.close'|translate}}"  ng-click="cancel()">
+		<span class="icon-closenew"></span>
+	</button>
+    <button ng-if="type=='add'" type="button" class="close cornerhelp" custom-title="{{'help'|translate}}" ng-click="openHelp('sysMgmt/accessStrategy/accessStrategyAdd')">
+		<span class="icon-helpnew"></span>
+	</button>
+	<button ng-if="type=='modify'" type="button" class="close cornerhelp" custom-title="{{'help'|translate}}" ng-click="openHelp('sysMgmt/accessStrategy/accessStrategyModify')">
+		<span class="icon-helpnew"></span>
+	</button>
+    <button ng-if="type=='view'" type="button" class="close cornerhelp" custom-title="{{'help'|translate}}" ng-click="openHelp('sysMgmt/accessStrategy/accessStrategyDetail')">
+		<span class="icon-helpnew"></span>
+	</button>
+    <h4 class="modal-title">{{addTitle}}</h4>
+</div>
+<!-- 内容1:单form -->
+<div class="modal-body">
+    <div class="form-horizontal">
+        <form name="form" class="form-horizontal" ng-keypress="enter($event)" role="form" novalidate>
+            <!-- 策略名称 -->
+            <div class="form-group" ng-class="{'has-error': (form.name.$dirty && form.name.$invalid)}">
+                <label for="name" class="control-label"><span translate="securityMng.strategyName"></span><span style="color: red">*</span></label>
+                <div class="control-input" >
+                     <div class="input-group input-xlarge">
+                         <input type="text" ng-readonly="isShowAccessOnly()" check-special-char ng-maxlength=64 rpccheck ='accessStrategy/accessStrategyNameExist' class="form-input form-control" ng-model="entry.name"  ng-trim="false" id="name" name="name" required>
+                         <span class="input-group-addon help-addon" ng-messages="form.name.$error">
+                             <span ng-if="form.name.$valid||!form.name.$dirty">
+                                 <span class="icon-occupying"></span>
+                             </span>
+                             <span ng-if="form.name.$dirty">
+                             	<span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+                             	<span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxlen'|translate}}64"></span></span>
+                             	<span ng-message="specialChar"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'checkname2'|translate}}"></span></span>
+                             	<span ng-message="rpccheck"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'securityMng.accessStrategyAlreadyExists'|translate}}"></span></span>
+                             </span>
+                         </span>
+                     </div>
+                 </div>   
+            </div>
+            <!-- 策略描述 -->
+            <div class="form-group" ng-class="{'has-error': (form.desc.$dirty && form.desc.$invalid)}">
+                <label for="desc" class="control-label"><span translate="securityMng.strategyDesc"></span><span style="color: red">&nbsp;</span></label>
+                <div class="control-input" >
+                     <div class="input-group input-xlarge">
+                         <input type="text" ng-readonly="isShowAccessOnly()" ng-maxlength=120 class="form-input form-control" ng-model="entry.description"  ng-trim="false" id="desc" name="desc">
+                         <span class="input-group-addon help-addon" ng-messages="form.desc.$error">
+                             <span ng-if="form.desc.$valid||!form.desc.$dirty">
+                                 <span class="icon-occupying"></span>
+                             </span>
+                             <span ng-if="form.desc.$dirty">
+                                 <span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxlen'|translate}}120"></span></span>
+                             </span>
+                         </span>
+                     </div>
+                 </div>   
+            </div>
+            <!-- 默认访问类型 -->
+            <div class="form-group">
+                <label for="defaultAccessType" class="control-label"><span translate="securityMng.defaultAccessType"></span><span style="color:red">&nbsp;</span></label>
+                <div class="control-input">
+                    <div class="input-group" style="width:300px;">
+                        <select-input class="" input-readonly="{{type=='view'}}" options="accessType.options" bind-model="entry.defaultAccessAction" input-id="defaultAccessType" input-name="defaultAccessType">
+                        </select-input>
+                        <span class="input-group-addon help-addon">
+                            <span class="icon-help-gray" tooltip-placement="right" tooltip="{{::'securityMng.accessStrategyTypeTip' | translate}}"></span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+			
+			<!-- 访问时间控制 -->
+			<div class="form-group">
+	            <label class="control-label "><span translate="securityMng.accTimeCtr"></span></label>
+                <div class="control-input">
+                    <!--   不启用 -->
+                    <div class="col-xs-2" style="padding-left:0px;">
+               			<cas-ace-check id="noneCtr"  type="radio" input-readonly="{{type=='view'}}" text="{{::'securityMng.noneCtr' | translate}}" checked-value="0" checked="{{entry.frequency == '0'}}" ng-model="entry.frequency"></cas-ace-check>
+                    </div>
+                    <!--   每周 -->
+                    <div class="col-xs-2" style="padding-left:0px;">
+                    	<cas-ace-check id="weekCtr"  type="radio" input-readonly="{{type=='view'}}" text="{{::'cloudResource.everyWeek' | translate}}" checked-value="1" checked="{{entry.frequency == '1'}}" ng-model="entry.frequency"></cas-ace-check>
+                    </div>
+                    <!--  每天  -->
+                    <div class="col-xs-2" style="padding-left:0px;">
+                    	<cas-ace-check id="dayCtr"  type="radio" input-readonly="{{type=='view'}}" text="{{::'cloudResource.everyDay' | translate}}" checked-value="2" checked="{{entry.frequency == '2'}}" ng-model="entry.frequency"></cas-ace-check>
+                    </div>
+               </div>
+	        </div> 
+			
+			<!-- 选择星期 -->
+			<div class="form-group" ng-if="entry.frequency == '1'">
+           		<label class="control-label"><span translate="cloudResource.week"></span><span style="color:red">*</span></label>
+           		<div class="control-input" style='width:126px;padding:0;float:left'>
+                  		<div  class="input-group" style="width:126px;">
+                      		 <select-input class="" input-readonly="{{type=='view'}}" options="week.options"  bind-model="entry.dateStart" input-id="onStartWeek" input-name="onStartWeek"></select-input>
+                  		</div>
+              		</div>
+              		<div style="float:left;margin:5px 10px 10px 10px;">-</div>
+              		<div  style="float:left">
+                  		<div  class="input-group" style="width:126px;padding:0;float:left;">
+                      		 <select-input class="" input-readonly="{{type=='view'}}" options="week.options"  bind-model="entry.dateEnd" input-id="onEndWeek" input-name="onEndWeek"></select-input>
+                  		</div>
+              		</div>
+    		</div>
+			<!-- 设置时间 -->
+			<div class="form-group" ng-if="entry.frequency == '1' || entry.frequency == '2' ">
+				<div input-id="accTimer" input-readonly="{{type=='view'}}" time-select></div>
+			</div>
+			
+			<!-- 规则列表 -->
+            <div style="background-color: #fff;padding: 0;" ng-controller="accessRuleListCtrl">
+                        <!-- 访问规则 单选框 -->
+                <div class="container-fluid">
+					<div ng-show="showAddRuleBtn" class="btn-group navbar-right">
+						<label style="margin-right: 0px ! important;" class="btn btn-default btn-menu hidden-xs" ng-click="addAccessRule()">
+							<span class="sm-icon icon-add"></span><span translate="securityMng.addAccessRule"></span>
+						</label>  
+					</div>  
+				</div>
+	        	<div style="margin-top: 10px !important; height: 160px;" class="table" ng-grid="gridOptions"></div>
+	        </div>
+        </form>
+    </div>
+</div>
+<!-- 内容1:新增与修改的按钮栏 -->
+<div class="modal-footer" ng-show="accessOprType">
+    <button id="addAccessStraBtn" class="btn btn-green" ng-disabled="form.$invalid" ng-click="ok()" translate="common.confirm"></button>
+    <button class="btn btn-black" ng-click="cancel()" translate="common.cancel"></button>
+</div>
+<!-- 内容2:查看的按钮栏 -->
+<div class="modal-footer" ng-hide="accessOprType">
+    <button id="viewAccessStraBtn" class="btn btn-green" ng-disabled="form.$invalid" ng-click="cancel()" translate="common.close"></button>
+</div>

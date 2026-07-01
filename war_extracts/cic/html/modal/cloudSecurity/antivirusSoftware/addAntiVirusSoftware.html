@@ -1,0 +1,114 @@
+<!-- 增加防病毒软件弹出窗口 -->
+
+<!-- 标题 -->
+<div class="modal-header">
+    <button type="button" class="close" custom-title="{{::'common.close'|translate}}"  ng-click="cancel()">
+		<span class="icon-closenew"></span>
+	</button>
+    <button type="button" class="close cornerhelp" custom-title="{{::'help'|translate}}" ng-click="openHelp('cloudResource/host/deployVm')">
+		<span class="icon-helpnew"></span>
+	</button>
+    <h4 class="modal-title" translate="cloudSecurity.addAntiVirusSoftware" ng-if="operationType == 'add'"></h4>
+    <h4 class="modal-title" translate="cloudSecurity.modifyAntiVirusSoftware" ng-if="operationType!='add'"></h4>
+    <!-- translate="cloudSecurity.addAntiVirusSoftware" -->
+</div>
+<!-- 步骤向导 -->
+<div class="modal-body row">
+    <div class="form-horizontal col-md-8">
+        <carousel-form titles="antiVirusSoftware.stepTitles" cancel="ok()"> 
+            <!-- 第一步：基本信息 -->
+            <slide-form valid="antiVirusSoftware.valids.stepOneOver()" active="slide.active" can-activate='false'>
+                <form name="form1" class="form-horizontal" role="form" novalidate>
+                    <!-- 隐藏属性，以根据value确定下一步-->
+                    <input type="hidden" id="form1" value="{{form1.$valid}}">
+                    <!-- 防病毒厂商 -->
+                    <div class="form-group" >
+                        <label for="antiVirusSoftwareType" class="control-label"><span translate="cloudSecurity.vendor"></span><span style="color:red">&nbsp;</span></label>
+                        <div class="control-input">
+                            <div class="input-group width260" ng-class="{disable: (operationType =='edit')}">
+                                <select-input options="antiVirusSoftwareType.options"  input-readonly="{{operationType =='edit'}}"  
+                                bind-model="antiVirusSoftware.vendor" input-id="antiVirusSoftwareType" input-name="antiVirusSoftwareType"></select-input>
+                            </div>
+                        </div>
+                    </div>
+                    <!--补丁包目录--><!-- {{form1.filePath.$dirty}} -->
+                    <div class="form-group" ng-class="{'has-error': (form1.filePath.$dirty && form1.filePath.$invalid)}">
+                        <label for="filePath" class="control-label"><span translate="cloudSecurity.filePath"></span><span style="color: red">*</span></label>
+                        <div class="control-input">
+                            <div class="input-group input-xlarge">
+                                <input type="text" ng-maxlength=64 ng-disabled="getType()" class="form-input form-control" ng-model="antiVirusSoftware.filePath"  ng-trim="false" id="filePath" name="filePath" required>
+                                <span class="input-group-addon help-addon" ng-messages="form1.filePath.$error">
+                                    <span ng-if="form1.filePath.$valid||!form1.filePath.$dirty">
+                                        <span class="icon-occupying"></span>
+                                    </span>
+                                    <span ng-if="form1.filePath.$dirty">
+                                        <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{::'require'|translate}}"></span></span>
+                                        <span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{::'maxlen'|translate}}64"></span></span>
+                                        <!-- <span ng-message="specialChar"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{::'checkname2'|translate}}"></span></span> -->
+                                    </span>
+                                </span>
+                            </div>
+                        </div>   
+                    </div>
+                     <!-- 已上传补丁包名称 -->
+                    <!-- <div class="form-group" ng-class="{'has-error': (form1.fileName.$dirty && form1.fileName.$invalid)}" ng-if="operationType!='add'">
+                       <label for="fileName" class="control-label"><span translate="cloudSecurity.fileName"></span><span style="color: red">*</span></label>
+                       <div class="control-input">
+                            <div class="input-group input-xlarge">
+                                <input type="text"  check-special-char ng-maxlength=64 ng-disabled="getType()" class="form-input form-control" ng-model="antiVirusSoftware.fileName"  ng-trim="false" id="fileName" name="fileName" required>
+                                <span class="input-group-addon help-addon" ng-messages="form1.fileName.$error">
+                                    <span ng-if="form1.fileName.$valid||!form1.fileName.$dirty">
+                                        <span class="icon-occupying"></span>
+                                    </span>
+                                    <span ng-if="form1.fileName.$dirty">
+                                        <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{::'require'|translate}}"></span></span>
+                                        <span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{::'maxlen'|translate}}64"></span></span>
+                                        <span ng-message="specialChar"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{::'checkname2'|translate}}"></span></span>
+                                    </span>
+                                </span>
+                            </div>
+                        </div>   
+                    </div> -->
+                </form>
+            </slide-form>
+            <!-- 第二步：上传软件包 -->
+            <slide-form valid="antiVirusSoftware.valids.stepTwoOver()" can-activate='false'>
+                <form name="form2" class="form-horizontal list-body" role="form" novalidate>
+                    <!-- 隐藏属性，用于js方法操作form是否显示 -->
+	                <input type="hidden" id="form2" value="{{form2.$valid}}">
+	                <div translate="cloudSecurity.importSoftwarePatchTip" style="padding: 10px;background-color: #D9EDF7;border-radius: 5px;"></div>
+		        	<div id="i_select_files" ></div><!--style="height:200px;"  -->
+					<div id="i_stream_files_queue" ></div><!-- style="height:200px;" -->
+					<br>
+					<div class="modal-footer" id="streambtn" style='margin-top: -14px'><!-- ;margin-left:170px; -->
+					    <button class=" btn btn-green" ng-click="upload()" translate="uploadfile.uploadisoUploadBtnTips"></button>
+						<button class=" btn btn-black" ng-click="stream.stop();" translate="uploadfile.uploadisoStopBtnTips"></button>
+						<button class=" btn btn-black" ng-click="stream.cancel();" translate="uploadfile.uploadisoCancelBtnTips"></button>
+					</div> 
+                </form>
+            </slide-form>
+        </carousel-form>
+    </div>
+    
+
+    <!-- 右侧确认信息 -->
+    <div ng-if="isFirstPage" class="detail-table col-md-4">
+    	<table class="table table-striped">
+            <tr class="gray">
+                <td><h4 translate="configDetail"></h4></td><td></td>
+            </tr>
+            <tr>
+                <td class="white"><span translate="cloudSecurity.vendor"></span></td>
+                <td class="white">{{antiVirusSoftware.vendor | selectLabel:'1':antiVirusSoftwareType.options}}</td>
+             </tr>
+             <tr>
+                 <td class="gray"><span translate="cloudSecurity.filePath"></span></td>
+                 <td class="gray" custom-title shortcut cut-str="{{antiVirusSoftware.filePath}}">{{antiVirusSoftware.filePath}}</td>
+             </tr>
+		</table>  
+    </div>
+    <div ng-if="!isFirstPage" class="detail-table col-md-4">
+        <h5 translate="uploadfile.uploadisoStatusTips" style="padding-left:10px;"></h5>
+        <div id="i_stream_message_container" class="stream-main-message-box" style="overflow: auto; height: calc(100% - 35px);"></div>
+    </div>
+</div>

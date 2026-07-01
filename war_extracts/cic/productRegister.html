@@ -1,0 +1,439 @@
+<!-- 产品注册弹出窗口 -->
+<!-- 标题 -->
+<div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" ng-click="cancel()">
+        <span class="icon-closenew" custom-title="{{::'common.close'|translate}}" ></span>
+    </button>
+    <button type="button" class="close cornerhelp" custom-title="{{'help'|translate}}" ng-click="openHelp('sysMgmt/license/licenseMgmt')">
+		<span class="icon-helpnew"></span>
+	</button>
+    <h4 class="modal-title" translate="productRegister"></h4>
+</div>
+<!-- 步骤向导 -->
+<div class="modal-body row">
+    <div class="form-horizontal col-md-8">
+        <carousel-form titles="stepTitles" confirmclose="confirmClose" cancel="ok()"> 
+            <!-- 第一步	选择基本操作-->
+            <slide-form valid="valids.stepOneOver()" active="slide.active">
+                <form name="form1" class="form-horizontal" role="form" novalidate>
+                    <!-- 隐藏属性，用于js方法操作form是否显示 -->
+                    <input type="hidden" id="form1" value="{{form1.$valid}}">
+                    <!-- 请输入超级管理员（admin）的登录密码 -->
+                    <div class="form-group" " ng-class="{'has-error': (form1.loginPwd.$dirty && form1.loginPwd.$invalid)}">
+                       <label for="loginPwd" class="control-label" style="width:150px;"><span translate="inputAdminPwd"></span><span style="color: red">*</span></label>
+                       <div class="control-input" >
+                            <div class="input-group input-xlarge">
+                                <input type="password" ng-maxlength=32  style="width: 293px !important;" class="form-input form-control" ng-model="model.loginPwd"  ng-trim="false" 
+                                	id="loginPwd" name="loginPwd" namekey="adminPsw" required >
+                                <span class="input-group-addon help-addon" ng-messages="form1.loginPwd.$error" ng-if="form1.loginPwd.$dirty">
+                                        <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+                                        <span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxlen'|translate}}32"></span></span>
+                                    </span>
+                            </div>
+                        </div>   
+                    </div>
+	                <!-- 选择您要执行的操作 -->
+		            <div class="form-group">
+		                <label for="licenseOpe" class="control-label" style="width:150px;"><span translate="selLicense"></span><span style="color:red">*</span></label>
+		                <div class="control-input input-group" style="width:334px">
+		               		<select-input options="licenseOpe.options" input-id="licenseOpe" input-name="licenseOpe"  bind-model="model.licenseOpe" 
+		                        ng-init="model.licenseOpe='0'">
+		                  	</select-input>
+		                  	<span class="input-group-addon help-addon">
+		                    	<span class="icon-occupying"></span>
+		                   	</span>
+		                </div>
+		            </div>
+		             <!-- 国家/地区 -->
+					<div class="form-group">
+						<label for="nationRegion_id" class="control-label" style="width:150px;"><span translate="licenseMng.nationRegion"></span></span><span style="color: red">*</span>
+						</label>
+						<div class="control-input">
+							<div class="input-group" style="width: 293px !important;" >
+								<select-input options="nationRegion.options" ng-init="model.nationRegion='China'" bind-model="model.nationRegion" input-id="nationRegion_id" input-name="nationRegion" required></select-input>
+							</div>
+						</div>
+					</div>
+                </form>
+             </slide-form>
+            <!-- 第二步 	输入注册信息 -->
+            <slide-form valid="valids.stepTwoOver()" tab-index="1" is-add="model.licenseOpe=='0'">
+                <form name="form2" class="form-horizontal" role="form" novalidate>
+                    <!-- 隐藏属性，用于js方法操作form是否显示 -->
+                    <input type="hidden" id="form2" value="{{form2.$valid}}">
+                    <tabset type="pills">
+                    	<!-- 最终用户信息 -->
+	                    <tab>
+	                    	<tab-heading>
+		                    	{{'licenseMng.endUserInformation'|translate}}<span style='color:red;'>*</span>
+		                    </tab-heading>
+	                    <!-- 用户姓名 -->
+				<div class="form-group" style="margin-top:15px;" ng-class="{'has-error': (form2.username.$dirty && form2.username.$invalid)}">
+		           <label for="username_id" class="control-label"><span translate="licenseMng.userName"></span><span style="color: red">*</span></label>
+		           <div class="control-input">
+		               <div class="input-group input-xlarge">
+		                   <input type="text" ng-maxlength=32 class="form-input form-control" ng-model="model.username"  ng-trim="false" id="username_id" name="username" required >
+		                   <span class="input-group-addon help-addon" ng-messages="form2.username.$error">
+		                       <span ng-if="form2.username.$valid||!form2.username.$dirty">
+		                           <span class="icon-occupying"></span>
+		                       </span>
+		                       <span ng-if="form2.username.$dirty">
+		                           <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+		                           <span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxlen'|translate}}32"></span></span>
+		                       </span>
+		                    </span>
+		               </div>
+		          </div>   
+		       </div>
+		       <!-- 国家/地区 -->
+				<div class="form-group">
+					<label for="nationRegion_id" class="control-label"><span translate="licenseMng.nationRegion"></span></span><span style="color: red">*</span>
+					</label>
+					<div class="control-input">
+						<div class="input-group width260">
+							<select-input options="nationRegion.options" ng-init="model.country='China'" bind-model="model.country" input-id="country_id" input-name="country" required></select-input>
+						</div>
+					</div>
+				</div>
+				<!-- 省/市 -->
+				<div class="form-group" ng-class="{'has-error': (form2.provinceCity.$dirty && form2.provinceCity.$invalid)}">
+		           <label for="provinceCity_id" class="control-label"><span translate="licenseMng.provinceCity"></span><span style="color: red">*</span></label>
+		           <div class="control-input">
+		               <div class="input-group input-xlarge">
+		                   <input type="text" ng-maxlength=32 class="form-input form-control" ng-model="model.provinceCity"  ng-trim="false" id="provinceCity_id" name="provinceCity" required >
+		                   <span class="input-group-addon help-addon" ng-messages="form2.provinceCity.$error">
+		                       <span ng-if="form2.provinceCity.$valid||!form2.provinceCity.$dirty">
+		                           <span class="icon-occupying"></span>
+		                       </span>
+		                       <span ng-if="form2.provinceCity.$dirty">
+		                           <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+		                           <span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxlen'|translate}}32"></span></span>
+		                       </span>
+		                    </span>
+		               </div>
+		          </div>   
+		       </div>
+		       <!-- 公司或单位名称 -->
+				<div class="form-group" ng-class="{'has-error': (form2.company.$dirty && form2.company.$invalid)}">
+		           <label for="company_id" class="control-label"><span translate="licenseMng.companyOrganization"></span><span style="color: red">*</span></label>
+		           <div class="control-input">
+		               <div class="input-group input-xlarge">
+		                   <input type="text" ng-maxlength=32 class="form-input form-control" ng-model="model.company"  ng-trim="false" id="company_id" name="company" required >
+		                   <span class="input-group-addon help-addon" ng-messages="form2.company.$error">
+		                       <span ng-if="form2.company.$valid||!form2.company.$dirty">
+		                           <span class="icon-occupying"></span>
+		                       </span>
+		                       <span ng-if="form2.company.$dirty">
+		                           <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+		                           <span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxlen'|translate}}32"></span></span>
+		                       </span>
+		                    </span>
+		               </div>
+		          </div>   
+		       </div>
+		        <!-- 地址 -->
+				<div class="form-group" ng-class="{'has-error': (form2.address.$dirty && form2.address.$invalid)}">
+		           <label for="address_id" class="control-label"><span translate="licenseMng.address"></span></label>
+		           <div class="control-input">
+		               <div class="input-group input-xlarge">
+		                   <input type="text" ng-maxlength=32 class="form-input form-control" ng-model="model.address"  ng-trim="false" id="address_id" name="address" >
+		                   <span class="input-group-addon help-addon" ng-messages="form2.address.$error">
+		                       <span ng-if="form2.address.$valid||!form2.address.$dirty">
+		                           <span class="icon-occupying"></span>
+		                       </span>
+		                       <span ng-if="form2.address.$dirty">
+		                           <span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxlen'|translate}}32"></span></span>
+		                       </span>
+		                    </span>
+		               </div>
+		          </div>   
+		       </div>
+		        <!-- 邮编 -->
+				<div class="form-group" ng-class="{'has-error': (form2.postcode.$dirty && form2.postcode.$invalid)}">
+		           <label for="postcode_id" class="control-label"><span translate="licenseMng.postcode"></span></label>
+		           <div class="control-input">
+		               <div class="input-group input-xlarge">
+		                   <input type="text" ng-maxlength=32 class="form-input form-control" ng-model="model.postcode"  ng-trim="false" id="postcode_id" name="postcode" >
+		                   <span class="input-group-addon help-addon" ng-messages="form2.postcode.$error">
+		                       <span ng-if="form2.postcode.$valid||!form2.postcode.$dirty">
+		                           <span class="icon-occupying"></span>
+		                       </span>
+		                       <span ng-if="form2.postcode.$dirty">
+		                           <span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxlen'|translate}}32"></span></span>
+		                       </span>
+		                    </span>
+		               </div>
+		          </div>   
+		       </div>
+		        <!-- 电子邮件地址 -->
+				<div class="form-group" ng-class="{'has-error': (form2.email.$dirty && form2.email.$invalid)}">
+		           <label for="email_id" class="control-label"><span translate="licenseMng.emailAddress"></span></label>
+		           <div class="control-input">
+		               <div class="input-group input-xlarge">
+		                   <input checkemail type="text" ng-maxlength=32 class="form-input form-control" ng-model="model.email" ng-trim="false" id="email_id" name="email" >
+		                   <span class="input-group-addon help-addon" ng-messages="form2.email.$error">
+		                       <span ng-if="form2.email.$valid||!form2.email.$dirty">
+		                           <span class="icon-occupying"></span>
+		                       </span>
+		                       <span ng-if="form2.email.$dirty">
+		                           <span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxlen'|translate}}32"></span></span>
+		                       	   <span ng-message="checkemail"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'invalidemail'|translate}}"></span></span>
+		                       </span>
+		                    </span>
+		               </div>
+		          </div>   
+		       </div>
+				<!-- 联系电话 -->
+				<div class="form-group" ng-class="{'has-error': (form2.phone.$dirty && form2.phone.$invalid)}">
+		           <label for="phone_id" class="control-label"><span translate="licenseMng.phone"></span></label>
+		           <div class="control-input">
+		               <div class="input-group input-xlarge">
+		                   <input check-phone type="text" ng-maxlength=32 class="form-input form-control" ng-model="model.phone"  ng-trim="false" id="phone_id" name="phone">
+		                   <span class="input-group-addon help-addon" ng-messages="form2.phone.$error">
+		                       <span ng-if="form2.phone.$valid||!form2.phone.$dirty">
+		                           <span class="icon-occupying"></span>
+		                       </span>
+		                       <span ng-if="form2.phone.$dirty">
+		                           <span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxlen'|translate}}32"></span></span>
+		                           <span ng-message="checkPhone"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'invalidPhone'|translate}}"></span></span>
+		                       </span>
+		                    </span>
+		               </div>
+		          </div>   
+		       </div>
+	                    </tab>
+	                    <!-- 申请人信息 -->
+	                    <tab>
+	                    	<tab-heading>
+		                    	{{'licenseMng.applicantInfo'|translate}}<span style='color:red;'>*</span>
+		                    </tab-heading>
+	                    	 <!-- 姓名 -->
+				<div class="form-group" style="margin-top:15px;" ng-class="{'has-error': (form2.applicantName.$dirty && form2.applicantName.$invalid)}">
+		           <label for="applicantName_id" class="control-label"><span translate="licenseMng.name"></span><span style="color: red">*</span></label>
+		           <div class="control-input">
+		               <div class="input-group input-xlarge">
+		                   <input type="text" ng-maxlength=32 class="form-input form-control" ng-model="model.applicantName"  ng-trim="false" id="applicantName_id" name="applicantName" required >
+		                   <span class="input-group-addon help-addon" ng-messages="form2.applicantName.$error">
+		                       <span ng-if="form2.applicantName.$valid||!form2.applicantName.$dirty">
+		                           <span class="icon-occupying"></span>
+		                       </span>
+		                       <span ng-if="form2.applicantName.$dirty">
+		                           <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+		                           <span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxlen'|translate}}32"></span></span>
+		                       </span>
+		                    </span>
+		               </div>
+		          </div>   
+		       </div>
+		       <!-- 公司或单位名称 -->
+				<div class="form-group" ng-class="{'has-error': (form2.applicantCompany.$dirty && form2.applicantCompany.$invalid)}">
+		           <label for="applicantCompany_id" class="control-label"><span translate="licenseMng.companyOrganization"></span><span style="color: red">*</span></label>
+		           <div class="control-input">
+		               <div class="input-group input-xlarge">
+		                   <input type="text" ng-maxlength=32 class="form-input form-control" ng-model="model.applicantCompany"  ng-trim="false" id="applicantCompany_id" name="applicantCompany" required >
+		                   <span class="input-group-addon help-addon" ng-messages="form2.applicantCompany.$error">
+		                       <span ng-if="form2.applicantCompany.$valid||!form2.applicantCompany.$dirty">
+		                           <span class="icon-occupying"></span>
+		                       </span>
+		                       <span ng-if="form2.applicantCompany.$dirty">
+		                           <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+		                           <span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxlen'|translate}}32"></span></span>
+		                       </span>
+		                    </span>
+		               </div>
+		          </div>   
+		       </div>
+		        <!-- 电子邮件地址 -->
+				<div class="form-group" ng-class="{'has-error': (form2.applicantEmail.$dirty && form2.applicantEmail.$invalid)}">
+		           <label for="applicantEmail_id" class="control-label"><span translate="licenseMng.emailAddress"></span><span style="color: red">*</span></label>
+		           <div class="control-input">
+		               <div class="input-group input-xlarge">
+		                   <input checkemail type="text" ng-maxlength=32 class="form-input form-control" ng-model="model.applicantEmail"  ng-trim="false" id="applicantEmail_id" name="applicantEmail" required>
+		                   <span class="input-group-addon help-addon" ng-messages="form2.applicantEmail.$error">
+		                       <span ng-if="form2.applicantEmail.$valid||!form2.applicantEmail.$dirty">
+		                           <span class="icon-occupying"></span>
+		                       </span>
+		                       <span ng-if="form2.applicantEmail.$dirty">
+		                       	   <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+		                           <span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxlen'|translate}}32"></span></span>
+		                       	   <span ng-message="checkemail"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'invalidemail'|translate}}"></span></span>
+		                       </span>
+		                    </span>
+		               </div>
+		          </div>   
+		       </div>
+				<!-- 联系电话 -->
+				<div class="form-group" ng-class="{'has-error': (form2.applicantPhone.$dirty && form2.applicantPhone.$invalid)}">
+		           <label for="applicantPhone_id" class="control-label"><span translate="licenseMng.phone"></span><span style="color: red">*</span></label>
+		           <div class="control-input">
+		               <div class="input-group input-xlarge">
+		                   <input check-phone type="text" ng-maxlength=32 class="form-input form-control" ng-model="model.applicantPhone"  ng-trim="false" id="applicantPhone_id" name="applicantPhone" required>
+		                   <span class="input-group-addon help-addon" ng-messages="form2.applicantPhone.$error">
+		                       <span ng-if="form2.applicantPhone.$valid||!form2.applicantPhone.$dirty">
+		                           <span class="icon-occupying"></span>
+		                       </span>
+		                       <span ng-if="form2.applicantPhone.$dirty">
+		                       	   <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+		                           <span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'maxlen'|translate}}32"></span></span>
+		                           <span ng-message="checkPhone"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'invalidPhone'|translate}}"></span></span>
+		                       </span>
+		                    </span>
+		               </div>
+		          </div>   
+		       </div>
+	            </tab>
+	            </tabset>
+                </form>
+             </slide-form>
+            <!-- 第三步配置虚拟机 -->
+            <slide-form valid="valids.stepThreeOver()" tab-index="3" is-add="true">
+                <form name="form3" class="form-horizontal" role="form" style="margin-top:-20px;" novalidate>
+                    <!-- 隐藏属性，用于js方法操作form是否显示 -->
+                    <div ng-if="model.licenseOpe=='0'">
+	                    <input type="hidden" id="form3" value="{{form3.$valid}}">
+	                    <div translate="downloadFileTip" style="padding-top:15px;color:blue;"></div>
+	                    <div translate="hostInfoFile"></div>
+	                    <div>
+	                    	<label class="btn btn-default btn-menu" ng-click="download()"> 
+								<span class="sm-icon icon-download"></span><span class="ng-scope" translate="common.download"></span> 
+							</label>
+	                    </div>
+                    </div>
+                    <div ng-if="model.licenseOpe=='1'">
+                    <!-- 隐藏属性，用于js方法操作form是否显示 -->
+                    <input type="hidden" id="form2" value="{{form3.$valid}}">
+                    <div translate="downloadFileTip" style="padding-top:25px;padding-bottom:20px;color:blue;"></div>
+                    <div>
+                    <!-- 请选择License文件 -->
+				<div class="form-inline" style="margin-bottom:0;margin-top:10;">
+		        	<label class="control-label"><span translate="licenseMng.selectLicenseFile"></span></label>
+		        	<div class="control-input" id ="license_select_files_btn">
+		            	<div class="input-group" >
+		                	<input type="text" style="width:201px !important;" class="form-input form-control first-child-angle selectInput" ng-model="licenseFilePath"  ng-trim="false" id="licenseFilePath_id" name="licenseFilePath" required readonly>
+		                	<span class="input-group-addon iconSearch last-child-angle" style="background:white;border-left:0;"><span style="margin-left:5px;" translate="addDomain.viewImage"></span></span>
+		            	</div>
+		        	</div>   
+		    	</div>
+		    	<div id = "license_select_files_btn_alert">
+		    	</div>
+                    <!-- 请选择License文件 -->
+				   	<div id="license_select_files"><span>请单击虚框选择要上传的License文件或者将License文件拖拽到这里。</span></div>
+				   	<div id="license_stream_files_queue"></div>
+				   	<div id="license_stream_message_container"></div>
+			    	<!-- 进度条 
+				    <div class="ngCellText" style="width:400px;">
+				    	<div class="progress progressgray" style="margin-top:0;height:20px;"> 
+		                   	<div class="progress-bar progress-bar-success progress-bar-striped"  role="progressbar" aria-valuenow="{{progress | number:2}}" aria-valuemin="0" aria-valuemax="100" style="width: {{progress | number:2}}%;position:relative;">
+		                   		<span style="margin-left:10px;">{{progress | number:2}}%</span> 
+		                   	</div> 
+		                </div>
+		               	</div>
+	                  	<label class="btn btn-default btn-menu" ng-click="stream.upload()"> 
+						<span class="sm-icon icon-upload"></span><span class="ng-scope" translate="licenseMng.upload"></span> 
+					</label>
+					-->
+						<button id="okBtn" class="btn btn-green" ng-disabled="!isOk" ng-click="register()">
+							<span class="sm-icon icon-upload"></span><span class="ng-scope" translate="licenseMng.upload"></span> 
+						</button>
+	                </div>
+                    </div>
+                </form>
+             </slide-form>
+        </carousel-form>
+        <!-- import licesne file -->
+	</div>    
+    <!-- 右侧确认信息 -->
+    <div class="detail-table col-md-4">
+        <table class="table table-striped"  ng-if="model.licenseOpe == '0'">
+        	<tbody>
+            <tr>
+                <td><h4 translate="configDetail"></h4></td>
+            </tr>
+            <tr>
+                <td><span translate="selLicense"></span></td>
+                <td custom-title shortcut cut-str="{{model.licenseOpe|selectLabel:'0':licenseOpe.options}}">{{model.licenseOpe|selectLabel:'0':licenseOpe.options}}</td>
+            </tr>
+            <tr>
+                <td><span translate="licenseMng.nationRegion"></span></td>
+                <td custom-title shortcut cut-str="{{model.nationRegion|selectLabel:'China':nationRegion.options}}">{{model.nationRegion|selectLabel:'China':nationRegion.options}}</td>
+            </tr>
+            <!-- 最终用户的信息 -->
+            	<tr>
+                	<td colspan="2"><span translate="licenseMng.endUserInformation"></span></td>
+            	</tr>
+            	<tr>
+                	<td><span translate="licenseMng.userName"></span></td>
+                	<td custom-title shortcut cut-str="{{model.username}}">{{model.username}}</td>
+            	</tr>
+            	<tr>
+                	<td><span translate="licenseMng.nationRegion"></span></td>
+                	<td custom-title shortcut cut-str="{{model.country|selectLabel:'China':nationRegion.options}}">{{model.country|selectLabel:'China':nationRegion.options}}</td>
+            	</tr>
+            	<tr>
+                	<td><span translate="licenseMng.provinceCity"></span></td>
+                	<td custom-title shortcut cut-str="{{model.provinceCity}}">{{model.provinceCity}}</td>
+            	</tr>
+            	<tr>
+                	<td><span translate="licenseMng.companyOrganization"></span></td>
+                	<td custom-title shortcut cut-str="{{model.company}}">{{model.company}}</td>
+            	</tr>
+            	            	
+            	<tr>
+                	<td><span translate="licenseMng.address"></span></td>
+                	<td custom-title shortcut cut-str="{{model.address}}">{{model.address}}</td>
+            	</tr>
+            	<tr>
+                	<td><span translate="licenseMng.postcode"></span></td>
+                	<td custom-title shortcut cut-str="{{model.postcode}}">{{model.postcode}}</td>
+            	</tr>
+            	<tr>
+                	<td><span translate="licenseMng.emailAddress"></span></td>
+                	<td custom-title shortcut cut-str="{{model.email}}">{{model.email}}</td>
+            	</tr>
+            	<tr>
+                	<td><span translate="licenseMng.phone"></span></td>
+                	<td>{{model.phone}}</td>
+            	</tr>
+           <!-- 申请人的信息 -->
+            	<tr>
+                	<td colspan="2"><span translate="licenseMng.applicantInfo"></span></td>
+            	</tr>  	
+            	<tr>
+                	<td ><span translate="licenseMng.name"></span></td>
+                	<td custom-title shortcut cut-str="{{model.applicantName}}">{{model.applicantName}}</td>
+            	</tr>
+            	<tr>
+                	<td><span translate="licenseMng.companyOrganization"></span></td>
+                	<td custom-title shortcut cut-str="{{model.applicantCompany}}">{{model.applicantCompany}}</td>
+            	</tr>
+            	<tr>
+                	<td><span translate="licenseMng.emailAddress"></span></td>
+                	<td custom-title shortcut cut-str="{{model.applicantEmail}}">{{model.applicantEmail}}</td>
+            	</tr>
+            	<tr>
+                	<td><span translate="licenseMng.phone"></span></td>
+                	<td>{{model.applicantPhone}}</td>
+            	</tr>
+           
+           </tbody>
+        </table>
+        <table class="table table-striped"  ng-if="model.licenseOpe!='0'">
+         	<tbody>
+            <tr>
+                <td colspan="2"><h4 translate="configDetail"></h4></td>
+            </tr>
+            <tr>
+                <td><span translate="selLicense"></span></td>
+                <td custom-title shortcut cut-str="{{model.licenseOpe|selectLabel:'0':licenseOpe.options}}">{{model.licenseOpe|selectLabel:'0':licenseOpe.options}}</td>
+            </tr>
+            <tr>
+                <td><span translate="licenseMng.nationRegion"></span></td>
+                <td custom-title shortcut cut-str="{{model.nationRegion|selectLabel:'China':nationRegion.options}}">{{model.nationRegion|selectLabel:'China':nationRegion.options}}</td>
+            </tr>
+            <tr>
+         		<td colspan="2"><strong class="text-warning" translate="licenseMng.registerInfo"></strong></td>
+         	</tr>
+            </tbody>
+        </table>
+    </div>
+</div>

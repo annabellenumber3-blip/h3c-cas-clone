@@ -1,0 +1,481 @@
+<!-- 增加LDAP策略对话框 -->
+<!-- 标题 -->
+<div class="modal-header">
+	 <button type="button" class="close" custom-title="{{::'common.close'|translate}}"  ng-click="cancel()">
+		<span class="icon-closenew"></span>
+	</button>
+	<button ng-if="isAdd" type="button" class="close cornerhelp"  custom-title="{{::'help'|translate}}" ng-click="openHelp('sysMgmt/ldap/ldapSyncConfig/addLdapSyncConfig')">
+		<span class="icon-helpnew"></span>
+	</button>
+	<button ng-if="!isAdd" type="button" class="close cornerhelp"  custom-title="{{::'help'|translate}}" ng-click="openHelp('sysMgmt/ldap/ldapSyncConfig/modifyLdapSyncConfig')">
+		<span class="icon-helpnew"></span>
+	</button>
+	<h4 class="modal-title">{{headTitle}}</h4>
+</div>
+<!-- 内容 -->
+<div class="modal-body row">
+	<div class="form-horizontal col-md-8">
+		<carousel-form titles="stepTitles" cancel="ok()">
+		    <!-- 第一步 --> 
+			<slide-form valid="valids.stepOneOver()" active="slide.active" tab-index="0" is-add="true">
+				<form name="form1" class="form-horizontal" role="form" novalidate>
+					<input type="hidden" id="form1" value="{{form1.$valid}}">
+					<!-- 同步配置名称 -->
+					<div class="form-group" ng-class="{'has-error':form1.strategyName.$invalid && form1.strategyName.$dirty}">
+						<label for="inputHost" class="control-label">
+						  <span translate="ldap.strategyName"></span><span style="color: red">*</span>
+						</label>
+						<div class="control-input">
+						  <div class="input-group input-xlarge" >
+							<input type="text" class="form-input form-control" ng-disabled="!isAdd" check-special-char rpccheck="ldap/isLdapStrategyNameExist" namekey="strategyName" ng-model="strategy.strategyName" ng-trim="false" ng-maxlength=32  id="strategyName" name="strategyName" required>
+							<span class="input-group-addon help-addon" ng-messages="form1.strategyName.$error">
+								 <span ng-if="form1.strategyName.$valid||!form1.strategyName.$dirty">
+									  <span class="icon-occupying"></span>
+								 </span>
+								 <span ng-if="form1.strategyName.$dirty">
+									 <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{::'require'|translate}}"></span></span>
+									 <span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{::'maxlen'|translate}}32"></span></span>
+									 <span ng-message="specialChar"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'checkname2'|translate}}"></span></span>
+									 <span ng-message="rpccheck"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{::'ldap.strategyNameExist'|translate}}"></span></span>
+								 </span>
+							</span>
+						  </div>
+						</div>
+					</div>
+					<!-- LDAP服务器 -->
+			    	<div class="form-group" ng-class="{'has-error': (form1.ldapServer.$invalid && form1.ldapServer.$dirty)}">  
+                        <label class="control-label">
+                            <span translate="ldap.serverName"></span><span style="color:red">*</span>
+                        </label> 
+                        <div class="control-input">
+                            <div class="input-group" style="width:300px"  ng-click="selectLdapServer()">
+                                <input id="ldapServer" name="ldapServer" class="form-control first-child-angle selectInput" type="text" ng-model="strategy.ldapServer" readonly required>
+                                <span class="input-group-addon inner-addon last-child-angle" style="cursor:pointer;">
+                                    <span class="icon-search-gray" type="button"></span>
+                                </span>
+                                <span class="input-group-addon help-addon" ng-messages="form1.ldapServer.$error">
+                                    <span ng-if="form1.ldapServer.$valid||!form1.ldapServer.$dirty">
+                                        <span class="icon-occupying"></span>
+                                    </span>
+                                    <span ng-if="form1.ldapServer.$dirty">
+                                         <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+                                    </span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+					<!-- Base DN -->
+					<div class="form-group">
+						<label class="control-label">Base DN</label>
+						<div class="control-input">
+							<input class="form-input form-control" type="text"
+							value="{{strategy.baseDn}}" readonly>
+						</div>
+					</div>
+					
+					<!-- 子Base DN -->
+			    	<div class="form-group" ng-class="{'has-error': (form1.childBaseDN.$invalid && form1.childBaseDN.$dirty)}">  
+                        <label class="control-label">
+                            <span translate="ldap.childBaseDn"></span><span style="color:red">*</span>
+                        </label> 
+                        <div class="control-input">
+                            <div class="input-group" style="width:300px"  ng-click="selectChildBaseDn()">
+                                <input id="childBaseDN" name="childBaseDN" class="form-control first-child-angle selectInput" type="text" ng-model="strategy.childBaseDN" readonly required>
+                                <span class="input-group-addon inner-addon last-child-angle" style="cursor:pointer;">
+                                    <span class="icon-search-gray" type="button"></span>
+                                </span>
+                                <span class="input-group-addon help-addon" ng-messages="form1.childBaseDN.$error">
+                                    <span ng-if="form1.childBaseDN.$valid||!form1.childBaseDN.$dirty">
+                                        <span class="icon-occupying"></span>
+                                    </span>
+                                    <span ng-if="form1.childBaseDN.$dirty">
+                                         <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+                                    </span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+					
+					<!-- 过滤条件 -->
+                    <div class="form-group" ng-class="{'has-error': (form1.conditions.$dirty && form1.conditions.$invalid)}">
+                       <label for="conditions" class="control-label"><span translate="ldap.conditions"></span><span style="color: red">*</span></label>
+                       <div class="control-input">
+                            <div class="input-group input-xlarge">
+                                <input type="text"  class="form-input form-control" ng-maxlength=128 ng-model="strategy.conditions"  ng-trim="false" id="conditions" name="conditions" required>
+                                <span class="input-group-addon help-addon" ng-messages="form1.conditions.$error">
+                                    <span ng-if="form1.conditions.$valid||!form1.conditions.$dirty">
+										<span class="icon-help-gray" custom-title="{{'ldap.clauseTip' | translate}}"></span>
+                                    </span>
+                                    <span ng-if="form1.conditions.$dirty">
+                                        <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+                                        <span ng-message="maxlength"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{::'maxlen'|translate}}128"></span></span>
+                                    </span>
+                                </span>
+                            </div>
+                        </div>   
+                    </div>
+				</form>	
+			</slide-form> 
+			<!-- 第二步 --> 
+			<slide-form valid="valids.stepTwoOver()" is-add="true" tab-index="1">
+				<form name="form2" class="form-horizontal" role="form" novalidate>
+					<input type="hidden" id="form2" value="{{form2.$valid}}">
+					<!-- 组织 -->
+			    	<div class="form-group" ng-class="{'has-error': (form1.orgName.$invalid && form1.orgName.$dirty)}">  
+                        <label class="control-label">
+                            <span translate="common.organization"></span><span style="color:red">*</span>
+                        </label> 
+                        <div class="control-input">
+                            <div class="input-group" style="width:300px"  ng-click="orgSelector()">
+                                <input id="orgName" name="orgName" class="form-control first-child-angle selectInput" type="text" ng-model="strategy.orgName" readonly required>
+                                <span class="input-group-addon inner-addon last-child-angle" style="cursor:pointer;">
+                                    <span class="icon-search-gray" type="button"></span>
+                                </span>
+                                <span class="input-group-addon help-addon" ng-messages="form1.orgName.$error">
+                                    <span ng-if="form1.orgName.$valid||!form1.orgName.$dirty">
+                                        <span class="icon-occupying"></span>
+                                    </span>
+                                    <span ng-if="form1.orgName.$dirty">
+                                         <span ng-message="required"><span class="fa fa-exclamation-triangle" tooltip-placement="right" tooltip="{{'require'|translate}}"></span></span>
+                                    </span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+				   <!-- 同步用户分组 -->
+			 		<div class="form-group">
+               		    <label for="syncUserGroup" class="control-label"><span translate="ldap.syncUserGroup"></span></label>
+                		<div class="control-input">
+                    		<div class="input-group input-xlarge">
+                    			<div class="input-group width260">
+	                        		<select-input options="syncUserGroupOptions.options" input-id="syncUserGroup" input-name="syncUserGroup"  bind-model="strategy.syncUserGroup">
+	                        		</select-input>
+	                    		</div>
+                    		</div>
+               			</div>
+            		</div>
+				  <!-- 上级用户分组 -->
+		         <div ng-if="strategy.syncUserGroup == 1" class="form-group" ng-class="{'has-error': (form1.userGroupName.$invalid)}">
+                        <label class="control-label">
+                            <span translate="ldap.fatherUserGroup"/><span style="color:red">&nbsp;</span>
+                        </label>
+                        <div class="input-group" style="width:299px">
+                            <div class="input-group width260" ng-click="userGrpSelector()">
+                                <input id="userGroupName" ng-readonly="true" name="userGroupName"  class="form-control first-child-angle selectInput" type="text" ng-model="strategy.userGroupName" ng-click="selectCluster(true)">
+                                <span class="input-group-addon inner-addon" style="cursor:pointer;">
+                                    <span class="icon-search-gray" type="button"></span>
+                                </span> 
+                            </div>
+                            <span class="input-group-addon inner-addon last-child-angle" ng-click="removeUserGroup()" style="cursor:pointer;"> 
+                                <span class="icon-delete-gray" type="button"></span>     
+                            </span>
+                        </div>
+                  </div>
+                 <!-- 用户分组 -->
+		         <div ng-if="strategy.syncUserGroup == 0" class="form-group" ng-class="{'has-error': (form1.userGroupName.$invalid)}">
+                        <label class="control-label">
+                            <span translate="user.userGroup"></span><span style="color:red">*</span>
+                        </label>
+                        <div class="input-group" style="width:299px">
+                            <div class="input-group width260" ng-click="userGrpSelector()">
+                                <input id="userGroupName" ng-readonly="true" name="userGroupName"  class="form-control first-child-angle selectInput" type="text" ng-model="strategy.userGroupName" ng-click="selectCluster(true)" required>
+                                <span class="input-group-addon inner-addon" style="cursor:pointer;">
+                                    <span class="icon-search-gray" type="button"></span>
+                                </span> 
+                            </div>
+                            <span class="input-group-addon inner-addon last-child-angle" ng-click="removeUserGroup()" style="cursor:pointer;"> 
+                                <span class="icon-delete-gray" type="button"></span>     
+                            </span>
+                        </div>
+                  </div>
+			     <!-- 配置状态 -->
+		  		 <div class="form-group">
+               		    <label for="status" class="control-label"><span translate="ldap.configStatus"></span></label>
+                		<div class="control-input">
+                    		<div class="input-group input-xlarge">
+                    			<div class="input-group width260">
+	                        		<select-input options="statusOptions.options" input-id="status" input-name="status"  bind-model="strategy.status">
+	                        		</select-input>
+	                    		</div>
+                    		</div>
+               			</div>
+            	</div>
+				</form>
+			</slide-form> 
+			<!-- 第三步 --> 
+			<slide-form valid="valids.stepTreeOver()" tab-index="2" is-add="true">
+				<form name="form3" class="form-horizontal" role="form" novalidate>	
+				    <input type="hidden" id="form3" value="{{form3.$valid}}">	
+				    <!-- 自动同步 --> 
+	        		<div class="form-group">
+						<label for="autoSync" class="switch-label large">
+						  <span translate="ldap.autoSync"></span>
+						</label>
+						<div class="control-input">
+							 <div class="input-group">
+						    	<div id="autoSync" toggle-switch  class="switch-success" ng-model="strategy.autoSync"></div>
+						    	<span style="height:30px" class="input-group-btn help-addon" tooltip-placement="right" tooltip="{{::'ldap.autoSyncInfo'|translate}}">
+						    		<img class="icon-prompt" src="css/img/gray/Icon_help_16x16.svg"/>
+						    	</span>
+					  	  	</div>
+				  	  	</div>
+					</div>
+			        <!-- 按需同步 --> 			
+	        		<div class="form-group">
+						<label for="requiredSync" class="switch-label large">
+						  <span translate="ldap.syncRequired"></span>
+						</label>
+						<div class="control-input">
+							 <div class="input-group">
+						    	<div id="requiredSync" toggle-switch  class="switch-success" ng-model="strategy.requiredSync"></div>
+						    	<span style="height:30px" class="input-group-btn help-addon" tooltip-placement="right" tooltip="{{::'ldap.syncRequiredInfo'|translate}}">
+						    		<img class="icon-prompt" src="css/img/gray/Icon_help_16x16.svg"/>
+						    	</span>
+					  	  	</div>
+				  	  	</div>
+					</div>
+			        <!-- 同步新增用户 --> 			
+	        		<div class="form-group">
+						<label for="newSync" class="switch-label large">
+						  <span translate="ldap.newSync"></span>
+						</label>
+						<div class="control-input">
+							 <div class="input-group">
+						    	<div id="newSync" toggle-switch  class="switch-success" ng-model="strategy.newSync"></div>
+						    	<span style="height:30px" class="input-group-btn help-addon" tooltip-placement="right" tooltip="{{::'ldap.newSyncInfo'|translate}}">
+						    		<img class="icon-prompt" src="css/img/gray/Icon_help_16x16.svg"/>
+						    	</span>
+					  	  	</div>
+				  	  	</div>
+					</div> 
+		            <!-- 同步已存在用户 --> 			
+	        		<div class="form-group">
+						<label for="existSync" class="switch-label large">
+						  <span translate="ldap.existSync"></span>
+						</label>
+						<div class="control-input">
+							 <div class="input-group">
+						    	<div id="existSync" toggle-switch  class="switch-success" ng-model="strategy.existSync"></div>
+						    	<span style="height:30px" class="input-group-btn help-addon" tooltip-placement="right" tooltip="{{::'ldap.existSyncInfo'|translate}}">
+						    		<img class="icon-prompt" src="css/img/gray/Icon_help_16x16.svg"/>
+						    	</span>
+					  	  	</div>
+				  	  	</div>
+					</div> 
+				    <!-- 仅同步当前节点下用户 --> 			
+	        		<div class="form-group">
+						<label for="childSync" class="switch-label large">
+						  <span translate="ldap.childSync"></span>
+						</label>
+						<div class="control-input">
+							 <div class="input-group">
+						    	<div id="childSync" toggle-switch  class="switch-success" ng-model="strategy.childSync"></div>
+					    	   	<span style="height:30px" class="input-group-btn help-addon" tooltip-placement="right" tooltip="{{::'ldap.childSyncTip'|translate}}">
+						    		<img class="icon-prompt" src="css/img/gray/Icon_help_16x16.svg"/>
+						    	</span>
+					  	  	</div>
+				  	  	</div>
+					</div> 
+				    <!-- 自动注销不存在用户 --> 			
+	        		<div class="form-group">
+						<label for="autoDeleteUser" class="switch-label large">
+						  <span translate="ldap.autoDeleteUser"></span>
+						</label>
+						<div class="control-input">
+							 <div class="input-group">
+						    	<div id="autoDeleteUser" toggle-switch  class="switch-success" ng-model="strategy.autoDeleteUser"></div>
+						    	<span style="height:30px" class="input-group-btn help-addon" tooltip-placement="right" tooltip="{{::'ldap.autoDeleteUserInfo'|translate}}">
+						    		<img class="icon-prompt" src="css/img/gray/Icon_help_16x16.svg"/>
+						    	</span>
+					  	  	</div>
+				  	  	</div>
+					</div> 
+			  </form>
+			</slide-form>
+			<!-- 第四步 --> 
+			<slide-form valid="valids.stepFourOver()"  tab-index="3" is-add="true">
+				<form name="form4" class="form-horizontal" role="form" novalidate>
+				    <input type="hidden" id="form4" value="{{form4.$valid}}">   
+					<!-- 登录名 -->
+					<div class="form-group">
+						<label class="control-label" translate="ldap.loginName"></label>
+						<div class="control-input">
+							<input class="form-input form-control" type="text"
+							value="{{strategy.loginName}}" readonly>
+						</div>
+					</div>
+			     	<!-- 用户姓名 -->
+		  		 	<div class="form-group">
+               		    <label for="userName" class="control-label"><span translate="ldap.userName"></span><span style="color:red">*</span></label>
+                		<div class="control-input">
+                    		<div class="input-group input-xlarge">
+                    			<div class="input-group width260">
+	                        		<select-input options="userNameOptions.options" input-id="userName" input-name="userName"  bind-model="strategy.userName" required>
+	                        		</select-input>
+	                    		</div>
+                    		</div>
+               			</div>
+            		</div>
+					<!-- 证件号码 -->
+		  		 	<div class="form-group">
+               		    <label for="iDNum" class="control-label"><span translate="ldap.iDNum"></span></label>
+                		<div class="control-input">
+                    		<div class="input-group input-xlarge">
+                    			<div class="input-group width260">
+	                        		<select-input options="iDNumOptions.options" input-id="iDNum" input-name="iDNum"  bind-model="strategy.iDNum">
+	                        		</select-input>
+	                    		</div>
+                    		</div>
+               			</div>
+            		</div>
+					<!-- 通讯地址 -->
+		  		 	<div class="form-group">
+               		    <label for="address" class="control-label"><span translate="ldap.address"></span></label>
+                		<div class="control-input">
+                    		<div class="input-group input-xlarge">
+                    			<div class="input-group width260">
+	                        		<select-input options="addressOptions.options" input-id="address" input-name="address"  bind-model="strategy.address">
+	                        		</select-input>
+	                    		</div>
+                    		</div>
+               			</div>
+            		</div>
+					<!-- 电话 -->
+		  		 	<div class="form-group">
+               		    <label for="phoneNum" class="control-label"><span translate="ldap.phoneNum"></span></label>
+                		<div class="control-input">
+                    		<div class="input-group input-xlarge">
+                    			<div class="input-group width260">
+	                        		<select-input options="phoneNumOptions.options" input-id="phoneNum" input-name="phoneNum"  bind-model="strategy.phoneNum">
+	                        		</select-input>
+	                    		</div>
+                    		</div>
+               			</div>
+            		</div>
+					<!-- 电子邮件 -->
+		  		 	<div class="form-group">
+               		    <label for="eMail" class="control-label"><span translate="ldap.eMail"></span><span style="color:red">*</span></label>
+                		<div class="control-input">
+                    		<div class="input-group input-xlarge">
+                    			<div class="input-group width260">
+	                        		<select-input options="eMailOptions.options" input-id="eMail" input-name="eMail"  bind-model="strategy.eMail" required>
+	                        		</select-input>
+	                    		</div>
+                    		</div>
+               			</div>
+            		</div>
+				</form>
+			</slide-form> 
+	    </carousel-form>
+	</div>
+	 <!-- 右侧确认信息 -->
+	<div class="detail-table col-md-4">
+		<table class="table table-striped">
+			<tr>
+				<td><h4 translate="configDetail"></h4></td>
+			</tr>
+			<tr>
+				<td><span translate="ldap.strategyName"></span></td>
+				<td  custom-title shortcut cut-str="{{strategy.strategyName}}">{{strategy.strategyName}}</td>
+			</tr>
+			<tr>
+				<td><span translate="ldap.serverName"></span></td>
+				<td custom-title shortcut cut-str="{{strategy.ldapServer}}">{{strategy.ldapServer}}</td>
+			</tr>
+			<tr>
+				<td><span>Base DN</span></td>
+				<td custom-title shortcut cut-str="{{strategy.baseDn}}">{{strategy.baseDn}}</td>
+			</tr>
+			<tr>
+				<td><span translate="ldap.childBaseDn"></span></td>
+				<td custom-title shortcut cut-str="{{strategy.childBaseDN}}">{{strategy.childBaseDN}}</td>
+			</tr>
+			<tr>
+				<td><span translate="ldap.conditions"></span></td>
+				<td custom-title shortcut cut-str="{{strategy.conditions}}">{{strategy.conditions}}</td>
+			</tr>
+			
+		<!-- 	<tr>
+				<td><span translate="addCluster.static.startHA"></span></td>
+				<td>{{cluster.enableHA | yes}}</td>
+			</tr> -->
+<!-- 			<tr ng-if="cluster.startHA"> -->
+<!-- 				<td class="gray"><span translate="addCluster.static.vmStartPriority"></span></td> -->
+<!-- 				<td class="gray">{{cluster.HALevel | selectLabel:'1':levels.options}}</td> -->
+<!-- 			</tr> -->
+			<tr ng-if="stepIndex >= 1">
+				<td><span translate="common.organization"></span></td>
+				<td custom-title shortcut cut-str="{{strategy.orgName}}">{{strategy.orgName}}</td>
+			</tr>
+			<tr ng-if="stepIndex >= 1">
+				<td><span translate="ldap.syncUserGroup"></span></td>
+				<td>{{strategy.syncUserGroup|selectLabel:1:syncUserGroupOptions.options}}</td>
+			</tr>
+			<tr ng-if="stepIndex >= 1 && strategy.syncUserGroup == 1">
+				<td><span translate="ldap.fatherUserGroup"></span></td>
+				<td custom-title shortcut cut-str="{{strategy.userGroupName}}">{{strategy.userGroupName}}</td>
+			</tr>
+			<tr ng-if="stepIndex >= 1 && strategy.syncUserGroup == 0">
+				<td><span translate="user.userGroup"></span></td>
+				<td custom-title shortcut cut-str="{{strategy.userGroupName}}">{{strategy.userGroupName}}</td>
+			</tr>
+			<tr ng-if="stepIndex >= 1">
+				<td><span translate="ldap.configStatus"></span></td>
+				<td>{{strategy.status|selectLabel:1:statusOptions.options}}</td>
+			</tr>
+			
+			<tr ng-if="stepIndex >= 2">
+				<td><span translate="ldap.autoSync"></span></td>
+				<td>{{strategy.autoSync | yes}}</td>
+			</tr>
+			<tr ng-if="stepIndex >= 2">
+				<td><span translate="ldap.syncRequired"></span></td>
+				<td>{{strategy.requiredSync | yes}}</td>
+			</tr>
+			<tr ng-if="stepIndex >= 2">
+				<td><span translate="ldap.newSync"></span></td>
+				<td>{{strategy.newSync | yes}}</td>
+			</tr>
+			<tr ng-if="stepIndex >= 2">
+				<td><span translate="ldap.existSync"></span></td>
+				<td>{{strategy.existSync | yes}}</td>
+			</tr>
+			<tr ng-if="stepIndex >= 2">
+				<td><span translate="ldap.childSync"></span></td>
+				<td>{{strategy.childSync | yes}}</td>
+			</tr>   
+			<tr ng-if="stepIndex >= 2">
+				<td><span translate="ldap.autoDeleteUser"></span></td>
+				<td>{{strategy.autoDeleteUser | yes}}</td>
+			</tr>
+            <tr ng-if="stepIndex >= 3">
+                <td><span translate="ldap.loginName"></span></td>
+                <td custom-title shortcut cut-str="{{strategy.loginName}}">{{strategy.loginName}}</td>
+            </tr>
+          	<tr ng-if="stepIndex >= 3">
+                <td><span translate="ldap.userName"></span></td>
+                <td custom-title shortcut cut-str="{{strategy.userName|selectLabel:'':userNameOptions.options}}">{{strategy.userName|selectLabel:'':userNameOptions.options}}</td>
+            </tr>
+             <tr ng-if="stepIndex >= 3">
+                <td><span translate="ldap.iDNum"></span></td>
+                <td custom-title shortcut cut-str="{{strategy.iDNum|selectLabel:'':iDNumOptions.options}}">{{strategy.iDNum|selectLabel:'':iDNumOptions.options}}</td>
+            </tr>
+             <tr ng-if="stepIndex >= 3">
+                <td><span translate="ldap.address"></span></td>
+                <td custom-title shortcut cut-str="{{strategy.address|selectLabel:'':addressOptions.options}}">{{strategy.address|selectLabel:'':addressOptions.options}}</td>
+            </tr>
+             <tr ng-if="stepIndex >= 3">
+                <td><span translate="ldap.phoneNum"></span></td>
+                <td custom-title shortcut cut-str="{{strategy.phoneNum|selectLabel:'':phoneNumOptions.options}}">{{strategy.phoneNum|selectLabel:'':phoneNumOptions.options}}</td>
+            </tr>
+             <tr ng-if="stepIndex >= 3">
+                <td><span translate="ldap.eMail"></span></td>
+                <td custom-title shortcut cut-str="{{strategy.eMail|selectLabel:'':eMailOptions.options}}">{{strategy.eMail|selectLabel:'':eMailOptions.options}}</td>
+            </tr>
+		</table>
+	</div>
+	<!-- .choose-cluster-table -->
+	<!-- <div id="choose-cluster-table" style="display: none;">
+	
+	</div> -->
+</div>
