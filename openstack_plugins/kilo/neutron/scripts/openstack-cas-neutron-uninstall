@@ -1,0 +1,38 @@
+#! /usr/bin/python
+
+import os
+
+try:
+    # Python 2.7 or >=3.2
+    from sysconfig import get_path
+
+    def _get_purelib():
+        return get_path("purelib")
+except ImportError:
+    from distutils.sysconfig import get_python_lib
+
+    def _get_purelib():
+        return get_python_lib(False)
+
+def _uninstall():
+    os.system("systemctl stop openstack-neutron-cas-agent.service")
+    os.system("systemctl disable openstack-neutron-cas-agent.service")
+    os.system("rm -f /usr/lib/systemd/system/openstack-neutron-cas-agent.service")
+    
+    baseDir = _get_purelib()
+    
+    os.system("rm -rf %s" % (baseDir+'/neutron/agent/casagent'))
+    os.system("rm -rf %s" % (baseDir+'/kilo_cas_neutron*'))
+
+    os.system("sed -i /openstack-cas-neutron-uninstall/d /usr/bin/openstack-cas-uninstall")
+    if not os.path.getsize("/usr/bin/openstack-cas-uninstall"):
+        os.system("rm -f /usr/bin/openstack-cas-uninstall")
+    
+    os.system("sed -i /kilo_cas_neutron/d /usr/bin/openstack-cas-version")
+    if not os.path.getsize("/usr/bin/openstack-cas-version"):
+        os.system("rm -f /usr/bin/openstack-cas-version")
+    
+    os.system("rm -f %s" % __file__)
+
+if __name__ == "__main__":
+    _uninstall()
