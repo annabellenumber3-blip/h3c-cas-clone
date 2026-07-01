@@ -1,0 +1,169 @@
+z+Utilities for working with pretty-printers.
+PrettyPrintera
+A basic pretty-printer.
+    Attributes:
+        name: A unique string among all printers for the context in which
+            it is defined (objfile, progspace, or global(gdb)), and should
+            meaningfully describe what can be pretty-printed.
+            E.g., "StringPiece" or "protobufs".
+        subprinters: An iterable object with each element having a `name'
+            attribute, and, potentially, "enabled" attribute.
+            Or this is None if there are no subprinters.
+        enabled: A boolean indicating if the printer is enabled.
+    Subprinters are for situations where "one" pretty-printer is actually a
+    collection of several printers.  E.g., The libstdc++ pretty-printer has
+    a pretty-printer for each of several different types, based on regexps.
+    Nc
+name
+subprinters
+enabled)
+selfr
+%/usr/share/gdb/python/gdb/printing.py
+__init__4
+PrettyPrinter.__init__c
+PrettyPrinter __call__)
+NotImplementedError)
+valr	
+__call__9
+PrettyPrinter.__call__)
+__name__
+__module__
+__qualname__
+__doc__r
+SubPrettyPrinterz
+Baseclass for sub-pretty-printers.
+    Sub-pretty-printers needn't use this, but it formalizes what's needed.
+    Attributes:
+        name: The name of the subprinter.
+        enabled: A boolean indicating if the subprinter is enabled.
+    c
+SubPrettyPrinter.__init__N)
+Register pretty-printer PRINTER with OBJ.
+    The printer is added to the front of the search list, thus one can override
+    an existing printer if one needs to.  Use a different name when overriding
+    an existing printer, otherwise an exception will be raised; multiple
+    printers with the same name are disallowed.
+    Arguments:
+        obj: Either an objfile, progspace, or None (in which case the printer
+            is registered globally).
+        printer: Either a function of one argument (old way) or any object
+            which has attributes: name, enabled, __call__.
+        replace: If True replace any existing copy of the printer.
+            Otherwise if the printer already exists raise an exception.
+    Returns:
+        Nothing.
+    Raises:
+        TypeError: A problem with the type of the printer.
+        ValueError: The printer's name contains a semicolon ";".
+        RuntimeError: A printer with the same name is already registered.
+    If the caller wants the printer to be listable and disableable, it must
+    follow the PrettyPrinter API.  This applies to the old way (functions) too.
+    If printer is an object, __call__ is a method of two arguments:
+    self, and the value to be pretty-printed.  See PrettyPrinter.
+    r
+printer missing attribute: namer
+z"printer missing attribute: enabledr
+z#printer missing attribute: __call__N
+verbosez)Registering global %s pretty-printer ...
+z)Registering %s pretty-printer for %s ...
+printer name is not a string
+semicolon ';' in printer namez%pretty-printer already registered: %s
+hasattr
+	TypeErrorr
+gdbZ	parameter
+write
+filename
+isinstance
+basestring
+find
+ValueErrorZ
+pretty_printers
+RuntimeError
+insert)
+printer
+replacer
+register_pretty_printerM
+RegexpCollectionPrettyPrinteray
+Class for implementing a collection of regular-expression based pretty-printers.
+    Intended usage:
+    pretty_printer = RegexpCollectionPrettyPrinter("my_library")
+    pretty_printer.add_printer("myclass1", "^myclass1$", MyClass1Printer)
+    ...
+    pretty_printer.add_printer("myclassN", "^myclassN$", MyClassNPrinter)
+    register_pretty_printer(obj, pretty_printer)
+    c
+z.RegexpCollectionPrettyPrinter.RegexpSubprinterc
+superr)
+RegexpSubprinterr
+regexp
+gen_printer
+compile
+compiled_re
+	__class__r	
+z7RegexpCollectionPrettyPrinter.RegexpSubprinter.__init__)
+__classcell__r	
+z&RegexpCollectionPrettyPrinter.__init__c
+Add a printer to the list.
+        The printer is added to the end of the list.
+        Arguments:
+            name: The name of the subprinter.
+            regexp: The regular expression, as a string.
+            gen_printer: A function/method that given a value returns an
+                object to pretty-print it.
+        Returns:
+            Nothing.
+        N)
+appendr,
+add_printer
+z)RegexpCollectionPrettyPrinter.add_printerc
+z1Lookup the pretty-printer for the provided value.N)
+typesZ
+get_basic_type
+type
+tagr
+searchr.
+typenamer$
+z&RegexpCollectionPrettyPrinter.__call__)
+_EnumInstancec
+enumeratorsr
+_EnumInstance.__init__c
+<unknown: 0x%x>z	0x%x [%s]z
+ | )
+longr
+join)
+Z	flag_list
+vZ	any_foundZ
+e_nameZ
+e_valuer	
+	to_string
+_EnumInstance.to_stringN)
+FlagEnumerationPrintera
+A pretty-printer which can be used to print a flag-style enumeration.
+    A flag-style enumeration is one where the enumerators are or'd
+    together to create values.  The new printer will print these
+    symbolically using '|' notation.  The printer must be registered
+    manually.  This printer is most useful when an enum is flag-like,
+    but has some overlap.  GDB's built-in printing will not handle
+    this case, but this printer will attempt to.c
+initialized)
+Z	enum_typer3
+FlagEnumerationPrinter.__init__c
+j	rdt
+<lambda>
+z1FlagEnumerationPrinter.__call__.<locals>.<lambda>)
+key)
+lookup_typer
+fieldsr6
+enumval
+sortr
+flagsZ
+fieldr	
+FlagEnumerationPrinter.__call__)
+builtinc
+_builtin_pretty_printersr7
+add_builtin_pretty_printer!
+Z	gdb.typesr/
+version_info
+strr
+objectr
+<module>

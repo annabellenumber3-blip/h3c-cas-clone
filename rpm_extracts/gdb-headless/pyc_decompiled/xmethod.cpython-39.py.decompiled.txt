@@ -1,0 +1,201 @@
+d	e	
+Utilities for defining xmethods
+XMethoda
+Base class (or a template) for an xmethod description.
+    Currently, the description requires only the 'name' and 'enabled'
+    attributes.  Description objects are managed by 'XMethodMatcher'
+    objects (see below).  Note that this is only a template for the
+    interface of the XMethodMatcher.methods objects.  One could use
+    this class or choose to use an object which supports this exact same
+    interface.  Also, an XMethodMatcher can choose not use it 'methods'
+    attribute.  In such cases this class (or an equivalent) is not used.
+    Attributes:
+        name: The name of the xmethod.
+        enabled: A boolean indicating if the xmethod is enabled.
+    c
+name
+enabled
+selfr
+$/usr/share/gdb/python/gdb/xmethod.py
+__init__.
+XMethod.__init__N)
+__name__
+__module__
+__qualname__
+__doc__r
+XMethodMatchera
+Abstract base class for matching an xmethod.
+    When looking for xmethods, GDB invokes the `match' method of a
+    registered xmethod matcher to match the object type and method name.
+    The `match' method in concrete classes derived from this class should
+    return an `XMethodWorker' object, or a list of `XMethodWorker'
+    objects if there is a match (see below for 'XMethodWorker' class).
+    Attributes:
+        name: The name of the matcher.
+        enabled: A boolean indicating if the matcher is enabled.
+        methods: A sequence of objects of type 'XMethod', or objects
+            which have at least the attributes of an 'XMethod' object.
+            This list is used by the 'enable'/'disable'/'info' commands to
+            enable/disable/list the xmethods registered with GDB.  See
+            the 'match' method below to know how this sequence is used.
+            This attribute is None if the matcher chooses not have any
+            xmethods managed by it.
+    c
+        Args:
+            name: An identifying name for the xmethod or the group of
+                  xmethods returned by the `match' method.
+        TN)
+methodsr
+XMethodMatcher.__init__c
+Match class type and method name.
+        In derived classes, it should return an XMethodWorker object, or a
+        sequence of 'XMethodWorker' objects.  Only those xmethod workers
+        whose corresponding 'XMethod' descriptor object is enabled should be
+        returned.
+        Args:
+            class_type: The class type (gdb.Type object) to match.
+            method_name: The name (string) of the method to match.
+        z
+XMethodMatcher matchN
+NotImplementedError)
+class_type
+method_namer
+matchR
+XMethodMatcher.matchN)
+XMethodWorkera8
+Base class for all xmethod workers defined in Python.
+    An xmethod worker is an object which matches the method arguments, and
+    invokes the method when GDB wants it to.  Internally, GDB first invokes the
+    'get_arg_types' method to perform overload resolution.  If GDB selects to
+    invoke this Python xmethod, then it invokes it via the overridden
+    '__call__' method.  The 'get_result_type' method is used to implement
+    'ptype' on the xmethod.
+    Derived classes should override the 'get_arg_types', 'get_result_type'
+    and '__call__' methods.
+    c
+Return arguments types of an xmethod.
+        A sequence of gdb.Type objects corresponding to the arguments of the
+        xmethod are returned.  If the xmethod takes no arguments, then 'None'
+        or an empty sequence is returned.  If the xmethod takes only a single
+        argument, then a gdb.Type object or a sequence with a single gdb.Type
+        element is returned.
+        z
+XMethodWorker get_arg_typesNr
+get_arg_typeso
+XMethodWorker.get_arg_typesc
+Return the type of the result of the xmethod.
+        Args:
+            args: Arguments to the method.  Each element of the tuple is a
+                gdb.Value object.  The first element is the 'this' pointer
+                value.  These are the same arguments passed to '__call__'.
+        Returns:
+            A gdb.Type object representing the type of the result of the
+            xmethod.
+        z
+XMethodWorker get_result_typeNr
+argsr
+get_result_typez
+XMethodWorker.get_result_typec
+Invoke the xmethod.
+        Args:
+            args: Arguments to the method.  Each element of the tuple is a
+                gdb.Value object.  The first element is the 'this' pointer
+                value.
+        Returns:
+            A gdb.Value corresponding to the value returned by the xmethod.
+            Returns 'None' if the method does not return anything.
+        z
+XMethodWorker __call__Nr
+__call__
+XMethodWorker.__call__N)
+SimpleXMethodMatchera
+A utility class to implement simple xmethod mathers and workers.
+    See the __init__ method below for information on how instances of this
+    class can be used.
+    For simple classes and methods, one can choose to use this class.  For
+    complex xmethods, which need to replace/implement template methods on
+    possibly template classes, one should implement their own xmethod
+    matchers and workers.  See py-xmethods.py in testsuite/gdb.python
+    directory of the GDB source tree for examples.
+    c
+z(SimpleXMethodMatcher.SimpleXMethodWorkerc
+_arg_types
+_method_function)
+method_function
+	arg_typesr
+z1SimpleXMethodMatcher.SimpleXMethodWorker.__init__c
+z6SimpleXMethodMatcher.SimpleXMethodWorker.get_arg_typesc
+z1SimpleXMethodMatcher.SimpleXMethodWorker.__call__N)
+SimpleXMethodWorker
+        Args:
+            name: Name of the xmethod matcher.
+            class_matcher: A regular expression used to match the name of the
+                class whose method this xmethod is implementing/replacing.
+            method_matcher: A regular expression used to match the name of the
+                method this xmethod is implementing/replacing.
+            method_function: A Python callable which would be called via the
+                'invoke' method of the worker returned by the objects of this
+                class.  This callable should accept the object (*this) as the
+                first argument followed by the rest of the arguments to the
+                method. All arguments to this function should be gdb.Value
+                objects.
+            arg_types: The gdb.Type objects corresponding to the arguments that
+                this xmethod takes. It can be None, or an empty sequence,
+                or a single gdb.Type object, or a sequence of gdb.Type objects.
+        z^The 'method_function' argument to 'SimpleXMethodMatcher' __init__ method should be a callable.N)
+callabler 
+_class_matcher
+_method_matcherr
+class_matcherZ
+method_matcherr!
+SimpleXMethodMatcher.__init__c
+strZ
+unqualified
+tagr&
+SimpleXMethodMatcher.matchN)
+z(Xmethod matcher is missing method: matchr
+z*Xmethod matcher is missing attribute: namer
+z-Xmethod matcher is missing attribute: enabledz3Attribute 'name' of xmethod matcher is not a string
+z-Xmethod matcher name cannot contain ';' in it)
+hasattr
+	TypeError
+isinstancer
+basestring
+find
+ValueError)
+matcherr
+_validate_xmethod_matcher
+range
+xmethodsr
+locusr
+_lookup_xmethod_matcher
+Registers a xmethod matcher MATCHER with a LOCUS.
+    Arguments:
+        locus: The locus in which the xmethods should be registered.
+            It can be 'None' to indicate that the xmethods should be
+            registered globally. Or, it could be a gdb.Objfile or a
+            gdb.Progspace object in which the xmethods should be
+            registered.
+        matcher: The xmethod matcher to register with the LOCUS.  It
+            should be an instance of 'XMethodMatcher' class.
+        replace: If True, replace any existing xmethod matcher with the
+            same name in the locus.  Otherwise, if a matcher with the same name
+            exists in the locus, raise an exception.
+    
+globalr
+z.Xmethod matcher already registered with %s: %s
+verbosez.Registering xmethod matcher '%s' with %s' ...
+filenamer:
+RuntimeErrorZ	parameter
+write
+insert)
+replace
+errZ
+locus_name
+indexr
+register_xmethod_matcher
+version_infor(
+intZ
+long
+objectr
+<module>

@@ -1,0 +1,138 @@
+Z	d	d
+z2Internal functions for working with frame-filters.
+FrameIterator)
+FrameDecoratorc
+Internal worker function to return the frame-filter's priority
+    from a frame filter object.  This is a fail free function as it is
+    used in sorting and filtering.  If a badly implemented frame
+    filter does not implement the priority attribute, return zero
+    (otherwise sorting/filtering will fail and prevent other frame
+    filters from executing).
+    Arguments:
+        filter_item: An object conforming to the frame filter
+                     interface.
+    Returns:
+        The priority of the frame filter from the "priority"
+        attribute, or zero.
+    
+priorityr
+getattr
+filter_item
+#/usr/share/gdb/python/gdb/frames.py
+get_priority
+Internal worker function to set the frame-filter's priority.
+    Arguments:
+        filter_item: An object conforming to the frame filter
+                     interface.
+        priority: The priority to assign as an integer.
+    N)
+set_priority/
+Internal worker function to return a filter's enabled state
+    from a frame filter object.  This is a fail free function as it is
+    used in sorting and filtering.  If a badly implemented frame
+    filter does not implement the enabled attribute, return False
+    (otherwise sorting/filtering will fail and prevent other frame
+    filters from executing).
+    Arguments:
+        filter_item: An object conforming to the frame filter
+                     interface.
+    Returns:
+        The enabled state of the frame filter from the "enabled"
+        attribute, or False.
+    
+enabledFr
+get_enabled;
+Internal Worker function to set the frame-filter's enabled
+    state.
+    Arguments:
+        filter_item: An object conforming to the frame filter
+                     interface.
+        state: True or False, depending on desired state.
+    N)
+stater	
+set_enabledR
+Internal Worker function to return the frame filter
+    dictionary, depending on the name supplied as an argument.  If the
+    name is not "all", "global" or "progspace", it is assumed to name
+    an object-file.
+    Arguments:
+        name: The name of the list, as specified by GDB user commands.
+    Returns:
+        A dictionary object for a single specified dictionary, or a
+        list containing all the items for "all"
+    Raises:
+        gdb.GdbError:  A dictionary of that name cannot be found.
+    
+globalZ	progspacez)Cannot find frame-filter dictionary for '
+'N)	
+gdbZ
+frame_filters
+valuesZ
+current_progspace
+	itertools
+chainZ
+objfiles
+filenameZ
+GdbError)
+name
+glob
+progZ
+return_iterZ
+objfileZ
+msgr	
+return_list_
+Internal Worker function to merge all known frame-filter
+    lists, prune any filters with the state set to "disabled", and
+    sort the list on the frame-filter's "priority" attribute.
+    Returns:
+        sorted_list: A sorted, pruned list of frame filters to
+                     execute.
+    r
+reverse)
+sortedr
+filterr
+all_filtersZ
+sorted_frame_filtersr	
+_sort_list
+]&}	|
+Internal function called from GDB that will execute the chain
+    of frame filters.  Each filter is executed in priority order.
+    After the execution completes, slice the iterator to frame_low -
+    frame_high range.
+    Arguments:
+        frame: The initial frame.
+        frame_low: The low range of the slice.  If this is a negative
+        integer then it indicates a backward slice (ie bt -4) which
+        counts backward from the last frame in the backtrace.
+        frame_high: The high range of the slice.  If this is -1 then
+        it indicates all frames until the end of the stack from
+        frame_low.
+    Returns:
+        frame_iterator: The sliced iterator after all frame
+        filters have had a change to execute, or None if no frame
+        filters are registered.
+    r
+imap
+listr"
+lenr
+hasattrr
+mapr!
+collections
+deque
+popleft
+append
+iter
+islice)
+frameZ	frame_lowZ
+frame_highZ
+sorted_listZ
+frame_iteratorZ
+countZ
+slice_lengthZ
+slicedZ
+frame_itemr	
+execute_frame_filters
+__doc__r
+gdb.FrameIteratorr
+gdb.FrameDecoratorr
+<module>
