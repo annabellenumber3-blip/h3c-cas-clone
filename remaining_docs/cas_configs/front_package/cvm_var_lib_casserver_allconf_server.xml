@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="GB2312"?>
+
+<!-- 服务器表示表示全局唯一的服务程序。
+      一个服务器下可以挂若干资源和若干服务（包括标准服务和定时服务），资源用于各服务共享。
+      服务器可以设置的参数如下：
+     name：服务器的名称，缺省为“CAMS Standard Server”
+     className：服务器使用的实现类，缺省时使用标准的服务器实现类“com.h3c.ead.server.core.StandardServer”；
+     port：服务器等候终止命令的端口；
+     shutdown：服务器等候的终止命令；当服务器从port端口中侦听到此命令，则停止服务器的运行；
+     logLevel：日志级别，有效值包括 "all"; "trace"; "debug"; "info"; "warn"; "error"; "fatal"; "off";
+               依据如上顺序，日志记录的信息量逐渐减少；缺省设置为 "info"；
+     logPrefix：日志文件前缀，缺省值为 "eadserver."；
+     logSuffix：日志文件后缀，缺省值为 ".txt"；
+                最终日志文件的文件名为：前缀 + "yyyyMMdd" + 后缀；
+-->
+<Server port="8010" shutdown="SHUTDOWN" logLevel="info"
+    logPrefix="casserver." logSuffix=".txt">
+
+  <!-- 一个资源“Resource”声明，用于代表ead服务中可能使用的资源数据。
+       当前的资源主要为数据库链接池资源。
+       当className的取值为“com.h3c.ead.server.core.DatabaseResource”时，即生成数据库链接池资源。
+       对于数据库链接池资源，有效配置如下所示：
+       name：数据库链接池的名称，其他服务使用数据库链接池时，需要使用该名称；
+       className：资源实现类，当使用数据库链接池资源时，应为“com.h3c.ead.server.core.DatabaseResource”；
+       driverClassName：数据库JDBC驱动名，该属性为必须设置从属性；
+       dbUrl：数据库连接使用的URL，该属性为必须设置从属性；
+       userName：数据库登录用户名，该属性为必须设置从属性；
+       password：数据库登录用户密码，该属性为必须设置从属性；
+       initialSize：数据库链接池初始大小，缺省为0；
+       maxActive：数据库链接池中的最大池化链接数，缺省为5；
+       maxIdle：数据库链接池中，保留的最大闲置链接数，缺省为5；
+       minIdle：数据库链接池中，保留的最小闲置链接数，缺省为0；
+       maxWait：当所有池化链接均被使用，且已经到达池化链接数最大值时，等待连接释放的毫秒数；
+       minEvictableIdleTimeMillis：当连接闲置超过该最小时长时，释放连接；
+       defaultAutoCommit：数据库连接是否自动提交，有效值为"true"或"false"，缺省为"true"；
+       poolPreparedStatements：指定是否对PreparedStatement进行池化，有效值为"true"或"false"，缺省为false；
+       validationQuery：用于检查数据库连接是否有效的查询语句，在数据库连接从连接池中取出时，会自动执行该查询，检验连接是否有效；
+       logLevel：日志级别，有效值包括 "all"; "trace"; "debug"; "info"; "warn"; "error"; "fatal"; "off";
+                 依据如上顺序，日志记录的信息量逐渐减少；缺省设置继承自 "Server"；
+       logPrefix：日志文件前缀，缺省设置继承自 "Server"；
+       logSuffix：日志文件后缀，缺省设置继承自 "Server"；
+                  最终日志文件的文件名为：前缀 + "yyyyMMdd" + 后缀；
+  -->
+  <Resource name="CVM JDBC Resource"
+    className="com.h3c.cas.server.core.DatabaseResource"
+    initialSize="0" maxActive="100" maxIdle="45" minIdle="45" maxWait="5000"
+    minEvictableIdleTimeMillis="300000" flag="cvm"
+    poolPreparedStatements="false" validationQuery="select version()"/>
+
+	<!--
+  <Resource name="CIC CVM JDBC Resource"
+    className="com.h3c.cas.server.core.DatabaseResource"
+    initialSize="0" maxActive="60" maxIdle="5" minIdle="0" maxWait="5000"
+    minEvictableIdleTimeMillis="300000" flag="cic"
+    poolPreparedStatements="false" validationQuery="select version()"/>
+    -->
+
+   <Service name="SNMP Agent" 
+   	className="com.h3c.cas.server.cas.snmp.SNMPService"
+    listenPort="162" serverIp="[::]" notifyPort="9023"
+    databaseResourceName="CVM JDBC Resource" 
+    logLevel="info" logPrefix="snmp_agent_" logSuffix=".txt"/>
+    
+   	<TcpService name="TCP Server" className="com.h3c.cas.server.cas.tcp.TcpService"
+	port="20050" logLevel="info" logPrefix="perfData_collect" logSuffix=".txt"
+	databaseResourceName="CVM JDBC Resource" />
+	<!-- fix:202102010720 端口修改 -->
+  	<UdpService name="UDP Server" className="com.h3c.cas.server.cas.udp.UdpService"
+		port="20101" logLevel="info" logPrefix="perfData_collect" logSuffix=".txt"
+		databaseResourceName="CVM JDBC Resource"/>  
+		
+  <!-- 定时服务“TimerService”声明，用于申明一组需要定时执行的任务。其可以包含一个或多个定时任务（TimerTask）。
+       对于定时服务，有效配置如下所示：
+       name：定时服务的名称；
+       className：定时服务实现类，缺省时使用标准的定时服务实现类“com.h3c.ead.server.core.StandardTimerService”；
+       logLevel：日志级别，有效值包括 "all"; "trace"; "debug"; "info"; "warn"; "error"; "fatal"; "off";
+                 依据如上顺序，日志记录的信息量逐渐减少；缺省设置继承自 "Server"；
+       logPrefix：日志文件前缀，缺省设置继承自 "Server"；
+       logSuffix：日志文件后缀，缺省设置继承自 "Server"；
+                  最终日志文件的文件名为：前缀 + "yyyyMMdd" + 后缀；
+  -->
+  <TimerService name="Standard Timer Service"
+    logLevel="debug" logPrefix="timer." logSuffix=".txt">
+
+    <!-- 一个定时任务“TimerTask”声明，用于申明一项需要定时执行的任务。
+         该任务的可使用配置说明如下：
+         className：定时任务实现类，该类需继承“com.h3c.ead.server.TimerService”类，且实现“onTimeout”方法；
+         dateTimeFields：定时任务的执行时间，该属性的格式为：“* * * * *”，其中：
+             第一个“*”表示一分钟内的第几秒钟，范围为 0-59
+             第二个“*”表示一小时内的第几分钟，范围为 0-59；
+             第三个“*”表示一天内的第几小时，范围为 0-23；
+             第四个“*”表示一月内的第几天，范围为 1-31；
+             第五个“*”表示一年内的第几月，范围为 1-12；
+             第六个“*”表示一周内的第几天，范围为 0-6，0 表示周日；
+             其中，当指定了第五个元素（即指定了周为周期时），不能指定第三、第四（日、月为周期）个元素；
+             当第三个元素中的数字大于当月的最大日期时（如2月31日），则实际执行日期为当月最后一天；
+             例如：
+             20 * * * * *             -> 每分钟的第20秒执行；
+             0 20 * * * *             -> 每小时的第20分钟0秒执行；
+             0 5 22 * * *             -> 每天22时05分0秒执行；
+             0 0 8 1 * *              -> 每月1号8时0分0秒执行；
+             0 0 8 4 7 *              -> 每年七月四日8时0分0秒执行；
+             0 15 12 * * 5            -> 每周五12时15分0秒执行；
+             * * 10 * * *             -> 每天10时0分、1分……59分每秒执行；
+             0 0 10 * 7 *             -> 七月份每天10点正执行；
+             * * * * * *             -> 每秒钟都执行
+             0 0 8 * * 1,3,5          -> 每周1、3、5早上8时0分执行；
+             0 0 8 1,15 * *           -> 每月1日、15日早上8时0分执行；
+             0 0 8-17 * * 1-5         -> 每周1－5，早上8时到下午17时的每小时0分执行；
+             0 15-17,19,22 11 * * *   -> 每日早上11时，15分－17分、19分、22分执行。
+         startDate：该任务的生效时间，格式为“yyyy-MM-dd HH:mm:ss”,如“2004-12-08 11:47:10”，不设置表示“不限”；
+         endDate：该任务的失效时间，格式为“yyyy-MM-dd HH:mm:ss”,如“2005-12-08 11:47:10”，不设置表示“不限”；
+         runAtStartup：是否在启动定时服务时，立刻执行该任务？可选值为“true”或“false”，缺省为“false”；
+         priority：该任务的优先级。优先级高的任务可能获取更多的CPU资源。
+                   有效值包括 "high"; "normal" 和 "low"，缺省为"normal"；
+         logLevel：日志级别，有效值包括 "all"; "trace"; "debug"; "info"; "warn"; "error"; "fatal"; "off";
+                   依据如上顺序，日志记录的信息量逐渐减少；缺省设置继承自 "Service"；
+         logPrefix：日志文件前缀，缺省设置继承自 "Service"；
+         logSuffix：日志文件后缀，缺省设置继承自 "Service"；
+                    最终日志文件的文件名为：前缀 + "yyyyMMdd" + 后缀；
+    -->
+
+    <!-- 日志文件定期清理的定时任务。每日凌晨1点30分执行。
+         该任务特有的配置包括：
+         txtRetainDays：文本格式的日志文件保留天数，有效值为0-30，缺省值为0；
+         zipRetainMonths：压缩后的日志文件保留月数，有效值为0-1200，缺省值为3。
+    -->
+<!--    <TimerTask name="Log Rotate Timer Task"-->
+<!--      className="com.h3c.cas.server.core.LogRotateTimerTask"-->
+<!--      runAtStartup="true" dateTimeFields="0 30 1 * * *"-->
+<!--      txtRetainDays="0" zipRetainMonths="3"/>-->
+    
+    <TimerTask name="JobDay" 
+               className="com.h3c.cas.server.job.JobDay" 
+               dateTimeFields="0 0 0 * * *" 
+               databaseResourceName="CVM JDBC Resource" 
+               logLevel="all" 
+               logPrefix="JobDay." 
+               logSuffix=".txt" /> 
+     <TimerTask name="JobEventDay" 
+	         className="com.h3c.cas.server.job.JobEventDay" 
+	         dateTimeFields="0 0 7 * * *" 
+	         databaseResourceName="CVM JDBC Resource" 
+	         logLevel="all" 
+	         logPrefix="JobEventDay." 
+	         logSuffix=".txt" />
+    <TimerTask name="JobHour" 
+               className="com.h3c.cas.server.job.JobHour" 
+               dateTimeFields="0 1 * * * *" 
+               databaseResourceName="CVM JDBC Resource" 
+               logLevel="all" 
+               logPrefix="JobHour." 
+               logSuffix=".txt" /> 
+<!--     <TimerTask name="JobPerfData" className="com.h3c.cas.server.job.JobPerfData"
+		dateTimeFields="0,10,20,30,40,50 * * * * *" databaseResourceName="CVM JDBC Resource"
+		logLevel="all" logPrefix="JobPerfData." logSuffix=".txt" /> --> 
+      <TimerTask name="JobCheckTemplateAlarm"
+                 className="com.h3c.cas.server.job.JobCheckTemplateAlarm"
+                 dateTimeFields="* * * * * *"
+                 databaseResourceName="CVM JDBC Resource"
+                 logLevel="all" logPrefix="JobCheckTemplateAlarm." logSuffix=".txt"/>
+      <TimerTask name="JobNetLogData" className="com.h3c.cas.server.job.JobNetLogData"
+                 dateTimeFields="0,10,20,30,40,50 * * * * *" databaseResourceName="CVM JDBC Resource"
+                 logLevel="all" logPrefix="JobNetLogData." logSuffix=".txt" />
+
+
+      <!-- <TimerTask name="JobHostNetCheck" className="com.h3c.cas.server.job.JobHostNetCheck"
+          dateTimeFields="0,5,10,15,20,25,30,35,40,45,50,55 * * * * *" databaseResourceName="CVM JDBC Resource"
+          logLevel="all" logPrefix="JobHostNetCheck." logSuffix=".txt" />   -->
+		
+	<TimerTask name="CleanVmRecycleBin" className="com.h3c.cas.server.job.CleanVmRecycleBinJob"
+		dateTimeFields="0 * * * * *" databaseResourceName="CVM JDBC Resource"
+		logLevel="all" logPrefix="JobPerfData." logSuffix=".txt" />    
+	<TimerTask name="BackUpCVM"
+      className="com.h3c.cas.server.job.JobBackupCVM"
+      dateTimeFields="0 0,30 * * * *"
+      databaseResourceName="CVM JDBC Resource"
+      logLevel="all" logPrefix="backup." logSuffix=".txt"/>    
+    <TimerTask name="BackUpLog"
+      className="com.h3c.cas.server.job.JobBackupLog"
+      dateTimeFields="0 0,30 * * * *"
+      databaseResourceName="CVM JDBC Resource"
+      logLevel="all" logPrefix="backup." logSuffix=".txt"/>    
+	<TimerTask name="VMBackUp"
+      className="com.h3c.cas.server.cas.vm.backup.VmBackupJob"
+      dateTimeFields="0 0,10,20,30,40,50 * * * *"
+      databaseResourceName="CVM JDBC Resource"
+      logLevel="all" logPrefix="JobPerfData." logSuffix=".txt"/>   
+     <!--<TimerTask name="VirtualServerStats"
+      className="com.h3c.cas.server.cas.lb.VirtualServerStatsCollector"
+      dateTimeFields="0,30 * * * * *"
+      databaseResourceName="CVM JDBC Resource"
+      logLevel="all" logPrefix="JobPerfData." logSuffix=".txt"/> -->
+
+	  <!--
+     <TimerTask name="JobDayCIC"
+      className="com.h3c.cas.server.job.JobDayCIC"
+      dateTimeFields="0 10 0 * * * "
+      databaseResourceName="CIC CVM JDBC Resource"
+      logLevel="all" logPrefix="JobDayCIC." logSuffix=".txt"/> 
+       
+     <TimerTask name="JobVcenterPerf"
+      className="com.h3c.cas.server.job.JobVcenterPerf"
+	  dateTimeFields="0 0,10,20,30,40,50 * * * *" 
+	  databaseResourceName="CIC CVM JDBC Resource"
+	  logLevel="all" logPrefix="JobVcenterPerf." logSuffix=".txt" />-->
+      
+      <TimerTask name="JobCrlSync"
+      className="com.h3c.cas.server.job.JobCrlSync"
+      dateTimeFields="0 3 * * * *"
+      databaseResourceName="CVM JDBC Resource"
+      logLevel="all" logPrefix="JobCrlSync." logSuffix=".txt"/>
+      <!--
+     <TimerTask name="JobVcenterCollectStorageTrend" 
+      className="com.h3c.cas.server.job.JobVcenterCollectStorageTrend"
+      dateTimeFields="0 1 * * * *" 
+      databaseResourceName="CIC CVM JDBC Resource"
+      logLevel="all" logPrefix="JobVcenterCollectStorageTrend." logSuffix=".txt" />
+     <TimerTask name="JobDomainDetail" className="com.h3c.cas.server.job.JobDomainDetail"
+	  dateTimeFields="0 1,11,21,31,41,51 * * * *" databaseResourceName="CIC CVM JDBC Resource"
+	  logLevel="all" logPrefix="JobDomainDetail." logSuffix=".txt" />-->
+  </TimerService>
+
+</Server>

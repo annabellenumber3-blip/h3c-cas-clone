@@ -1,0 +1,1932 @@
+PDF: H3C CAS Deployment Guide.pdf
+Pages: 78
+
+
+--- Page 1 ---
+H3C CAS 
+Deployment Guide 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+Software version: E0785 and later versions 
+Document version: 5W107-20250811 
+ 
+Copyright © 2025 New H3C Technologies Co., Ltd. All rights reserved. 
+No part of this manual may be reproduced or transmitted in any form or by any means without prior written consent of New 
+H3C Technologies Co., Ltd. 
+Except for the trademarks of New H3C Technologies Co., Ltd., any trademarks that may be mentioned in this document are 
+the property of their respective owners. 
+The information in this document is subject to change without notice.
+
+--- Page 2 ---
+i 
+Contents 
+Prepare for the deployment ··········································································· 1 
+Environment requirements ································································································································· 1 
+Rack requirements ····································································································································· 1 
+Power requirements ··································································································································· 1 
+Server requirements··········································································································································· 1 
+Server compatibility requirements ·············································································································· 1 
+Management server configuration requirements························································································ 2 
+Service server configuration requirements ································································································· 3 
+Obtaining the installation file ······························································································································ 4 
+Deployment plan ···························································································· 4 
+Network plan ······················································································································································ 4 
+Typical network models ······························································································································ 5 
+Server network plan ··································································································································· 6 
+Storage network plan ································································································································· 7 
+Storage plan ······················································································································································· 9 
+Plan of local disks ······································································································································ 9 
+Plan of attached storage ···························································································································· 9 
+Plans of host pool, cluster, host, and shared file system ················································································· 10 
+Restrictions and guidelines on planning the CAS size ············································································· 10 
+Restrictions and guidelines on planning hosts ························································································· 10 
+Restrictions and guidelines on planning shared file systems ··································································· 10 
+VM planning ····················································································································································· 11 
+VM compute resources ···························································································································· 11 
+VM network resources ····························································································································· 11 
+VM storage resources ······························································································································ 11 
+Install H3C CAS ··························································································· 12 
+Change the time zone ·················································································· 12 
+Configure CVM stateful failover ··································································· 13 
+Configure cloud resources on H3C CAS ······················································ 13 
+Log in to CAS ··················································································································································· 13 
+Restrictions and guidelines ······················································································································ 13 
+Procedure ················································································································································· 13 
+CAS licensing ··················································································································································· 14 
+Configure cloud resources ······························································································································· 14 
+Configure NTP ········································································································································· 14 
+Configure non-root user settings ·············································································································· 15 
+Configure host pools ································································································································ 16 
+Configure the cluster ································································································································ 16 
+Configure hosts ········································································································································ 19 
+Configure vSwitches ································································································································ 20 
+Configure storage pools ··························································································································· 24 
+Configure VMs ················································································································································· 41 
+Upload operating system installation files ································································································ 41 
+Add VMs ··················································································································································· 42 
+Install an operating system on the VM ····································································································· 44 
+Install CAStools on the VM ······················································································································ 48 
+Assign IP addresses to VMs ···················································································································· 52 
+View VM disk usage information ·············································································································· 53 
+Manage VM templates ····································································································································· 54 
+Add template pools ·································································································································· 55 
+Create VM templates ······························································································································· 56 
+CVM backup····················································································································································· 56
+
+--- Page 3 ---
+ii 
+Monitoring and alarms······································································································································ 57 
+Monitoring and O&M features ·················································································································· 57 
+Logs and alarms ······································································································································· 57 
+(Optional) Configure VM anti-virus ··················································································································· 58 
+(Optional) Configure VM backup ······················································································································ 58 
+Additional important reminders ···································································· 58 
+Configure shared storage fault action ·············································································································· 58 
+Virtualization platform testing (important) ····················································· 59 
+Configuration check ········································································································································· 59 
+Reliability test ··················································································································································· 60 
+Host reliability test ···································································································································· 60 
+Network reliability test ······························································································································ 61 
+Storage reliability test ······························································································································· 61 
+FAQ ············································································································· 61 
+Appendix ····································································································· 63 
+Create a bootable USB flash drive ··················································································································· 63 
+Use the Linux dd method to create a bootable USB flash drive······························································· 63 
+Use Rufus to create a bootable USB flash drive ······················································································ 63 
+Configure an edge port on the switch ·············································································································· 67 
+Configure an STP edge port ···················································································································· 67 
+Configure an edge dynamic aggregate interface ····················································································· 68 
+Configure disk caching ····································································································································· 69 
+Identify the RAID controller type ·············································································································· 69 
+Configure caching for RAID controllers ···································································································· 70
+
+--- Page 4 ---
+1 
+Prepare for the deployment 
+The following information describes the requirements that must be met for H3C CAS deployment. 
+These requirements include the site environment requirements such as rack specifications and 
+power sufficiency and the server configuration. Before you implement a CAS deployment project, 
+make sure all these requirements are met. 
+Environment requirements 
+This section only introduces the requirements of H3C servers on rack specifications and power 
+sufficiency. For the requirements of a third- party server, see the documents provided by the 
+corresponding vendor. 
+Rack requirements 
+Before you install the device, verify that the physical dimensions of the rack and power supply in the 
+equipment room meet the requirements. 
+Table 1 UIS 3060 G5 H3 server technical specifications 
+Specification Value 
+Height 2U (87.5 mm or 3.44 in)) 
+Depth 748 mm (29.45 in) 
+Width 455.4 mm (17.93 in) 
+Maximum weight 34 kg (74.96 lb) 
+ 
+Power requirements 
+The following table describes the power requirements for the device when it has one power supply. 
+As a best practice, install two power supplies for power redundancy. 
+Table 2 UIS 3060 G5 H3 server technical specifications 
+Server model Power 
+CRPS800N2/PSR800 800 W 
+CRPS1300D3 1300 W 
+CRPS1600D2/PSR1600/FSP1600 1600 W 
+CRPS2000D 2000 W 
+ 
+Server requirements 
+Server compatibility requirements 
+ IMPORTANT: 
+For information about how to configure Hygon or Zhaoxin servers, see H3C CAS Server
+
+--- Page 5 ---
+2 
+Performance Optimization Configuration Guide. 
+ 
+H3C CAS is a hardware- assisted virtualization system that requires support of Intel -VT or AMD-V. 
+ARM servers can be used with H3C CAS only when they support ARM VHE virtualization extensions. 
+To confirm whether a server is compatible with H3C CAS, see H3C CAS Software and Hardware 
+Compatibility. 
+Management server configuration requirements 
+In a data center, the management server is used for centralized and unified management of hosts. 
+You must install the CVK and CVM components of CAS on the management server. 
+• If the management server is not used as a service server to run VMs, do not add it to any host 
+pool or cluster. In this scenario, the management server can use CPUs that do not support 
+virtualization. Table 3 shows the hardware requirements for a management server. 
+• If the management server is also used as a service server to run VMs, you must add it to a host 
+pool or cluster. Table 4 shows the hardware requirements for a service server. 
+Table 3 Hardware requirements 
+Size CPU Memory Storage Remarks 
+≤ 20 servers 
+≤ 400 VMs ≥ 8 cores ≥ 32 GB 500 GB The system can be deployed 
+on VMs. 
+< 50 servers 
+< 1000 VMs ≥ 16 cores ≥ 32 GB 600 GB Deploy CVMs on physical 
+servers as a best practice. 
+50 to 100 servers 
+1000 to 3000 VMs ≥ 16 cores ≥ 64 GB 
+RAID 1 array that 
+consists of two SAS 
+disk groups (600 GB) 
+Deploy CVMs on physical 
+servers as a best practice. 
+100 to 256 servers 
+3000 to 5000 VMs ≥ 24 cores ≥ 128 GB 
+RAID 1 array that 
+consists of two SSD 
+disk groups (960 GB) 
+Deploy CVMs on physical 
+servers and store data of 
+databases at SSDs. 
+256 to 1000 servers 
+5000 to 20000 VMs ≥ 32 cores ≥ 256 GB 
+RAID 1 array that 
+consists of two SSD 
+disk groups (960 GB) 
+Deploy CVM on physical 
+servers and store data of 
+databases at SSDs. 
+ 
+ IMPORTANT: 
+When you deploy CVMs on VMs, make sure the following requirements are met: 
+• When you create VMs on CAS, make sure the operating system version is CAS CVM OS 
+(64-bit). 
+• As a best practice, roughly determine hardware requirements of the management server based 
+on actual service needs under the instruction of the CVM deployment calculation tool. 
+• VMs must use VGA cards. 
+• As a best practice to avoid stateful failover errors caused by serial number changes after VM 
+migration and restart, configure fixed disk serial numbers for the VMs that run CVM in a stateful 
+failover scenario. A disk serial number can contain only letters and digits. You can configure disk 
+serial numbers for a VM when you create the VM. Alternatively, you can configure disk serial 
+numbers for the VM based on the system disk serial number before you set up the st ateful 
+failover system. To obtain the system disk serial number, execute the lsblk --nodeps -no 
+serial /dev/xxx command, where /dev/xxx represents the system disk identifier. 
+• If you deploy CVM on a VM that is created on a CVK management platform, you might fail to log 
+in to CVM. In this case, restart the tomcat service by using the systemctl restart tomcat 
+command and log in again.
+
+--- Page 6 ---
+3 
+Service server configuration requirements 
+In a data center, service servers are physical hosts on which VMs reside. They are used to support 
+the operation of that data center. You only need to install the CVK component of CAS on each 
+service server. 
+Table 4 Hardware requirements 
+Item Two ways Four ways Eight ways 
+CPU (clock speed ≥ 2 GHz) 2 ways, 4 cores 4 ways, 2 or 4 
+cores 
+8 ways, 2 cores or a 
+minimum of 4 cores 
+Memory ≥ 32 GB ≥ 64 GB ≥ 128 GB 
+GE/10 GE NIC 
+No storage 
+attached ≥ 4 ≥ 4 ≥ 4 
+FC storage 
+attached ≥ 4 ≥ 4 ≥ 4 
+IP storage 
+attached ≥ 6 ≥ 6 ≥ 6 
+Built-in disk (external disk array 
+deployed) 2 2 2 
+CD/DVD ROM 1 1 1 
+Power supply Dual redundancy Dual redundancy Dual redundancy 
+ 
+ NOTE: 
+• The CPUs must support hardware-assisted virtualization technologies, such as Intel-VT or 
+AMD-V. To obtain the best migration compatibility capabilities, use servers of the same vendor, 
+product family, and processor generation to form a cluster. 
+• Memory resources often become potential performance bottlenecks more easily than CPU 
+resources. To avoid this issue, use memory modules with the maximum capacity to maximize the 
+memory resources of the server. 
+• When no external storage is attached, configure a minimum of four network adapter ports  with 
+two for the management network and two for the service network. When FC storage is attached, 
+configure a minimum of four network adapter ports with two for the management network and two 
+for the service network. When IP storage is attached, configure a minimum of six network adapter 
+ports with two for the management network, two for the service network, and two for the storage 
+network. To ensure high throughput and high reliability of links, configure link aggregation for the 
+network adapter ports. As a best practice to speed up the migration of VMs from VMware to CAS, 
+use a 10 Gbps NIC for the management network. 
+• When no external storage is attached, the size of local disks depends on the number of VMs and 
+the disk space assigned to them. When external storage is attached, local disks are used to store 
+VM configuration files and other information. As a best practice, configure a minimum of two SAS 
+or SATA disks as a RAID 1 array. 
+• As a best practice, configure a minimum of one CD/DVD ROM for installation of the H3C CAS 
+cloud computing software. For FlexServer servers, H3C CAS cloud computing software can be 
+installed through the Remote Console feature of iLO, and no optical drive is required.  
+• To avoid VM service interruption caused by server power supply failures, configure two power 
+supplies for redundancy protection.
+
+--- Page 7 ---
+4 
+Obtaining the installation file 
+The H3C CAS installation CD that comes with the device might have an outdated version of H3C 
+CAS. As a best practice, obtain the latest -version ISO file of H3C CAS from the official website of 
+H3C 
+(https://www.h3c.com/en/Support/Resource_Center/EN/Cloud_Computing/Catalog/H3C_CAS/H3C
+_CAS/). 
+Figure 1 Downloading H3C CAS 
+ 
+ 
+Deployment plan 
+Network plan 
+• To eliminate single points of failure in the network, enhance link redundancy by configuring 
+network adapter port aggregation. 
+• When IP SAN storage is attached, configure six network adapter ports for the server with two 
+for the management network, two for the service network, and two for the storage network. 
+When FC SAN storage is attached, configure four network adapter ports for the server with two 
+for the management network and two for the service network. 
+• When FC SAN storage is attached, you also need to configure two FC HBA cards for the server. 
+The FC HBA cards are connected to different FC fiber switches. 
+• As a best practice, stack switches. For example, you can configure two H3C switches as an IRF 
+fabric. 
+• If STP is enabled on the switch, you must configure each port connecting to a server as an edge 
+port. By default, STP is enabled on a switch. For more information, see "
+Configure an STP edge 
+port." 
+• A server supports configuring only one default gateway. The NICs used for services do not 
+require IP addresses. 
+• In the same cluster, the name of the virtual switch (which assigns vNICs to VMs) configured for 
+hosts must be consistent. Otherwise, abnormal VM migration will occur and the virtual switch is 
+not selectable during organization creation.
+
+--- Page 8 ---
+5 
+Typical network models 
+IP SAN 
+• The CVM host (management host) requires a minimum of two network adapter ports. The two 
+network adapter ports are aggregated and each of them is connected to the two Ethernet 
+switches. The CVM host does not run VM services. 
+• Each CVK host (service host) requires a minimum of six network adapter ports with two for the 
+management network, two for the storage network, and two for the service network. The two 
+NICs for the management network are aggregated and each of them is connected to the two 
+Ethernet switches. The description also applies to the network adapter ports for the storage 
+network and the service network. 
+• IP SAN shared storage requires a minimum of two network adapter ports. The two network 
+adapter ports are aggregated and each of them is connected to the two Ethernet switches.  
+• The management network, the storage network, and the service network are isolated through 
+VLANs. 
+Figure 2 IP SAN model 
+ 
+ 
+FC SAN 
+• The CVM host (management host) requires a minimum of two network adapter ports. The two 
+network adapter ports are aggregated and each of them is connected to the two Ethernet 
+switches. The CVM host does not run VM services. 
+• Each CVK host (service host) requires a minimum of four network adapter ports with two for the 
+management network and two for the service network. The two network adapter ports for the 
+management network are aggregated and each of them is connected to the two Ethernet 
+switches. The description also applies to the network adapter ports for the service network.  
+• Each CVK host requires a minimum of one dual-port FC HBA. The FC HBA is connected to the 
+two FC switches and the multipathing feature must be enabled. 
+• The management network and the service network are isolated through VLANs. 
+ 
+ NOTE: 
+H3C CAS CVM
+H3C CAS CVK#1 H3C CAS CVK#2
+Ethernet switch #1 Ethernet switch #2
+IP SAN
+Management network VLAN 11
+Storage network VLAN 12
+Service networks VLANs 13 and 14
+
+--- Page 9 ---
+6 
+As a best practice, use the cross-connect method to connect the CVK servers and the FC switches, 
+and to connect the FC switches and the storage controllers. This connection method improves the 
+redundancy of FC paths. The multipathing feature protects storage resource access ag ainst path 
+failures, ensuring storage service stability. 
+ 
+Figure 3 FC SAN model 
+ 
+ 
+Server network plan 
+In the CAS network, server network planning involves three networks: management network, service 
+network, and storage network. These three networks need to be isolated from each other with 
+VLANs. The server requires a minimum of three network adapter port s. The network adapter port s 
+are defined as management network adapter port , service network adapter port , and storage 
+network adapter port , respectively. If FC SAN storage is used, the server requires two network 
+adapter ports. 
+When FlexServer R390 devices  are deployed, iLO address planning is also required. To facilitate 
+maintenance, make sure the iLO addresses are within the management network.  
+The following table provides an IP address plan. In this document, the service network plan is as 
+follows: 
+• Management network: network address 192.168.11.0/24, gateway address 192.168.11.254, 
+and VLAN ID 11. 
+• Storage network: network address 192.168.12.0/24, gateway address 192.168.12.254, and 
+VLAN ID 12. 
+• Service network: network address 192.168.13.0/24, gateway address 192.168.13.254, and 
+VLAN ID 13. 
+ 
+Server iLO network 
+(VLAN 11) 
+Management 
+network (VLAN 
+11) 
+Storage network 
+(VLAN 12) 
+Service network 
+(VLAN 13) 
+Management 
+server 192.168.11.110 192.168.11.10 192.168.12.10 N/A
+
+--- Page 10 ---
+7 
+Service server 
+#1 192.168.11.101 192.168.11.1 192.168.12.1 Optional. 
+Service server 
+#2 192.168.11.102 192.168.11.2 192.168.12.2 Optional. 
+Service server 
+#3 192.168.11.103 192.168.11.3 192.168.12.3 Optional. 
+ 
+In CAS, vSwitches assign virtual NICs to VMs, which enables VMs to communicate with external 
+networks. The following table provides a vSwitch configuration example for reference.  
+ 
+Network Physical 
+interface vSwitch Name Forwarding mode VLAN ID 
+Management 
+network eth0 vswitch0 VEB 11 
+Storage network eth1 vswitch-storage VEB 12 
+Service network eth2 vswitch- app VEB 13 
+ 
+ IMPORTANT: 
+• If dynamic link aggregation is configured on a vSwitch, make sure this feature is configured on 
+the connected physical switch. 
+• If static link aggregation is configured on a vSwitch and the load balancing mode is 
+active/standby, do not configure aggregation on the connected physical switch. 
+• If static link aggregation is configured on a vSwitch and the load balancing mode is basic or 
+advanced, configure static link aggregation on the connected physical switch. 
+• As a best practice, use active/standby or basic load balancing. 
+ 
+Storage network plan 
+H3C CAS supports both IP SAN and FC SAN storage devices. 
+IP SAN 
+You need to plan the IP address of IP SAN storage devices. The following table provides an address 
+plan for P5000 storage. 
+ 
+NIC type IP address Gateway VLAN ID 
+Physical NIC 192.168.12.101/24 192.168.12.254 12 
+vNIC 192.168.12.100/24 192.168.12.254 12 
+ 
+FC SAN 
+ NOTE: 
+• Zoning is a standard feature of switches. This feature allows you to divide the devices connected 
+to the SAN into different zones. Devices in different zones cannot access each other. With this 
+feature, you can isolate hosts from devices in SAN. The mechanism of zoning is similar to VLANs 
+on Ethernet switches. 
+• Devices within the same zone can access each other, but cannot access devices in other zones. 
+The members of a zone can be divided into three types: Domain, Port, WWN, and Alias. 
+• As a best practice, differentiate zones based on the combination of one server HBA port plus one 
+storage HBA port.
+
+--- Page 11 ---
+8 
+ 
+The following figure provides an optimal FC SAN model. 
+Figure 4 FC SAN model 
+ 
+ 
+• Each server is installed with a dual-port FC HBA. Each port of the FC HBA is connected to the 
+two FC switches. 
+• In the FC shared storage scenario, each storage controller is installed with a dual-port FC HBA. 
+Each port of the FC HBA is connected to the two FC switches. 
+• The two FC switches operate independently. They are not interconnected. 
+The following examples show how to differentiate zones by port number and WWN information. 
+WWN of the FC HBA on host H3C CAS CVK 1 is as follows: 
+Port 1: 50:01:43:80:24:d2:8a:aa 
+Port 2: 50:01:43:80:24:d2:8a:ab 
+WWN of the FC HBA on host H3C CAS CVK 2 is as follows: 
+Port 1: 50:01:43:80:24:d2:8b:ac 
+Port 2: 50:01:43:80:24:d2:8b:ad 
+WWN of the FC HBA on FC SAN shared storage controller 1 is as follows: 
+Port 1: 50:01:43:80:24:d2:8c:aa 
+Port 2: 50:01:43:80:24:d2:8c:ab 
+WWN of the FC HBA on FC SAN shared storage controller 2 is as follows: 
+Port 1: 50:01:43:80:24:d2:8c:ac 
+Port 2: 50:01:43:80:24:d2:8c:ad 
+Create zones on FC switch 1 and FC switch 2 based on  the previous WWN information. As a best 
+practice, use this method. 
+Execute the following commands to create zones on FC switch 1: 
+zonecreate "CVK01-01", "50:01:43:80:24:d2:8a:aa; 50:01:43:80:24:d2:8c:aa " 
+zonecreate "CVK01-02", "50:01:43:80:24:d2:8a:aa; 50:01:43:80:24:d2:8c:ac " 
+zonecreate "CVK02-01", "50:01:43:80:24:d2:8b:ad; 50:01:43:80:24:d2:8c:aa " 
+zonecreate "CVK02-02", "50:01:43:80:24:d2:8b:ad; 50:01:43:80:24:d2:8c:ac " 
+Execute the following commands to create zones on FC switch 2: 
+zonecreate "CVK02-01", "50:01:43:80:24:d2:8b:ac; 50:01:43:80:24:d2:8c:ad “ 
+zonecreate "CVK02-02", "50:01:43:80:24:d2:8b:ac; 50:01:43:80:24:d2:8c:ab " 
+zonecreate "CVK01-01", "50:01:43:80:24:d2:8a:ab; 50:01:43:80:24:d2:8c:ad "
+
+--- Page 12 ---
+9 
+zonecreate "CVK01-02", "50:01:43:80:24:d2:8a:ab; 50:01:43:80:24:d2:8c:ab " 
+Create zones on FC switch 1 and FC switch 2 based on port number information.  
+Execute the following commands to create zones on FC switch 1: 
+zonecreate "CVK01-01", "1,1; 1,3" 
+zonecreate "CVK01-02", "1,1; 1,4" 
+zonecreate "CVK02-01", "1,2; 1,3" 
+zonecreate "CVK02-02", "1,2; 1,4" 
+Execute the following commands to create zones on FC switch 2: 
+zonecreate "CVK02-01", "2,1; 2,3" 
+zonecreate "CVK02-02", "2,1; 2,4" 
+zonecreate "CVK01-01", "2,2; 2,3" 
+zonecreate "CVK01-02", "2,2; 2,4" 
+Storage plan 
+Plan of local disks 
+• If a server uses two local disks, configure the two local disks as a RAID 1 array. 
+• If the server uses more than two local disks, configure those local disks as a RAID 5 array. 
+• Disable disk caching for all servers. For more information, see "Configure disk caching." 
+Plan of attached storage 
+• CAS supports both IP SAN and FC SAN storage devices. As a best practice, configure RAID 5 
+or RAID 6 for storage devices. 
+• When you create a storage volume, use the thick provisioning mode as a best practice. 
+• Do not use Network RAID 5 when you create storage volumes for P5000 shared storage, 
+because this method uses the thin provisioning mode. If this method is used, data is stored with 
+the Network RAID 10 method first and then the Network RAID 5 method, which degrades 
+storage performance. 
+• If a 3Par storage device is used as the external storage resource, you must disable the 
+Persistent Port (PP) feature. If PP is enabled, path switchover failures and IO access errors 
+might occur upon a storage controller failure or post-upgrade reboot, causing upper-layer 
+service errors. 
+• The multipath feature requires the multipath capabilities of the storage device. Do not set 
+aliases for multipath on the storage device. H3C CAS is highly compatible with most 
+mainstream storage solutions. For multipath configuration on H3C CAS hosts, see H3C CAS 
+Dual-Active Multipath Configuration Guide. If 3PAR storage is used, see PAR Storage Server 
+Installation and Dual-Active Environment Setup Guide v2.0. To configure multipath on storage 
+devices, contact Technical Support. 
+• In a two-node scenario, configuration of storage pools requires support of hardware-assisted 
+lock. To use hardware-assisted lock, make sure the storage server supports CAW.
+
+--- Page 13 ---
+10 
+Plans of host pool, cluster, host, and shared file 
+system 
+Restrictions and guidelines on planning the CAS size 
+• As a best practice, do not configure more than 4 HA clusters in a host pool. 
+• As a best practice, do not configure more than 32 CVK hosts in an HA cluster. 
+• As a best practice, use the same CPU generation across all servers in an HA cluster. 
+• As a best practice, do not configure more than 32 shared file systems in a cluster. 
+• As a best practice, do not use storage volumes with a capacity exceeding 16 TB in a shared file 
+system. 
+• Use a shared file system within only one cluster. Multiple clusters cannot share one shared file 
+system. 
+Restrictions and guidelines on planning hosts 
+Host planning mainly includes planning host names and passwords, in compliance with the 
+specifications and requirements of the customer. For CAS, a host name must be a string of up to 64 
+characters that does not contain underscores and does not start with a digit. Upper -case letters, 
+lower-case letters, or hyphens are supported. 
+The following table provides an example plan of host name and password. 
+ 
+Server Host name Root user password 
+Management server CAS-CVM 
+A minimum of eight characters that contains upper-case 
+letters, lower-case letters, digits, and special characters. Service server 1 CAS-CVK01 
+Service server 2 CAS-CVK02 
+ 
+ CAUTION: 
+To avoid VM MAC conflicts if you install multiple CAS systems, plan different MAC address pools for 
+different CAS systems. 
+ 
+Restrictions and guidelines on planning shared file systems 
+H3C CAS supports both IP SAN and FC SAN storage devices. Additionally, multiple methods are 
+available to mount a volume. As a best practice, mount volumes as shared file systems. If the 
+storage device is FC SAN, you must configure an FC HBA for the server to connect to the storage 
+device. If the storage device is IP SAN, the server acts as an iSCSI initiator to connect to the target to 
+which the volume is attached. 
+ 
+ IMPORTANT: 
+• A shared file system can be used by up to 32 hosts in one host pool simultaneously. 
+• In a shared file system, make sure the capacity of a storage volume does not exceed 16 TB. 
+• For the shared file system to operate correctly, make sure each server has unique initiator 
+information. 
+• Storage volumes mounted by CAS cannot be mapped to other hosts or VMs, which avoids data 
+loss.
+
+--- Page 14 ---
+11 
+ 
+If the storage device is IP SAN, the server has initiator information by default after H3C CAS 
+installation. However, the initiator information is complex and difficult to use or maintain. Additionally, 
+after you reinstall the CAS software, the initiator information will change. To make it easier to operate 
+and maintain, simplify the initiator information. 
+The following table provides an example of planning the initiator information for servers.  
+ 
+Name Initiator info Target info 
+Management server iqn.2016-06.com.h3c:01:cvm N/A 
+Service server 1 iqn.2016-06.com.h3c:01:cvk01 N/A 
+Service server 2 iqn.2016-06.com.h3c:01:cvk02 N/A 
+Storage N/A Automatically generated. 
+ 
+VM planning 
+Plan the number of CPUs, memory size, and disk capacity for VMs based on the actual service 
+requirements. 
+VM compute resources 
+According to VM importance, assign different priorities (high, medium, low) to VMs to ensure that the 
+system can allocate resources to important VMs preferentially in case of resource preemption. 
+VMs require memory resources after startup. To ensure correct service operation, reserve a 
+minimum of one-third memory resources. 
+VM network resources 
+The CAS system supports the following types of network adapters: common network adapters, 
+high-speed network adapters, SR-IOV passthrough adapters, intelligent adapters,  and Intel E1000. 
+As a best practice, use high- speed network adapters and enable kernel  acceleration. For Linux 
+systems of an old version, such as RHEL 4.x, use the Intel E1000 network adapter as a best practice 
+for compatibility purposes.  
+Windows operating systems do not support high- speed network adapters by default. To use 
+high-speed network adapters in a Windows operating system, use CAStools to load the high- speed 
+network adapter driver. 
+If you select common network adapters, the VM displays the network adapters as FE network 
+adapters even if the physical ports are GE or 10- GE ports. This issue does not exist if you select 
+high-speed network adapters. 
+VM storage resources 
+CAS supports the following types of drives: IDE drive, USB drive, high-speed drive, and high-speed 
+SCSI drive. High-speed drive is the optimized drive type in the virtualization environment and can 
+provide improved disk I/O performance. As a best practice, use high-speed drives for new operating 
+systems, such as CentOS 7.x . For old operating systems , such as the CentOS 4.x series  and 
+versions earlier than CentOS 5.3, use IDE drives. 
+VMs support both high- speed and intelligent storage vo lume formats. As a best practice, use the 
+intelligent format.
+
+--- Page 15 ---
+12 
+For services with high requirements on disk I/O performance, such as database services, use 
+storage volumes of the block device type as a best practice. Note that storage volumes of this  type 
+do not support snapshots. 
+In scenarios where VMs need to use large- capacity storage resources ( terabyte level), use block 
+device-type storage volumes for better performance. However, a disadvantage of using such storage 
+volumes is that some features such as snapshot are not supported.  
+As a best practice, use independent system disks and data disks for VMs. For IP SAN storage VMs, 
+you can directly use storage volumes as the data disks of VMs through the iSCSI software.  
+VMs support the following caching methods: directsync, writethrough, writeback, and none . As a 
+best practice to ensure data security, use directsync. 
+Install H3C CAS 
+For more information about this task, see H3C CAS Installation Guide. 
+To install CAS for multiple servers in bulk by using the H3C CAS PXE tool, see H3C CAS PXE Server 
+Installation Tool Usage Guide. 
+Change the time zone 
+1. Use a remote login tool to log in to a CVM or CVK host and then execute the timedatectl 
+command to view the current time zone. 
+ 
+ 
+2. Execute the timedatectl list-timezones command to list all available time zones. 
+ 
+ 
+3. Execute the sudo timedatectl set-timezone America/New_York command to 
+change the time zone for the host. In this example, the time zone is changed to 
+America/New_York. Change the time zone as needed.
+
+--- Page 16 ---
+13 
+ 
+ 
+4. Execute the following commands to restart the casserver and tomcat services from the CLI of 
+the CVM host. 
+service casserver restart 
+service tomcat restart 
+ 
+ 
+Configure CVM stateful failover 
+For more information about this task, see H3C CAS CVM Stateful Failover Configuration Guide . 
+Configure cloud resources on H3C CAS 
+Cloud resource management is a key function provided by H3C CAS. This function allows you to 
+configure multiple items including host pools, clusters, hosts, and VMs. 
+Log in to CAS 
+Restrictions and guidelines 
+Use Firefox 65, Google Chrome 65, and their later versions for login. 
+Procedure 
+1. Open a browser (Google Chrome, as a best practice) in the local PC, enter https:// ip, for 
+example, https://192.168.11.10. On the login page of H3C CAS, enter a username and 
+password. The default username and password is admin/Cloud@1234.
+
+--- Page 17 ---
+14 
+ 
+ 
+2. The following figure shows the CAS interface that opens after login. Supported functions 
+include Dashboard, Compute, Storage, Network, Security, Ops, and System. 
+ 
+ 
+CAS licensing 
+For more information about this task, see H3C CAS Local Licensing Guide or H3C Software Product 
+Remote Licensing Guide. 
+Configure cloud resources 
+Configure NTP 
+In CAS, the system clocks of the CVM host and CVK hosts must be consistent. This goal can be 
+achieved by configuring an NTP server. 
+Restrictions and guidelines 
+After CAS installation, the NTP service is enabled for CAS by default. As a best practice, configure 
+the CVM host as the NTP server and CVK hosts as NTP clients to maintain system clock consistency 
+between the CVM host and CVK hosts. In the stateful failover environment, use virtual IP addresses 
+of the CVM and CVK hosts during NTP configuration.
+
+--- Page 18 ---
+15 
+After you complete NTP server configuration, do not edit the NTP server settings casually as a best 
+practice. 
+Editing the NTP server settings might interrupt the running services. 
+Procedure 
+1. On the top navigation bar, click System. From the left navigation pane, select NTP Settings. 
+2. Enter the IP address of the CVM host, and then click OK. Use a VIP in the stateful failover 
+environment. 
+ 
+ 
+Configure non-root user settings 
+To protect user data and enhance attack defense, disable the root SSH login permission. 
+1. On the top navigation bar, click System,. 
+2. From the left navigation pane, select Parameters. 
+3. Click the ISLP and Security Hardening tab. 
+4. Click Edit. 
+ 
+ 
+5. Disable the Root SSH Login Permission feature, and then click Save.
+
+--- Page 19 ---
+16 
+Configure host pools 
+1. On the top navigation bar, click Compute. 
+2. From the left navigation pane, select Resource Navigation > All > Resources. 
+3. Click Add Host Pool, enter a host pool name in the pop-up window, and then click OK. 
+  
+ 
+Configure the cluster 
+1. On the host pool page, click Add Cluster. 
+2. Configure the basic information and HA settings. 
+3. Enter the cluster name and enable HA. 
+ 
+ 
+To configure HA access control, enable it and select one of the following options:  
+ Min Nodes: Specify the minimum number of hosts required for the normal operation of HA. 
+When the number of operating hosts in the cluster is less than the specified value, the VMs 
+cannot perform HA migration upon failures. 
+ Reserved Resources: Specify the amount of CPU and memory resources reserved for HA. 
+When the amount of available resources in the cluster drops below the specified amount, 
+the following operations cannot be performed:  
+− Start VMs in the cluster. 
+− Restore VMs to running state.
+
+--- Page 20 ---
+17 
+− Migrate running VMs into the cluster. 
+ 
+ 
+4. Select a VM CPU operating mode. Options include the following: 
+ Compatible—Virtualizes physical CPUs of different models into vCPUs of the same model. 
+This mode features good migration compatibility. 
+ Host Matching—Virtualizes physical CPUs of different models into vCPUs of different 
+models. This mode features poor compatibility but provides better performance for OSs of 
+VMs than the Compatible mode. 
+ Passthrough—Passes physical CPUs to VMs. This mode features poor compatibility but 
+provides better performance for OSs of VMs than the Compatible and Host Matching modes. 
+VMs with the passthrough CPU operating mode can be migrated only between hosts with 
+the same CPU model. 
+ EMC—Uses the virtualization kernel software to emulate the specified model of physical 
+CPUs. Intel and AMD hosts are supported. This mode avoids CPU model changes after VM 
+migration and features good compatibility. However, this mode will restrict the migration of 
+VMs if the source and destination clusters do not meet the EMC migration requirements.  
+− EMC Configuration—Enable EMC for Intel hosts or AMD hosts. 
+− EMC Mode—Select the model of CPUs to be emulated. 
+ 
+ NOTE: 
+• As a best practice to provide the optimal performance, use the passthrough mode if all 
+cluster hosts use the same model of CPUs. 
+• In the x86 scenario, use the EMC mode if the cluster contains only Intel or AMD hosts and 
+these hosts are inconsistent in CPU model. 
+• The ARM scenario supports only the passthrough mode. 
+ 
+5. Select whether to enable dynamic resource scheduling (DRS) for computing and storage.  
+DRS enables the system to automatically assign VMs to hosts, manage storage, and migrate 
+VMs and storage to balance the load and allocate resources. As a best practice, configure a 
+service idle period as the time range when DRS is enabled. For successful DRS execution, 
+make sure the VMs are enabled with auto migration. After configuration, click OK.
+
+--- Page 21 ---
+18 
+ 
+ 
+6. On the cluster configuration page, click More, select DPM, and then configure DPM settings. 
+To enable and configure DPM settings, make sure the servers are enabled with IPMI. Configure 
+an appropriate duration and check interval or use the default settings. As a best practice, 
+configure a service idle period as the time range when DPM is enabled.
+
+--- Page 22 ---
+19 
+Configure hosts 
+ IMPORTANT: 
+• Online migration of CPU-straight-through VMs might be limited between hosts with CPUs of 
+different generations. To avoid this issue, make sure servers within the same cluster have CPUs 
+of the same generation. You can online migrate CPU-straight-through VMs to hosts with more 
+CPU instruction sets. The CPU instruction set of the target host in online migration must include 
+the source CVK's instruction sets. 
+• Regarding customer security protection requirements, or when customer environments are 
+deployed on the public network with a higher risk of being attacked, you must disable root SSH 
+login permission. 
+• If root SSH login permission is disabled, use username sysadmin with default password 
+Sys@1234 when adding a host. 
+• When the CVM host acts as a compute node, the system automatically reserves the smaller 
+value between 40% and 20GB of the host's idle memory, even if memory reservation is disabled. 
+• After you add a host that has VMs to the system, use the MAC address pooling feature to check 
+for conflicts among VMs across multiple CVMs. If conflicts exist, the system displays VMs that 
+have MAC address conflicts in the VM list on the MAC address pool management page. You 
+must edit the MAC addresses of the affected VMs in time. 
+ 
+1. On the top navigation bar, click Compute. 
+2. From the left navigation pane, select Resource Navigation > All > Resources > Host Pool 
+Name or Resource Navigation > All > Resources > Host Pool Name > Cluster Name. 
+3. Click Add Host. 
+ 
+ 
+4. In the dialog box that opens, enter the IP address and password of the CVK host. If root SSH 
+login permission is disabled, use the username sysadmin when adding a host.
+
+--- Page 23 ---
+20 
+ 
+ 
+5. Click OK, and the newly added host will be displayed under the cluster. You can view 
+information about the host on the Summary tab of the host. 
+  
+ 
+Configure vSwitches 
+The CAS network contains the management, storage, and service networks, which consist of 
+management, storage, and service vSwitches, respectively. After installing the CAS software, the 
+management vSwitch is configured by default. You must manually configure storage vSwitches and 
+service vSwitches. As a best practice, configure vSwitch settings in a unified manner  on the cluster 
+to ensure vSwitch name consistency across the cluster hosts. 
+1. On the top navigation bar, click Compute. 
+2. From the left navigation pane, select Resource Navigation > All > Resources > Host Pool 
+Name > Cluster Name. 
+Click the vSwitches tab, and then click Add.
+
+--- Page 24 ---
+21 
+ 
+ 
+3. Configure basic Information. 
+Enter the storage vSwitch name and specify the VLAN ID. 
+ 
+ 
+4. Configure the host network. 
+In the Configure Host Network area, click Add, and then select hosts on which you want to 
+add the vSwitch. Click OK.
+
+--- Page 25 ---
+22 
+ 
+ 
+5. Configure NICs. 
+a. Click Configure NIC in the Actions column for a host. In the dialog box that opens, select a 
+physical NIC, enter the planned IP address and subnet mask. If you do not need to 
+configure link aggregation for the physical NIC, click OK. 
+ 
+ IMPORTANT: 
+You can configure only one gateway for a host. If you configure multiple gateways for a host, 
+unpredictable issues might occur.
+
+--- Page 26 ---
+23 
+ 
+ 
+b. (Optional.) Select multiple NICs to configure the link aggregation mode and load balancing 
+mode. 
+ 
+ 
+ IMPORTANT: 
+If you do not configure the corresponding link aggregation mode on the physical switch 
+connected to a vSwitch, the CVK system might be unavailable.  
+• If you configure dynamic link aggregation for the vSwitch, configure dynamic link 
+aggregation on the physical switch. 
+• If you configure static link aggregation and active/standby load balancing mode for the 
+vSwitch, do not configure link aggregation on the physical switch. 
+• If you configure static link aggregation and basic or advanced load balancing mode for the 
+vSwitch, configure static link aggregation on the physical switch. 
+• As a best practice, use the active/standby or basic load balancing mode instead of the 
+advanced load balancing mode. 
+ 
+6. After configuring physical NICs for all hosts, click OK.
+
+--- Page 27 ---
+24 
+Configure storage pools 
+After the installation of the H3C CAS software, two storage pools of the local file directory type, 
+namely isopool and defaultpool, exist by default. Storage pool isopool  mainly stores the ISO 
+installation files for the operating system. Storage pool defaultpool mainly stores disk files of VMs. 
+H3C CAS server virtualization operating system supports the following types of storage pools:  
+• LVM local storage volumes. 
+• iSCSI network storage. 
+• FC network storage. 
+• Local file directories. 
+• NFS network file systems. 
+• Shared file systems. 
+• Windows shared directories. 
+As a best practice, use shared file systems. 
+The HA feature of H3C CAS server virtualization operating system relies on shared storage. The disk 
+files of VMs are stored in shared file system. CAS supports IP SAN and FC SAN, so shared file 
+systems include iSCSI shared file systems and FC shared file systems. 
+ 
+ NOTE: 
+• A shared file system can be used in only one cluster. 
+• The backend LUN of a shared file system is strictly prohibited from being mounted by other 
+clients. 
+• If VMs have high requirements for disk I/O, you can use storage pools of the iSCSI network 
+storage and FC network storage types. VMs can directly access storage pools on block devices, 
+for example, in a hospital information system (HIS). 
+ 
+This section introduces the configuration of storage pools using examples of the iSCSI shared file 
+system, FC shared file system, iSCSI network storage, and FC network storage. 
+Before adding a storage pool to the H3C CAS system, you must  create a storage volume on a 
+storage device and assign the volume to a CVK host. The following information uses P5000 as an 
+example to introduce the configuration of an iSCSI shared file system. 
+ 
+ IMPORTANT: 
+• As a best practice, use thick provisioning when creating storage volumes. 
+• Do not use the network RAID 5 mode when creating storage volumes on a P5000 shared storage 
+device. Network RAID 5 mode uses thin provisioning. Data will first be stored in a network RAID 
+10 mode, and then converted to a network RAID 5 mode, which degrades the performance of the 
+shared storage device. 
+ 
+1. Create a 500 GB volume on a P5000 shared storage device. 
+2. Assign the created volume to the CVK host. 
+Configure an iSCSI shared file system 
+The CVK host of H3C CAS server virtualization operating system uses the iSCSI protocol to connect 
+with the IP SAN. Therefore, you must configure the initiator and target for the CVK host and IP SAN, 
+respectively. 
+As a best practice to improve the efficiency of data read and write operations, use a dedicated 
+physical switch to connect the host and the IP SAN.
+
+--- Page 28 ---
+25 
+1. Modify the server Initiator. On the Hardware > Storage Adapters tab of the host, select 
+Open-iSCSI and click Set IQN. 
+ 
+ IMPORTANT: 
+After the H3C CAS software is installed on the CVK server, an initiator exists by default. You 
+can modify the initiator as planned. 
+ 
+ 
+ 
+2. In the dialog box that opens, enter the planned IQN. Click OK. 
+ 
+ 
+3. Add shared file system configuration under the host pool. On the Shared File Systems tab of 
+the host pool configuration page, click Set Heartbeat Network. 
+ 
+ NOTE: 
+• In H3C CAS server virtualization operating system, the shared file system is based on the 
+host pool. All hosts in a host pool can mount the same shared file system. So, you must 
+configure shared file system global settings on the host pool page. 
+• By default, the heartbeat network of the shared file system is the management network. You 
+can adjust it according to the actual situation. As a best practice to ensure performance, set 
+a heartbeat network delay shorter than 1 millisecond for the shared file system.  
+• To enable multipath for an iSCSI shared file system, you must specify multiple IP addresses 
+when adding the shared file system.
+
+--- Page 29 ---
+26 
+ 
+ 
+4. In the dialog box that opens, enter the planned storage network address 192.168.12.0 and the 
+subnet mask, and then click OK. 
+ 
+ 
+5. On the Shared File Systems tab of the host pool, click Add. Configure the basic information 
+and LUN information, and then click OK.
+
+--- Page 30 ---
+27 
+ 
+ 
+ 
+ 
+6. On the Storage tab of the cluster, click Add.
+
+--- Page 31 ---
+28 
+ 
+ 
+7. Select the previously added shared file system. 
+ 
+ 
+8. Click Select Host, select the host, and then click OK. 
+ 
+ 
+9. Click OK.
+
+--- Page 32 ---
+29 
+ 
+ 
+10. In the dialog box that opens, click OK. 
+ 
+ 
+11. In the dialog box that opens to format the shared file system, specify the allocation unit size and 
+lock type, and the click OK. 
+Available options for the lock type include distributed lock and hardware-assisted lock. 
+To use the hardware-assisted lock, make sure the storage server supports the CAW feature. 
+The newly added storage volumes must be formatted. If the added storage volume in the H3C 
+CAS system has already been formatted, it will not be formatted again. 
+If the storage server supports the CAW feature, as a best practice, select the hardware-assisted 
+lock. Otherwise, select the distributed lock. 
+To identify whether the storage server supports CAW feature, execute sg_vpd -p bl /dev/dm-xx 
+on the CVK host.
+
+--- Page 33 ---
+30 
+  
+ 
+If the storage server supports the CAW feature, select the hardware-assisted lock. 
+ 
+ 
+If the storage server does not support the CAW feature, select the hardware- assisted lock. 
+ 
+ 
+Configure an FC shared file system 
+1. On the Hardware > Storage Adapters tab of the host, view the information of the FC HBA 
+card.
+
+--- Page 34 ---
+31 
+ 
+ 
+2. Add shared file system configuration under the host pool. On the Shared File Systems  tab of 
+the host pool configuration page, click Set Heartbeat Network 
+ 
+ NOTE: 
+• In H3C CAS server virtualization operating system, the shared file system is based on the 
+host pool. All hosts in a host pool can mount the same shared file system. So, you must 
+configure shared file system global settings on the host pool page. 
+• By default, the heartbeat network of the shared file system is the management network. You 
+can adjust it according to the actual situation. As a best practice to ensure performance, set 
+a heartbeat network delay shorter than 1 millisecond for the shared file system.  
+ 
+ 
+ 
+3. In the dialog box that opens, enter the planned storage network address 192.168.12.0 and the 
+subnet mask, and then click OK. 
+ 
+ 
+4. On the Shared File Systems tab of the host pool, click Add. In the dialog box that opens, 
+configure the FC shared file system, and then click OK.
+
+--- Page 35 ---
+32
+
+--- Page 36 ---
+33 
+ 
+ 
+5. On the top navigation bar, click Compute. 
+6. From the left navigation pane, select Resource Navigation > All > Resources > Host Pool 
+Name > Cluster Name. 
+7. Click the Storage tab, and then click Add. 
+8. In the dialog box that opens, select the FC shared file system, and then click OK . 
+ 
+ 
+9. Click Select Host, select hosts, and then click OK.
+
+--- Page 37 ---
+34 
+ 
+ 
+10. Click OK. 
+ 
+ 
+11. Start the storage pool. In the dialog box that opens, click OK. 
+ 
+ 
+12. In the dialog box that opens to format the shared file system, specify the allocation unit size and 
+lock type, and the click OK. 
+Available options for the lock type include distributed lock and hardware-assisted lock. To use 
+the hardware-assisted lock, make sure the storage server supports the CAW feature. The 
+newly added storage volumes must be formatted. If the added storage volume in the H3C CAS 
+system has already been formatted, it will not be formatted again. 
+If the storage server supports the CAW feature, as a best practice, select the hardware-assisted 
+lock. If the storage server does not support the CAW feature, select the distributed lock.
+
+--- Page 38 ---
+35 
+To identify whether the storage server supports CAW, execute the sg_vpd –p bl 
+/dev/dm-xx command on the CVK host. 
+ 
+ 
+Figure 5 Hardware-assisted lock 
+ 
+ 
+Figure 6 Distributed lock 
+ 
+ 
+Configure an iSCSI network storage 
+1. On the Storage tab of the host, click Add. In the dialog box that opens, select iSCSI Network 
+Storage as the type, enter the name and alias, and then click Next.
+
+--- Page 39 ---
+36 
+ 
+ 
+ 
+ 
+ 
+ 
+2. Select the storage resource and target, and then click Next. To add more storage resources, 
+click Add.
+
+--- Page 40 ---
+37 
+ 
+ 
+ 
+ 
+3. Select an NAA, and then click OK. 
+ 
+ 
+The newly added storage pool of the iSCSI network storage type will be displayed in the storage 
+pool list. 
+ 
+ NOTE: 
+After the host mounts storage resources through iSCSI, a VM can use the storage resources 
+through a block device. As shown in the following figure, select Block Device, search for the 
+block device, and select it.
+
+--- Page 41 ---
+38 
+ 
+ 
+ 
+ 
+Configure an FC network storage 
+1. On the Storage tab of the host, click Add. 
+ 
+ 
+2. In the dialog box that opens, select FC Network Storage as the type, enter the planned name 
+and alias, and then click Next.
+
+--- Page 42 ---
+39 
+ 
+ 
+3. Search for NAA information, select it, click Add, and then click OK. 
+ 
+ 
+ 
+ 
+4. Click OK.
+
+--- Page 43 ---
+40 
+ 
+ 
+The newly added storage pool of the FC network storage type will be displayed in the storage 
+pool list. 
+ 
+ NOTE: 
+After the host mounts storage resources in the FC mode, a VM can use the storage resources 
+through a block device. As shown in the following figure, select Block Device, search for the 
+block device, and select it.
+
+--- Page 44 ---
+41 
+ 
+ 
+Configure VMs 
+Upload operating system installation files 
+The VM console of CAS 5.0 and later versions supports the virtual CD drive feature, and you can 
+install VMs through local images. 
+Upload through H3C CAS 
+1. On the top navigation bar, click Compute. 
+2. From the left navigation pane, select Resource Navigation > All > Resources > Host Pool 
+Name > Cluster Name > Host Name or Resource Navigation > All > Resources > Host Pool 
+Name > Host Name. 
+3. Click the Storage tab, select storage pool isopool, and then click Upload Files. 
+ 
+ 
+4. In the dialog box that opens, click Select file.
+
+--- Page 45 ---
+42 
+ 
+ 
+5. Select the ISO file of the operating system. 
+ 
+ IMPORTANT: 
+The ISO file name cannot contain Chinese characters, spaces, parentheses, or other special 
+characters. As a best practice, use a simple file name. 
+ 
+6. The selected operating system ISO file is displayed. Click Start. 
+ 
+ 
+The progress of file uploading is displayed. After the file is successfully uploaded, the uploaded 
+file will be displayed under storage pool isopool. 
+Upload files through third-party software 
+1. Install third-party file transfer software, such as SSH Secure File Transfer Client, on your local 
+computer. Double-click to open it. 
+2. Click Quick Connect. In the dialog box that opens, enter the login information of the host.  
+3. After login, adjust the host's working directory and upload the ISO file of the operating system.  
+After uploading, you cannot see the newly uploaded file under storage pool isopool until you 
+click Refresh in the Actions column for storage pool isopool. 
+Add VMs 
+1. On the host page, click Add VM. Configure the basic information and hardware.
+
+--- Page 46 ---
+43 
+ 
+ 
+2. On the Basic Info tab, enter an alias, select an operating system type and a version, and then 
+select whether to start the VM immediately and enable auto migration and CAStools upgrade. 
+3. On the Hardware tab, configure the hardware resources for the VM. You can apply the default 
+settings or modify the settings according to actual service requirements. 
+ 
+ 
+4. Click the search icon next to the CD-ROM text box. In the dialog box that opens, select storage 
+pool isopool on the left side, select the ISO file of the operation system on the right side, and 
+then click OK. Click OK again. 
+The newly added VM will be displayed under the host.
+
+--- Page 47 ---
+44 
+Install an operating system on the VM 
+1. On the VM page, click Start. 
+ 
+ 
+2. Click Console. 
+ 
+ 
+The VM interface is as follows:
+
+--- Page 48 ---
+45 
+ 
+ 
+3. Disk information cannot be detected when installing the Windows operating system because no 
+driver corresponding to the high-speed hard disk exists in the Windows installation disk. In this 
+case, click Load driver (make sure you have enabled automatic loading of Virtio drivers). 
+ 
+ 
+4. In the dialog box that opens, click OK.
+
+--- Page 49 ---
+46 
+ 
+ 
+5. Select all drivers. 
+  
+ 
+6. After the driver is installed, the installation interface displays the high-speed hard disk 
+information.
+
+--- Page 50 ---
+47 
+ 
+ 
+7. Install VM operating system in the console, and then log in to the VM through the console. 
+ 
+ 
+8. After the VM installation is completed, you must disconnect the ISO file mounted on the virtual 
+CD drive. On the VM page, click Edit. Click the CD-ROM tab, and click Disconnect. After the 
+CD drive is disconnected, the Source Path text box will be blank.
+
+--- Page 51 ---
+48 
+ 
+ 
+ 
+ 
+9. A VM automatically creates a floppy disk drive when using a high-speed hard disk and uses the 
+floppy disk drive to install Virtio drivers for the VM operating system. After the VM operating 
+system is installed, you must delete the floppy disk drive. 
+ 
+ 
+Install CAStools on the VM 
+After the VM is installed, H3C CAS and the VM are independent of each other. H3C CAS cannot 
+obtain information such as the CPU and memory usages of the VM. To obtain accurate monitoring 
+data, install CAStools on the VM.
+
+--- Page 52 ---
+49 
+CAStools are supported by both Windows and Linux operating systems. For more information about 
+compatibility with CAStools, see Hardware and Software Compatibility with H3C CAS.  
+Install CAStools in Windows 
+1. Connect the ISO installation file to the CD drive of the VM. In the Modify VM dialog box, click 
+the CD-ROM tab, and click Connect. In the dialog box that opens, select Install CAStools, and 
+then click OK. 
+ 
+ 
+ 
+2. Install CAStools. Log in to the VM through the console, the virtual CD drive of the VM is 
+mounted with CAStools. Double-click the virtual CD drive to open the CAStools installation 
+dialog box. Follow the installation wizard to finish the installation.
+
+--- Page 53 ---
+50 
+ 
+ 
+ IMPORTANT: 
+After installing CAStools, if you are using Windows VISTA 32-bit, Windows VISTA 64-bit, 
+Windows Server 2008 32-bit, or Windows Server 2008 64-bit, the Virtio driver is available only 
+after you restart the system. 
+ 
+3. After installing CAStools on a VM, you can view the running status and version of CAStools on 
+the Summary tab of the VM. Click Edit, click the CD-ROM tab, and then click Disconnect. 
+4. After the installation of CAStools, CAS can accurately monitor the resource usage of the VM. 
+The Performance Monitor tab of the VM will display statistics of the VM including the CPU 
+usage and memory usage. 
+ 
+ 
+Install CAStools in Linux 
+1. Connect the ISO installation file to the CD drive of the VM. In the Modify VM  dialog box, click 
+the CD-ROM tab, and click Connect. In the dialog box that opens, select Install CAStools, and 
+then click OK.
+
+--- Page 54 ---
+51 
+ 
+ 
+ 
+ 
+2. Mount the CD drive. Execute the mount command in the Linux VM to mount the CD drive, and 
+then navigate to the Linux directory of CAStools. 
+ 
+ 
+3. Execute the ./CAS_tools_install.sh command to install CAStools. 
+ 
+ 
+4. After the installation, you can view that CAStools is running correctly on the Summary tab of 
+the VM.
+
+--- Page 55 ---
+52 
+Assign IP addresses to VMs 
+After installation, a VM does not have any IP address by default. You can assign IP addresses to the 
+VM through CAStools. 
+As shown in the following figure, the IP address information is empty on the Summary page of the 
+VM. 
+ 
+ 
+Click Edit on the VM page. In the dialog box that opens, click the Network tab. In the IPv4 Info area, 
+select Manually Specify.
+
+--- Page 56 ---
+53 
+1. Specify an IP address and subnet mask. Click Apply. 
+2. The newly specified IP address will be displayed in the Hardware Info area of the Summary 
+tab. To verify the IP address is successfully assigned to the VM, use the ipconfig command 
+in the operating system of the VM. 
+View VM disk usage information 
+View VM disk usage information in a storage pool 
+1. On the top navigation bar, click Compute. 
+2. From the left navigation pane, select Resource Navigation > All > Resources > Host Pool 
+Name > Host Name or Resource Navigation > All > Resources > Host Pool Name > Cluster 
+Name > Host Name. 
+3. Click the Storage tab. 
+4. Click a storage pool. Information about all volumes in the storage pool will be displayed in the 
+list, where you can see VM disk usage information. 
+ 
+ 
+• When the following information is displayed, the VM disks use the lazy zeroed or eager zeroed 
+provision mode. 
+ Lazy Zeroed—Allocates the specified maximum storage size to the storage volume when 
+the storage volume is created. Data remaining on the physical device is not erased during 
+creation, but is zeroed out on first write from the VM. 
+ Eager Zeroed—Allocates the specified maximum storage size to the storage volume when 
+the storage volume is created. Data remaining on the physical device is zeroed out during 
+creation. It might take a longer time to create storage volumes in this format than to create 
+storage volumes of other formats.
+
+--- Page 57 ---
+54 
+• When the following information is displayed, the VM disks use the thin provision mode. In thin 
+provision mode, the system allocates only as much storage space as the storage volume needs 
+for its initial operations when the storage volume is created. If the storage volume needs more 
+storage space later, the system allocates as much storage space as the volume would require 
+based on the specified maximum storage size. 
+ 
+ 
+View VM storage resource statistics 
+Perform this task to view the storage resource statistics. You can filter the VM disk, network storage, 
+shared file system, or RBD storage resource information by host pool, cluster, or host. The following 
+uses VM disk as an example. 
+1. On the top navigation bar, click Ops. 
+2. From the left navigation pane, select System Ops > Resource Usage > Storage. 
+3. On the right top of the page, select a statistics object from the Statistics Object list to view the 
+storage statistics of the object.  
+4. Select VM Disk from the Type list. 
+ 
+ 
+Disk usage =(used capacity of a disk partition/total capacity of the disk partition)*100%. For 
+example, the disk usage for VM test=((200GB-164.78GB)/200GB)*100%=17.61%. 
+Manage VM templates 
+A VM template is cloned or converted from a VM. You can use VM templates to conveniently create 
+and configure multiple new VMs. A VM template consists of the VM operating system image and 
+configuration file.
+
+--- Page 58 ---
+55 
+The difference between cloning a VM as a VM template and converting a VM to a VM template is as 
+follows: 
+• After you clone a VM as a VM template, the original VM is retained. 
+• After you convert a VM to a VM template, the original VM is converted into a template and is no 
+longer retained. 
+Add template pools 
+VM templates are stored on the CVM host. As a best practice, allocate a dedicated storage space on 
+the shared storage device for storing the VM templates. Before adding a template pool, make sure 
+the target storage volume has been created and configured in the shared storage.  
+1. On the top navigation bar, click Compute. 
+2. From the left navigation pane, select VM Templates. 
+3. Click the Template Pools tab. 
+ 
+ 
+4. On the page that opens, click Add Template Pool. Enter the planned target path /templet, 
+select iSCSI Shared Directory for the type, enter the planned IP address 192.168.12.100, and 
+then click the search icon to the right of the LUN text box. 
+ 
+ 
+5. Select a LUN and then click OK. The newly added template pool will be displayed on the 
+Template Pools page.
+
+--- Page 59 ---
+56 
+Create VM templates 
+ IMPORTANT: 
+Before creating a VM template, make sure the VM's CD drive and floppy drive are disconnected and 
+the operating system is configured to automatically obtain the address. Otherwise, address conflicts 
+might occur. 
+ 
+1. On the page of a VM in shutdown state, click More > Clone as Template. 
+ 
+ 
+2. In the dialog box that opens, enter the planned template name, select a template pool, and then 
+click OK. 
+ 
+ IMPORTANT: 
+The template name cannot be the same as the VM name. 
+ 
+ 
+ 
+3. After the VM template is created, it will be displayed on the VM Template page. 
+CVM backup 
+After completing CAS configuration, navigate to Security > Data Security > Backup Center > CVM 
+Backup page to configure CVM backup. As a best practice, set the backup location to the remote 
+server and enable scheduled backup.
+
+--- Page 60 ---
+57 
+ 
+ 
+ NOTE: 
+If you do not configure CVM backup settings manually, the system will automatically back up CVM. 
+After CVM starts, the system saves the running data and configuration files of CVM to three 
+randomly selected hosts managed by CVM. Usually, an automatic backup is performed once a day, 
+and the last seven backup files are kept on each host. 
+ 
+Monitoring and alarms 
+H3C CAS provides system-grade security monitoring and fault alarm capabilities. It can send alarms 
+and logs to a third-party monitoring platform to allow users to monitor the system state in real time. 
+Monitoring and O&M features 
+One-click features 
+H3C CAS offers one-click features to allow users to quickly check the system status.  The one-click 
+features include health inspection, resource analysis, storage cleanup, resource export, restoration, 
+and zombie VM detection. 
+Dashboard 
+H3C CAS comes pre-installed with an impressive dashboard, displaying critical system information 
+including the overall system health, host health status, statistics of host and VMs by status, resource 
+allocation information, top 5 hosts and VMs by resource usage, and alarms. The dashboard allows 
+you to intuitively monitor the system running status. 
+Virtualization topology 
+H3C CAS provides a comprehensive view to reveal the various virtual nodes hidden within the 
+virtualization environment and display their logical relationships and running status. 
+H3C CAS can present the topology of virtualization hosts, VMs , data storage, and virt ual networks 
+from a physical topology perspective.  The system offers separate displays for computing topology, 
+network topology, and storage topology , focusing on virtualization hosts, VMs, and data storage, 
+respectively. The topology diagrams use color changes to indicate the health and running status of 
+the resources. 
+Logs and alarms 
+H3C CAS provides complete log and alarm features, supporting integration with third- party 
+monitoring platforms.
+
+--- Page 61 ---
+58 
+• Logs—You can configure a syslog server for the platform to send operation logs and critical 
+logs to the server in real time. 
+• Alarms—You can configure an email server or SMS for the platform to report critical alarms to 
+the O&M personnel promptly. 
+H3C CAS supports various types of alarms, including host resource alarm, VM resource alarm, 
+cluster resource alarm, fault alarm, anomaly alarm, and security alarm. 
+(Optional) Configure VM anti-virus 
+Server virtualization technologies  reduce IT investment and O&M expenses in data centers. 
+However, like traditional physical environments, the internal network in a virtualization environment 
+also faces threats such as viruses, worms, Trojans, and malware.  Therefore, it is crucial to protect 
+VMs and virtual desktops from potential malicious software attacks. 
+For more information, see H3C CAS VM Anti-Virus Configuration Guide. 
+(Optional) Configure VM backup 
+You can use agentless backup solutions from third- party vendors like Jingrongshuan or Aishu to 
+protect the data in virtualization environments. 
+Additional important reminders 
+Configure shared storage fault action 
+1. On the top navigation bar, click System . 
+2. From the left navigation pane, select Parameters. 
+3. On the System Parameters tab, click Edit in the Basic System Parameters area. 
+ 
+ 
+4. Configure the shared storage fault action as Do Not Restart Host, and then click Save.
+
+--- Page 62 ---
+59 
+ 
+ 
+Virtualization platform testing (important) 
+After completing the construction of the H3C CAS virtualization platform, you must have a test and 
+verify that the platform meets the requirements for running client's service system. This step is 
+crucial, and if ignored, the security risks of the virtualization platform will be exposed after the client's 
+service system goes online, which might interrupt the normal operation of the system. 
+Before the system goes online, you must perform the basic functional test and various fault tolerance 
+tests. This can help you identify configuration errors and prevent failures from interrupting client 's 
+services. 
+Configuration check 
+After completing the construction of the H3C CAS virtualization platform, check the following 
+configuration items. 
+Step Check Item Result 
+1 Are the management network, storage network, and service 
+network separately designed and isolated by using VLANs? □Yes □No 
+2 Are the storage volumes created by IP SAN or FC SAN in thick 
+provisioning mode? □Yes □No 
+3 Has an NTP server been configured under the cloud resources? □Yes □No 
+4 Do all CVK hosts and CVM hosts have the same system time? □Yes □No 
+5 Has the cluster been enabled with the HA feature? □Yes □No 
+6 Has the cluster been enabled with the DRS feature? □Yes □No 
+7 Has all CVK hosts been added to the cluster? □Yes □No 
+8 CVM hosts cannot be used as service hosts, which means they 
+cannot be added under the cloud resources. □Yes □No 
+9 Do all CVK hosts in the cluster have the vSwitch with the same 
+name? □Yes □No 
+10 Do all CVK hosts in the cluster use the same shared storage? □Yes □No 
+11 
+Has each CVM or CVK host been configured with two or more local 
+hard disks and with a RAID level of higher security such as RAID 1 
+or RAID 5? 
+□Yes □No
+
+--- Page 63 ---
+60 
+Step Check Item Result 
+12 Are the rate of physical NICs on CVM and CVK hosts accurate? □Yes □No 
+13 Are the rate of FC HBA cards on CVK hosts accurate? □Yes □No 
+14 Is multi-NIC aggregation configured for the physical interfaces of 
+vSwitches on each CVM or CVK host. □Yes □No 
+15 Is multipath enabled for the storage pool of the FC shared file 
+system type on each CVK host? □Yes □No 
+16 When using IP SAN for shared storage, is the initiator name created 
+for each host unique? □Yes □No 
+17 Is a shared file system assigned to hosts in only one cluster? □Yes □No 
+18 As a best practice, do not use the small LUN merging feature for 
+shared file systems. □Yes □No 
+19 Do VMs use high-speed NICs with the kernel acceleration enabled? □Yes □No 
+20 Do VMs use high-speed hard disks? □Yes □No 
+21 Are the hard disk files of VMs stored in the shared storage? □Yes □No 
+22 Do VMs use intelligently formatted storage volumes? □Yes □No 
+23 Do the hard disks of VMs use the directsync buffering method? □Yes □No 
+24 Does each VM use independent system and data disks? □Yes □No 
+25 Is CAStools installed on VMs? □Yes □No 
+26 Are the CD drives of VMs disconnected? □Yes □No 
+27 Have the floppy drives of VMs been successfully deleted? □Yes □No 
+28 Does CAS provide services externally through firewalls and other 
+security devices? □Yes □No 
+29 Do the passwords for the hosts and CAS meet the requirements? □Yes □No 
+30 Has the CVM configuration been backed up? □Yes □No 
+31 Have the user's critical VMs been backed up? □Yes □No 
+32 Has the user's critical service data been backed up? □Yes □No 
+ 
+Reliability test 
+Host reliability test 
+CVM hosts 
+In a CVM hot backup environment, shut down the primary  CVM host and identify whether the Web 
+service on the backup CVM host is normal, that is, whether you can log in to CAS on the web page. 
+CVK hosts 
+Shut down a CVK host in the cluster and identify whether the VMs on that host can be properly 
+migrated to other CVK hosts in the cluster.
+
+--- Page 64 ---
+61 
+Network reliability test 
+As a best practice, make sure the CAS management network, storage network, and business 
+network are mutually independent, and enable multi -NIC aggregation for them to enhance network 
+redundancy. Verify that the multi -NIC aggregation is effective. The test methods for management, 
+storage, and service networks are as follows: 
+Management network 
+Disconnect one of the management network cables of a CVM host and identify whether you can log 
+in to CAS on the web page. Re-connect the cable, disconnect another management network cable, 
+and identify whether you can log in to CAS on the web page. 
+Disconnect one of the management network cables of a CVK host and identify whether the CVK host 
+can be connected on the web page of CAS. Re-connect the cable, disconnect another management 
+network cable, and identify whether the CVK host can be connected on the web page of CAS.  
+Storage network 
+When using IP SAN, disconnect one of the storage network cables of a CVK host and identify 
+whether the storage pool is in normal state on the web page of CAS. Re- connect the cable, 
+disconnect another storage network cable, and identify whether the storage pool is in normal state 
+on the web page of CAS. 
+When using FC SAN, disconnect a fiber optic cable from the FC HBA card of a CVK host and identify 
+whether the storage pool is in normal state on the web page of CAS. Re- connect the cable, 
+disconnect another fiber optic cable from the FC HBA card and identify whether the storage pool is in 
+normal state on the web page of CAS. 
+Service network 
+Disconnect one of the service network cables of a CVK host and identify whether the VM network on 
+the CVK host is normal. Re- connect the cable, disconnect another service network cable, and 
+identify whether the VM network on the CVK host is normal. 
+Storage reliability test 
+When using IP SAN, disconnect one of the storage cables and identify whether the storage pool is in 
+normal state on the web page of CAS. Re-connect the cable, disconnect another storage cable, and 
+identify whether the storage pool is in normal state on the web page of CAS. 
+When using FC SAN, disconnect a fiber optic cable from a FC HBA card and identify whether the 
+storage pool is in normal state on the web page of CAS. Re- connect the cable, disconnect another 
+fiber optic cable from the FC HBA card, and identify whether the storage pool is in normal state on 
+the web page of CAS. 
+When using FC SAN with two controllers, disconnect all fiber optic cables from one storage controller 
+and identify whether the storage pool is in normal state on the web page of CAS. Re-connect all fiber 
+optic cables on the controller, disconnect all fiber optic cables from the other storage controller, and 
+identify whether the storage pool is in normal state on the web page of CAS. 
+FAQ 
+Which browsers support accessing CAS? 
+Most mainstream browsers support accessing CAS, including Google Chrome 65  and Mozilla 
+Firefox 65 and their higher versions.
+
+--- Page 65 ---
+62 
+Is it required to install a special client for accessing CAS? 
+Not required. CAS is completely based on the standard B/S architecture. You do not need to install 
+any client and can directly use a web browser. Enter https://<IP address of the server with CAS 
+installed> to access CAS. 
+Why are some pages of CAS displayed differently on different browsers? 
+Different browsers have some differences in interpreting web pages. This doesn't affect CAS 
+functions. 
+What medium should I use for installing CAS? 
+As a best practice, use a USB flash drive or virtual CD drive for installation.
+
+--- Page 66 ---
+63 
+Appendix 
+Create a bootable USB flash drive 
+A server typically offers multiple USB ports. You can create a bootable USB flash drive of the ISO file 
+for software installation. As a best practice, use the Linux dd method to create a bootable USB flash 
+drive. For ARM servers, use only the Linux dd method to create a bootable USB flash drive. Do not 
+use other methods. 
+Use the Linux dd method to create a bootable USB flash 
+drive 
+1. Prepare for the creation. 
+a. Connect a USB flash drive to the device running the Linux operating system.  
+b. Copy the ISO image file to the Linux system. Before copying, execute the md5sum xx.iso 
+command (xx.iso is the file name) to calculate the MD5 value of the image file and ensure 
+that it is correct. 
+c. Execute the fdisk -l command to view the drive letter of the USB flash drive. 
+2. Mount the USB flash drive. In some desktop versions of Linux, the USB flash drive is 
+automatically mounted. Use the mount command to identify whether the USB flash drive is 
+mounted. 
+ If the USB flash drive is mounted, execute the umount command. In the following example, 
+the USB flash drive has drive letter /dev/sdb and only one partition. 
+[root@cvknode-32 ~]# mount | grep sdb 
+/dev/sdb1 on /var/ftp type ext4 
+(rw,relatime,stripe=64,data=ordered) (specify the actual mount 
+point and partition type) 
+[root@cvknode-32 ~]# umount /dev/sdb1 
+ If the return of the mount command is empty, proceed to the next step. In the following 
+example, the USB flash drive has drive letter /dev/sdb. 
+[root@cvknode-32 ~]# mount | grep sdb 
+3. Use the dd command to burn the ISO image file into the USB flash drive. 
+The command is dd if=kylin-image-name.iso of=/dev/USB device name 
+bs=1M. 
+For example, dd if=Kylin-4.0.2-server-sp2.iso of=/dev/sdb bs=1M. Enter the 
+actual ISO image name and the USB device name for burning. 
+4. After the burning is completed, execute the sync && sync command to flush data to the USB 
+flash drive. 
+5. Eject the USB flash drive. 
+Use Rufus to create a bootable USB flash drive 
+Rufus is a free application for creating bootable bootable USB flash drives. You can download it from 
+its official website. 
+1. Double-click Rufus to run it. In the Rufus window that opens, select the target USB device and 
+select Disk or ISO image for boot selection. Click Select.
+
+--- Page 67 ---
+64 
+Figure 7 Selecting a device, boot type, and ISO image 
+ 
+ 
+2. In the window that opens, select the ISO image for H3C CAS installation. In this example, 
+H3C_CAS-E0706-centos-x86.iso is selected. Verify that the settings are correct, and then 
+click START.
+
+--- Page 68 ---
+65 
+Figure 8 Starting creation 
+ 
+ 
+3. In the ISOHybird image detected dialog box that opens, select Write in DD Image mode, and 
+then click OK.
+
+--- Page 69 ---
+66 
+Figure 9 Writing in DD Image mode 
+ 
+ 
+4. Click START again. After the creation is completed, the bootable USB flash drive will be ready 
+for use.
+
+--- Page 70 ---
+67 
+Figure 10 Starting creation 
+ 
+ 
+Configure an edge port on the switch 
+Configure an STP edge port 
+If STP is enabled (default) on the switch, you must configure each port connecting to a server as an 
+edge port. By default, a port is not an edge port.. 
+To do that, execute the stp edged-port command in port view. 
+Syntax 
+Use stp edged-port to configure a port as an edge port. 
+Use undo stp edged-port to restore the default. 
+Views 
+Layer 2 Ethernet interface view 
+Layer 2 aggregate interface view 
+Layer 2 RPR logical interface view
+
+--- Page 71 ---
+68 
+Predefined user roles 
+network-admin 
+mdc-admin 
+Usage guidelines 
+A port directly connecting to a user terminal rather than another device or a shared LAN segment can 
+be configured as an edge port. When the network topology changes, an edge port does not cause a 
+temporary loop. You can enable the port to transit to the forwarding state rapidly by configuring it as 
+an edge port. As a best practice, configure ports that directly connect to user terminals as edge ports. 
+Typically, configuration BPDUs from other devices cannot reach an edge port, because the edge port 
+does not connect to any other device. When BPDU guard is disabled on a port configured as an edge 
+port, the port acts as a non-edge port if it receives configuration BPDUs. 
+On a port, the loop guard feature and the edge port setting are mutually exclusive. 
+If this command is executed in Layer 2 Ethernet interface view, it takes effect only on that interface. If 
+this command is executed in Layer 2 aggregate interface view, it takes effect only on the aggregate 
+interface. If this command is executed on a member port in an aggregation group, it takes effect only 
+after the port leaves the aggregation group. 
+Examples 
+# Configure GigabitEthernet 1/0/1 as an edge port. 
+<Sysname> system-view 
+[Sysname] interface gigabitethernet 1/0/1 
+[Sysname-GigabitEthernet1/0/1] stp edged-port 
+Configure an edge dynamic aggregate interface 
+This command takes effect only on an aggregate interface corresponding to a dynamic aggregation 
+group. If non-dynamic aggregation is used, see "Configure an STP edge port." 
+Syntax 
+Use lacp edge-port to configure an aggregate interface as an edge aggregate interface. 
+Use undo lacp edge-port to restore the default. 
+Default 
+An aggregate interface does not operate as an edge aggregate interface. 
+Views 
+Layer 2 aggregate interface view 
+Layer 3 aggregate interface view 
+S-channel bundle interface view 
+Predefined user roles 
+network-admin 
+mdc-admin 
+Usage guidelines 
+Use this command on the aggregate interface that  connects the device to a server if dynamic link 
+aggregation is configured only on the device. This feature improves link reliability by enabling all 
+member ports of the aggregation group to forward packets. 
+Link-aggregation traffic redirection cannot operate correctly on an edge aggregate interface.
+
+--- Page 72 ---
+69 
+Examples 
+# Configure Layer 2 aggregate interface Bridge-Aggregation 1 as an edge aggregate interface. 
+<Sysname> System-view 
+[Sysname] interface bridge-aggregation 1 
+[Sysname-Bridge-Aggregation1] lacp edge-port 
+Configure disk caching 
+Identify the RAID controller type 
+Adaptec 
+[root@cvknode5 ~]# lspci|grep  Adaptec 
+5c:00.0 Serial Attached SCSI controller: Adaptec Smart Storage PQI 12G SAS/PCIe 3 (rev 
+01) 
+Then, execute the arcconf list command to identify whether the RAID controller information can 
+be obtained. If the information cannot be obtained, perform further query. As shown below, if the 
+ssacli ctrl all show command can be used to query information, it means that the RAID 
+controller must use the ssacli command for processing. For more information, see the description 
+on the HPE controller module. 
+ 
+ 
+LSI 
+[root@cvknode6 ~]# lspci |grep -i "lsi" 
+18:00.0 RAID bus controller: LSI Logic / Symbios Logic MegaRAID SAS-3 3108 [Invader] (rev 
+02) 
+HPE 
+If the output from the lspci | grep "Hewlett-Packard Company Smart Array" command 
+is not empty or as shown in the following figure: 
+ 
+ 
+For the P408i or P816i RAID controller, it is also determined as an HPE RAID controller.
+
+--- Page 73 ---
+70 
+ 
+ 
+Configure caching for RAID controllers 
+HPE controller 
+1. View the RAID controller state. 
+ 
+ 
+When the RAID controller state is abnormal, you might fail to configure caching.  
+2. View disk information. 
+ 
+ 
+3. Identify whether the logical disk state is ok. 
+4. View the caching information for the logical disk.
+
+--- Page 74 ---
+71 
+  
+ 
+5. As shown in the figure above, you can view the map between the logical disk serial numbers 
+and disk letters and the logical caching state. 
+6. Configure the physical caching state of the disks uniformly. Physical caching must be disabled. 
+a. View the caching state. 
+ 
+ 
+b. Disable physical caching. 
+ssacli ctrl slot=2 modify drivewritecache=disable forced 
+c. Enable physical caching. 
+ssacli ctrl slot=2 modify drivewritecache=enable forced 
+7. Configure caching for the logical disk, and view the caching state. You can confirm the cache to 
+be disabled according to the disk information. 
+ 
+ 
+a. Enable logical caching, as shown above. To enable caching for logical disk 1, execute the 
+following command: 
+ssacli ctrl slot=2 logicaldrive 1 modify caching=enable 
+b. Disable logical caching. 
+ssacli ctrl slot=2 logicaldrive 1 modify caching=disable 
+Adaptec controller 
+For adaptec RAID controllers, the supported models include PMC8060 and P460. Known models 
+include P460-B4, P460-M4, P4408, and P2404. 
+To identify a model, execute a script in the backend. Execute the 
+arcconf list command to view 
+the key field information. For example, the P460-B4 information is as follows:
+
+--- Page 75 ---
+72 
+ 
+ 
+The PMC8060 information is as follows: 
+ 
+ 
+1. View the RAID controller state 
+  
+ 
+2. To view disk information and logical disk information, execute the arcconf getconfig 1 ld 
+command, where 1 is the controller ID. 
+ P460 series 
+ 
+ 
+ For PMC8060, PMC cannot directly obtain the disk letter. You must query the disk letter by 
+unique identifier.
+
+--- Page 76 ---
+73 
+ 
+ 
+Query the disk letter 
+ 
+ 
+3. Configure logical disk caching 
+ P460 series 
+− View the logical caching state. 
+arcconf getconfig 1 ld |grep “Caching” 
+− Enable logical caching. 
+arcconf setcache 1 logicaldrive 0 con 
+− Disable logical caching. 
+arcconf setcache 1 logicaldrive 0 coff 
+ PMC8060 
+− View the logical caching state. 
+arcconf getconfig 1 ld |grep “Write-cache status” 
+− Enable logical caching. 
+arcconf setcache 1 logicaldrive 0 wbb 
+− Disable logical caching. 
+arcconf setcache 1 logicaldrive 0 wt 
+4. Configure physical disk caching. 
+ P460 series 
+− View the physical caching state. 
+For the P460 disks, use the following field. Both the Default and Disable values mean 
+caching is disabled. 
+ 
+ 
+− Disable physical caching. 
+arcconf setcache 1 drivewritecachepolicy configured 2
+
+--- Page 77 ---
+74 
+//0: Default value. 1: Enabled. 2: Disabled. configured: Configured disk. unconfigured: 
+Unconfigured disk. 
+− Enable physical caching. 
+arcconf setcache 1 drivewritecachepolicy configured 1 
+ PMC8060 
+− View the physical caching state. 
+arcconf getconfig 1 pd | grep "Write Cache" 
+− Disable physical caching. 
+arcconf setcache 1 deviceall disable noprompt 
+− Enable physical caching. 
+arcconf setcache 1 deviceall enable noprompt 
+LSI controller 
+1. View the RAID controller state. 
+a. Obtain the controller ID. For example, the following controller ID is 0: 
+ 
+ 
+b. Obtain the RAID controller state. The value of optimal indicates the state is normal.  
+ 
+ 
+2. View disk information. 
+a. View logical disk information. 
+[root@cvknode6 ~]# /opt/MegaRAID/storcli/storcli64 /c0 /vall show all
+
+--- Page 78 ---
+75 
+ 
+ 
+b. View the disk letter corresponding to the logical disk according to the SCSI NAA ID. 
+c. /lib/udev/scsi_id –g –u  /dev/sdd  //Traverse through all disk letters to obtain the disk letter 
+corresponding to the SCSI NAA ID, which is the disk letter of the logical disk  
+ 
+ 
+3. Configure logical disk caching. 
+a. View logical disk information. 
+ 
+ 
+b. Enable logical disk caching. The 0 in /c0 indicates the controller ID, and the 0 in /v0 
+indicates the logical disk serial number. writeback means to enable caching, and 
+writethrough means to disable caching. 
+/opt/MegaRAID/storcli/storcli64  /c0 /v0 set wrcache=wb 
+c. Disable logical disk caching. 
+/opt/MegaRAID/storcli/storcli64 /c0 /v0 set wrcache=wt 
+4. Configure physical disk caching. 
+a. View physical disk caching information. 
+/opt/MegaRAID/storcli/storcli64 /c0/eall/sall show all | grep "Write cache" 
+b. Disable physical caching. 
+/opt/MegaRAID/storcli/storcli64 /c0/vall set pdcache=off 
+c. Enable physical caching. 
+/opt/MegaRAID/storcli/storcli64 /c0/vall set pdcache=on

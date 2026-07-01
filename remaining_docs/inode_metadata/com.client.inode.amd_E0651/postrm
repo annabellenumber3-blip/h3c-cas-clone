@@ -1,0 +1,211 @@
+#!/bin/sh
+
+linux_terminate_process()
+{
+   sudo killall -9 $1 > /dev/null 2>&1
+   return 0
+}
+#===================main script code=========================
+
+set -x
+
+case $1 in 
+
+	remove|purge)
+	systemctl stop inode.service
+	systemctl disable inode.service
+	   
+	Sec=0
+	while [ 1 ]
+	do
+		IfExistMon=`ps awx -o command|awk -F/ '{print $NF}'|grep -x iNodeMon`
+		if [ "$IfExistMon" != "" ]
+		then
+			sleep 1
+			Sec=`expr $Sec + 1`
+
+			if [ "$Sec" -lt 10 ]
+			then
+				#killall -9 iNodeMon > /dev/null 2>&1
+				linux_terminate_process iNodeMon
+			else
+				#killall -9 iNodeMon
+				echo "Stop iNodeMon failed"
+				break
+			fi
+		else
+			break
+		fi
+	done
+
+	Sec=0
+	while [ 1 ]
+	do
+		IfExistAuth=`ps awx -o command|awk -F/ '{print $NF}'|grep -x AuthenMngService`
+		if [ "$IfExistAuth" != "" ]
+		then
+			sleep 1
+			Sec=`expr $Sec + 1`
+
+			if [ "$Sec" -lt 10 ]
+			then
+				#killall -9 AuthenMngService > /dev/null 2>&1
+				linux_terminate_process AuthenMngService
+			else
+				#killall -9 AuthenMngService
+				echo "Stop AuthenMngService failed"
+				break
+			fi
+		else
+			break
+		fi
+	done
+
+	Sec=0
+	while [ 1 ]
+	do
+		IfExistAuth=`ps awx -o command|awk -F/ '{print $NF}'|grep -x DamAgent`
+		if [ "$IfExistAuth" != "" ]
+		then
+			sleep 1
+			Sec=`expr $Sec + 1`
+
+			if [ "$Sec" -lt 10 ]
+			then
+				#killall -9 DamAgent > /dev/null 2>&1
+				linux_terminate_process DamAgent
+			else
+				#killall -9 DamAgent
+				echo "Stop DamAgent failed"
+				break
+			fi
+		else
+			break
+		fi
+	done
+
+	IfExistUI=`ps awx -o command|awk -F/ '{print $NF}'|grep -x iNodeClient`
+	if [ "$IfExistUI" != "" ]
+	then
+		sleep 5
+		#killall -9 iNodeClient
+		linux_terminate_process iNodeClient
+	fi
+
+	Sec=0
+	while [ 1 ]
+	do
+		IfExistTRM=`ps awx -o command|awk -F/ '{print $NF}'|grep -x iNodeTRM`
+		if [ "$IfExistTRM" != "" ]
+		then
+			sleep 1
+			Sec=`expr $Sec + 1`
+
+			if [ "$Sec" -lt 10 ]
+			then
+				#killall -9 iNodeTRM > /dev/null 2>&1
+				linux_terminate_process iNodeTRM
+			else
+				#killall -9 iNodeTRM
+				echo "Stop iNodeTRM failed"
+				break
+			fi
+		else
+			break
+		fi
+	done
+
+	IfExistTRMUI=`ps awx -o command|awk -F/ '{print $NF}'|grep -x TrmClient`
+	if [ "$IfExistTRMUI" != "" ]
+	then
+		sleep 5
+		#killall -9 TrmClient
+		linux_terminate_process TrmClient
+	fi
+	
+	#TRLD uninstall
+	if command -v TRLD > /dev/null 2>&1; then
+        TRLD --uninstall
+        sleep 1
+    else
+        echo "TRLD command not found, skipping uninstall."
+    fi
+
+	Sec=0
+	while [ 1 ]
+	do
+		IfExist=`ps awx -o command|awk -F/ '{print $NF}'|grep tr_daemon|grep -v grep`
+		if [ "$IfExist" != "" ]
+		then
+			sleep 1
+			Sec=`expr $Sec + 1`
+			if [ "$Sec" -lt 9 ]
+			then				   
+				linux_terminate_process tr_daemon
+			else 
+				echo "Stop tr_daemon failed"
+				break
+			fi
+		else
+			break
+		fi
+	done
+	USERDIRLIST=`cat /etc/passwd|awk -F : '$3>=500 && $3<65534 || $3==0 {print $6}'`
+	for temp in $USERDIRLIST
+	do
+		USER="$temp/.bash_profile"
+		if [ -f "$USER" ]
+		then
+			sed -i '/iNodeClient.sh/d' $USER
+		fi
+	done
+	
+	if [ -e /etc/Dam/usb-storage.ko ]
+	then
+	mv /etc/Dam/usb-storage.ko /lib/modules/$(uname -r)/kernel/drivers/usb/storage/
+	fi
+
+	#===========OS Type==========
+	OS_UOS=`cat /etc/issue | grep -i 'UnionTech OS'`
+	OS_Kylin=`cat /etc/issue | grep 'Kylin'`
+
+	if [ -r "/etc/iNode" ]
+	then
+	rm -fr /etc/iNode
+	fi
+
+	rm -rf /etc/init.d/iNodeAuthService
+	rm -rf /usr/share/applications/iNodeClient.desktop
+	rm -rf /usr/share/applications/com.client.inode.*
+	rm -rf /opt/apps/com.client.inode.*
+	rm -rf /var/lib/dpkg/info/com.client.inode.*
+	rm -rf /etc/systemd/system/inode.service
+	rm -fr /etc/xdg/autostart/iNodeClient.desktop
+	rm -rf /etc/udev/rules.d/1-damdisablestorage.rules
+	rm -rf /etc/udev/rules.d/2-damdisableusbother.rules
+	rm -rf /etc/udev/rules.d/3-damdisableusbphone.rules
+	rm -f /etc/udev/rules.d/1-trmdisablestorage.rules
+	rm -rf /etc/Dam
+
+	if [ -e /etc/NetworkManager/conf.d/eia.conf ]
+	then
+	  rm -rf /etc/NetworkManager/conf.d/eia.conf
+	  systemctl restart NetworkManager
+	fi
+	
+	current_user=$(who | head -n 1 | awk '{print $1}')
+	desktop_dir=$(sudo -u $current_user xdg-user-dir DESKTOP)
+	if [ -e "$desktop_dir"/com.client.inode.*.desktop ]
+	then
+	  rm -rf "$desktop_dir"/com.client.inode.*.desktop
+	fi
+	
+	;;
+	upgrade)
+	;;
+	*)
+	;;
+
+esac
+exit 0
+

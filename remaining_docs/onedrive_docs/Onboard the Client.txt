@@ -1,0 +1,108 @@
+PDF: Onboard the Client.pdf
+Pages: 13
+
+
+--- Page 1 ---
+What should be done in network if new customer 
+come 
+1. current configuration 
+1. switch 
+vlan between 1000~2000 already created and permit between CAS interface. 
+[Gole_Service switch_01]dis vlan 
+ Total VLANs: 1005 
+ The VLANs include: 
+ 1(default), 500-501, 1000-2000, 4094 
+[Gole_Service switch_01] 
+ 
+ 
+[Gole_Service switch_01]int Bridge-Aggregation 101 
+[Gole_Service switch_01-Bridge-Aggregation101]dis th 
+# 
+interface Bridge-Aggregation101 
+ description To Server "10G_NIC02_S2P2" 
+ port link-type trunk 
+ port trunk permit vlan 1 1000 to 2000 
+ link-aggregation mode dynamic 
+ port m-lag group 105 allow-single-member 
+# 
+return 
+[Gole_Service switch_01-Bridge-Aggregation101]int Bridge-Aggr 
+egation 102 
+[Gole_Service switch_01-Bridge-Aggregation102]dis th 
+#
+
+--- Page 2 ---
+interface Bridge-Aggregation102 
+ description To Server "10G_NIC02_S2P2" 
+ port link-type trunk 
+ port trunk permit vlan 1 1000 to 2000 
+ link-aggregation mode dynamic 
+ port m-lag group 102 allow-single-member 
+# 
+return 
+[Gole_Service switch_01-Bridge-Aggregation102]int Bridge-Aggr 
+egation 103 
+[Gole_Service switch_01-Bridge-Aggregation103]dis th 
+# 
+interface Bridge-Aggregation103 
+ description To Server "10G_NIC03_S4P2" 
+ port link-type trunk 
+ port trunk permit vlan 1 1000 to 2000 
+ link-aggregation mode dynamic 
+ port m-lag group 103 allow-single-member 
+# 
+2. cloudos 
+the business vswitch already configure the vlan range between 1000~2000.
+
+--- Page 3 ---
+2. if new client come, using the existing vlan range and new 
+subnet. 
+2.1 only layer 2 connection: 
+⚫ switch side 
+no action required. 
+⚫ cloudos side 
+create new network&subnet for sub orginization. 
+1. create new subnet at root orginization 
+2. assign the new subnet to this sub orginization 
+3. create "Classical Network" by orgazization administrator. 
+4. create "subnet" by orgazization administrator. 
+5. create/request Cloud host by using new subnet.
+
+--- Page 4 ---
+create new subnet at root organization
+
+--- Page 5 ---
+
+
+--- Page 6 ---
+assign the new subnet to this sub organization
+
+--- Page 7 ---
+create "Classical Network" by orgazization administrator.
+
+--- Page 8 ---
+
+
+--- Page 9 ---
+create "subnet" by orgazization administrator.
+
+--- Page 10 ---
+create/request Cloud host by using new subnet
+
+--- Page 11 ---
+
+
+--- Page 12 ---
+2.2 need layer 3 connection: 
+⚫ switch side 
+create gateway interface at business switch. the route should 
+configure&manage by network team 
+⚫ cloudos side 
+same like step 2.1-cloudos side 
+3. if new client come, using the new vlan range. 
+3.1 switch: 
+create new vlan interface and permit at all CAS interface.
+
+--- Page 13 ---
+3.2 cloudos: 
+modify the network setting, add new vlan to list. then do same step like chapter 2.

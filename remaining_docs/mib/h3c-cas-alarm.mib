@@ -1,0 +1,5288 @@
+H3C-CAS-ALARM-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+	hh3cNM											FROM HH3C-OID-MIB
+	Unsigned32, OBJECT-TYPE, MODULE-IDENTITY,
+	NOTIFICATION-TYPE								FROM SNMPv2-SMI
+	DisplayString, DateAndTime						FROM SNMPv2-TC
+	OBJECT-GROUP, NOTIFICATION-GROUP				FROM SNMPv2-CONF;
+
+h3cCas MODULE-IDENTITY
+	LAST-UPDATED "201803070735Z"
+	ORGANIZATION
+		"Hangzhou H3C Technologies Co., Ltd."
+	CONTACT-INFO
+		"Platform Team H3C Technologies Co., Ltd.
+		Hai-Dian District Beijing P.R. China
+		http://www.h3c.com
+		Zip: 100085"
+	DESCRIPTION
+		"This MIB file defines alarm trap messages used in H3C
+		 CAS product. An alarm is triggered when there is an error
+		 or some threshold is reached among clusters, hosts or virtual
+		 machines."
+	REVISION "201803070735Z"
+	DESCRIPTION
+		"Add two new parameters and five new alarms. Add parameter
+		 IPv6Address to all the vm type alarms."
+	REVISION "201711011517Z"
+	DESCRIPTION
+		"Initial version of the MIB."
+	::= { hh3cNM 2 }
+
+h3cCasAlarm OBJECT IDENTIFIER ::= { h3cCas 26 }
+h3cCasAlarmParams OBJECT IDENTIFIER ::= { h3cCasAlarm 1 }
+h3cCasAlarmParamCvkName OBJECT-TYPE
+	SYNTAX	DisplayString
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The hostname of CVK."
+	::= { h3cCasAlarmParams 1 }
+
+h3cCasAlarmParamCvkIpAddress OBJECT-TYPE
+	SYNTAX	DisplayString
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The Internet protocol v4 address of CVK."
+	::= { h3cCasAlarmParams 2 }
+
+h3cCasAlarmParamAlarmClass OBJECT-TYPE
+	SYNTAX	INTEGER {
+				all(0),
+				critical(1),
+				major(2),
+				minor(3),
+				info(4)
+			}
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The severity class of an alarm. When appearing in recovery alarms, the class indicates the alarms at the same class
+		 and above(severer), if there are any, classes are recovered. Specially, the alarm class all(0), which is only used
+		 in recovery alarms, indicates the recovery of all the alarms arised before."
+	::= { h3cCasAlarmParams 3 }
+
+h3cCasAlarmParamCpuUsage OBJECT-TYPE
+	SYNTAX	Unsigned32
+	UNITS	"%"
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"Percentage of the CPU resource in use."
+	::= { h3cCasAlarmParams 5 }
+
+h3cCasAlarmParamCpuThreshold OBJECT-TYPE
+	SYNTAX	Unsigned32
+	UNITS	"%"
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The threshold of the cpu usage for an alarm."
+	::= { h3cCasAlarmParams 6 }
+
+h3cCasAlarmParamMemUsage OBJECT-TYPE
+	SYNTAX	Unsigned32
+	UNITS	"%"
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"Percentage of the memory in use."
+	::= { h3cCasAlarmParams 7 }
+
+h3cCasAlarmParamMemThreshold OBJECT-TYPE
+	SYNTAX	Unsigned32
+	UNITS	"%"
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The threshold of the memory usage for an alarm."
+	::= { h3cCasAlarmParams 8 }
+
+h3cCasAlarmParamDiskName OBJECT-TYPE
+	SYNTAX	DisplayString
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The name string of the disk on the host or a vm."
+	::= { h3cCasAlarmParams 9 }
+
+h3cCasAlarmParamDiskPartitionUsage OBJECT-TYPE
+	SYNTAX	Unsigned32
+	UNITS	"%"
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"Percentage of the disk partition space been used."
+	::= { h3cCasAlarmParams 10 }
+
+h3cCasAlarmParamDiskThreshold OBJECT-TYPE
+	SYNTAX	Unsigned32
+	UNITS	"%"
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The threshold of the disk space usage for an alarm."
+	::= { h3cCasAlarmParams 11 }
+
+h3cCasAlarmParamDiskThroughput OBJECT-TYPE
+	SYNTAX	Unsigned32
+	UNITS	"KBps"
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The I/O throughput(in KBps) of a disk in a period of time."
+	::= { h3cCasAlarmParams 12 }
+
+h3cCasAlarmParamDiskThroughputThreshold OBJECT-TYPE
+	SYNTAX	Unsigned32
+	UNITS	"KBps"
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The threshold(in KBps) of the disk I/O throughput for an alarm."
+	::= { h3cCasAlarmParams 13 }
+
+h3cCasAlarmParamNetThroughput OBJECT-TYPE
+	SYNTAX	Unsigned32
+	UNITS	"Mbps"
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The I/O throughput(in Mbps) of an Internet interface in a period of time."
+	::= { h3cCasAlarmParams 14 }
+
+h3cCasAlarmParamNetThroughputThreshold OBJECT-TYPE
+	SYNTAX	Unsigned32
+	UNITS	"Mbps"
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The threshold(in Mbps) of the NIC I/O throughput for an alarm."
+	::= { h3cCasAlarmParams 15 }
+
+h3cCasAlarmParamDiskPosition OBJECT-TYPE
+	SYNTAX	DisplayString
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The slot position of the disk."
+	::= { h3cCasAlarmParams 16 }
+
+h3cCasAlarmParamSysCallID OBJECT-TYPE
+	SYNTAX	Unsigned32
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"System call ID."
+	::= { h3cCasAlarmParams 17 }
+
+h3cCasAlarmParamSysCallCount OBJECT-TYPE
+	SYNTAX	Unsigned32
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"System call count."
+	::= { h3cCasAlarmParams 18 }
+
+h3cCasAlarmParamProcessInfo OBJECT-TYPE
+	SYNTAX	DisplayString
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The information of the process."
+	::= { h3cCasAlarmParams 19 }
+
+h3cCasAlarmParamVmDisplayName OBJECT-TYPE
+	SYNTAX	DisplayString
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The user-friendly name for a virtual machine."
+	::= { h3cCasAlarmParams 20 }
+
+h3cCasAlarmParamVmIpAddress OBJECT-TYPE
+	SYNTAX	DisplayString
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The IPv4 address of a virtual machine."
+	::= { h3cCasAlarmParams 21 }
+
+h3cCasAlarmParamVmName OBJECT-TYPE
+	SYNTAX	DisplayString
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The unique name of a virtual machine for internal uses."
+	::= { h3cCasAlarmParams 22 }
+
+h3cCasAlarmParamVmUuid OBJECT-TYPE
+	SYNTAX	DisplayString
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The UUID(Univesally Unique Identifier) of a virtual machine."
+	::= { h3cCasAlarmParams 23 }
+
+h3cCasAlarmParamVmIpv6Address OBJECT-TYPE
+	SYNTAX	DisplayString
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The IPv6 address of a virtual machine."
+	::= { h3cCasAlarmParams 24 }
+
+h3cCasAlarmParamReservedHugepageMemUsage OBJECT-TYPE
+	SYNTAX	Unsigned32
+	UNITS	"%"
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"Percentage of the reserved hugepage memory in use."
+	::= { h3cCasAlarmParams 25 }
+
+h3cCasAlarmParamReservedHugepageMemThreshold OBJECT-TYPE
+	SYNTAX	Unsigned32
+	UNITS	"%"
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The threshold of the reserved hugepage memory usage for an alarm."
+	::= { h3cCasAlarmParams 26 }
+
+h3cCasAlarmParamClusterName OBJECT-TYPE
+	SYNTAX	DisplayString
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The name of a cluster."
+	::= { h3cCasAlarmParams 31 }
+
+h3cCasAlarmParamCvmHostName OBJECT-TYPE
+	SYNTAX	DisplayString
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The hostname of a CVM hostmachine."
+	::= { h3cCasAlarmParams 41 }
+
+h3cCasAlarmParamCvmIpAddress OBJECT-TYPE
+	SYNTAX	DisplayString
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The IPv4 address of a CVM hostmachine."
+	::= { h3cCasAlarmParams 42 }
+
+h3cCasAlarmParamCasType OBJECT-TYPE
+	SYNTAX	INTEGER { cvm(1), cic(2) }
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The CAS type installed.
+		 - Cloud Virtualization Manager (CVM)
+		 CVM provides virtualization of computing, network, and storage resources
+		 in the data center as well as automated services for upper layer applications.
+		 - Cloud Intelligence Center (CIC)
+		 CIC provides pooling of infrastructure resources (including computing, networks, and storage) and policies and orchestrates the resources
+		 to fulfill user application tasks. You can use CIC to build a secure hybrid cloud on which tenants can subscribe to resources on demand."
+	::= { h3cCasAlarmParams 43 }
+
+h3cCasAlarmParamSharedFilesystemName OBJECT-TYPE
+	SYNTAX	DisplayString
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The unique name for a shared filesystem storage."
+	::= { h3cCasAlarmParams 44 }
+
+h3cCasAlarmParamSharedFilesystemDisplayName OBJECT-TYPE
+	SYNTAX	DisplayString
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The user-friendly name for a shared filesystem storage."
+	::= { h3cCasAlarmParams 45 }
+
+h3cCasAlarmParamSharedFilesystemMountPath OBJECT-TYPE
+	SYNTAX	DisplayString
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The mounting path of the shared filesystem storage."
+	::= { h3cCasAlarmParams 46 }
+
+h3cCasAlarmParamVmMetadataFaultFileName OBJECT-TYPE
+	SYNTAX	DisplayString
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The name of vm metadata fault file."
+	::= { h3cCasAlarmParams 47 }
+
+h3cCasAlarmParamVmMetadataFaultFixResult OBJECT-TYPE
+	SYNTAX	DisplayString
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The vm metadata fault auto fix result."
+	::= { h3cCasAlarmParams 48 }
+
+h3cCasAlarmParamNicName OBJECT-TYPE
+	SYNTAX	DisplayString
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The name of an NIC"
+	::= { h3cCasAlarmParams 50 }
+
+h3cCasAlarmParamNicMac OBJECT-TYPE
+	SYNTAX	DisplayString
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The MAC address of an NIC"
+	::= { h3cCasAlarmParams 51 }
+
+h3cCasAlarmParamFaultType OBJECT-TYPE
+	SYNTAX	INTEGER {
+				recovered(1),
+				unrecoverable(2),
+				unknown(3)
+			}
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The type of the fault an NIC encountered."
+	::= { h3cCasAlarmParams 52 }
+
+h3cCasAlarmParamApplicationName OBJECT-TYPE
+	SYNTAX	DisplayString
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The name string of an application."
+	::= { h3cCasAlarmParams 53 }
+
+h3cCasAlarmParamVirtualSwitchName OBJECT-TYPE
+	SYNTAX	DisplayString
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The name of a virtual switch."
+	::= { h3cCasAlarmParams 60 }
+
+h3cCasAlarmParamVSFaultType OBJECT-TYPE
+	SYNTAX	Unsigned32
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The type of the fault a virtual switch encountered."
+	::= { h3cCasAlarmParams 61 }
+
+h3cCasAlarmParamDiskReadThroughput OBJECT-TYPE
+	SYNTAX	Unsigned32
+	UNITS	"KBps"
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The read-throughput(in KBps) of a disk in a period of time."
+	::= { h3cCasAlarmParams 71 }
+
+h3cCasAlarmParamDiskReadThroughputThreshold OBJECT-TYPE
+	SYNTAX	Unsigned32
+	UNITS	"KBps"
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The threshold(in KBps) of the read-throughput of a disk for an alarm."
+	::= { h3cCasAlarmParams 72 }
+
+h3cCasAlarmParamDiskWriteThroughput OBJECT-TYPE
+	SYNTAX	Unsigned32
+	UNITS	"KBps"
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The write-throughput(in KBps) of a disk in a period of time."
+	::= { h3cCasAlarmParams 73 }
+
+h3cCasAlarmParamDiskWriteThroughputThreshold OBJECT-TYPE
+	SYNTAX	Unsigned32
+	UNITS	"KBps"
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The threshold(in KBps) of the write-throughput of a disk for an alarm."
+	::= { h3cCasAlarmParams 74 }
+
+h3cCasAlarmParamDiskIops OBJECT-TYPE
+	SYNTAX	Unsigned32
+	UNITS	"iops"
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The IOPS(I/O operations per second) of a disk in a period of time."
+	::= { h3cCasAlarmParams 75 }
+
+h3cCasAlarmParamDiskIopsThreshold OBJECT-TYPE
+	SYNTAX	Unsigned32
+	UNITS	"iops"
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The threshold of the IOPS of a disk for an alarm."
+	::= { h3cCasAlarmParams 76 }
+
+h3cCasAlarmParamDiskReadIops OBJECT-TYPE
+	SYNTAX	Unsigned32
+	UNITS	"iops"
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The read-IOPS(I/O operations per second) of a disk in a period of time."
+	::= { h3cCasAlarmParams 77 }
+
+h3cCasAlarmParamDiskReadIopsThreshold OBJECT-TYPE
+	SYNTAX	Unsigned32
+	UNITS	"iops"
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The threshold of the read-IOPS of a disk for an alarm."
+	::= { h3cCasAlarmParams 78 }
+
+h3cCasAlarmParamDiskWriteIops OBJECT-TYPE
+	SYNTAX	Unsigned32
+	UNITS	"iops"
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The write-IOPS(I/O operations per second) of a disk in a period of time."
+	::= { h3cCasAlarmParams 79 }
+
+h3cCasAlarmParamDiskWriteIopsThreshold OBJECT-TYPE
+	SYNTAX	Unsigned32
+	UNITS	"iops"
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The threshold of the write-IOPS of a disk for an alarm."
+	::= { h3cCasAlarmParams 80 }
+
+h3cCasAlarmParamDiskIoLatency OBJECT-TYPE
+	SYNTAX	Unsigned32
+	UNITS	"ms"
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The IO latency(in milliseconds) of a disk in a period of time."
+	::= { h3cCasAlarmParams 81 }
+
+h3cCasAlarmParamDiskIoLatencyThreshold OBJECT-TYPE
+	SYNTAX	Unsigned32
+	UNITS	"ms"
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The threshold(in milliseconds) of the IO latency of a disk for an alarm."
+	::= { h3cCasAlarmParams 82 }
+
+h3cCasAlarmParamDiskReadIoLatency OBJECT-TYPE
+	SYNTAX	Unsigned32
+	UNITS	"ms"
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The read-IO latency(in milliseconds) of a disk in a period of time."
+	::= { h3cCasAlarmParams 83 }
+
+h3cCasAlarmParamDiskReadIoLatencyThreshold OBJECT-TYPE
+	SYNTAX	Unsigned32
+	UNITS	"ms"
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The threshold(in milliseconds) of the read-IO latency of a disk for an alarm."
+	::= { h3cCasAlarmParams 84 }
+
+h3cCasAlarmParamDiskWriteIoLatency OBJECT-TYPE
+	SYNTAX	Unsigned32
+	UNITS	"ms"
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The write-IO latency(in milliseconds) of a disk in a period of time."
+	::= { h3cCasAlarmParams 85 }
+
+h3cCasAlarmParamDiskWriteIoLatencyThreshold OBJECT-TYPE
+	SYNTAX	Unsigned32
+	UNITS	"ms"
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The threshold(in milliseconds) of the write-IO latency of a disk for an alarm."
+	::= { h3cCasAlarmParams 86 }
+
+h3cCasAlarmParamNetRecvThroughput OBJECT-TYPE
+	SYNTAX	Unsigned32
+	UNITS	"Mbps"
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The receive-Throughput(in Mbps) of an NIC in a period of time."
+	::= { h3cCasAlarmParams 87 }
+
+h3cCasAlarmParamNetRecvThroughputThreshold OBJECT-TYPE
+	SYNTAX	Unsigned32
+	UNITS	"Mbps"
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The threshold(in Mbps) of the receive-throughput of an NIC for an alarm."
+	::= { h3cCasAlarmParams 88 }
+
+h3cCasAlarmParamNetSendThroughput OBJECT-TYPE
+	SYNTAX	Unsigned32
+	UNITS	"Mbps"
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The send-Throughput(in Mbps) of an NIC in a period of time."
+	::= { h3cCasAlarmParams 89 }
+
+h3cCasAlarmParamNetSendThroughputThreshold OBJECT-TYPE
+	SYNTAX	Unsigned32
+	UNITS	"Mbps"
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The threshold(in Mbps) of the send-throughput of an NIC for an alarm."
+	::= { h3cCasAlarmParams 90 }
+
+h3cCasAlarmParamHbaCardName OBJECT-TYPE
+	SYNTAX	DisplayString
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The name of a HBA(Host Bus Adapter) card."
+	::= { h3cCasAlarmParams 91 }
+
+h3cCasAlarmParamTemplateStorageName OBJECT-TYPE
+	SYNTAX	DisplayString
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The name of the template storage for a CVM."
+	::= { h3cCasAlarmParams 92 }
+
+h3cCasAlarmParamProcessName OBJECT-TYPE
+	SYNTAX	DisplayString
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The name of a monitored process of the CVK."
+	::= { h3cCasAlarmParams 93 }
+
+h3cCasAlarmParamUnitTime OBJECT-TYPE
+	SYNTAX	Unsigned32
+	UNITS	"Minutes"
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The Unit time of measurement, in minutes"
+	::= { h3cCasAlarmParams 94 }
+
+h3cCasAlarmParamCpuTemperature OBJECT-TYPE
+	SYNTAX	Unsigned32
+	UNITS	"centigrade"
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The temperature (in celsius degree) of the cpu core."
+	::= { h3cCasAlarmParams 95 }
+
+h3cCasAlarmParamCpuTemperatureThreshold OBJECT-TYPE
+	SYNTAX	Unsigned32
+	UNITS	"centigrade"
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The threshold (in celsius degree) of the cpu temperature."
+	::= { h3cCasAlarmParams 96 }
+
+h3cCasAlarmParamPacketLossRate OBJECT-TYPE
+	SYNTAX	Unsigned32
+	UNITS	"%"
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The loss rate(percentage) of Internet packets in a period of time."
+	::= { h3cCasAlarmParams 97 }
+
+h3cCasAlarmParamPacketLossThreshold OBJECT-TYPE
+	SYNTAX	Unsigned32
+	UNITS	"%"
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The threshold(percentage) of the packet loss rate for an alarm."
+	::= { h3cCasAlarmParams 98 }
+
+h3cCasAlarmParamUserIpAddress OBJECT-TYPE
+	SYNTAX	DisplayString
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The IPv4 address of a user trying to login from."
+	::= { h3cCasAlarmParams 99 }
+
+h3cCasAlarmParamTimeDifference OBJECT-TYPE
+	SYNTAX	Unsigned32
+	UNITS	"Minutes"
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The difference of time between the CVK and the CVM. In minutes."
+	::= { h3cCasAlarmParams 100 }
+
+h3cCasAlarmParamUserAccount OBJECT-TYPE
+	SYNTAX	DisplayString
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The account name of a user."
+	::= { h3cCasAlarmParams 101 }
+
+h3cCasAlarmParamloginTime OBJECT-TYPE
+	SYNTAX	DisplayString
+	UNITS	"hour of day"
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The login time(hour of day) of a user."
+	::= { h3cCasAlarmParams 102 }
+
+h3cCasAlarmParamCurrentValue OBJECT-TYPE
+	SYNTAX	Unsigned32
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The current value of some parameter."
+	::= { h3cCasAlarmParams 104 }
+
+h3cCasAlarmParamDaysBeforeAutoDestroy OBJECT-TYPE
+	SYNTAX	Unsigned32
+	UNITS	"days"
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The days before a virtual machine in recycle bin being destoryed."
+	::= { h3cCasAlarmParams 105 }
+
+h3cCasAlarmParamMaxNumberOfAttempts OBJECT-TYPE
+	SYNTAX	Unsigned32
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The maximum number of attempts to login."
+	::= { h3cCasAlarmParams 106 }
+
+h3cCasAlarmParamNetType OBJECT-TYPE
+	SYNTAX	INTEGER {
+			management(1),
+			business(2),
+			storage(4),
+			backup(8),
+			migrate(16),
+			others(32)
+		}
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The type of the network."
+	::= { h3cCasAlarmParams 107 }
+
+h3cCasAlarmParamResourceAccessURL OBJECT-TYPE
+	SYNTAX	DisplayString
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"URL for resources accessing."
+	::= { h3cCasAlarmParams 108 }
+
+h3cCasAlarmParamComponentName OBJECT-TYPE
+	SYNTAX	DisplayString
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The name of the related component."
+	::= { h3cCasAlarmParams 109 }
+
+h3cCasAlarmParamRaidCardType OBJECT-TYPE
+	SYNTAX	DisplayString
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The brand name and slot num of the RAID card, separated by a '-'."
+	::= { h3cCasAlarmParams 110 }
+
+h3cCasAlarmParamArbitrationHostName OBJECT-TYPE
+	SYNTAX	DisplayString
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The hostname of the arbitration host of the CVM Failover system."
+	::= { h3cCasAlarmParams 111 }
+
+h3cCasAlarmParamArbitrationHostIpAddress OBJECT-TYPE
+	SYNTAX	DisplayString
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The IP address of the arbitration host of the CVM Failover system."
+	::= { h3cCasAlarmParams 112 }
+
+h3cCasAlarmParamSuspiciousProcessName OBJECT-TYPE
+	SYNTAX	DisplayString
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The name of a process that is in black list or not in white list."
+	::= { h3cCasAlarmParams 113 }
+
+h3cCasAlarmParamFaultyHostName OBJECT-TYPE
+	SYNTAX	DisplayString
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The name of the host which is malfunctioning or cannot be reached."
+	::= { h3cCasAlarmParams 114 }
+
+h3cCasAlarmParamFaultyHostIpAddress OBJECT-TYPE
+	SYNTAX	DisplayString
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The IP address of the host which is malfunctioning or cannot be reached."
+	::= { h3cCasAlarmParams 115 }
+
+h3cCasAlarmParamVirtualSwitchErrorPacketRate OBJECT-TYPE
+	SYNTAX	Unsigned32
+	UNITS	"%"
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"Error packet rate of a virtual switch."
+	::= { h3cCasAlarmParams 118 }
+
+h3cCasAlarmParamNicErrorPacketRate OBJECT-TYPE
+	SYNTAX	Unsigned32
+	UNITS	"%"
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"Error packet rate of an NIC"
+	::= { h3cCasAlarmParams 119 }
+
+h3cCasAlarmParamVirtualSwitchErrorPacketRateThreshold OBJECT-TYPE
+	SYNTAX	Unsigned32
+	UNITS	"%"
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The alarm threshold of error packet rate of a virtual switch."
+	::= { h3cCasAlarmParams 120 }
+
+h3cCasAlarmParamNicErrorPacketRateThreshold OBJECT-TYPE
+	SYNTAX	Unsigned32
+	UNITS	"%"
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The alarm threshold of error packet rate of an NIC."
+	::= { h3cCasAlarmParams 121 }
+
+h3cCasAlarmParamAgentTime OBJECT-TYPE
+	SYNTAX	DateAndTime
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The current time and date of the agent."
+	::= { h3cCasAlarmParams 122 }
+
+h3cCasAlarmParamTomcatConns OBJECT-TYPE
+	SYNTAX	Unsigned32
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The number of tomcat connection."
+	::= { h3cCasAlarmParams 123 }
+
+h3cCasAlarmParamTomcatConnsThreshold OBJECT-TYPE
+	SYNTAX	Unsigned32
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The threshold of tomcat connection."
+	::= { h3cCasAlarmParams 124 }
+
+h3cCasAlarmParamTomcatConnIp OBJECT-TYPE
+	SYNTAX	DisplayString
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The ip of tomcat connection."
+	::= { h3cCasAlarmParams 125 }
+
+h3cCasAlarmParamUserPwdValidTime OBJECT-TYPE
+	SYNTAX	Unsigned32
+	UNITS "days"
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The remaining valid time(in days) of a user."
+	::= { h3cCasAlarmParams 126 }
+
+h3cCasAlarmParamVmTcpConnNumber OBJECT-TYPE
+	SYNTAX	Unsigned32
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The connections number of specific vm."
+	::= { h3cCasAlarmParams 127 }
+
+h3cCasAlarmParamVmTcpConnNumberThreshold OBJECT-TYPE
+	SYNTAX	Unsigned32
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The connections number threshold of current vm tcp number alarm level."
+	::= { h3cCasAlarmParams 128 }
+
+h3cCasAlarmParamPhoneNumber OBJECT-TYPE
+	SYNTAX	DisplayString
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"Phone number."
+	::= { h3cCasAlarmParams 129 }
+
+h3cCasAlarmParamVmTemplateName OBJECT-TYPE
+	SYNTAX	DisplayString
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The name of vm template."
+	::= { h3cCasAlarmParams 130 }
+
+h3cCasAlarmParamSenderEmail OBJECT-TYPE
+	SYNTAX	DisplayString
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"Email address of sender."
+	::= { h3cCasAlarmParams 131 }
+
+h3cCasAlarmParamRecipientEmail OBJECT-TYPE
+	SYNTAX	DisplayString
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"Email address of recipient."
+	::= { h3cCasAlarmParams 132 }
+
+h3cCasAlarmParamStoragePathName OBJECT-TYPE
+	SYNTAX	DisplayString
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The name of storage path."
+	::= { h3cCasAlarmParams 133 }
+
+h3cCasAlarmParamStoragePathID OBJECT-TYPE
+	SYNTAX	DisplayString
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The ID string of storage path."
+	::= { h3cCasAlarmParams 135 }
+
+h3cCasAlarmParamResourceUsageThreshold OBJECT-TYPE
+	SYNTAX	Unsigned32
+	UNITS	"%"
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The threshold of the resource usage for an alarm."
+	::= { h3cCasAlarmParams 147 }
+
+h3cCasAlarmParamResourceUsage OBJECT-TYPE
+	SYNTAX	Unsigned32
+	UNITS	"%"
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"Percentage of the resource usage in use."
+	::= { h3cCasAlarmParams 148 }
+
+h3cCasAlarmParamEventType OBJECT-TYPE
+	SYNTAX	Unsigned32
+	MAX-ACCESS	accessible-for-notify
+	STATUS	current
+	DESCRIPTION
+		"The type of event."
+	::= { h3cCasAlarmParams 201 }
+
+-- TRAP Definitions
+h3cCasAlarmTraps OBJECT IDENTIFIER ::= { h3cCasAlarm 2 }
+h3cCasAlarmTrapPrefix OBJECT IDENTIFIER ::= { h3cCasAlarmTraps 0 }
+
+h3cCasAlarmHostNicDown NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamNicName,
+		h3cCasAlarmParamNicMac
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered by a nic failure, which could be
+		 caused by a faulty cable connection, or the nic is broken."
+	::= { h3cCasAlarmTrapPrefix 1 }
+
+h3cCasAlarmHostLocalStorageFailed NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamDiskName,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered by the failure of the host's local
+		 storages, which could be caused by 1. removal of the disk, or 2. the
+		 device is broken."
+	::= { h3cCasAlarmTrapPrefix 2 }
+
+h3cCasAlarmHostTimeNotSynchronized NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamCvmIpAddress,
+		h3cCasAlarmParamTimeDifference,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when the time difference between the
+		 CVM and the CVK reaches a threshold, which could be caused by 1. the CVK's
+		 time inaccuracy, 2. the CVM's time inaccuracy or 3. network abnormalities."
+	::= { h3cCasAlarmTrapPrefix 3 }
+
+h3cCasAlarmHostClockSourceNotTsc NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when the clock source of the host is not TSC."
+	::= { h3cCasAlarmTrapPrefix 4 }
+
+h3cCasAlarmHostCpuUsageExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamCpuUsage,
+		h3cCasAlarmParamCpuThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when the cpu usage of the host exceeds the
+		 threshold, which could be caused by 1. excessive processes, 2. handling of heavy
+		 Affairs or 3. excessive running vms. Possible fix would be enabling the
+		 Dynamic Resources Scheduling or manually migrating vms to other hosts."
+	::= { h3cCasAlarmTrapPrefix 6 }
+
+h3cCasAlarmHostMemUsageExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamMemUsage,
+		h3cCasAlarmParamMemThreshold,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when the memory usage of the host exceeds the
+		 threshold, which could be caused by excessive processes or running vms. Possible
+		 fix would be enabling the Dynamic Resources Scheduling or manually migrating
+		 vms to other hosts."
+	::= { h3cCasAlarmTrapPrefix 7 }
+
+h3cCasAlarmHostDiskPartitionUsageExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamDiskName,
+		h3cCasAlarmParamDiskPartitionUsage,
+		h3cCasAlarmParamDiskThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when the usage of one of the disks of the host
+		 exceeds the threshold."
+	::= { h3cCasAlarmTrapPrefix 8 }
+
+h3cCasAlarmHostDiskThroughputExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamDiskName,
+		h3cCasAlarmParamDiskThroughput,
+		h3cCasAlarmParamDiskThroughputThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when the total throughput(Mbps) of one of the disks of the
+		 host exceeds the threshold."
+	::= { h3cCasAlarmTrapPrefix 9 }
+
+h3cCasAlarmHostNetThroughputExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamNicMac,
+		h3cCasAlarmParamNetThroughput,
+		h3cCasAlarmParamNetThroughputThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when the throughput(Mbps) of one of the nics of the
+		 host exceeds the threshold."
+	::= { h3cCasAlarmTrapPrefix 10 }
+
+h3cCasAlarmVmFailed NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamVmDisplayName,
+		h3cCasAlarmParamVmIpAddress,
+		h3cCasAlarmParamVmName,
+		h3cCasAlarmParamVmUuid,
+		h3cCasAlarmParamVmIpv6Address,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when a virtual machine fails, which could be caused
+		 by 1. virtual machine failures 2. operating system failures of the vm."
+	::= { h3cCasAlarmTrapPrefix 11 }
+
+h3cCasAlarmVmFailoverSucceeded NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamVmDisplayName,
+		h3cCasAlarmParamVmIpAddress,
+		h3cCasAlarmParamVmName,
+		h3cCasAlarmParamVmUuid,
+		h3cCasAlarmParamVmIpv6Address,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when the HA suceeded in migrating the vm in
+		 a faulty state, which could be caused by 1. a vm failure 2. an os failure of the
+		 vm or 3. an application failure of the vm."
+	::= { h3cCasAlarmTrapPrefix 12 }
+
+h3cCasAlarmVmRecoveryFailed NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamVmDisplayName,
+		h3cCasAlarmParamVmIpAddress,
+		h3cCasAlarmParamVmName,
+		h3cCasAlarmParamVmUuid,
+		h3cCasAlarmParamVmIpv6Address,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when the HA failed to recover a vm from fault."
+	::= { h3cCasAlarmTrapPrefix 13 }
+
+h3cCasAlarmVmCpuUsageExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamVmDisplayName,
+		h3cCasAlarmParamVmIpAddress,
+		h3cCasAlarmParamVmName,
+		h3cCasAlarmParamVmUuid,
+		h3cCasAlarmParamVmIpv6Address,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamCpuUsage,
+		h3cCasAlarmParamCpuThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when the cpu usage of the vm exceeds the
+		 threshold, which could be caused by 1. excessive processes, 2. handling of heavy
+		 Affairs or 3. the use of swap partition of the host."
+	::= { h3cCasAlarmTrapPrefix 16 }
+
+h3cCasAlarmVmMemUsageExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamVmDisplayName,
+		h3cCasAlarmParamVmIpAddress,
+		h3cCasAlarmParamVmName,
+		h3cCasAlarmParamVmUuid,
+		h3cCasAlarmParamVmIpv6Address,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamMemUsage,
+		h3cCasAlarmParamMemThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when the memory usage of the vm exceeds the
+		 threshold, which could be caused by 1. excessive processes, 2. handling of heavy
+		 Affairs"
+	::= { h3cCasAlarmTrapPrefix 17 }
+
+h3cCasAlarmVmDiskPartitionUsageExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamVmDisplayName,
+		h3cCasAlarmParamVmIpAddress,
+		h3cCasAlarmParamVmName,
+		h3cCasAlarmParamVmUuid,
+		h3cCasAlarmParamVmIpv6Address,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamDiskName,
+		h3cCasAlarmParamDiskPartitionUsage,
+		h3cCasAlarmParamDiskThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when the disk usage of the vm exceeds the
+		 threshold."
+	::= { h3cCasAlarmTrapPrefix 18 }
+
+h3cCasAlarmVmDiskThroughputExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamVmDisplayName,
+		h3cCasAlarmParamVmIpAddress,
+		h3cCasAlarmParamVmName,
+		h3cCasAlarmParamVmUuid,
+		h3cCasAlarmParamVmIpv6Address,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamDiskName,
+		h3cCasAlarmParamDiskThroughput,
+		h3cCasAlarmParamDiskThroughputThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when the throughput(Mbps) of the disk of the vm
+		 exceeds the threshold."
+	::= { h3cCasAlarmTrapPrefix 19 }
+
+h3cCasAlarmVmNetThroughputExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamVmDisplayName,
+		h3cCasAlarmParamVmIpAddress,
+		h3cCasAlarmParamVmName,
+		h3cCasAlarmParamVmUuid,
+		h3cCasAlarmParamVmIpv6Address,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamNicMac,
+		h3cCasAlarmParamNetThroughput,
+		h3cCasAlarmParamNetThroughputThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when the throughput(Mbps) of the nic of the vm
+		 exceeds the threshold."
+	::= { h3cCasAlarmTrapPrefix 20 }
+
+h3cCasAlarmClusterHaFailoverFailed NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamClusterName,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when the HA Failover function fails,
+		 which could be caused by 1. too many faulty hosts, 2. failure of the cluster
+		 storage or 3. the network abnormality."
+	::= { h3cCasAlarmTrapPrefix 21 }
+
+h3cCasAlarmHostNetHeartbeatDown NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamClusterName,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when the host's network heartbeat with the CVM is down,
+		 which could be caused by 1. malfunctioning of the host or 2. abnormal network
+		 connection with the host."
+	::= { h3cCasAlarmTrapPrefix 22 }
+
+h3cCasAlarmClusterHaResourceReserveInsufficient NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamClusterName,
+		h3cCasAlarmParamCpuUsage,
+		h3cCasAlarmParamCpuThreshold,
+		h3cCasAlarmParamMemUsage,
+		h3cCasAlarmParamMemThreshold,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when both the cpu usage and memory usage of the
+		 cluster exceed the reserve thresholds."
+	::= { h3cCasAlarmTrapPrefix 23 }
+
+h3cCasAlarmClusterCpuUsageExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamClusterName,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamCpuUsage,
+		h3cCasAlarmParamCpuThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when the cpu usage of the cluster has exceeded the
+		 threshold."
+	::= { h3cCasAlarmTrapPrefix 26 }
+
+h3cCasAlarmClusterMemUsageExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamClusterName,
+		h3cCasAlarmParamMemUsage,
+		h3cCasAlarmParamMemThreshold,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when the memory usage of the cluster has exceeded the
+		 threshold."
+	::= { h3cCasAlarmTrapPrefix 27 }
+
+h3cCasAlarmClusterReservedHugepageMemUsageExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamClusterName,
+		h3cCasAlarmParamReservedHugepageMemUsage,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamMemReservedHugepageThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when the reserved hugepage memory usage of the cluster has exceeded the
+		 threshold."
+	::= { h3cCasAlarmTrapPrefix 28 }
+
+h3cCasAlarmSharedFilesystemFailed NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamSharedFilesystemName,
+		h3cCasAlarmParamSharedFilesystemDisplayName,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered by a failure of the shared filesystem, which
+		 could be caused by 1. unstable connection between the CVK and the storage device,
+		 2. excessive i/o stress of the CVK or the storage device, 3. link concussion or
+		 packet delay caused by improper configuration of the adjacent switch, or 4. storage
+		 device malfunctioning."
+	::= { h3cCasAlarmTrapPrefix 31 }
+
+h3cCasAlarmClusterSharedStorageUsageExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamSharedFilesystemName,
+		h3cCasAlarmParamSharedFilesystemDisplayName,
+		h3cCasAlarmParamSharedFilesystemMountPath,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamDiskPartitionUsage,
+		h3cCasAlarmParamCurrentValue
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when the shared storage usage is beyond the threshold."
+	::= { h3cCasAlarmTrapPrefix 32 }
+
+h3cCasAlarmClusterSharedStorageThroughputExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamSharedFilesystemName,
+		h3cCasAlarmParamSharedFilesystemDisplayName,
+		h3cCasAlarmParamSharedFilesystemMountPath,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamDiskThroughput,
+		h3cCasAlarmParamDiskThroughputThreshold,
+		h3cCasAlarmParamCurrentValue
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when total throughtput of the shared storage has exceeded
+		 the threshold."
+	::= { h3cCasAlarmTrapPrefix 33 }
+
+h3cCasAlarmClusterSharedStorageReadThroughputExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamSharedFilesystemName,
+		h3cCasAlarmParamSharedFilesystemDisplayName,
+		h3cCasAlarmParamSharedFilesystemMountPath,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamDiskReadThroughput,
+		h3cCasAlarmParamDiskReadThroughputThreshold,
+		h3cCasAlarmParamCurrentValue
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when read throughtput of the shared storage has exceeded
+		 the threshold."
+	::= { h3cCasAlarmTrapPrefix 34 }
+
+h3cCasAlarmClusterSharedStorageWriteThroughputExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamSharedFilesystemName,
+		h3cCasAlarmParamSharedFilesystemDisplayName,
+		h3cCasAlarmParamSharedFilesystemMountPath,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamDiskWriteThroughput,
+		h3cCasAlarmParamDiskWriteThroughputThreshold,
+		h3cCasAlarmParamCurrentValue
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when write throughtput of the shared storage has exceeded
+		 the threshold."
+	::= { h3cCasAlarmTrapPrefix 35 }
+
+h3cCasAlarmClusterSharedStorageIopsExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamSharedFilesystemName,
+		h3cCasAlarmParamSharedFilesystemDisplayName,
+		h3cCasAlarmParamSharedFilesystemMountPath,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamDiskIops,
+		h3cCasAlarmParamDiskIopsThreshold,
+		h3cCasAlarmParamCurrentValue
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when total iops of the shared storage has exceeded
+		 the threshold."
+	::= { h3cCasAlarmTrapPrefix 36 }
+
+h3cCasAlarmClusterSharedStorageReadIopsExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamSharedFilesystemName,
+		h3cCasAlarmParamSharedFilesystemDisplayName,
+		h3cCasAlarmParamSharedFilesystemMountPath,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamDiskReadIops,
+		h3cCasAlarmParamDiskReadIopsThreshold,
+		h3cCasAlarmParamCurrentValue
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when read-IOPS of the shared storage has exceeded
+		 the threshold."
+	::= { h3cCasAlarmTrapPrefix 37 }
+
+h3cCasAlarmClusterSharedStorageWriteIopsExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamSharedFilesystemName,
+		h3cCasAlarmParamSharedFilesystemDisplayName,
+		h3cCasAlarmParamSharedFilesystemMountPath,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamDiskWriteIops,
+		h3cCasAlarmParamDiskWriteIopsThreshold,
+		h3cCasAlarmParamCurrentValue
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when write-IOPS of the shared storage has exceeded
+		 the threshold."
+	::= { h3cCasAlarmTrapPrefix 38 }
+
+h3cCasAlarmClusterSharedStorageIoLatencyExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamSharedFilesystemName,
+		h3cCasAlarmParamSharedFilesystemDisplayName,
+		h3cCasAlarmParamSharedFilesystemMountPath,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamDiskIoLatency,
+		h3cCasAlarmParamDiskIoLatencyThreshold,
+		h3cCasAlarmParamCurrentValue
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered io latency(ms) of the shared storage has exceeded
+		 the threshold."
+	::= { h3cCasAlarmTrapPrefix 39 }
+
+h3cCasAlarmClusterSharedStorageReadIoLatencyExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamSharedFilesystemName,
+		h3cCasAlarmParamSharedFilesystemDisplayName,
+		h3cCasAlarmParamSharedFilesystemMountPath,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamDiskReadIoLatency,
+		h3cCasAlarmParamDiskReadIoLatencyThreshold,
+		h3cCasAlarmParamCurrentValue
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when read-IO latency(ms) of the shared storage has exceeded
+		 the threshold."
+	::= { h3cCasAlarmTrapPrefix 40 }
+
+h3cCasAlarmClusterSharedStorageWriteIoLatencyExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamSharedFilesystemName,
+		h3cCasAlarmParamSharedFilesystemDisplayName,
+		h3cCasAlarmParamSharedFilesystemMountPath,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamDiskWriteIoLatency,
+		h3cCasAlarmParamDiskWriteIoLatencyThreshold,
+		h3cCasAlarmParamCurrentValue
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when write-IO latency(ms) of the shared storage has exceeded
+		 the threshold."
+	::= { h3cCasAlarmTrapPrefix 41 }
+
+h3cCasAlarmHostSharedStorageFilesystemBroken NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamSharedFilesystemName,
+		h3cCasAlarmParamSharedFilesystemDisplayName,
+		h3cCasAlarmParamSharedFilesystemMountPath,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamVmMetadataFaultFixResult
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when the filesystem of the shared storage is broken. Possible
+		 causes are 1. being allocted to non-CVM-controlled system, 2. physical disk damage
+		 or 3. being formated or initialized."
+	::= { h3cCasAlarmTrapPrefix 42 }
+
+h3cCasAlarmCvmFailed NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvmHostName,
+		h3cCasAlarmParamCvmIpAddress,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when this host has switched to the master CVM, this
+		 could be caused by 1. startup of the CVM hot backup service, or 2. failure of the present
+		 CVM."
+	::= { h3cCasAlarmTrapPrefix 51 }
+
+h3cCasAlarmCasLicenseExpiring NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvmHostName,
+		h3cCasAlarmParamCvmIpAddress,
+		h3cCasAlarmParamCasType,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when the license of the CAS product is abort to expire.
+		 Please contact us to get a new license."
+	::= { h3cCasAlarmTrapPrefix 52 }
+
+h3cCasAlarmHaStandbyCvmFailed NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvmHostName,
+		h3cCasAlarmParamCvmIpAddress,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when the standby CVM of the duplex backup system fails.
+		 Which could be caused by 1. failure of the standby CVM, or 2. bad network connecting with
+		 the standby CVM."
+	::= { h3cCasAlarmTrapPrefix 53 }
+
+h3cCasAlarmCvmTemplateStorageFailed NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvmHostName,
+		h3cCasAlarmParamCvmIpAddress,
+		h3cCasAlarmParamTemplateStorageName,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when the template storage of the CVM fails. Which could
+		 be 1. failure of the storage device or 2. failure of the link to the storage device."
+	::= { h3cCasAlarmTrapPrefix 54 }
+
+h3cCasAlarmCvmAutoBackupFailed NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvmHostName,
+		h3cCasAlarmParamCvmIpAddress,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when the auto backup of CVM fails. This could be caused by
+		 1. insufficient storage or 2. database backup failure."
+	::= { h3cCasAlarmTrapPrefix 55 }
+
+h3cCasAlarmCvmBrainSplited NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvmHostName,
+		h3cCasAlarmParamCvmIpAddress,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when there is a brain split in the duplex backup system
+		 of CVM."
+	::= { h3cCasAlarmTrapPrefix 56 }
+
+h3cCasAlarmVirtualSwitchFailed NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamVirtualSwitchName,
+		h3cCasAlarmParamVSFaultType
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when a fault occurs in the virtual switch of the host. Which
+		 could be caused by 1. network link error, 2. binded physical nic malfunctioning or
+		 3. aggregation configuration error."
+	::= { h3cCasAlarmTrapPrefix 61 }
+
+h3cCasAlarmHostReservedHugepageMemUsageExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamReservedHugepageMemUsage,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamReservedHugepageMemThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when the reserved hugepage memory usage of the host exceeds the
+		 threshold, which could be caused by excessive running vms using reserved hugepage memory. Possible
+		 fix would be increasing page number of reserved hugepage memory or manually migrating
+		 vms using reserved hugepage memory to other hosts."
+	::= { h3cCasAlarmTrapPrefix 62 }
+
+h3cCasAlarmHostDiskReadThroughputExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamDiskName,
+		h3cCasAlarmParamDiskReadThroughput,
+		h3cCasAlarmParamDiskReadThroughputThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when the read-throughput(KBps) of one of the disks of the
+		 host exceeds the threshold."
+	::= { h3cCasAlarmTrapPrefix 71 }
+
+h3cCasAlarmHostDiskWriteThroughputExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamDiskName,
+		h3cCasAlarmParamDiskWriteThroughput,
+		h3cCasAlarmParamDiskWriteThroughputThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when the write-throughput(KBps) of one of the disks of the
+		 host exceeds the threshold."
+	::= { h3cCasAlarmTrapPrefix 72 }
+
+h3cCasAlarmHostDiskIopsExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamDiskName,
+		h3cCasAlarmParamDiskIops,
+		h3cCasAlarmParamDiskIopsThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when the IOPS of one of the disks of the
+		 host exceeds the threshold."
+	::= { h3cCasAlarmTrapPrefix 73 }
+
+h3cCasAlarmHostDiskReadIopsExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamDiskName,
+		h3cCasAlarmParamDiskReadIops,
+		h3cCasAlarmParamDiskReadIopsThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when the read-IOPS of one of the disks of the
+		 host exceeds the threshold."
+	::= { h3cCasAlarmTrapPrefix 74 }
+
+h3cCasAlarmHostDiskWriteIopsExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamDiskName,
+		h3cCasAlarmParamDiskWriteIops,
+		h3cCasAlarmParamDiskWriteIopsThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when the write-IOPS of one of the disks of the
+		 host exceeds the threshold."
+	::= { h3cCasAlarmTrapPrefix 75 }
+
+h3cCasAlarmHostDiskIoLatencyExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamDiskName,
+		h3cCasAlarmParamDiskIoLatency,
+		h3cCasAlarmParamDiskIoLatencyThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when the IO latency(ms) of one of the disks of the
+		 host exceeds the threshold."
+	::= { h3cCasAlarmTrapPrefix 76 }
+
+h3cCasAlarmHostDiskReadIoLatencyExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamDiskName,
+		h3cCasAlarmParamDiskReadIoLatency,
+		h3cCasAlarmParamDiskReadIoLatencyThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when the read-IO latency(ms) of one of the disks of the
+		 host exceeds the threshold."
+	::= { h3cCasAlarmTrapPrefix 77 }
+
+h3cCasAlarmHostDiskWriteIoLatencyExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamDiskName,
+		h3cCasAlarmParamDiskWriteIoLatency,
+		h3cCasAlarmParamDiskWriteIoLatencyThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when the write-IO latency(ms) of one of the disks of the
+		 host exceeds the threshold."
+	::= { h3cCasAlarmTrapPrefix 78 }
+
+h3cCasAlarmHostNetRecvThroughputExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamNicMac,
+		h3cCasAlarmParamNetRecvThroughput,
+		h3cCasAlarmParamNetRecvThroughputThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when the receive-throughput(in Mbps) of one of the nics of the
+		 host exceeds the threshold."
+	::= { h3cCasAlarmTrapPrefix 79 }
+
+h3cCasAlarmHostNetSendThroughputExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamNicMac,
+		h3cCasAlarmParamNetSendThroughput,
+		h3cCasAlarmParamNetSendThroughputThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when the send-throughput(in Mbps) of one of the nics of the
+		 host exceeds the threshold."
+	::= { h3cCasAlarmTrapPrefix 80 }
+
+h3cCasAlarmHostFcLinkFailed NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamHbaCardName
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered by the FC link failure of the host. Which could be
+		 caused by 1. HBA card malfunctioning, 2. broken link to the FC device or
+		 3. FC storage error."
+	::= { h3cCasAlarmTrapPrefix 81 }
+
+h3cCasAlarmHostNetUplinkRedundancyFailed NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamVirtualSwitchName
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered by the failure of the net uplink redundancy of the
+		 host, which could be caused by 1. only one single uplink functioning, 2. no uplink
+		 functioning."
+	::= { h3cCasAlarmTrapPrefix 82 }
+
+h3cCasAlarmHostSharedStorageSingleLinkLeft NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamSharedFilesystemName,
+		h3cCasAlarmParamSharedFilesystemDisplayName,
+		h3cCasAlarmParamSharedFilesystemMountPath
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when there is only one single link to the shared
+		 storage left. This could be caused by the improper upgrading from the old CAS
+		 version(before E0218), which can be fixed by manually updating to multipath."
+	::= { h3cCasAlarmTrapPrefix 83 }
+
+h3cCasAlarmHostFailed NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when the host is malfunctioning. The possible causes
+		 could be, 1. the power of the host is unplugged, 2. the host has been shutdown,
+		 3. the network connection is broken, 4. password of the host has been modified,
+		 or 5. the HA process is malfunctioning."
+	::= { h3cCasAlarmTrapPrefix 84 }
+
+h3cCasAlarmVirtualizationManagementServiceAbnormal NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when the virtualization management software is malfunctioning, which
+		 could be caused by 1. broken connection to the host, 2. libvirt service not running."
+	::= { h3cCasAlarmTrapPrefix 85 }
+
+h3cCasAlarmHostInMaintenance NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when the host enters maintenance mode automatically, which is
+		 caused by synchronizing with the CVM. The host will exit maintenance mode once the
+		 synchronization is complete or taking more than 10 minutes."
+	::= { h3cCasAlarmTrapPrefix 86 }
+
+h3cCasAlarmHostProcessFailed NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamProcessName
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when one specific process of the host fails, which could
+		 be caused by 1. segmentfault occurance or 2. failure of the assertions."
+	::= { h3cCasAlarmTrapPrefix 87 }
+
+h3cCasAlarmHostNicAutoNegotiationFailed NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamNicMac
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when auto negotiation of the NIC of the host
+		 fails. The possible causes are, 1. negotiation failure with opposite switch, 2. negotiation
+		 resulting in half-duplex mode."
+	::= { h3cCasAlarmTrapPrefix 88 }
+
+h3cCasAlarmVmDiskReadThroughputExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamVmDisplayName,
+		h3cCasAlarmParamVmIpAddress,
+		h3cCasAlarmParamVmName,
+		h3cCasAlarmParamVmUuid,
+		h3cCasAlarmParamVmIpv6Address,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamDiskName,
+		h3cCasAlarmParamDiskReadThroughput,
+		h3cCasAlarmParamDiskReadThroughputThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when the read-throughput(in KBps) of the disk of the vm
+		 exceeds the threshold."
+	::= { h3cCasAlarmTrapPrefix 91 }
+
+h3cCasAlarmVmDiskWriteThroughputExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamVmDisplayName,
+		h3cCasAlarmParamVmIpAddress,
+		h3cCasAlarmParamVmName,
+		h3cCasAlarmParamVmUuid,
+		h3cCasAlarmParamVmIpv6Address,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamDiskName,
+		h3cCasAlarmParamDiskWriteThroughput,
+		h3cCasAlarmParamDiskWriteThroughputThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when the write-throughput(in KBps) of the disk of the vm
+		 exceeds the threshold."
+	::= { h3cCasAlarmTrapPrefix 92 }
+
+h3cCasAlarmVmDiskIopsExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamVmDisplayName,
+		h3cCasAlarmParamVmIpAddress,
+		h3cCasAlarmParamVmName,
+		h3cCasAlarmParamVmUuid,
+		h3cCasAlarmParamVmIpv6Address,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamDiskName,
+		h3cCasAlarmParamDiskIops,
+		h3cCasAlarmParamDiskIopsThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when the iops of the disk of the vm
+		 exceeds the threshold."
+	::= { h3cCasAlarmTrapPrefix 93 }
+
+h3cCasAlarmVmDiskReadIopsExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamVmDisplayName,
+		h3cCasAlarmParamVmIpAddress,
+		h3cCasAlarmParamVmName,
+		h3cCasAlarmParamVmUuid,
+		h3cCasAlarmParamVmIpv6Address,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamDiskName,
+		h3cCasAlarmParamDiskReadIops,
+		h3cCasAlarmParamDiskReadIopsThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when the read-IOPS of the disk of the vm
+		 exceeds the threshold."
+	::= { h3cCasAlarmTrapPrefix 94 }
+
+h3cCasAlarmVmDiskWriteIopsExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamVmDisplayName,
+		h3cCasAlarmParamVmIpAddress,
+		h3cCasAlarmParamVmName,
+		h3cCasAlarmParamVmUuid,
+		h3cCasAlarmParamVmIpv6Address,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamDiskName,
+		h3cCasAlarmParamDiskWriteIops,
+		h3cCasAlarmParamDiskWriteIopsThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when the write-IOPS of the disk of the vm
+		 exceeds the threshold."
+	::= { h3cCasAlarmTrapPrefix 95 }
+
+h3cCasAlarmVmDiskIoLatencyExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamVmDisplayName,
+		h3cCasAlarmParamVmIpAddress,
+		h3cCasAlarmParamVmName,
+		h3cCasAlarmParamVmUuid,
+		h3cCasAlarmParamVmIpv6Address,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamDiskName,
+		h3cCasAlarmParamDiskIoLatency,
+		h3cCasAlarmParamDiskIoLatencyThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when the IO latency(ms) of the disk of the vm
+		 exceeds the threshold."
+	::= { h3cCasAlarmTrapPrefix 96 }
+
+h3cCasAlarmVmDiskReadIoLatencyExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamVmDisplayName,
+		h3cCasAlarmParamVmIpAddress,
+		h3cCasAlarmParamVmName,
+		h3cCasAlarmParamVmUuid,
+		h3cCasAlarmParamVmIpv6Address,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamDiskName,
+		h3cCasAlarmParamDiskReadIoLatency,
+		h3cCasAlarmParamDiskReadIoLatencyThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when the read-IO latency(ms) of the disk of the vm
+		 exceeds the threshold."
+	::= { h3cCasAlarmTrapPrefix 97 }
+
+h3cCasAlarmVmDiskWriteIoLatencyExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamVmDisplayName,
+		h3cCasAlarmParamVmIpAddress,
+		h3cCasAlarmParamVmName,
+		h3cCasAlarmParamVmUuid,
+		h3cCasAlarmParamVmIpv6Address,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamDiskName,
+		h3cCasAlarmParamDiskWriteIoLatency,
+		h3cCasAlarmParamDiskWriteIoLatencyThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when the write-IO latency(ms) of the disk of the vm
+		 exceeds the threshold."
+	::= { h3cCasAlarmTrapPrefix 98 }
+
+h3cCasAlarmVmNetRecvThroughputExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamVmDisplayName,
+		h3cCasAlarmParamVmIpAddress,
+		h3cCasAlarmParamVmName,
+		h3cCasAlarmParamVmUuid,
+		h3cCasAlarmParamVmIpv6Address,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamNicMac,
+		h3cCasAlarmParamNetRecvThroughput,
+		h3cCasAlarmParamNetRecvThroughputThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when the receive-throughput(in Mbps) of the nic of the vm
+		 exceeds the threshold."
+	::= { h3cCasAlarmTrapPrefix 99 }
+
+h3cCasAlarmVmNetSendThroughputExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamVmDisplayName,
+		h3cCasAlarmParamVmIpAddress,
+		h3cCasAlarmParamVmName,
+		h3cCasAlarmParamVmUuid,
+		h3cCasAlarmParamVmIpv6Address,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamNicMac,
+		h3cCasAlarmParamNetSendThroughput,
+		h3cCasAlarmParamNetSendThroughputThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when the send-throughput(in Mbps) of the nic of the vm
+		 exceeds the threshold."
+	::= { h3cCasAlarmTrapPrefix 100 }
+
+h3cCasAlarmVmAutoDestoryedSoon NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamVmDisplayName,
+		h3cCasAlarmParamVmIpAddress,
+		h3cCasAlarmParamVmName,
+		h3cCasAlarmParamVmUuid,
+		h3cCasAlarmParamVmIpv6Address,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamDaysBeforeAutoDestroy
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message to inform user that a vm in the recycle bin will be destroyed in a few days.
+		 This message is triggered when a vm is put in recycle bin and there is no more
+		 than 7 days before the vm being auto deleted."
+	::= { h3cCasAlarmTrapPrefix 105 }
+
+h3cCasAlarmVmAutoBackupFailed NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamVmDisplayName,
+		h3cCasAlarmParamVmIpAddress,
+		h3cCasAlarmParamVmName,
+		h3cCasAlarmParamVmUuid,
+		h3cCasAlarmParamVmIpv6Address,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamHbaCardName
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when the auto backup strategy on the vm fails. Which
+		 could be caused by insufficient storage or a storage failure."
+	::= { h3cCasAlarmTrapPrefix 106 }
+
+h3cCasAlarmVmFroze NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamVmDisplayName,
+		h3cCasAlarmParamVmIpAddress,
+		h3cCasAlarmParamVmName,
+		h3cCasAlarmParamVmUuid,
+		h3cCasAlarmParamVmIpv6Address,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when the vm has been frozen. which could be caused
+		 by 1. ocfs2 storage network failure, 2. ocfs2 storage failure."
+	::= { h3cCasAlarmTrapPrefix 107 }
+
+h3cCasAlarmVmImgDeleted NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamVmDisplayName,
+		h3cCasAlarmParamVmIpAddress,
+		h3cCasAlarmParamVmName,
+		h3cCasAlarmParamVmUuid,
+		h3cCasAlarmParamVmIpv6Address,
+		h3cCasAlarmParamDiskName,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when the vm image file is deleted. which could be caused
+		 by 1. image file is deleted by man, 2. image file is deleted by virus."
+	::= { h3cCasAlarmTrapPrefix 108 }
+
+h3cCasAlarmVmIOFailOver NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamVmDisplayName,
+		h3cCasAlarmParamVmIpAddress,
+		h3cCasAlarmParamVmName,
+		h3cCasAlarmParamVmUuid,
+		h3cCasAlarmParamVmIpv6Address,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamDiskName
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when the vm used storage pool is abnormal and IO of the vm be overed."
+	::= { h3cCasAlarmTrapPrefix 109 }
+
+h3cCasAlarmHostLogPartitionGrowSpeedOverExpected NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamUnitTime,
+		h3cCasAlarmParamDiskThreshold,
+		h3cCasAlarmParamCurrentValue
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when the grow speed of the log partition of a vm is
+		 over expected. Which could be caused by application malfunctioning. Possible fix
+		 would be 1. eliminate the error function or 2. dump the log to another partition.
+		 The current value and threshold are in MBs and the unit time is in minutes."
+	::= { h3cCasAlarmTrapPrefix 140 }
+
+h3cCasAlarmHostCpuOverheat NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamCpuTemperature,
+		h3cCasAlarmParamCpuTemperatureThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when the cpu temperature(celsius degree) exceeds the threshold. The
+		 possible causes are 1. insufficient thermal dissipation, 2. excessive processes,
+		 3. heavy load, or 4. to many running vms."
+	::= { h3cCasAlarmTrapPrefix 141 }
+
+h3cCasAlarmHostNicRecvPacketLossOverrate NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamNicMac,
+		h3cCasAlarmParamPacketLossRate,
+		h3cCasAlarmParamPacketLossThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message trigger when the receiving packet loss rate exceeds the threshold.
+		 Which possibly caused by 1. broadcast storm, 2. interfaces not well-connected, or
+		 3. firewall rules and network strategies."
+	::= { h3cCasAlarmTrapPrefix 142 }
+
+h3cCasAlarmHostNicSendPacketLossOverrate NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamNicMac,
+		h3cCasAlarmParamPacketLossRate,
+		h3cCasAlarmParamPacketLossThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when the sending packet loss rate exceeds the threshold.
+		 Which possibly caused by 1. broadcast storm, 2. interfaces not well-connected, or
+		 3. firewall rules and network strategies."
+	::= { h3cCasAlarmTrapPrefix 143 }
+
+h3cCasAlarmHostMceArose NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when an Machine-Check Exception was reported by the
+		 host machine. There are hardware errors in the physical memory, I/O devices or CPU,
+		 please refer to /var/log/mcelog or syslog for details."
+	::= { h3cCasAlarmTrapPrefix 144 }
+
+h3cCasAlarmVmNicRecvPacketLossOverrate NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamVmDisplayName,
+		h3cCasAlarmParamVmIpAddress,
+		h3cCasAlarmParamVmName,
+		h3cCasAlarmParamVmUuid,
+		h3cCasAlarmParamVmIpv6Address,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamNicMac,
+		h3cCasAlarmParamPacketLossRate,
+		h3cCasAlarmParamPacketLossThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message trigger when the receiving packet loss rate exceeds the threshold.
+		 Which possibly caused by 1. broadcast storm, 2. heavy traffics to the vm, or
+		 3. firewall rules and network strategies."
+	::= { h3cCasAlarmTrapPrefix 145 }
+
+h3cCasAlarmVmNicSendPacketLossOverrate NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamVmDisplayName,
+		h3cCasAlarmParamVmIpAddress,
+		h3cCasAlarmParamVmName,
+		h3cCasAlarmParamVmUuid,
+		h3cCasAlarmParamVmIpv6Address,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamNicMac,
+		h3cCasAlarmParamPacketLossRate,
+		h3cCasAlarmParamPacketLossThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when the sending packet loss rate exceeds the threshold.
+		 Which possibly caused by 1. broadcast storm, 2. heavy traffics from the vm, 3. Apps on
+		 the vm take too much network traffic or 4. firewall rules and network strategies."
+	::= { h3cCasAlarmTrapPrefix 146 }
+
+h3cCasAlarmCvmFailoverArbitrationHostFailed NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamArbitrationHostName,
+		h3cCasAlarmParamArbitrationHostIpAddress,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when one of the arbitration host of CVM Failover system fails.
+		 Which is possibly caused by 1. failure of the arbitration host, or 2. network connection
+		 failure to the arbitration host."
+	::= { h3cCasAlarmTrapPrefix 147 }
+
+h3cCasAlarmHostSuspiciousProcessRunning NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamArbitrationHostName,
+		h3cCasAlarmParamArbitrationHostIpAddress,
+		h3cCasAlarmParamSuspiciousProcessName,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"There is a suspicious process running on the CVK host.
+		 Possible causes: 1. unwanted softwares are installed, 2. infection of a computer virus."
+	::= { h3cCasAlarmTrapPrefix 148 }
+
+h3cCasAlarmHostO2netTcpShutdown NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamFaultyHostName,
+		h3cCasAlarmParamFaultyHostIpAddress,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The TCP connection of ocfs2 management network between the two hosts is shutdown.
+		 The problem may be caused by the following reason(s):
+		 1. Problems in physical link;
+		 2. IP address or port configuration conflicts;
+		 3. The other host has been shutdown.
+		 Fixes:
+		 Check and fix the possible causes listed above."
+	::= { h3cCasAlarmTrapPrefix 149 }
+
+h3cCasAlarmSharedStorageMultipathAbnormal NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamStoragePathID,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamStoragePathName,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"One or more links to the shared storage is down. Do check the physical links or the shared
+		 storage."
+	::= { h3cCasAlarmTrapPrefix 151 }
+
+h3cCasAlarmSharedFilesystemAutomaticallyInactivated NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The shared filesystem is automatically umounted due to access errors in underlying shared storage.
+		 Please check the physical links, local networks, host HBA cards or the shared storage."
+	::= { h3cCasAlarmTrapPrefix 152 }
+
+h3cCasAlarmHostRestarted NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The host has been restarted, manually or due to a critical error. Please log on to the management
+		 interface of the host to screen hardware failures."
+	::= { h3cCasAlarmTrapPrefix 153 }
+
+h3cCasAlarmHostVirtualSwitchRecvErrorPacketOverrate NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamVirtualSwitchName,
+		h3cCasAlarmParamVirtualSwitchErrorPacketRate,
+		h3cCasAlarmParamVirtualSwitchErrorPacketRateThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The received error packet rate of the virtual switch has exceeded the threshold.
+		 This might be caused by 1. physical cable is loosen or broken, 2. being connected to other type of
+		 network, 3. non-IP flows.
+		 Fixes: 1. Check and fix Network connections errors in including NIC, cable or optical power rate.
+		 2. Make sure there are no non-ethernet frames. 3. Make sure there are no unusual non-IP flows."
+	::= { h3cCasAlarmTrapPrefix 154 }
+
+h3cCasAlarmHostNicRecvErrorPacketOverrate NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamNicMac,
+		h3cCasAlarmParamNicErrorPacketRate,
+		h3cCasAlarmParamNicErrorPacketRateThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The received error packet rate of the NIC has exceeded the threshold.
+		 This might be caused by 1. physical cable is loosen or broken, 2. being connected to other type of
+		 network, 3. non-IP flows.
+		 Fixes: 1. Check and fix Network connections errors in including NIC, cable or optical power rate.
+		 2. Make sure there are no non-ethernet frames. 3. Make sure there are no unusual non-IP flows."
+	::= { h3cCasAlarmTrapPrefix 155 }
+
+h3cCasAlarmVmNicRecvErrorPacketOverrate NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamVmDisplayName,
+		h3cCasAlarmParamVmIpAddress,
+		h3cCasAlarmParamVmIpv6Address,
+		h3cCasAlarmParamVmName,
+		h3cCasAlarmParamVmUuid,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamNicMac,
+		h3cCasAlarmParamNicErrorPacketRate,
+		h3cCasAlarmParamNicErrorPacketRateThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The received error packet rate of the NIC has exceeded the threshold.
+		 This might be caused by 1. non-IP flows.
+		 Fixes: 1. Catch packets at the corresponding vnet interface and check unusual flows."
+	::= { h3cCasAlarmTrapPrefix 156 }
+
+h3cCasAlarmIscsiSessionConnectionFailed NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The iscsi session on the CVK host is disconnected."
+	::= { h3cCasAlarmTrapPrefix 157 }
+
+h3cCasAlarmHostVirtualSwitchSendErrorPacketOverrate NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamVirtualSwitchName,
+		h3cCasAlarmParamVirtualSwitchErrorPacketRate,
+		h3cCasAlarmParamVirtualSwitchErrorPacketRateThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The sent error packet rate of the virtual switch has exceeded the threshold.
+		 This might be caused by 1. physical cable is loosen or broken, 2. being connected to other type of
+		 network, 3. non-IP flows.
+		 Fixes: 1. Check and fix Network connections errors in including NIC, cable or optical power rate.
+		 2. Make sure there are no non-ethernet frames. 3. Make sure there are no unusual non-IP flows."
+	::= { h3cCasAlarmTrapPrefix 158 }
+
+h3cCasAlarmHostNicSendErrorPacketOverrate NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamNicMac,
+		h3cCasAlarmParamNicErrorPacketRate,
+		h3cCasAlarmParamNicErrorPacketRateThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The sent error packet rate of the NIC has exceeded the threshold.
+		 This might be caused by 1. physical cable is loosen or broken, 2. being connected to other type of
+		 network, 3. non-IP flows.
+		 Fixes: 1. Check and fix Network connections errors in including NIC, cable or optical power rate.
+		 2. Make sure there are no non-ethernet frames. 3. Make sure there are no unusual non-IP flows."
+	::= { h3cCasAlarmTrapPrefix 159 }
+
+h3cCasAlarmVmNicSendErrorPacketOverrate NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamVmDisplayName,
+		h3cCasAlarmParamVmIpAddress,
+		h3cCasAlarmParamVmIpv6Address,
+		h3cCasAlarmParamVmName,
+		h3cCasAlarmParamVmUuid,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamNicMac,
+		h3cCasAlarmParamNicErrorPacketRate,
+		h3cCasAlarmParamNicErrorPacketRateThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The sent error packet rate of the NIC has exceeded the threshold.
+		 This might be caused by 1. non-IP flows.
+		 Fixes: 1. Catch packets at the corresponding vnet interface and check unusual flows."
+	::= { h3cCasAlarmTrapPrefix 162 }
+	
+h3cCasAlarmTomcatConnsOverrate NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamCvmHostName,
+		h3cCasAlarmParamCvmIpAddress,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamTomcatConns,
+		h3cCasAlarmParamTomcatConnsThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when the num of tomcat connections exceeded the threshold.
+		 This might be caused by 1. tomcat has been visited by too many users.
+		 Fixes: contact engineer for help."
+	::= { h3cCasAlarmTrapPrefix 165 }
+
+h3cCasAlarmTomcatConnsOfIpOverrate NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamCvmHostName,
+		h3cCasAlarmParamCvmIpAddress,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamTomcatConns,
+		h3cCasAlarmParamTomcatConnsThreshold,
+		h3cCasAlarmParamTomcatConnIp
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when the num of tomcat connections of singl user exceeded the threshold.
+		 This might be caused by 1. connection of tomcat occupied by user exceed the threshold.
+		 Fixes: 1. Decrease the conneciton occupied by the user refer to the alarm.
+		 2. Contact engineer for help."
+	::= { h3cCasAlarmTrapPrefix 166 }
+
+h3cCasAlarmVmTemplateAbnormal NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamCvmHostName,
+		h3cCasAlarmParamCvmIpAddress,
+		h3cCasAlarmParamVmTemplateName,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The virtual machine template file is abnormal.
+		 This might be caused by 1. The template file is damaged. 2. the template file is not exist.
+		 Fixes: 1. Delete abnormal template file and make a new file."
+	::= { h3cCasAlarmTrapPrefix 167 }
+
+h3cCasAlarmAdminPwdValidTime NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamUserAccount,
+		h3cCasAlarmParamUserPwdValidTime
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when the remaining valid days of the administrator account password is less than 7 days.
+		This might be caused by 1. remaining valid days of the administrator account password is less than 7 days.
+		Fixes: 1. modify the password of administrator account."
+	::= { h3cCasAlarmTrapPrefix 168 }
+
+h3cCasAlarmAdminPwdInvalid NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamUserAccount
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when password of the administrator account is invalid.
+		This might be caused by 1. password of the administrator account is invalid.
+		Fixes: 1. reset the password of administrator account."
+	::= { h3cCasAlarmTrapPrefix 169 }
+
+h3cCasAlarmVmMetadataFileFault NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamVmName,
+		h3cCasAlarmParamSharedFilesystemName,
+		h3cCasAlarmParamSharedFilesystemDisplayName,
+		h3cCasAlarmParamVmMetadataFaultFileName,
+		h3cCasAlarmParamVmMetadataFaultFixResult
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when vm file metadata fault was detected by filesystem.
+		This might be caused by 1. vm file metadata fault was detected by filesystem."
+	::= { h3cCasAlarmTrapPrefix 170 }
+
+h3cCasAlarmVmTcpConnNumberExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamVmName,
+		h3cCasAlarmParamVmDisplayName,
+		h3cCasAlarmParamVmIpAddress,
+		h3cCasAlarmParamVmIpv6Address,
+		h3cCasAlarmParamVmUuid,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamVmTcpConnNumber,
+		h3cCasAlarmParamVmTcpConnNumberThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when the num of tcp connections of vm exceeded the threshold.
+		This might be caused by 1. connection of vm occupied by user exceed the threshold, or 2. the
+		 vm is under DDoS attack.
+		Fixes: 1. check if vm is under high concurrency, 2. use anti-virus software on the vm."
+	::= { h3cCasAlarmTrapPrefix 171 }
+
+h3cCasAlarmAlarmPhoneMessageSendFail NOTIFICATION-TYPE
+	OBJECTS {
+	    h3cCasAlarmParamPhoneNumber,
+	    h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+	    "Alarm message send fail.
+	    This might be caused by 1. invalid phone number, 2. invalid message config,
+	    3. message server denies services as log in failed too many times.
+	    Fixes: 1. check phone number or message config."
+	::= { h3cCasAlarmTrapPrefix 172 }
+
+h3cCasAlarmAlarmEmailSendFail NOTIFICATION-TYPE
+	OBJECTS {
+	    h3cCasAlarmParamSenderEmail,
+	    h3cCasAlarmParamRecipientEmail,
+	    h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+	    "Alarm email send fail.
+	    This might be caused by 1. invalid recipient email address, 2. invalid alarm server,
+	    3. email server denies services as log in failed too many times.
+	    Fixes: 1. check recipient email address or alarm server, 2. add recipient email address to white list of email server."
+	::= { h3cCasAlarmTrapPrefix 173 }
+
+h3cCasAlarmHostVersionFail NOTIFICATION-TYPE
+	OBJECTS {
+	    h3cCasAlarmParamAlarmClass,
+	    h3cCasAlarmParamClusterName,
+	    h3cCasAlarmParamEventType,
+	    h3cCasAlarmParamAgentTime
+	}
+	STATUS	current
+	DESCRIPTION
+	    "The hosts in the cluster are not running the same software version.
+	    Possible causes: The hosts are not running the most recent version.
+	    Fixes: 1. For features to function correctly, upgrade the hosts in the cluster to the most recent version as soon as possible."
+	::= { h3cCasAlarmTrapPrefix 176 }
+
+h3cCasAlarmVmQemuLiveUpdateFail NOTIFICATION-TYPE
+	OBJECTS {
+	    h3cCasAlarmParamVmDisplayName,
+		h3cCasAlarmParamVmIpAddress,
+		h3cCasAlarmParamVmIpv6Address,
+		h3cCasAlarmParamVmName,
+		h3cCasAlarmParamVmUuid,
+		h3cCasAlarmParamAlarmClass,
+	}
+	STATUS	current
+	DESCRIPTION
+		"QEMU of virtual machine online upgrade fail."
+	::= { h3cCasAlarmTrapPrefix 178 }
+	
+h3cCasAlarmHostHungTask NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamProcessInfo,
+		h3cCasAlarmParamAlarmClass,
+	}
+	STATUS	current
+	DESCRIPTION
+		"Process is in D state.
+		A host process keeps in D state for a long time because it has been waiting for a response from resources.
+		Possible reasons: 1. Hardware failure. 2. Storage network anomaly. 3. Insufficient system resources.
+		Fixes: Troubleshoot and repair hardware, driver, or storage network faults."
+	::= { h3cCasAlarmTrapPrefix 179 }
+
+h3cCasAlarmVmCastoolsAbnormal NOTIFICATION-TYPE
+	OBJECTS {
+	    h3cCasAlarmParamVmDisplayName,
+		h3cCasAlarmParamVmIpAddress,
+		h3cCasAlarmParamVmIpv6Address,
+		h3cCasAlarmParamVmName,
+		h3cCasAlarmParamVmUuid,
+		h3cCasAlarmParamAlarmClass,
+	}
+	STATUS	current
+	DESCRIPTION
+		"Castools of virtual machine is abnormal.
+		This might be caused by 1. Castools is not installed, 2. Castools is not running.
+	    Fixes: 1. Install and run Castools in virtual machine."
+	::= { h3cCasAlarmTrapPrefix 175 }
+
+h3cCasAlarmSharedFilesystemFenceUmounted NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamSharedFilesystemName,
+		h3cCasAlarmParamSharedFilesystemDisplayName,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The shared filesystem of the CVK host is fence umounted.
+		 This might be caused by 1. storage devices failure, or 2. the physical link to the storage
+		 devices is unstable."
+	::= { h3cCasAlarmTrapPrefix 163 }
+
+h3cCasAlarmVmSpectralVituralMachineRunning NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamVmDisplayName,
+		h3cCasAlarmParamVmIpAddress,
+		h3cCasAlarmParamVmIpv6Address,
+		h3cCasAlarmParamVmName,
+		h3cCasAlarmParamVmUuid,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The running virtual machine is not supposed to be running.
+		 Possible causes: 1. MAC address confliction with other VMs, 2. the qemu process of the VM
+		 still exists."
+	::= { h3cCasAlarmTrapPrefix 164 }
+
+h3cCasAlarmTomcatCpuUsage NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamResourceUsageThreshold,
+		h3cCasAlarmParamResourceUsage
+	}
+	STATUS	current
+	DESCRIPTION
+		"Possible causes: 1. CVM has a large number of connections. 2. Many tasks are running on CVM."
+	::= { h3cCasAlarmTrapPrefix 180 }
+
+h3cCasAlarmTomcatMemoryUsage NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamResourceUsageThreshold,
+		h3cCasAlarmParamResourceUsage
+	}
+	STATUS	current
+	DESCRIPTION
+		"Possible causes: 1. Many tasks are running on CVM.
+		2. Other platforms are retrieving large amounts of data from CVM."
+	::= { h3cCasAlarmTrapPrefix 181 }
+
+h3cCasAlarmDomainServerCpuUsage NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamResourceUsageThreshold,
+		h3cCasAlarmParamResourceUsage
+	}
+	STATUS	current
+	DESCRIPTION
+		"Possible causes: 1. Many VM creation, deployment, and clone tasks are running on CVM."
+	::= { h3cCasAlarmTrapPrefix 182 }
+
+h3cCasAlarmDomainServerMemoryUsage NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamResourceUsageThreshold,
+		h3cCasAlarmParamResourceUsage
+	}
+	STATUS	current
+	DESCRIPTION
+		"Possible causes: 1. Many VM creation, deployment, and clone tasks are running on CVM."
+	::= { h3cCasAlarmTrapPrefix 183 }
+
+h3cCasAlarmVmApplicationFailed NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamVmDisplayName,
+		h3cCasAlarmParamVmIpAddress,
+		h3cCasAlarmParamVmName,
+		h3cCasAlarmParamVmUuid,
+		h3cCasAlarmParamVmIpv6Address,
+		h3cCasAlarmParamApplicationName,
+		h3cCasAlarmParamFaultType,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when an application of a vm fails. Possible causes
+		 are 1. that the requesting port is busy, 2. process exit on exception."
+	::= { h3cCasAlarmTrapPrefix 201 }
+
+h3cCasAlarmLoginFailureOverLimit NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamUserIpAddress,
+		h3cCasAlarmParamCvmHostName,
+		h3cCasAlarmParamCvmIpAddress,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamMaxNumberOfAttempts
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when the user fails too many times in login."
+	::= { h3cCasAlarmTrapPrefix 260 }
+
+h3cCasAlarmUserIpRestricted NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamUserIpAddress,
+		h3cCasAlarmParamUserAccount,
+		h3cCasAlarmParamCvmHostName,
+		h3cCasAlarmParamCvmIpAddress,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when Attempting to login from a restricted
+		 user ip."
+	::= { h3cCasAlarmTrapPrefix 261 }
+
+h3cCasAlarmUserTimeRestricted NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamUserIpAddress,
+		h3cCasAlarmParamUserAccount,
+		h3cCasAlarmParamloginTime,
+		h3cCasAlarmParamCvmHostName,
+		h3cCasAlarmParamCvmIpAddress,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when the login time of a user is restricted."
+	::= { h3cCasAlarmTrapPrefix 262 }
+
+h3cCasAlarmResourceAccessAuthorityInsufficient NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamResourceAccessURL,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The user has no authority for accessing the resource. The authority can be
+		 checked through client IP and URL that the user specified."
+	::= { h3cCasAlarmTrapPrefix 263 }
+
+h3cCasAlarmHostComponentMissed NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamComponentName
+	}
+	STATUS	current
+	DESCRIPTION
+		"The component of the host is missed, which causes a incomplete state of the
+		 host component set."
+	::= { h3cCasAlarmTrapPrefix 264 }
+
+h3cCasAlarmVmEscape NOTIFICATION-TYPE
+	OBJECTS {
+	    h3cCasAlarmParamAgentTime,
+	    h3cCasAlarmParamVmName,
+	    h3cCasAlarmParamVmDisplayName,
+		h3cCasAlarmParamVmIpAddress,
+		h3cCasAlarmParamVmIpv6Address,
+		h3cCasAlarmParamVmUuid,
+		h3cCasAlarmParamSysCallID,
+		h3cCasAlarmParamSysCallCount,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"Virtual machine escape.
+		This might be caused by 1. The internal program of the virtual machine calls the host system function.
+	    Fixes: 1. Check whether the virtual machine is poisoned or attacked, and clean the virus or terminate the attack."
+	::= { h3cCasAlarmTrapPrefix 265 }
+
+h3cCasAlarmHostLogicalDiskCacheFailed NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamDiskName,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The cache of the logical disk failed. This could be caused by shutting down of
+		 the cache. To solve this, proceed the cache repair function."
+	::= { h3cCasAlarmTrapPrefix 301 }
+
+h3cCasAlarmHostPhysicalDiskCacheFailed NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamRaidCardType,
+		h3cCasAlarmParamDiskPosition,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The cache of the physical disk failed. This may be because the physical disk cache
+		 is turned on. To solve this, proceed the cache repair function."
+	::= { h3cCasAlarmTrapPrefix 302 }
+
+h3cCasAlarmRaidControllerAbnormal NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamRaidCardType,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The RAID controller of the host is malfunctioning, which may be caused by controller
+		 damage. Please contact the maintenance."
+	::= { h3cCasAlarmTrapPrefix 303 }
+
+h3cCasAlarmRaidBatteryAbnormal NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamRaidCardType,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The RAID battery of the host is dying. Please contact the maintenance."
+	::= { h3cCasAlarmTrapPrefix 304 }
+
+h3cCasAlarmLogicalDiskFailed NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamDiskName,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The logical disk of the host is malfunctioning. Please contact the maintenance."
+	::= { h3cCasAlarmTrapPrefix 305 }
+
+h3cCasAlarmPhysicalDiskFailed NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamRaidCardType,
+		h3cCasAlarmParamDiskPosition,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The physical disk of the host is malfunctioning. This may be the damage of the disk.
+		 Please contact the maintenance."
+	::= { h3cCasAlarmTrapPrefix 306 }
+
+h3cCasAlarmPhysicalDiskIoAbnormal NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamRaidCardType,
+		h3cCasAlarmParamDiskPosition,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The physical disk I/O of the host is abnormal. Please contact the maintenance."
+	::= { h3cCasAlarmTrapPrefix 307 }
+
+h3cCasAlarmHostDataDiskRemove NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamDiskName,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"A host data disk is removed."
+	::= { h3cCasAlarmTrapPrefix 310 }
+
+h3cCasAlarmHostDataDiskAdd NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamDiskName,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"Host add a data disk."
+	::= { h3cCasAlarmTrapPrefix 311 }
+
+h3cCasAlarmHostOSDiskRemove NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamDiskName,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"A host OS disk is removed."
+	::= { h3cCasAlarmTrapPrefix 312 }
+
+h3cCasAlarmHostOSDiskAdd NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamDiskName,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"Host add a OS disk."
+	::= { h3cCasAlarmTrapPrefix 313 }
+
+-- Recovery TRAP Definitions
+h3cCasRecoveryHostNicDown NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamNicName,
+		h3cCasAlarmParamNicMac
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10001 }
+
+h3cCasRecoveryHostLocalStorageFailed NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamDiskName,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10002 }
+
+h3cCasRecoveryHostTimeNotSynchronized NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamTimeDifference,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10003 }
+
+h3cCasRecoveryHostClockSourceNotTsc NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10004 }
+
+h3cCasRecoveryHostCpuUsageExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamCpuUsage,
+		h3cCasAlarmParamCpuThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10006 }
+
+h3cCasRecoveryHostMemUsageExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamMemUsage,
+		h3cCasAlarmParamMemThreshold,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10007 }
+
+h3cCasRecoveryHostDiskPartitionUsageExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamDiskName,
+		h3cCasAlarmParamDiskPartitionUsage,
+		h3cCasAlarmParamDiskThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10008 }
+
+h3cCasRecoveryHostDiskThroughputExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamDiskName,
+		h3cCasAlarmParamDiskThroughput,
+		h3cCasAlarmParamDiskThroughputThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10009 }
+
+h3cCasRecoveryHostNetThroughputExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamNicMac,
+		h3cCasAlarmParamNetThroughput,
+		h3cCasAlarmParamNetThroughputThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10010 }
+
+h3cCasRecoveryVmFailed NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamVmDisplayName,
+		h3cCasAlarmParamVmIpAddress,
+		h3cCasAlarmParamVmName,
+		h3cCasAlarmParamVmUuid,
+		h3cCasAlarmParamVmIpv6Address,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10011 }
+
+h3cCasRecoveryVmFailoverSucceeded NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamVmDisplayName,
+		h3cCasAlarmParamVmIpAddress,
+		h3cCasAlarmParamVmName,
+		h3cCasAlarmParamVmUuid,
+		h3cCasAlarmParamVmIpv6Address,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10012 }
+
+h3cCasRecoveryVmRecoveryFailed NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamVmDisplayName,
+		h3cCasAlarmParamVmIpAddress,
+		h3cCasAlarmParamVmName,
+		h3cCasAlarmParamVmUuid,
+		h3cCasAlarmParamVmIpv6Address,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10013 }
+
+h3cCasRecoveryVmCpuUsageExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamVmDisplayName,
+		h3cCasAlarmParamVmIpAddress,
+		h3cCasAlarmParamVmName,
+		h3cCasAlarmParamVmUuid,
+		h3cCasAlarmParamVmIpv6Address,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamCpuUsage,
+		h3cCasAlarmParamCpuThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10016 }
+
+h3cCasRecoveryVmMemUsageExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamVmDisplayName,
+		h3cCasAlarmParamVmIpAddress,
+		h3cCasAlarmParamVmName,
+		h3cCasAlarmParamVmUuid,
+		h3cCasAlarmParamVmIpv6Address,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamMemUsage,
+		h3cCasAlarmParamMemThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10017 }
+
+h3cCasRecoveryVmDiskPartitionUsageExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamVmDisplayName,
+		h3cCasAlarmParamVmIpAddress,
+		h3cCasAlarmParamVmName,
+		h3cCasAlarmParamVmUuid,
+		h3cCasAlarmParamVmIpv6Address,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamDiskName,
+		h3cCasAlarmParamDiskPartitionUsage,
+		h3cCasAlarmParamDiskThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10018 }
+
+h3cCasRecoveryVmDiskThroughputExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamVmDisplayName,
+		h3cCasAlarmParamVmIpAddress,
+		h3cCasAlarmParamVmName,
+		h3cCasAlarmParamVmUuid,
+		h3cCasAlarmParamVmIpv6Address,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamDiskName,
+		h3cCasAlarmParamDiskThroughput,
+		h3cCasAlarmParamDiskThroughputThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10019 }
+
+h3cCasRecoveryVmNetThroughputExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamVmDisplayName,
+		h3cCasAlarmParamVmIpAddress,
+		h3cCasAlarmParamVmName,
+		h3cCasAlarmParamVmUuid,
+		h3cCasAlarmParamVmIpv6Address,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamNicMac,
+		h3cCasAlarmParamNetThroughput,
+		h3cCasAlarmParamNetThroughputThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10020 }
+
+h3cCasRecoveryClusterHaFailoverFailed NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamClusterName,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10021 }
+
+h3cCasRecoveryHostNetHeartbeatDown NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamClusterName,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10022 }
+
+h3cCasRecoveryClusterHaResourceReserveInsufficient NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamClusterName,
+		h3cCasAlarmParamCpuUsage,
+		h3cCasAlarmParamCpuThreshold,
+		h3cCasAlarmParamMemUsage,
+		h3cCasAlarmParamMemThreshold,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10023 }
+
+h3cCasRecoveryClusterCpuUsageExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamClusterName,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamCpuUsage,
+		h3cCasAlarmParamCpuThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10026 }
+
+h3cCasRecoveryClusterMemUsageExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamClusterName,
+		h3cCasAlarmParamMemUsage,
+		h3cCasAlarmParamMemThreshold,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10027 }
+
+h3cCasRecoveryClusterReservedHugepageMemUsageExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamClusterName,
+		h3cCasAlarmParamReservedHugepageMemUsage,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamMemReservedHugepageThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10028 }
+
+h3cCasRecoverySharedFilesystemFailed NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamSharedFilesystemName,
+		h3cCasAlarmParamSharedFilesystemDisplayName,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10031 }
+
+h3cCasRecoveryClusterSharedStorageUsageExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamSharedFilesystemName,
+		h3cCasAlarmParamSharedFilesystemDisplayName,
+		h3cCasAlarmParamSharedFilesystemMountPath,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamDiskPartitionUsage,
+		h3cCasAlarmParamCurrentValue
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10032 }
+
+h3cCasRecoveryClusterSharedStorageThroughputExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamSharedFilesystemName,
+		h3cCasAlarmParamSharedFilesystemDisplayName,
+		h3cCasAlarmParamSharedFilesystemMountPath,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamDiskThroughput,
+		h3cCasAlarmParamDiskThroughputThreshold,
+		h3cCasAlarmParamCurrentValue
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10033 }
+
+h3cCasRecoveryClusterSharedStorageReadThroughputExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamSharedFilesystemName,
+		h3cCasAlarmParamSharedFilesystemDisplayName,
+		h3cCasAlarmParamSharedFilesystemMountPath,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamDiskReadThroughput,
+		h3cCasAlarmParamDiskReadThroughputThreshold,
+		h3cCasAlarmParamCurrentValue
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10034 }
+
+h3cCasRecoveryClusterSharedStorageWriteThroughputExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamSharedFilesystemName,
+		h3cCasAlarmParamSharedFilesystemDisplayName,
+		h3cCasAlarmParamSharedFilesystemMountPath,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamDiskWriteThroughput,
+		h3cCasAlarmParamDiskWriteThroughputThreshold,
+		h3cCasAlarmParamCurrentValue
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10035 }
+
+h3cCasRecoveryClusterSharedStorageIopsExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamSharedFilesystemName,
+		h3cCasAlarmParamSharedFilesystemDisplayName,
+		h3cCasAlarmParamSharedFilesystemMountPath,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamDiskIops,
+		h3cCasAlarmParamDiskIopsThreshold,
+		h3cCasAlarmParamCurrentValue
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10036 }
+
+h3cCasRecoveryClusterSharedStorageReadIopsExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamSharedFilesystemName,
+		h3cCasAlarmParamSharedFilesystemDisplayName,
+		h3cCasAlarmParamSharedFilesystemMountPath,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamDiskReadIops,
+		h3cCasAlarmParamDiskReadIopsThreshold,
+		h3cCasAlarmParamCurrentValue
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10037 }
+
+h3cCasRecoveryClusterSharedStorageWriteIopsExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamSharedFilesystemName,
+		h3cCasAlarmParamSharedFilesystemDisplayName,
+		h3cCasAlarmParamSharedFilesystemMountPath,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamDiskWriteIops,
+		h3cCasAlarmParamDiskWriteIopsThreshold,
+		h3cCasAlarmParamCurrentValue
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10038 }
+
+h3cCasRecoveryClusterSharedStorageIoLatencyExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamSharedFilesystemName,
+		h3cCasAlarmParamSharedFilesystemDisplayName,
+		h3cCasAlarmParamSharedFilesystemMountPath,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamDiskIoLatency,
+		h3cCasAlarmParamDiskIoLatencyThreshold,
+		h3cCasAlarmParamCurrentValue
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10039 }
+
+h3cCasRecoveryClusterSharedStorageReadIoLatencyExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamSharedFilesystemName,
+		h3cCasAlarmParamSharedFilesystemDisplayName,
+		h3cCasAlarmParamSharedFilesystemMountPath,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamDiskReadIoLatency,
+		h3cCasAlarmParamDiskReadIoLatencyThreshold,
+		h3cCasAlarmParamCurrentValue
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10040 }
+
+h3cCasRecoveryClusterSharedStorageWriteIoLatencyExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamSharedFilesystemName,
+		h3cCasAlarmParamSharedFilesystemDisplayName,
+		h3cCasAlarmParamSharedFilesystemMountPath,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamDiskWriteIoLatency,
+		h3cCasAlarmParamDiskWriteIoLatencyThreshold,
+		h3cCasAlarmParamCurrentValue
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10041 }
+
+h3cCasRecoveryHostSharedStorageFilesystemBroken NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamSharedFilesystemName,
+		h3cCasAlarmParamSharedFilesystemDisplayName,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10042 }
+
+h3cCasRecoveryCvmFailed NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvmHostName,
+		h3cCasAlarmParamCvmIpAddress,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10051 }
+
+h3cCasRecoveryCasLicenseExpiring NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvmHostName,
+		h3cCasAlarmParamCvmIpAddress,
+		h3cCasAlarmParamCasType,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates license of the CAS product is valid."
+	::= { h3cCasAlarmTrapPrefix 10052 }
+
+h3cCasRecoveryHaStandbyCvmFailed NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvmHostName,
+		h3cCasAlarmParamCvmIpAddress,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10053 }
+
+h3cCasRecoveryCvmTemplateStorageFailed NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvmHostName,
+		h3cCasAlarmParamCvmIpAddress,
+		h3cCasAlarmParamTemplateStorageName,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10054 }
+
+h3cCasRecoveryCvmAutoBackupFailed NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvmHostName,
+		h3cCasAlarmParamCvmIpAddress,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10055 }
+
+h3cCasRecoveryCvmBrainSplited NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvmHostName,
+		h3cCasAlarmParamCvmIpAddress,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10056 }
+
+h3cCasRecoveryVirtualSwitchFailed NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamVirtualSwitchName,
+		h3cCasAlarmParamVSFaultType
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10061 }
+
+h3cCasRecoveryHostReservedHugepageMemUsageExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamReservedHugepageMemUsage,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamReservedHugepageMemThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10062 }
+
+h3cCasRecoveryHostDiskReadThroughputExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamDiskName,
+		h3cCasAlarmParamDiskReadThroughput,
+		h3cCasAlarmParamDiskReadThroughputThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10071 }
+
+h3cCasRecoveryHostDiskWriteThroughputExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamDiskName,
+		h3cCasAlarmParamDiskWriteThroughput,
+		h3cCasAlarmParamDiskWriteThroughputThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10072 }
+
+h3cCasRecoveryHostDiskIopsExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamDiskName,
+		h3cCasAlarmParamDiskIops,
+		h3cCasAlarmParamDiskIopsThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10073 }
+
+h3cCasRecoveryHostDiskReadIopsExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamDiskName,
+		h3cCasAlarmParamDiskReadIops,
+		h3cCasAlarmParamDiskReadIopsThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10074 }
+
+h3cCasRecoveryHostDiskWriteIopsExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamDiskName,
+		h3cCasAlarmParamDiskWriteIops,
+		h3cCasAlarmParamDiskWriteIopsThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10075 }
+
+h3cCasRecoveryHostDiskIoLatencyExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamDiskName,
+		h3cCasAlarmParamDiskIoLatency,
+		h3cCasAlarmParamDiskIoLatencyThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10076 }
+
+h3cCasRecoveryHostDiskReadIoLatencyExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamDiskName,
+		h3cCasAlarmParamDiskReadIoLatency,
+		h3cCasAlarmParamDiskReadIoLatencyThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10077 }
+
+h3cCasRecoveryHostDiskWriteIoLatencyExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamDiskName,
+		h3cCasAlarmParamDiskWriteIoLatency,
+		h3cCasAlarmParamDiskWriteIoLatencyThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10078 }
+
+h3cCasRecoveryHostNetRecvThroughputExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamNicMac,
+		h3cCasAlarmParamNetRecvThroughput,
+		h3cCasAlarmParamNetRecvThroughputThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10079 }
+
+h3cCasRecoveryHostNetSendThroughputExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamNicMac,
+		h3cCasAlarmParamNetSendThroughput,
+		h3cCasAlarmParamNetSendThroughputThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10080 }
+
+h3cCasRecoveryHostFcLinkFailed NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamHbaCardName
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10081 }
+
+h3cCasRecoveryHostNetUplinkRedundancyFailed NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamVirtualSwitchName
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10082 }
+
+h3cCasRecoveryHostSharedStorageSingleLinkLeft NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamSharedFilesystemName,
+		h3cCasAlarmParamSharedFilesystemDisplayName,
+		h3cCasAlarmParamSharedFilesystemMountPath
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10083 }
+
+h3cCasRecoveryHostFailed NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10084 }
+
+h3cCasRecoveryVirtualizationManagementServiceAbnormal NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the virtualization management software is running normally."
+	::= { h3cCasAlarmTrapPrefix 10085 }
+
+h3cCasRecoveryHostInMaintenance NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10086 }
+
+h3cCasRecoveryHostProcessFailed NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamProcessName
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10087 }
+
+h3cCasRecoveryHostNicAutoNegotiationFailed NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamNicMac
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10088 }
+
+h3cCasRecoveryVmDiskReadThroughputExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamVmDisplayName,
+		h3cCasAlarmParamVmIpAddress,
+		h3cCasAlarmParamVmName,
+		h3cCasAlarmParamVmUuid,
+		h3cCasAlarmParamVmIpv6Address,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamDiskName,
+		h3cCasAlarmParamDiskReadThroughput,
+		h3cCasAlarmParamDiskReadThroughputThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10091 }
+
+h3cCasRecoveryVmDiskWriteThroughputExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamVmDisplayName,
+		h3cCasAlarmParamVmIpAddress,
+		h3cCasAlarmParamVmName,
+		h3cCasAlarmParamVmUuid,
+		h3cCasAlarmParamVmIpv6Address,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamDiskName,
+		h3cCasAlarmParamDiskWriteThroughput,
+		h3cCasAlarmParamDiskWriteThroughputThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10092 }
+
+h3cCasRecoveryVmDiskIopsExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamVmDisplayName,
+		h3cCasAlarmParamVmIpAddress,
+		h3cCasAlarmParamVmName,
+		h3cCasAlarmParamVmUuid,
+		h3cCasAlarmParamVmIpv6Address,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamDiskName,
+		h3cCasAlarmParamDiskIops,
+		h3cCasAlarmParamDiskIopsThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10093 }
+
+h3cCasRecoveryVmDiskReadIopsExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamVmDisplayName,
+		h3cCasAlarmParamVmIpAddress,
+		h3cCasAlarmParamVmName,
+		h3cCasAlarmParamVmUuid,
+		h3cCasAlarmParamVmIpv6Address,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamDiskName,
+		h3cCasAlarmParamDiskReadIops,
+		h3cCasAlarmParamDiskReadIopsThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10094 }
+
+h3cCasRecoveryVmDiskWriteIopsExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamVmDisplayName,
+		h3cCasAlarmParamVmIpAddress,
+		h3cCasAlarmParamVmName,
+		h3cCasAlarmParamVmUuid,
+		h3cCasAlarmParamVmIpv6Address,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamDiskName,
+		h3cCasAlarmParamDiskWriteIops,
+		h3cCasAlarmParamDiskWriteIopsThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10095 }
+
+h3cCasRecoveryVmDiskIoLatencyExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamVmDisplayName,
+		h3cCasAlarmParamVmIpAddress,
+		h3cCasAlarmParamVmName,
+		h3cCasAlarmParamVmUuid,
+		h3cCasAlarmParamVmIpv6Address,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamDiskName,
+		h3cCasAlarmParamDiskIoLatency,
+		h3cCasAlarmParamDiskIoLatencyThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10096 }
+
+h3cCasRecoveryVmDiskReadIoLatencyExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamVmDisplayName,
+		h3cCasAlarmParamVmIpAddress,
+		h3cCasAlarmParamVmName,
+		h3cCasAlarmParamVmUuid,
+		h3cCasAlarmParamVmIpv6Address,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamDiskName,
+		h3cCasAlarmParamDiskReadIoLatency,
+		h3cCasAlarmParamDiskReadIoLatencyThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10097 }
+
+h3cCasRecoveryVmDiskWriteIoLatencyExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamVmDisplayName,
+		h3cCasAlarmParamVmIpAddress,
+		h3cCasAlarmParamVmName,
+		h3cCasAlarmParamVmUuid,
+		h3cCasAlarmParamVmIpv6Address,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamDiskName,
+		h3cCasAlarmParamDiskWriteIoLatency,
+		h3cCasAlarmParamDiskWriteIoLatencyThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10098 }
+
+h3cCasRecoveryVmNetRecvThroughputExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamVmDisplayName,
+		h3cCasAlarmParamVmIpAddress,
+		h3cCasAlarmParamVmName,
+		h3cCasAlarmParamVmUuid,
+		h3cCasAlarmParamVmIpv6Address,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamNicMac,
+		h3cCasAlarmParamNetRecvThroughput,
+		h3cCasAlarmParamNetRecvThroughputThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10099 }
+
+h3cCasRecoveryVmNetSendThroughputExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamVmDisplayName,
+		h3cCasAlarmParamVmIpAddress,
+		h3cCasAlarmParamVmName,
+		h3cCasAlarmParamVmUuid,
+		h3cCasAlarmParamVmIpv6Address,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamNicMac,
+		h3cCasAlarmParamNetSendThroughput,
+		h3cCasAlarmParamNetSendThroughputThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10100 }
+
+h3cCasRecoveryVmAutoBackupFailed NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamVmDisplayName,
+		h3cCasAlarmParamVmIpAddress,
+		h3cCasAlarmParamVmName,
+		h3cCasAlarmParamVmUuid,
+		h3cCasAlarmParamVmIpv6Address,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamHbaCardName
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10106 }
+
+h3cCasRecoveryVmFroze NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamVmDisplayName,
+		h3cCasAlarmParamVmIpAddress,
+		h3cCasAlarmParamVmName,
+		h3cCasAlarmParamVmUuid,
+		h3cCasAlarmParamVmIpv6Address,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10107 }
+
+h3cCasRecoveryVmImgDeleted NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamVmDisplayName,
+		h3cCasAlarmParamVmIpAddress,
+		h3cCasAlarmParamVmName,
+		h3cCasAlarmParamVmUuid,
+		h3cCasAlarmParamVmIpv6Address,
+		h3cCasAlarmParamDiskName,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the deleted image file has been
+		 recovered."
+	::= { h3cCasAlarmTrapPrefix 10108 }
+
+h3cCasRecoveryVmIOFailOver NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamVmDisplayName,
+		h3cCasAlarmParamVmIpAddress,
+		h3cCasAlarmParamVmName,
+		h3cCasAlarmParamVmUuid,
+		h3cCasAlarmParamVmIpv6Address,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamDiskName
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates that the IO of vm is not be overed.
+		Maybe the vm used storage is restored and vm recovered,
+		maybe the storage or network of server is abnormal and vm be freezed."
+	::= { h3cCasAlarmTrapPrefix 10109 }
+
+h3cCasRecoveryHostLogPartitionGrowSpeedOverExpected NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamUnitTime,
+		h3cCasAlarmParamDiskThreshold,
+		h3cCasAlarmParamCurrentValue
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10140 }
+
+h3cCasRecoveryHostCpuOverheat NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamCpuTemperature,
+		h3cCasAlarmParamCpuTemperatureThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10141 }
+
+h3cCasRecoveryHostNicRecvPacketLossOverrate NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamNicMac,
+		h3cCasAlarmParamPacketLossRate,
+		h3cCasAlarmParamPacketLossThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10142 }
+
+h3cCasRecoveryHostNicSendPacketLossOverrate NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamNicMac,
+		h3cCasAlarmParamPacketLossRate,
+		h3cCasAlarmParamPacketLossThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10143 }
+
+h3cCasRecoveryHostMceArose NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10144 }
+
+h3cCasRecoveryVmNicRecvPacketLossOverrate NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamVmDisplayName,
+		h3cCasAlarmParamVmIpAddress,
+		h3cCasAlarmParamVmName,
+		h3cCasAlarmParamVmUuid,
+		h3cCasAlarmParamVmIpv6Address,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamNicMac,
+		h3cCasAlarmParamPacketLossRate,
+		h3cCasAlarmParamPacketLossThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10145 }
+
+h3cCasRecoveryVmNicSendPacketLossOverrate NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamVmDisplayName,
+		h3cCasAlarmParamVmIpAddress,
+		h3cCasAlarmParamVmName,
+		h3cCasAlarmParamVmUuid,
+		h3cCasAlarmParamVmIpv6Address,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamNicMac,
+		h3cCasAlarmParamPacketLossRate,
+		h3cCasAlarmParamPacketLossThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10146 }
+
+h3cCasRecoveryCvmFailoverArbitrationHostFailed NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamArbitrationHostName,
+		h3cCasAlarmParamArbitrationHostIpAddress,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10147 }
+
+h3cCasRecoveryHostSuspiciousProcessRunning NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamArbitrationHostName,
+		h3cCasAlarmParamArbitrationHostIpAddress,
+		h3cCasAlarmParamSuspiciousProcessName,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10148 }
+
+h3cCasRecoveryHostO2netTcpShutdown NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamFaultyHostName,
+		h3cCasAlarmParamFaultyHostIpAddress,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10149 }
+
+h3cCasRecoverySharedStorageMultipathAbnormal NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamStoragePathID,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamStoragePathName,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10151 }
+
+h3cCasRecoverySharedFilesystemAutomaticallyInactivated NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10152 }
+
+h3cCasRecoveryHostRestarted NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10153 }
+
+h3cCasRecoveryHostVirtualSwitchRecvErrorPacketOverrate NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamVirtualSwitchName,
+		h3cCasAlarmParamVirtualSwitchErrorPacketRate,
+		h3cCasAlarmParamVirtualSwitchErrorPacketRateThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10154 }
+
+h3cCasRecoveryHostNicRecvErrorPacketOverrate NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamNicMac,
+		h3cCasAlarmParamNicErrorPacketRate,
+		h3cCasAlarmParamNicErrorPacketRateThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10155 }
+
+h3cCasRecoveryVmNicRecvErrorPacketOverrate NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamVmDisplayName,
+		h3cCasAlarmParamVmIpAddress,
+		h3cCasAlarmParamVmIpv6Address,
+		h3cCasAlarmParamVmName,
+		h3cCasAlarmParamVmUuid,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamNicMac,
+		h3cCasAlarmParamNicErrorPacketRate,
+		h3cCasAlarmParamNicErrorPacketRateThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10156 }
+
+h3cCasRecoveryIscsiSessionConnectionFailed NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10157 }
+
+h3cCasRecoveryHostVirtualSwitchSendErrorPacketOverrate NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamVirtualSwitchName,
+		h3cCasAlarmParamVirtualSwitchErrorPacketRate,
+		h3cCasAlarmParamVirtualSwitchErrorPacketRateThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10158 }
+
+h3cCasRecoveryHostNicSendErrorPacketOverrate NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamNicMac,
+		h3cCasAlarmParamNicErrorPacketRate,
+		h3cCasAlarmParamNicErrorPacketRateThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10159 }
+
+h3cCasRecoveryVmNicSendErrorPacketOverrate NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamVmDisplayName,
+		h3cCasAlarmParamVmIpAddress,
+		h3cCasAlarmParamVmIpv6Address,
+		h3cCasAlarmParamVmName,
+		h3cCasAlarmParamVmUuid,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamNicMac,
+		h3cCasAlarmParamNicErrorPacketRate,
+		h3cCasAlarmParamNicErrorPacketRateThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10162 }
+	
+h3cCasRecoverySharedFilesystemFenceUmounted NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamSharedFilesystemName,
+		h3cCasAlarmParamSharedFilesystemDisplayName,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10163 }
+
+h3cCasRecoveryVmSpectralVituralMachineRunning NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamVmDisplayName,
+		h3cCasAlarmParamVmIpAddress,
+		h3cCasAlarmParamVmIpv6Address,
+		h3cCasAlarmParamVmName,
+		h3cCasAlarmParamVmUuid,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10164 }
+
+h3cCasRecoveryTomcatConnsOverrate NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamCvmHostName,
+		h3cCasAlarmParamCvmIpAddress,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamTomcatConns,
+		h3cCasAlarmParamTomcatConnsThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The alarm message triggered when the num of tomcat connections exceeded the threshold.
+		 This might be caused by 1. tomcat has been visited by too many users.
+		 Fixes: contact engineer for help."
+	::= { h3cCasAlarmTrapPrefix 10165 }
+
+h3cCasRecoveryTomcatConnsOfIpOverrate NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamCvmHostName,
+		h3cCasAlarmParamCvmIpAddress,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamTomcatConns,
+		h3cCasAlarmParamTomcatConnsThreshold,
+		h3cCasAlarmParamTomcatConnIp
+	}
+	STATUS	current
+	DESCRIPTION
+		"TThe alarm message triggered when the num of tomcat connections of singl user exceeded the threshold.
+		 This might be caused by 1. connection of tomcat occupied by user exceed the threshold.
+		 Fixes: 1. Decrease the conneciton occupied by the user refer to the alarm.
+		 2. Contact engineer for help."
+	::= { h3cCasAlarmTrapPrefix 10166 }
+
+h3cCasRecoveryVmTemplateAbnormal NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamCvmHostName,
+		h3cCasAlarmParamCvmIpAddress,
+		h3cCasAlarmParamVmTemplateName,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered."
+	::= { h3cCasAlarmTrapPrefix 10167 }
+
+h3cCasRecoveryAdminPwdValidTime NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamUserAccount,
+		h3cCasAlarmParamUserPwdValidTime
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates that the remaining valid days of the administrator account password
+		is longer than 7 days or has been invalid."
+	::= { h3cCasAlarmTrapPrefix 10168 }
+
+h3cCasRecoveryAdminPwdInvalid NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamUserAccount
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates that the password of the administrator account is valid again."
+	::= { h3cCasAlarmTrapPrefix 10169 }
+
+h3cCasRecoveryVmTcpConnNumberExceedThreshold NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamVmName,
+		h3cCasAlarmParamVmDisplayName,
+		h3cCasAlarmParamVmIpAddress,
+		h3cCasAlarmParamVmIpv6Address,
+		h3cCasAlarmParamVmUuid,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamVmTcpConnNumber,
+		h3cCasAlarmParamVmTcpConnNumberThreshold
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates that the tcp connections number of the vm is valid again."
+	::= { h3cCasAlarmTrapPrefix 10171 }
+
+h3cCasRecoveryVmQemuLiveUpdateFail NOTIFICATION-TYPE
+	OBJECTS {
+	    h3cCasAlarmParamVmDisplayName,
+		h3cCasAlarmParamVmIpAddress,
+		h3cCasAlarmParamVmIpv6Address,
+		h3cCasAlarmParamVmName,
+		h3cCasAlarmParamVmUuid,
+		h3cCasAlarmParamAlarmClass,
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the QEMU of virtual machine is upgraded."
+	::= { h3cCasAlarmTrapPrefix 10178 }
+
+h3cCasRecoveryHostHungTask NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass,
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the hung task has returned to normal."
+	::= { h3cCasAlarmTrapPrefix 10179 }
+
+h3cCasRecoveryVmCastoolsAbnormal NOTIFICATION-TYPE
+	OBJECTS {
+	    h3cCasAlarmParamVmDisplayName,
+		h3cCasAlarmParamVmIpAddress,
+		h3cCasAlarmParamVmIpv6Address,
+		h3cCasAlarmParamVmName,
+		h3cCasAlarmParamVmUuid,
+		h3cCasAlarmParamAlarmClass,
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the Castools of virtual machine is running normally."
+	::= { h3cCasAlarmTrapPrefix 10175 }
+
+h3cCasRecoveryTomcatCpuUsage NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamResourceUsageThreshold,
+		h3cCasAlarmParamResourceUsage
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10180 }
+
+h3cCasRecoveryTomcatMemoryUsage NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamResourceUsageThreshold,
+		h3cCasAlarmParamResourceUsage
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10181 }
+
+h3cCasRecoveryDomainServerCpuUsage NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamResourceUsageThreshold,
+		h3cCasAlarmParamResourceUsage
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10182 }
+
+h3cCasRecoveryDomainServerMemoryUsage NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamResourceUsageThreshold,
+		h3cCasAlarmParamResourceUsage
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10183 }
+
+h3cCasRecoveryVmApplicationFailed NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamVmDisplayName,
+		h3cCasAlarmParamVmIpAddress,
+		h3cCasAlarmParamVmName,
+		h3cCasAlarmParamVmUuid,
+		h3cCasAlarmParamVmIpv6Address,
+		h3cCasAlarmParamApplicationName,
+		h3cCasAlarmParamFaultType,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10201 }
+
+h3cCasRecoveryResourceAccessAuthorityInsufficient NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamResourceAccessURL,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10263 }
+
+h3cCasRecoveryHostComponentMissed NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamComponentName
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10264 }
+
+h3cCasRecoveryVmEscape NOTIFICATION-TYPE
+	OBJECTS {
+	    h3cCasAlarmParamAgentTime,
+	    h3cCasAlarmParamVmName,
+	    h3cCasAlarmParamVmDisplayName,
+		h3cCasAlarmParamVmIpAddress,
+		h3cCasAlarmParamVmIpv6Address,
+		h3cCasAlarmParamVmUuid,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10265 }
+
+h3cCasRecoveryHostLogicalDiskCacheFailed NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamDiskName,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10301 }
+
+h3cCasRecoveryHostPhysicalDiskCacheFailed NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamRaidCardType,
+		h3cCasAlarmParamDiskPosition,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10302 }
+
+h3cCasRecoveryRaidControllerAbnormal NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamRaidCardType,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10303 }
+
+h3cCasRecoveryRaidBatteryAbnormal NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamRaidCardType,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10304 }
+
+h3cCasRecoveryLogicalDiskFailed NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamDiskName,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10305 }
+
+h3cCasRecoveryPhysicalDiskFailed NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamRaidCardType,
+		h3cCasAlarmParamDiskPosition,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10306 }
+
+h3cCasRecoveryPhysicalDiskIoAbnormal NOTIFICATION-TYPE
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamRaidCardType,
+		h3cCasAlarmParamDiskPosition,
+		h3cCasAlarmParamAlarmClass
+	}
+	STATUS	current
+	DESCRIPTION
+		"The recovery message indicates the fault reported by a corresponding
+		 alarm has recovered or abated to a lower level."
+	::= { h3cCasAlarmTrapPrefix 10307 }
+
+-- COMFORMANCE definitions
+h3cCasAlarmMIBGroups OBJECT IDENTIFIER ::= { h3cCasAlarm 3 }
+h3cCasAlarmParamGroup OBJECT-GROUP
+	OBJECTS {
+		h3cCasAlarmParamAgentTime,
+		h3cCasAlarmParamCvkName,
+		h3cCasAlarmParamCvkIpAddress,
+		h3cCasAlarmParamAlarmClass,
+		h3cCasAlarmParamCpuUsage,
+		h3cCasAlarmParamCpuThreshold,
+		h3cCasAlarmParamMemUsage,
+		h3cCasAlarmParamMemThreshold,
+		h3cCasAlarmParamDiskName,
+		h3cCasAlarmParamDiskPartitionUsage,
+		h3cCasAlarmParamDiskThreshold,
+		h3cCasAlarmParamDiskThroughput,
+		h3cCasAlarmParamDiskThroughputThreshold,
+		h3cCasAlarmParamNetThroughput,
+		h3cCasAlarmParamNetThroughputThreshold,
+		h3cCasAlarmParamDiskPosition,
+		h3cCasAlarmParamSysCallID,
+		h3cCasAlarmParamSysCallCount,
+		h3cCasAlarmParamProcessInfo,
+		h3cCasAlarmParamVmDisplayName,
+		h3cCasAlarmParamVmIpAddress,
+		h3cCasAlarmParamVmName,
+		h3cCasAlarmParamVmUuid,
+		h3cCasAlarmParamVmIpv6Address,
+		h3cCasAlarmParamReservedHugepageMemUsage,
+		h3cCasAlarmParamReservedHugepageMemThreshold,
+		h3cCasAlarmParamClusterName,
+		h3cCasAlarmParamCvmHostName,
+		h3cCasAlarmParamCvmIpAddress,
+		h3cCasAlarmParamCasType,
+		h3cCasAlarmParamSharedFilesystemName,
+		h3cCasAlarmParamSharedFilesystemDisplayName,
+		h3cCasAlarmParamSharedFilesystemMountPath,
+		h3cCasAlarmParamNicMac,
+		h3cCasAlarmParamFaultType,
+		h3cCasAlarmParamApplicationName,
+		h3cCasAlarmParamVirtualSwitchName,
+		h3cCasAlarmParamVSFaultType,
+		h3cCasAlarmParamDiskReadThroughput,
+		h3cCasAlarmParamDiskReadThroughputThreshold,
+		h3cCasAlarmParamDiskWriteThroughput,
+		h3cCasAlarmParamDiskWriteThroughputThreshold,
+		h3cCasAlarmParamDiskIops,
+		h3cCasAlarmParamDiskIopsThreshold,
+		h3cCasAlarmParamDiskReadIops,
+		h3cCasAlarmParamDiskReadIopsThreshold,
+		h3cCasAlarmParamDiskWriteIops,
+		h3cCasAlarmParamDiskWriteIopsThreshold,
+		h3cCasAlarmParamDiskIoLatency,
+		h3cCasAlarmParamDiskIoLatencyThreshold,
+		h3cCasAlarmParamDiskReadIoLatency,
+		h3cCasAlarmParamDiskReadIoLatencyThreshold,
+		h3cCasAlarmParamDiskWriteIoLatency,
+		h3cCasAlarmParamDiskWriteIoLatencyThreshold,
+		h3cCasAlarmParamNetRecvThroughput,
+		h3cCasAlarmParamNetRecvThroughputThreshold,
+		h3cCasAlarmParamNetSendThroughput,
+		h3cCasAlarmParamNetSendThroughputThreshold,
+		h3cCasAlarmParamHbaCardName,
+		h3cCasAlarmParamTemplateStorageName,
+		h3cCasAlarmParamProcessName,
+		h3cCasAlarmParamUnitTime,
+		h3cCasAlarmParamCpuTemperature,
+		h3cCasAlarmParamCpuTemperatureThreshold,
+		h3cCasAlarmParamPacketLossRate,
+		h3cCasAlarmParamPacketLossThreshold,
+		h3cCasAlarmParamUserIpAddress,
+		h3cCasAlarmParamTimeDifference,
+		h3cCasAlarmParamUserAccount,
+		h3cCasAlarmParamloginTime,
+		h3cCasAlarmParamCurrentValue,
+		h3cCasAlarmParamDaysBeforeAutoDestroy,
+		h3cCasAlarmParamMaxNumberOfAttempts,
+		h3cCasAlarmParamNetType,
+		h3cCasAlarmParamResourceAccessURL,
+		h3cCasAlarmParamComponentName,
+		h3cCasAlarmParamVirtualSwitchErrorPacketRate,
+		h3cCasAlarmParamNicErrorPacketRate,
+		h3cCasAlarmParamVirtualSwitchErrorPacketRateThreshold,
+		h3cCasAlarmParamNicErrorPacketRateThreshold,
+		h3cCasAlarmParamUserPwdValidTime,
+		h3cCasAlarmParamVmMetadataFaultFileName,
+		h3cCasAlarmParamVmMetadataFaultFixResult,
+		h3cCasAlarmParamVmTcpConnNumber,
+		h3cCasAlarmParamVmTcpConnNumberThreshold,
+		h3cCasAlarmParamVmTemplateName,
+		h3cCasAlarmParamSenderEmail,
+		h3cCasAlarmParamRecipientEmail,
+		h3cCasAlarmParamStoragePathName,
+		h3cCasAlarmParamStoragePathID,
+		h3cCasAlarmParamResourceUsageThreshold,
+		h3cCasAlarmParamResourceUsage,
+		h3cCasAlarmParamEventType
+	}
+	STATUS	current
+	DESCRIPTION
+		"A collection of parameters of alarms currently in use."
+	::= { h3cCasAlarmMIBGroups 1 }
+
+h3cCasAlarmNotificationGroup NOTIFICATION-GROUP
+	NOTIFICATIONS {
+		h3cCasAlarmHostNicDown,
+		h3cCasAlarmHostLocalStorageFailed,
+		h3cCasAlarmHostTimeNotSynchronized,
+		h3cCasAlarmHostClockSourceNotTsc,
+		h3cCasAlarmHostCpuUsageExceedThreshold,
+		h3cCasAlarmHostMemUsageExceedThreshold,
+		h3cCasAlarmHostDiskPartitionUsageExceedThreshold,
+		h3cCasAlarmHostDiskThroughputExceedThreshold,
+		h3cCasAlarmHostNetThroughputExceedThreshold,
+		h3cCasAlarmVmTcpConnNumberExceedThreshold,
+		h3cCasAlarmAlarmPhoneMessageSendFail,
+		h3cCasAlarmAlarmEmailSendFail,
+		h3cCasAlarmHostVersionFail,
+		h3cCasAlarmVmFailed,
+		h3cCasAlarmVmFailoverSucceeded,
+		h3cCasAlarmVmRecoveryFailed,
+		h3cCasAlarmVmCpuUsageExceedThreshold,
+		h3cCasAlarmVmMemUsageExceedThreshold,
+		h3cCasAlarmVmDiskPartitionUsageExceedThreshold,
+		h3cCasAlarmVmDiskThroughputExceedThreshold,
+		h3cCasAlarmVmNetThroughputExceedThreshold,
+		h3cCasAlarmClusterHaFailoverFailed,
+		h3cCasAlarmHostNetHeartbeatDown,
+		h3cCasAlarmClusterHaResourceReserveInsufficient,
+		h3cCasAlarmClusterCpuUsageExceedThreshold,
+		h3cCasAlarmClusterMemUsageExceedThreshold,
+		h3cCasAlarmClusterReservedHugepageMemUsageExceedThreshold,
+		h3cCasAlarmSharedFilesystemFailed,
+		h3cCasAlarmClusterSharedStorageUsageExceedThreshold,
+		h3cCasAlarmClusterSharedStorageThroughputExceedThreshold,
+		h3cCasAlarmClusterSharedStorageReadThroughputExceedThreshold,
+		h3cCasAlarmClusterSharedStorageWriteThroughputExceedThreshold,
+		h3cCasAlarmClusterSharedStorageIopsExceedThreshold,
+		h3cCasAlarmClusterSharedStorageReadIopsExceedThreshold,
+		h3cCasAlarmClusterSharedStorageWriteIopsExceedThreshold,
+		h3cCasAlarmHostSharedStorageFilesystemBroken,
+		h3cCasAlarmCvmFailed,
+		h3cCasAlarmCasLicenseExpiring,
+		h3cCasAlarmHaStandbyCvmFailed,
+		h3cCasAlarmCvmTemplateStorageFailed,
+		h3cCasAlarmCvmAutoBackupFailed,
+		h3cCasAlarmCvmBrainSplited,
+		h3cCasAlarmVirtualSwitchFailed,
+		h3cCasAlarmHostReservedHugepageMemUsageExceedThreshold,
+		h3cCasAlarmHostDiskReadThroughputExceedThreshold,
+		h3cCasAlarmHostDiskWriteThroughputExceedThreshold,
+		h3cCasAlarmHostDiskIopsExceedThreshold,
+		h3cCasAlarmHostDiskReadIopsExceedThreshold,
+		h3cCasAlarmHostDiskWriteIopsExceedThreshold,
+		h3cCasAlarmHostDiskIoLatencyExceedThreshold,
+		h3cCasAlarmHostDiskReadIoLatencyExceedThreshold,
+		h3cCasAlarmHostDiskWriteIoLatencyExceedThreshold,
+		h3cCasAlarmHostNetRecvThroughputExceedThreshold,
+		h3cCasAlarmHostNetSendThroughputExceedThreshold,
+		h3cCasAlarmHostFcLinkFailed,
+		h3cCasAlarmHostNetUplinkRedundancyFailed,
+		h3cCasAlarmHostSharedStorageSingleLinkLeft,
+		h3cCasAlarmHostFailed,
+		h3cCasAlarmVirtualizationManagementServiceAbnormal,
+		h3cCasAlarmHostInMaintenance,
+		h3cCasAlarmHostProcessFailed,
+		h3cCasAlarmHostNicAutoNegotiationFailed,
+		h3cCasAlarmVmDiskReadThroughputExceedThreshold,
+		h3cCasAlarmVmDiskWriteThroughputExceedThreshold,
+		h3cCasAlarmVmDiskIopsExceedThreshold,
+		h3cCasAlarmVmDiskReadIopsExceedThreshold,
+		h3cCasAlarmVmDiskWriteIopsExceedThreshold,
+		h3cCasAlarmVmDiskIoLatencyExceedThreshold,
+		h3cCasAlarmVmDiskReadIoLatencyExceedThreshold,
+		h3cCasAlarmVmDiskWriteIoLatencyExceedThreshold,
+		h3cCasAlarmVmNetRecvThroughputExceedThreshold,
+		h3cCasAlarmVmNetSendThroughputExceedThreshold,
+		h3cCasAlarmVmAutoDestoryedSoon,
+		h3cCasAlarmVmAutoBackupFailed,
+		h3cCasAlarmVmFroze,
+		h3cCasAlarmVmImgDeleted,
+		h3cCasAlarmVmIOFailOver,
+		h3cCasAlarmHostLogPartitionGrowSpeedOverExpected,
+		h3cCasAlarmHostCpuOverheat,
+		h3cCasAlarmHostNicRecvPacketLossOverrate,
+		h3cCasAlarmHostNicSendPacketLossOverrate,
+		h3cCasAlarmHostMceArose,
+		h3cCasAlarmVmNicRecvPacketLossOverrate,
+		h3cCasAlarmVmNicSendPacketLossOverrate,
+		h3cCasAlarmCvmFailoverArbitrationHostFailed,
+		h3cCasAlarmHostSuspiciousProcessRunning,
+		h3cCasAlarmHostO2netTcpShutdown,
+		h3cCasAlarmSharedStorageMultipathAbnormal,
+		h3cCasAlarmSharedFilesystemAutomaticallyInactivated,
+		h3cCasAlarmHostRestarted,
+		h3cCasAlarmHostVirtualSwitchRecvErrorPacketOverrate,
+		h3cCasAlarmHostNicRecvErrorPacketOverrate,
+		h3cCasAlarmVmNicRecvErrorPacketOverrate,
+		h3cCasAlarmIscsiSessionConnectionFailed,
+		h3cCasAlarmHostVirtualSwitchSendErrorPacketOverrate,
+		h3cCasAlarmHostNicSendErrorPacketOverrate,
+		h3cCasAlarmVmNicSendErrorPacketOverrate,
+		h3cCasAlarmSharedFilesystemFenceUmounted,
+		h3cCasAlarmVmSpectralVituralMachineRunning,
+		h3cCasAlarmTomcatConnsOverrate,
+		h3cCasAlarmTomcatConnsOfIpOverrate,
+		h3cCasAlarmVmTemplateAbnormal,
+		h3cCasAlarmAdminPwdValidTime,
+		h3cCasAlarmAdminPwdInvalid,
+		h3cCasAlarmVmMetadataFileFault,
+		h3cCasAlarmVmQemuLiveUpdateFail,
+		h3cCasAlarmHostHungTask,
+		h3cCasAlarmVmCastoolsAbnormal,
+		h3cCasAlarmTomcatCpuUsage,
+		h3cCasAlarmTomcatMemoryUsage,
+		h3cCasAlarmDomainServerCpuUsage,
+		h3cCasAlarmDomainServerMemoryUsage,
+		h3cCasAlarmVmApplicationFailed,
+		h3cCasAlarmLoginFailureOverLimit,
+		h3cCasAlarmUserIpRestricted,
+		h3cCasAlarmUserTimeRestricted,
+		h3cCasAlarmResourceAccessAuthorityInsufficient,
+		h3cCasAlarmHostComponentMissed,
+		h3cCasAlarmVmEscape,
+		h3cCasAlarmHostLogicalDiskCacheFailed,
+		h3cCasAlarmHostPhysicalDiskCacheFailed,
+		h3cCasAlarmRaidControllerAbnormal,
+		h3cCasAlarmRaidBatteryAbnormal,
+		h3cCasAlarmLogicalDiskFailed,
+		h3cCasAlarmPhysicalDiskFailed,
+		h3cCasAlarmPhysicalDiskIoAbnormal,
+		h3cCasRecoveryHostNicDown,
+		h3cCasRecoveryHostLocalStorageFailed,
+		h3cCasRecoveryHostTimeNotSynchronized,
+		h3cCasRecoveryHostClockSourceNotTsc,
+		h3cCasRecoveryHostCpuUsageExceedThreshold,
+		h3cCasRecoveryHostMemUsageExceedThreshold,
+		h3cCasRecoveryHostDiskPartitionUsageExceedThreshold,
+		h3cCasRecoveryHostDiskThroughputExceedThreshold,
+		h3cCasRecoveryHostNetThroughputExceedThreshold,
+		h3cCasRecoveryVmFailed,
+		h3cCasRecoveryVmFailoverSucceeded,
+		h3cCasRecoveryVmRecoveryFailed,
+		h3cCasRecoveryVmCpuUsageExceedThreshold,
+		h3cCasRecoveryVmMemUsageExceedThreshold,
+		h3cCasRecoveryVmDiskPartitionUsageExceedThreshold,
+		h3cCasRecoveryVmDiskThroughputExceedThreshold,
+		h3cCasRecoveryVmNetThroughputExceedThreshold,
+		h3cCasRecoveryVmTcpConnNumberExceedThreshold,
+		h3cCasRecoveryClusterHaFailoverFailed,
+		h3cCasRecoveryHostNetHeartbeatDown,
+		h3cCasRecoveryClusterHaResourceReserveInsufficient,
+		h3cCasRecoveryClusterCpuUsageExceedThreshold,
+		h3cCasRecoveryClusterMemUsageExceedThreshold,
+		h3cCasRecoveryClusterReservedHugepageMemUsageExceedThreshold,
+		h3cCasRecoverySharedFilesystemFailed,
+		h3cCasRecoveryClusterSharedStorageUsageExceedThreshold,
+		h3cCasRecoveryClusterSharedStorageThroughputExceedThreshold,
+		h3cCasRecoveryClusterSharedStorageReadThroughputExceedThreshold,
+		h3cCasRecoveryClusterSharedStorageWriteThroughputExceedThreshold,
+		h3cCasRecoveryClusterSharedStorageIopsExceedThreshold,
+		h3cCasRecoveryClusterSharedStorageReadIopsExceedThreshold,
+		h3cCasRecoveryClusterSharedStorageWriteIopsExceedThreshold,
+		h3cCasRecoveryHostSharedStorageFilesystemBroken,
+		h3cCasRecoveryCvmFailed,
+		h3cCasRecoveryCasLicenseExpiring,
+		h3cCasRecoveryHaStandbyCvmFailed,
+		h3cCasRecoveryCvmTemplateStorageFailed,
+		h3cCasRecoveryCvmAutoBackupFailed,
+		h3cCasRecoveryCvmBrainSplited,
+		h3cCasRecoveryVirtualSwitchFailed,
+		h3cCasRecoveryHostReservedHugepageMemUsageExceedThreshold,
+		h3cCasRecoveryHostDiskReadThroughputExceedThreshold,
+		h3cCasRecoveryHostDiskWriteThroughputExceedThreshold,
+		h3cCasRecoveryHostDiskIopsExceedThreshold,
+		h3cCasRecoveryHostDiskReadIopsExceedThreshold,
+		h3cCasRecoveryHostDiskWriteIopsExceedThreshold,
+		h3cCasRecoveryHostDiskIoLatencyExceedThreshold,
+		h3cCasRecoveryHostDiskReadIoLatencyExceedThreshold,
+		h3cCasRecoveryHostDiskWriteIoLatencyExceedThreshold,
+		h3cCasRecoveryHostNetRecvThroughputExceedThreshold,
+		h3cCasRecoveryHostNetSendThroughputExceedThreshold,
+		h3cCasRecoveryHostFcLinkFailed,
+		h3cCasRecoveryHostNetUplinkRedundancyFailed,
+		h3cCasRecoveryHostSharedStorageSingleLinkLeft,
+		h3cCasRecoveryHostFailed,
+		h3cCasRecoveryVirtualizationManagementServiceAbnormal,
+		h3cCasRecoveryHostInMaintenance,
+		h3cCasRecoveryHostProcessFailed,
+		h3cCasRecoveryHostNicAutoNegotiationFailed,
+		h3cCasRecoveryVmDiskReadThroughputExceedThreshold,
+		h3cCasRecoveryVmDiskWriteThroughputExceedThreshold,
+		h3cCasRecoveryVmDiskIopsExceedThreshold,
+		h3cCasRecoveryVmDiskReadIopsExceedThreshold,
+		h3cCasRecoveryVmDiskWriteIopsExceedThreshold,
+		h3cCasRecoveryVmDiskIoLatencyExceedThreshold,
+		h3cCasRecoveryVmDiskReadIoLatencyExceedThreshold,
+		h3cCasRecoveryVmDiskWriteIoLatencyExceedThreshold,
+		h3cCasRecoveryVmNetRecvThroughputExceedThreshold,
+		h3cCasRecoveryVmNetSendThroughputExceedThreshold,
+		h3cCasRecoveryVmAutoBackupFailed,
+		h3cCasRecoveryVmFroze,
+		h3cCasRecoveryVmImgDeleted,
+		h3cCasRecoveryVmIOFailOver,
+		h3cCasRecoveryHostLogPartitionGrowSpeedOverExpected,
+		h3cCasRecoveryHostCpuOverheat,
+		h3cCasRecoveryHostNicRecvPacketLossOverrate,
+		h3cCasRecoveryHostNicSendPacketLossOverrate,
+		h3cCasRecoveryHostMceArose,
+		h3cCasRecoveryVmNicRecvPacketLossOverrate,
+		h3cCasRecoveryVmNicSendPacketLossOverrate,
+		h3cCasRecoveryCvmFailoverArbitrationHostFailed,
+		h3cCasRecoveryHostSuspiciousProcessRunning,
+		h3cCasRecoveryHostO2netTcpShutdown,
+		h3cCasRecoverySharedStorageMultipathAbnormal,
+		h3cCasRecoverySharedFilesystemAutomaticallyInactivated,
+		h3cCasRecoveryHostRestarted,
+		h3cCasRecoveryHostVirtualSwitchRecvErrorPacketOverrate,
+		h3cCasRecoveryHostNicRecvErrorPacketOverrate,
+		h3cCasRecoveryVmNicRecvErrorPacketOverrate,
+		h3cCasRecoveryIscsiSessionConnectionFailed,
+		h3cCasRecoveryHostVirtualSwitchSendErrorPacketOverrate,
+		h3cCasRecoveryHostNicSendErrorPacketOverrate,
+		h3cCasRecoveryVmNicSendErrorPacketOverrate,
+		h3cCasRecoverySharedFilesystemFenceUmounted,
+		h3cCasRecoveryVmSpectralVituralMachineRunning,
+		h3cCasRecoveryTomcatConnsOverrate,
+		h3cCasRecoveryTomcatConnsOfIpOverrate,
+		h3cCasRecoveryVmTemplateAbnormal,
+		h3cCasRecoveryAdminPwdValidTime,
+		h3cCasRecoveryAdminPwdInvalid,
+		h3cCasRecoveryVmQemuLiveUpdateFail,
+		h3cCasRecoveryHostHungTask,
+		h3cCasRecoveryVmCastoolsAbnormal,
+		h3cCasRecoveryTomcatCpuUsage,
+		h3cCasRecoveryTomcatMemoryUsage,
+		h3cCasRecoveryDomainServerCpuUsage,
+		h3cCasRecoveryDomainServerMemoryUsage,
+		h3cCasRecoveryVmApplicationFailed,
+		h3cCasRecoveryResourceAccessAuthorityInsufficient,
+		h3cCasRecoveryHostComponentMissed,
+		h3cCasRecoveryVmEscape,
+		h3cCasRecoveryHostLogicalDiskCacheFailed,
+		h3cCasRecoveryHostPhysicalDiskCacheFailed,
+		h3cCasRecoveryRaidControllerAbnormal,
+		h3cCasRecoveryRaidBatteryAbnormal,
+		h3cCasRecoveryLogicalDiskFailed,
+		h3cCasRecoveryPhysicalDiskFailed,
+		h3cCasRecoveryPhysicalDiskIoAbnormal
+	}
+	STATUS	current
+	DESCRIPTION
+		"A collection of alarms currently in use."
+	::= { h3cCasAlarmMIBGroups 5 }
+
+h3cCasAlarmObsoleteNotificationGroup NOTIFICATION-GROUP
+	NOTIFICATIONS {
+		h3cCasAlarmClusterSharedStorageIoLatencyExceedThreshold,
+		h3cCasAlarmClusterSharedStorageReadIoLatencyExceedThreshold,
+		h3cCasAlarmClusterSharedStorageWriteIoLatencyExceedThreshold,
+		h3cCasRecoveryClusterSharedStorageIoLatencyExceedThreshold,
+		h3cCasRecoveryClusterSharedStorageReadIoLatencyExceedThreshold,
+		h3cCasRecoveryClusterSharedStorageWriteIoLatencyExceedThreshold
+	}
+	STATUS	obsolete
+	DESCRIPTION
+		"A collection of obsolete alarms."
+	::= { h3cCasAlarmMIBGroups 6 }
+END

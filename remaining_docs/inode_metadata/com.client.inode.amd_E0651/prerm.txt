@@ -1,0 +1,43 @@
+#!/bin/sh
+
+set -x
+
+case $1 in 
+
+	remove|purge)
+	#uninstall protect
+	INODE_CFG="/etc/iNode/inodesys.conf"
+	INSTALL_DIR=""
+
+	if [ -r "$INODE_CFG" ];then
+		LINE=`cat $INODE_CFG`
+		INSTALL_DIR=${LINE##*INSTALL_DIR=}
+	fi
+	cd $INSTALL_DIR
+	RES=`ls $INSTALL_DIR/libs/ | grep sys_prot`
+
+	if [ "$RES" != "" ] ; then
+
+		export LANG=zh_CN.UTF-8
+		user=`who | head -n 1 | awk '{print $1}'`
+		sudo -u $user $INSTALL_DIR/iNodeClient -u
+
+		RES=`ls $INSTALL_DIR/ | grep needUninstall`
+		if [ -f "$INSTALL_DIR/needUninstall" ]; then
+			/etc/init.d/iNodeAuthService stop
+			exit 0
+		else
+			exit 1
+		fi
+
+	fi
+	
+	/etc/init.d/iNodeAuthService stop
+	;;
+	upgrade)
+	;;
+	*)
+	;;
+
+esac
+exit 0

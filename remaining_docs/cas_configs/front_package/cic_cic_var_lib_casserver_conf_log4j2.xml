@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+	<Properties>
+		<Property name="casserver_name">${sys:casserver.home}/logs/casserver.log</Property>
+		<Property name="file_pattern">${sys:casserver.home}/logs/casserver.log.%i</Property>
+		<Property name="log_pattern">%d{yyyy-MM-dd HH:mm:ss} [%-5p] [%t] [%C::%M] %m%n</Property>
+	</Properties>
+	<appenders>
+		<RollingFile name="casserver" fileName="${casserver_name}" append="true"
+			 filePattern="${file_pattern}">
+			<PatternLayout Pattern="${log_pattern}"/>
+			<Policies>
+				<SizeBasedTriggeringPolicy size="200 MB" />
+			</Policies>
+			<DefaultRolloverStrategy fileIndex="max" max="5" />
+		</RollingFile>
+		<Console name="STDOUT" target="SYSTEM_OUT">
+			<PatternLayout pattern="${log_pattern}" />
+		</Console>
+	</appenders>
+	<loggers>
+		<Logger name="com.h3c.cas.server" level="info" additivity="false">
+			<AppenderRef ref="casserver" />
+		</Logger>
+		<Logger name="com.virtual.plat" level="info" additivity="false">
+			<AppenderRef ref="casserver" />
+		</Logger>
+		<root level="info">
+			<AppenderRef ref="STDOUT" />
+		</root>
+	</loggers>
+</configuration>

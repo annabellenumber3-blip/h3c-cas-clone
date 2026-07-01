@@ -1,0 +1,326 @@
+#!/bin/bash
+
+set -o errexit
+
+#debug mode
+ulimit -c unlimited
+
+#following path will be modified when install to system
+INSTALL_ROOT=/usr/local/movesure/6.0
+
+#set java evironment
+JAVA_HOME=$INSTALL_ROOT/server/jdk
+CLASSPATH=.:$JAVA_HOME/lib/tools.jar
+PATH=$JAVA_HOME/bin:$PATH
+export JAVA_HOME CLASSPATH PATH
+
+#===================================================================
+MYSQL=$INSTALL_ROOT/server/mysql/bin
+MYSQLPID=$INSTALL_ROOT/server/mysql/data/mysqld.pid
+MSG_SERVER=$INSTALL_ROOT/server/MsgMSService
+TOMCAT=$INSTALL_ROOT/server/tomcat/bin
+LIB_PATH=$INSTALL_ROOT/server/lib:$INSTALL_ROOT/lib
+LOG_PATH=$INSTALL_ROOT/server/var
+PID_FILE=$LOG_PATH/.pid
+
+#Server name recorded in pid file
+PID_INDEX_SERVER_NAME="movesureindexservice"
+PID_MSG_SERVER_NAME="movesuremessage"
+PID_STORE_SERVER_NAME="movesurestorageserver"
+
+msgpid=0
+
+SERVER_DEAMON_SCRIPT=$INSTALL_ROOT/server/script/servicedeamon.sh
+
+SERVER_PATH_INIT_FILE=$INSTALL_ROOT/server/CAS_INIT.FILE
+
+
+function usage {
+	echo "Invalid command"
+	echo "Usage:"
+	echo "$0 [start {tomcat,movesuremessage,mysql,brg}|stop {tomcat,movesuremessage,mysql,brg}|status]"
+	echo "example:"
+	echo "$0 start"
+	echo "$0 start movesuremessage"
+	echo "$0 stop"
+	echo "$0 stop movesuremessage"
+}
+
+function recordPIDs {
+	recordstring=""
+
+	if [ $msgpid -ne 0 ]
+	then
+		recordstring=$recordstring"$PID_MSG_SERVER_NAME $msgpid\n"
+	fi
+
+	echo -e "$recordstring" > $PID_FILE
+}
+
+function readPIDs {
+	msgpid=0
+	if [ -f "$PID_FILE" ]
+	then
+		while read -r line
+		do
+			read -r servername pid <<< "$line"
+			if [ "$servername" == "$PID_MSG_SERVER_NAME" ]
+			then
+				check=`ps -Af | grep -w MsgMSService | grep -v grep | awk '{print $3}'`
+				if [ "$check" == "$pid" ]
+				then
+					msgpid=$pid
+				fi
+			fi
+		done < $PID_FILE
+	fi
+}
+
+
+function start_mysql
+{
+	echo "start mysql"
+	$MYSQL/start.sh
+}
+
+function stop_mysql
+{
+	echo "stop mysql"
+        $MYSQL/stop.sh
+}
+
+function start_tomcat
+{
+	echo "start tomcat"
+    tomcat_status=`ps -ef | grep -v grep | grep -v movesureservice | grep -v -i VNC | grep movesure |grep tomcat | awk '{ print $2}'`
+ 
+    if [ x"$tomcat_status" != x"" ]
+    then
+        echo "tomcat is already existed, pid: $tomcat_status"
+        return 0
+    fi  
+
+	$TOMCAT/startup.sh
+}
+
+function stop_tomcat
+{
+	echo "stop tomcat"
+	$TOMCAT/shutdown.sh
+	kill_tomcat
+}
+
+function kill_tomcat
+{
+	Tomcat_process=`ps -ef|grep movesure| grep tomcat |grep -v grep|grep -v PPID|awk '{ print $2}'`
+	
+	for i in $Tomcat_process
+	do
+		kill -9 $i
+	done
+}
+
+function start_movesuremessage
+{
+	readPIDs
+	if [ $msgpid -ne 0 ]
+	then
+		echo "Error, Message server is already running"
+	else
+		$SERVER_DEAMON_SCRIPT -e $MSG_SERVER -p $LIB_PATH -l $LOG_PATH >/dev/null 2>&1 &
+		msgpid=$!
+		recordPIDs
+	fi
+}
+
+function stop_movesuremessage
+{
+	readPIDs
+	if [ $msgpid -ne 0 ]
+	then
+		kill $msgpid
+		msgpid=0
+		recordPIDs
+	fi
+	
+}
+
+bMysqldRunning=0
+function waitForMysqldStart
+{
+	checkCount=0
+	bchecking=1
+	checkResult=""
+ 	while [ $bchecking -eq 1 ]
+	do
+		echo "Check for mysqld"
+		checkResult=`netstat -pln | grep -w 3307 | grep -v grep` || true
+		if [ "$checkResult" != "" ]
+		then
+			echo "Find mysqld!"
+			bchecking=0
+			bMysqldRunning=1
+		else
+			sleep 1
+        	fi
+    
+                let checkCount=$checkCount+1
+		if [ $checkCount -gt 60 ]
+		then
+			echo "Have try more than 60 times, give up"
+			bchecking=0
+		fi
+	done
+}
+
+
+function waitForMysqldStop
+{
+	bMysqldRunning=1
+	checkCount=0
+	bchecking=1
+	checkResult=""
+ 	while [ $bchecking -eq 1 ]
+	do
+		echo "Check for mysqld"
+		#checkResult=`netstat -pln | grep -w 3306 | grep -v grep` || true
+		#if [ "$checkResult" != "" ]
+		if [ -f $MYSQLPID ]
+		then
+			sleep 1
+		else
+			echo "mysqld already exit"
+			bchecking=0
+			bMysqldRunning=0
+        fi
+    
+		let checkCount=$checkCount+1
+		if [ $checkCount -gt 60 ]
+		then
+			echo "Have try to wait for mysqld to stop more than 1 minute, but it seems mysqld is still running, plz try to run stop command again."
+			bchecking=0
+		fi
+	done
+}
+
+function start {
+
+	type="all"
+
+	if [ "$1" != "" ]
+		then
+		type="$1"
+	fi
+
+	case "$type" in
+		"all")
+                        start_all
+		;;
+		"mysql")
+			start_mysql
+			waitForMysqldStart
+	    ;;
+		
+		"tomcat")
+			start_tomcat
+		;;
+
+		"movesuremessage")
+			start_movesuremessage
+		;;
+		*)
+			usage
+		;;
+	esac
+}
+
+function start_all {
+
+       if [ -f "$SERVER_PATH_INIT_FILE" ];then
+           exit 0
+       fi
+
+       start_mysql
+       waitForMysqldStart
+       if [ $bMysqldRunning -eq 0 ]
+       then
+             exit 1
+       fi
+       start_tomcat
+       start_movesuremessage
+}
+
+
+function stop {
+
+	type="all"
+
+	if [ "$1" != "" ]
+	then
+		type="$1"
+	fi
+
+	case "$type" in
+	"all")
+		stop_tomcat
+		stop_movesuremessage
+		stop_mysql
+		waitForMysqldStop
+		if [ $bMysqldRunning -eq 1 ]
+		then
+			exit 1
+		fi
+	;;	
+	
+	"mysql")
+		stop_mysql
+		waitForMysqldStop
+		if [ $bMysqldRunning -eq 1 ]
+		then
+			exit
+		fi
+	;;
+	
+	"tomcat")
+		stop_tomcat
+	;;
+
+	"movesuremessage")
+		stop_movesuremessage
+	;;
+	
+	*)	
+		usage
+	;;
+	esac
+}
+
+function status {
+	readPIDs
+	outstr=""
+
+	if [ $msgpid -ne 0 ]
+	then
+		outstr=$outstr"MessageServer:Running \n"
+	else
+		outstr=$outstr"MessageServer:Stop \n"
+	fi
+
+	echo -e "$outstr"
+}
+
+case "$1" in 
+	"start")
+		start "$2"
+	;;
+	"stop")
+		stop "$2"
+	;;
+	"status")
+		status
+	;;
+	*)
+		usage
+		exit
+	;;
+esac

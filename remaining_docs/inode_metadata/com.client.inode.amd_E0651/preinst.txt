@@ -1,0 +1,57 @@
+#!/bin/sh
+
+Arch=amd
+#停旧服务、备份数据
+set -x
+linux_terminate_process()
+{
+   sudo killall -9 $1 > /dev/null 2>&1
+   return 0;
+}
+
+INSTALL_DIR=/opt/apps/com.client.inode."$Arch"
+
+if [ -r "${INSTALL_DIR}/files/clientfiles/" ]; then
+	if [ ! -r "/etc/iNodeTemp" ]; then
+		mkdir /etc/iNodeTemp
+	fi
+	
+	#备份连接文件，安装时候按需拷贝或者删除
+	cp -r $INSTALL_DIR/files/clientfiles/ /etc/iNodeTemp/clientfiles
+fi
+
+case $1 in 
+
+	upgrade)
+	
+	systemctl stop inode
+	/etc/init.d/iNodeAuthService stop
+	
+	current_user=$(who | grep "(:0)" | awk '{print $1}')
+	[ -z "$current_user" ] && current_user=$(logname)
+	
+	IfExistUI=`ps awx -o command|awk -F/ '{print $NF}'|grep -x iNodeClient`
+	if [ "$IfExistUI" != "" ]
+	then
+		linux_terminate_process iNodeClient
+	fi
+	
+	chown -R $current_user:$current_user $INSTALL_DIR
+	
+	#覆盖升级时兼容旧版本的安装包，没有remove|purge这个字段，说明是旧版本安装包；
+	#需要屏蔽覆盖安装时，旧deb包postrm脚本会删除升级包安装目录的动作
+
+	POSTRM="/var/lib/dpkg/info/com.client.inode.${Arch}.postrm"
+	TARGET_PATTERN="rm -rf /opt/apps/"
+
+	if ! grep -q 'remove|purge)' "$POSTRM"; then
+		sed -i "s|$TARGET_PATTERN|echo |g" "$POSTRM"
+	fi
+	
+	# find "$INSTALL_DIR" -mindepth 1 -delete  
+	;;
+	*)
+	;;
+
+esac
+exit 0

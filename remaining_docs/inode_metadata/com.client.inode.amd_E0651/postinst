@@ -1,0 +1,443 @@
+#!/bin/bash
+
+cd "/opt/apps/com.client.inode.amd/files"
+. ./script_log.sh
+
+LOG "postinst Script execution started."
+
+linux_terminate_process()
+{
+   sudo killall -9 $1 > /dev/null 2>&1
+   return 0;
+}
+
+set -x
+OS_UOS=`cat /etc/os-release | grep 'uos'`
+OS_Ubuntu=`cat /etc/os-release | grep 'ubuntu'`
+#current_user=$(who | awk '/:0/{print $1}' | head -n1)
+current_user=$(who | head -n 1 | awk '{print $1}')
+desktop_dir=$(sudo -u $current_user xdg-user-dir DESKTOP)
+echo $desktop_dir
+case $1 in
+    configure)
+	
+	#===================main script code=========================
+		CURRENT=/opt/apps/com.client.inode.amd/files
+		LIBS=/opt/apps/com.client.inode.amd/files/libs
+
+		INODE_CFG="/etc/iNode/inodesys.conf"
+
+		if [ -r "$INODE_CFG" ];then
+			LINE=`cat $INODE_CFG`
+			INSTALL_DIR=${LINE##*INSTALL_DIR=}
+			LOG "read install dir end."
+		fi
+
+		IfExistMon=`ps awx -o command|awk -F/ '{print $NF}'|grep -x iNodeMon`
+		if [ "$IfExistMon" != "" ]
+		then
+			LOG "kill process iNodeMon."
+			if [ -n "$INSTALL_DIR" ]
+			then
+				"$INSTALL_DIR/iNodeMon" -k
+			fi
+				
+			Sec=0
+			while [ 1 ]
+			do
+				IfExistMon=`ps awx -o command|awk -F/ '{print $NF}'|grep -x iNodeMon`
+			if [ "$IfExistMon" != "" ]
+				then
+				sleep 1
+				Sec=`expr $Sec + 1`
+
+				if [ "$Sec" -gt 10 ]
+				then
+					#killall -9 iNodeMon
+					linux_terminate_process iNodeMon
+				fi
+			else
+				break
+			fi
+			done
+		fi
+
+		IfExistAuth=`ps awx -o command|awk -F/ '{print $NF}'|grep -x AuthenMngService`
+		if [ "$IfExistAuth" != "" ]
+		then
+			LOG "kill process AuthenMngService."
+			if [ -n "$INSTALL_DIR" ]
+			then
+				"$INSTALL_DIR/AuthenMngService" -k
+			fi
+			
+			Sec=0
+			while [ 1 ]
+			do
+				IfExistAuth=`ps awx -o command|awk -F/ '{print $NF}'|grep -x AuthenMngService`
+			if [ "$IfExistAuth" != "" ]
+				then
+				sleep 1
+				Sec=`expr $Sec + 1`
+
+				if [ "$Sec" -gt 10 ]
+				then
+					#killall -9 AuthenMngService
+					linux_terminate_process AuthenMngService
+				fi
+			else
+				break
+			fi
+			done
+		fi
+
+		IfExistUI=`ps awx -o command|awk -F/ '{print $NF}'|grep -x iNodeClient`
+		if [ "$IfExistUI" != "" ]
+		then
+			LOG "kill process iNodeClient."
+			sleep 3
+			#killall -9 iNodeClient
+			linux_terminate_process iNodeClient
+		fi
+
+		IfExistTRM=`ps awx -o command|awk -F/ '{print $NF}'|grep -x iNodeTRM`
+		if [ "$IfExistTRM" != "" ]
+		then
+			LOG "kill process iNodeTRM."
+			if [ -n "$INSTALL_DIR" ]
+			then
+				"$INSTALL_DIR/iNodeTRM" -k
+			fi
+			
+			Sec=0
+			while [ 1 ]
+			do
+				IfExistTRM=`ps awx -o command|awk -F/ '{print $NF}'|grep -x iNodeTRM`
+			if [ "$IfExistTRM" != "" ]
+				then
+				sleep 1
+				Sec=`expr $Sec + 1`
+
+				if [ "$Sec" -gt 10 ]
+				then
+					#killall -9 iNodeTRM
+					linux_terminate_process iNodeTRM
+				fi
+			else
+				break
+			fi
+			done
+		fi
+
+		IfExistTRMUI=`ps awx -o command|awk -F/ '{print $NF}'|grep -x TrmClient`
+		if [ "$IfExistTRMUI" != "" ]
+		then
+			LOG "kill process TrmClient."
+			sleep 3
+			#killall -9 TrmClient
+			linux_terminate_process TrmClient
+		fi
+
+		cd "$CURRENT"
+		if [ ! -r "/etc/iNode" ]
+		then
+		LOG "mkdir /etc/iNode."
+		mkdir /etc/iNode
+		fi
+
+		if [ ! -r "./clientfiles" ]
+		then
+		LOG "mkdir ./clientfiles."
+		mkdir ./clientfiles
+		fi
+
+		if [ ! -r "./conf" ]
+		then
+		mkdir ./conf
+		fi
+
+		if [ ! -r "./log" ]
+		then
+		mkdir ./log
+		fi
+
+		if [ ! -r "./Data" ]
+		then
+		mkdir ./Data
+		fi
+
+		INODE_CFG="/etc/iNode/inodesys.conf"
+
+		if [ -r "$INODE_CFG" ];then
+			LINE=`cat $INODE_CFG`
+			INSTALL_DIR=${LINE##*INSTALL_DIR=}
+			LOG "read install dir end."
+		fi
+
+		if [ -z "$INSTALL_DIR" ]; then
+			echo INSTALL_DIR=$CURRENT >> /etc/iNode/inodesys.conf
+		fi
+
+
+		if [ -r "./custom/DeskIconLinux.png" ]
+		then
+		rm -f ./resource/iNodeClient.png
+		cp -f ./custom/DeskIconLinux.png ./resource/iNodeClient.png
+		LOG "set desktop icon end."
+		fi
+
+		sed -i "s:@INSTALL_PATH:$CURRENT:g" /opt/apps/com.client.inode.amd/files/iNodeClient.desktop
+		sed -i "s:@INSTALL_PATH:$CURRENT:g" /opt/apps/com.client.inode.amd/files/iNodeClient.sh
+
+		cd "$CURRENT"
+		KERNEL_VERSION=$(uname -r)
+		KERNEL_VERBOSE=$(uname -a)
+
+		BUILD_VERSION=$(echo $KERNEL_VERBOSE | grep -oP '#\K[0-9]+')
+
+		KERNEL_PREFIX="4.19.0-amd64-desktop"
+		KERNEL_PREFIX_1="5.4.18-110-generic"
+		KERNEL_PREFIX_2="5.10.0-8-generic"
+		if [[ ("$KERNEL_VERSION" == "$KERNEL_PREFIX"* && "$BUILD_VERSION" -ge "5204") || "$KERNEL_VERSION" == "$KERNEL_PREFIX_1"* || "$KERNEL_VERSION" == "$KERNEL_PREFIX_2"* ]]; then
+			KERNEL_VALID=true
+		else
+			KERNEL_VALID=false
+		fi
+
+		if [ "$KERNEL_VALID" == true ] && [ -f "./dlp_install.sh" ];
+		then
+			LOG "Found dlp_install.sh, executing the script."
+			echo "Found dlp_install.sh, executing the script."
+			chmod +x ./dlp_install.sh
+			./dlp_install.sh
+			INSTALL_DLP_STATUS=$?
+		else
+			LOG "dlp_install.sh not found, skipping execution."
+			echo "dlp_install.sh not found, skipping execution."
+			INSTALL_DLP_STATUS=1
+		fi
+		#=============OS Type===============
+		OS_UOS=`cat /etc/os-release | grep 'uos'`
+		OS_Kylin=`cat /etc/issue | grep 'Kylin'`
+		OS_KylinV10=`cat /etc/issue | grep 'Kylin V10'`
+		OS_UOS1070=""
+
+		if [ "$OS_UOS" != "" -a -r ./libs/libudev.so.1.6.13 ]
+		then
+			ln -s libudev.so.1.6.13 ./libs/libudev.so.0 > /dev/null 2>&1
+		fi
+
+		if [ -r /lib/x86_64-linux-gnu/libstdc++.so.6 ]
+		then
+			rm -rf ./libs/libstdc++.so* 
+		fi
+
+		if [ "$OS_UOS" != "" -a -r /lib/x86_64-linux-gnu/libjpeg.so.62 ]
+		then
+			rm -rf ./libs/libjpeg.so* 
+		fi
+
+		if [ "$OS_UOS" != "" -a -r /lib/x86_64-linux-gnu/libpng12.so.0 ]
+		then
+			rm -rf ./libs/libpng12.so* 
+		fi
+
+		ln -fs /opt/apps/com.client.inode.amd/entries/applications/com.client.inode.amd.desktop /usr/share/applications/com.client.inode.amd.desktop
+
+		if [ "$OS_Kylin" != "" -a -r /usr/lib/x86_64-linux-gnu/libudev.so.1 ]
+		then
+		ln -s /usr/lib/x86_64-linux-gnu/libudev.so.1 ./libs/libudev.so.0 > /dev/null 2>&1
+		elif [ "$OS_Kylin" != "" -a -r /lib/x86_64-linux-gnu/libudev.so.1 ]
+		then
+		ln -s /lib/x86_64-linux-gnu/libudev.so.1 ./libs/libudev.so.0 > /dev/null 2>&1
+		elif [ "$OS_Kylin" != "" ]
+		then
+		ln -s libudev.so.1.6.17 ./libs/libudev.so.0 > /dev/null 2>&1
+		fi
+
+		if [ -r /lib/x86_64-linux-gnu/libncurses.so.6 ]
+		then
+		   ln -fs /lib/x86_64-linux-gnu/libncurses.so.6 ./libs/libncurses.so.5 
+		fi
+		
+		if [ -d "/etc/iNodeTemp" ]; then
+			if [ -e "/etc/iNodeTemp/clientfiles/updateFlag" ]; then
+				echo "updateFlag true"
+				# 覆盖升级时需要保留场景文件
+				cd $INSTALL_DIR
+				cp -rf /etc/iNodeTemp/clientfiles/ ./
+				chmod -R 777 ./clientfiles
+				#rm -rf /etc/iNodeTemp
+				LOG "copy and chmod clientfiles end."
+
+				procomVal=`cat ./custom/iNodeCustom.xml | grep '<procomVal>'`
+				procomVal=`echo $procomVal | cut -d'<' -f2`
+				procomVal=`echo $procomVal | cut -d'>' -f2`
+
+				str=$procomVal
+				SDP=64
+				EAD=32
+				VPN=16
+				WLAN=8
+				L2TP=4
+				PORTAL=2
+				X1=1
+
+				flag_SDP=$((str/SDP))
+				if [ $flag_SDP -eq 0 ]
+				then
+				   rm -rf ./clientfiles/19006/* > /dev/null
+				fi
+				
+				str=$((str%SDP))
+				flag_EAD=$((str/EAD))
+				if [ $flag_EAD -eq 0 ]
+				then
+				   rm -rf ./clientfiles/9019/* > /dev/null
+				fi
+
+				str=$((str%EAD))
+				flag_VPN=$((str/VPN))
+				if [ $flag_VPN -eq 0 ]
+				then
+				   rm -rf ./clientfiles/7000/* > /dev/null
+				fi
+
+				str=$((str%VPN))
+				flag_WLAN=$((str/WLAN))
+				if [ "$flag_WLAN" -eq 0 ]
+				then 
+				   rm -rf ./clientfiles/1100/* > /dev/null
+				fi
+
+				str=$((str%WLAN))
+				flag_L2TP=$((str/L2TP))
+				if [ "$flag_L2TP" -eq 0 ]
+				then
+				   rm -rf ./clientfiles/2401/* > /dev/null
+				fi
+
+				str=$((str%L2TP))
+				flag_PORTAL=$((str/PORTAL))
+				if [ "$flag_PORTAL" -eq 0 ]
+				then
+				   rm -rf ./clientfiles/5020/* > /dev/null
+				fi
+
+				str=$((str%PORTAL))
+				flag_X1=$((str/X1))
+				if [ "$flag_X1" -eq 0 ]
+				then
+				   rm -rf ./clientfiles/8021/* > /dev/null
+				fi
+			fi
+		fi
+		
+		echo $OS_KylinV10
+#		if [ "$OS_KylinV10" = "" ]
+#		then 
+#			echo "not Kylin V10."
+#	else
+#		echo "Kylin V10..."
+#		rm -rf ./imageformats/
+#		rm -rf ./platforms/
+#		rm -rf ./bearer
+#		rm -rf  ./iconengines
+#		rm -rf ./platforminputcontexts
+#		rm -rf  ./platformthemes
+#		rm -rf  ./xcbglintegrations
+#		rm -f ./libs/libicu*
+#		rm -f ./libs/libQt5*
+#		rm -f ./libs/libstdc++.so.6*
+#		rm -f ./libs/libdbusmenu-qt5.so.2
+#		rm -f ./libs/libFcitxQt5DBusAddons.so.1
+#		rm -f ./libs/libjpeg.so.8
+#		rm -f ./libs/libpcre16.so.3
+#		rm -f ./libs/libpng12.so.0
+#	fi
+		
+		if [ "$OS_UOS" != "" ]
+		then
+			OS_UOS1070=`cat /var/uos/os-license | grep 'minor_version=1070'`
+		fi
+
+		if [ "$OS_UOS1070" != "" ]
+		then
+			echo "uos1070."
+			rm -rf ./imageformats/
+			rm -rf ./platforms/
+			rm -rf ./bearer
+			rm -rf  ./iconengines
+			rm -rf	./platforminputcontexts
+			rm -rf	./platformthemes
+			rm -rf  ./xcbglintegrations
+			rm -f ./libs/libstdc++.so.6*
+			rm -f ./libs/libicu*
+			rm -f ./libs/libQt5*
+			rm -f ./libs/libdbusmenu-qt5.so.2
+			rm -f ./libs/libFcitxQt5DBusAddons.so.1
+			rm -f ./libs/libjpeg.so.8
+			rm -f ./libs/libpcre16.so.3
+			rm -f ./libs/libpng12.so.0
+		fi
+
+		cp -rf ./iNodeAuthService /etc/init.d/
+		chmod 755 /etc/init.d/iNodeAuthService
+		cp -rf ./inode.service /etc/systemd/system/
+		chmod 755 /etc/systemd/system/inode.service
+		chmod -R 777 $INSTALL_DIR/clientfiles
+		chmod -R 777 $INSTALL_DIR/conf
+		chmod -R 777 $INSTALL_DIR/log
+		chmod -R 777 $INSTALL_DIR/Data
+		systemctl daemon-reload
+		systemctl enable inode.service
+		systemctl start inode.service
+
+		echo "1" > /opt/apps/com.client.inode.amd/files/conf/Tray.txt
+		# /etc/init.d/iNodeAuthService start
+
+		if [ $INSTALL_DLP_STATUS -eq 0 ]; then
+			echo "DLP installation success, scheduling reboot."
+
+			
+			CURRENT_USER=$(who | awk '$2 ~ /tty[0-9]+$/ {print $1}' | head -n 1)
+			SESSION=$(loginctl list-sessions | grep "$CURRENT_USER" | awk '{print $1}')
+			DISPLAY=$(loginctl show-session "$SESSION" -p Display --value)
+			XAUTHORITY="/run/user/$(id -u $CURRENT_USER)/gdm/Xauthority"
+
+			echo "Current user: $CURRENT_USER, DISPLAY: $DISPLAY, XAUTHORITY: $XAUTHORITY"
+
+			ZN_MESSAGE=$(grep '^CMN_DlpRebootWarn=' "$CURRENT/resource/inodegui_zh.res" | cut -d'=' -f2)
+			LANG=$(su - $CURRENT_USER -c 'echo $LANG')
+			[[ $LANG == zh* ]] && MESSAGE="$ZN_MESSAGE" || MESSAGE="DLP installation successful. The system will reboot in 1 minute."
+
+			su -c "DISPLAY=$DISPLAY XAUTHORITY=$XAUTHORITY notify-send -t 30000 '$MESSAGE'" $CURRENT_USER
+
+			echo "$MESSAGE"
+			nohup bash -c 'sleep 60; reboot' > /dev/null 2>&1 &
+		fi
+
+		if [ "$OS_UOS" != "" ]
+		then
+			echo "X-Deepin-CreatedBy=com.deepin.dde.daemon.Launcher" >> /opt/apps/com.client.inode.amd/entries/applications/com.client.inode.amd.desktop
+			echo "X-Deepin-AppID=com.client.inode.amd" >> /opt/apps/com.client.inode.amd/entries/applications/com.client.inode.amd.desktop
+		fi
+		
+		if [ "$OS_Ubuntu" = "" ]
+		then
+			cp /opt/apps/com.client.inode.amd/entries/applications/com.client.inode.amd.desktop "$desktop_dir"/com.client.inode.amd.desktop
+			chmod 777 "$desktop_dir"/com.client.inode.amd.desktop
+		else
+			mv /usr/share/applications/com.client.inode.amd.desktop /usr/share/applications/iNodeClient.desktop
+		fi
+
+        ;;
+    *)
+        ;;
+esac
+
+LOG "postinst Script execution end."
+
+exit 0
+
+
